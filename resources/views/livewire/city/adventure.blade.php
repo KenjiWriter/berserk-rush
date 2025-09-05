@@ -72,26 +72,44 @@
             </div>
         @enderror
 
-        {{-- Maps grid --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        {{-- Maps grid - 2 kolumny na desktop, 1 na mobile --}}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
             @foreach ($maps as $map)
                 @php
                     $isAccessible = $map->isAccessibleBy($character);
                     $isCurrentLevel = $character->level >= $map->level_min && $character->level <= $map->level_max;
 
-                    // Konstrukcja ścieżki obrazu - dodaj img/ prefix jeśli nie ma
+                    // Najpierw sprawdź czy obraz z bazy istnieje (dodaj img/ prefix jeśli potrzeba)
                     $imagePath = null;
                     if ($map->image_path) {
-                        // Jeśli ścieżka już zawiera img/, użyj jej bezpośrednio
-                        if ($map->image_path) {
+                        if (str_starts_with($map->image_path, 'img/')) {
                             $imagePath = $map->image_path;
                         } else {
-                            // Dodaj img/ prefix
-                            $imagePath = $map->image_path;
+                            $imagePath = 'img/' . $map->image_path;
                         }
                     }
-                    // Sprawdź czy obraz mapy istnieje
+
                     $imageExists = $imagePath && file_exists(public_path($imagePath));
+
+                    // Jeśli nie istnieje, użyj hardcoded mapping
+                    if (!$imageExists) {
+                        $hardcodedImages = [
+                            'Mroczny Las' => 'img/maps/dark-forest.png',
+                            'Stare Ruiny' => 'img/maps/old-ruins.png',
+                            'Jaskinia Trolli' => 'img/maps/troll-cave.png',
+                            'Pustkowia Orków' => 'img/maps/orc-wasteland.png',
+                            'Bagna Grozy' => 'img/maps/horror-swamps.png',
+                            'Góry Cienia' => 'img/maps/shadow-mountains.png',
+                            'Wieża Magów' => 'img/maps/shadow-mountains.png',
+                            'Skażone Miasto' => 'img/maps/corrupted-city.png',
+                        ];
+
+                        $fallbackPath = $hardcodedImages[$map->name] ?? null;
+                        if ($fallbackPath && file_exists(public_path($fallbackPath))) {
+                            $imagePath = $fallbackPath;
+                            $imageExists = true;
+                        }
+                    }
                 @endphp
 
                 <div class="relative group">
@@ -123,93 +141,64 @@
                         @endif
 
                         <div class="relative p-6">
-                            {{-- Map image or placeholder --}}
+                            {{-- Map image --}}
                             <div
                                 class="w-full h-40 rounded-lg mb-4 overflow-hidden border-2 {{ $isAccessible ? 'border-green-600' : 'border-gray-600' }} relative">
                                 @if ($imageExists)
                                     {{-- Rzeczywisty obraz mapy --}}
                                     <img src="{{ asset($imagePath) }}" alt="{{ $map->name }}"
-                                        class="w-full h-full object-cover {{ $isAccessible ? '' : 'grayscale' }} transition-all duration-300">
+                                        class="w-full h-full object-cover {{ $isAccessible ? '' : 'grayscale' }} transition-all duration-300"
+                                        loading="lazy">
 
-                                    {{-- Overlay z emoji dla niedostępnych map --}}
+                                    {{-- Overlay z kłódką dla niedostępnych map --}}
                                     @if (!$isAccessible)
                                         <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
                                             <div class="text-4xl text-gray-300">🔒</div>
                                         </div>
                                     @endif
                                 @else
-                                    {{-- Fallback placeholder z rzeczywistymi obrazami dla map z foldera --}}
-                                    @php
-                                        $fallbackImages = [
-                                            'Mroczny Las' => 'img/maps/dark-forest.png',
-                                            'Stare Ruiny' => 'img/maps/old-ruins.png',
-                                            'Jaskinia Trolli' => 'img/maps/troll-cave.png',
-                                            'Pustkowia Orków' => 'img/maps/orc-wasteland.png',
-                                            'Bagna Grozy' => 'img/maps/horror-swamps.png',
-                                            'Góry Cienia' => 'img/maps/shadow-mountains.png',
-                                            'Wieża Magów' => 'img/maps/shadow-mountains.png', // fallback
-                                            'Skażone Miasto' => 'img/maps/horror-swamps.png', // fallback
-                                        ];
-                                        $fallbackImage = $fallbackImages[$map->name] ?? null;
-                                        $fallbackExists = $fallbackImage && file_exists(public_path($fallbackImage));
-                                    @endphp
+                                    {{-- Emoji placeholder jako ostatnia opcja --}}
+                                    <div
+                                        class="w-full h-full {{ $isAccessible ? 'bg-gradient-to-b from-green-200 to-green-400' : 'bg-gradient-to-b from-gray-300 to-gray-500' }} flex items-center justify-center">
+                                        <div class="text-4xl {{ $isAccessible ? 'text-green-800' : 'text-gray-700' }}">
+                                            @switch($map->name)
+                                                @case('Mroczny Las')
+                                                    🌲
+                                                @break
 
-                                    @if ($fallbackExists)
-                                        {{-- Użyj fallback obrazu --}}
-                                        <img src="{{ asset($fallbackImage) }}" alt="{{ $map->name }}"
-                                            class="w-full h-full object-cover {{ $isAccessible ? '' : 'grayscale' }} transition-all duration-300">
+                                                @case('Stare Ruiny')
+                                                    🏛️
+                                                @break
 
-                                        {{-- Overlay z emoji dla niedostępnych map --}}
-                                        @if (!$isAccessible)
-                                            <div class="absolute inset-0 bg-black/50 flex items-center justify-center">
-                                                <div class="text-4xl text-gray-300">🔒</div>
-                                            </div>
-                                        @endif
-                                    @else
-                                        {{-- Emoji placeholder jako ostatnia opcja --}}
-                                        <div
-                                            class="w-full h-full {{ $isAccessible ? 'bg-gradient-to-b from-green-200 to-green-400' : 'bg-gradient-to-b from-gray-300 to-gray-500' }} flex items-center justify-center">
-                                            <div
-                                                class="text-4xl {{ $isAccessible ? 'text-green-800' : 'text-gray-700' }}">
-                                                @switch($map->name)
-                                                    @case('Mroczny Las')
-                                                        🌲
-                                                    @break
+                                                @case('Jaskinia Trolli')
+                                                    🕳️
+                                                @break
 
-                                                    @case('Stare Ruiny')
-                                                        🏛️
-                                                    @break
+                                                @case('Pustkowia Orków')
+                                                    🏜️
+                                                @break
 
-                                                    @case('Jaskinia Trolli')
-                                                        🕳️
-                                                    @break
+                                                @case('Bagna Grozy')
+                                                    🌿
+                                                @break
 
-                                                    @case('Pustkowia Orków')
-                                                        🏜️
-                                                    @break
+                                                @case('Góry Cienia')
+                                                    ⛰️
+                                                @break
 
-                                                    @case('Bagna Grozy')
-                                                        🌿
-                                                    @break
+                                                @case('Wieża Magów')
+                                                    🗼
+                                                @break
 
-                                                    @case('Góry Cienia')
-                                                        ⛰️
-                                                    @break
+                                                @case('Skażone Miasto')
+                                                    🏙️
+                                                @break
 
-                                                    @case('Wieża Magów')
-                                                        🗼
-                                                    @break
-
-                                                    @case('Skażone Miasto')
-                                                        🏙️
-                                                    @break
-
-                                                    @default
-                                                        🗺️
-                                                @endswitch
-                                            </div>
+                                                @default
+                                                    🗺️
+                                            @endswitch
                                         </div>
-                                    @endif
+                                    </div>
                                 @endif
                             </div>
 
