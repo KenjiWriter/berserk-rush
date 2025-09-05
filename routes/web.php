@@ -9,6 +9,7 @@ use App\Livewire\Characters\Show;
 use App\Livewire\City\Armorsmith;
 use App\Livewire\City\Weaponsmith;
 use App\Livewire\Characters\Create;
+use App\Livewire\Adventure\MapStub;
 use Illuminate\Support\Facades\Route;
 use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Character;
@@ -18,11 +19,9 @@ Route::get('/register', Register::class)->name('register');
 
 Route::middleware('auth')->group(function () {
     Route::get('/characters/create', Create::class)->name('characters.create');
-    // Route::get('/characters/{character}', Show::class)->name('characters.show')->can('view', 'character');
 
-    // Character selection redirect - z prawidłowym model binding
+    // Character selection redirect
     Route::get('/characters/{character}/play', function (Character $character) {
-        // Sprawdź autoryzację manualnie
         if (auth()->user()->id !== $character->user_id) {
             abort(403);
         }
@@ -31,7 +30,7 @@ Route::middleware('auth')->group(function () {
         return redirect()->route('city.hub', $character);
     })->name('characters.play');
 
-    // City Hub and Buildings - z prawidłowym model binding  
+    // City Hub and Buildings
     Route::prefix('play/{character}')->name('city.')->group(function () {
         Route::get('/', Hub::class)->name('hub');
         Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
@@ -42,20 +41,7 @@ Route::middleware('auth')->group(function () {
 
     // Adventure map routes
     Route::prefix('play/{character}/adventure')->name('adventure.')->group(function () {
-        Route::get('/{map}', function (Character $character, Map $map) {
-            // Sprawdź autoryzację
-            if (auth()->user()->id !== $character->user_id) {
-                abort(403);
-            }
-
-            // Check if map is accessible
-            if (!$map->isAccessibleBy($character)) {
-                abort(403, 'Twój poziom nie pozwala na wejście na tę mapę.');
-            }
-
-            // Stub for now - future EncounterList component
-            return view('adventure.map-stub', compact('character', 'map'));
-        })->name('map');
+        Route::get('/{map}', MapStub::class)->name('map');
     });
 });
 

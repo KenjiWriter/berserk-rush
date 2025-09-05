@@ -30,8 +30,8 @@ class Map extends Model
         return "{$this->level_min}–{$this->level_max}";
     }
 
-    // public function monsters()
-    // {
-    //     return $this->hasMany(Monster::class);
-    // }
+    public function monsters()
+    {
+        return $this->hasMany(Monster::class);
+    }
 }
