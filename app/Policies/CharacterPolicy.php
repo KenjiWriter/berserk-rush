@@ -26,4 +26,9 @@ class CharacterPolicy
     {
         return $user->id === $character->user_id;
     }
+
+    public function play(User $user, Character $character): bool
+    {
+        return $user->id === $character->user_id;
+    }
 }

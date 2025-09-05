@@ -266,66 +266,41 @@
                                     <div
                                         class="bg-amber-100/80 border-2 border-amber-600 rounded p-3 hover:bg-amber-200/80 transition-colors cursor-pointer shadow-lg">
                                         @if ($character)
-                                            <div class="flex items-center space-x-3">
-                                                {{-- Avatar --}}
-                                                @if ($character->avatar)
+                                            <a href="{{ route('characters.play', $character) }}" class="block">
+                                                <div class="flex items-center space-x-3">
+                                                    {{-- Avatar --}}
                                                     <div
-                                                        class="w-10 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-lg">
-                                                        @switch($character->avatar)
-                                                            @case('human_m')
-                                                                🧑
-                                                            @break
-
-                                                            @case('human_f')
-                                                                👩
-                                                            @break
-
-                                                            @case('elf_m')
-                                                                🧝‍♂️
-                                                            @break
-
-                                                            @case('elf_f')
-                                                                🧝‍♀️
-                                                            @break
-
-                                                            @case('dwarf_m')
-                                                                👨‍🦲
-                                                            @break
-
-                                                            @case('dwarf_f')
-                                                                👩‍🦲
-                                                            @break
-
-                                                            @case('orc_m')
-                                                                👹
-                                                            @break
-
-                                                            @case('orc_f')
-                                                                👺
-                                                            @break
-
-                                                            @default
+                                                        class="w-10 h-10 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-300 flex-shrink-0">
+                                                        @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                                            <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}"
+                                                                alt="Avatar {{ $character->avatar }}"
+                                                                class="w-full h-full object-cover">
+                                                        @else
+                                                            <div
+                                                                class="w-full h-full flex items-center justify-center text-lg text-amber-700">
                                                                 ⚔️
-                                                        @endswitch
-                                                    </div>
-                                                @else
-                                                    <div
-                                                        class="w-10 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-lg">
-                                                        ⚔️
-                                                    </div>
-                                                @endif
-
-                                                {{-- Character info --}}
-                                                <div class="flex-1">
-                                                    <div class="font-bold text-amber-900">{{ $character->name }}</div>
-                                                    <div class="text-sm text-amber-700">
-                                                        Poziom {{ $character->level }}
-                                                        @if ($character->attributes)
-                                                            • {{ $character->getTotalAttributePoints() }} pkt
+                                                            </div>
                                                         @endif
                                                     </div>
+
+                                                    {{-- Character info --}}
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="font-bold text-amber-900 truncate">
+                                                            {{ $character->name }}</div>
+                                                        <div class="text-sm text-amber-700">
+                                                            Poziom {{ $character->level }}
+                                                            @if ($character->attributes)
+                                                                • {{ $character->getTotalAttributePoints() }} pkt
+                                                            @endif
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Play button indicator --}}
+                                                    <div class="text-green-600 font-bold text-sm">
+                                                        ▶️
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </a>
                                         @else
                                             @if ($canCreateCharacter ?? true)
                                                 <a href="{{ route('characters.create') }}" class="block">
