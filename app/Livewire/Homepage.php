@@ -16,7 +16,7 @@ class Homepage extends Component
 
     public function render()
     {
-        // Mock data - replace with actual queries later
+        // Mock data for rankings and admin messages
         $mockData = [
             'activePlayers' => 1234,
             'topCharacters' => [
@@ -62,14 +62,10 @@ class Homepage extends Component
             ]
         ];
 
-        // Show character slots only if user is authenticated
+        // Get real character data if user is authenticated
         if (Auth::check()) {
-            $mockData['myCharacters'] = [
-                ['name' => 'Sławomir', 'level' => 25],
-                ['name' => 'Dobromira', 'level' => 18],
-                null, // empty slot
-                null, // empty slot
-            ];
+            $mockData['myCharacters'] = Auth::user()->getCharacterSlots();
+            $mockData['canCreateCharacter'] = !Auth::user()->hasMaxCharacters();
         }
 
         return view('livewire.homepage', $mockData);

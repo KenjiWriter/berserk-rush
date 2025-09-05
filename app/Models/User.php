@@ -6,6 +6,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Infrastructure\Persistence\Character;
 
 class User extends Authenticatable
 {
@@ -15,7 +17,7 @@ class User extends Authenticatable
     /**
      * The attributes that are mass assignable.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $fillable = [
         'name',
@@ -26,7 +28,7 @@ class User extends Authenticatable
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var list<string>
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -44,5 +46,32 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function characters(): HasMany
+    {
+        return $this->hasMany(Character::class);
+    }
+
+    public function getCharacterSlots(): array
+    {
+        $characters = $this->characters()->latest()->take(4)->get();
+        $slots = [];
+
+        foreach ($characters as $character) {
+            $slots[] = $character;
+        }
+
+        // Fill remaining slots with null
+        while (count($slots) < 4) {
+            $slots[] = null;
+        }
+
+        return $slots;
+    }
+
+    public function hasMaxCharacters(): bool
+    {
+        return $this->characters()->count() >= 4;
     }
 }

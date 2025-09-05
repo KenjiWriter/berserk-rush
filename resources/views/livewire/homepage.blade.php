@@ -266,15 +266,81 @@
                                     <div
                                         class="bg-amber-100/80 border-2 border-amber-600 rounded p-3 hover:bg-amber-200/80 transition-colors cursor-pointer shadow-lg">
                                         @if ($character)
-                                            <div class="text-center">
-                                                <div class="font-bold text-amber-900">{{ $character['name'] }}</div>
-                                                <div class="text-sm text-amber-700">Poziom {{ $character['level'] }}</div>
+                                            <div class="flex items-center space-x-3">
+                                                {{-- Avatar --}}
+                                                @if ($character->avatar)
+                                                    <div
+                                                        class="w-10 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-lg">
+                                                        @switch($character->avatar)
+                                                            @case('human_m')
+                                                                🧑
+                                                            @break
+
+                                                            @case('human_f')
+                                                                👩
+                                                            @break
+
+                                                            @case('elf_m')
+                                                                🧝‍♂️
+                                                            @break
+
+                                                            @case('elf_f')
+                                                                🧝‍♀️
+                                                            @break
+
+                                                            @case('dwarf_m')
+                                                                👨‍🦲
+                                                            @break
+
+                                                            @case('dwarf_f')
+                                                                👩‍🦲
+                                                            @break
+
+                                                            @case('orc_m')
+                                                                👹
+                                                            @break
+
+                                                            @case('orc_f')
+                                                                👺
+                                                            @break
+
+                                                            @default
+                                                                ⚔️
+                                                        @endswitch
+                                                    </div>
+                                                @else
+                                                    <div
+                                                        class="w-10 h-10 bg-gradient-to-b from-amber-400 to-amber-600 rounded-full flex items-center justify-center text-lg">
+                                                        ⚔️
+                                                    </div>
+                                                @endif
+
+                                                {{-- Character info --}}
+                                                <div class="flex-1">
+                                                    <div class="font-bold text-amber-900">{{ $character->name }}</div>
+                                                    <div class="text-sm text-amber-700">
+                                                        Poziom {{ $character->level }}
+                                                        @if ($character->attributes)
+                                                            • {{ $character->getTotalAttributePoints() }} pkt
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             </div>
                                         @else
-                                            <div class="text-center text-amber-700 opacity-75">
-                                                <div class="text-2xl mb-1">➕</div>
-                                                <div class="text-sm font-semibold">Utwórz postać</div>
-                                            </div>
+                                            @if ($canCreateCharacter ?? true)
+                                                <a href="{{ route('characters.create') }}" class="block">
+                                                    <div
+                                                        class="text-center text-amber-700 opacity-75 hover:opacity-100 transition-opacity">
+                                                        <div class="text-2xl mb-1">➕</div>
+                                                        <div class="text-sm font-semibold">Utwórz postać</div>
+                                                    </div>
+                                                </a>
+                                            @else
+                                                <div class="text-center text-amber-700 opacity-50">
+                                                    <div class="text-2xl mb-1">🔒</div>
+                                                    <div class="text-sm font-semibold">Slot zablokowany</div>
+                                                </div>
+                                            @endif
                                         @endif
                                     </div>
                                 @endforeach
