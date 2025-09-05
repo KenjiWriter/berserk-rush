@@ -208,6 +208,37 @@
             {{-- Right Sidebar --}}
             <div class="lg:col-span-1 space-y-6 order-3">
                 @auth
+                    {{-- User Info Panel --}}
+                    <div
+                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        {{-- Decorative corners --}}
+                        <div
+                            class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
+                        </div>
+                        <div
+                            class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
+                        </div>
+                        <div
+                            class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
+                        </div>
+
+                        <div class="relative">
+                            <h3
+                                class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
+                                👤 {{ Auth::user()->name }}
+                            </h3>
+                            <div class="space-y-2">
+                                <div class="text-center text-amber-800 text-sm">
+                                    Witaj z powrotem, wojowniku!
+                                </div>
+                                <livewire:auth.logout-modal />
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- My Characters (when logged in) --}}
                     <div
                         class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
@@ -280,14 +311,11 @@
                                 </div>
 
                                 <a href="{{ route('register') }}"
-                                    class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center block">
+                                    class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center block medieval-font">
                                     ⚔️ Załóż Konto
                                 </a>
 
-                                <a href="{{ route('login') }}"
-                                    class="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-100 font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center block border-2 border-amber-600">
-                                    🗝️ Zaloguj się
-                                </a>
+                                <livewire:auth.login-modal />
                             </div>
                         </div>
                     </div>

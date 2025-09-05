@@ -4,9 +4,16 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 
 class Homepage extends Component
 {
+    #[On('user-logged-in')]
+    public function refreshAfterLogin()
+    {
+        // This will trigger a re-render to show the logged-in state
+    }
+
     public function render()
     {
         // Mock data - replace with actual queries later
