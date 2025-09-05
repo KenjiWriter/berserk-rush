@@ -97,16 +97,122 @@ class MapStub extends Component
         $this->redirect(route('city.hub', $this->character), navigate: true);
     }
 
+    // Helper methods for UI state
+    public function getCurrentPlayerHp(): int
+    {
+        if ($this->currentTurn === 0) {
+            return $this->player['hp'];
+        }
+
+        // Calculate current HP based on turns
+        $currentHp = $this->player['hp'];
+        for ($i = 0; $i < $this->currentTurn && $i < count($this->turns); $i++) {
+            $turn = $this->turns[$i];
+            if ($turn['actor'] === 'enemy' && $turn['type'] === 'hit' && isset($turn['playerHp'])) {
+                $currentHp = $turn['playerHp'];
+            }
+        }
+
+        return max(0, $currentHp);
+    }
+
+    public function getCurrentEnemyHp(): int
+    {
+        if ($this->currentTurn === 0) {
+            return $this->enemy['hp'];
+        }
+
+        // Calculate current HP based on turns
+        $currentHp = $this->enemy['hp'];
+        for ($i = 0; $i < $this->currentTurn && $i < count($this->turns); $i++) {
+            $turn = $this->turns[$i];
+            if ($turn['actor'] === 'player' && $turn['type'] === 'hit' && isset($turn['enemyHp'])) {
+                $currentHp = $turn['enemyHp'];
+            }
+        }
+
+        return max(0, $currentHp);
+    }
+
+    public function getPlayerHpPercent(): float
+    {
+        return ($this->getCurrentPlayerHp() / max(1, $this->player['maxHp'])) * 100;
+    }
+
+    public function getEnemyHpPercent(): float
+    {
+        return ($this->getCurrentEnemyHp() / max(1, $this->enemy['maxHp'])) * 100;
+    }
+
+    public function isPlayerTurn(): bool
+    {
+        if ($this->currentTurn === 0 || $this->currentTurn >= count($this->turns)) {
+            return false;
+        }
+
+        $currentTurnIndex = $this->currentTurn - 1;
+        if (!isset($this->turns[$currentTurnIndex])) {
+            return false;
+        }
+
+        return $this->turns[$currentTurnIndex]['actor'] === 'player';
+    }
+
+    public function isEnemyTurn(): bool
+    {
+        if ($this->currentTurn === 0 || $this->currentTurn >= count($this->turns)) {
+            return false;
+        }
+
+        $currentTurnIndex = $this->currentTurn - 1;
+        if (!isset($this->turns[$currentTurnIndex])) {
+            return false;
+        }
+
+        return $this->turns[$currentTurnIndex]['actor'] === 'enemy';
+    }
+
+    public function getEnemyEmoji(string $enemyName): string
+    {
+        return match ($enemyName) {
+            'Wilk Leśny', 'Wilk Cienia' => '🐺',
+            'Nietoperz Jaskiniowy', 'Jaskiniowy Nietoperz Alfa' => '🦇',
+            'Suchodrzew', 'Drzewiec Plugawy' => '🌳',
+            'Goblin Zwiadowca', 'Troll Paskudnik' => '👹',
+            'Szkielet Wojownik' => '💀',
+            'Duch Strażnik' => '👻',
+            'Ghul', 'Zmutowany Nieumarły' => '🧟',
+            'Upiorny Łucznik' => '🏹',
+            'Troll Szaman', 'Wędrowny Czarownik' => '🧙‍♂️',
+            'Ogr Rozłupywacz' => '🔨',
+            'Orczy Zwiad', 'Rycerz Skazy' => '⚔️',
+            'Ork Berserker' => '🪓',
+            'Szaman Krwi' => '🩸',
+            'Dowódca Watahy' => '👑',
+            'Topielec' => '🌊',
+            'Wiedźmia Straż', 'Czarownica Zgnilizny' => '🧙‍♀️',
+            'Hydra Bagienna' => '🐉',
+            'Golem Bazaltowy' => '🗿',
+            'Harpia' => '🦅',
+            'Adepci Run' => '📜',
+            'Strażnik Arkanów' => '🔮',
+            'Żywiołak Płomieni' => '🔥',
+            'Mistrz Iluzji' => '✨',
+            'Pająk Plagi' => '🕷️',
+            default => '👹'
+        };
+    }
+
     private function backgroundFor(Map $map): string
     {
         return match ($map->name) {
-            'Mroczny Las' => asset('img/maps/backgrounds/dark-forest.png'),
+            'Mroczny Las' => asset('img/maps/dark-forest.png'),
             'Stare Ruiny' => asset('img/maps/old-ruins.png'),
             'Jaskinia Trolli' => asset('img/maps/troll-cave.png'),
             'Pustkowia Orków' => asset('img/maps/orc-wasteland.png'),
             'Bagna Grozy' => asset('img/maps/horror-swamps.png'),
             'Góry Cienia' => asset('img/maps/shadow-mountains.png'),
-            'Wieża Magów' => asset('img/maps/shadow-mountains.png'), // Fallback
+            'Wieża Magów' => asset('img/maps/shadow-mountains.png'),
             'Skażone Miasto' => asset('img/maps/corrupted-city.png'),
             default => asset('img/maps/default.jpg'),
         };
