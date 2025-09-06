@@ -5,7 +5,8 @@ namespace App\Livewire\Adventure;
 use Livewire\Component;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Map;
-use App\Application\Combat\EncounterStub;
+use App\Infrastructure\Persistence\Encounter;
+use App\Application\Combat\EncounterService;
 use Illuminate\Support\Facades\Auth;
 
 class MapStub extends Component
@@ -13,14 +14,27 @@ class MapStub extends Component
     public Character $character;
     public Map $map;
     public string $background;
-    public array $player;
-    public array $enemy;
-    public array $turns;
-    public int $playbackSpeed = 1;
+
+    // Combat state
+    public ?string $currentEncounterId = null;
+    public array $player = [];
+    public array $enemy = [];
+    public array $allTurns = [];
+    public array $visibleTurns = [];
+    public string $result = '';
+    public bool $playerFirst = true;
+
+    // Playback controls
     public bool $isPlaying = false;
-    public int $currentTurn = 0;
-    public string $result;
-    public string $first;
+    public int $playbackSpeed = 1;
+    public bool $autoChain = true;
+    public int $currentTurnIndex = 0;
+
+    // Rewards
+    public int $goldGained = 0;
+    public int $xpGained = 0;
+    public array $levelUps = [];
+    public bool $battleCompleted = false;
 
     public function mount(Character $character, Map $map): void
     {
@@ -29,7 +43,7 @@ class MapStub extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
-        // Level range warning (not blocking for now)
+        // Level range warning
         if (!$map->isAccessibleBy($character)) {
             session()->flash('warning', "Ostrzeżenie: Twój poziom ({$character->level}) może nie być odpowiedni dla tej mapy (poziom {$map->level_range}).");
         }
@@ -37,25 +51,60 @@ class MapStub extends Component
         $this->character = $character;
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
+    }
 
-        // Generate fake encounter
-        $encounter = app(EncounterStub::class)->generateFakeEncounter($character, $map);
+    public function startBattle(): void
+    {
+        $this->resetBattleState();
 
-        $this->player = $encounter['player'];
-        $this->enemy = $encounter['enemy'];
-        $this->turns = $encounter['turns'];
-        $this->result = $encounter['result'];
-        $this->first = $encounter['first'];
+        // Start new encounter
+        $encounterService = app(EncounterService::class);
+        $startResult = $encounterService->start($this->character, $this->map);
+
+        if ($startResult->isError()) {
+            $this->addError('battle', $startResult->getErrorMessage());
+            return;
+        }
+
+        $encounter = $startResult->getPayload();
+        $this->currentEncounterId = $encounter->id;
+
+        // Simulate combat
+        $simulateResult = $encounterService->simulate($encounter);
+
+        if ($simulateResult->isError()) {
+            $this->addError('battle', $simulateResult->getErrorMessage());
+            return;
+        }
+
+        $combatResult = $simulateResult->getPayload();
+        $this->setupBattleData($encounter, $combatResult);
+
+        // Start playback
+        $this->isPlaying = true;
+        $this->dispatch('start-playback', speed: $this->playbackSpeed);
+    }
+
+    public function pause(): void
+    {
+        $this->isPlaying = false;
+        $this->dispatch('stop-playback');
+    }
+
+    public function resume(): void
+    {
+        if ($this->currentTurnIndex < count($this->allTurns)) {
+            $this->isPlaying = true;
+            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        }
     }
 
     public function togglePlayback(): void
     {
-        $this->isPlaying = !$this->isPlaying;
-
-        if ($this->isPlaying && $this->currentTurn < count($this->turns)) {
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        if ($this->isPlaying) {
+            $this->pause();
         } else {
-            $this->dispatch('stop-playback');
+            $this->resume();
         }
     }
 
@@ -68,23 +117,32 @@ class MapStub extends Component
         }
     }
 
+    public function toggleAutoChain(): void
+    {
+        $this->autoChain = !$this->autoChain;
+    }
+
+    public function stopAuto(): void
+    {
+        $this->autoChain = false;
+        $this->pause();
+    }
+
     public function nextTurn(): void
     {
-        if ($this->currentTurn < count($this->turns)) {
-            $this->currentTurn++;
+        if ($this->currentTurnIndex < count($this->allTurns)) {
+            $this->visibleTurns[] = $this->allTurns[$this->currentTurnIndex];
+            $this->currentTurnIndex++;
 
-            if ($this->currentTurn >= count($this->turns)) {
-                $this->isPlaying = false;
-                $this->dispatch('encounter-finished', result: $this->result);
+            if ($this->currentTurnIndex >= count($this->allTurns)) {
+                $this->completeBattle();
             }
         }
     }
 
     public function resetEncounter(): void
     {
-        $this->currentTurn = 0;
-        $this->isPlaying = false;
-        $this->dispatch('stop-playback');
+        $this->startBattle();
     }
 
     public function backToAdventure(): void
@@ -97,110 +155,177 @@ class MapStub extends Component
         $this->redirect(route('city.hub', $this->character), navigate: true);
     }
 
+    private function resetBattleState(): void
+    {
+        $this->visibleTurns = [];
+        $this->allTurns = [];
+        $this->currentTurnIndex = 0;
+        $this->isPlaying = false;
+        $this->battleCompleted = false;
+        $this->goldGained = 0;
+        $this->xpGained = 0;
+        $this->levelUps = [];
+        $this->result = '';
+    }
+
+    private function setupBattleData(Encounter $encounter, array $combatResult): void
+    {
+        $character = $encounter->character;
+        $monster = $encounter->monster;
+
+        $this->player = [
+            'name' => $character->name,
+            'level' => $character->level,
+            'avatar' => $character->avatar,
+            'hp' => $combatResult['player']['hp'],
+            'maxHp' => $combatResult['player']['maxHp'],
+            'stats' => $combatResult['player']['stats']
+        ];
+
+        $this->enemy = [
+            'name' => $monster->name,
+            'level' => $monster->level,
+            'hp' => $combatResult['enemy']['hp'],
+            'maxHp' => $combatResult['enemy']['maxHp'],
+            'stats' => $combatResult['enemy']['stats']
+        ];
+
+        $this->allTurns = $combatResult['turns'];
+        $this->result = $combatResult['result'];
+        $this->playerFirst = $encounter->player_first;
+        $this->goldGained = $combatResult['rewards']['gold'] ?? 0;
+        $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
+    }
+
+    private function completeBattle(): void
+    {
+        $this->isPlaying = false;
+        $this->battleCompleted = true;
+        $this->dispatch('stop-playback');
+
+        if ($this->result === 'win') {
+            $this->applyRewards();
+        }
+
+        // Auto-chain next battle
+        if ($this->autoChain && $this->result === 'win') {
+            $this->dispatch('auto-chain-next-battle');
+        } else {
+            $this->dispatch('encounter-finished', result: $this->result);
+        }
+    }
+
+    private function applyRewards(): void
+    {
+        $encounter = Encounter::find($this->currentEncounterId);
+
+        if (!$encounter || $encounter->state !== 'win') {
+            return;
+        }
+
+        // Check for level up BEFORE applying rewards
+        $oldLevel = $this->character->level;
+        $this->checkLevelUp();
+
+        // Apply gold and XP rewards to character
+        $this->character->update([
+            'gold' => $this->character->gold + $this->goldGained,
+            'xp' => $this->character->xp + $this->xpGained,
+        ]);
+
+        // Mark encounter rewards as applied
+        $encounter->markRewardsApplied();
+    }
+
+    private function checkLevelUp(): void
+    {
+        $currentLevel = $this->character->level;
+        $currentXp = $this->character->xp;
+        $newXp = $currentXp + $this->xpGained;
+
+        // Check for multiple level ups
+        while ($newXp >= $this->getXpRequiredForLevel($currentLevel + 1)) {
+            $xpNeeded = $this->getXpRequiredForLevel($currentLevel + 1);
+            $newXp -= $xpNeeded;
+            $currentLevel++;
+
+            // Add level up data consistent with view expectations
+            $this->levelUps[] = [
+                'to' => $currentLevel,           // ✅ Zgodne z widokiem: $levelUp['to']
+                'attribute_points' => 3,         // ✅ Zgodne z widokiem: +3 punkty
+                'from' => $currentLevel - 1,     // Dodatkowe info
+            ];
+        }
+
+        // Update character if leveled up
+        if ($currentLevel > $this->character->level) {
+            $this->character->update([
+                'level' => $currentLevel,
+                'xp' => $newXp,
+            ]);
+
+            // Refresh character instance for UI
+            $this->character = $this->character->fresh();
+        }
+    }
+
+    private function getXpRequiredForLevel(int $level): int
+    {
+        // Simple formula: level * 100 XP required for next level
+        return $level * 100;
+    }
+
     // Helper methods for UI state
     public function getCurrentPlayerHp(): int
     {
-        if ($this->currentTurn === 0) {
-            return $this->player['hp'];
+        if (empty($this->visibleTurns)) {
+            return $this->player['hp'] ?? 0;
         }
 
-        // Calculate current HP based on turns
-        $currentHp = $this->player['hp'];
-        for ($i = 0; $i < $this->currentTurn && $i < count($this->turns); $i++) {
-            $turn = $this->turns[$i];
-            if ($turn['actor'] === 'enemy' && $turn['type'] === 'hit' && isset($turn['playerHp'])) {
-                $currentHp = $turn['playerHp'];
-            }
-        }
-
-        return max(0, $currentHp);
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['playerHp'] ?? 0;
     }
 
     public function getCurrentEnemyHp(): int
     {
-        if ($this->currentTurn === 0) {
-            return $this->enemy['hp'];
+        if (empty($this->visibleTurns)) {
+            return $this->enemy['hp'] ?? 0;
         }
 
-        // Calculate current HP based on turns
-        $currentHp = $this->enemy['hp'];
-        for ($i = 0; $i < $this->currentTurn && $i < count($this->turns); $i++) {
-            $turn = $this->turns[$i];
-            if ($turn['actor'] === 'player' && $turn['type'] === 'hit' && isset($turn['enemyHp'])) {
-                $currentHp = $turn['enemyHp'];
-            }
-        }
-
-        return max(0, $currentHp);
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['enemyHp'] ?? 0;
     }
 
     public function getPlayerHpPercent(): float
     {
+        if (empty($this->player)) return 0;
         return ($this->getCurrentPlayerHp() / max(1, $this->player['maxHp'])) * 100;
     }
 
     public function getEnemyHpPercent(): float
     {
+        if (empty($this->enemy)) return 0;
         return ($this->getCurrentEnemyHp() / max(1, $this->enemy['maxHp'])) * 100;
     }
 
     public function isPlayerTurn(): bool
     {
-        if ($this->currentTurn === 0 || $this->currentTurn >= count($this->turns)) {
-            return false;
+        if (empty($this->visibleTurns)) {
+            return $this->playerFirst;
         }
 
-        $currentTurnIndex = $this->currentTurn - 1;
-        if (!isset($this->turns[$currentTurnIndex])) {
-            return false;
-        }
-
-        return $this->turns[$currentTurnIndex]['actor'] === 'player';
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['actor'] === 'player';
     }
 
     public function isEnemyTurn(): bool
     {
-        if ($this->currentTurn === 0 || $this->currentTurn >= count($this->turns)) {
-            return false;
+        if (empty($this->visibleTurns)) {
+            return !$this->playerFirst;
         }
 
-        $currentTurnIndex = $this->currentTurn - 1;
-        if (!isset($this->turns[$currentTurnIndex])) {
-            return false;
-        }
-
-        return $this->turns[$currentTurnIndex]['actor'] === 'enemy';
-    }
-
-    public function getEnemyEmoji(string $enemyName): string
-    {
-        return match ($enemyName) {
-            'Wilk Leśny', 'Wilk Cienia' => '🐺',
-            'Nietoperz Jaskiniowy', 'Jaskiniowy Nietoperz Alfa' => '🦇',
-            'Suchodrzew', 'Drzewiec Plugawy' => '🌳',
-            'Goblin Zwiadowca', 'Troll Paskudnik' => '👹',
-            'Szkielet Wojownik' => '💀',
-            'Duch Strażnik' => '👻',
-            'Ghul', 'Zmutowany Nieumarły' => '🧟',
-            'Upiorny Łucznik' => '🏹',
-            'Troll Szaman', 'Wędrowny Czarownik' => '🧙‍♂️',
-            'Ogr Rozłupywacz' => '🔨',
-            'Orczy Zwiad', 'Rycerz Skazy' => '⚔️',
-            'Ork Berserker' => '🪓',
-            'Szaman Krwi' => '🩸',
-            'Dowódca Watahy' => '👑',
-            'Topielec' => '🌊',
-            'Wiedźmia Straż', 'Czarownica Zgnilizny' => '🧙‍♀️',
-            'Hydra Bagienna' => '🐉',
-            'Golem Bazaltowy' => '🗿',
-            'Harpia' => '🦅',
-            'Adepci Run' => '📜',
-            'Strażnik Arkanów' => '🔮',
-            'Żywiołak Płomieni' => '🔥',
-            'Mistrz Iluzji' => '✨',
-            'Pająk Plagi' => '🕷️',
-            default => '👹'
-        };
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['actor'] === 'enemy';
     }
 
     private function backgroundFor(Map $map): string

@@ -2,7 +2,7 @@
     class="min-h-screen bg-gradient-to-b from-green-900/90 via-emerald-800/90 to-green-900/90 text-amber-100 relative overflow-hidden">
     {{-- Background adventure image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
-        style="background-image: url('{{ asset('img/adventure-background.jpg') }}');">
+        style="background-image: url('{{ asset('img/adventure-background.png') }}');">
     </div>
 
     {{-- Dark overlay for readability --}}
