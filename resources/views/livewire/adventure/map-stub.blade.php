@@ -82,7 +82,7 @@
                             <div
                                 class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
                                 @if (!empty($player) && $player['avatar'])
-                                    <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}"
+                                    <img src="{{ $player['avatar'] }}.png" alt="{{ $player['name'] }}"
                                         class="w-full h-full object-cover">
                                 @elseif (!empty($player))
                                     <div
@@ -118,6 +118,19 @@
                                 <div class="h-4 w-full rounded-full bg-black/40 ring-2 ring-amber-800/60 shadow-inner">
                                     <div class="h-full rounded-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 shadow-sm transition-all duration-500"
                                         style="width: {{ $this->getPlayerHpPercent() }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- XP Progress Bar (NEW) --}}
+                            <div class="space-y-1 mt-1">
+                                <div
+                                    class="flex justify-between text-sm font-semibold text-indigo-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    <span>⭐ Doświadczenie</span>
+                                    <span>{{ $character->xp }}/{{ $this->getXpToNextLevel() }}</span>
+                                </div>
+                                <div class="h-3 w-full rounded-full bg-indigo-900/40 ring-1 ring-indigo-950/50">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-indigo-400 shadow-sm transition-all duration-500"
+                                        style="width: {{ $this->getXpPercentage() }}%"></div>
                                 </div>
                             </div>
 

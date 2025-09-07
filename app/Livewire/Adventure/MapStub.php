@@ -3,11 +3,12 @@
 namespace App\Livewire\Adventure;
 
 use Livewire\Component;
-use App\Infrastructure\Persistence\Character;
-use App\Infrastructure\Persistence\Map;
-use App\Infrastructure\Persistence\Encounter;
-use App\Application\Combat\EncounterService;
 use Illuminate\Support\Facades\Auth;
+use App\Infrastructure\Persistence\Map;
+use App\Application\Combat\EncounterService;
+use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\Encounter;
+use App\Application\Characters\LevelUpService;
 
 class MapStub extends Component
 {
@@ -173,21 +174,37 @@ class MapStub extends Component
         $character = $encounter->character;
         $monster = $encounter->monster;
 
-        // Correctly extract values from the nested combat result structure
-        $playerMaxHp = $combatResult['player']['maxHp'] ?? $this->calculateMaxHp($character);
-        $playerStats = $combatResult['player']['stats'] ?? $character->attributes ?? [];
+        // Debug to verify attributes exist
+        logger('Character attributes:', ['attributes' => $character->attributes]);
+
+        // Force load attributes if they weren't loaded with the relation
+        if (!isset($character->attributes)) {
+            $character = $character->fresh();
+        }
+
+        // Extract character attributes directly from the model
+        $character_attributes = json_decode($character->attributes, true);
+        $playerAttributes = [
+            'str' => $character_attributes['str'] ?? 0,
+            'int' => $character_attributes['int'] ?? 0,
+            'vit' => $character_attributes['vit'] ?? 0,
+            'agi' => $character_attributes['agi'] ?? 0
+        ];
+
+        // Calculate HP based on attributes
+        $playerMaxHp = $this->calculateMaxHp($character);
 
         $monsterMaxHp = $combatResult['enemy']['maxHp'] ?? ($monster->stats['hp'] ?? $monster->level * 20);
         $monsterStats = $combatResult['enemy']['stats'] ?? $monster->stats ?? [];
 
-        // Fix for player attributes - populate from character attributes
+        // Set player data with explicitly mapped attributes
         $this->player = [
             'name' => $character->name,
             'level' => $character->level,
             'avatar' => $character->avatar_url ?? asset('img/avatars/default.png'),
             'maxHp' => $playerMaxHp,
-            'hp' => $playerMaxHp, // Initial HP = maxHp for first render
-            'stats' => $playerStats
+            'hp' => $playerMaxHp,
+            'stats' => $playerAttributes // Use our explicitly mapped attributes
         ];
 
         // Fix for enemy stats
@@ -195,7 +212,7 @@ class MapStub extends Component
             'name' => $monster->name,
             'level' => $monster->level,
             'maxHp' => $monsterMaxHp,
-            'hp' => $monsterMaxHp, // Initial HP = maxHp for first render
+            'hp' => $monsterMaxHp,
             'stats' => $monsterStats
         ];
 
@@ -204,6 +221,24 @@ class MapStub extends Component
         $this->playerFirst = $encounter->player_first;
         $this->goldGained = $combatResult['rewards']['gold'] ?? 0;
         $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
+    }
+
+    /**
+     * Get the XP required for the next level
+     */
+    public function getXpToNextLevel(): int
+    {
+        return $this->getXpRequiredForLevel($this->character->level + 1);
+    }
+
+    /**
+     * Calculate the percentage of XP progress towards the next level
+     */
+    public function getXpPercentage(): float
+    {
+        $xpToNext = $this->getXpToNextLevel();
+        $currentXp = $this->character->xp;
+        return min(100, ($currentXp / max(1, $xpToNext)) * 100);
     }
 
     private function calculateMaxHp(Character $character): int
@@ -254,32 +289,32 @@ class MapStub extends Component
 
     private function checkLevelUp(): void
     {
-        $currentLevel = $this->character->level;
-        $currentXp = $this->character->xp;
-        $newXp = $currentXp + $this->xpGained;
+        // Track original level for UI messages
+        $originalLevel = $this->character->level;
 
-        // Check for multiple level ups
-        while ($newXp >= $this->getXpRequiredForLevel($currentLevel + 1)) {
-            $xpNeeded = $this->getXpRequiredForLevel($currentLevel + 1);
-            $newXp -= $xpNeeded;
-            $currentLevel++;
+        // Apply XP gain first
+        $this->character->xp += $this->xpGained;
+        $this->character->save();
 
-            // Add level up data consistent with view expectations
-            $this->levelUps[] = [
-                'to' => $currentLevel,           // ✅ Zgodne z widokiem: $levelUp['to']
-                'attribute_points' => 3,         // ✅ Zgodne z widokiem: +3 punkty
-                'from' => $currentLevel - 1,     // Dodatkowe info
-            ];
-        }
+        // Use LevelUpService to handle level progression and points
+        $levelUpService = app(\App\Application\Characters\LevelUpService::class);
+        $result = $levelUpService->checkAndApply($this->character);
 
-        // Update character if leveled up
-        if ($currentLevel > $this->character->level) {
-            $this->character->update([
-                'level' => $currentLevel,
-                'xp' => $newXp,
-            ]);
+        if ($result->isOk()) {
+            $levelUpResult = $result->getPayload();
 
-            // Refresh character instance for UI
+            // Update UI display
+            if ($levelUpResult->hadLevelUp) {
+                $this->levelUps = array_map(function ($levelUp) {
+                    return [
+                        'from' => $levelUp['from'],
+                        'to' => $levelUp['to'],
+                        'attribute_points' => 3,
+                    ];
+                }, $levelUpResult->levelUps);
+            }
+
+            // Refresh character to get updated values
             $this->character = $this->character->fresh();
         }
     }

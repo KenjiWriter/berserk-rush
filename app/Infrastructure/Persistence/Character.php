@@ -22,6 +22,7 @@ class Character extends Model
         'proficiencies',
         'avatar',
         'version',
+        'character_points',
     ];
 
     protected $casts = [
@@ -42,6 +43,35 @@ class Character extends Model
     public function getAttribute($attribute)
     {
         return $this->attributes[$attribute] ?? 0;
+    }
+
+    public function getAttributeValue($attribute): int
+    {
+        $attributes = $this->attributes['attributes'] ?? [];
+        if (is_string($attributes)) {
+            $attributes = json_decode($attributes, true);
+        }
+        return $attributes[$attribute] ?? 0;
+    }
+
+    public function getStrengthAttribute(): int
+    {
+        return $this->attributes['attributes']['str'] ?? 0;
+    }
+
+    public function getIntelligenceAttribute(): int
+    {
+        return $this->attributes['attributes']['int'] ?? 0;
+    }
+
+    public function getVitalityAttribute(): int
+    {
+        return $this->attributes['attributes']['vit'] ?? 0;
+    }
+
+    public function getAgilityAttribute(): int
+    {
+        return $this->attributes['attributes']['agi'] ?? 0;
     }
 
     public function getTotalAttributePoints(): int
