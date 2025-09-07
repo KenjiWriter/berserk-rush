@@ -20,9 +20,17 @@ class Map extends Model
         'tier' => 'integer',
     ];
 
-    public function isAccessibleBy($character): bool
+    public function isAccessibleBy(Character $character): bool
     {
-        return $character->level >= $this->level_min && $character->level <= $this->level_max;
+        // Check if the map has min_level and max_level defined
+        if (isset($this->min_level) && isset($this->max_level)) {
+            // Check if character level is within range
+            return $character->level >= $this->min_level &&
+                $character->level <= $this->max_level;
+        }
+
+        // If no level limits defined, map is accessible by anyone
+        return true;
     }
 
     public function getLevelRangeAttribute(): string

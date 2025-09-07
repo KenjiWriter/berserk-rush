@@ -507,22 +507,53 @@
     </style>
 
     <script>
-        let playbackInterval;
-        let autoChainTimeout;
+        document.addEventListener('livewire:navigated', () => {
+            initMapStubComponent();
+        });
 
         document.addEventListener('livewire:init', () => {
+            initMapStubComponent();
+        });
+
+        function initMapStubComponent() {
+            // Clean up existing intervals/timeouts to prevent memory leaks
+            let playbackInterval = null;
+            let autoChainTimeout = null;
+
+            function cleanUp() {
+                if (playbackInterval) clearInterval(playbackInterval);
+                if (autoChainTimeout) clearTimeout(autoChainTimeout);
+                playbackInterval = null;
+                autoChainTimeout = null;
+            }
+
+            // Clean up existing intervals first
+            cleanUp();
+
+            // Clean up when leaving the page
+            window.addEventListener('beforeunload', cleanUp);
+
+            // Set up the Livewire event listeners
             Livewire.on('start-playback', (event) => {
-                clearInterval(playbackInterval);
+                cleanUp(); // Clean up existing intervals first
                 const speed = event.speed || 1;
                 const delay = Math.floor(800 / speed);
 
-                playbackInterval = setInterval(() => {
-                    @this.nextTurn();
-                }, delay);
+                // Make sure the component is available before calling methods
+                if (typeof Livewire !== 'undefined' && Livewire.find) {
+                    const wireElement = document.querySelector('[wire\\:id]');
+                    if (wireElement) {
+                        playbackInterval = setInterval(() => {
+                            const component = Livewire.find(wireElement.getAttribute('wire:id'));
+                            if (component) component.call('nextTurn');
+                        }, delay);
+                    }
+                }
             });
 
             Livewire.on('stop-playback', () => {
-                clearInterval(playbackInterval);
+                if (playbackInterval) clearInterval(playbackInterval);
+                playbackInterval = null;
             });
 
             Livewire.on('update-playback-speed', (event) => {
@@ -531,28 +562,46 @@
                     const speed = event.speed || 1;
                     const delay = Math.floor(800 / speed);
 
-                    playbackInterval = setInterval(() => {
-                        @this.nextTurn();
-                    }, delay);
+                    const wireElement = document.querySelector('[wire\\:id]');
+                    if (wireElement) {
+                        playbackInterval = setInterval(() => {
+                            const component = Livewire.find(wireElement.getAttribute('wire:id'));
+                            if (component) component.call('nextTurn');
+                        }, delay);
+                    }
                 }
             });
 
             Livewire.on('auto-chain-next-battle', () => {
-                clearTimeout(autoChainTimeout);
-                autoChainTimeout = setTimeout(() => {
-                    @this.startBattle();
-                }, 2000);
+                if (autoChainTimeout) clearTimeout(autoChainTimeout);
+
+                const wireElement = document.querySelector('[wire\\:id]');
+                if (wireElement) {
+                    autoChainTimeout = setTimeout(() => {
+                        const component = Livewire.find(wireElement.getAttribute('wire:id'));
+                        if (component) component.call('startBattle');
+                    }, 2000);
+                }
             });
 
-            Livewire.on('encounter-finished', (event) => {
-                clearInterval(playbackInterval);
-                clearTimeout(autoChainTimeout);
+            Livewire.on('encounter-finished', () => {
+                cleanUp();
             });
-        });
 
-        window.addEventListener('beforeunload', () => {
-            clearInterval(playbackInterval);
-            clearTimeout(autoChainTimeout);
-        });
+            // Ensure the battle button works after navigation
+            setTimeout(() => {
+                const battleButton = document.querySelector('[wire\\:click="startBattle"]');
+                if (battleButton) {
+                    battleButton.addEventListener('click', function() {
+                        const wireElement = document.querySelector('[wire\\:id]');
+                        if (wireElement) {
+                            const wireId = wireElement.getAttribute('wire:id');
+                            const component = Livewire.find(wireId);
+                            if (component) component.call('startBattle');
+                        }
+                    });
+                }
+            }, 100);
+        }
     </script>
 </div>

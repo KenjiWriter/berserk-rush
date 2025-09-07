@@ -173,21 +173,30 @@ class MapStub extends Component
         $character = $encounter->character;
         $monster = $encounter->monster;
 
+        // Correctly extract values from the nested combat result structure
+        $playerMaxHp = $combatResult['player']['maxHp'] ?? $this->calculateMaxHp($character);
+        $playerStats = $combatResult['player']['stats'] ?? $character->attributes ?? [];
+
+        $monsterMaxHp = $combatResult['enemy']['maxHp'] ?? ($monster->stats['hp'] ?? $monster->level * 20);
+        $monsterStats = $combatResult['enemy']['stats'] ?? $monster->stats ?? [];
+
+        // Fix for player attributes - populate from character attributes
         $this->player = [
             'name' => $character->name,
             'level' => $character->level,
-            'avatar' => $character->avatar,
-            'hp' => $combatResult['player']['hp'],
-            'maxHp' => $combatResult['player']['maxHp'],
-            'stats' => $combatResult['player']['stats']
+            'avatar' => $character->avatar_url ?? asset('img/avatars/default.png'),
+            'maxHp' => $playerMaxHp,
+            'hp' => $playerMaxHp, // Initial HP = maxHp for first render
+            'stats' => $playerStats
         ];
 
+        // Fix for enemy stats
         $this->enemy = [
             'name' => $monster->name,
             'level' => $monster->level,
-            'hp' => $combatResult['enemy']['hp'],
-            'maxHp' => $combatResult['enemy']['maxHp'],
-            'stats' => $combatResult['enemy']['stats']
+            'maxHp' => $monsterMaxHp,
+            'hp' => $monsterMaxHp, // Initial HP = maxHp for first render
+            'stats' => $monsterStats
         ];
 
         $this->allTurns = $combatResult['turns'];
@@ -195,6 +204,12 @@ class MapStub extends Component
         $this->playerFirst = $encounter->player_first;
         $this->goldGained = $combatResult['rewards']['gold'] ?? 0;
         $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
+    }
+
+    private function calculateMaxHp(Character $character): int
+    {
+        $vitality = $character->attributes['vit'] ?? 1;
+        return 100 + ($vitality * 10) + ($character->level * 5);
     }
 
     private function completeBattle(): void
