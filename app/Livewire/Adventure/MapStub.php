@@ -34,6 +34,7 @@ class MapStub extends Component
     // Rewards
     public int $goldGained = 0;
     public int $xpGained = 0;
+    public array $drops = [];
     public array $levelUps = [];
     public bool $battleCompleted = false;
 
@@ -219,6 +220,7 @@ class MapStub extends Component
         $this->allTurns = $combatResult['turns'];
         $this->result = $combatResult['result'];
         $this->playerFirst = $encounter->player_first;
+        $this->drops = $encounter->result['drops'] ?? [];
         $this->goldGained = $combatResult['rewards']['gold'] ?? 0;
         $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
     }
@@ -289,32 +291,38 @@ class MapStub extends Component
 
     private function checkLevelUp(): void
     {
-        // Track original level for UI messages
-        $originalLevel = $this->character->level;
+        $currentLevel = $this->character->level;
+        $currentXp = $this->character->xp;
+        $newXp = $currentXp + $this->xpGained;
+        $totalPointsGained = 0;
 
-        // Apply XP gain first
-        $this->character->xp += $this->xpGained;
-        $this->character->save();
+        // Check for multiple level ups
+        while ($newXp >= $this->getXpRequiredForLevel($currentLevel + 1)) {
+            $xpNeeded = $this->getXpRequiredForLevel($currentLevel + 1);
+            $newXp -= $xpNeeded;
+            $currentLevel++;
+            $totalPointsGained += 3; // 3 character points per level
 
-        // Use LevelUpService to handle level progression and points
-        $levelUpService = app(\App\Application\Characters\LevelUpService::class);
-        $result = $levelUpService->checkAndApply($this->character);
+            // Add level up data consistent with view expectations
+            $this->levelUps[] = [
+                'to' => $currentLevel,
+                'attribute_points' => 3,
+                'from' => $currentLevel - 1,
+            ];
+        }
 
-        if ($result->isOk()) {
-            $levelUpResult = $result->getPayload();
+        // Update character if leveled up
+        if ($currentLevel > $this->character->level) {
+            // Get current character points or default to 0 if null
+            $currentPoints = $this->character->character_points ?? 0;
 
-            // Update UI display
-            if ($levelUpResult->hadLevelUp) {
-                $this->levelUps = array_map(function ($levelUp) {
-                    return [
-                        'from' => $levelUp['from'],
-                        'to' => $levelUp['to'],
-                        'attribute_points' => 3,
-                    ];
-                }, $levelUpResult->levelUps);
-            }
+            $this->character->update([
+                'level' => $currentLevel,
+                'xp' => $newXp,
+                'character_points' => $currentPoints + $totalPointsGained
+            ]);
 
-            // Refresh character to get updated values
+            // Refresh character instance for UI
             $this->character = $this->character->fresh();
         }
     }

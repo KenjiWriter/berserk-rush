@@ -2,13 +2,14 @@
 
 namespace App\Application\Combat;
 
-use App\Infrastructure\Persistence\Character;
-use App\Infrastructure\Persistence\Map;
-use App\Infrastructure\Persistence\Encounter;
-use App\Infrastructure\Persistence\Monster;
 use App\Application\Shared\Result;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Application\Loot\DropService;
+use App\Infrastructure\Persistence\Map;
+use App\Infrastructure\Persistence\Monster;
+use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\Encounter;
 
 class EncounterService
 {
@@ -157,6 +158,15 @@ class EncounterService
                 // UŻYJ METOD Z MODELU zamiast bezpośredniego update()
                 if ($winner === 'player') {
                     $encounter->markAsWon();
+                    $dropService = app(DropService::class);
+                    $dropResult = $dropService->rollAndApplyRewards($encounter);
+
+                    if ($dropResult->isError()) {
+                        Log::warning('Failed to apply loot drops', [
+                            'encounter_id' => $encounter->id,
+                            'error' => $dropResult->getErrorMessage()
+                        ]);
+                    }
                 } else {
                     $encounter->markAsLost();
                 }

@@ -257,26 +257,49 @@
                                         <div class="text-2xl font-bold medieval-font">
                                             {{ $result == 'win' ? 'TRIUMF!' : 'KLĘSKA!' }}
                                         </div>
-
                                         @if ($result == 'win')
-                                            <div class="mt-3 space-y-1">
-                                                @if ($goldGained > 0)
-                                                    <div class="text-yellow-700 font-semibold">💰 +{{ $goldGained }}
-                                                        złota</div>
-                                                @endif
-                                                @if ($xpGained > 0)
-                                                    <div class="text-blue-700 font-semibold">⭐ +{{ $xpGained }} XP
+                                            {{-- Loot Display --}}
+                                            @if (!empty($drops))
+                                                <div
+                                                    class="mt-4 p-3 bg-amber-100/90 border-2 border-amber-600 rounded-lg">
+                                                    <h4 class="font-bold text-amber-900 mb-2">🎁 Łup z walki:</h4>
+                                                    <div class="space-y-1 text-sm">
+                                                        @if ($drops['gold'] > 0)
+                                                            <div class="flex items-center space-x-2">
+                                                                <span class="text-yellow-600">💰</span>
+                                                                <span class="text-amber-800">+{{ $drops['gold'] }}
+                                                                    złota</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @if ($drops['gems'] > 0)
+                                                            <div class="flex items-center space-x-2">
+                                                                <span class="text-blue-600">💎</span>
+                                                                <span class="text-amber-800">+{{ $drops['gems'] }}
+                                                                    klejnotów</span>
+                                                            </div>
+                                                        @endif
+
+                                                        @foreach ($drops['items'] ?? [] as $item)
+                                                            <div class="flex items-center space-x-2">
+                                                                <span class="text-purple-600">⚔️</span>
+                                                                <span class="text-amber-800">{{ $item['name'] }}
+                                                                    ({{ $item['quantity'] }}x)
+                                                                </span>
+                                                            </div>
+                                                        @endforeach
+
+                                                        @foreach ($drops['materials'] ?? [] as $material)
+                                                            <div class="flex items-center space-x-2">
+                                                                <span class="text-green-600">🌿</span>
+                                                                <span class="text-amber-800">{{ $material['name'] }}
+                                                                    ({{ $material['quantity'] }}x)
+                                                                </span>
+                                                            </div>
+                                                        @endforeach
                                                     </div>
-                                                @endif
-                                                @if (!empty($levelUps))
-                                                    @foreach ($levelUps as $levelUp)
-                                                        <div class="text-purple-700 font-bold">
-                                                            🎉 Awans na poziom {{ $levelUp['to'] }}! Otrzymujesz +3
-                                                            punkt(y) atrybutów!
-                                                        </div>
-                                                    @endforeach
-                                                @endif
-                                            </div>
+                                                </div>
+                                            @endif
                                         @else
                                             <div class="text-sm mt-1 font-semibold">
                                                 Zostałeś pokonany w walce...
