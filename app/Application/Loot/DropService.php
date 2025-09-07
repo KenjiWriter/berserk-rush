@@ -65,12 +65,12 @@ class DropService
                     switch ($selectedEntry['reward_type']) {
                         case 'gold':
                             $gold = $quantity;
-                            $this->applyCurrencyReward($encounter, 'gold', $gold, $idempotencyKey);
+                            $this->applyCurrencyReward($encounter, 'gold', $gold, "{$idempotencyKey}:gold");
                             break;
 
                         case 'gems':
                             $gems = $quantity;
-                            $this->applyCurrencyReward($encounter, 'gems', $gems, $idempotencyKey);
+                            $this->applyCurrencyReward($encounter, 'gems', $gems, "{$idempotencyKey}:gems");
                             break;
 
                         case 'item':
@@ -134,12 +134,12 @@ class DropService
 
         // Create the ledger entry with balance_after
         CurrencyLedger::create([
+            'id' => Str::ulid(), // Fixed: use Str::ulid() instead of $this->generateId()
             'character_id' => $encounter->character_id,
             'currency_type' => $currencyType,
             'amount' => $amount,
-            'balance_after' => $newBalance, // This was missing!
+            'balance_after' => $newBalance,
             'idempotency_key' => $idempotencyKey,
-            'id' => $this->generateId(), // assuming you have this method
             'created_at' => now(),
         ]);
     }
@@ -167,6 +167,7 @@ class DropService
 
             // Record in item ledger
             ItemLedger::create([
+                'id' => Str::ulid(), // Ensure ItemLedger also gets a proper ULID
                 'character_id' => $character->id,
                 'item_instance_id' => $itemInstance->id,
                 'action' => 'drop',

@@ -22,11 +22,11 @@ class Map extends Model
 
     public function isAccessibleBy(Character $character): bool
     {
-        // Check if the map has min_level and max_level defined
-        if (isset($this->min_level) && isset($this->max_level)) {
+        // Check if the map has level_min and level_max defined
+        if (!is_null($this->level_min) && !is_null($this->level_max)) {
             // Check if character level is within range
-            return $character->level >= $this->min_level &&
-                $character->level <= $this->max_level;
+            return $character->level >= $this->level_min &&
+                $character->level <= $this->level_max;
         }
 
         // If no level limits defined, map is accessible by anyone
