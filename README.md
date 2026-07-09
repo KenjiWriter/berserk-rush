@@ -1,61 +1,116 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+<div align="center">
+  <img src="https://via.placeholder.com/600x200.png?text=Berserk+Rush" alt="Berserk Rush Logo">
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+  <h1>Berserk Rush</h1>
 
-## About Laravel
+  <p>
+    <strong>A browser-based multiplayer RPG with emergent classes, micromanagement, economy, and dynamic item upgrades.</strong>
+  </p>
+  
+  <p>
+    <a href="#features">Features</a> •
+    <a href="#tech-stack">Tech Stack</a> •
+    <a href="#architecture">Architecture</a> •
+    <a href="#installation">Installation</a> •
+    <a href="#documentation">Documentation</a>
+  </p>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+  <p>
+    <img src="https://img.shields.io/badge/PHP-8.3+-777BB4.svg?style=flat&logo=php" alt="PHP 8.3">
+    <img src="https://img.shields.io/badge/Laravel-12-FF2D20.svg?style=flat&logo=laravel" alt="Laravel 12">
+    <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1.svg?style=flat&logo=postgresql" alt="Postgres">
+    <img src="https://img.shields.io/badge/Redis-Horizon-DC382D.svg?style=flat&logo=redis" alt="Redis">
+  </p>
+</div>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🗡️ About The Game
 
-## Learning Laravel
+**Berserk Rush** is a browser-based, turn-based multiplayer RPG heavily inspired by games like *Shakes & Fidget* mixed with the intense item upgrade mechanics from *Metin2*.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+The game focuses on **micromanagement, crafting, economy, and emergent classes**. There is no class selection at the start of your journey — your character's class and playstyle emerge naturally based on how you invest your attribute points and which items you choose to equip and upgrade.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Core Gameplay Loop
+`Fight ⚔️ → Loot 💰 → Trade 🤝 → Upgrade ⚒️ → Craft 🔮`
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## ✨ Features
 
-## Laravel Sponsors
+- **Emergent Classes:** No fixed classes at character creation. Choose a name and distribute 10 attribute points (STR, INT, VIT, AGI). Your playstyle evolves based on your investments.
+- **Turn-based Idle Combat:** Fight monsters on level-locked maps (e.g., Lv. 0–10, 10–30) with a fully simulated turn-based combat system.
+- **Dynamic Item System:** Items drop with random stats, rarities, and can be upgraded from +0 to +9. Be careful, upgrades can fail!
+- **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear.
+- **Player-Driven Economy:** An active market / auction house where players dictate the prices of items and materials.
+- **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠️ Tech Stack
 
-### Premium Partners
+Berserk Rush is built using modern and robust technologies designed for scale and real-time multiplayer features:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- **Backend:** Laravel 12 (PHP 8.3+) using Laravel Breeze + Livewire for reactive UI components.
+- **Database:** PostgreSQL 17 + pgAdmin 4. Utilizing `jsonb` for dynamic stats/rolls, ULIDs as primary keys, and partial indexes.
+- **Cache & Queues:** Redis (Horizon) for caching, background queue processing, leaderboards (Sorted Sets), and locking mechanisms.
+- **Realtime Events:** Laravel WebSockets / Reverb / Pusher for live chat, market updates, and combat events.
+- **Testing:** Pest (built on top of PHPUnit) with high coverage on complex domain actions.
 
-## Contributing
+## 🏛️ Architecture & Patterns
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+The codebase is structured around **Domain-Driven Design (DDD)** concepts and **CQRS-lite** principles to maintain a clean, scalable, and testable environment.
 
-## Code of Conduct
+- **Action/Service Pattern:** Core logic is handled by specific Actions (e.g., `StartEncounter`, `UpgradeItem`) using the Transaction Script pattern for robust DB operations.
+- **Result Object Pattern:** Avoiding exceptions for standard business logic failures. Actions return `Result::ok()` or `Result::error()`.
+- **Domain Events:** Side-effects (mail delivery, leaderboards) are handled asynchronously via listeners reacting to events like `ItemUpgraded` or `EncounterFinished`.
+- **Idempotency:** Core economy and crafting actions use `idempotency_key` ledgers to prevent duplication and ensure consistency.
+- **Ledgers:** All item and currency movements are strictly audited in `CurrencyLedger` and `ItemLedger` tables.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+*See the `docs/` folder for in-depth documentation on implemented modules.*
 
-## Security Vulnerabilities
+## 🚀 Installation
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+*Note: Ensure you have PHP 8.3+, Composer, Node.js, PostgreSQL 17, and Redis installed on your local machine.*
 
-## License
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/berserk-rush.git
+   cd berserk-rush
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+2. **Install PHP Dependencies**
+   ```bash
+   composer install
+   ```
+
+3. **Install Node Dependencies**
+   ```bash
+   npm install
+   ```
+
+4. **Environment Setup**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Update the `.env` file with your PostgreSQL database credentials and set `CACHE_DRIVER`, `QUEUE_CONNECTION`, and `SESSION_DRIVER` to `redis`.*
+
+5. **Run Migrations & Seeders**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+6. **Start the application**
+   ```bash
+   npm run dev
+   php artisan serve
+   ```
+
+## 📖 Documentation
+
+Detailed documentation of implemented systems can be found in the [docs/](./docs) directory:
+- [Architecture & Conventions](./docs/architecture.md)
+- [Characters Module](./docs/modules/characters.md)
+- [Combat Module](./docs/modules/combat.md)
+- [Loot & Economy Module](./docs/modules/loot.md)
+
+## 🛡️ License
+
+Berserk Rush is a proprietary project. All rights reserved. Do not distribute or copy without explicit permission.
