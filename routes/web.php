@@ -47,4 +47,12 @@ Route::middleware('auth')->group(function () {
     });
 });
 
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
+    Route::get('/maps', \App\Livewire\Admin\Maps::class)->name('maps');
+    Route::get('/monsters', \App\Livewire\Admin\Monsters::class)->name('monsters');
+    Route::get('/item-templates', \App\Livewire\Admin\ItemTemplates::class)->name('item-templates');
+    Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
+});
+
 require __DIR__ . '/auth.php';
