@@ -8,7 +8,7 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\LootTable;
 use Livewire\Attributes\Layout;
 
-#[Layout('layouts.app')]
+#[Layout('components.layouts.app')]
 class Monsters extends Component
 {
     public $monsters, $maps, $lootTables;

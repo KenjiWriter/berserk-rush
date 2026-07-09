@@ -6,7 +6,7 @@ use Livewire\Component;
 use App\Infrastructure\Persistence\Map;
 use Livewire\Attributes\Layout;
 
-#[Layout('layouts.app')]
+#[Layout('components.layouts.app')]
 class Maps extends Component
 {
     public $maps;

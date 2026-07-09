@@ -6,7 +6,7 @@ use Livewire\Component;
 use App\Infrastructure\Persistence\LootTable;
 use Livewire\Attributes\Layout;
 
-#[Layout('layouts.app')]
+#[Layout('components.layouts.app')]
 class LootTables extends Component
 {
     public $lootTables;

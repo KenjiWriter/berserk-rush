@@ -7,7 +7,7 @@ use App\Infrastructure\Persistence\ItemTemplate;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Str;
 
-#[Layout('layouts.app')]
+#[Layout('components.layouts.app')]
 class ItemTemplates extends Component
 {
     public $templates;
