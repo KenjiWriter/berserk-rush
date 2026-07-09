@@ -48,7 +48,17 @@ Stworzenie narzędzi dla administratorów/twórców oraz wprowadzenie wizualnej 
 
 ---
 
-## 🟡 Faza 6: Gospodarka, Market i Poczta (Najbliższy Cel)
+## 🟢 Faza 6: System Czarownicy i Warzenie Mikstur (✅ Zakończona)
+Wprowadzenie systemu craftingu (warzenia) i NPC sklepu z miksturami.
+- [x] Utworzenie tabeli `item_recipes` przechowującej przepisy (ingredients JSON, gold_cost) i wynikowy przedmiot.
+- [x] Stworzenie seedera `RecipeSeeder` z pierwszymi podstawowymi miksturami.
+- [x] Rozbudowa interfejsu u Wiedźmy (`Witch.php`): zakładki "Wywary Specjalne", "Sklep Alchemiczny", "Warzenie Mikstur".
+- [x] Zaimplementowanie akcji warzenia (`CraftItemAction`) odejmującej potrzebne surowce.
+- [x] Implementacja kupowania podstawowych mikstur oraz specjalnej mikstury EXP (+20%).
+
+---
+
+## 🟣 Faza 7: Gospodarka, Market i Poczta
 Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy (transakcje, locks, ledgers) są gotowe by to obsłużyć bezpiecznie.
 - **Dom Aukcyjny / Rynek (Market):** Wystawianie ofert (sprzedaż za Gold/Gems). 
 - **Filtrowanie i Query Objects:** Implementacja zaawansowanego wyszukiwania przedmiotów na aukcjach (np. "Miecze +5 do poziomu 20").
@@ -56,7 +66,7 @@ Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy 
 
 ---
 
-## 🟣 Faza 7: Rzemiosło i Zbieractwo (Crafting)
+## 🟣 Faza 8: Rzemiosło i Zbieractwo (Crafting)
 Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`) do tworzenia cennych mikstur i ekwipunku bez konieczności liczenia na łut szczęścia z potworów.
 - **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego.
 - **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`.
@@ -64,7 +74,7 @@ Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`
 
 ---
 
-## 🔵 Faza 8: Aspekty Społecznościowe i Interakcja
+## 🔵 Faza 9: Aspekty Społecznościowe i Interakcja
 Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych graczy.
 - **Gildie:** Zrzeszanie się graczy i wspólne wpłacanie złota/klejnotów w celu powiększania bonusów pasywnych dla członków.
 - **Tablice Wyników (Leaderboards):** Redis Sorted Sets do tworzenia szybkich statystyk najlepszych graczy względem XP, Bogactwa, wygranych walk.
@@ -72,7 +82,7 @@ Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych gr
 
 ---
 
-## ⚪ Faza 9: Doskonalenie UI, Eventy Specjalne i Skalowanie
+## ⚪ Faza 10: Doskonalenie UI, Eventy Specjalne i Skalowanie
 Faza końcowa przygotowująca do oficjalnego release'u.
 - **Mikroanimacje / Stylizacja:** Pełne tchnięcie życia w Livewire, dodanie płynnych animacji pasków zdrowia, zrzutów przedmiotów i efektów krytycznych (Tailwind / CSS).
 - **Asynchroniczny Looting:** Przeniesienie symulacji tysięcy walk do procesów tle na kolejkach Redis i Laravel Horizon (Joby).

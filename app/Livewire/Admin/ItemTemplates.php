@@ -17,6 +17,7 @@ class ItemTemplates extends Component
     public $previewCP = 0;
     public $description, $icon;
     public $editingId = null;
+    public $duration_minutes = null;
 
     protected $rules = [
         'template_id' => 'required|string|max:255',
@@ -26,6 +27,7 @@ class ItemTemplates extends Component
         'level_requirement' => 'required|integer|min:1',
         'selectedStats' => 'array',
         'statValues.*' => 'numeric',
+        'duration_minutes' => 'nullable|integer|min:1',
     ];
 
     public function mount()
@@ -93,6 +95,10 @@ class ItemTemplates extends Component
             }
         }
 
+        if ($this->type === 'consumable' && $this->duration_minutes) {
+            $stats['duration_minutes'] = (int) $this->duration_minutes;
+        }
+
         $data = [
             'id' => $this->template_id,
             'name' => $this->name,
@@ -117,7 +123,7 @@ class ItemTemplates extends Component
             ItemTemplate::create($data);
         }
 
-        $this->reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'selectedStats', 'statValues', 'previewCP', 'description', 'icon', 'editingId']);
+        $this->reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'selectedStats', 'statValues', 'previewCP', 'description', 'icon', 'editingId', 'duration_minutes']);
         $this->loadData();
         session()->flash('message', 'Szablon przedmiotu zapisany.');
     }
@@ -134,6 +140,16 @@ class ItemTemplates extends Component
         
         $this->selectedStats = array_keys($template->base_stats ?? []);
         $this->statValues = $template->base_stats ?? [];
+        if (isset($this->statValues['duration_minutes'])) {
+            $this->duration_minutes = $this->statValues['duration_minutes'];
+            // Remove duration_minutes from selectedStats so it doesn't show up in the checkboxes loop
+            if (($key = array_search('duration_minutes', $this->selectedStats)) !== false) {
+                unset($this->selectedStats[$key]);
+            }
+        } else {
+            $this->duration_minutes = null;
+        }
+
         $this->calculatePreviewCP();
 
         $this->description = $template->description;

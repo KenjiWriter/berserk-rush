@@ -66,6 +66,15 @@
                         @error('level_requirement') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
+                    @if($type === 'consumable')
+                    <div class="mb-4 p-3 bg-blue-900/30 border border-blue-800 rounded">
+                        <label class="block text-blue-400 text-sm font-bold mb-2">Czas trwania buffu (w minutach)</label>
+                        <input type="number" wire:model="duration_minutes" class="shadow appearance-none border border-blue-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-blue-500">
+                        <p class="text-xs text-gray-400 mt-1">Zdefiniuj przez ile minut będą aktywne wybrane poniżej statystyki po spożyciu mikstury.</p>
+                        @error('duration_minutes') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    @endif
+
                     <div class="mb-6">
                         <label class="block text-gray-400 text-sm font-bold mb-2">Statystyki bazowe (+0)</label>
                         <div class="grid grid-cols-2 gap-2 bg-gray-900 p-3 rounded border border-gray-700 max-h-64 overflow-y-auto">

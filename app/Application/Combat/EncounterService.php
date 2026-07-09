@@ -395,6 +395,19 @@ class EncounterService
             $baseXp *= max(0.1, 1 + ($levelDiff * 0.05));
         }
 
+        // Add Active Buffs EXP modifier
+        $expBonusMultiplier = 0;
+        foreach ($character->getActiveBuffs() as $buff) {
+            $effects = $buff->effects ?? [];
+            if (isset($effects['exp_bonus'])) {
+                $expBonusMultiplier += ($effects['exp_bonus'] / 100);
+            }
+        }
+
+        if ($expBonusMultiplier > 0) {
+            $baseXp *= (1 + $expBonusMultiplier);
+        }
+
         return (int)$baseXp;
     }
 }

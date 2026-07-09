@@ -6,6 +6,8 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Carbon\Carbon;
 
 class Character extends Model
 {
@@ -83,6 +85,16 @@ class Character extends Model
         return $this->items()->where('location', 'inventory')->with('template');
     }
 
+    public function activeBuffs(): HasMany
+    {
+        return $this->hasMany(ActiveBuff::class, 'character_id');
+    }
+
+    public function getActiveBuffs()
+    {
+        return $this->activeBuffs()->where('expires_at', '>', Carbon::now())->get();
+    }
+
     public function getTotalAttributes(): array
     {
         $base = $this->getAttribute('attributes') ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
@@ -107,6 +119,17 @@ class Character extends Model
                 if (isset($rollStats[$bonusKey])) {
                     // In a real app we might scale roll_stats by upgrade_level
                     $total[$stat] += $rollStats[$bonusKey];
+                }
+            }
+        }
+
+        // Add Active Buffs
+        foreach ($this->getActiveBuffs() as $buff) {
+            $effects = $buff->effects ?? [];
+            foreach (['str', 'int', 'vit', 'agi'] as $stat) {
+                $bonusKey = $stat . '_bonus';
+                if (isset($effects[$bonusKey])) {
+                    $total[$stat] += $effects[$bonusKey];
                 }
             }
         }
@@ -140,6 +163,19 @@ class Character extends Model
             $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0) + ($upgrade['magic_attack_max'] ?? 0);
             $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
             $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
+        }
+
+        // Add Active Buffs
+        foreach ($this->getActiveBuffs() as $buff) {
+            $effects = $buff->effects ?? [];
+            $stats['hp_bonus'] += ($effects['hp_bonus'] ?? 0);
+            $stats['mana_bonus'] += ($effects['mana_bonus'] ?? 0);
+            $stats['attack_min'] += ($effects['attack_min'] ?? 0);
+            $stats['attack_max'] += ($effects['attack_max'] ?? 0);
+            $stats['magic_attack_min'] += ($effects['magic_attack_min'] ?? 0);
+            $stats['magic_attack_max'] += ($effects['magic_attack_max'] ?? 0);
+            $stats['defense'] += ($effects['defense'] ?? 0);
+            $stats['crit_chance'] += ($effects['crit_chance'] ?? 0);
         }
 
         return $stats;
