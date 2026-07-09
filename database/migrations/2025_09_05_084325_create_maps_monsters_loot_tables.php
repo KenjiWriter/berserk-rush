@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void
@@ -14,12 +13,18 @@ return new class extends Migration {
             $table->unsignedSmallInteger('level_min');
             $table->unsignedSmallInteger('level_max');
             $table->unsignedSmallInteger('tier')->default(1);
+            $table->string('image_path')->nullable();
             $table->timestamps();
+
+            $table->index(['level_min', 'level_max']);
+            $table->index('level_min');
+            $table->index('level_max');
         });
 
         Schema::create('loot_tables', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name')->unique();
+            $table->string('description')->nullable();
             $table->timestamps();
         });
 
@@ -28,8 +33,8 @@ return new class extends Migration {
             $table->unsignedSmallInteger('map_id');
             $table->string('name');
             $table->unsignedSmallInteger('level');
-            $table->jsonb('stats')->default(DB::raw("'{}'::jsonb"));     // hp, atk, def, crit, etc.
-            $table->jsonb('abilities')->default(DB::raw("'{}'::jsonb")); // efekty specjalne
+            $table->json('stats')->nullable();     // hp, atk, def, crit, etc.
+            $table->json('abilities')->nullable(); // efekty specjalne
             $table->unsignedBigInteger('loot_table_id')->nullable();
             $table->timestamps();
 
@@ -47,7 +52,7 @@ return new class extends Migration {
             $table->unsignedInteger('weight')->default(1);
             $table->unsignedInteger('min_qty')->default(1);
             $table->unsignedInteger('max_qty')->default(1);
-            $table->jsonb('conditions')->default(DB::raw("'{}'::jsonb")); // np. {luckMin:5}
+            $table->json('conditions')->nullable(); // np. {luckMin:5}
             $table->timestamps();
 
             $table->foreign('loot_table_id')->references('id')->on('loot_tables')->cascadeOnDelete();

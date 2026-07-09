@@ -14,7 +14,13 @@ return new class extends Migration {
             $table->unsignedSmallInteger('map_id');
             $table->unsignedBigInteger('monster_id');
             $table->string('state', 12)->default('ongoing'); // ongoing|win|lose
-            $table->jsonb('result')->default(DB::raw("'{}'::jsonb")); // xp, gold, drops summary
+            $table->json('result')->nullable(); // xp, gold, drops summary
+            $table->bigInteger('gold_reward')->default(0);
+            $table->bigInteger('xp_reward')->default(0);
+            $table->boolean('player_first')->default(true);
+            $table->json('turns')->nullable();
+            $table->json('combat_data')->nullable();
+            $table->boolean('rewards_applied')->default(false);
             $table->timestamp('started_at')->useCurrent();
             $table->timestamp('ended_at')->nullable();
             $table->timestamps();
@@ -23,7 +29,16 @@ return new class extends Migration {
             $table->foreign('map_id')->references('id')->on('maps')->cascadeOnDelete();
             $table->foreign('monster_id')->references('id')->on('monsters')->cascadeOnDelete();
             $table->index(['character_id', 'state']);
+            $table->index(['character_id', 'created_at']);
+            $table->index(['state', 'created_at']);
+            $table->index('rewards_applied');
         });
+
+        try {
+            DB::statement("ALTER TABLE encounters ADD CONSTRAINT chk_state_enc CHECK (state IN ('ongoing','win','lose'))");
+        } catch (\Exception $e) {
+            // Ignore if check constraints are not supported
+        }
 
         Schema::create('turns', function (Blueprint $table) {
             $table->bigIncrements('id');
@@ -32,7 +47,7 @@ return new class extends Migration {
             $table->string('attacker', 8); // char|monster
             $table->integer('damage');
             $table->boolean('crit')->default(false);
-            $table->jsonb('status')->default(DB::raw("'{}'::jsonb")); // np. buff/debuff
+            $table->json('status')->nullable(); // np. buff/debuff
             $table->timestamps();
 
             $table->foreign('encounter_id')->references('id')->on('encounters')->cascadeOnDelete();
@@ -42,6 +57,12 @@ return new class extends Migration {
 
     public function down(): void
     {
+        try {
+            DB::statement("ALTER TABLE encounters DROP CONSTRAINT IF EXISTS chk_state_enc");
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
         Schema::dropIfExists('turns');
         Schema::dropIfExists('encounters');
     }

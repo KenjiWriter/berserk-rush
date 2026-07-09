@@ -16,12 +16,15 @@ return new class extends Migration {
             $table->unsignedBigInteger('xp')->default(0);
             $table->bigInteger('gold')->default(0);
             $table->bigInteger('gems')->default(0);
-            $table->jsonb('attributes')->default(DB::raw("'{}'::jsonb"));   // {str,agi,int,vit,...}
-            $table->jsonb('proficiencies')->default(DB::raw("'{}'::jsonb")); // np. sword/bow/magic
+            $table->json('attributes')->nullable();   // {str,agi,int,vit,...}
+            $table->unsignedSmallInteger('character_points')->default(0);
+            $table->json('proficiencies')->nullable(); // np. sword/bow/magic
+            $table->string('avatar')->nullable();
             $table->unsignedInteger('version')->default(1); // optimistic lock
             $table->timestamps();
 
             $table->index(['user_id', 'created_at']);
+            $table->index('level');
         });
 
         Schema::create('skills', function (Blueprint $table) {

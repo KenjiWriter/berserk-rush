@@ -3,7 +3,6 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     public function up(): void
@@ -15,7 +14,7 @@ return new class extends Migration {
             $table->string('output_type', 16); // item|material
             $table->ulid('output_ref_ulid')->nullable();
             $table->unsignedBigInteger('output_qty')->default(1);
-            $table->jsonb('requirements')->default(DB::raw("'{}'::jsonb")); // np. {stationLevel:2}
+            $table->json('requirements')->nullable(); // np. {stationLevel:2}
             $table->timestamps();
         });
 
@@ -35,7 +34,7 @@ return new class extends Migration {
             $table->ulid('character_id');
             $table->ulid('recipe_id');
             $table->boolean('success')->default(false);
-            $table->jsonb('snapshot')->default(DB::raw("'{}'::jsonb")); // co zużyto/co powstało
+            $table->json('snapshot')->nullable(); // co zużyto/co powstało
             $table->string('idempotency_key', 64)->nullable()->unique();
             $table->timestamps();
 
@@ -51,7 +50,7 @@ return new class extends Migration {
             $table->unsignedTinyInteger('to_level');
             $table->decimal('success_chance', 5, 4); // 0.0000..1.0000
             $table->string('on_fail', 12)->default('nothing'); // break|downgrade|nothing
-            $table->jsonb('cost')->default(DB::raw("'{}'::jsonb")); // gold/materials
+            $table->json('cost')->nullable(); // gold/materials
             $table->ulid('protect_item_ref_ulid')->nullable(); // opcjonalny talizman chroniący
             $table->timestamps();
 

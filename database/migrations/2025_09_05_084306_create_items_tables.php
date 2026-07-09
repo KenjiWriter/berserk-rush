@@ -11,16 +11,18 @@ return new class extends Migration {
         Schema::create('item_templates', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->string('name');
-            $table->string('slot'); // head|chest|legs|weapon|offhand|boots|ring|amulet|material
-            $table->unsignedSmallInteger('tier')->default(1);
-            $table->unsignedSmallInteger('level_min')->default(1);
-            $table->unsignedSmallInteger('level_max')->default(1);
-            $table->string('rarity')->default('common'); // common|uncommon|rare|epic|legendary|mythic
-            $table->jsonb('base_stats')->default(DB::raw("'{}'::jsonb"));
-            $table->jsonb('flags')->default(DB::raw("'{}'::jsonb")); // {bindOnEquip:true, unique:false, ...}
+            $table->string('type'); // weapon, armor, accessory, consumable
+            $table->string('slot')->nullable(); // main_hand, head, chest, feet, ring, neck
+            $table->integer('level_requirement')->default(1);
+            $table->json('base_stats')->nullable();
+            $table->text('description')->nullable();
+            $table->string('icon')->nullable();
+            $table->json('rarity_weights')->nullable();
             $table->timestamps();
 
-            $table->index(['slot', 'tier', 'rarity']);
+            $table->index('type');
+            $table->index('slot');
+            $table->index('level_requirement');
         });
 
         Schema::create('item_instances', function (Blueprint $table) {
@@ -31,9 +33,9 @@ return new class extends Migration {
             $table->string('rarity')->default('common');
             $table->unsignedTinyInteger('upgrade_level')->default(0); // 0..9
             $table->unsignedInteger('stack_size')->default(1);
-            $table->jsonb('roll_stats')->default(DB::raw("'{}'::jsonb")); // losowe afiksy
+            $table->json('roll_stats')->nullable(); // losowe afiksy
             $table->string('seed')->nullable();
-            $table->timestamp('bound_at')->nullable();
+            $table->boolean('bound_to_character')->default(false);
             $table->unsignedInteger('version')->default(1); // optimistic lock
             $table->timestamps();
 
@@ -42,26 +44,39 @@ return new class extends Migration {
             $table->index(['owner_character_id', 'location']);
         });
 
-        Schema::create('item_ledger', function (Blueprint $table) {
-            $table->id();
-            $table->ulid('character_id')->nullable(); // kto dostał/stracił
-            $table->ulid('item_instance_id')->nullable();
-            $table->bigInteger('qty')->default(1); // dla stacków
-            $table->string('action', 24); // drop|craft|upgrade|sell|buy|mail|equip|unequip|destroy
-            $table->string('ref_type', 32)->nullable();
-            $table->ulid('ref_id')->nullable();
-            $table->string('idempotency_key', 64)->nullable()->unique();
+        try {
+            DB::statement("ALTER TABLE item_instances ADD CONSTRAINT chk_upgrade_level CHECK (upgrade_level BETWEEN 0 AND 9)");
+        } catch (\Exception $e) {
+            // Ignore if check constraints are not supported by the database engine
+        }
+
+        Schema::create('item_ledgers', function (Blueprint $table) {
+            $table->ulid('id')->primary();
+            $table->ulid('character_id');
+            $table->ulid('item_instance_id');
+            $table->string('action'); // drop, pickup, trade, etc.
+            $table->string('ref_type'); // encounter, trade, manual, etc.
+            $table->string('ref_id')->nullable();
+            $table->integer('quantity_change')->default(1);
+            $table->string('idempotency_key')->unique();
             $table->timestamps();
 
-            $table->foreign('character_id')->references('id')->on('characters')->nullOnDelete();
-            $table->foreign('item_instance_id')->references('id')->on('item_instances')->nullOnDelete();
+            $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
+            $table->foreign('item_instance_id')->references('id')->on('item_instances')->cascadeOnDelete();
             $table->index(['character_id', 'created_at']);
+            $table->index(['action', 'ref_type']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('item_ledger');
+        try {
+            DB::statement("ALTER TABLE item_instances DROP CONSTRAINT IF EXISTS chk_upgrade_level");
+        } catch (\Exception $e) {
+            // Ignore
+        }
+
+        Schema::dropIfExists('item_ledgers');
         Schema::dropIfExists('item_instances');
         Schema::dropIfExists('item_templates');
     }
