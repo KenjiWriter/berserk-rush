@@ -47,11 +47,19 @@
                 </div>
             </div>
 
-            {{-- Back button --}}
-            <button wire:click="backToHomepage"
-                class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
-                🏠 Powrót do gry
-            </button>
+            {{-- Back buttons --}}
+            <div class="flex gap-4">
+                @if(auth()->user()->permission_level >= 9)
+                    <a href="{{ route('admin.dashboard') }}"
+                        class="bg-gradient-to-r from-red-800 to-red-900 hover:from-red-700 hover:to-red-800 text-amber-100 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font flex items-center">
+                        ⚙️ Admin Panel
+                    </a>
+                @endif
+                <button wire:click="backToHomepage"
+                    class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font flex items-center">
+                    🏠 Powrót do gry
+                </button>
+            </div>
         </div>
 
         {{-- City title --}}
