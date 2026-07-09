@@ -144,4 +144,11 @@ class Character extends Model
 
         return $stats;
     }
+
+    public function getMaxHp(): int
+    {
+        $vitality = $this->getTotalAttributes()['vit'] ?? 1;
+        $eq = $this->getEquipmentStats();
+        return 100 + ($vitality * 10) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
+    }
 }

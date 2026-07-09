@@ -124,7 +124,7 @@ class EncounterService
                 ]);
 
                 // Initialize HP
-                $playerHp = $this->calculateMaxHp($character);
+                $playerHp = $character->getMaxHp();
                 $monsterHp = $monster->stats['hp'] ?? $monster->level * 20;
                 $playerMaxHp = $playerHp;
                 $monsterMaxHp = $monsterHp;
@@ -326,12 +326,7 @@ class EncounterService
         ];
     }
 
-    private function calculateMaxHp(Character $character): int
-    {
-        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
-        $eq = $character->getEquipmentStats();
-        return 100 + ($vitality * 10) + ($character->level * 5) + $eq['hp_bonus'];
-    }
+
 
     private function calculateDamage(Character $character, Monster $monster): int
     {

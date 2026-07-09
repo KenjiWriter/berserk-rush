@@ -187,7 +187,7 @@ class MapStub extends Component
         $playerAttributes = $character->getTotalAttributes();
 
         // Calculate HP based on attributes
-        $playerMaxHp = $this->calculateMaxHp($character);
+        $playerMaxHp = $character->getMaxHp();
 
         $monsterMaxHp = $combatResult['enemy']['maxHp'] ?? ($monster->stats['hp'] ?? $monster->level * 20);
         $monsterStats = $combatResult['enemy']['stats'] ?? $monster->stats ?? [];
@@ -237,11 +237,7 @@ class MapStub extends Component
         return min(100, ($currentXp / max(1, $xpToNext)) * 100);
     }
 
-    private function calculateMaxHp(Character $character): int
-    {
-        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
-        return 100 + ($vitality * 10) + ($character->level * 5);
-    }
+
 
     private function completeBattle(): void
     {
