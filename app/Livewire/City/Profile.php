@@ -12,7 +12,8 @@ use Livewire\Component;
 class Profile extends Component
 {
     public Character $character;
-    
+    public string $activeTab = 'attributes';
+
     public function mount(Character $character)
     {
         $this->character = $character;
@@ -21,6 +22,11 @@ class Profile extends Component
         if (auth()->id() !== $character->user_id) {
             abort(403);
         }
+    }
+
+    public function setTab(string $tab)
+    {
+        $this->activeTab = $tab;
     }
 
     public function equipItem(string $itemUlid, EquipItem $equipAction)
@@ -105,11 +111,30 @@ class Profile extends Component
                 $equipped[$slot] = $item;
             }
         }
+        
+        $totalAttributes = $this->character->getTotalAttributes();
+        
+        // Derived stats
+        $str = $totalAttributes['str'] ?? 0;
+        $int = $totalAttributes['int'] ?? 0;
+        $vit = $totalAttributes['vit'] ?? 0;
+        $agi = $totalAttributes['agi'] ?? 0;
+        $level = $this->character->level;
+        
+        $derivedStats = [
+            'max_hp' => 100 + ($vit * 10) + ($level * 5),
+            'base_damage' => 10 + ($str * 2) + ($level * 1),
+            'magic_damage' => ($int * 2) + ($level * 1),
+            'crit_chance' => min(50, 5 + ($agi * 0.5)),
+            'dodge_chance' => min(50, 2 + ($agi * 0.3)),
+            'damage_reduction' => $vit * 1,
+        ];
 
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $this->character->inventoryItems,
-            'totalAttributes' => $this->character->getTotalAttributes(),
+            'totalAttributes' => $totalAttributes,
+            'derivedStats' => $derivedStats,
         ]);
     }
 }

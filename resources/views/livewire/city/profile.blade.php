@@ -98,88 +98,113 @@
             <!-- Stats -->
             <div class="bg-gray-800 border border-gray-700 rounded p-4 mt-auto">
                 <div class="flex justify-between items-end border-b border-gray-700 pb-2 mb-3">
-                    <h3 class="text-yellow-500 font-bold text-lg">Atrybuty</h3>
-                    @if($character->character_points > 0)
+                    <div class="flex gap-6">
+                        <button wire:click="setTab('attributes')" class="font-bold text-lg transition-colors {{ $activeTab === 'attributes' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                            Atrybuty
+                        </button>
+                        <button wire:click="setTab('stats')" class="font-bold text-lg transition-colors {{ $activeTab === 'stats' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                            Statystyki
+                        </button>
+                    </div>
+                    @if($activeTab === 'attributes' && $character->character_points > 0)
                         <span class="text-green-400 font-bold text-sm animate-pulse bg-green-900/40 px-2 py-1 rounded border border-green-700">Punkty: {{ $character->character_points }}</span>
                     @endif
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
-                    <!-- STR -->
-                    <div class="flex justify-between items-center group">
-                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['str'] ?? 0 }}</span>
-                            @if($character->character_points > 0)
-                                <div class="flex gap-1">
-                                    <button wire:click="addAttribute('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    @if($character->character_points >= 5)
-                                        <button wire:click="addAttribute('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                    @endif
-                                </div>
-                            @endif
+                @if($activeTab === 'attributes')
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mt-4">
+                        <!-- STR -->
+                        <div class="flex justify-between items-center group">
+                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['str'] ?? 0 }}</span>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttribute('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttribute('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- INT -->
+                        <div class="flex justify-between items-center group">
+                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną (w przyszłości na moc magii).">Intelligence (INT):</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['int'] ?? 0 }}</span>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttribute('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttribute('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- VIT -->
+                        <div class="flex justify-between items-center group">
+                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['vit'] ?? 0 }}</span>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttribute('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttribute('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                        
+                        <!-- AGI -->
+                        <div class="flex justify-between items-center group">
+                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['agi'] ?? 0 }}</span>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttribute('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttribute('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
-                    
-                    <!-- INT -->
-                    <div class="flex justify-between items-center group">
-                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną (w przyszłości na moc magii).">Intelligence (INT):</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['int'] ?? 0 }}</span>
-                            @if($character->character_points > 0)
-                                <div class="flex gap-1">
-                                    <button wire:click="addAttribute('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    @if($character->character_points >= 5)
-                                        <button wire:click="addAttribute('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                    @endif
-                                </div>
-                            @endif
+                @elseif($activeTab === 'stats')
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm mt-4 text-gray-300">
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Maksymalna liczba punktów życia w walce.">Max HP:</span>
+                            <span class="text-green-400 font-bold text-base">{{ $derivedStats['max_hp'] }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia ataków fizycznych.">Base Damage:</span>
+                            <span class="text-red-400 font-bold text-base">{{ $derivedStats['base_damage'] }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia z umiejętności magicznych.">Magic Damage:</span>
+                            <span class="text-purple-400 font-bold text-base">{{ $derivedStats['magic_damage'] }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Redukuje nadchodzące obrażenia w walce.">Damage Reduction:</span>
+                            <span class="text-blue-400 font-bold text-base">{{ $derivedStats['damage_reduction'] }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na zadanie ataku krytycznego (1.5x obrażeń).">Crit Chance:</span>
+                            <span class="text-yellow-500 font-bold text-base">{{ $derivedStats['crit_chance'] }}%</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na całkowite uniknięcie ciosu przeciwnika.">Dodge Chance:</span>
+                            <span class="text-emerald-400 font-bold text-base">{{ $derivedStats['dodge_chance'] }}%</span>
                         </div>
                     </div>
-                    
-                    <!-- VIT -->
-                    <div class="flex justify-between items-center group">
-                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['vit'] ?? 0 }}</span>
-                            @if($character->character_points > 0)
-                                <div class="flex gap-1">
-                                    <button wire:click="addAttribute('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    @if($character->character_points >= 5)
-                                        <button wire:click="addAttribute('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                    
-                    <!-- AGI -->
-                    <div class="flex justify-between items-center group">
-                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['agi'] ?? 0 }}</span>
-                            @if($character->character_points > 0)
-                                <div class="flex gap-1">
-                                    <button wire:click="addAttribute('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    @if($character->character_points >= 5)
-                                        <button wire:click="addAttribute('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                    @endif
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mt-4 pt-4 border-t border-gray-700 text-sm">
-                    <div class="flex justify-between text-green-400 font-bold">
-                        <span>Max HP:</span>
-                        <span>{{ 100 + (($totalAttributes['vit'] ?? 1) * 10) + ($character->level * 5) }}</span>
-                    </div>
-                    <div class="flex justify-between text-red-400 font-bold mt-1">
-                        <span>Base Damage:</span>
-                        <span>{{ 10 + (($totalAttributes['str'] ?? 1) * 2) + ($character->level * 1) }}</span>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
 
