@@ -94,10 +94,39 @@ class ItemInstance extends Model
         // Merge base stats with rolled stats
         $totalStats = $baseStats;
         foreach ($rollStats as $stat => $value) {
-            $totalStats[$stat] = ($totalStats[$stat] ?? 0) + $value;
+            if ($stat === 'enchants' && is_array($value)) {
+                foreach ($value as $enchantType => $enchantValue) {
+                    $totalStats[$enchantType] = ($totalStats[$enchantType] ?? 0) + $enchantValue;
+                }
+            } else {
+                $totalStats[$stat] = ($totalStats[$stat] ?? 0) + $value;
+            }
         }
 
         return $totalStats;
+    }
+
+    public function getEnchantments(): array
+    {
+        return $this->roll_stats['enchants'] ?? [];
+    }
+
+    public function addEnchantment(string $type, int $value): void
+    {
+        $stats = $this->roll_stats ?? [];
+        if (!isset($stats['enchants'])) {
+            $stats['enchants'] = [];
+        }
+        
+        $stats['enchants'][$type] = $value;
+        $this->roll_stats = $stats;
+    }
+
+    public function clearEnchantments(): void
+    {
+        $stats = $this->roll_stats ?? [];
+        $stats['enchants'] = [];
+        $this->roll_stats = $stats;
     }
 
     public function getUpgradeBonusStats(?int $level = null): array

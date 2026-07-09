@@ -9,6 +9,7 @@ class Monster extends Model
     protected $fillable = [
         'map_id',
         'name',
+        'type',
         'level',
         'stats',
         'abilities',

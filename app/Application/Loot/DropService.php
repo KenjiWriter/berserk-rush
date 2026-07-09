@@ -17,7 +17,8 @@ class DropService
 {
     public function __construct(
         private WeightedPicker $picker,
-        private RandomProvider $rng
+        private RandomProvider $rng,
+        private \App\Domain\Wizard\EnchantmentStrategy $enchantmentStrategy
     ) {}
 
     public function rollAndApplyRewards(Encounter $encounter): Result
@@ -231,6 +232,17 @@ class DropService
                 'roll_stats' => [],
                 'upgrade_level' => 0
             ]);
+
+            // 5% chance to drop with enchantments
+            if ($this->rng->int(1, 100) <= 5) {
+                // 20% of enchanted drops have 2 enchants, 80% have 1
+                $numEnchants = $this->rng->int(1, 100) <= 20 ? 2 : 1;
+                $enchants = $this->enchantmentStrategy->generateMultipleRandomEnchantments($itemInstance, $numEnchants);
+                foreach ($enchants as $type => $val) {
+                    $itemInstance->addEnchantment($type, $val);
+                }
+                $itemInstance->save();
+            }
 
             // Record in item ledger
             ItemLedger::create([

@@ -254,6 +254,9 @@
                                                 <div class="flex justify-between items-center cursor-pointer hover:bg-green-800/20 p-1 rounded transition" @click="showLoot = !showLoot">
                                                     <div>
                                                         <span class="font-bold text-red-700">{{ $monster->name }}</span>
+                                                        @if($monster->type)
+                                                            <span class="text-xs text-yellow-700 ml-1 font-bold">[{{ ucfirst($monster->type) }}]</span>
+                                                        @endif
                                                         <span class="text-xs text-green-800 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
                                                     </div>
                                                     <span class="text-xs text-green-700" x-text="showLoot ? '▼' : '▶'"></span>
