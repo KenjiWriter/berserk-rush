@@ -99,4 +99,29 @@ class ItemInstance extends Model
 
         return $totalStats;
     }
+
+    public function getUpgradeBonusStats(?int $level = null): array
+    {
+        $level = $level ?? $this->upgrade_level;
+        if ($level <= 0) return [];
+
+        $base = $this->template->base_stats ?? [];
+        $bonus = [];
+
+        foreach ($base as $stat => $val) {
+            if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
+                $bonus[$stat] = $level * 2;
+            } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
+                $bonus[$stat] = $level * 3;
+            } elseif ($stat === 'defense') {
+                $bonus[$stat] = $level * 2;
+            } elseif ($stat === 'hp_bonus') {
+                $bonus[$stat] = $level * 10;
+            } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
+                $bonus[$stat] = (int) floor($level / 2);
+            }
+        }
+
+        return $bonus;
+    }
 }

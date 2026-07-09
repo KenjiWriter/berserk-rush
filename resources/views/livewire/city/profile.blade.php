@@ -243,6 +243,23 @@
                 </div>
             </div>
 
+            <!-- Inventory Filters & Actions -->
+            <div class="flex flex-wrap gap-2 mb-3">
+                <button wire:click="setInventoryFilter('all')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">All</button>
+                <button wire:click="setInventoryFilter('weapon')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'weapon' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Weapons</button>
+                <button wire:click="setInventoryFilter('armor')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'armor' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Armor</button>
+                <button wire:click="setInventoryFilter('accessory')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'accessory' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Accessories</button>
+                <button wire:click="setInventoryFilter('material')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'material' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Materials</button>
+                <button wire:click="setInventoryFilter('consumable')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'consumable' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Consumables</button>
+                
+                <div class="flex-grow"></div>
+                
+                <button wire:click="stackItems" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600 text-white flex items-center gap-1 shadow transition-colors" title="Połącz powtarzające się materiały">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                    Stackuj
+                </button>
+            </div>
+
             <!-- Inventory Grid -->
             <div class="grid grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
                 @foreach($inventory as $item)

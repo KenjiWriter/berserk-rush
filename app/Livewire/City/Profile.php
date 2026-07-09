@@ -13,6 +13,7 @@ class Profile extends Component
 {
     public Character $character;
     public string $activeTab = 'attributes';
+    public string $inventoryFilter = 'all';
 
     public function mount(Character $character)
     {
@@ -27,6 +28,41 @@ class Profile extends Component
     public function setTab(string $tab)
     {
         $this->activeTab = $tab;
+    }
+
+    public function setInventoryFilter(string $filter)
+    {
+        $this->inventoryFilter = $filter;
+    }
+
+    public function stackItems()
+    {
+        $character = $this->character;
+        $inventory = $character->inventoryItems()->get();
+        
+        $groups = $inventory->groupBy('template_id');
+        
+        foreach ($groups as $templateId => $items) {
+            $template = $items->first()->template;
+            // Only stack specific types
+            if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+                if ($items->count() > 1) {
+                    $firstItem = $items->first();
+                    $totalStack = $items->sum('stack_size');
+                    
+                    $firstItem->stack_size = $totalStack;
+                    $firstItem->save();
+                    
+                    // delete other items
+                    foreach ($items->skip(1) as $item) {
+                        $item->delete();
+                    }
+                }
+            }
+        }
+        
+        $this->dispatch('notify', type: 'success', message: 'Ekwipunek został uporządkowany.');
+        $this->character->refresh();
     }
 
     public function equipItem(string $itemUlid, EquipItem $equipAction)
@@ -137,9 +173,16 @@ class Profile extends Component
             'damage_reduction' => ($vit * 1) + $eqStats['defense'],
         ];
 
+        $inventory = $this->character->inventoryItems;
+        if ($this->inventoryFilter !== 'all') {
+            $inventory = $inventory->filter(function ($item) {
+                return $item->template->type === $this->inventoryFilter;
+            });
+        }
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
-            'inventory' => $this->character->inventoryItems,
+            'inventory' => $inventory,
             'totalAttributes' => $totalAttributes,
             'derivedStats' => $derivedStats,
         ]);

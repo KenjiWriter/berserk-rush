@@ -130,15 +130,16 @@ class Character extends Model
         foreach ($this->equippedItems as $item) {
             $base = $item->template->base_stats ?? [];
             $roll = $item->roll_stats ?? [];
+            $upgrade = $item->getUpgradeBonusStats();
             
-            $stats['hp_bonus'] += ($base['hp_bonus'] ?? 0) + ($roll['hp_bonus'] ?? 0);
-            $stats['mana_bonus'] += ($base['mana_bonus'] ?? 0) + ($roll['mana_bonus'] ?? 0);
-            $stats['attack_min'] += ($base['attack_min'] ?? 0) + ($roll['attack_min'] ?? 0);
-            $stats['attack_max'] += ($base['attack_max'] ?? 0) + ($roll['attack_max'] ?? 0);
-            $stats['magic_attack_min'] += ($base['magic_attack_min'] ?? 0) + ($roll['magic_attack_min'] ?? 0);
-            $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0);
-            $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0);
-            $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0);
+            $stats['hp_bonus'] += ($base['hp_bonus'] ?? 0) + ($roll['hp_bonus'] ?? 0) + ($upgrade['hp_bonus'] ?? 0);
+            $stats['mana_bonus'] += ($base['mana_bonus'] ?? 0) + ($roll['mana_bonus'] ?? 0) + ($upgrade['mana_bonus'] ?? 0);
+            $stats['attack_min'] += ($base['attack_min'] ?? 0) + ($roll['attack_min'] ?? 0) + ($upgrade['attack_min'] ?? 0);
+            $stats['attack_max'] += ($base['attack_max'] ?? 0) + ($roll['attack_max'] ?? 0) + ($upgrade['attack_max'] ?? 0);
+            $stats['magic_attack_min'] += ($base['magic_attack_min'] ?? 0) + ($roll['magic_attack_min'] ?? 0) + ($upgrade['magic_attack_min'] ?? 0);
+            $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0) + ($upgrade['magic_attack_max'] ?? 0);
+            $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
+            $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
         }
 
         return $stats;
