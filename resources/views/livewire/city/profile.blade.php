@@ -23,7 +23,7 @@
                 <!-- Left Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group"
+                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
@@ -38,11 +38,17 @@
                                     </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
                                     
-                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
+                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
                                         <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                            @foreach($equipped[$slot]->template->base_stats as $stat => $val)
+                                            @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
                                                 <div class="flex justify-between">
                                                     <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                    <span class="font-bold">+{{ $val }}</span>
+                                                </div>
+                                            @endforeach
+                                            @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
+                                                <div class="flex justify-between text-purple-400">
+                                                    <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
                                                     <span class="font-bold">+{{ $val }}</span>
                                                 </div>
                                             @endforeach
@@ -93,7 +99,7 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group"
+                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
@@ -108,11 +114,17 @@
                                     </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
                                     
-                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
+                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
                                         <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                            @foreach($equipped[$slot]->template->base_stats as $stat => $val)
+                                            @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
                                                 <div class="flex justify-between">
                                                     <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                    <span class="font-bold">+{{ $val }}</span>
+                                                </div>
+                                            @endforeach
+                                            @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
+                                                <div class="flex justify-between text-purple-400">
+                                                    <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
                                                     <span class="font-bold">+{{ $val }}</span>
                                                 </div>
                                             @endforeach
@@ -273,7 +285,7 @@
             <div class="grid grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
                 @foreach($inventory as $item)
                     <div wire:click="equipItem('{{ $item->id }}')" 
-                         class="aspect-square bg-gray-700 border border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative group transition-colors">
+                         class="aspect-square bg-gray-700 border border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative group transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
                         
                         <div class="text-center text-xs text-white">
                             <span class="block truncate w-14">{{ $item->template->name }}</span>
@@ -294,11 +306,17 @@
                             <p class="text-gray-400">Slot: {{ $item->template->slot ?? 'None' }}</p>
                             <p class="text-gray-400">Level Req: {{ $item->template->level_requirement }}</p>
                             
-                            @if(count($item->template->base_stats ?? []) > 0)
+                            @if(count($item->template->base_stats ?? []) > 0 || count($item->roll_stats['enchants'] ?? []) > 0)
                                 <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                    @foreach($item->template->base_stats as $stat => $val)
+                                    @foreach($item->template->base_stats ?? [] as $stat => $val)
                                         <div class="flex justify-between">
                                             <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                            <span class="font-bold">+{{ $val }}</span>
+                                        </div>
+                                    @endforeach
+                                    @foreach($item->roll_stats['enchants'] ?? [] as $stat => $val)
+                                        <div class="flex justify-between text-purple-400">
+                                            <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
                                             <span class="font-bold">+{{ $val }}</span>
                                         </div>
                                     @endforeach
@@ -329,5 +347,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
         .medieval-font { font-family: 'Cinzel', serif; }
+        
+        @keyframes borderGlow {
+            0% { box-shadow: 0 0 5px #a855f7, inset 0 0 5px #a855f7; border-color: #a855f7; }
+            50% { box-shadow: 0 0 15px #d946ef, inset 0 0 10px #d946ef; border-color: #d946ef; }
+            100% { box-shadow: 0 0 5px #a855f7, inset 0 0 5px #a855f7; border-color: #a855f7; }
+        }
+        .enchanted-border {
+            animation: borderGlow 2s infinite alternate;
+            border-width: 2px;
+            z-index: 10;
+        }
     </style>
 </div>

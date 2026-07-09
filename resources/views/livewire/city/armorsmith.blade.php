@@ -69,7 +69,7 @@
                 @elseif($activeTab === 'sell')
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         @foreach($inventoryItems as $item)
-                            <div class="bg-gray-800 border border-gray-600 rounded p-2 flex flex-col items-center group relative cursor-pointer hover:border-red-500 transition-colors" wire:click="sellItem('{{ $item->id }}')">
+                            <div class="bg-gray-800 border border-gray-600 rounded p-2 flex flex-col items-center group relative cursor-pointer hover:border-red-500 transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}" wire:click="sellItem('{{ $item->id }}')">
                                 <div class="text-center text-xs text-white my-4">
                                     <span class="block truncate w-20">{{ $item->template->name }}</span>
                                     @if($item->upgrade_level > 0)
@@ -118,7 +118,7 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                             @foreach($upgradableItems as $item)
-                                <div class="bg-gray-800 border border-gray-600 rounded p-4 flex flex-col items-center text-center relative">
+                                <div class="bg-gray-800 border border-gray-600 rounded p-4 flex flex-col items-center text-center relative {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
                                     @if($item->location === 'equipped')
                                         <div class="absolute top-0 right-0 bg-blue-600/90 text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg rounded-tr border-b border-l border-blue-500 shadow-sm">
                                             Założone
@@ -224,5 +224,16 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
         .medieval-font { font-family: 'Cinzel', serif; }
+
+        @keyframes borderGlow {
+            0% { box-shadow: 0 0 5px #a855f7, inset 0 0 5px #a855f7; border-color: #a855f7; }
+            50% { box-shadow: 0 0 15px #d946ef, inset 0 0 10px #d946ef; border-color: #d946ef; }
+            100% { box-shadow: 0 0 5px #a855f7, inset 0 0 5px #a855f7; border-color: #a855f7; }
+        }
+        .enchanted-border {
+            animation: borderGlow 2s infinite alternate;
+            border-width: 2px;
+            z-index: 10;
+        }
     </style>
 </div>
