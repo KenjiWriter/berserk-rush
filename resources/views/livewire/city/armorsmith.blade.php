@@ -42,13 +42,18 @@
                 @if($activeTab === 'buy')
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($shopItems as $item)
-                            <div class="bg-gray-800 border border-gray-600 rounded p-4 flex flex-col items-center text-center">
-                                <h3 class="font-bold text-lg text-blue-300 mb-2">{{ $item->name }}</h3>
-                                <p class="text-sm text-gray-400 mb-2">Poziom: {{ $item->level_requirement }}</p>
+                            <div class="bg-gray-800 border border-gray-600 rounded p-4 flex flex-col items-center text-center relative">
+                                @if($item->is_limited)
+                                    <div class="absolute -top-3 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg animate-pulse">
+                                        🔥 Zostało: {{ $item->max_quantity - $item->sold_quantity }}
+                                    </div>
+                                @endif
+                                <h3 class="font-bold text-lg text-blue-300 mb-2">{{ $item->template->name }}</h3>
+                                <p class="text-sm text-gray-400 mb-2">Poziom: {{ $item->template->level_requirement }}</p>
                                 
-                                @if(count($item->base_stats ?? []) > 0)
+                                @if(count($item->template->base_stats ?? []) > 0)
                                     <div class="text-xs text-green-400 mb-4 bg-gray-900 p-2 rounded w-full">
-                                        @foreach($item->base_stats as $stat => $val)
+                                        @foreach($item->template->base_stats as $stat => $val)
                                             <div class="flex justify-between">
                                                 <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
                                                 <span class="font-bold">+{{ $val }}</span>

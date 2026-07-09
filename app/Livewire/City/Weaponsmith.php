@@ -33,10 +33,10 @@ class Weaponsmith extends Component
         $this->activeTab = $tab;
     }
 
-    public function buyItem(string $templateId, \App\Application\Items\ShopService $shop)
+    public function buyItem(int $merchantItemId, \App\Application\Items\ShopService $shop)
     {
-        $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateId);
-        $result = $shop->buyItem($this->character, $template);
+        $merchantItem = \App\Infrastructure\Persistence\MerchantItem::with('template')->findOrFail($merchantItemId);
+        $result = $shop->buyItem($this->character, $merchantItem);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
         } else {
@@ -77,11 +77,17 @@ class Weaponsmith extends Component
 
     public function render(\App\Application\Items\ShopService $shopService, \App\Application\Items\UpgradeService $upgradeService)
     {
-        $shopItems = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'weapon')->get();
+        $shopItems = \App\Infrastructure\Persistence\MerchantItem::where('merchant_id', 'weaponsmith')
+            ->where('required_level', '<=', $this->character->level)
+            ->with('template')
+            ->get()
+            ->filter(function($mi) {
+                return !$mi->is_limited || $mi->sold_quantity < $mi->max_quantity;
+            });
         
         $shopPrices = [];
-        foreach($shopItems as $item) {
-            $shopPrices[$item->id] = $shopService->getBuyPrice($item);
+        foreach($shopItems as $mi) {
+            $shopPrices[$mi->id] = $shopService->getBuyPrice($mi->template);
         }
 
         // Sell all types of items (inventory + equipped)

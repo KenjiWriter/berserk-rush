@@ -37,6 +37,11 @@
                                         <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                     </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
+                                    @if(isset($equipped[$slot]->roll_stats['mint']))
+                                        <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
+                                            🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
+                                        </p>
+                                    @endif
                                     
                                     @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
                                         <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
@@ -113,6 +118,11 @@
                                         <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                     </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
+                                    @if(isset($equipped[$slot]->roll_stats['mint']))
+                                        <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
+                                            🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
+                                        </p>
+                                    @endif
                                     
                                     @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
                                         <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
@@ -305,6 +315,11 @@
                             </div>
                             <p class="text-gray-400">Slot: {{ $item->template->slot ?? 'None' }}</p>
                             <p class="text-gray-400">Level Req: {{ $item->template->level_requirement }}</p>
+                            @if(isset($item->roll_stats['mint']))
+                                <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
+                                    🔥 Nakład: {{ $item->roll_stats['mint'] }} / {{ $item->roll_stats['max_mint'] }}
+                                </p>
+                            @endif
                             
                             @if(count($item->template->base_stats ?? []) > 0 || count($item->roll_stats['enchants'] ?? []) > 0)
                                 <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">

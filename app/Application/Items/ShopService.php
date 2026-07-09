@@ -27,8 +27,11 @@ class ShopService
         return (int) floor(($baseValue + $upgradeValue) * 0.25);
     }
 
-    public function buyItem(Character $character, ItemTemplate $template, int $quantity = 1): array
+    public function buyItem(Character $character, $source, int $quantity = 1): array
     {
+        $isMerchantItem = $source instanceof \App\Infrastructure\Persistence\MerchantItem;
+        $template = $isMerchantItem ? $source->template : $source;
+
         $price = $this->getBuyPrice($template) * $quantity;
 
         if ($character->gold < $price) {
@@ -64,6 +67,14 @@ class ShopService
         }
 
         for ($i = 0; $i < $quantity; $i++) {
+            $rollStats = [];
+            
+            if ($isMerchantItem && $source->is_limited) {
+                $source->increment('sold_quantity');
+                $rollStats['mint'] = $source->sold_quantity;
+                $rollStats['max_mint'] = $source->max_quantity;
+            }
+
             $itemInstance = ItemInstance::create([
                 'id' => Str::ulid(),
                 'template_id' => $template->id,
@@ -71,7 +82,8 @@ class ShopService
                 'location' => 'inventory',
                 'stack_size' => 1,
                 'rarity' => 'common',
-                'upgrade_level' => 0
+                'upgrade_level' => 0,
+                'roll_stats' => empty($rollStats) ? null : $rollStats
             ]);
 
             ItemLedger::create([

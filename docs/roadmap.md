@@ -40,15 +40,15 @@ Wprowadzenie dodatkowej drogi progresji sprzętu w formie Zaklinania (Enchantowa
 
 ---
 
-## 🟡 Faza 5: System Administracyjny (GUI) i Combat Power (Najbliższy Cel)
+## 🟢 Faza 5: System Administracyjny (GUI) i Combat Power (Zakończone)
 Stworzenie narzędzi dla administratorów/twórców oraz wprowadzenie wizualnej miary mocy przedmiotów.
-- **Panel Administratora (GUI):** Interfejs graficzny do swobodnego tworzenia i edycji map, przedmiotów oraz potworów.
-- **Zarządzanie Łupami i Mapami:** Możliwość łatwego przypisywania tabel łupów (loot) do potworów oraz przypisywania potworów do map bezpośrednio w GUI.
-- **System Combat Power (CP):** Wyliczanie i wizualne odzwierciedlanie całkowitej "mocy" przedmiotu (np. broń z większymi obrażeniami lub lepszymi bonusami będzie miała 108 CP, podczas gdy słabsza 104 CP), co pozwoli graczom łatwiej oceniać siłę ekwipunku.
+- [x] **Panel Administratora (GUI):** Interfejs graficzny do swobodnego tworzenia i edycji map, przedmiotów, asortymentu kupców oraz potworów.
+- [x] **Zarządzanie Łupami i Mapami:** Możliwość łatwego przypisywania tabel łupów (loot) do potworów oraz przypisywania potworów do map bezpośrednio w GUI.
+- [x] **System Combat Power (CP):** Wyliczanie i wizualne odzwierciedlanie całkowitej "mocy" przedmiotu, co pozwala graczom łatwiej oceniać siłę ekwipunku.
 
 ---
 
-## 🔴 Faza 6: Gospodarka, Market i Poczta (Player-driven Economy)
+## 🟡 Faza 6: Gospodarka, Market i Poczta (Najbliższy Cel)
 Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy (transakcje, locks, ledgers) są gotowe by to obsłużyć bezpiecznie.
 - **Dom Aukcyjny / Rynek (Market):** Wystawianie ofert (sprzedaż za Gold/Gems). 
 - **Filtrowanie i Query Objects:** Implementacja zaawansowanego wyszukiwania przedmiotów na aukcjach (np. "Miecze +5 do poziomu 20").
