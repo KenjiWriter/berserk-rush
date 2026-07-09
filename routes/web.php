@@ -37,6 +37,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
         Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
         Route::get('/witch', Witch::class)->name('witch');
+        Route::get('/wizard', \App\Livewire\City\Wizard::class)->name('wizard');
         Route::get('/adventure', Adventure::class)->name('adventure');
     });
 

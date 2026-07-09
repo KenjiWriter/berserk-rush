@@ -30,17 +30,25 @@ Jeden z najistotniejszych aspektów gry, opierający się na progresji mocy.
 
 ---
 
-## 🟡 Faza 4: Czarodziej i Typy Potworów (Najbliższy Cel)
+## 🟢 Faza 4: Czarodziej i Typy Potworów (Zakończone)
 Wprowadzenie dodatkowej drogi progresji sprzętu w formie Zaklinania (Enchantowania).
-- **Typy potworów:** Dodanie kategorii potworów (zwierzę, demon, nieumarły, ork) i modyfikatorów dmg przeciwko nim.
-- **Dodawanie bonusów:** Możliwość dodania do 5 bonusów do przedmiotu u NPC Czarodzieja. Szansa spada z każdym kolejnym bonusem (75%, 50%, 40%, 30%, 20%).
-- **Reroll bonusów:** Możliwość resetowania wszystkich wylosowanych dotychczas bonusów naraz, aby wygenerować inne efekty.
-- **Koszt operacji:** Gracz ma prawo wybrać, czy płaci za zaklinanie Złotem, czy walutą Premium (Gems).
-- **Różnice klasowe:** Bronie i Zbroje posiadają różne dostępne pule bonusów.
+- [x] **Typy potworów:** Dodanie kategorii potworów (zwierzę, demon, nieumarły, ork) i modyfikatorów dmg przeciwko nim.
+- [x] **Dodawanie bonusów:** Możliwość dodania do 5 bonusów do przedmiotu u NPC Czarodzieja. Szansa spada z każdym kolejnym bonusem (75%, 50%, 40%, 30%, 20%).
+- [x] **Reroll bonusów:** Możliwość resetowania wszystkich wylosowanych dotychczas bonusów naraz, aby wygenerować inne efekty.
+- [x] **Koszt operacji:** Gracz ma prawo wybrać, czy płaci za zaklinanie Złotem, czy walutą Premium (Gems).
+- [x] **Różnice klasowe:** Bronie i Zbroje posiadają różne dostępne pule bonusów.
 
 ---
 
-## 🔴 Faza 5: Gospodarka, Market i Poczta (Player-driven Economy)
+## 🟡 Faza 5: System Administracyjny (GUI) i Combat Power (Najbliższy Cel)
+Stworzenie narzędzi dla administratorów/twórców oraz wprowadzenie wizualnej miary mocy przedmiotów.
+- **Panel Administratora (GUI):** Interfejs graficzny do swobodnego tworzenia i edycji map, przedmiotów oraz potworów.
+- **Zarządzanie Łupami i Mapami:** Możliwość łatwego przypisywania tabel łupów (loot) do potworów oraz przypisywania potworów do map bezpośrednio w GUI.
+- **System Combat Power (CP):** Wyliczanie i wizualne odzwierciedlanie całkowitej "mocy" przedmiotu (np. broń z większymi obrażeniami lub lepszymi bonusami będzie miała 108 CP, podczas gdy słabsza 104 CP), co pozwoli graczom łatwiej oceniać siłę ekwipunku.
+
+---
+
+## 🔴 Faza 6: Gospodarka, Market i Poczta (Player-driven Economy)
 Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy (transakcje, locks, ledgers) są gotowe by to obsłużyć bezpiecznie.
 - **Dom Aukcyjny / Rynek (Market):** Wystawianie ofert (sprzedaż za Gold/Gems). 
 - **Filtrowanie i Query Objects:** Implementacja zaawansowanego wyszukiwania przedmiotów na aukcjach (np. "Miecze +5 do poziomu 20").
@@ -48,7 +56,7 @@ Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy 
 
 ---
 
-## 🟣 Faza 6: Rzemiosło i Zbieractwo (Crafting)
+## 🟣 Faza 7: Rzemiosło i Zbieractwo (Crafting)
 Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`) do tworzenia cennych mikstur i ekwipunku bez konieczności liczenia na łut szczęścia z potworów.
 - **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego.
 - **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`.
@@ -56,7 +64,7 @@ Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`
 
 ---
 
-## 🔵 Faza 7: Aspekty Społecznościowe i Interakcja
+## 🔵 Faza 8: Aspekty Społecznościowe i Interakcja
 Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych graczy.
 - **Gildie:** Zrzeszanie się graczy i wspólne wpłacanie złota/klejnotów w celu powiększania bonusów pasywnych dla członków.
 - **Tablice Wyników (Leaderboards):** Redis Sorted Sets do tworzenia szybkich statystyk najlepszych graczy względem XP, Bogactwa, wygranych walk.
@@ -64,7 +72,7 @@ Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych gr
 
 ---
 
-## ⚪ Faza 8: Doskonalenie UI, Eventy Specjalne i Skalowanie
+## ⚪ Faza 9: Doskonalenie UI, Eventy Specjalne i Skalowanie
 Faza końcowa przygotowująca do oficjalnego release'u.
 - **Mikroanimacje / Stylizacja:** Pełne tchnięcie życia w Livewire, dodanie płynnych animacji pasków zdrowia, zrzutów przedmiotów i efektów krytycznych (Tailwind / CSS).
 - **Asynchroniczny Looting:** Przeniesienie symulacji tysięcy walk do procesów tle na kolejkach Redis i Laravel Horizon (Joby).

@@ -188,6 +188,24 @@
                     </button>
                 </div>
 
+                {{-- Wizard --}}
+                <div class="relative group">
+                    <button wire:click="goTo('wizard')"
+                        class="w-full bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-indigo-100/95 hover:to-indigo-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                        {{-- Decorative corners --}}
+                        <div class="absolute top-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                        <div class="relative text-center">
+                            <div class="text-6xl mb-4">🧙‍♂️</div>
+                            <h3 class="text-2xl font-bold text-indigo-900 medieval-font mb-2">Czarodziej</h3>
+                            <p class="text-indigo-800 font-semibold">Magiczne bonusy przedmiotów</p>
+                        </div>
+                    </button>
+                </div>
+
                 {{-- Adventure --}}
                 <div class="relative group">
                     <button wire:click="goTo('adventure')"
@@ -241,6 +259,12 @@
                     class="bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-4 text-center shadow-xl">
                     <div class="text-4xl mb-2">🧙‍♀️</div>
                     <div class="font-bold text-purple-900 medieval-font">Wiedźma</div>
+                </button>
+
+                <button wire:click="goTo('wizard')"
+                    class="bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-4 text-center shadow-xl">
+                    <div class="text-4xl mb-2">🧙‍♂️</div>
+                    <div class="font-bold text-indigo-900 medieval-font">Czarodziej</div>
                 </button>
 
                 <button wire:click="goTo('adventure')"
