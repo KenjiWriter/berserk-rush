@@ -52,6 +52,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/maps', \App\Livewire\Admin\Maps::class)->name('maps');
     Route::get('/monsters', \App\Livewire\Admin\Monsters::class)->name('monsters');
     Route::get('/item-templates', \App\Livewire\Admin\ItemTemplates::class)->name('item-templates');
+    Route::get('/merchant-items', \App\Livewire\Admin\MerchantItems::class)->name('merchant-items');
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
 });
 
