@@ -48,7 +48,7 @@ class Wizard extends Component
         if (!$item) return;
 
         try {
-            $result = $enchantItemAction->execute($this->character->user, $item, $currencyType);
+            $result = $enchantItemAction->execute($item, $this->character, $currencyType);
             $this->enchantModalType = 'success';
             $this->enchantModalTitle = 'Sukces!';
             $this->enchantModalMessage = 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
@@ -68,7 +68,7 @@ class Wizard extends Component
         if (!$item) return;
 
         try {
-            $result = $rerollAction->execute($this->character->user, $item, $currencyType);
+            $result = $rerollAction->execute($item, $this->character, $currencyType);
             $this->enchantModalType = 'success';
             $this->enchantModalTitle = 'Sukces!';
             $this->enchantModalMessage = 'Bonusy przedmiotu zostały wylosowane na nowo!';
