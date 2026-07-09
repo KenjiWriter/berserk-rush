@@ -153,4 +153,47 @@ class ItemInstance extends Model
 
         return $bonus;
     }
+
+    public function getCombatPower(): int
+    {
+        $cp = 0;
+        $stats = $this->getTotalStats();
+        $bonus = $this->getUpgradeBonusStats();
+
+        // Combine base+rolls and upgrade bonuses
+        $allStats = $stats;
+        foreach ($bonus as $stat => $val) {
+            $allStats[$stat] = ($allStats[$stat] ?? 0) + $val;
+        }
+
+        $weights = [
+            'attack_min' => 1.0,
+            'attack_max' => 1.0,
+            'magic_attack_min' => 1.0,
+            'magic_attack_max' => 1.0,
+            'defense' => 1.5,
+            'hp_bonus' => 0.1,
+            'mana_bonus' => 0.1,
+            'str_bonus' => 2.0,
+            'agi_bonus' => 2.0,
+            'int_bonus' => 2.0,
+            'vit_bonus' => 2.0,
+        ];
+
+        foreach ($allStats as $stat => $value) {
+            $weight = $weights[$stat] ?? 1.0;
+            $cp += $value * $weight;
+        }
+
+        // Rarity multiplier
+        $multiplier = match ($this->rarity) {
+            'uncommon' => 1.05,
+            'rare' => 1.10,
+            'epic' => 1.20,
+            'legendary' => 1.35,
+            default => 1.0,
+        };
+
+        return (int) round($cp * $multiplier);
+    }
 }

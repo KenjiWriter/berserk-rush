@@ -151,4 +151,13 @@ class Character extends Model
         $eq = $this->getEquipmentStats();
         return 100 + ($vitality * 10) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
     }
+
+    public function getTotalCombatPower(): int
+    {
+        $cp = 0;
+        foreach ($this->equippedItems as $item) {
+            $cp += $item->getCombatPower();
+        }
+        return $cp;
+    }
 }

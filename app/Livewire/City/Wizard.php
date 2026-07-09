@@ -49,10 +49,24 @@ class Wizard extends Component
 
         try {
             $result = $enchantItemAction->execute($item, $this->character, $currencyType);
-            $this->enchantModalType = 'success';
-            $this->enchantModalTitle = 'Sukces!';
-            $this->enchantModalMessage = 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
-            $this->character->refresh();
+            
+            if ($result->isError()) {
+                $this->enchantModalType = 'error';
+                $this->enchantModalTitle = 'Błąd';
+                $this->enchantModalMessage = $result->getErrorMessage();
+            } else {
+                $payload = $result->getPayload();
+                if ($payload['success'] ?? false) {
+                    $this->enchantModalType = 'success';
+                    $this->enchantModalTitle = 'Sukces!';
+                    $this->enchantModalMessage = $payload['message'] ?? 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
+                } else {
+                    $this->enchantModalType = 'error';
+                    $this->enchantModalTitle = 'Niepowodzenie';
+                    $this->enchantModalMessage = $payload['message'] ?? 'Zaklinanie nie powiodło się.';
+                }
+                $this->character->refresh();
+            }
         } catch (\Exception $e) {
             $this->enchantModalType = 'error';
             $this->enchantModalTitle = 'Niepowodzenie';
@@ -69,10 +83,24 @@ class Wizard extends Component
 
         try {
             $result = $rerollAction->execute($item, $this->character, $currencyType);
-            $this->enchantModalType = 'success';
-            $this->enchantModalTitle = 'Sukces!';
-            $this->enchantModalMessage = 'Bonusy przedmiotu zostały wylosowane na nowo!';
-            $this->character->refresh();
+            
+            if ($result->isError()) {
+                $this->enchantModalType = 'error';
+                $this->enchantModalTitle = 'Błąd';
+                $this->enchantModalMessage = $result->getErrorMessage();
+            } else {
+                $payload = $result->getPayload();
+                if ($payload['success'] ?? false) {
+                    $this->enchantModalType = 'success';
+                    $this->enchantModalTitle = 'Sukces!';
+                    $this->enchantModalMessage = $payload['message'] ?? 'Bonusy przedmiotu zostały wylosowane na nowo!';
+                } else {
+                    $this->enchantModalType = 'error';
+                    $this->enchantModalTitle = 'Niepowodzenie';
+                    $this->enchantModalMessage = $payload['message'] ?? 'Operacja nie powiodła się.';
+                }
+                $this->character->refresh();
+            }
         } catch (\Exception $e) {
             $this->enchantModalType = 'error';
             $this->enchantModalTitle = 'Niepowodzenie';

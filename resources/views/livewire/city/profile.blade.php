@@ -32,7 +32,10 @@
                                 </div>
                                 <!-- Tooltip -->
                                 <div class="hidden group-hover:block absolute left-full ml-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
-                                    <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
+                                        <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
+                                    </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
                                     
                                     @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
@@ -69,7 +72,10 @@
                     </div>
 
                     <h2 class="text-2xl font-bold text-yellow-500 text-center drop-shadow-md">{{ $character->name }}</h2>
-                    <p class="text-gray-400 mb-3 font-semibold text-sm">Poziom {{ $character->level }}</p>
+                    <p class="text-gray-400 font-semibold text-sm">Poziom {{ $character->level }}</p>
+                    <div class="bg-indigo-900/80 border border-indigo-500 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold shadow-lg my-2">
+                        ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
+                    </div>
                     
                     <!-- XP Bar -->
                     @php 
@@ -96,7 +102,10 @@
                                 </div>
                                 <!-- Tooltip -->
                                 <div class="hidden group-hover:block absolute right-full mr-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
-                                    <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
+                                        <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
+                                    </div>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
                                     
                                     @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
@@ -278,7 +287,10 @@
 
                         <!-- Tooltip -->
                         <div class="hidden group-hover:block absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-gray-500 p-2 rounded text-xs w-48 shadow-xl">
-                            <p class="font-bold text-blue-300">{{ $item->template->name }}</p>
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold text-blue-300">{{ $item->template->name }}</p>
+                                <span class="text-indigo-300 font-bold text-xs">⚡ {{ $item->getCombatPower() }}</span>
+                            </div>
                             <p class="text-gray-400">Slot: {{ $item->template->slot ?? 'None' }}</p>
                             <p class="text-gray-400">Level Req: {{ $item->template->level_requirement }}</p>
                             
