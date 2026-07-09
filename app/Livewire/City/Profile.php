@@ -66,6 +66,34 @@ class Profile extends Component
         }
     }
 
+    public function addAttribute(string $attribute, int $amount = 1)
+    {
+        $validAttributes = ['str', 'int', 'vit', 'agi'];
+        if (!in_array($attribute, $validAttributes)) {
+            return;
+        }
+
+        $points = $this->character->character_points ?? 0;
+        
+        // Use all available points if requested amount is very large (e.g. 999)
+        if ($amount > $points) {
+            $amount = $points;
+        }
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        $attributes = $this->character->getAttribute('attributes') ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
+        $attributes[$attribute] = ($attributes[$attribute] ?? 0) + $amount;
+
+        $this->character->attributes = $attributes;
+        $this->character->character_points = $points - $amount;
+        $this->character->save();
+
+        $this->dispatch('notify', type: 'success', message: "Atrybut zwiększony o {$amount}.");
+    }
+
     public function render()
     {
         $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template']);

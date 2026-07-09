@@ -18,13 +18,8 @@
         
         <!-- Left Side: Character Profile -->
         <div class="bg-gray-900 border-2 border-yellow-600 rounded-lg shadow-xl p-4 flex flex-col h-full">
-            <div class="text-center mb-4">
-                <h2 class="text-2xl font-bold text-yellow-500">{{ $character->name }}</h2>
-                <p class="text-gray-400">Level {{ $character->level }}</p>
-            </div>
-
             <!-- Equipment Slots & Portrait -->
-            <div class="flex justify-center items-center gap-4 mb-8">
+            <div class="flex justify-center items-start gap-4 md:gap-8 mb-8 mt-4">
                 <!-- Left Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
@@ -48,16 +43,33 @@
                     @endforeach
                 </div>
 
-                <!-- Portrait -->
-                <div class="w-48 h-64 bg-gray-800 border-4 border-yellow-700 rounded-lg overflow-hidden flex items-center justify-center">
-                    @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
-                        <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
-                    @else
-                        <div class="text-gray-500 flex flex-col items-center">
-                            <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                            <span>No Avatar</span>
-                        </div>
-                    @endif
+                <!-- Portrait & Info -->
+                <div class="flex flex-col items-center w-48">
+                    <div class="w-full h-64 bg-gray-800 border-4 border-yellow-700 rounded-lg overflow-hidden flex items-center justify-center mb-4 shadow-lg">
+                        @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                            <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
+                        @else
+                            <div class="text-gray-500 flex flex-col items-center">
+                                <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <span>No Avatar</span>
+                            </div>
+                        @endif
+                    </div>
+
+                    <h2 class="text-2xl font-bold text-yellow-500 text-center drop-shadow-md">{{ $character->name }}</h2>
+                    <p class="text-gray-400 mb-3 font-semibold text-sm">Poziom {{ $character->level }}</p>
+                    
+                    <!-- XP Bar -->
+                    @php 
+                        $xpRequired = $character->level * 100;
+                        $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
+                    @endphp
+                    <div class="w-full bg-gray-900 rounded-full h-5 relative border-2 border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
+                        <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
+                        <span class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                            XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
+                        </span>
+                    </div>
                 </div>
 
                 <!-- Right Slots -->
@@ -85,23 +97,76 @@
 
             <!-- Stats -->
             <div class="bg-gray-800 border border-gray-700 rounded p-4 mt-auto">
-                <h3 class="text-yellow-500 font-bold mb-2 border-b border-gray-700 pb-1">Attributes</h3>
-                <div class="grid grid-cols-2 gap-4 text-sm">
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Strength (STR):</span>
-                        <span class="text-white font-bold">{{ $totalAttributes['str'] ?? 0 }}</span>
+                <div class="flex justify-between items-end border-b border-gray-700 pb-2 mb-3">
+                    <h3 class="text-yellow-500 font-bold text-lg">Atrybuty</h3>
+                    @if($character->character_points > 0)
+                        <span class="text-green-400 font-bold text-sm animate-pulse bg-green-900/40 px-2 py-1 rounded border border-green-700">Punkty: {{ $character->character_points }}</span>
+                    @endif
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm">
+                    <!-- STR -->
+                    <div class="flex justify-between items-center group">
+                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['str'] ?? 0 }}</span>
+                            @if($character->character_points > 0)
+                                <div class="flex gap-1">
+                                    <button wire:click="addAttribute('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    @if($character->character_points >= 5)
+                                        <button wire:click="addAttribute('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Intelligence (INT):</span>
-                        <span class="text-white font-bold">{{ $totalAttributes['int'] ?? 0 }}</span>
+                    
+                    <!-- INT -->
+                    <div class="flex justify-between items-center group">
+                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną (w przyszłości na moc magii).">Intelligence (INT):</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['int'] ?? 0 }}</span>
+                            @if($character->character_points > 0)
+                                <div class="flex gap-1">
+                                    <button wire:click="addAttribute('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    @if($character->character_points >= 5)
+                                        <button wire:click="addAttribute('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Vitality (VIT):</span>
-                        <span class="text-white font-bold">{{ $totalAttributes['vit'] ?? 0 }}</span>
+                    
+                    <!-- VIT -->
+                    <div class="flex justify-between items-center group">
+                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['vit'] ?? 0 }}</span>
+                            @if($character->character_points > 0)
+                                <div class="flex gap-1">
+                                    <button wire:click="addAttribute('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    @if($character->character_points >= 5)
+                                        <button wire:click="addAttribute('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">Agility (AGI):</span>
-                        <span class="text-white font-bold">{{ $totalAttributes['agi'] ?? 0 }}</span>
+                    
+                    <!-- AGI -->
+                    <div class="flex justify-between items-center group">
+                        <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['agi'] ?? 0 }}</span>
+                            @if($character->character_points > 0)
+                                <div class="flex gap-1">
+                                    <button wire:click="addAttribute('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    @if($character->character_points >= 5)
+                                        <button wire:click="addAttribute('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    @endif
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
                 
