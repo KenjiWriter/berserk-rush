@@ -21,16 +21,13 @@
                 <form wire:submit.prevent="save">
                     <div class="mb-4">
                         <label class="block text-gray-400 text-sm font-bold mb-2">Nazwa</label>
-                        <div class="flex gap-2">
-                            <input type="text" wire:model="name" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
-                            <button type="button" wire:click="generateId" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded text-xs font-bold">Slug ID</button>
-                        </div>
+                        <input type="text" wire:model.live="name" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-400 text-sm font-bold mb-2">ID (String)</label>
-                        <input type="text" wire:model="template_id" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">ID (generowane z nazwy)</label>
+                        <input type="text" wire:model="template_id" disabled class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-800 text-gray-500 leading-tight focus:outline-none">
                         @error('template_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
@@ -70,10 +67,43 @@
                     </div>
 
                     <div class="mb-6">
-                        <label class="block text-gray-400 text-sm font-bold mb-2">Base Stats (JSON)</label>
-                        <textarea wire:model="base_stats_json" rows="5" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500 font-mono text-sm"></textarea>
-                        @error('base_stats_json') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
-                        <p class="text-xs text-gray-500 mt-1">np. { "attack_min": 10, "attack_max": 15, "str_bonus": 2 }</p>
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Statystyki bazowe (+0)</label>
+                        <div class="grid grid-cols-2 gap-2 bg-gray-900 p-3 rounded border border-gray-700 max-h-64 overflow-y-auto">
+                            @php
+                                $availableStats = [
+                                    'attack_min' => 'Atak Min',
+                                    'attack_max' => 'Atak Max',
+                                    'magic_attack_min' => 'Magiczny Atak Min',
+                                    'magic_attack_max' => 'Magiczny Atak Max',
+                                    'defense' => 'Obrona',
+                                    'hp_bonus' => 'Bonus HP',
+                                    'mana_bonus' => 'Bonus Mana',
+                                    'str_bonus' => 'Siła (STR)',
+                                    'agi_bonus' => 'Zręczność (AGI)',
+                                    'int_bonus' => 'Inteligencja (INT)',
+                                    'vit_bonus' => 'Witalność (VIT)',
+                                    'crit_chance' => 'Szansa na cios kryt.',
+                                ];
+                            @endphp
+                            @foreach($availableStats as $key => $label)
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" wire:model.live="selectedStats" value="{{ $key }}" id="stat_{{ $key }}" class="rounded bg-gray-700 border-gray-600 text-amber-500 focus:ring-amber-500">
+                                    <label for="stat_{{ $key }}" class="text-xs text-gray-300 w-28 truncate" title="{{ $label }}">{{ $label }}</label>
+                                    @if(in_array($key, $selectedStats))
+                                        <input type="number" wire:model.live="statValues.{{ $key }}" placeholder="0" class="w-16 p-1 text-xs bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-amber-500">
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    <div class="mb-6 p-4 bg-gray-900 border border-amber-900 rounded-lg flex justify-between items-center">
+                        <div>
+                            <span class="text-gray-400 text-sm">Szacowana Moc Bojowa (CP) tego przedmiotu:</span>
+                        </div>
+                        <div class="text-2xl font-bold text-amber-400">
+                            {{ $previewCP }} ⚡
+                        </div>
                     </div>
 
                     <div class="flex justify-between">
@@ -81,7 +111,7 @@
                             Zapisz
                         </button>
                         @if($editingId)
-                            <button type="button" wire:click="$set('editingId', null); $reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'base_stats_json'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                            <button type="button" wire:click="$set('editingId', null); $reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'selectedStats', 'statValues', 'previewCP'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
                                 Anuluj
                             </button>
                         @endif

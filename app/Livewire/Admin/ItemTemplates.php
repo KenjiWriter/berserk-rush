@@ -12,7 +12,9 @@ class ItemTemplates extends Component
 {
     public $templates;
     public $template_id, $name, $type, $slot, $level_requirement;
-    public $base_stats_json = '{}';
+    public $selectedStats = [];
+    public $statValues = [];
+    public $previewCP = 0;
     public $description, $icon;
     public $editingId = null;
 
@@ -22,7 +24,8 @@ class ItemTemplates extends Component
         'type' => 'required|string',
         'slot' => 'nullable|string',
         'level_requirement' => 'required|integer|min:1',
-        'base_stats_json' => 'required|json',
+        'selectedStats' => 'array',
+        'statValues.*' => 'numeric',
     ];
 
     public function mount()
@@ -35,11 +38,60 @@ class ItemTemplates extends Component
         $this->templates = ItemTemplate::orderBy('level_requirement')->get();
     }
 
+    public function updatedName($value)
+    {
+        $this->template_id = Str::slug($value);
+    }
+
+    public function updatedSelectedStats()
+    {
+        $this->calculatePreviewCP();
+    }
+
+    public function updatedStatValues()
+    {
+        $this->calculatePreviewCP();
+    }
+
+    public function calculatePreviewCP()
+    {
+        $cp = 0;
+        $weights = [
+            'attack_min' => 1.0, 'attack_max' => 1.0,
+            'magic_attack_min' => 1.0, 'magic_attack_max' => 1.0,
+            'defense' => 1.5,
+            'hp_bonus' => 0.1, 'mana_bonus' => 0.1,
+            'str_bonus' => 2.0, 'agi_bonus' => 2.0,
+            'int_bonus' => 2.0, 'vit_bonus' => 2.0,
+            'crit_chance' => 1.0,
+        ];
+
+        foreach ($this->selectedStats as $stat) {
+            if ($stat && isset($this->statValues[$stat])) {
+                $val = (float) $this->statValues[$stat];
+                $weight = $weights[$stat] ?? 1.0;
+                $cp += $val * $weight;
+            }
+        }
+
+        // Default rarity multiplier for preview is 1.0 (common/base)
+        $this->previewCP = (int) round($cp);
+    }
+
     public function save()
     {
+        if (empty($this->template_id)) {
+            $this->template_id = Str::slug($this->name);
+        }
+
         $this->validate();
 
-        $stats = json_decode($this->base_stats_json, true) ?? [];
+        $stats = [];
+        foreach ($this->selectedStats as $stat) {
+            if ($stat && isset($this->statValues[$stat])) {
+                $stats[$stat] = (int) $this->statValues[$stat];
+            }
+        }
 
         $data = [
             'id' => $this->template_id,
@@ -65,7 +117,7 @@ class ItemTemplates extends Component
             ItemTemplate::create($data);
         }
 
-        $this->reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'base_stats_json', 'description', 'icon', 'editingId']);
+        $this->reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'selectedStats', 'statValues', 'previewCP', 'description', 'icon', 'editingId']);
         $this->loadData();
         session()->flash('message', 'Szablon przedmiotu zapisany.');
     }
@@ -79,7 +131,11 @@ class ItemTemplates extends Component
         $this->type = $template->type;
         $this->slot = $template->slot;
         $this->level_requirement = $template->level_requirement;
-        $this->base_stats_json = json_encode($template->base_stats, JSON_PRETTY_PRINT);
+        
+        $this->selectedStats = array_keys($template->base_stats ?? []);
+        $this->statValues = $template->base_stats ?? [];
+        $this->calculatePreviewCP();
+
         $this->description = $template->description;
         $this->icon = $template->icon;
     }
@@ -90,10 +146,7 @@ class ItemTemplates extends Component
         $this->loadData();
     }
 
-    public function generateId()
-    {
-        $this->template_id = Str::slug($this->name);
-    }
+    // public function generateId() { ... } // Removed since we use updatedName()
 
     public function render()
     {
