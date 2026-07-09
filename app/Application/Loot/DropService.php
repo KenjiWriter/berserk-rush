@@ -152,6 +152,73 @@ class DropService
 
         $character = $encounter->character;
         $items = [];
+        
+        $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid);
+        $itemName = $template ? $template->name : "Item {$templateUlid}";
+        
+        // Stackable items logic
+        if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+            $existingItem = ItemInstance::where('owner_character_id', $character->id)
+                ->where('template_id', $templateUlid)
+                ->where('location', 'inventory')
+                ->first();
+
+            if ($existingItem) {
+                $existingItem->stack_size += $quantity;
+                $existingItem->save();
+
+                ItemLedger::create([
+                    'id' => Str::ulid(),
+                    'character_id' => $character->id,
+                    'item_instance_id' => $existingItem->id,
+                    'action' => 'drop',
+                    'ref_type' => 'encounter',
+                    'ref_id' => $encounter->id,
+                    'quantity_change' => $quantity,
+                    'idempotency_key' => $idempotencyKey . ":item:0"
+                ]);
+
+                $items[] = [
+                    'id' => $existingItem->id,
+                    'template_id' => $templateUlid,
+                    'name' => $itemName,
+                    'rarity' => $existingItem->rarity,
+                    'quantity' => $quantity
+                ];
+                return $items;
+            } else {
+                $itemInstance = ItemInstance::create([
+                    'id' => Str::ulid(),
+                    'template_id' => $templateUlid,
+                    'owner_character_id' => $character->id,
+                    'location' => 'inventory',
+                    'stack_size' => $quantity,
+                    'rarity' => 'common',
+                    'roll_stats' => [],
+                    'upgrade_level' => 0
+                ]);
+
+                ItemLedger::create([
+                    'id' => Str::ulid(),
+                    'character_id' => $character->id,
+                    'item_instance_id' => $itemInstance->id,
+                    'action' => 'drop',
+                    'ref_type' => 'encounter',
+                    'ref_id' => $encounter->id,
+                    'quantity_change' => $quantity,
+                    'idempotency_key' => $idempotencyKey . ":item:0"
+                ]);
+
+                $items[] = [
+                    'id' => $itemInstance->id,
+                    'template_id' => $templateUlid,
+                    'name' => $itemName,
+                    'rarity' => $itemInstance->rarity,
+                    'quantity' => $quantity
+                ];
+                return $items;
+            }
+        }
 
         for ($i = 0; $i < $quantity; $i++) {
             $itemInstance = ItemInstance::create([
@@ -180,7 +247,7 @@ class DropService
             $items[] = [
                 'id' => $itemInstance->id,
                 'template_id' => $templateUlid,
-                'name' => "Item {$templateUlid}", // Would be replaced with actual template name
+                'name' => $itemName,
                 'rarity' => $itemInstance->rarity,
                 'quantity' => 1
             ];

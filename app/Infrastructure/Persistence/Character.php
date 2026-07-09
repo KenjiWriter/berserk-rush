@@ -100,16 +100,47 @@ class Character extends Model
 
             // Add template stats
             foreach (['str', 'int', 'vit', 'agi'] as $stat) {
-                if (isset($templateStats[$stat])) {
-                    $total[$stat] += $templateStats[$stat];
+                $bonusKey = $stat . '_bonus';
+                if (isset($templateStats[$bonusKey])) {
+                    $total[$stat] += $templateStats[$bonusKey];
                 }
-                if (isset($rollStats[$stat])) {
+                if (isset($rollStats[$bonusKey])) {
                     // In a real app we might scale roll_stats by upgrade_level
-                    $total[$stat] += $rollStats[$stat];
+                    $total[$stat] += $rollStats[$bonusKey];
                 }
             }
         }
 
         return $total;
+    }
+
+    public function getEquipmentStats(): array
+    {
+        $stats = [
+            'hp_bonus' => 0,
+            'mana_bonus' => 0,
+            'attack_min' => 0,
+            'attack_max' => 0,
+            'magic_attack_min' => 0,
+            'magic_attack_max' => 0,
+            'defense' => 0,
+            'crit_chance' => 0,
+        ];
+
+        foreach ($this->equippedItems as $item) {
+            $base = $item->template->base_stats ?? [];
+            $roll = $item->roll_stats ?? [];
+            
+            $stats['hp_bonus'] += ($base['hp_bonus'] ?? 0) + ($roll['hp_bonus'] ?? 0);
+            $stats['mana_bonus'] += ($base['mana_bonus'] ?? 0) + ($roll['mana_bonus'] ?? 0);
+            $stats['attack_min'] += ($base['attack_min'] ?? 0) + ($roll['attack_min'] ?? 0);
+            $stats['attack_max'] += ($base['attack_max'] ?? 0) + ($roll['attack_max'] ?? 0);
+            $stats['magic_attack_min'] += ($base['magic_attack_min'] ?? 0) + ($roll['magic_attack_min'] ?? 0);
+            $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0);
+            $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0);
+            $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0);
+        }
+
+        return $stats;
     }
 }

@@ -329,23 +329,35 @@ class EncounterService
     private function calculateMaxHp(Character $character): int
     {
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
-        return 100 + ($vitality * 10) + ($character->level * 5);
+        $eq = $character->getEquipmentStats();
+        return 100 + ($vitality * 10) + ($character->level * 5) + $eq['hp_bonus'];
     }
 
     private function calculateDamage(Character $character, Monster $monster): int
     {
         $strength = $character->getTotalAttributes()['str'] ?? 1;
-        $baseDamage = 10 + ($strength * 2) + ($character->level * 1);
+        $eq = $character->getEquipmentStats();
+        
+        $baseDamageMin = 10 + ($strength * 2) + ($character->level * 1) + $eq['attack_min'];
+        $baseDamageMax = 10 + ($strength * 2) + ($character->level * 1) + $eq['attack_max'];
+        
+        // Ensure max is at least min
+        if ($baseDamageMax < $baseDamageMin) {
+            $baseDamageMax = $baseDamageMin;
+        }
+        
+        $damage = mt_rand($baseDamageMin, $baseDamageMax);
         $defense = $monster->stats['def'] ?? $monster->level;
 
-        return max(1, $baseDamage - ($defense / 2));
+        return max(1, $damage - ($defense / 2));
     }
 
     private function calculateMonsterDamage(Monster $monster, Character $character): int
     {
         $baseDamage = $monster->stats['atk'] ?? $monster->level * 2;
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
-        $defense = $vitality + ($character->level / 2);
+        $eq = $character->getEquipmentStats();
+        $defense = $vitality + ($character->level / 2) + $eq['defense'];
 
         return max(1, $baseDamage - ($defense / 2));
     }
@@ -353,7 +365,8 @@ class EncounterService
     private function rollCritical(Character $character): bool
     {
         $agility = $character->getTotalAttributes()['agi'] ?? 1;
-        $critChance = min(0.3, 0.05 + ($agility * 0.01));
+        $eq = $character->getEquipmentStats();
+        $critChance = min(0.3, 0.05 + ($agility * 0.01) + ($eq['crit_chance'] / 100));
         return mt_rand(1, 100) <= ($critChance * 100);
     }
 

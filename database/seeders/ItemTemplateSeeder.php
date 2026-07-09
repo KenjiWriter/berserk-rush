@@ -337,6 +337,68 @@ class ItemTemplateSeeder extends Seeder
                     'rare' => 10,
                 ],
             ],
+
+            // Materials
+            [
+                'id' => Str::ulid(),
+                'name' => 'Wilcza Skóra',
+                'type' => 'material',
+                'slot' => null,
+                'level_requirement' => 1,
+                'base_stats' => [],
+                'description' => 'Gruba wilcza skóra. Można ją sprzedać lub wykorzystać do rzemiosła.',
+                'icon' => 'material-pelt',
+                'rarity_weights' => [
+                    'common' => 80,
+                    'uncommon' => 20,
+                    'rare' => 0,
+                ],
+            ],
+            [
+                'id' => Str::ulid(),
+                'name' => 'Zioło Lecznika',
+                'type' => 'material',
+                'slot' => null,
+                'level_requirement' => 1,
+                'base_stats' => [],
+                'description' => 'Pachnące zioło o właściwościach leczniczych.',
+                'icon' => 'material-herb',
+                'rarity_weights' => [
+                    'common' => 90,
+                    'uncommon' => 10,
+                    'rare' => 0,
+                ],
+            ],
+            [
+                'id' => Str::ulid(),
+                'name' => 'Odłamek Kości',
+                'type' => 'material',
+                'slot' => null,
+                'level_requirement' => 5,
+                'base_stats' => [],
+                'description' => 'Ostro zakończony odłamek kości. Może posłużyć do tworzenia broni.',
+                'icon' => 'material-bone',
+                'rarity_weights' => [
+                    'common' => 70,
+                    'uncommon' => 30,
+                    'rare' => 0,
+                ],
+            ],
+            [
+                'id' => Str::ulid(),
+                'name' => 'Klejnot Pustyni',
+                'type' => 'material',
+                'slot' => null,
+                'level_requirement' => 10,
+                'base_stats' => [],
+                'description' => 'Rzadki kryształ znajdowany na pustyni. Bardzo cenny.',
+                'icon' => 'material-gem',
+                'rarity_weights' => [
+                    'common' => 50,
+                    'uncommon' => 40,
+                    'rare' => 10,
+                ],
+            ],
         ];
 
         foreach ($templates as $template) {

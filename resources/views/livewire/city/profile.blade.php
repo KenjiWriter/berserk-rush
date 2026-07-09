@@ -30,11 +30,23 @@
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
-                                <!-- Tooltip placeholder -->
+                                <!-- Tooltip -->
                                 <div class="hidden group-hover:block absolute left-full ml-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
                                     <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
-                                    <p class="text-red-400 mt-2">Click to unequip</p>
+                                    
+                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
+                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
+                                            @foreach($equipped[$slot]->template->base_stats as $stat => $val)
+                                                <div class="flex justify-between">
+                                                    <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                    <span class="font-bold">+{{ $val }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Click to unequip</p>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -82,10 +94,23 @@
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
+                                <!-- Tooltip -->
                                 <div class="hidden group-hover:block absolute right-full mr-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
                                     <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
                                     <p class="text-gray-300">Slot: {{ $slot }}</p>
-                                    <p class="text-red-400 mt-2">Click to unequip</p>
+                                    
+                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0)
+                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
+                                            @foreach($equipped[$slot]->template->base_stats as $stat => $val)
+                                                <div class="flex justify-between">
+                                                    <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                    <span class="font-bold">+{{ $val }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+
+                                    <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Click to unequip</p>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -185,11 +210,11 @@
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia ataków fizycznych.">Base Damage:</span>
-                            <span class="text-red-400 font-bold text-base">{{ $derivedStats['base_damage'] }}</span>
+                            <span class="text-red-400 font-bold text-base">{{ $derivedStats['base_damage_min'] }} - {{ $derivedStats['base_damage_max'] }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia z umiejętności magicznych.">Magic Damage:</span>
-                            <span class="text-purple-400 font-bold text-base">{{ $derivedStats['magic_damage'] }}</span>
+                            <span class="text-purple-400 font-bold text-base">{{ $derivedStats['magic_damage_min'] }} - {{ $derivedStats['magic_damage_max'] }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Redukuje nadchodzące obrażenia w walce.">Damage Reduction:</span>
@@ -229,6 +254,9 @@
                             @if($item->upgrade_level > 0)
                                 <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
                             @endif
+                            @if($item->stack_size > 1)
+                                <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
+                            @endif
                         </div>
 
                         <!-- Tooltip -->
@@ -238,18 +266,23 @@
                             <p class="text-gray-400">Level Req: {{ $item->template->level_requirement }}</p>
                             
                             @if(count($item->template->base_stats ?? []) > 0)
-                                <div class="mt-1 text-green-400">
+                                <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
                                     @foreach($item->template->base_stats as $stat => $val)
-                                        +{{ $val }} {{ strtoupper($stat) }}
+                                        <div class="flex justify-between">
+                                            <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                            <span class="font-bold">+{{ $val }}</span>
+                                        </div>
                                     @endforeach
                                 </div>
                             @endif
                             
-                            @if($character->level < $item->template->level_requirement)
-                                <p class="text-red-500 mt-2 font-bold">Level too low!</p>
-                            @else
-                                <p class="text-green-500 mt-2">Click to equip</p>
-                            @endif
+                            <div class="mt-2 border-t border-gray-700 pt-2">
+                                @if($character->level < $item->template->level_requirement)
+                                    <p class="text-red-500 font-bold">Level too low!</p>
+                                @else
+                                    <p class="text-green-500">Click to equip</p>
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endforeach
