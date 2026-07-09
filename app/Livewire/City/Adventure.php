@@ -26,7 +26,7 @@ class Adventure extends Component
 
     private function loadMaps(): void
     {
-        $this->maps = Map::orderBy('level_min')->get();
+        $this->maps = Map::with(['monsters.lootTable.entries.itemTemplate'])->orderBy('level_min')->get();
     }
 
     public function enterMap(string $mapId): void

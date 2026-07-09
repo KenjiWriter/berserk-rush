@@ -112,9 +112,9 @@
                     }
                 @endphp
 
-                <div class="relative group">
+                <div class="relative group" x-data="{ showMonsters: false }">
                     <div
-                        class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 {{ $isAccessible ? 'border-green-700' : 'border-gray-500' }} rounded-lg shadow-2xl backdrop-blur-sm {{ $isAccessible ? 'hover:from-green-100/95 hover:to-green-200/95 hover:shadow-3xl' : 'opacity-50' }} transition-all duration-300 {{ $isAccessible ? 'transform hover:scale-105 cursor-pointer' : 'cursor-not-allowed' }}">
+                        class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 {{ $isAccessible ? 'border-green-700' : 'border-gray-500' }} rounded-lg shadow-2xl backdrop-blur-sm {{ $isAccessible ? 'hover:from-green-100/95 hover:to-green-200/95 hover:shadow-3xl' : 'opacity-50' }} transition-all duration-300 {{ $isAccessible && empty($map->monsters) ? 'transform hover:scale-105 cursor-pointer' : '' }}">
 
                         {{-- Decorative corners --}}
                         @if ($isAccessible)
@@ -223,6 +223,10 @@
                                         class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                                         ⚔️ Wejdź na mapę
                                     </button>
+                                    
+                                    <button @click="showMonsters = !showMonsters" class="w-full mt-2 bg-green-800/80 hover:bg-green-700 text-green-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm border border-green-600">
+                                        <span x-text="showMonsters ? 'Ukryj przeciwników' : '👁️ Lista przeciwników'"></span>
+                                    </button>
                                 @else
                                     <div
                                         class="w-full bg-gray-400 text-gray-700 font-bold py-3 px-4 rounded-lg cursor-not-allowed medieval-font">
@@ -240,6 +244,54 @@
                                         @endif
                                     </div>
                                 @endif
+                                
+                                {{-- Expanded Monster List --}}
+                                <div x-show="showMonsters" x-transition class="mt-4 text-left border-t border-green-200/50 pt-4" style="display: none;">
+                                    <h4 class="text-green-900 font-bold mb-2">Przeciwnicy:</h4>
+                                    <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                        @foreach($map->monsters as $monster)
+                                            <div x-data="{ showLoot: false }" class="bg-green-800/10 rounded p-2 border border-green-700/30">
+                                                <div class="flex justify-between items-center cursor-pointer hover:bg-green-800/20 p-1 rounded transition" @click="showLoot = !showLoot">
+                                                    <div>
+                                                        <span class="font-bold text-red-700">{{ $monster->name }}</span>
+                                                        <span class="text-xs text-green-800 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
+                                                    </div>
+                                                    <span class="text-xs text-green-700" x-text="showLoot ? '▼' : '▶'"></span>
+                                                </div>
+                                                
+                                                {{-- Loot --}}
+                                                <div x-show="showLoot" class="mt-2 pl-2 border-l-2 border-green-600/50 space-y-1 text-xs" style="display: none;">
+                                                    @if($monster->lootTable && $monster->lootTable->entries->isNotEmpty())
+                                                        @php
+                                                            $totalWeight = max(1, $monster->lootTable->entries->sum('weight'));
+                                                        @endphp
+                                                        @foreach($monster->lootTable->entries as $entry)
+                                                            <div class="flex items-center text-green-900">
+                                                                @if($entry->reward_type === 'gold')
+                                                                    <span class="text-yellow-600 font-bold mr-1">💰</span> Złoto ({{ $entry->min_qty }} - {{ $entry->max_qty }})
+                                                                @elseif($entry->reward_type === 'xp')
+                                                                    <span class="text-blue-700 font-bold mr-1">✨</span> XP ({{ $entry->min_qty }} - {{ $entry->max_qty }})
+                                                                @elseif($entry->reward_type === 'item' && $entry->itemTemplate)
+                                                                    <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-orange-600 font-bold' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-700 font-bold' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-700 font-bold' : 'text-gray-800')) }}">
+                                                                        {{ $entry->itemTemplate->name }}
+                                                                    </span>
+                                                                @else
+                                                                    {{ $entry->reward_type }}
+                                                                @endif
+                                                                <span class="text-green-700/80 font-bold ml-2">({{ round(($entry->weight / $totalWeight) * 100) }}%)</span>
+                                                            </div>
+                                                        @endforeach
+                                                    @else
+                                                        <div class="text-green-700 italic">Brak dropu</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                        @if($map->monsters->isEmpty())
+                                            <div class="text-green-700 italic text-center py-2">Brak danych o przeciwnikach.</div>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

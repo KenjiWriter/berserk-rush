@@ -34,4 +34,9 @@ class LootTableEntry extends Model
     {
         return $this->belongsTo(LootTable::class);
     }
+
+    public function itemTemplate(): BelongsTo
+    {
+        return $this->belongsTo(\App\Infrastructure\Persistence\ItemTemplate::class, 'ref_ulid', 'id');
+    }
 }
