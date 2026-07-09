@@ -53,7 +53,8 @@ class EncounterService
                 ]);
 
                 // Determine turn order
-                $playerAgi = $character->attributes['agi'] ?? 0;
+                $totalAttributes = $character->getTotalAttributes();
+                $playerAgi = $totalAttributes['agi'] ?? 0;
                 $monsterAgi = $monster->stats['agi'] ?? $monster->level;
                 $playerFirst = $playerAgi >= $monsterAgi;
 
@@ -192,10 +193,10 @@ class EncounterService
                         'hp' => $playerMaxHp,
                         'maxHp' => $playerMaxHp,
                         'stats' => [
-                            'str' => $character->attributes['str'] ?? 0,
-                            'int' => $character->attributes['int'] ?? 0,
-                            'vit' => $character->attributes['vit'] ?? 0,
-                            'agi' => $character->attributes['agi'] ?? 0,
+                            'str' => $character->getTotalAttributes()['str'] ?? 0,
+                            'int' => $character->getTotalAttributes()['int'] ?? 0,
+                            'vit' => $character->getTotalAttributes()['vit'] ?? 0,
+                            'agi' => $character->getTotalAttributes()['agi'] ?? 0,
                         ]
                     ],
                     'enemy' => [
@@ -233,7 +234,7 @@ class EncounterService
 
     private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp): array
     {
-        $playerAgi = $character->attributes['agi'] ?? 0;
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
         $monsterAgi = $monster->stats['agi'] ?? $monster->level;
         $playerFirst = $playerAgi >= $monsterAgi;
 
@@ -327,13 +328,13 @@ class EncounterService
 
     private function calculateMaxHp(Character $character): int
     {
-        $vitality = $character->attributes['vit'] ?? 1;
+        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         return 100 + ($vitality * 10) + ($character->level * 5);
     }
 
     private function calculateDamage(Character $character, Monster $monster): int
     {
-        $strength = $character->attributes['str'] ?? 1;
+        $strength = $character->getTotalAttributes()['str'] ?? 1;
         $baseDamage = 10 + ($strength * 2) + ($character->level * 1);
         $defense = $monster->stats['def'] ?? $monster->level;
 
@@ -343,7 +344,7 @@ class EncounterService
     private function calculateMonsterDamage(Monster $monster, Character $character): int
     {
         $baseDamage = $monster->stats['atk'] ?? $monster->level * 2;
-        $vitality = $character->attributes['vit'] ?? 1;
+        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $defense = $vitality + ($character->level / 2);
 
         return max(1, $baseDamage - ($defense / 2));
@@ -351,7 +352,7 @@ class EncounterService
 
     private function rollCritical(Character $character): bool
     {
-        $agility = $character->attributes['agi'] ?? 1;
+        $agility = $character->getTotalAttributes()['agi'] ?? 1;
         $critChance = min(0.3, 0.05 + ($agility * 0.01));
         return mt_rand(1, 100) <= ($critChance * 100);
     }

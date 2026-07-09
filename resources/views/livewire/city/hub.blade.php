@@ -69,6 +69,32 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {{-- Left side buildings --}}
             <div class="space-y-6">
+                {{-- Profile --}}
+                <div class="relative group">
+                    <button wire:click="goTo('profile')"
+                        class="w-full bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-blue-100/95 hover:to-blue-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                        {{-- Decorative corners --}}
+                        <div
+                            class="absolute top-0 left-0 w-6 h-6 bg-blue-800 transform rotate-45 -translate-x-3 -translate-y-3">
+                        </div>
+                        <div
+                            class="absolute top-0 right-0 w-6 h-6 bg-blue-800 transform rotate-45 translate-x-3 -translate-y-3">
+                        </div>
+                        <div
+                            class="absolute bottom-0 left-0 w-6 h-6 bg-blue-800 transform rotate-45 -translate-x-3 translate-y-3">
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 w-6 h-6 bg-blue-800 transform rotate-45 translate-x-3 translate-y-3">
+                        </div>
+
+                        <div class="relative text-center">
+                            <div class="text-6xl mb-4">👤</div>
+                            <h3 class="text-2xl font-bold text-blue-900 medieval-font mb-2">Postać</h3>
+                            <p class="text-blue-800 font-semibold">Ekwipunek i statystyki</p>
+                        </div>
+                    </button>
+                </div>
+
                 {{-- Armorsmith --}}
                 <div class="relative group">
                     <button wire:click="goTo('armorsmith')"
@@ -193,6 +219,12 @@
         {{-- Mobile layout --}}
         <div class="lg:hidden mt-8">
             <div class="grid grid-cols-2 gap-4">
+                <button wire:click="goTo('profile')"
+                    class="bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-4 text-center shadow-xl">
+                    <div class="text-4xl mb-2">👤</div>
+                    <div class="font-bold text-blue-900 medieval-font">Postać</div>
+                </button>
+
                 <button wire:click="goTo('armorsmith')"
                     class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl">
                     <div class="text-4xl mb-2">🛡️</div>

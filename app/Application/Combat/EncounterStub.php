@@ -31,7 +31,7 @@ class EncounterStub
         }
 
         // Character stats from attributes
-        $characterStats = $character->attributes ?? ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5];
+        $characterStats = $character->getTotalAttributes();
         $characterHp = ($characterStats['vit'] ?? 5) * 20 + 80; // VIT * 20 + base 80
         $characterAtk = ($characterStats['str'] ?? 5) * 3 + 10; // STR * 3 + base 10
 

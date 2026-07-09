@@ -82,7 +82,7 @@
                             <div
                                 class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
                                 @if (!empty($player) && $player['avatar'])
-                                    <img src="{{ $player['avatar'] }}.png" alt="{{ $player['name'] }}"
+                                    <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}"
                                         class="w-full h-full object-cover">
                                 @elseif (!empty($player))
                                     <div

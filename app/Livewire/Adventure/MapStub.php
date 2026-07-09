@@ -176,21 +176,15 @@ class MapStub extends Component
         $monster = $encounter->monster;
 
         // Debug to verify attributes exist
-        logger('Character attributes:', ['attributes' => $character->attributes]);
+        logger('Character attributes:', ['attributes' => $character->getAttribute('attributes')]);
 
         // Force load attributes if they weren't loaded with the relation
         if (!isset($character->attributes)) {
             $character = $character->fresh();
         }
 
-        // Extract character attributes directly from the model
-        $character_attributes = json_decode($character->attributes, true);
-        $playerAttributes = [
-            'str' => $character_attributes['str'] ?? 0,
-            'int' => $character_attributes['int'] ?? 0,
-            'vit' => $character_attributes['vit'] ?? 0,
-            'agi' => $character_attributes['agi'] ?? 0
-        ];
+        // Get total calculated attributes
+        $playerAttributes = $character->getTotalAttributes();
 
         // Calculate HP based on attributes
         $playerMaxHp = $this->calculateMaxHp($character);
@@ -202,7 +196,7 @@ class MapStub extends Component
         $this->player = [
             'name' => $character->name,
             'level' => $character->level,
-            'avatar' => $character->avatar_url ?? asset('img/avatars/default.png'),
+            'avatar' => $character->avatar ? asset("img/avatars/{$character->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $playerMaxHp,
             'hp' => $playerMaxHp,
             'stats' => $playerAttributes // Use our explicitly mapped attributes
@@ -245,7 +239,7 @@ class MapStub extends Component
 
     private function calculateMaxHp(Character $character): int
     {
-        $vitality = $character->attributes['vit'] ?? 1;
+        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         return 100 + ($vitality * 10) + ($character->level * 5);
     }
 

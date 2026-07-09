@@ -33,6 +33,7 @@ Route::middleware('auth')->group(function () {
     // City Hub and Buildings
     Route::prefix('play/{character}')->name('city.')->group(function () {
         Route::get('/', Hub::class)->name('hub');
+        Route::get('/profile', \App\Livewire\City\Profile::class)->name('profile');
         Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
         Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
         Route::get('/witch', Witch::class)->name('witch');

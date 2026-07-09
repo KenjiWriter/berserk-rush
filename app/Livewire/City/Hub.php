@@ -26,6 +26,7 @@ class Hub extends Component
     public function goTo(string $building): void
     {
         $route = match ($building) {
+            'profile' => route('city.profile', $this->character),
             'armorsmith' => route('city.armorsmith', $this->character),
             'weaponsmith' => route('city.weaponsmith', $this->character),
             'witch' => route('city.witch', $this->character),
