@@ -1,3 +1,130 @@
-<div>
-    {{-- A good traveler has no fixed plans and is not intent upon arriving. --}}
+<div class="min-h-screen bg-gray-900 text-gray-100 p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-amber-500">⚔️ Zarządzanie Przedmiotami</h1>
+            <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-white underline">&larr; Powrót do panelu</a>
+        </div>
+
+        @if (session()->has('message'))
+            <div class="bg-green-600 text-white p-3 rounded mb-4 shadow">
+                {{ session('message') }}
+            </div>
+        @endif
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Formularz -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 h-fit">
+                <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">
+                    {{ $editingId ? 'Edytuj Przedmiot' : 'Dodaj Nowy Przedmiot' }}
+                </h2>
+
+                <form wire:submit.prevent="save">
+                    <div class="mb-4">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Nazwa</label>
+                        <div class="flex gap-2">
+                            <input type="text" wire:model="name" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                            <button type="button" wire:click="generateId" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-2 rounded text-xs font-bold">Slug ID</button>
+                        </div>
+                        @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">ID (String)</label>
+                        <input type="text" wire:model="template_id" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                        @error('template_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex gap-4 mb-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Typ</label>
+                            <select wire:model="type" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                                <option value="">-- Wybierz --</option>
+                                <option value="weapon">Broń</option>
+                                <option value="armor">Pancerz</option>
+                                <option value="accessory">Akcesorium</option>
+                                <option value="consumable">Użytkowe</option>
+                                <option value="material">Materiał</option>
+                            </select>
+                            @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Slot (Eq)</label>
+                            <select wire:model="slot" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                                <option value="">-- Brak / Materiał --</option>
+                                <option value="head">Głowa (head)</option>
+                                <option value="chest">Zbroja (chest)</option>
+                                <option value="feet">Buty (feet)</option>
+                                <option value="main_hand">Broń (main_hand)</option>
+                                <option value="off_hand">Tarcza (off_hand)</option>
+                                <option value="neck">Naszyjnik (neck)</option>
+                                <option value="ring">Pierścień (ring)</option>
+                            </select>
+                            @error('slot') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Wymagany Level</label>
+                        <input type="number" wire:model="level_requirement" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                        @error('level_requirement') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Base Stats (JSON)</label>
+                        <textarea wire:model="base_stats_json" rows="5" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500 font-mono text-sm"></textarea>
+                        @error('base_stats_json') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        <p class="text-xs text-gray-500 mt-1">np. { "attack_min": 10, "attack_max": 15, "str_bonus": 2 }</p>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <button type="submit" class="bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition">
+                            Zapisz
+                        </button>
+                        @if($editingId)
+                            <button type="button" wire:click="$set('editingId', null); $reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'base_stats_json'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                                Anuluj
+                            </button>
+                        @endif
+                    </div>
+                </form>
+            </div>
+
+            <!-- Lista -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-900 border-b border-gray-700">
+                                <th class="p-3 text-gray-400 font-bold uppercase text-sm">Item</th>
+                                <th class="p-3 text-gray-400 font-bold uppercase text-sm">Typ / Slot</th>
+                                <th class="p-3 text-gray-400 font-bold uppercase text-sm">Level Req</th>
+                                <th class="p-3 text-gray-400 font-bold uppercase text-sm text-right">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($templates as $item)
+                                <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition">
+                                    <td class="p-3 text-white">
+                                        <div class="font-bold text-yellow-500">{{ $item->name }}</div>
+                                        <div class="text-xs text-gray-500">{{ $item->id }}</div>
+                                    </td>
+                                    <td class="p-3 text-gray-300">
+                                        {{ $item->type }}
+                                        @if($item->slot)
+                                            <br><span class="text-xs text-blue-400">[{{ $item->slot }}]</span>
+                                        @endif
+                                    </td>
+                                    <td class="p-3 text-gray-300">{{ $item->level_requirement }}</td>
+                                    <td class="p-3 text-right">
+                                        <button wire:click="edit('{{ $item->id }}')" class="text-blue-400 hover:text-blue-300 mr-3">Edytuj</button>
+                                        <button wire:click="delete('{{ $item->id }}')" class="text-red-400 hover:text-red-300" onclick="confirm('Na pewno usunąć?') || event.stopImmediatePropagation()">Usuń</button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

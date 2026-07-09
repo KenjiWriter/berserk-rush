@@ -57,6 +57,7 @@ class EnchantItem
                 'currency_type' => $currencyType,
                 'amount' => -$cost,
                 'balance_after' => $currentBalance - $cost,
+                'source_type' => 'wizard',
                 'idempotency_key' => $idempotencyKey . ':pay',
                 'created_at' => now(),
             ]);
