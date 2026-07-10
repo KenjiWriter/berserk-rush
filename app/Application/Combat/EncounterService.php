@@ -142,12 +142,15 @@ class EncounterService
                 $winner = $lastTurn['enemyHp'] <= 0 ? 'player' : 'enemy';
 
                 // Calculate rewards
-                $goldReward = 0;
-                $xpReward = 0;
+                $goldRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
+                $xpRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
                 if ($winner === 'player') {
-                    $goldReward = $this->calculateGoldReward($monster, $character);
-                    $xpReward = $this->calculateXpReward($monster, $character);
+                    $goldRewardData = $this->calculateGoldReward($monster, $character);
+                    $xpRewardData = $this->calculateXpReward($monster, $character);
                 }
+                
+                $goldReward = $goldRewardData['total'];
+                $xpReward = $xpRewardData['total'];
 
                 Log::info('Combat simulation completed', [
                     'turns_count' => count($turns),
@@ -216,6 +219,8 @@ class EncounterService
                     'rewards' => [
                         'gold' => $goldReward,
                         'xp' => $xpReward,
+                        'gold_data' => $goldRewardData,
+                        'xp_data' => $xpRewardData,
                     ]
                 ];
 
@@ -377,14 +382,27 @@ class EncounterService
         return mt_rand(1, 100) <= 5; // 5% miss chance
     }
 
-    private function calculateGoldReward(Monster $monster, Character $character): int
+    private function calculateGoldReward(Monster $monster, Character $character): array
     {
         $baseGold = 10 + ($monster->level * 2);
         $variation = mt_rand(80, 120) / 100;
-        return (int)($baseGold * $variation);
+        $gold = (int)($baseGold * $variation);
+
+        $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
+        $multiplier = $multiplierService->getGoldMultiplier($character);
+        
+        $total = (int)round($gold * $multiplier);
+        $bonus = $total - $gold;
+
+        return [
+            'base' => $gold,
+            'bonus' => $bonus,
+            'total' => $total,
+            'multiplier' => $multiplier
+        ];
     }
 
-    private function calculateXpReward(Monster $monster, Character $character): int
+    private function calculateXpReward(Monster $monster, Character $character): array
     {
         $levelDiff = $monster->level - $character->level;
         $baseXp = 20 + ($monster->level * 3);
@@ -394,20 +412,20 @@ class EncounterService
         } elseif ($levelDiff < -5) {
             $baseXp *= max(0.1, 1 + ($levelDiff * 0.05));
         }
+        
+        $baseXp = (int)$baseXp;
 
-        // Add Active Buffs EXP modifier
-        $expBonusMultiplier = 0;
-        foreach ($character->getActiveBuffs() as $buff) {
-            $effects = $buff->effects ?? [];
-            if (isset($effects['exp_bonus'])) {
-                $expBonusMultiplier += ($effects['exp_bonus'] / 100);
-            }
-        }
+        $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
+        $multiplier = $multiplierService->getExpMultiplier($character);
+        
+        $total = (int)round($baseXp * $multiplier);
+        $bonus = $total - $baseXp;
 
-        if ($expBonusMultiplier > 0) {
-            $baseXp *= (1 + $expBonusMultiplier);
-        }
-
-        return (int)$baseXp;
+        return [
+            'base' => $baseXp,
+            'bonus' => $bonus,
+            'total' => $total,
+            'multiplier' => $multiplier
+        ];
     }
 }

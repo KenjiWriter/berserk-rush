@@ -37,7 +37,7 @@ class EnchantItem
 
         return DB::transaction(function () use ($item, $character, $currencyType, $cost, $idempotencyKey) {
             // Check currency
-            $currentBalance = $currencyType === 'gold' ? $character->gold : $character->gems;
+            $currentBalance = $currencyType === 'gold' ? $character->gold : $character->user->gems;
 
             if ($currentBalance < $cost) {
                 return Result::error('INSUFFICIENT_FUNDS', "Nie masz wystarczającej ilości waluty ({$currencyType}). Koszt to {$cost}.");
@@ -46,10 +46,11 @@ class EnchantItem
             // Deduct currency
             if ($currencyType === 'gold') {
                 $character->gold -= $cost;
+                $character->save();
             } else {
-                $character->gems -= $cost;
+                $character->user->gems -= $cost;
+                $character->user->save();
             }
-            $character->save();
 
             CurrencyLedger::create([
                 'id' => Str::ulid(),

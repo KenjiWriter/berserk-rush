@@ -73,10 +73,11 @@ class ClaimMailAction
                         if ($qty > 0) {
                             if ($type === 'gold') {
                                 $character->gold += $qty;
+                                $character->save();
                             } else {
-                                $character->gems += $qty;
+                                $character->user->gems += $qty;
+                                $character->user->save();
                             }
-                            $character->save();
 
                             CurrencyLedger::create([
                                 'id'              => Str::ulid(),
@@ -84,7 +85,7 @@ class ClaimMailAction
                                 'character_id'    => $character->id,
                                 'currency_type'   => $type,
                                 'amount'          => $qty,
-                                'balance_after'   => $character->{$type},
+                                'balance_after'   => $type === 'gold' ? $character->gold : $character->user->gems,
                                 'source_type'     => 'mail_claim',
                                 'source_id'       => $mail->id,
                                 'description'     => 'Odbiór załącznika z poczty',
@@ -92,6 +93,27 @@ class ClaimMailAction
                             ]);
 
                             $claimedCurrency[] = ['type' => $type, 'qty' => $qty];
+                        }
+                    } elseif ($type === 'guild_invite') {
+                        $guildId = $attachment['guild_id'] ?? null;
+                        if ($guildId && !$character->guild_id) {
+                            $guild = \App\Models\Guild::withCount('members')->find($guildId);
+                            if ($guild && $guild->members_count < $guild->getMaxMembers()) {
+                                \App\Models\GuildMember::create([
+                                    'guild_id' => $guild->id,
+                                    'character_id' => $character->id,
+                                    'role' => 'member',
+                                ]);
+                                $character->guild_id = $guild->id;
+                                $character->save();
+
+                                \App\Models\GuildLog::create([
+                                    'guild_id' => $guild->id,
+                                    'character_id' => $character->id,
+                                    'action' => 'invite_accepted',
+                                    'amount' => 0,
+                                ]);
+                            }
                         }
                     }
                 }

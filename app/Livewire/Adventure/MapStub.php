@@ -34,6 +34,8 @@ class MapStub extends Component
     // Rewards
     public int $goldGained = 0;
     public int $xpGained = 0;
+    public array $goldData = [];
+    public array $xpData = [];
     public array $drops = [];
     public array $levelUps = [];
     public bool $battleCompleted = false;
@@ -166,6 +168,8 @@ class MapStub extends Component
         $this->battleCompleted = false;
         $this->goldGained = 0;
         $this->xpGained = 0;
+        $this->goldData = [];
+        $this->xpData = [];
         $this->levelUps = [];
         $this->result = '';
     }
@@ -217,6 +221,8 @@ class MapStub extends Component
         $this->drops = $encounter->result['drops'] ?? [];
         $this->goldGained = $combatResult['rewards']['gold'] ?? 0;
         $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
+        $this->goldData = $combatResult['rewards']['gold_data'] ?? [];
+        $this->xpData = $combatResult['rewards']['xp_data'] ?? [];
     }
 
     /**

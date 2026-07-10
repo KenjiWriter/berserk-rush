@@ -12,7 +12,7 @@
 
             <div class="flex items-center gap-4">
                 <div class="bg-gray-900 border-2 border-yellow-600 rounded px-4 py-2 font-bold text-yellow-400">
-                    🪙 {{ $character->gold }} | 💎 {{ $character->user->premium_currency ?? 0 }}
+                    🪙 {{ $character->gold }} | 💎 {{ auth()->user()->gems ?? 0 }}
                 </div>
                 <button wire:click="backToHub"
                     class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">

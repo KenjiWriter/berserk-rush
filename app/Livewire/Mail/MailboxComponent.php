@@ -67,13 +67,53 @@ class MailboxComponent extends Component
             return;
         }
         
-        if (!$mail->claimed && !empty($mail->attachments)) {
+        $hasValuableAttachments = false;
+        if (!empty($mail->attachments)) {
+            foreach($mail->attachments as $att) {
+                if (($att['type'] ?? '') !== 'guild_invite') {
+                    $hasValuableAttachments = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!$mail->claimed && $hasValuableAttachments) {
             $this->dispatch('notify', message: 'Musisz najpierw odebrać załączniki.', type: 'error');
             return;
         }
         
         $mail->delete();
         $this->dispatch('notify', message: 'Wiadomość została usunięta.', type: 'success');
+    }
+
+    public function declineGuildInvite(string $mailId)
+    {
+        $mail = Mail::find($mailId);
+        if (!$mail || $mail->to_character_id !== $this->characterId || $mail->claimed) {
+            return;
+        }
+
+        $guildId = null;
+        if (!empty($mail->attachments)) {
+            foreach($mail->attachments as $att) {
+                if (($att['type'] ?? '') === 'guild_invite') {
+                    $guildId = $att['guild_id'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if ($guildId) {
+            \App\Models\GuildLog::create([
+                'guild_id' => $guildId,
+                'character_id' => $this->characterId,
+                'action' => 'invite_declined',
+                'amount' => 0,
+            ]);
+            $this->dispatch('notify', message: 'Zaproszenie odrzucone.', type: 'info');
+        }
+
+        $mail->delete();
     }
 
     public function render()
@@ -91,6 +131,6 @@ class MailboxComponent extends Component
         return view('livewire.mail.mailbox', [
             'character' => $character,
             'mails' => $mails,
-        ])->layout('layouts.app');
+        ]);
     }
 }

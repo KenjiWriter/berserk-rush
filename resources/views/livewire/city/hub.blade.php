@@ -178,6 +178,18 @@
                     <h3 class="text-lg font-bold text-amber-300 medieval-font">Plac Centralny</h3>
                 </div>
 
+                {{-- Guilds --}}
+                <div class="relative group w-full max-w-xs">
+                    <button wire:click="goTo('guild')"
+                        class="w-full bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-red-600/95 hover:to-red-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                        <div class="relative text-center">
+                            <div class="text-5xl mb-2">🚩</div>
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Gildia</h3>
+                            <p class="text-red-200/80 text-sm font-semibold">Zjednocz się z innymi</p>
+                        </div>
+                    </button>
+                </div>
+
                 {{-- Mailbox --}}
                 <div class="relative group w-full max-w-xs">
                     <button wire:click="goTo('mailbox')"
@@ -318,6 +330,12 @@
                     class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl">
                     <div class="text-4xl mb-2">⚖️</div>
                     <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
+                </button>
+
+                <button wire:click="goTo('guild')"
+                    class="bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 text-center shadow-xl">
+                    <div class="text-4xl mb-2">🚩</div>
+                    <div class="font-bold text-amber-100 medieval-font">Gildia</div>
                 </button>
 
                 <button wire:click="goTo('mailbox')"

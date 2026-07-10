@@ -27,7 +27,7 @@
                     <div class="text-right">
                         <div class="text-xs text-slate-400 uppercase tracking-wider">Twoje Klejnoty</div>
                         <div class="text-xl font-bold text-purple-400 flex items-center justify-end">
-                            {{ number_format($character->gems) }} <span class="text-sm ml-1">💎</span>
+                            {{ number_format(auth()->user()->gems) }} <span class="text-sm ml-1">💎</span>
                         </div>
                     </div>
                 </div>
@@ -173,7 +173,7 @@
                                         <button wire:click="buyItem('{{ $listing->id }}')" 
                                             class="w-full flex items-center justify-center font-bold py-2 px-4 rounded transition-all duration-200 
                                             @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white
-                                            @elseif($listing->currency === 'gems' && $character->gems >= $listing->price) bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white
+                                            @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white
                                             @else bg-slate-700 text-slate-400 cursor-not-allowed opacity-70 @endif
                                         ">
                                             <span class="mr-2">Kup za</span> 

@@ -252,6 +252,7 @@ class GlobalChatComponent extends Component
         ]);
         
         $this->activeTooltipId = null; // close tooltip
+        $this->dispatch('notify', message: "Wysłano zaproszenie do gildii dla gracza {$target->name}!", type: 'success');
     }
 
     private function handleDonateCommand(string $command, Character $character): void

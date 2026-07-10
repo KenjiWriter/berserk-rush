@@ -19,12 +19,12 @@ class Character extends Model
         'level',
         'xp',
         'gold',
-        'gems',
         'attributes',
         'proficiencies',
         'avatar',
         'version',
         'character_points',
+        'guild_id',
     ];
 
     protected $casts = [
@@ -33,7 +33,6 @@ class Character extends Model
         'level' => 'integer',
         'xp' => 'integer',
         'gold' => 'integer',
-        'gems' => 'integer',
         'version' => 'integer',
     ];
 
@@ -42,7 +41,15 @@ class Character extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function guild(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Guild::class, 'guild_id');
+    }
 
+    public function guildMember(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\GuildMember::class, 'character_id');
+    }
 
     public function getStrengthAttribute(): int
     {

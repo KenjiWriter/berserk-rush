@@ -124,14 +124,18 @@ class DropService
 
     private function applyCurrencyReward(Encounter $encounter, string $currencyType, int $amount, string $idempotencyKey): void
     {
-        // Get current balance for this character and currency type
-        $currentBalance = CurrencyLedger::where('character_id', $encounter->character_id)
-            ->where('currency_type', $currencyType)
-            ->orderBy('created_at', 'desc')
-            ->value('balance_after') ?? 0;
-
-        // Calculate new balance
-        $newBalance = $currentBalance + $amount;
+        $character = $encounter->character;
+        
+        if ($currencyType === 'gold') {
+            $currentBalance = $character->gold;
+            $newBalance = $currentBalance + $amount;
+            $character->update(['gold' => $newBalance]);
+        } else {
+            $user = $character->user;
+            $currentBalance = $user->gems;
+            $newBalance = $currentBalance + $amount;
+            $user->update(['gems' => $newBalance]);
+        }
 
         // Create the ledger entry with balance_after
         CurrencyLedger::create([

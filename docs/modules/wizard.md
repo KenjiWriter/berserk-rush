@@ -40,4 +40,4 @@ W zależności od typu przedmiotu losowane są odpowiednie statystyki. Przykład
 
 ### 5. Ekonomia i Waluty
 - System Czarodzieja obsługuje mikropłatności dwuwalutowe: gracz zawsze ma wybór, by zapłacić zwykłym wewnątrzgrowym **Złotem (Gold)** lub walutą premium **Klejnotami (Gems)**.
-- Operacje pobrania waluty są rozliczane natychmiast na głównym balansie postaci (`$character->gold` / `$character->gems`), a następnie generują log historyczny dla księgowości (`CurrencyLedger`).
+- Operacje pobrania waluty są rozliczane natychmiast na głównym balansie (złoto na postaci `$character->gold`, a klejnoty na koncie gracza `$user->gems`), a następnie generują log historyczny dla księgowości (`CurrencyLedger`).

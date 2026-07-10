@@ -32,7 +32,7 @@ class BuyMarketListingAction
 
         $currency = $listing->currency;
         $price = $listing->price;
-        $buyerBalance = $currency === 'gold' ? $buyer->gold : $buyer->gems;
+        $buyerBalance = $currency === 'gold' ? $buyer->gold : $buyer->user->gems;
 
         if ($buyerBalance < $price) {
             return Result::error('INSUFFICIENT_FUNDS', "Nie masz wystarczająco {$currency} na ten zakup. Potrzebujesz: {$price}.");
@@ -52,10 +52,11 @@ class BuyMarketListingAction
                 // Deduct from buyer
                 if ($currency === 'gold') {
                     $buyer->gold -= $price;
+                    $buyer->save();
                 } else {
-                    $buyer->gems -= $price;
+                    $buyer->user->gems -= $price;
+                    $buyer->user->save();
                 }
-                $buyer->save();
 
                 CurrencyLedger::create([
                     'id' => Str::ulid(),
@@ -63,7 +64,7 @@ class BuyMarketListingAction
                     'character_id' => $buyer->id,
                     'currency_type' => $currency,
                     'amount' => -$price,
-                    'balance_after' => $currency === 'gold' ? $buyer->gold : $buyer->gems,
+                    'balance_after' => $currency === 'gold' ? $buyer->gold : $buyer->user->gems,
                     'source_type' => 'market_purchase',
                     'source_id' => $listing->id,
                     'description' => 'Zakup na markecie',

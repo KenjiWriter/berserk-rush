@@ -270,7 +270,7 @@
                 <h2 class="text-2xl font-bold text-blue-400">Backpack</h2>
                 <div class="text-yellow-400 font-bold flex gap-4">
                     <span>🪙 {{ $character->gold }}</span>
-                    <span>💎 {{ $character->gems }}</span>
+                    <span>💎 {{ auth()->user()->gems }}</span>
                 </div>
             </div>
 

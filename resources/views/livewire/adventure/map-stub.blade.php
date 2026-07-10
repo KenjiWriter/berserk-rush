@@ -264,15 +264,27 @@
                                                     class="mt-4 p-3 bg-amber-100/90 border-2 border-amber-600 rounded-lg">
                                                     <h4 class="font-bold text-amber-900 mb-2">🎁 Łup z walki:</h4>
                                                     <div class="space-y-1 text-sm">
-                                                        @if ($drops['gold'] > 0)
-                                                            <div class="flex items-center space-x-2">
-                                                                <span class="text-yellow-600">💰</span>
-                                                                <span class="text-amber-800">+{{ $drops['gold'] }}
-                                                                    złota</span>
-                                                            </div>
-                                                        @endif
+                                                        <div class="flex items-center space-x-2">
+                                                            <span class="text-blue-600">✨</span>
+                                                            <span class="text-amber-800">
+                                                                +{{ !empty($xpData) ? $xpData['base'] : $xpGained }} Doświadczenia
+                                                                @if (!empty($xpData) && isset($xpData['multiplier']) && $xpData['multiplier'] > 1.0)
+                                                                    <span class="font-bold text-xs text-emerald-700">(+{{ $xpData['bonus'] }} z bonusu {{ round(($xpData['multiplier'] - 1) * 100) }}%)</span>
+                                                                @endif
+                                                            </span>
+                                                        </div>
 
-                                                        @if ($drops['gems'] > 0)
+                                                        <div class="flex items-center space-x-2">
+                                                            <span class="text-yellow-600">💰</span>
+                                                            <span class="text-amber-800">
+                                                                +{{ !empty($goldData) ? $goldData['base'] : $goldGained }} Złota
+                                                                @if (!empty($goldData) && isset($goldData['multiplier']) && $goldData['multiplier'] > 1.0)
+                                                                    <span class="font-bold text-xs text-yellow-700">(+{{ $goldData['bonus'] }} z bonusu {{ round(($goldData['multiplier'] - 1) * 100) }}%)</span>
+                                                                @endif
+                                                            </span>
+                                                        </div>
+
+                                                        @if (isset($drops['gems']) && $drops['gems'] > 0)
                                                             <div class="flex items-center space-x-2">
                                                                 <span class="text-blue-600">💎</span>
                                                                 <span class="text-amber-800">+{{ $drops['gems'] }}

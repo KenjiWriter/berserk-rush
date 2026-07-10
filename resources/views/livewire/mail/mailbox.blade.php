@@ -117,6 +117,14 @@
                                                             +{{ number_format($attachment['qty']) }} {{ $attachment['type'] === 'gold' ? 'Złota' : 'Klejnotów' }}
                                                         </div>
                                                     </div>
+                                                @elseif(isset($attachment['type']) && $attachment['type'] === 'guild_invite')
+                                                    @php $guild = \App\Models\Guild::find($attachment['guild_id'] ?? null); @endphp
+                                                    <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-600 rounded p-2 pr-3">
+                                                        <div class="text-lg">🛡️</div>
+                                                        <div class="text-sm font-bold text-emerald-400">
+                                                            Zaproszenie od: {{ $guild ? $guild->name : 'Nieznana Gildia' }}
+                                                        </div>
+                                                    </div>
                                                 @endif
                                             @endforeach
                                         </div>
@@ -127,14 +135,37 @@
                             {{-- Actions --}}
                             <div class="flex flex-col sm:justify-center items-end sm:items-center gap-2 border-t sm:border-t-0 sm:border-l border-slate-700 pt-3 sm:pt-0 sm:pl-4 min-w-[120px]">
                                 @if(!$mail->claimed)
-                                    <button wire:click="claimMail('{{ $mail->id }}')" 
-                                        class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-2 px-4 rounded shadow-lg flex items-center justify-center transition-all">
-                                        @if($mail->hasAttachments())
-                                            🎁 Odbierz
-                                        @else
-                                            ✓ Przeczytane
-                                        @endif
-                                    </button>
+                                    @php
+                                        $isGuildInvite = false;
+                                        if (!empty($mail->attachments)) {
+                                            foreach($mail->attachments as $att) {
+                                                if (($att['type'] ?? '') === 'guild_invite') {
+                                                    $isGuildInvite = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+                                    
+                                    @if($isGuildInvite)
+                                        <button wire:click="claimMail('{{ $mail->id }}')" 
+                                            class="w-full mb-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-1.5 px-3 rounded shadow flex items-center justify-center transition-all text-sm">
+                                            ✅ Przyjmij
+                                        </button>
+                                        <button wire:click="declineGuildInvite('{{ $mail->id }}')" 
+                                            class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-1.5 px-3 rounded shadow flex items-center justify-center transition-all text-sm">
+                                            ❌ Odrzuć
+                                        </button>
+                                    @else
+                                        <button wire:click="claimMail('{{ $mail->id }}')" 
+                                            class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-2 px-4 rounded shadow-lg flex items-center justify-center transition-all">
+                                            @if($mail->hasAttachments())
+                                                🎁 Odbierz
+                                            @else
+                                                ✓ Przeczytane
+                                            @endif
+                                        </button>
+                                    @endif
                                 @else
                                     <div class="text-sm text-green-500/70 font-semibold mb-2">
                                         ✓ Odebrane
