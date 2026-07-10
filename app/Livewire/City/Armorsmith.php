@@ -5,6 +5,9 @@ namespace App\Livewire\City;
 use Livewire\Component;
 use App\Infrastructure\Persistence\Character;
 use Illuminate\Support\Facades\Gate;
+use App\Infrastructure\Persistence\ItemRecipe;
+use App\Infrastructure\Persistence\ItemTemplate;
+use App\Application\Items\CraftingService;
 
 class Armorsmith extends Component
 {
@@ -75,6 +78,21 @@ class Armorsmith extends Component
         $this->redirect(route('city.hub', $this->character), navigate: true);
     }
 
+    public function craftItem(string $recipeId, CraftingService $craftingService)
+    {
+        $recipe = ItemRecipe::find($recipeId);
+        if (!$recipe) return;
+
+        $result = $craftingService->craftItem($this->character, $recipe);
+
+        if ($result['success']) {
+            $this->dispatch('notify', type: 'success', message: $result['message']);
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result['message']);
+        }
+        $this->character->refresh();
+    }
+
     public function render(\App\Application\Items\ShopService $shopService, \App\Application\Items\UpgradeService $upgradeService)
     {
         $shopItems = \App\Infrastructure\Persistence\MerchantItem::where('merchant_id', 'armorsmith')
@@ -117,6 +135,39 @@ class Armorsmith extends Component
             $q->where('type', 'material');
         })->get();
 
+        $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
+            $q->where('type', 'armor');
+        })->get();
+
+        $preparedRecipes = [];
+        foreach ($recipes as $recipe) {
+            $preparedIngredients = [];
+            $canCraft = $this->character->gold >= $recipe->gold_cost;
+
+            foreach ($recipe->ingredients as $ing) {
+                $mat = ItemTemplate::find($ing['template_id']);
+                $owned = $inventoryMaterials->where('template_id', $ing['template_id'])->sum('stack_size');
+                $req = $ing['quantity'];
+                
+                if ($owned < $req) $canCraft = false;
+
+                $preparedIngredients[] = [
+                    'name' => $mat ? $mat->name : 'Nieznany',
+                    'owned' => $owned,
+                    'required' => $req,
+                    'ok' => $owned >= $req,
+                ];
+            }
+
+            $preparedRecipes[] = [
+                'id' => $recipe->id,
+                'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
+                'gold_cost' => $recipe->gold_cost,
+                'ingredients' => $preparedIngredients,
+                'can_craft' => $canCraft,
+            ];
+        }
+
         return view('livewire.city.armorsmith', [
             'shopItems' => $shopItems,
             'shopPrices' => $shopPrices,
@@ -124,7 +175,8 @@ class Armorsmith extends Component
             'sellPrices' => $sellPrices,
             'upgradableItems' => $upgradableItems,
             'upgradeCosts' => $upgradeCosts,
-            'inventoryMaterials' => $inventoryMaterials
+            'inventoryMaterials' => $inventoryMaterials,
+            'recipes' => $preparedRecipes,
         ]);
     }
 }

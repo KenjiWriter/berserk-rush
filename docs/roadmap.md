@@ -76,11 +76,11 @@ Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych gr
 
 ---
 
-## 🔵 Faza 9: Rzemiosło i Zbieractwo (Crafting)
+## 🟢 Faza 9: Rzemiosło i Zbieractwo (Crafting) (✅ Zakończona)
 Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`) do tworzenia cennych mikstur i ekwipunku bez konieczności liczenia na łut szczęścia z potworów.
-- **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego.
-- **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`.
-- **System Rzadkości (Rarities):** Szansa na stworzenie przedmiotu o wyższej wartości nominalnej (Common, Uncommon, Rare, Epic, Legendary).
+- [x] **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego. Zarządzanie z poziomu GUI Administratora.
+- [x] **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`. Osobne zakładki Rzemiosła u Kowala Broni i Płatnerza.
+- [x] **System Rzadkości (Rarities):** Szansa na stworzenie przedmiotu o wyższej wartości nominalnej (Common, Uncommon, Rare, Epic, Legendary). Rzadkość generuje potężniejsze statystyki bonusowe i podnosi CP przedmiotu.
 
 ---
 

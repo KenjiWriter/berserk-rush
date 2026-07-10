@@ -39,7 +39,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Emergent Classes:** No fixed classes at character creation. Choose a name and distribute 10 attribute points (STR, INT, VIT, AGI). Your playstyle evolves based on your investments.
 - **Turn-based Idle Combat:** Fight monsters on level-locked maps (e.g., Lv. 0–10, 10–30) with a fully simulated turn-based combat system.
 - **Dynamic Item System:** Items drop with random stats, rarities, and can be upgraded from +0 to +9. Be careful, upgrades can fail!
-- **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear.
+- **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear with a chance to proc higher Rarities (Common up to Legendary).
 - **Player-Driven Economy:** An active market / auction house where players dictate the prices of items and materials.
 - **Guilds & Social:** Join or create Guilds with their own treasuries, role structures, private real-time chat, and an internal mail invitation system.
 - **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) chat panel pinned to the corner of the screen. Supports multiple channels (Global/Guild), unread counters, in-chat slash commands (`/donate`), and player inspection tooltips showing equipped gear.

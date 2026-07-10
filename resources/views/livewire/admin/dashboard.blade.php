@@ -23,6 +23,11 @@
                 <p class="text-gray-400">Zarządzanie ofertą handlarzy, limitowane sztuki i levele.</p>
             </a>
 
+            <a href="{{ route('admin.item-recipes') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">🛠️ Przepisy (Rzemiosło)</h2>
+                <p class="text-gray-400">Kombinacje materiałów do tworzenia nowych przedmiotów.</p>
+            </a>
+
             <a href="{{ route('admin.loot-tables') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
                 <h2 class="text-xl font-bold mb-2">🎁 Tabele Łupów</h2>
                 <p class="text-gray-400">Szablony dropów z potworów, wagi i prawdopodobieństwa.</p>

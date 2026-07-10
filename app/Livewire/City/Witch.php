@@ -10,7 +10,7 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\CharacterCooldown;
 use App\Infrastructure\Persistence\ItemRecipe;
-use App\Domain\Items\Actions\CraftItemAction;
+use App\Application\Items\CraftingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -126,8 +126,8 @@ class Witch extends Component
         $recipe = ItemRecipe::find($recipeId);
         if (!$recipe) return;
 
-        $action = new CraftItemAction();
-        $result = $action->execute($this->character, $recipe);
+        $action = new CraftingService();
+        $result = $action->craftItem($this->character, $recipe);
 
         if ($result['success']) {
             $this->showMessage($result['message'], 'success');

@@ -35,6 +35,9 @@
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     Kuźnia Ulepszeń
                 </button>
+                <button wire:click="setTab('crafting')" class="px-6 py-2 font-bold transition-colors flex items-center gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
+                    🛠️ Rzemiosło
+                </button>
             </div>
 
             {{-- Content --}}
@@ -195,6 +198,49 @@
                                 </div>
                             @endif
                         </div>
+                    </div>
+                @elseif($activeTab === 'crafting')
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($recipes as $recipe)
+                            <div class="bg-gray-800 border border-gray-600 rounded-lg p-6 flex flex-col relative shadow-xl">
+                                <div class="text-center mb-4 pb-4 border-b border-gray-700">
+                                    <h3 class="font-bold text-xl text-blue-300">{{ $recipe['result_name'] }}</h3>
+                                    <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold">🪙 {{ $recipe['gold_cost'] }}</span></p>
+                                </div>
+                                
+                                <div class="flex-grow">
+                                    <h4 class="text-amber-500 font-bold text-sm mb-2">Potrzebne materiały:</h4>
+                                    <div class="space-y-2">
+                                        @foreach($recipe['ingredients'] as $ing)
+                                            <div class="flex justify-between items-center text-sm bg-gray-900 p-2 rounded border border-gray-700">
+                                                <span class="text-gray-300">{{ $ing['name'] }}</span>
+                                                <span class="{{ $ing['ok'] ? 'text-green-400' : 'text-red-400' }} font-bold">
+                                                    {{ $ing['owned'] }} / {{ $ing['required'] }}
+                                                </span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <div class="mt-6 pt-4 border-t border-gray-700">
+                                    @if($recipe['can_craft'])
+                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 px-4 rounded shadow flex justify-center items-center gap-2 transition-all transform hover:scale-105">
+                                            <span>🛠️ Wytwórz</span>
+                                        </button>
+                                    @else
+                                        <button disabled class="w-full bg-gray-700 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed flex justify-center items-center gap-2">
+                                            <span>❌ Brak surowców</span>
+                                        </button>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                        
+                        @if(empty($recipes))
+                            <div class="col-span-full text-center text-gray-500 py-12">
+                                Brak dostępnych przepisów.
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
