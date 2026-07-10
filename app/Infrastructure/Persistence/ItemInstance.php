@@ -31,6 +31,18 @@ class ItemInstance extends Model
         'version' => 'integer',
     ];
 
+    protected static function booted()
+    {
+        $clearCache = function ($item) {
+            if ($item->owner_character_id) {
+                $item->owner?->clearStatsCache();
+            }
+        };
+
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
+
     public function template(): BelongsTo
     {
         return $this->belongsTo(ItemTemplate::class, 'template_id');

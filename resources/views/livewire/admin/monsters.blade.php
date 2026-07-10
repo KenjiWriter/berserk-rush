@@ -35,17 +35,25 @@
                         <input type="text" wire:model="name" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                         @error('name') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
-
                     <div class="flex gap-4 mb-4">
-                        <div class="w-1/2">
+                        <div class="w-1/3">
                             <label class="block text-gray-400 text-sm font-bold mb-2">Level</label>
                             <input type="number" wire:model="level" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                             @error('level') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
-                        <div class="w-1/2">
+                        <div class="w-1/3">
                             <label class="block text-gray-400 text-sm font-bold mb-2">Typ</label>
-                            <input type="text" wire:model="type" placeholder="np. zwierzę, ork" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                            <input type="text" wire:model="type" placeholder="np. zwierzę" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                             @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="w-1/3">
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Ranga</label>
+                            <select wire:model="rank" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                                <option value="regular">Zwykły (Regular)</option>
+                                <option value="boss">Boss</option>
+                                <option value="worldboss">Worldboss</option>
+                            </select>
+                            @error('rank') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                     </div>
 
@@ -83,7 +91,7 @@
                             Zapisz
                         </button>
                         @if($editingId)
-                            <button type="button" wire:click="$set('editingId', null); $reset(['map_id', 'name', 'level', 'type', 'hp', 'atk', 'def', 'crit', 'loot_table_id'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                            <button type="button" wire:click="$set('editingId', null); $reset(['map_id', 'name', 'level', 'type', 'rank', 'hp', 'atk', 'def', 'crit', 'loot_table_id'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
                                 Anuluj
                             </button>
                         @endif
@@ -109,6 +117,11 @@
                                 <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition">
                                     <td class="p-3 text-white font-bold">
                                         {{ $monster->name }}
+                                        @if($monster->rank === 'worldboss')
+                                            <span class="ml-2 text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded border border-red-700">Worldboss</span>
+                                        @elseif($monster->rank === 'boss')
+                                            <span class="ml-2 text-xs bg-purple-900 text-purple-200 px-2 py-0.5 rounded border border-purple-700">Boss</span>
+                                        @endif
                                         <div class="text-xs text-gray-500">Typ: {{ $monster->type }}</div>
                                     </td>
                                     <td class="p-3 text-yellow-500">{{ $monster->level }}</td>

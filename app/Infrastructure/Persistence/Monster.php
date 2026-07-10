@@ -10,6 +10,7 @@ class Monster extends Model
         'map_id',
         'name',
         'type',
+        'rank',
         'level',
         'stats',
         'abilities',

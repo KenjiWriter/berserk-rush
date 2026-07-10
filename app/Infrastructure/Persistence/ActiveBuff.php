@@ -22,6 +22,16 @@ class ActiveBuff extends Model
         'expires_at' => 'datetime',
     ];
 
+    protected static function booted()
+    {
+        $clearCache = function ($buff) {
+            $buff->character?->clearStatsCache();
+        };
+
+        static::saved($clearCache);
+        static::deleted($clearCache);
+    }
+
     public function character(): BelongsTo
     {
         return $this->belongsTo(Character::class);

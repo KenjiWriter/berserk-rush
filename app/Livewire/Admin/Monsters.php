@@ -12,7 +12,7 @@ use Livewire\Attributes\Layout;
 class Monsters extends Component
 {
     public $monsters, $maps, $lootTables;
-    public $map_id, $name, $level, $type, $loot_table_id;
+    public $map_id, $name, $level, $type, $rank = 'regular', $loot_table_id;
     public $hp = 100, $atk = 10, $def = 5, $crit = 0;
     public $editingId = null;
 
@@ -20,6 +20,7 @@ class Monsters extends Component
         'map_id' => 'required|exists:maps,id',
         'name' => 'required|string|max:255',
         'type' => 'required|string',
+        'rank' => 'required|in:regular,boss,worldboss',
         'level' => 'required|integer|min:1',
         'hp' => 'required|integer|min:1',
         'atk' => 'required|integer|min:0',
@@ -49,6 +50,7 @@ class Monsters extends Component
             'name' => $this->name,
             'level' => $this->level,
             'type' => $this->type ?? 'zwierzę',
+            'rank' => $this->rank ?? 'regular',
             'stats' => ['hp' => $this->hp, 'atk' => $this->atk, 'def' => $this->def, 'crit' => $this->crit],
             'loot_table_id' => $this->loot_table_id ?: null,
         ];
@@ -59,7 +61,7 @@ class Monsters extends Component
             Monster::create($data);
         }
 
-        $this->reset(['name', 'level', 'hp', 'atk', 'def', 'crit', 'editingId']);
+        $this->reset(['name', 'level', 'hp', 'atk', 'def', 'crit', 'rank', 'editingId']);
         $this->loadData();
         session()->flash('message', 'Potwór zapisany.');
     }
@@ -71,6 +73,7 @@ class Monsters extends Component
         $this->map_id = $monster->map_id;
         $this->name = $monster->name;
         $this->type = $monster->type ?? 'zwierzę';
+        $this->rank = $monster->rank ?? 'regular';
         $this->level = $monster->level;
         $this->hp = $monster->stats['hp'] ?? 100;
         $this->atk = $monster->stats['atk'] ?? 10;
