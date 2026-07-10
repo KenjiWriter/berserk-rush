@@ -16,33 +16,40 @@ class Homepage extends Component
 
     public function render()
     {
+        $activePlayers = \App\Infrastructure\Persistence\Character::where('updated_at', '>=', now()->subHour())->count();
+
+        $topCharacters = \App\Infrastructure\Persistence\Character::with('guild')
+            ->orderByDesc('level')
+            ->orderByDesc('xp')
+            ->limit(10)
+            ->get()
+            ->map(function ($c) {
+                return [
+                    'name' => $c->name,
+                    'level' => $c->level,
+                    'guild' => $c->guild ? $c->guild->name : '-',
+                ];
+            });
+
+        $topGuilds = \App\Models\Guild::withCount('characters')
+            ->withAvg('characters', 'level')
+            ->orderByDesc('level')
+            ->orderByDesc('xp')
+            ->limit(10)
+            ->get()
+            ->map(function ($g) {
+                return [
+                    'name' => $g->name,
+                    'members' => $g->characters_count,
+                    'avgLevel' => round($g->characters_avg_level ?? 0),
+                ];
+            });
+
         // Mock data for rankings and admin messages
         $mockData = [
-            'activePlayers' => 1234,
-            'topCharacters' => [
-                ['name' => 'Dragomir Kostka', 'level' => 87, 'guild' => 'Smoczy Klan'],
-                ['name' => 'Zoja Wojowniczka', 'level' => 82, 'guild' => 'Rycerze Światła'],
-                ['name' => 'Kazimierz Mag', 'level' => 79, 'guild' => 'Mistrzowie Magii'],
-                ['name' => 'Bogdan Łucznik', 'level' => 76, 'guild' => 'Leśni Strażnicy'],
-                ['name' => 'Agata Nekromanta', 'level' => 74, 'guild' => 'Dzieci Ciemności'],
-                ['name' => 'Mieszko Barbarzyńca', 'level' => 71, 'guild' => 'Dzicy Wojownicy'],
-                ['name' => 'Elżbieta Uzdrowicielka', 'level' => 68, 'guild' => 'Święci Kapłani'],
-                ['name' => 'Władysław Złodziej', 'level' => 65, 'guild' => 'Cienie Nocy'],
-                ['name' => 'Jadwiga Czarodziejka', 'level' => 62, 'guild' => 'Mistrzowie Magii'],
-                ['name' => 'Stefan Paladyn', 'level' => 60, 'guild' => 'Rycerze Światła'],
-            ],
-            'topGuilds' => [
-                ['name' => 'Smoczy Klan', 'members' => 45, 'avgLevel' => 67],
-                ['name' => 'Rycerze Światła', 'members' => 38, 'avgLevel' => 65],
-                ['name' => 'Mistrzowie Magii', 'members' => 42, 'avgLevel' => 63],
-                ['name' => 'Leśni Strażnicy', 'members' => 35, 'avgLevel' => 61],
-                ['name' => 'Dzieci Ciemności', 'members' => 29, 'avgLevel' => 59],
-                ['name' => 'Dzicy Wojownicy', 'members' => 33, 'avgLevel' => 58],
-                ['name' => 'Święci Kapłani', 'members' => 27, 'avgLevel' => 56],
-                ['name' => 'Cienie Nocy', 'members' => 31, 'avgLevel' => 55],
-                ['name' => 'Złota Kompania', 'members' => 25, 'avgLevel' => 53],
-                ['name' => 'Strażnicy Honoru', 'members' => 22, 'avgLevel' => 51],
-            ],
+            'activePlayers' => $activePlayers,
+            'topCharacters' => $topCharacters,
+            'topGuilds' => $topGuilds,
             'adminMessages' => [
                 [
                     'title' => 'Nowa aktualizacja systemu walki!',
