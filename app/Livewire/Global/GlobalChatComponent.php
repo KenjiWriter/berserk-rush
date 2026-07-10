@@ -56,6 +56,8 @@ class GlobalChatComponent extends Component
      */
     public function onMessageReceived(array $event): void
     {
+        \Illuminate\Support\Facades\Log::info("onMessageReceived called", ['event' => $event]);
+
         $this->messages[] = [
             'character_id'    => $event['character_id'],
             'character_name'  => $event['character_name'],
@@ -143,6 +145,8 @@ class GlobalChatComponent extends Component
 
         $cp = $character->getTotalCombatPower();
 
+        \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
+
         if ($this->currentChannel === 'guild' && $character->guild_id) {
             broadcast(new \App\Domain\Social\Events\GuildMessageSent(
                 characterName:  $character->name,
@@ -163,6 +167,8 @@ class GlobalChatComponent extends Component
                 characterId:    $character->id,
             ));
         }
+
+        \Illuminate\Support\Facades\Log::info("Message broadcasted");
 
         $this->newMessage = '';
     }
