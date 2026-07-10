@@ -2,36 +2,44 @@
 
 ## Opis
 
-Globalny czat to panel komunikacji w czasie rzeczywistym, dostępny z każdego miejsca w grze (wyłącznie dla graczy z aktywną postacią). Działa w oparciu o **Laravel Reverb** (WebSockets) i **Laravel Echo** na frontendzie. Czat jest **ulotny** — wiadomości nie są zapisywane do bazy danych i znikają po odświeżeniu strony.
+Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każdego miejsca w grze (wyłącznie dla graczy z aktywną postacią). Działa w oparciu o **Laravel Reverb** (WebSockets) i **Laravel Echo** na frontendzie. Czat jest **ulotny** — wiadomości nie są zapisywane do bazy danych i znikają po odświeżeniu strony, ale stan samego panelu (zwinięty/rozwinięty) jest zapamiętywany pomiędzy zapytaniami.
 
 ---
 
 ## Zakres funkcjonalności
 
-### Wyświetlanie i układ
+### Wyświetlanie, układ i sesja
 - Panel czatu jest przypięty do dolnego-prawego rogu ekranu (`fixed bottom-0 right-0`).
-- Możliwość **minimalizacji** do małego dymka i ponownego rozwinięcia kliknięciem.
-- Mroczny, półprzezroczysty design w klimacie fantasy z czcionką **Cinzel**.
+- Możliwość **minimalizacji** do małego przycisku. Stan zwinięcia/rozwinięcia jest **zapamiętywany w sesji** dzięki Livewire 3 `#[Session]`.
+- Jeśli czat jest zwinięty, na przycisku pojawiają się **kolorowe liczniki nieprzeczytanych wiadomości** osobno dla kanału globalnego i gildii.
 - Wyświetlanie maksymalnie **100 ostatnich wiadomości** (tylko w pamięci przeglądarki dla bieżącej sesji).
 
-### Wysyłanie wiadomości
+### Kanały komunikacji
+- **Globalny:** Widoczny dla wszystkich graczy w grze.
+- **Gildia:** Widoczny wyłącznie dla członków tej samej gildii. System automatycznie przełącza graczy między kanałami na ich żądanie.
+
+### Wysyłanie wiadomości i komendy
 - Dostępne **wyłącznie dla zalogowanego gracza z aktywną postacią** (weryfikacja przez `session('active_character')`).
-- **Anty-spam (Rate Limiting):** 1 wiadomość na 2 sekundy per postać (via `Illuminate\Support\Facades\RateLimiter`).
+- **Anty-spam (Rate Limiting):** 1 wiadomość na 2 sekundy per postać.
 - Maksymalna długość wiadomości: **200 znaków**.
+- **System komend (autocomplete):** Wpisanie `/` na kanale gildii sugeruje listę dostępnych komend (np. dotacje do skarbca).
+  - `/donate exp <ilość>`
+  - `/donate gold <ilość>`
+  - `/donate gems <ilość>`
 
 ### Format wiadomości
 ```
-NazwaPostaci [Poziom]: Treść wiadomości
+12:34 [System]: Gracz WojWielki przekazał 100 EXP na rozwój gildii.
+12:35 NazwaPostaci [Poziom]: Treść wiadomości
 ```
 
-### Inspekcja gracza (Tooltip)
+### Inspekcja gracza i zaproszenia (Tooltip)
 - Kliknięcie na **nick** dowolnego gracza w czacie otwiera tooltip z jego profilem.
-- Dane ładowane są **lazily** (tylko na żądanie kliknięcia) z bazy danych.
+- Dane ładowane są **lazily** (tylko na żądanie kliknięcia) z bazy danych za pomocą Livewire.
 - Tooltip zawiera:
-  - Nazwa i Poziom postaci
-  - **Combat Power (CP)**
-  - Lista założonego ekwipunku z poziomem ulepszenia (`+X`) i CP każdego przedmiotu
-  - Kolor nazwy przedmiotu zależny od rzadkości (common, uncommon, rare, epic, legendary)
+  - Nazwa, Poziom postaci oraz jej Combat Power (CP)
+  - Lista założonego ekwipunku z poziomem ulepszenia (`+X`) i CP każdego przedmiotu.
+  - Przycisk **"Wyślij zaproszenie do gildii"** (widoczny i klikalny dla Liderów i Dowódców), wysyłający pocztą w grze paczkę z zaproszeniem do odpowiedniego gracza.
 
 ---
 
@@ -41,89 +49,38 @@ NazwaPostaci [Poziom]: Treść wiadomości
 
 | Plik | Rola |
 |------|------|
-| `app/Domain/Social/Events/MessageSent.php` | Event broadcastowy (`ShouldBroadcastNow`), rozgłaszany na publicznym kanale `global-chat` |
-| `app/Livewire/Global/GlobalChatComponent.php` | Komponent Livewire 3 obsługujący wysyłanie, odbieranie i załadowanie danych tooltipa |
-| `routes/channels.php` | Definicja publicznego kanału `global-chat` |
-
-### Frontend
-
-| Plik | Rola |
-|------|------|
-| `resources/js/bootstrap.js` | Inicjalizacja `Laravel Echo` z driverem `reverb` i odczytem kluczy z `VITE_REVERB_*` |
-| `resources/views/livewire/global/global-chat-component.blade.php` | Widok komponentu czatu (Alpine.js do auto-scroll i tooltipa) |
-| `resources/views/components/layouts/app.blade.php` | Wstrzyknięcie komponentu w layout (warunek: `@auth && session('active_character')`) |
-
-### Kanał broadcastowy
-
-```php
-// routes/channels.php
-Broadcast::channel('global-chat', fn () => true); // Publiczny — brak autoryzacji
-```
+| `app/Domain/Social/Events/MessageSent.php` | Event broadcastowy, rozgłaszany na publicznym kanale `global-chat` |
+| `app/Domain/Social/Events/GuildMessageSent.php` | Event broadcastowy na prywatnym kanale `guild-chat.{id}` |
+| `app/Livewire/Global/GlobalChatComponent.php` | Komponent Livewire obsługujący odbiór, wysyłanie, komendy, stany tooltipów, liczniki powiadomień |
 
 ### Nasłuchiwanie eventów w Livewire
 
+Do nasłuchiwania dynamicznych kanałów (takich jak `guild-chat.{id}`) używamy metody `getListeners()` (zamiast samej adnotacji `#[On]`):
+
 ```php
-#[On('echo:global-chat,MessageSent')]
-public function onMessageReceived(array $event): void
+public function getListeners()
 {
-    $this->messages[] = [...];
+    $listeners = [
+        'echo:global-chat,.App\\Domain\\Social\\Events\\MessageSent' => 'onMessageReceived',
+    ];
+
+    $characterId = session('active_character');
+    // ... jeśli character ma gildie:
+    // $listeners["echo:guild-chat.{$guild_id},.App\\Domain\\Social\\Events\\GuildMessageSent"] = 'onGuildMessageReceived';
+
+    return $listeners;
 }
 ```
 
----
-
-## Konfiguracja środowiska
-
-Po uruchomieniu `php artisan reverb:install` w pliku `.env` automatycznie pojawiają się:
-
-```dotenv
-BROADCAST_CONNECTION=reverb
-
-REVERB_APP_ID=<generated>
-REVERB_APP_KEY=<generated>
-REVERB_APP_SECRET=<generated>
-REVERB_HOST="localhost"
-REVERB_PORT=8080
-REVERB_SCHEME=http
-
-VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
-VITE_REVERB_HOST="${REVERB_HOST}"
-VITE_REVERB_PORT="${REVERB_PORT}"
-VITE_REVERB_SCHEME="${REVERB_SCHEME}"
-```
+Zwróć uwagę, że zdefiniowane w Laravelu eventy używają domyślnie pełnej ścieżki klasy (`FQCN`), stąd podczas nasłuchiwania dodawana jest kropka (`.App\Domain...`), która powiadamia Laravel Echo, aby pominąć doklejanie domyślnego namespace'u.
 
 ---
 
-## Uruchamianie
+## Uruchamianie i Zależności
 
-Czat wymaga działającego procesu serwera WebSocket. Polecenie `composer dev` uruchamia go automatycznie razem z pozostałymi procesami:
+Czat wymaga działającego procesu serwera WebSocket. Polecenie `composer dev` uruchamia go automatycznie:
 
 ```bash
 composer dev
-# uruchamia: php artisan serve | php artisan queue:listen | npm run dev | php artisan reverb:start
+# lub ręcznie: php artisan reverb:start
 ```
-
-Lub ręcznie w osobnym terminalu:
-
-```bash
-php artisan reverb:start
-```
-
----
-
-## Zależności
-
-### PHP (Composer)
-- `laravel/reverb` — serwer WebSocket
-
-### JavaScript (npm)
-- `laravel-echo` — klient WebSocket dla frontendowych subskrypcji
-- `pusher-js` — wymagany przez Echo jako driver transportu
-
----
-
-## Ograniczenia i znane zachowania
-
-- **Czat jest ulotny** — brak historii po odświeżeniu strony (deliberate design decision).
-- Czat jest **niewidoczny na stronie głównej i na stronach przed wyborem postaci** — tylko zalogowani gracze z aktywną sesją postaci widzą panel.
-- Reverb musi działać jako osobny proces — w środowisku produkcyjnym należy skonfigurować go jako usługę systemową (np. `supervisor`).
