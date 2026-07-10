@@ -114,7 +114,33 @@ The codebase is structured around **Domain-Driven Design (DDD)** concepts and **
    composer dev
    ```
 
-7. **Open in browser**
+7. **Start the Queue Worker (Combat & Async Tasks)**
+
+   > [!IMPORTANT]
+   > Combat calculation is fully offloaded to background workers to ensure horizontal scaling. Without running a worker, battles will remain stuck in the "Calculating..." state.
+
+   **For Local Development:**
+   ```bash
+   php artisan queue:work
+   ```
+
+   **For Production (Supervisor):**
+   In a production environment, you should use **Supervisor** or **Laravel Horizon** to manage and scale your worker processes. Example Supervisor configuration (`/etc/supervisor/conf.d/berserk-worker.conf`):
+   ```ini
+   [program:berserk-worker]
+   process_name=%(program_name)s_%(process_num)02d
+   command=php /path/to/berserk-rush/artisan queue:work --sleep=1 --tries=3
+   autostart=true
+   autorestart=true
+   stopasgroup=true
+   killasgroup=true
+   user=www-data
+   numprocs=8
+   redirect_stderr=true
+   stdout_logfile=/path/to/berserk-rush/storage/logs/worker.log
+   ```
+
+8. **Open in browser**
 
    Navigate to `http://localhost:8000`.
 

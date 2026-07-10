@@ -84,11 +84,11 @@ Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`
 
 ---
 
-## ⚪ Faza 10: Doskonalenie UI, Asynchroniczny Loot i Optymalizacja
+## 🟢 Faza 10: Doskonalenie UI, Skalowalność i Optymalizacja
 Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i wydajności gry (Core V1).
-- **Mikroanimacje / Stylizacja:** Pełne tchnięcie życia w Livewire, dodanie płynnych animacji pasków zdrowia, zrzutów przedmiotów i efektów krytycznych.
-- **Asynchroniczny Looting:** Przeniesienie walk w tle (Idle) i generowania przedmiotów do procesów w tle na kolejkach (Redis + Laravel Horizon).
-- **Optymalizacja DB:** Indeksy, optymalizacja odpytań i cachowanie często używanych statystyk w Redis.
+- [x] **Zwiększenie Immersji UI:** Dodanie płynnych przejść (nakładka ładowania) podczas poruszania się między mapami, tchnięcie życia w walkę (fizyczne uderzenia, potrząśnięcia paneli) i animacje ubywającego zdrowia.
+- [x] **Skalowalna Walka (Workery w tle):** Przeniesienie ciężkich obliczeń zapytań bitewnych do systemów kolejkowych. Główny proces HTTP zostaje odciążony, a walki są obliczane asynchronicznie, co pozwala na bezproblemową grę dla setek graczy naraz.
+- [ ] **Optymalizacja DB:** Indeksy, optymalizacja zapytań i cachowanie często używanych statystyk w Redis.
 
 ---
 
