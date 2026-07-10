@@ -1,5 +1,23 @@
-<div
+<div x-data="{ travelingTo: '' }"
     class="min-h-screen bg-gradient-to-b from-blue-900/90 via-indigo-800/90 to-purple-900/90 text-amber-100 relative overflow-hidden">
+    
+    {{-- Entering Location Transition Overlay --}}
+    <div x-show="travelingTo !== ''"
+         x-transition:enter="transition ease-in-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+         style="display: none;">
+         
+         <div class="relative w-96 h-48 flex flex-col items-center justify-center bg-contain bg-center bg-no-repeat drop-shadow-2xl filter saturate-150"
+              style="background-image: url('{{ asset('img/avatars/plate.png') }}');">
+             
+             <div class="absolute inset-0 flex items-center justify-center flex-col mt-4">
+                 <svg class="animate-spin h-10 w-10 text-amber-400 mb-2 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                 <span class="text-amber-100 font-bold text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-center px-4" style="font-family: 'Cinzel', serif;" x-text="'Przenoszenie do ' + travelingTo"></span>
+             </div>
+         </div>
+    </div>
     {{-- Background city image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
         style="background-image: url('{{ asset('img/city-background.png') }}');">
@@ -79,8 +97,8 @@
             <div class="space-y-6">
                 {{-- Profile --}}
                 <div class="relative group">
-                    <button wire:click="goTo('profile')"
-                        class="w-full bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-blue-100/95 hover:to-blue-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'"
+                        class="w-full bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-blue-100/95 hover:to-blue-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-blue-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -96,7 +114,10 @@
                         </div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">👤</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('profile')">👤</div>
+                                <div wire:loading wire:target="goTo('profile')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-blue-900 medieval-font mb-2">Postać</h3>
                             <p class="text-blue-800 font-semibold">Ekwipunek i statystyki</p>
                         </div>
@@ -105,8 +126,8 @@
 
                 {{-- Armorsmith --}}
                 <div class="relative group">
-                    <button wire:click="goTo('armorsmith')"
-                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'"
+                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -122,7 +143,10 @@
                         </div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">🛡️</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div>
+                                <div wire:loading wire:target="goTo('armorsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-amber-900 medieval-font mb-2">Zbrojmistrz</h3>
                             <p class="text-amber-800 font-semibold">Zbroje i tarcze dla wojowników</p>
                         </div>
@@ -131,8 +155,8 @@
 
                 {{-- Weaponsmith --}}
                 <div class="relative group">
-                    <button wire:click="goTo('weaponsmith')"
-                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'"
+                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -148,7 +172,10 @@
                         </div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">⚔️</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div>
+                                <div wire:loading wire:target="goTo('weaponsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-amber-900 medieval-font mb-2">Brońmistrz</h3>
                             <p class="text-amber-800 font-semibold">Miecze, łuki i magiczne berła</p>
                         </div>
@@ -161,10 +188,13 @@
                 
                 {{-- Market --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('market')"
-                        class="w-full bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-yellow-600/95 hover:to-yellow-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'"
+                        class="w-full bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-yellow-600/95 hover:to-yellow-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
                         <div class="relative text-center">
-                            <div class="text-5xl mb-2">⚖️</div>
+                            <div class="text-5xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('market')">⚖️</div>
+                                <div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Targowisko</h3>
                             <p class="text-amber-200/80 text-sm font-semibold">Handel z graczami</p>
                         </div>
@@ -180,10 +210,13 @@
 
                 {{-- Guilds --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('guild')"
-                        class="w-full bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-red-600/95 hover:to-red-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'"
+                        class="w-full bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-red-600/95 hover:to-red-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
                         <div class="relative text-center">
-                            <div class="text-5xl mb-2">🚩</div>
+                            <div class="text-5xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('guild')">🚩</div>
+                                <div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Gildia</h3>
                             <p class="text-red-200/80 text-sm font-semibold">Zjednocz się z innymi</p>
                         </div>
@@ -192,10 +225,13 @@
 
                 {{-- Mailbox --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('mailbox')"
-                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'"
+                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
                         <div class="relative text-center">
-                            <div class="text-5xl mb-2">✉️</div>
+                            <div class="text-5xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>
+                                <div wire:loading wire:target="goTo('mailbox')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Poczta</h3>
                             <p class="text-blue-200/80 text-sm font-semibold">
                                 Wiadomości
@@ -217,8 +253,8 @@
             <div class="space-y-6">
                 {{-- Witch --}}
                 <div class="relative group">
-                    <button wire:click="goTo('witch')"
-                        class="w-full bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-purple-100/95 hover:to-purple-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'"
+                        class="w-full bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-purple-100/95 hover:to-purple-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-purple-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -234,7 +270,10 @@
                         </div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">🧙‍♀️</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div>
+                                <div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-purple-900 medieval-font mb-2">Wiedźma</h3>
                             <p class="text-purple-800 font-semibold">Alchemia i magiczne mikstury</p>
                         </div>
@@ -243,8 +282,8 @@
 
                 {{-- Wizard --}}
                 <div class="relative group">
-                    <button wire:click="goTo('wizard')"
-                        class="w-full bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-indigo-100/95 hover:to-indigo-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'"
+                        class="w-full bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-indigo-100/95 hover:to-indigo-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
                         {{-- Decorative corners --}}
                         <div class="absolute top-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
                         <div class="absolute top-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
@@ -252,7 +291,10 @@
                         <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 translate-y-3"></div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">🧙‍♂️</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div>
+                                <div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-indigo-900 medieval-font mb-2">Czarodziej</h3>
                             <p class="text-indigo-800 font-semibold">Magiczne bonusy przedmiotów</p>
                         </div>
@@ -261,8 +303,8 @@
 
                 {{-- Adventure --}}
                 <div class="relative group">
-                    <button wire:click="goTo('adventure')"
-                        class="w-full bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-green-100/95 hover:to-green-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                    <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'"
+                        class="w-full bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-green-100/95 hover:to-green-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-green-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -278,7 +320,10 @@
                         </div>
 
                         <div class="relative text-center">
-                            <div class="text-6xl mb-4">🗺️</div>
+                            <div class="text-6xl mb-4">
+                                <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
+                                <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                             <h3 class="text-2xl font-bold text-green-900 medieval-font mb-2">Przygoda</h3>
                             <p class="text-green-800 font-semibold">Wyrusz na niebezpieczne ekspedycje</p>
                         </div>
@@ -290,57 +335,84 @@
         {{-- Mobile layout --}}
         <div class="lg:hidden mt-8">
             <div class="grid grid-cols-2 gap-4">
-                <button wire:click="goTo('profile')"
-                    class="bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">👤</div>
+                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'"
+                    class="bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('profile')">👤</div>
+                                <div wire:loading wire:target="goTo('profile')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-blue-900 medieval-font">Postać</div>
                 </button>
 
-                <button wire:click="goTo('armorsmith')"
-                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">🛡️</div>
+                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'"
+                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div>
+                                <div wire:loading wire:target="goTo('armorsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-amber-900 medieval-font">Zbrojmistrz</div>
                 </button>
 
-                <button wire:click="goTo('weaponsmith')"
-                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">⚔️</div>
+                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'"
+                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div>
+                                <div wire:loading wire:target="goTo('weaponsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-amber-900 medieval-font">Brońmistrz</div>
                 </button>
 
-                <button wire:click="goTo('witch')"
-                    class="bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">🧙‍♀️</div>
+                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'"
+                    class="bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div>
+                                <div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-purple-900 medieval-font">Wiedźma</div>
                 </button>
 
-                <button wire:click="goTo('wizard')"
-                    class="bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">🧙‍♂️</div>
+                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'"
+                    class="bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div>
+                                <div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-indigo-900 medieval-font">Czarodziej</div>
                 </button>
 
-                <button wire:click="goTo('adventure')"
-                    class="col-span-2 bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">🗺️</div>
+                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'"
+                    class="col-span-2 bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
+                                <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-green-900 medieval-font">Przygoda</div>
                 </button>
                 
-                <button wire:click="goTo('market')"
-                    class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">⚖️</div>
+                <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'"
+                    class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('market')">⚖️</div>
+                                <div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
                 </button>
 
-                <button wire:click="goTo('guild')"
-                    class="bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 text-center shadow-xl">
-                    <div class="text-4xl mb-2">🚩</div>
+                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'"
+                    class="bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('guild')">🚩</div>
+                                <div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-amber-100 medieval-font">Gildia</div>
                 </button>
 
-                <button wire:click="goTo('mailbox')"
-                    class="bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 text-center shadow-xl relative">
-                    <div class="text-4xl mb-2">✉️</div>
+                <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'"
+                    class="bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 text-center shadow-xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>
+                                <div wire:loading wire:target="goTo('mailbox')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
                     <div class="font-bold text-amber-100 medieval-font">Poczta</div>
                     @if(isset($unread) && $unread > 0)
                         <div class="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-slate-900 shadow-lg">

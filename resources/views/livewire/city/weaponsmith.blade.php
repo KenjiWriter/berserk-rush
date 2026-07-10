@@ -14,7 +14,7 @@
                 <div class="bg-gray-900 border-2 border-yellow-600 rounded px-4 py-2 font-bold text-yellow-400">
                     🪙 {{ $character->gold }}
                 </div>
-                <button wire:click="backToHub"
+                <button wire:click="backToHub" @click="$dispatch('location-leave')"
                     class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                     🏰 Powrót do miasta
                 </button>
@@ -66,9 +66,10 @@
                                 @endif
                                 
                                 <div class="mt-auto w-full">
-                                    <button wire:click="buyItem('{{ $item->id }}')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded shadow flex justify-center items-center gap-2 transition-colors">
-                                        <span>Kup za</span>
-                                        <span class="text-yellow-200">🪙 {{ $shopPrices[$item->id] }}</span>
+                                    <button wire:click="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem('{{ $item->id }}')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 px-4 rounded shadow flex justify-center items-center gap-2 transition-colors">
+                                        <span wire:loading.remove wire:target="buyItem('{{ $item->id }}')">Kup za</span>
+                                        <span wire:loading.remove wire:target="buyItem('{{ $item->id }}')" class="text-yellow-200">🪙 {{ $shopPrices[$item->id] }}</span>
+                                        <span wire:loading wire:target="buyItem('{{ $item->id }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Przetwarzanie...</span>
                                     </button>
                                 </div>
                             </div>
@@ -180,8 +181,9 @@
                                         </div>
                                         
                                         <div class="mt-auto w-full">
-                                            <button wire:click="upgradeItem('{{ $item->id }}')" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow flex justify-center items-center gap-2 transition-colors">
-                                                <span>Ulepsz na +{{ $item->upgrade_level + 1 }}</span>
+                                            <button wire:click="upgradeItem('{{ $item->id }}')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="upgradeItem('{{ $item->id }}')" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 px-4 rounded shadow flex justify-center items-center gap-2 transition-colors">
+                                                <span wire:loading.remove wire:target="upgradeItem('{{ $item->id }}')">Ulepsz na +{{ $item->upgrade_level + 1 }}</span>
+                                                <span wire:loading wire:target="upgradeItem('{{ $item->id }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Przetwarzanie...</span>
                                             </button>
                                         </div>
                                     @else
@@ -224,8 +226,9 @@
 
                                 <div class="mt-6 pt-4 border-t border-gray-700">
                                     @if($recipe['can_craft'])
-                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 px-4 rounded shadow flex justify-center items-center gap-2 transition-all transform hover:scale-105">
-                                            <span>🛠️ Wytwórz</span>
+                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="craftItem('{{ $recipe['id'] }}')" class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 px-4 rounded shadow flex justify-center items-center gap-2 transition-all transform hover:scale-105">
+                                            <span wire:loading.remove wire:target="craftItem('{{ $recipe['id'] }}')">🛠️ Wytwórz</span>
+                                            <span wire:loading wire:target="craftItem('{{ $recipe['id'] }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Przetwarzanie...</span>
                                         </button>
                                     @else
                                         <button disabled class="w-full bg-gray-700 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed flex justify-center items-center gap-2">

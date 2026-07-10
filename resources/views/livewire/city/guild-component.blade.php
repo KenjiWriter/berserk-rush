@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <button wire:click="goTo('hub')" class="bg-slate-700 hover:bg-slate-600 text-amber-100 px-4 py-2 rounded shadow transition">
+        <button wire:click="goTo('hub')" @click="$dispatch('location-leave')" class="bg-slate-700 hover:bg-slate-600 text-amber-100 px-4 py-2 rounded shadow transition">
             Powrót do Miasta
         </button>
     </div>
@@ -48,8 +48,14 @@
                             </div>
                             <div>
                                 @if($guild->is_public)
-                                    <button wire:click="joinGuild('{{ $guild->id }}')" class="bg-green-700/80 hover:bg-green-600/80 border border-green-500 text-white px-3 py-1.5 rounded text-sm transition">
-                                        Dołącz
+                                    <button wire:click="joinGuild('{{ $guild->id }}')"
+                                        wire:loading.attr="disabled" wire:target="joinGuild('{{ $guild->id }}')"
+                                        wire:loading.class="opacity-50 cursor-not-allowed" wire:target="joinGuild('{{ $guild->id }}')"
+                                        class="bg-green-700/80 hover:bg-green-600/80 border border-green-500 text-white px-3 py-1.5 rounded text-sm transition flex items-center justify-center">
+                                        <span wire:loading.remove wire:target="joinGuild('{{ $guild->id }}')">Dołącz</span>
+                                        <span wire:loading wire:target="joinGuild('{{ $guild->id }}')">
+                                            <svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                        </span>
                                     </button>
                                 @else
                                     <span class="text-red-400 text-xs italic">Na zaproszenie</span>
@@ -109,8 +115,12 @@
                         <span class="text-cyan-400 font-bold flex items-center gap-1">150 <span class="text-lg">💎</span></span>
                     </div>
 
-                    <button wire:click="createGuild" class="w-full bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white py-3 rounded-lg font-bold shadow-lg transition flex items-center justify-center gap-2">
-                        <span>🚩</span> Utwórz Gildię
+                    <button wire:click="createGuild"
+                        wire:loading.attr="disabled" wire:target="createGuild"
+                        wire:loading.class="opacity-50 cursor-not-allowed" wire:target="createGuild"
+                        class="w-full bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white py-3 rounded-lg font-bold shadow-lg transition flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="createGuild"><span>🚩</span> Utwórz Gildię</span>
+                        <span wire:loading wire:target="createGuild"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Tworzenie...</span>
                     </button>
                 </div>
             </div>
@@ -161,8 +171,12 @@
                         </div>
                     </div>
 
-                    <button wire:click="leaveGuild" class="w-full bg-red-900/50 hover:bg-red-800/80 border border-red-700 text-red-200 py-2 rounded-lg text-sm font-bold transition">
-                        Opuść Gildię
+                    <button wire:click="leaveGuild"
+                        wire:loading.attr="disabled" wire:target="leaveGuild"
+                        wire:loading.class="opacity-50 cursor-not-allowed" wire:target="leaveGuild"
+                        class="w-full bg-red-900/50 hover:bg-red-800/80 border border-red-700 text-red-200 py-2 rounded-lg text-sm font-bold transition">
+                        <span wire:loading.remove wire:target="leaveGuild">Opuść Gildię</span>
+                        <span wire:loading wire:target="leaveGuild"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Opuszczanie...</span>
                     </button>
                 </div>
 
@@ -257,13 +271,29 @@
                                             $costGems = (int)(100 * pow($guild->bonus_xp_level + 1, 1.2));
                                         @endphp
                                         <div class="flex gap-2">
-                                            <button wire:click="upgradeBonus('xp', 'gold')" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center">
-                                                <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
-                                                <span class="text-[10px] {{ $guild->gold >= $costGold ? 'text-yellow-400' : 'text-red-400' }}">{{ number_format($costGold) }} Złota</span>
+                                            <button wire:click="upgradeBonus('xp', 'gold')"
+                                                wire:loading.attr="disabled" wire:target="upgradeBonus"
+                                                wire:loading.class="opacity-50 cursor-not-allowed" wire:target="upgradeBonus"
+                                                class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center justify-center">
+                                                <span wire:loading.remove wire:target="upgradeBonus('xp', 'gold')" class="flex flex-col items-center">
+                                                    <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
+                                                    <span class="text-[10px] {{ $guild->gold >= $costGold ? 'text-yellow-400' : 'text-red-400' }}">{{ number_format($costGold) }} Złota</span>
+                                                </span>
+                                                <span wire:loading wire:target="upgradeBonus('xp', 'gold')">
+                                                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                </span>
                                             </button>
-                                            <button wire:click="upgradeBonus('xp', 'gems')" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center">
-                                                <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
-                                                <span class="text-[10px] {{ $guild->gems >= $costGems ? 'text-cyan-400' : 'text-red-400' }}">{{ number_format($costGems) }} 💎</span>
+                                            <button wire:click="upgradeBonus('xp', 'gems')"
+                                                wire:loading.attr="disabled" wire:target="upgradeBonus"
+                                                wire:loading.class="opacity-50 cursor-not-allowed" wire:target="upgradeBonus"
+                                                class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center justify-center">
+                                                <span wire:loading.remove wire:target="upgradeBonus('xp', 'gems')" class="flex flex-col items-center">
+                                                    <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
+                                                    <span class="text-[10px] {{ $guild->gems >= $costGems ? 'text-cyan-400' : 'text-red-400' }}">{{ number_format($costGems) }} 💎</span>
+                                                </span>
+                                                <span wire:loading wire:target="upgradeBonus('xp', 'gems')">
+                                                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                </span>
                                             </button>
                                         </div>
                                     @else
@@ -287,13 +317,29 @@
                                             $costGems = (int)(100 * pow($guild->bonus_gold_level + 1, 1.2));
                                         @endphp
                                         <div class="flex gap-2">
-                                            <button wire:click="upgradeBonus('gold', 'gold')" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center">
-                                                <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
-                                                <span class="text-[10px] {{ $guild->gold >= $costGold ? 'text-yellow-400' : 'text-red-400' }}">{{ number_format($costGold) }} Złota</span>
+                                            <button wire:click="upgradeBonus('gold', 'gold')"
+                                                wire:loading.attr="disabled" wire:target="upgradeBonus"
+                                                wire:loading.class="opacity-50 cursor-not-allowed" wire:target="upgradeBonus"
+                                                class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center justify-center">
+                                                <span wire:loading.remove wire:target="upgradeBonus('gold', 'gold')" class="flex flex-col items-center">
+                                                    <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
+                                                    <span class="text-[10px] {{ $guild->gold >= $costGold ? 'text-yellow-400' : 'text-red-400' }}">{{ number_format($costGold) }} Złota</span>
+                                                </span>
+                                                <span wire:loading wire:target="upgradeBonus('gold', 'gold')">
+                                                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                </span>
                                             </button>
-                                            <button wire:click="upgradeBonus('gold', 'gems')" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center">
-                                                <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
-                                                <span class="text-[10px] {{ $guild->gems >= $costGems ? 'text-cyan-400' : 'text-red-400' }}">{{ number_format($costGems) }} 💎</span>
+                                            <button wire:click="upgradeBonus('gold', 'gems')"
+                                                wire:loading.attr="disabled" wire:target="upgradeBonus"
+                                                wire:loading.class="opacity-50 cursor-not-allowed" wire:target="upgradeBonus"
+                                                class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-2 transition flex flex-col items-center justify-center">
+                                                <span wire:loading.remove wire:target="upgradeBonus('gold', 'gems')" class="flex flex-col items-center">
+                                                    <span class="text-xs text-amber-200 font-bold mb-1">Ulepsz (+1%)</span>
+                                                    <span class="text-[10px] {{ $guild->gems >= $costGems ? 'text-cyan-400' : 'text-red-400' }}">{{ number_format($costGems) }} 💎</span>
+                                                </span>
+                                                <span wire:loading wire:target="upgradeBonus('gold', 'gems')">
+                                                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                </span>
                                             </button>
                                         </div>
                                     @else

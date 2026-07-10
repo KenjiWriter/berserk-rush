@@ -15,7 +15,7 @@
                 </div>
             </div>
             
-            <button wire:click="backToCity"
+            <button wire:click="backToCity" @click="$dispatch('location-leave')"
                 class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg border border-slate-500 flex items-center">
                 🏠 Powrót do miasta
             </button>
@@ -149,28 +149,41 @@
                                     
                                     @if($isGuildInvite)
                                         <button wire:click="claimMail('{{ $mail->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="claimMail('{{ $mail->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="claimMail('{{ $mail->id }}')"
                                             class="w-full mb-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-1.5 px-3 rounded shadow flex items-center justify-center transition-all text-sm">
-                                            ✅ Przyjmij
+                                            <span wire:loading.remove wire:target="claimMail('{{ $mail->id }}')">✅ Przyjmij</span>
+                                            <span wire:loading wire:target="claimMail('{{ $mail->id }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
                                         </button>
                                         <button wire:click="declineGuildInvite('{{ $mail->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="declineGuildInvite('{{ $mail->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="declineGuildInvite('{{ $mail->id }}')"
                                             class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-1.5 px-3 rounded shadow flex items-center justify-center transition-all text-sm">
-                                            ❌ Odrzuć
+                                            <span wire:loading.remove wire:target="declineGuildInvite('{{ $mail->id }}')">❌ Odrzuć</span>
+                                            <span wire:loading wire:target="declineGuildInvite('{{ $mail->id }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
                                         </button>
                                     @else
                                         <button wire:click="claimMail('{{ $mail->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="claimMail('{{ $mail->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="claimMail('{{ $mail->id }}')"
                                             class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-2 px-4 rounded shadow-lg flex items-center justify-center transition-all">
-                                            @if($mail->hasAttachments())
-                                                🎁 Odbierz
-                                            @else
-                                                ✓ Przeczytane
-                                            @endif
+                                            <span wire:loading.remove wire:target="claimMail('{{ $mail->id }}')">
+                                                @if($mail->hasAttachments())
+                                                    🎁 Odbierz
+                                                @else
+                                                    ✓ Przeczytane
+                                                @endif
+                                            </span>
+                                            <span wire:loading wire:target="claimMail('{{ $mail->id }}')"><svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></span>
                                         </button>
                                     @endif
                                 @else
                                     <div class="text-sm text-green-500/70 font-semibold mb-2">
                                         ✓ Odebrane
                                     </div>
-                                    <button wire:click="deleteMail('{{ $mail->id }}')" onclick="confirm('Czy na pewno chcesz usunąć tę wiadomość?') || event.stopImmediatePropagation()" 
+                                    <button wire:click="deleteMail('{{ $mail->id }}')" onclick="confirm('Czy na pewno chcesz usunąć tę wiadomość?') || event.stopImmediatePropagation()"
+                                        wire:loading.attr="disabled" wire:target="deleteMail('{{ $mail->id }}')"
+                                        wire:loading.class="opacity-50 cursor-not-allowed" wire:target="deleteMail('{{ $mail->id }}')"
                                         class="w-full bg-red-900/30 hover:bg-red-800 text-red-300 hover:text-red-100 font-medium py-1 px-3 rounded border border-red-800 transition-colors text-xs">
                                         🗑️ Usuń
                                     </button>

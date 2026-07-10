@@ -32,7 +32,7 @@
                     </div>
                 </div>
 
-                <button wire:click="backToCity"
+                <button wire:click="backToCity" @click="$dispatch('location-leave')"
                     class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg border border-slate-500 flex items-center">
                     🏠 Powrót do miasta
                 </button>
@@ -171,14 +171,21 @@
                                         </div>
                                         
                                         <button wire:click="buyItem('{{ $listing->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="buyItem('{{ $listing->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem('{{ $listing->id }}')"
                                             class="w-full flex items-center justify-center font-bold py-2 px-4 rounded transition-all duration-200 
                                             @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white
                                             @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white
                                             @else bg-slate-700 text-slate-400 cursor-not-allowed opacity-70 @endif
                                         ">
-                                            <span class="mr-2">Kup za</span> 
-                                            <span class="{{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }} text-lg">
-                                                {{ number_format($listing->price) }} {{ $listing->currency === 'gold' ? '💰' : '💎' }}
+                                            <span wire:loading.remove wire:target="buyItem('{{ $listing->id }}')">
+                                                <span class="mr-2">Kup za</span> 
+                                                <span class="{{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }} text-lg">
+                                                    {{ number_format($listing->price) }} {{ $listing->currency === 'gold' ? '💰' : '💎' }}
+                                                </span>
+                                            </span>
+                                            <span wire:loading wire:target="buyItem('{{ $listing->id }}')">
+                                                <svg class="animate-spin inline-block h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Przetwarzanie...
                                             </span>
                                         </button>
                                     </div>
@@ -265,8 +272,14 @@
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($listing->status === 'active')
-                                                <button wire:click="cancelListing('{{ $listing->id }}')" onclick="confirm('Czy na pewno chcesz anulować tę ofertę? Opłata za wystawienie nie zostanie zwrócona.') || event.stopImmediatePropagation()" class="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-700 rounded transition-colors text-sm">
-                                                    Anuluj
+                                                <button wire:click="cancelListing('{{ $listing->id }}')" onclick="confirm('Czy na pewno chcesz anulować tę ofertę? Opłata za wystawienie nie zostanie zwrócona.') || event.stopImmediatePropagation()"
+                                                    wire:loading.attr="disabled" wire:target="cancelListing('{{ $listing->id }}')"
+                                                    wire:loading.class="opacity-50 cursor-not-allowed" wire:target="cancelListing('{{ $listing->id }}')"
+                                                    class="px-3 py-1 bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-700 rounded transition-colors text-sm">
+                                                    <span wire:loading.remove wire:target="cancelListing('{{ $listing->id }}')">Anuluj</span>
+                                                    <span wire:loading wire:target="cancelListing('{{ $listing->id }}')">
+                                                        <svg class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                                    </span>
                                                 </button>
                                             @else
                                                 <span class="text-slate-500">-</span>

@@ -8,7 +8,7 @@
                 <h2 class="text-xl font-bold text-amber-900 medieval-font">Profil: {{ $character->name }}</h2>
             </div>
 
-            <button wire:click="backToHub"
+            <button wire:click="backToHub" @click="$dispatch('location-leave')"
                 class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                 🏰 Powrót do miasta
             </button>

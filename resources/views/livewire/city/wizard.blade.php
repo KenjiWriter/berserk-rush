@@ -14,7 +14,7 @@
                 <div class="bg-gray-900 border-2 border-yellow-600 rounded px-4 py-2 font-bold text-yellow-400">
                     🪙 {{ $character->gold }} | 💎 {{ auth()->user()->gems ?? 0 }}
                 </div>
-                <button wire:click="backToHub"
+                <button wire:click="backToHub" @click="$dispatch('location-leave')"
                     class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                     🏰 Powrót do miasta
                 </button>
@@ -130,11 +130,13 @@
                         @if($enchantCount < 5)
                             <div class="text-left text-sm text-gray-400 mb-1">Dodanie nowego bonusu:</div>
                             <div class="flex gap-2">
-                                <button wire:click="enchant('gold')" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-yellow-700 hover:bg-yellow-600 transition-colors">
-                                    🪙 500 Złota
+                                <button wire:click="enchant('gold')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="enchant" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-yellow-700 hover:bg-yellow-600 transition-colors">
+                                    <span wire:loading.remove wire:target="enchant">🪙 500 Złota</span>
+                                    <svg wire:loading wire:target="enchant" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                 </button>
-                                <button wire:click="enchant('gems')" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-blue-700 hover:bg-blue-600 transition-colors">
-                                    💎 5 Gemów
+                                <button wire:click="enchant('gems')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="enchant" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-blue-700 hover:bg-blue-600 transition-colors">
+                                    <span wire:loading.remove wire:target="enchant">💎 5 Gemów</span>
+                                    <svg wire:loading wire:target="enchant" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                 </button>
                             </div>
                         @endif
@@ -142,11 +144,13 @@
                         @if($enchantCount > 0)
                             <div class="text-left text-sm text-gray-400 mt-3 mb-1">Reroll obecnych bonusów:</div>
                             <div class="flex gap-2">
-                                <button wire:click="reroll('gold')" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-orange-700 hover:bg-orange-600 transition-colors">
-                                    🪙 {{ $rerollGoldCost }} Złota
+                                <button wire:click="reroll('gold')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="reroll" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-orange-700 hover:bg-orange-600 transition-colors">
+                                    <span wire:loading.remove wire:target="reroll">🪙 {{ $rerollGoldCost }} Złota</span>
+                                    <svg wire:loading wire:target="reroll" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                 </button>
-                                <button wire:click="reroll('gems')" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-indigo-700 hover:bg-indigo-600 transition-colors">
-                                    💎 {{ $rerollGemCost }} Gemów
+                                <button wire:click="reroll('gems')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="reroll" class="w-1/2 py-2 rounded font-bold text-white shadow-lg bg-indigo-700 hover:bg-indigo-600 transition-colors">
+                                    <span wire:loading.remove wire:target="reroll">💎 {{ $rerollGemCost }} Gemów</span>
+                                    <svg wire:loading wire:target="reroll" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                 </button>
                             </div>
                         @endif

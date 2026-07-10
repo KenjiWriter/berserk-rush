@@ -2,6 +2,7 @@
     x-data="{
         message: $wire.entangle('newMessage'),
         showCommands: false,
+        isSending: false,
         commands: [
             { cmd: '/donate exp <ilość>', desc: 'Przekaż EXP do gildii' },
             { cmd: '/donate gold <ilość>', desc: 'Przekaż złoto do gildii' },
@@ -26,6 +27,18 @@
         scrollToBottom() {
             const el = this.$refs.chatBox;
             if (el) el.scrollTop = el.scrollHeight;
+        },
+        async sendMsg() {
+            if (!this.message || this.message.trim() === '' || this.isSending) return;
+            this.isSending = true;
+            try {
+                await this.$wire.sendMessage();
+            } finally {
+                this.isSending = false;
+                this.$nextTick(() => {
+                    if (this.$refs.chatInput) this.$refs.chatInput.focus();
+                });
+            }
         },
         init() {
             this.$nextTick(() => this.scrollToBottom());
@@ -160,7 +173,10 @@
 
                 @foreach ($messages as $idx => $msg)
                     @if(($msg['channel'] ?? 'global') === $currentChannel)
-                    <div class="group flex gap-1 text-xs leading-relaxed" wire:key="chat-msg-{{ $idx }}-{{ $msg['character_id'] }}">
+                    <div
+                        class="group flex gap-1 text-xs leading-relaxed chat-msg-appear"
+                        wire:key="chat-msg-{{ $idx }}-{{ $msg['character_id'] }}"
+                    >
                         {{-- Timestamp --}}
                         <span class="text-amber-700/50 shrink-0 mt-0.5">{{ substr($msg['sent_at'], 0, 5) }}</span>
 
@@ -202,7 +218,7 @@
                 @error('newMessage')
                     <p class="text-red-400 text-xs mb-1 px-1">{{ $message }}</p>
                 @enderror
-                <form wire:submit="sendMessage" class="flex gap-1">
+                <form @submit.prevent="sendMsg()" class="flex gap-1">
                     <input
                         x-ref="chatInput"
                         wire:model="newMessage"
@@ -211,13 +227,23 @@
                         maxlength="200"
                         placeholder="Napisz wiadomość…"
                         autocomplete="off"
-                        class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors"
+                        :disabled="isSending"
+                        class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors disabled:opacity-50"
                     >
                     <button
                         type="submit"
-                        class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer"
+                        :disabled="isSending"
+                        class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
                     >
-                        ▶
+                        {{-- Normal state --}}
+                        <span x-show="!isSending" class="flex items-center">▶</span>
+                        {{-- Sending state --}}
+                        <span x-show="isSending" class="flex items-center">
+                            <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                            </svg>
+                        </span>
                     </button>
                 </form>
             </div>
@@ -225,4 +251,21 @@
     </div>
     @endif
 </div>
+
+<style>
+    /* Chat message appear animation */
+    @keyframes chatMsgAppear {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    .chat-msg-appear {
+        animation: chatMsgAppear 0.25s ease-out forwards;
+    }
+</style>
 </div>

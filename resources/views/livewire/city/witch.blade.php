@@ -14,21 +14,13 @@
                     <span>{{ number_format($character->gold, 0, ',', ' ') }} Złota</span>
                 </div>
 
-                <button wire:click="backToHub" class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
+                <button wire:click="backToHub" @click="$dispatch('location-leave')" class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                     🏰 Powrót do miasta
                 </button>
             </div>
         </div>
 
-        @if($message)
-            <div class="mb-6 p-4 rounded-lg shadow-2xl backdrop-blur-sm mx-auto max-w-4xl text-center
-                {{ $messageType === 'success' ? 'bg-gradient-to-r from-green-900/90 to-green-800/90 border-2 border-green-500 text-green-200' : '' }}
-                {{ $messageType === 'error' ? 'bg-gradient-to-r from-red-900/90 to-red-800/90 border-2 border-red-500 text-red-200' : '' }}
-                {{ $messageType === 'info' ? 'bg-gradient-to-r from-blue-900/90 to-blue-800/90 border-2 border-blue-500 text-blue-200' : '' }}
-            ">
-                {{ $message }}
-            </div>
-        @endif
+
 
         <div class="max-w-4xl mx-auto flex gap-4 mb-6">
             <button wire:click="switchTab('special')" class="{{ $activeTab === 'special' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all">✨ Wywary Specjalne</button>
@@ -112,8 +104,9 @@
                                         </div>
                                     </div>
                                     <div class="flex-shrink-0">
-                                        <button wire:click="buyRegularPotion('{{ $potion->id }}')" class="bg-purple-700 hover:bg-purple-600 text-purple-50 font-bold py-2 px-4 rounded-lg shadow-lg border border-purple-500 transition-all duration-200 transform hover:scale-105 medieval-font">
-                                            Kup
+                                        <button wire:click="buyRegularPotion('{{ $potion->id }}')" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyRegularPotion('{{ $potion->id }}')" class="bg-purple-700 hover:bg-purple-600 text-purple-50 font-bold py-2 px-4 rounded-lg shadow-lg border border-purple-500 transition-all duration-200 transform hover:scale-105 medieval-font">
+                                            <span wire:loading.remove wire:target="buyRegularPotion('{{ $potion->id }}')">Kup</span>
+                                            <svg wire:loading wire:target="buyRegularPotion('{{ $potion->id }}')" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -145,10 +138,12 @@
                                     </div>
                                     <div class="flex-shrink-0">
                                         <button wire:click="craftPotion('{{ $recipe['id'] }}')" 
+                                            wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="craftPotion('{{ $recipe['id'] }}')" 
                                             @if(!$recipe['can_craft']) disabled @endif
                                             class="font-bold py-2 px-4 rounded-lg shadow-lg border transition-all duration-200 medieval-font 
                                             {{ $recipe['can_craft'] ? 'bg-indigo-700 hover:bg-indigo-600 text-indigo-50 border-indigo-500 transform hover:scale-105' : 'bg-gray-400 text-gray-200 border-gray-500 cursor-not-allowed opacity-50' }}">
-                                            Uwarz
+                                            <span wire:loading.remove wire:target="craftPotion('{{ $recipe['id'] }}')">Uwarz</span>
+                                            <svg wire:loading wire:target="craftPotion('{{ $recipe['id'] }}')" class="animate-spin inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                         </button>
                                     </div>
                                 </div>
