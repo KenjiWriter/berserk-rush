@@ -15,6 +15,12 @@ class Profile extends Component
     public string $activeTab = 'attributes';
     public string $inventoryFilter = 'all';
 
+    // Market Selling
+    public ?string $sellingItemUlid = null;
+    public int $sellPrice = 100;
+    public string $sellCurrency = 'gold';
+    public int $sellDuration = 24;
+
     public function mount(Character $character)
     {
         $this->character = $character;
@@ -134,6 +140,40 @@ class Profile extends Component
         $this->character->save();
 
         $this->dispatch('notify', type: 'success', message: "Atrybut zwiększony o {$amount}.");
+    }
+
+    public function openSellModal(string $itemUlid)
+    {
+        $this->sellingItemUlid = $itemUlid;
+        $this->sellPrice = 100;
+        $this->sellCurrency = 'gold';
+        $this->sellDuration = 24;
+    }
+
+    public function closeSellModal()
+    {
+        $this->sellingItemUlid = null;
+    }
+
+    public function sellItem(\App\Application\Economy\Actions\CreateMarketListingAction $action)
+    {
+        if (!$this->sellingItemUlid) return;
+        
+        $item = ItemInstance::find($this->sellingItemUlid);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
+            return;
+        }
+
+        $result = $action->execute($this->character, $item, (int) $this->sellPrice, $this->sellCurrency, (int) $this->sellDuration);
+        
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przedmiot wystawiony na market!');
+            $this->closeSellModal();
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
     }
 
     public function render()

@@ -41,6 +41,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Dynamic Item System:** Items drop with random stats, rarities, and can be upgraded from +0 to +9. Be careful, upgrades can fail!
 - **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear.
 - **Player-Driven Economy:** An active market / auction house where players dictate the prices of items and materials.
+- **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) global chat panel pinned to the corner of the screen, with player inspection tooltips showing equipped gear and Combat Power.
 - **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
 ## 🛠️ Tech Stack
@@ -97,11 +98,24 @@ The codebase is structured around **Domain-Driven Design (DDD)** concepts and **
    php artisan migrate --seed
    ```
 
-6. **Start the application**
+6. **Start the WebSocket server (Laravel Reverb)**
+
+   > [!IMPORTANT]
+   > The real-time global chat requires the Reverb WebSocket server to be running. Without it, chat messages will not be delivered between players.
+
    ```bash
-   npm run dev
-   php artisan serve
+   php artisan reverb:start
    ```
+
+   Alternatively, use the all-in-one dev command which starts **all** required processes concurrently (web server, queue, Vite, and Reverb):
+
+   ```bash
+   composer dev
+   ```
+
+7. **Open in browser**
+
+   Navigate to `http://localhost:8000`.
 
 ## 📖 Documentation
 
@@ -110,6 +124,11 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [Characters Module](./docs/modules/characters.md)
 - [Combat Module](./docs/modules/combat.md)
 - [Loot & Economy Module](./docs/modules/loot.md)
+- [Equipment & Upgrades](./docs/modules/upgrades.md)
+- [Wizard (Enchanting)](./docs/modules/wizard.md)
+- [Witch & Crafting](./docs/modules/witch_and_crafting.md)
+- [Economy & Mail](./docs/modules/economy.md)
+- [**Global Chat (Reverb)**](./docs/modules/global_chat.md)
 
 ## 🛡️ License
 

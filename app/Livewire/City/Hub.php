@@ -31,6 +31,8 @@ class Hub extends Component
             'weaponsmith' => route('city.weaponsmith', $this->character),
             'witch' => route('city.witch', $this->character),
             'wizard' => route('city.wizard', $this->character),
+            'market' => route('city.market', $this->character),
+            'mailbox' => route('city.mailbox', $this->character),
             'adventure' => route('city.adventure', $this->character),
             default => route('city.hub', $this->character),
         };

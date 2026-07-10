@@ -58,15 +58,25 @@ Wprowadzenie systemu craftingu (warzenia) i NPC sklepu z miksturami.
 
 ---
 
-## 🟣 Faza 7: Gospodarka, Market i Poczta
+## 🟢 Faza 7: Gospodarka, Market i Poczta (✅ Zakończona)
 Gry typu idle/RPG żyją rynkiem stworzonym przez samych graczy. Mechaniki bazy (transakcje, locks, ledgers) są gotowe by to obsłużyć bezpiecznie.
-- **Dom Aukcyjny / Rynek (Market):** Wystawianie ofert (sprzedaż za Gold/Gems). 
-- **Filtrowanie i Query Objects:** Implementacja zaawansowanego wyszukiwania przedmiotów na aukcjach (np. "Miecze +5 do poziomu 20").
-- **System Poczty (Mail):** Rozliczanie transakcji w tle i przesyłanie wygranych przedmiotów oraz zarobionego złota na wirtualne skrzynki pocztowe graczy.
+- [x] **Dom Aukcyjny / Rynek (Market):** Wystawianie ofert (sprzedaż za Gold/Gems). 
+- [x] **Filtrowanie i Query Objects:** Implementacja zaawansowanego wyszukiwania przedmiotów na aukcjach (np. "Miecze +5 do poziomu 20").
+- [x] **System Poczty (Mail):** Rozliczanie transakcji w tle i przesyłanie wygranych przedmiotów oraz zarobionego złota na wirtualne skrzynki pocztowe graczy.
 
 ---
 
-## 🟣 Faza 8: Rzemiosło i Zbieractwo (Crafting)
+## 🟢 Faza 8: Aspekty Społecznościowe i Czat Globalny (✅ Zakończona)
+Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych graczy. Ta faza kładzie nacisk na komunikację w czasie rzeczywistym.
+- [x] **Czat Globalny (Laravel Reverb / WebSockets):** Dostępny na dole ekranu, rozwijany/zwijany panel chatu dla wszystkich graczy online.
+- [x] **Format Wiadomości:** Zunifikowany format: `<nick_postaci> [<poziom postaci>]: <wiadomosc>`.
+- [x] **Inspekcja Graczy (Tooltips):** Po kliknięciu na nick na czacie, wyświetla się tooltip z informacjami o graczu: Nick, Poziom, Combat Power (CP) oraz lista aktualnie założonych przedmiotów z poziomem ulepszenia.
+- [ ] **Gildie:** Zrzeszanie się graczy i wspólne wpłacanie złota/klejnotów w celu powiększania bonusów pasywnych dla członków.
+- [ ] **Tablice Wyników (Leaderboards):** Redis Sorted Sets do tworzenia szybkich statystyk najlepszych graczy względem XP, Bogactwa, wygranych walk.
+
+---
+
+## 🔵 Faza 9: Rzemiosło i Zbieractwo (Crafting)
 Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`) do tworzenia cennych mikstur i ekwipunku bez konieczności liczenia na łut szczęścia z potworów.
 - **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego.
 - **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`.
@@ -74,16 +84,40 @@ Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`
 
 ---
 
-## 🔵 Faza 9: Aspekty Społecznościowe i Interakcja
-Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych graczy.
-- **Gildie:** Zrzeszanie się graczy i wspólne wpłacanie złota/klejnotów w celu powiększania bonusów pasywnych dla członków.
-- **Tablice Wyników (Leaderboards):** Redis Sorted Sets do tworzenia szybkich statystyk najlepszych graczy względem XP, Bogactwa, wygranych walk.
-- **Czat Globalny (Laravel Reverb / WebSockets):** Podpięcie natychmiastowej, asynchronicznej komunikacji między graczami.
+## ⚪ Faza 10: Doskonalenie UI, Asynchroniczny Loot i Optymalizacja
+Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i wydajności gry (Core V1).
+- **Mikroanimacje / Stylizacja:** Pełne tchnięcie życia w Livewire, dodanie płynnych animacji pasków zdrowia, zrzutów przedmiotów i efektów krytycznych.
+- **Asynchroniczny Looting:** Przeniesienie walk w tle (Idle) i generowania przedmiotów do procesów w tle na kolejkach (Redis + Laravel Horizon).
+- **Optymalizacja DB:** Indeksy, optymalizacja odpytań i cachowanie często używanych statystyk w Redis.
 
 ---
 
-## ⚪ Faza 10: Doskonalenie UI, Eventy Specjalne i Skalowanie
-Faza końcowa przygotowująca do oficjalnego release'u.
-- **Mikroanimacje / Stylizacja:** Pełne tchnięcie życia w Livewire, dodanie płynnych animacji pasków zdrowia, zrzutów przedmiotów i efektów krytycznych (Tailwind / CSS).
-- **Asynchroniczny Looting:** Przeniesienie symulacji tysięcy walk do procesów tle na kolejkach Redis i Laravel Horizon (Joby).
-- **Bossowie Map / World Bossowie:** Czasowe wydarzenia dla wszystkich graczy jednocześnie.
+## 🟡 Faza 11: Rozszerzenie PvE i Endgame (World Boss & Dungeons)
+Gdy podstawa gry jest solidna, dodajemy wymagający kontent (Endgame) angażujący całą społeczność.
+- **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
+- **World Bossowie:** Epickie czasowe wydarzenia, w których wszyscy serwerowi gracze atakują jednego bossa z potężną pulą HP. Nagrody są przyznawane proporcjonalnie do zadanego Damage'u po ubiciu bossa.
+- **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
+
+---
+
+## 🟠 Faza 12: Player vs Player (PvP) i Wojny Gildii
+Wprowadzenie pełnoprawnej rywalizacji bezpośredniej między graczami.
+- **Arena PvP (Asynchroniczna):** Gracz może wyzwać "widmo" (zapisany stan ekwipunku i statystyk) innego gracza na arenie. Zaimplementowany System ELO / MMR do rankingowania graczy (liga brązowa, srebrna, złota).
+- **Wojny Gildii (GvG):** Masowe starcia między zrzeszeniami graczy. Zwycięska gildia przejmuje czasowo kontrolę nad "kopalniami" gwarantującymi stały przychód Gemsów.
+- **Sklep Areny:** Zbieranie specjalnej waluty "PVP Tokens" (za walki z ludźmi), którą wymienia się na niedostępne nigdzie indziej wyposażenie i gladiator-skórki w mieście.
+
+---
+
+## 🔴 Faza 13: System Kolekcji, Osiągnięć i Tytułów
+Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów do "kolekcjonowania".
+- **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
+- **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
+- **Tytuły (Titles):** Przedrostki przed Nickiem gracza na globalnym czacie (np. `[Zabójca Smoków] koxu [Poz. 99]`), dające drobne pasywne statystyki. Tytuły można dobrowolnie ustawiać w profilu.
+
+---
+
+## 🟤 Faza 14: Ekonomia 2.0 i System Zawodów
+Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surowce i nakręcali popyt, co ożywi mocniej Fazy 7 (Market) i 9 (Rzemiosło).
+- **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
+- **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.
+- **Ewolucja Przedmiotów (Tiers):** Połączenie dwóch tych samych przedmiotów +9 u kowala (albo dedykowanego NPC) w ten sam przedmiot, ale podnoszący jego "Tier" (np. z Tier 1 do Tier 2). Poziom ulepszenia zeruje się (+0), ale broń otrzymuje znacznie wyższe bazowe statystyki z opcją na nowy, potężniejszy Enchantment.

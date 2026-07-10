@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
         Route::get('/witch', Witch::class)->name('witch');
         Route::get('/wizard', \App\Livewire\City\Wizard::class)->name('wizard');
+        Route::get('/market', \App\Livewire\Economy\MarketComponent::class)->name('market');
+        Route::get('/mailbox', \App\Livewire\Mail\MailboxComponent::class)->name('mailbox');
         Route::get('/adventure', Adventure::class)->name('adventure');
     });
 

@@ -338,11 +338,17 @@
                                 </div>
                             @endif
                             
-                            <div class="mt-2 border-t border-gray-700 pt-2">
+                            <div class="mt-2 border-t border-gray-700 pt-2 flex justify-between items-center gap-2">
                                 @if($character->level < $item->template->level_requirement)
                                     <p class="text-red-500 font-bold">Level too low!</p>
                                 @else
                                     <p class="text-green-500">Click to equip</p>
+                                @endif
+                                
+                                @if(!($item->bound_to_character ?? false))
+                                    <button wire:click.stop="openSellModal('{{ $item->id }}')" class="bg-yellow-600 hover:bg-yellow-500 text-white px-2 py-1 rounded text-[10px] font-bold shadow transition-colors">
+                                        Wystaw
+                                    </button>
                                 @endif
                             </div>
                         </div>
@@ -358,6 +364,70 @@
         </div>
 
     </div>
+
+    {{-- Sell Modal --}}
+    @if($sellingItemUlid)
+        <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+            <div class="bg-gray-900 border-2 border-yellow-600 rounded-lg shadow-2xl p-6 max-w-md w-full relative">
+                <button wire:click="closeSellModal" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+                
+                <h3 class="text-2xl font-bold text-yellow-500 mb-4 medieval-font">Wystaw na Targowisko</h3>
+                
+                @php
+                    $sellItem = \App\Infrastructure\Persistence\ItemInstance::find($sellingItemUlid);
+                @endphp
+                
+                @if($sellItem)
+                    <div class="flex items-center space-x-3 mb-6 bg-gray-800 p-3 rounded border border-gray-700">
+                        <div class="text-3xl">
+                            @if($sellItem->template->slot === 'weapon') ⚔️
+                            @elseif($sellItem->template->slot === 'head') 🪖
+                            @elseif($sellItem->template->slot === 'chest') 🛡️
+                            @elseif($sellItem->template->slot === 'legs') 👖
+                            @elseif($sellItem->template->slot === 'boots') 👢
+                            @else 📦
+                            @endif
+                        </div>
+                        <div>
+                            <div class="font-bold text-amber-200">{{ $sellItem->template->name }}</div>
+                            <div class="text-xs text-gray-400">{{ ucfirst($sellItem->rarity) }} | Poz: {{ $sellItem->template->level_requirement }}</div>
+                        </div>
+                    </div>
+                @endif
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-1">Cena</label>
+                        <input type="number" wire:model="sellPrice" min="1" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white" placeholder="Wpisz cenę...">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-1">Waluta</label>
+                        <select wire:model="sellCurrency" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                            <option value="gold">Złoto 💰</option>
+                            <option value="gems">Klejnoty 💎</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-1">Czas trwania i opłata</label>
+                        <select wire:model="sellDuration" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
+                            <option value="24">24 godziny (Koszt: 100 złota)</option>
+                            <option value="48">48 godzin (Koszt: 250 złota)</option>
+                            <option value="72">72 godziny (Koszt: 500 złota)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end gap-3">
+                    <button wire:click="closeSellModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition">Anuluj</button>
+                    <button wire:click="sellItem" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white rounded font-bold transition">Wystaw Przedmiot</button>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');

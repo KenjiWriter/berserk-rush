@@ -156,15 +156,48 @@
                 </div>
             </div>
 
-            {{-- Center - Main road --}}
-            <div class="flex items-center justify-center">
-                <div class="text-center">
-                    <div
-                        class="w-32 h-32 mx-auto bg-gradient-to-b from-stone-400 to-stone-600 rounded-full border-4 border-stone-700 shadow-2xl flex items-center justify-center mb-4">
-                        <div class="text-4xl">🏰</div>
+            {{-- Center - Main road & Market/Mail --}}
+            <div class="flex flex-col items-center justify-center space-y-8">
+                
+                {{-- Market --}}
+                <div class="relative group w-full max-w-xs">
+                    <button wire:click="goTo('market')"
+                        class="w-full bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-yellow-600/95 hover:to-yellow-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                        <div class="relative text-center">
+                            <div class="text-5xl mb-2">⚖️</div>
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Targowisko</h3>
+                            <p class="text-amber-200/80 text-sm font-semibold">Handel z graczami</p>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="text-center my-4 hidden lg:block">
+                    <div class="w-24 h-24 mx-auto bg-gradient-to-b from-stone-400 to-stone-600 rounded-full border-4 border-stone-700 shadow-2xl flex items-center justify-center mb-2">
+                        <div class="text-3xl">🏰</div>
                     </div>
-                    <h3 class="text-xl font-bold text-amber-300 medieval-font">Plac Centralny</h3>
-                    <p class="text-amber-200 text-sm font-semibold">Serce miasta</p>
+                    <h3 class="text-lg font-bold text-amber-300 medieval-font">Plac Centralny</h3>
+                </div>
+
+                {{-- Mailbox --}}
+                <div class="relative group w-full max-w-xs">
+                    <button wire:click="goTo('mailbox')"
+                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl">
+                        <div class="relative text-center">
+                            <div class="text-5xl mb-2">✉️</div>
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Poczta</h3>
+                            <p class="text-blue-200/80 text-sm font-semibold">
+                                Wiadomości
+                                @php
+                                    $unread = \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count();
+                                @endphp
+                                @if($unread > 0)
+                                    <span class="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-white bg-red-500 rounded-full">
+                                        {{ $unread }}
+                                    </span>
+                                @endif
+                            </p>
+                        </div>
+                    </button>
                 </div>
             </div>
 
@@ -276,9 +309,26 @@
                 </button>
 
                 <button wire:click="goTo('adventure')"
-                    class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl">
+                    class="col-span-2 bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl">
                     <div class="text-4xl mb-2">🗺️</div>
                     <div class="font-bold text-green-900 medieval-font">Przygoda</div>
+                </button>
+                
+                <button wire:click="goTo('market')"
+                    class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl">
+                    <div class="text-4xl mb-2">⚖️</div>
+                    <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
+                </button>
+
+                <button wire:click="goTo('mailbox')"
+                    class="bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 text-center shadow-xl relative">
+                    <div class="text-4xl mb-2">✉️</div>
+                    <div class="font-bold text-amber-100 medieval-font">Poczta</div>
+                    @if(isset($unread) && $unread > 0)
+                        <div class="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-slate-900 shadow-lg">
+                            {{ $unread }}
+                        </div>
+                    @endif
                 </button>
             </div>
         </div>
