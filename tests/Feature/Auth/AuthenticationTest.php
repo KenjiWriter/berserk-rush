@@ -3,26 +3,25 @@
 use App\Models\User;
 use Livewire\Volt\Volt;
 
-test('login screen can be rendered', function () {
+test('login screen redirects to homepage', function () {
     $response = $this->get('/login');
 
     $response
-        ->assertOk()
-        ->assertSeeVolt('pages.auth.login');
+        ->assertRedirect(route('homepage'));
 });
 
-test('users can authenticate using the login screen', function () {
+test('users can authenticate using the login modal', function () {
     $user = User::factory()->create();
 
-    $component = Volt::test('pages.auth.login')
-        ->set('form.email', $user->email)
-        ->set('form.password', 'password');
+    $component = \Livewire\Livewire::test(\App\Livewire\Auth\LoginModal::class)
+        ->set('email', $user->email)
+        ->set('password', 'password');
 
     $component->call('login');
 
     $component
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('homepage', absolute: false));
 
     $this->assertAuthenticated();
 });
@@ -30,9 +29,9 @@ test('users can authenticate using the login screen', function () {
 test('users can not authenticate with invalid password', function () {
     $user = User::factory()->create();
 
-    $component = Volt::test('pages.auth.login')
-        ->set('form.email', $user->email)
-        ->set('form.password', 'wrong-password');
+    $component = \Livewire\Livewire::test(\App\Livewire\Auth\LoginModal::class)
+        ->set('email', $user->email)
+        ->set('password', 'wrong-password');
 
     $component->call('login');
 
@@ -43,16 +42,15 @@ test('users can not authenticate with invalid password', function () {
     $this->assertGuest();
 });
 
-test('navigation menu can be rendered', function () {
+test('authenticated users can access homepage', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user);
 
-    $response = $this->get('/dashboard');
+    $response = $this->get('/');
 
     $response
-        ->assertOk()
-        ->assertSeeVolt('layout.navigation');
+        ->assertOk();
 });
 
 test('users can logout', function () {
@@ -60,13 +58,13 @@ test('users can logout', function () {
 
     $this->actingAs($user);
 
-    $component = Volt::test('layout.navigation');
+    $component = \Livewire\Livewire::test(\App\Livewire\Auth\LogoutModal::class);
 
     $component->call('logout');
 
     $component
         ->assertHasNoErrors()
-        ->assertRedirect('/');
+        ->assertRedirect(route('homepage'));
 
     $this->assertGuest();
 });
