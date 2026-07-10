@@ -109,7 +109,7 @@ class MapStub extends Component
             return;
         }
 
-        if (in_array($encounter->state, ['win', 'loss'])) {
+        if (in_array($encounter->state, ['win', 'loss', 'finished'])) {
             $this->isCalculating = false;
             
             // Reconstruct combatResult from DB
@@ -327,11 +327,11 @@ class MapStub extends Component
         $this->battleCompleted = true;
         $this->dispatch('stop-playback');
 
-        if ($this->result === 'win') {
+        if ($this->result === 'win' || $this->result === 'finished') {
             $this->applyRewards();
         }
 
-        // Auto-chain next battle
+        // Auto-chain next battle (not for worldboss 'finished')
         if ($this->autoChain && $this->result === 'win') {
             $this->dispatch('auto-chain-next-battle');
         } else {
@@ -343,7 +343,7 @@ class MapStub extends Component
     {
         $encounter = Encounter::find($this->currentEncounterId);
 
-        if (!$encounter || $encounter->state !== 'win') {
+        if (!$encounter || !in_array($encounter->state, ['win', 'finished'])) {
             return;
         }
 

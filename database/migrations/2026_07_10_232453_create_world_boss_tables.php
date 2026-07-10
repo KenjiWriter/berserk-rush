@@ -25,7 +25,8 @@ return new class extends Migration
         Schema::create('world_boss_damage_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('world_boss_instance_id')->constrained()->onDelete('cascade');
-            $table->foreignId('character_id')->constrained()->onDelete('cascade');
+            $table->ulid('character_id');
+            $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
             $table->bigInteger('damage');
             $table->timestamps();
         });

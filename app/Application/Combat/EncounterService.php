@@ -10,6 +10,8 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Monster;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
+use App\Infrastructure\Persistence\WorldBossInstance;
+use App\Infrastructure\Persistence\WorldBossDamageLog;
 
 class EncounterService
 {
@@ -135,18 +137,69 @@ class EncounterService
                 ]);
 
                 // Simulate combat
-                $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp);
+                $isWorldBoss = ($monster->rank === 'worldboss');
+                if ($isWorldBoss) {
+                    $monsterMaxHp = 999999999;
+                    $monsterHp = $monsterMaxHp;
+                }
 
-                // Determine winner
+                $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss);
+
                 $lastTurn = end($turns);
-                $winner = $lastTurn['enemyHp'] <= 0 ? 'player' : 'enemy';
-
-                // Calculate rewards
+                $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
+                
+                // Determine winner and rewards
                 $goldRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
                 $xpRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
-                if ($winner === 'player') {
-                    $goldRewardData = $this->calculateGoldReward($monster, $character);
-                    $xpRewardData = $this->calculateXpReward($monster, $character);
+
+                if ($isWorldBoss) {
+                    $winner = 'enemy'; // Worldboss always wins/survives
+                    $damageDealt = max(0, $monsterMaxHp - $finalMonsterHp);
+                    
+                    // Skalowanie nagród (np. 1 gold za każde 10 dmg, 1 exp za każde 5 dmg)
+                    $baseGold = max(10, (int)($damageDealt / 10));
+                    $baseXp = max(20, (int)($damageDealt / 5));
+
+                    $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
+                    $goldMult = $multiplierService->getGoldMultiplier($character);
+                    $xpMult = $multiplierService->getExpMultiplier($character);
+
+                    $goldRewardData = ['base' => $baseGold, 'bonus' => (int)($baseGold * $goldMult) - $baseGold, 'total' => (int)($baseGold * $goldMult), 'multiplier' => $goldMult];
+                    $xpRewardData = ['base' => $baseXp, 'bonus' => (int)($baseXp * $xpMult) - $baseXp, 'total' => (int)($baseXp * $xpMult), 'multiplier' => $xpMult];
+
+                    // Zapisz log damage
+                    $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
+                        ->where('monster_id', $monster->id)
+                        ->where('is_defeated', false)
+                        ->first();
+                        
+                    if (!$activeBoss) {
+                        $activeBoss = WorldBossInstance::create([
+                            'map_id' => $encounter->map_id,
+                            'monster_id' => $monster->id,
+                            'total_hp' => $monster->stats['hp'] ?? 1000000,
+                            'current_hp' => $monster->stats['hp'] ?? 1000000,
+                            'is_defeated' => false
+                        ]);
+                    }
+
+                    WorldBossDamageLog::create([
+                        'world_boss_instance_id' => $activeBoss->id,
+                        'character_id' => $character->id,
+                        'damage' => $damageDealt
+                    ]);
+                    
+                    $activeBoss->decrement('current_hp', $damageDealt);
+                    if ($activeBoss->current_hp <= 0) {
+                        $activeBoss->update(['is_defeated' => true]);
+                    }
+                } else {
+                    $winner = $finalMonsterHp <= 0 ? 'player' : 'enemy';
+
+                    if ($winner === 'player') {
+                        $goldRewardData = $this->calculateGoldReward($monster, $character);
+                        $xpRewardData = $this->calculateXpReward($monster, $character);
+                    }
                 }
                 
                 $goldReward = $goldRewardData['total'];
@@ -172,7 +225,11 @@ class EncounterService
                         ]);
                     }
                 } else {
-                    $encounter->markAsLost();
+                    if ($isWorldBoss) {
+                        $encounter->update(['state' => 'finished']); // don't mark as lost for world boss since we give rewards
+                    } else {
+                        $encounter->markAsLost();
+                    }
                 }
 
                 // Ustaw nagrody i inne dane
@@ -241,7 +298,7 @@ class EncounterService
         }
     }
 
-    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp): array
+    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false): array
     {
         $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
         $monsterAgi = $monster->stats['agi'] ?? $monster->level;
@@ -249,7 +306,7 @@ class EncounterService
 
         $turns = [];
         $turnCount = 0;
-        $maxTurns = 50;
+        $maxTurns = $isWorldBoss ? 20 : 50;
 
         while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
             $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);

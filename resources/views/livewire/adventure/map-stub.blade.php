@@ -1,10 +1,34 @@
-<div id="adventure-map-component" class="min-h-screen relative overflow-hidden">
+<div id="adventure-map-component" class="min-h-screen relative overflow-hidden" x-data="{ travelingTo: null }">
     {{-- Dynamic background per map --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ $background }}');">
     </div>
 
     {{-- Dark overlay for depth --}}
     <div class="absolute inset-0 bg-black/60"></div>
+
+    {{-- Transition Overlay --}}
+    <div x-show="travelingTo" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+         style="display: none;">
+         
+         <div class="relative w-full max-w-lg mx-auto p-8 text-center">
+            <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-amber-700">
+            <div class="absolute inset-0 bg-amber-900/60 rounded-2xl"></div>
+            
+            <div class="relative z-10 flex flex-col items-center">
+                <div class="text-6xl mb-4 animate-bounce" x-text="travelingTo === 'Miasto' ? '🏰' : '🗺️'"></div>
+                <h2 class="text-3xl font-bold text-amber-100 medieval-font mb-4 drop-shadow-lg">
+                    Przenoszenie do...
+                </h2>
+                <h3 class="text-2xl text-amber-300 font-bold drop-shadow-md mb-6" x-text="travelingTo"></h3>
+                
+                <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+         </div>
+    </div>
 
     {{-- Warning message --}}
     @if (session('warning'))
@@ -40,7 +64,7 @@
                     @endif
                 </div>
 
-                <button wire:click="backToAdventure"
+                <button @click="travelingTo = 'Wybór Mapy'; setTimeout(() => $wire.backToAdventure(), 500)"
                     class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                         class="absolute inset-0 w-full h-full object-cover rounded-lg">
@@ -50,7 +74,8 @@
                         🗺️ Mapy
                     </span>
                 </button>
-                <button wire:click="backToHub" class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group">
+                <button @click="travelingTo = 'Miasto'; setTimeout(() => $wire.backToHub(), 500)" 
+                    class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                         class="absolute inset-0 w-full h-full object-cover rounded-lg">
                     <div class="absolute inset-0 bg-amber-900/20 rounded-lg"></div>

@@ -42,6 +42,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/mailbox', \App\Livewire\Mail\MailboxComponent::class)->name('mailbox');
         Route::get('/guild', \App\Livewire\City\GuildComponent::class)->name('guild');
         Route::get('/adventure', Adventure::class)->name('adventure');
+        Route::get('/dungeons', \App\Livewire\City\DungeonList::class)->name('dungeons');
+        Route::get('/dungeon/{dungeon}', \App\Livewire\City\DungeonRun::class)->name('dungeon.run');
+        Route::get('/pets', \App\Livewire\City\PetsComponent::class)->name('pets');
     });
 
     // Adventure map routes
@@ -58,6 +61,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/merchant-items', \App\Livewire\Admin\MerchantItems::class)->name('merchant-items');
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
+    Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
 });
 
 require __DIR__ . '/auth.php';
