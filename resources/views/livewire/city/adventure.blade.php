@@ -1,4 +1,4 @@
-<div
+<div x-data="{ travelingTo: null }"
     class="min-h-screen bg-gradient-to-b from-green-900/90 via-emerald-800/90 to-green-900/90 text-amber-100 relative overflow-hidden">
     {{-- Background adventure image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
@@ -15,6 +15,30 @@
         <div class="adventure-element adventure-element-3">🛡️</div>
         <div class="adventure-element adventure-element-4">💎</div>
         <div class="adventure-element adventure-element-5">🏹</div>
+    </div>
+
+    {{-- Transition Overlay --}}
+    <div x-show="travelingTo" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+         style="display: none;">
+         
+         <div class="relative w-full max-w-lg mx-auto p-8 text-center">
+            <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-emerald-700">
+            <div class="absolute inset-0 bg-green-900/40 rounded-2xl"></div>
+            
+            <div class="relative z-10 flex flex-col items-center">
+                <div class="text-6xl mb-4 animate-bounce">🗺️</div>
+                <h2 class="text-3xl font-bold text-amber-100 medieval-font mb-4 drop-shadow-lg">
+                    Przenoszenie do...
+                </h2>
+                <h3 class="text-2xl text-emerald-300 font-bold drop-shadow-md mb-6" x-text="travelingTo"></h3>
+                
+                <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+         </div>
     </div>
 
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
@@ -219,7 +243,7 @@
 
                                 {{-- Action button --}}
                                 @if ($isAccessible)
-                                    <button wire:click="enterMap('{{ $map->id }}')"
+                                    <button @click="travelingTo = '{{ addslashes($map->name) }}'; setTimeout(() => $wire.enterMap('{{ $map->id }}'), 500)"
                                         class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
                                         ⚔️ Wejdź na mapę
                                     </button>

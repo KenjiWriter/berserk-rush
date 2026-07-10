@@ -66,8 +66,8 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
 
             {{-- Left Side - Player Panel --}}
-            <div class="order-1 lg:order-1">
-                <div
+            <div class="order-1 lg:order-1" id="player-panel-container">
+                <div id="player-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isPlayerTurn() ? 'ring-4 ring-amber-300 shadow-[0_0_30px_rgba(255,200,60,.4)]' : '' }}">
                     {{-- Wooden background --}}
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
@@ -215,6 +215,19 @@
 
                     {{-- Battle Log Scroll Area --}}
                     <div class="relative flex-1 overflow-y-auto p-4" @if($isCalculating) wire:poll.500ms="checkCombatStatus" @endif>
+                        {{-- Loading Overlay during startBattle --}}
+                        <div wire:loading.flex wire:target="startBattle" class="absolute inset-0 z-20 flex-col items-center justify-center bg-amber-50/90 backdrop-blur-sm text-center">
+                            <div class="relative w-24 h-24 mb-4">
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <div class="text-5xl drop-shadow-md animate-pulse">👁️</div>
+                                </div>
+                                <div class="absolute inset-0 rounded-full border-4 border-amber-600/30 border-t-amber-600 animate-[spin_1s_linear_infinite]"></div>
+                            </div>
+                            <h3 class="font-serif text-2xl text-amber-900 tracking-wider medieval-font drop-shadow-sm animate-pulse">
+                                Szukanie przeciwnika...
+                            </h3>
+                        </div>
+
                         @if($isCalculating)
                             <div class="h-full flex flex-col items-center justify-center text-center">
                                 <div class="relative w-32 h-32 mb-6">
@@ -364,7 +377,7 @@
                                             🛑 Przerwij walkę
                                         </span>
                                     </button>
-                                @elseif (empty($visibleTurns) || ($battleCompleted && !$isPlaying))
+                                @elseif ((empty($visibleTurns) && !$isPlaying) || ($battleCompleted && !$isPlaying))
                                     <button wire:click="startBattle"
                                         class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
@@ -469,8 +482,8 @@
             </div>
 
             {{-- Right Side - Enemy Panel --}}
-            <div class="order-2 lg:order-3">
-                <div
+            <div class="order-2 lg:order-3" id="enemy-panel-container">
+                <div id="enemy-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isEnemyTurn() ? 'ring-4 ring-red-300 shadow-[0_0_30px_rgba(255,100,100,.4)]' : '' }}">
                     {{-- Wooden background --}}
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
@@ -588,6 +601,41 @@
         .medieval-font {
             font-family: 'Cinzel', serif;
         }
+
+        /* Combat Animations */
+        @keyframes bounce-attack-right {
+            0% { transform: translateX(0); }
+            40% { transform: translateX(40px) scale(1.05); }
+            60% { transform: translateX(40px) scale(1.05); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        @keyframes bounce-attack-left {
+            0% { transform: translateX(0); }
+            40% { transform: translateX(-40px) scale(1.05); }
+            60% { transform: translateX(-40px) scale(1.05); }
+            100% { transform: translateX(0) scale(1); }
+        }
+
+        @keyframes damage-shake {
+            0%, 100% { transform: translateX(0); filter: brightness(1); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(5); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); filter: brightness(1.5) sepia(1) hue-rotate(-50deg) saturate(5); }
+        }
+
+        .anim-attack-player {
+            animation: bounce-attack-right 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .anim-attack-enemy {
+            animation: bounce-attack-left 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 50;
+        }
+
+        .anim-damage {
+            animation: damage-shake 400ms ease-in-out;
+        }
     </style>
 
     <script>
@@ -621,7 +669,7 @@
             Livewire.on('start-playback', (event) => {
                 cleanUp();
                 const speed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : 1);
-                const delay = Math.floor(800 / speed);
+                const delay = Math.floor(1600 / speed);
 
                 playbackInterval = setInterval(() => {
                     const component = getComponent();
@@ -638,12 +686,43 @@
                 if (playbackInterval) {
                     clearInterval(playbackInterval);
                     const speed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : 1);
-                    const delay = Math.floor(800 / speed);
+                    const delay = Math.floor(1600 / speed);
 
                     playbackInterval = setInterval(() => {
                         const component = getComponent();
                         if (component) component.call('nextTurn');
                     }, delay);
+                }
+            });
+
+            Livewire.on('turn-played', (event) => {
+                const data = (event && event[0]) ? event[0] : event;
+                const actor = data.actor;
+                const type = data.type;
+                
+                const playerPanel = document.getElementById('player-panel-container');
+                const enemyPanel = document.getElementById('enemy-panel-container');
+                
+                if (!playerPanel || !enemyPanel) return;
+
+                // Remove existing animation classes to re-trigger
+                playerPanel.classList.remove('anim-attack-player', 'anim-damage');
+                enemyPanel.classList.remove('anim-attack-enemy', 'anim-damage');
+                
+                // Force reflow
+                void playerPanel.offsetWidth;
+                void enemyPanel.offsetWidth;
+
+                if (actor === 'player') {
+                    playerPanel.classList.add('anim-attack-player');
+                    if (type !== 'miss') {
+                        setTimeout(() => enemyPanel.classList.add('anim-damage'), 150);
+                    }
+                } else {
+                    enemyPanel.classList.add('anim-attack-enemy');
+                    if (type !== 'miss') {
+                        setTimeout(() => playerPanel.classList.add('anim-damage'), 150);
+                    }
                 }
             });
 

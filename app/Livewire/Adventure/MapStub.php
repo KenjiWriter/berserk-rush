@@ -207,8 +207,12 @@ class MapStub extends Component
     public function nextTurn(): void
     {
         if ($this->currentTurnIndex < count($this->allTurns)) {
-            $this->visibleTurns[] = $this->allTurns[$this->currentTurnIndex];
+            $turn = $this->allTurns[$this->currentTurnIndex];
+            $this->visibleTurns[] = $turn;
             $this->currentTurnIndex++;
+            
+            // Dispatch event for UI animations
+            $this->dispatch('turn-played', actor: $turn['actor'], type: $turn['type'], value: $turn['value'] ?? 0);
 
             if ($this->currentTurnIndex >= count($this->allTurns)) {
                 $this->completeBattle();
