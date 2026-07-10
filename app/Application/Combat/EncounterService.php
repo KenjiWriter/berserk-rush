@@ -183,7 +183,11 @@ class EncounterService
                 $combatData = array_merge($encounter->combat_data ?? [], [
                     'player_max_hp' => $playerMaxHp,
                     'monster_max_hp' => $monsterMaxHp,
-                    'completed_at' => now()->toISOString()
+                    'completed_at' => now()->toISOString(),
+                    'rewards' => [
+                        'gold_data' => $goldRewardData,
+                        'xp_data' => $xpRewardData,
+                    ]
                 ]);
                 $encounter->combat_data = $combatData;
                 $encounter->save();

@@ -214,15 +214,39 @@
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
-                    <div class="relative flex-1 overflow-y-auto p-4">
-                        <ul class="space-y-3 text-amber-900">
-                            @if (empty($visibleTurns))
-                                <li class="text-center py-8">
-                                    <div class="text-4xl mb-3">⚔️</div>
-                                    <div class="text-amber-800 font-serif italic text-lg">
-                                        Naciśnij "Rozpocznij Walkę" aby rozpocząć przygodę...
+                    <div class="relative flex-1 overflow-y-auto p-4" @if($isCalculating) wire:poll.500ms="checkCombatStatus" @endif>
+                        @if($isCalculating)
+                            <div class="h-full flex flex-col items-center justify-center text-center">
+                                <div class="relative w-32 h-32 mb-6">
+                                    <div class="absolute inset-0 flex items-center justify-center transform transition-transform duration-500 animate-[spin_2s_ease-in-out_infinite_alternate]">
+                                        <div class="text-6xl drop-shadow-xl" style="transform: rotate(45deg);">⚔️</div>
                                     </div>
-                                </li>
+                                    <div class="absolute inset-0 rounded-full border-4 border-amber-600/30 border-t-amber-600 animate-spin"></div>
+                                    <div class="absolute inset-2 rounded-full border-4 border-amber-800/30 border-b-amber-800 animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                                </div>
+                                <h3 class="font-serif text-3xl text-amber-900 tracking-wider medieval-font drop-shadow-sm animate-pulse">
+                                    Obliczanie walki...
+                                </h3>
+                                <p class="text-amber-800 italic mt-3 font-semibold">Krzyżowanie mieczy...</p>
+                            </div>
+                        @else
+                            <ul class="space-y-3 text-amber-900">
+                                @if (empty($visibleTurns))
+                                    @if ($isPlaying)
+                                        <li class="text-center py-8 animate-pulse">
+                                            <div class="text-4xl mb-3">⚔️</div>
+                                            <div class="text-amber-800 font-serif italic text-lg">
+                                                Rozpoczynanie bitwy...
+                                            </div>
+                                        </li>
+                                    @elseif (!$battleCompleted)
+                                        <li class="text-center py-8">
+                                            <div class="text-4xl mb-3">⚔️</div>
+                                            <div class="text-amber-800 font-serif italic text-lg">
+                                                Naciśnij "Rozpocznij Walkę" aby rozpocząć przygodę...
+                                            </div>
+                                        </li>
+                                    @endif
                             @else
                                 @foreach ($visibleTurns as $index => $turn)
                                     <li class="leading-relaxed bg-white/30 rounded-lg px-3 py-2 shadow-sm">
@@ -321,6 +345,7 @@
                                 @endif
                             @endif
                         </ul>
+                        @endif
                     </div>
 
                     {{-- Battle Controls --}}
@@ -328,7 +353,18 @@
                         <div class="flex flex-col gap-3">
                             {{-- Main Controls --}}
                             <div class="flex items-center justify-center gap-3">
-                                @if (empty($visibleTurns) || ($battleCompleted && !$isPlaying))
+                                @if ($isCalculating)
+                                    <button wire:click="cancelBattle"
+                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
+                                        <img src="{{ asset('img/avatars/plate.png') }}" alt=""
+                                            class="absolute inset-0 w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-red-800/60"></div>
+                                        <span
+                                            class="relative text-white font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                            🛑 Przerwij walkę
+                                        </span>
+                                    </button>
+                                @elseif (empty($visibleTurns) || ($battleCompleted && !$isPlaying))
                                     <button wire:click="startBattle"
                                         class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""

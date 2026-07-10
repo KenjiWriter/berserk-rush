@@ -30,6 +30,7 @@ class MapStub extends Component
     public int $playbackSpeed = 1;
     public bool $autoChain = true;
     public int $currentTurnIndex = 0;
+    public bool $isCalculating = false;
 
     // Rewards
     public int $goldGained = 0;
@@ -72,21 +73,92 @@ class MapStub extends Component
 
         $encounter = $startResult->getPayload();
         $this->currentEncounterId = $encounter->id;
+        $this->isCalculating = true;
 
-        // Simulate combat
-        $simulateResult = $encounterService->simulate($encounter);
+        // Set enemy data early so the UI can show who we are fighting
+        $monster = clone $encounter->monster;
+        $this->enemy = [
+            'name' => $monster->name,
+            'level' => $monster->level,
+            'maxHp' => $monster->stats['hp'] ?? $monster->level * 20,
+            'hp' => $monster->stats['hp'] ?? $monster->level * 20,
+            'stats' => $monster->stats
+        ];
 
-        if ($simulateResult->isError()) {
-            $this->addError('battle', $simulateResult->getErrorMessage());
+        // Dispatch combat simulation to worker
+        dispatch(new \App\Jobs\SimulateCombatJob($encounter->id));
+    }
+
+    public function checkCombatStatus(): void
+    {
+        if (!$this->isCalculating || !$this->currentEncounterId) {
             return;
         }
 
-        $combatResult = $simulateResult->getPayload();
-        $this->setupBattleData($encounter, $combatResult);
+        $encounter = Encounter::find($this->currentEncounterId);
+        
+        if (!$encounter) {
+            $this->addError('battle', 'Encounter nie istnieje.');
+            $this->isCalculating = false;
+            return;
+        }
 
-        // Start playback
-        $this->isPlaying = true;
-        $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        if ($encounter->state === 'error') {
+            $this->addError('battle', 'Wystąpił błąd podczas obliczania walki.');
+            $this->isCalculating = false;
+            return;
+        }
+
+        if (in_array($encounter->state, ['win', 'loss'])) {
+            $this->isCalculating = false;
+            
+            // Reconstruct combatResult from DB
+            $combatResult = $this->reconstructCombatResult($encounter);
+            
+            $this->setupBattleData($encounter, $combatResult);
+            
+            // Start playback
+            $this->isPlaying = true;
+            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        }
+    }
+
+    public function cancelBattle(): void
+    {
+        if ($this->currentEncounterId && $this->isCalculating) {
+            $encounter = Encounter::find($this->currentEncounterId);
+            if ($encounter && $encounter->state === 'ongoing') {
+                $encounter->update(['state' => 'cancelled']);
+            }
+        }
+        
+        $this->isCalculating = false;
+        $this->currentEncounterId = null;
+        $this->enemy = [];
+        
+        $this->redirectRoute('adventure', navigate: true);
+    }
+
+    private function reconstructCombatResult(Encounter $encounter): array
+    {
+        $character = $encounter->character;
+        $monster = $encounter->monster;
+        $combatData = $encounter->combat_data ?? [];
+        
+        return [
+            'enemy' => [
+                'maxHp' => $combatData['monster_max_hp'] ?? ($monster->stats['hp'] ?? $monster->level * 20),
+                'stats' => $monster->stats ?? []
+            ],
+            'turns' => $encounter->turns ?? [],
+            'result' => $encounter->state,
+            'rewards' => [
+                'gold' => $encounter->gold_reward,
+                'xp' => $encounter->xp_reward,
+                'gold_data' => $combatData['rewards']['gold_data'] ?? [],
+                'xp_data' => $combatData['rewards']['xp_data'] ?? [],
+            ]
+        ];
     }
 
     public function pause(): void
