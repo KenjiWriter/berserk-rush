@@ -21,6 +21,9 @@ class GlobalChatComponent extends Component
     public bool $isOpen = true;
     public string $currentChannel = 'global';
 
+    public int $unreadGlobalCount = 0;
+    public int $unreadGuildCount = 0;
+
     // Tooltip state: character_id => loaded data
     public array $tooltipData = [];
 
@@ -66,6 +69,10 @@ class GlobalChatComponent extends Component
         if (count($this->messages) > 100) {
             array_shift($this->messages);
         }
+
+        if (! $this->isOpen) {
+            $this->unreadGlobalCount++;
+        }
     }
 
     public function onGuildMessageReceived(array $event): void
@@ -82,6 +89,10 @@ class GlobalChatComponent extends Component
 
         if (count($this->messages) > 100) {
             array_shift($this->messages);
+        }
+
+        if (! $this->isOpen) {
+            $this->unreadGuildCount++;
         }
     }
 
@@ -341,6 +352,11 @@ class GlobalChatComponent extends Component
     public function toggleChat(): void
     {
         $this->isOpen = ! $this->isOpen;
+
+        if ($this->isOpen) {
+            $this->unreadGlobalCount = 0;
+            $this->unreadGuildCount = 0;
+        }
     }
 
     public function render()
