@@ -42,7 +42,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/mailbox', \App\Livewire\Mail\MailboxComponent::class)->name('mailbox');
         Route::get('/guild', \App\Livewire\City\GuildComponent::class)->name('guild');
         Route::get('/adventure', Adventure::class)->name('adventure');
-        Route::get('/dungeons', \App\Livewire\City\DungeonList::class)->name('dungeons');
         Route::get('/dungeon/{dungeon}', \App\Livewire\City\DungeonRun::class)->name('dungeon.run');
         Route::get('/pets', \App\Livewire\City\PetsComponent::class)->name('pets');
     });

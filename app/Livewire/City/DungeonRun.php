@@ -256,7 +256,7 @@ class DungeonRun extends Component
 
     public function backToDungeonList(): void
     {
-        $this->redirect(route('city.dungeons', $this->character), navigate: true);
+        $this->redirect(route('city.adventure', ['character' => $this->character, 'tab' => 'dungeons']), navigate: true);
     }
 
     private function getActiveRun(): ?CharacterDungeonRun

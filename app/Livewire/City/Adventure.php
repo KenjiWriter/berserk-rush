@@ -11,12 +11,15 @@ use App\Infrastructure\Persistence\WorldBossInstance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 
 #[Layout('components.layouts.app')]
 class Adventure extends Component
 {
     public Character $character;
     public Collection $maps;
+    
+    #[Url]
     public string $tab = 'maps'; // 'maps' or 'dungeons'
 
     public function mount(Character $character): void
