@@ -34,6 +34,21 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 ### Core Gameplay Loop
 `Fight ⚔️ → Loot 💰 → Trade 🤝 → Upgrade ⚒️ → Craft 🔮`
 
+### In-Game Chat Commands
+
+**Guild Commands (Available to guild members):**
+- `/donate exp <amount>` - Donate character EXP to the guild's progression.
+- `/donate gold <amount>` - Donate Gold to the guild's treasury.
+- `/donate gems <amount>` - Donate Gems to the guild's treasury.
+
+**Admin Commands (Requires permission_level == 9):**
+- `/give <item_id> <amount>` - Spawn a specific item directly in your character's inventory.
+- `/give gold <amount>` - Add Gold to your character.
+- `/give gems <amount>` - Add Gems to your user account.
+- `/exp <amount>` - Grant EXP to your character and trigger level ups if applicable.
+- `/set level <level>` - Instantly set your character to a specific level.
+- `/set sp <amount>` - Add Stat Points (character_points) to your character.
+
 ## ✨ Features
 
 - **Emergent Classes:** No fixed classes at character creation. Choose a name and distribute 10 attribute points (STR, INT, VIT, AGI). Your playstyle evolves based on your investments.
@@ -41,8 +56,10 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Dynamic Item System:** Items drop with random stats, rarities, and can be upgraded from +0 to +9. Be careful, upgrades can fail!
 - **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear with a chance to proc higher Rarities (Common up to Legendary).
 - **Player-Driven Economy:** An active market / auction house where players dictate the prices of items and materials.
-- **Guilds & Social:** Join or create Guilds with their own treasuries, role structures, private real-time chat, and an internal mail invitation system.
-- **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) chat panel pinned to the corner of the screen. Supports multiple channels (Global/Guild), unread counters, in-chat slash commands (`/donate`), and player inspection tooltips showing equipped gear.
+- **Guilds & Social:** Join or create Guilds with their own treasuries, role structures, private real-time chat, and an internal mail invitation system. Members can use `/donate` commands to support their guild.
+- **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) chat panel pinned to the corner of the screen. Supports multiple channels (Global/Guild), unread counters, in-chat slash commands, and player inspection tooltips showing equipped gear.
+- **Admin Panel & Tools:** Game masters (permission_level == 9) have access to a suite of in-chat commands for testing and a dedicated web-based administrative panel to manage the game state.
+- **World Bosses:** Epic global events where the entire server collaborates to defeat a massive boss, with live leaderboards and proportional rewards based on damage dealt.
 - **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
 ## 🛠️ Tech Stack
@@ -157,6 +174,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [Economy & Mail](./docs/modules/economy.md)
 - [**Global & Guild Chat (Reverb)**](./docs/modules/global_chat.md)
 - [**Guilds**](./docs/modules/guilds.md)
+- [**World Bosses**](./docs/modules/world_boss.md)
 
 ## 🛡️ License
 

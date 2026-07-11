@@ -94,9 +94,9 @@ Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i w
 
 ## 🟡 Faza 11: Rozszerzenie PvE i Endgame (World Boss & Dungeons)
 Gdy podstawa gry jest solidna, dodajemy wymagający kontent (Endgame) angażujący całą społeczność.
-- **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
-- **World Bossowie:** Epickie czasowe wydarzenia, w których wszyscy serwerowi gracze atakują jednego bossa z potężną pulą HP. Nagrody są przyznawane proporcjonalnie do zadanego Damage'u po ubiciu bossa.
-- **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
+- [ ] **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
+- [x] **World Bossowie:** Epickie czasowe wydarzenia, w których wszyscy serwerowi gracze atakują jednego bossa z potężną pulą HP. Nagrody są przyznawane proporcjonalnie do zadanego Damage'u po ubiciu bossa.
+- [ ] **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
 
 ---
 

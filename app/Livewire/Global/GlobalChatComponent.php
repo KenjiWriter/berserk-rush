@@ -163,9 +163,9 @@ class GlobalChatComponent extends Component
             return;
         }
 
-        if (str_starts_with(strtolower($message), '/set level ')) {
+        if (str_starts_with(strtolower($message), '/set ')) {
             if ($character->user->permission_level == 9) {
-                $this->handleSetLevelCommand($message, $character);
+                $this->handleSetCommand($message, $character);
             } else {
                 $this->addError('newMessage', 'Brak uprawnień.');
             }
@@ -472,23 +472,33 @@ class GlobalChatComponent extends Component
         }
     }
 
-    private function handleSetLevelCommand(string $command, Character $character): void
+    private function handleSetCommand(string $command, Character $character): void
     {
-        $parts = explode(' ', trim($command));
-        if (count($parts) < 3 || strtolower($parts[1]) !== 'level') {
-            $this->addError('newMessage', 'Użycie: /set level <poziom>');
+        $parts = explode(' ', strtolower(trim($command)));
+        if (count($parts) < 3) {
+            $this->addError('newMessage', 'Użycie: /set <level|sp> <wartość>');
             return;
         }
 
-        $level = (int) $parts[2];
-        if ($level <= 0) {
-            $this->addError('newMessage', 'Poziom musi być większy niż 0.');
+        $type = $parts[1];
+        $value = (int) $parts[2];
+
+        if ($value <= 0) {
+            $this->addError('newMessage', 'Wartość musi być większa niż 0.');
             return;
         }
 
-        $character->level = $level;
-        $character->save();
-
-        $this->dispatch('notify', message: "Zmieniono poziom na {$level}.", type: 'success');
+        if ($type === 'level') {
+            $character->level = $value;
+            $character->save();
+            $this->dispatch('notify', message: "Zmieniono poziom na {$value}.", type: 'success');
+        } elseif ($type === 'sp') {
+            // Dodajemy punkty, zgodnie z intencją "dodawania" z prośby (lub możemy przypisywać)
+            $character->character_points += $value;
+            $character->save();
+            $this->dispatch('notify', message: "Dodano {$value} punktów SP.", type: 'success');
+        } else {
+            $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp).');
+        }
     }
 }
