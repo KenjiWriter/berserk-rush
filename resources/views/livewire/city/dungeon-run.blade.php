@@ -83,7 +83,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {{-- Left: Character status + Potions --}}
-                <div class="space-y-4">
+                <div class="space-y-4 order-1 lg:order-1">
                     {{-- Character HP --}}
                     <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5 backdrop-blur-sm">
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Twoja postać</h3>
@@ -156,53 +156,11 @@
                     </div>
                 </div>
 
-                {{-- Center: Monster & Fight --}}
-                <div class="lg:col-span-2 space-y-4">
-                    @if($monster && !$showBattle)
-                        {{-- Monster info --}}
-                        <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-6 backdrop-blur-sm">
-                            <div class="text-center">
-                                <p class="text-sm text-gray-500 uppercase tracking-widest mb-2">Etap {{ $currentStage }}</p>
-                                <div class="text-6xl mb-3">👹</div>
-                                <h2 class="text-2xl font-bold text-red-300 mb-1" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</h2>
-                                <p class="text-gray-400 text-sm mb-4">Poziom {{ $monster->level }} • {{ ucfirst($monster->rank ?? 'normal') }}</p>
-
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-md mx-auto mb-6">
-                                    <div class="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                                        <p class="text-xs text-gray-500">HP</p>
-                                        <p class="font-bold text-red-400">{{ $monster->stats['hp'] ?? $monster->level * 20 }}</p>
-                                    </div>
-                                    <div class="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                                        <p class="text-xs text-gray-500">ATK</p>
-                                        <p class="font-bold text-orange-400">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</p>
-                                    </div>
-                                    <div class="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                                        <p class="text-xs text-gray-500">DEF</p>
-                                        <p class="font-bold text-blue-400">{{ $monster->stats['def'] ?? $monster->level }}</p>
-                                    </div>
-                                    <div class="bg-gray-900/60 rounded-lg p-2 border border-gray-700/50">
-                                        <p class="text-xs text-gray-500">AGI</p>
-                                        <p class="font-bold text-green-400">{{ $monster->stats['agi'] ?? $monster->level }}</p>
-                                    </div>
-                                </div>
-
-                                <button wire:click="fight"
-                                    class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-3 px-10 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-red-900/30 text-lg"
-                                    style="font-family: 'Cinzel', serif;"
-                                    wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
-                                    <span wire:loading.remove wire:target="fight">⚔️ Walcz!</span>
-                                    <span wire:loading wire:target="fight">
-                                        <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                        Walka trwa...
-                                    </span>
-                                </button>
-                            </div>
-                        </div>
-                    @endif
-
-                    {{-- Battle result overlay --}}
+                {{-- Center: Fight Action / Battle Log --}}
+                <div class="space-y-4 order-2 lg:order-2 flex flex-col justify-center min-h-[400px]">
                     @if($showBattle && $battleResult)
-                        <div class="bg-gray-800/90 border {{ ($battleResult['result'] ?? '') === 'loss' ? 'border-red-700' : 'border-amber-600' }} rounded-xl p-6 backdrop-blur-sm">
+                        {{-- Battle result overlay --}}
+                        <div class="bg-gray-800/90 border {{ ($battleResult['result'] ?? '') === 'loss' ? 'border-red-700' : 'border-amber-600' }} rounded-xl p-6 backdrop-blur-sm h-full flex flex-col">
                             <h3 class="text-lg font-bold text-center mb-4 {{ ($battleResult['result'] ?? '') === 'loss' ? 'text-red-400' : 'text-amber-300' }}" style="font-family: 'Cinzel', serif;">
                                 @if(($battleResult['result'] ?? '') === 'loss')
                                     💀 Porażka!
@@ -214,7 +172,7 @@
                             </h3>
 
                             {{-- Battle log --}}
-                            <div class="max-h-64 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1">
+                            <div class="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1">
                                 @foreach($turns as $turn)
                                     <div class="text-sm {{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }}">
                                         @if($turn['type'] === 'miss')
@@ -233,25 +191,78 @@
                             </div>
 
                             {{-- Summary --}}
-                            <div class="text-center">
+                            <div class="text-center mt-auto">
                                 <p class="text-gray-400 text-sm mb-4">
                                     Twoje HP po walce: <strong class="text-{{ ($battleResult['player_hp'] ?? 0) > 0 ? 'green' : 'red' }}-400">{{ $battleResult['player_hp'] ?? 0 }}</strong>
                                 </p>
                                 <button wire:click="dismissBattle"
-                                    class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200"
+                                    class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 w-full"
                                     style="font-family: 'Cinzel', serif;">
                                     @if(($battleResult['result'] ?? '') === 'stage_clear')
                                         ➡️ Następny etap
                                     @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
-                                        🏆 Podsumowanie
+                                        🏆 Zobacz Podsumowanie
                                     @else
-                                        💀 Podsumowanie
+                                        💀 Podsumowanie Porażki
                                     @endif
                                 </button>
                             </div>
                         </div>
+                    @elseif($monster && !$showBattle)
+                        {{-- Intermediate view in the center --}}
+                        <div class="bg-gray-800/90 border border-amber-900/50 rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm flex flex-col justify-center h-full">
+                            <div class="text-5xl mb-4">🚪</div>
+                            <h3 class="text-lg text-gray-400 uppercase tracking-widest mb-2 font-bold">Wyzwanie Etapu</h3>
+                            <h2 class="text-3xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                            <p class="text-gray-300 italic mb-8">Z mroku wyłania się kolejny przeciwnik. Przygotuj się do walki, wypij mikstury i dobądź broni!</p>
+                            <button wire:click="fight"
+                                class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 px-10 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-[0_0_20px_rgba(220,38,38,0.4)] text-xl uppercase tracking-wider"
+                                style="font-family: 'Cinzel', serif;"
+                                wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
+                                <span wire:loading.remove wire:target="fight">⚔️ Rozpocznij Walkę</span>
+                                <span wire:loading wire:target="fight">
+                                    <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                    Walka trwa...
+                                </span>
+                            </button>
+                        </div>
                     @endif
                 </div>
+
+                {{-- Right: Monster --}}
+                <div class="space-y-4 order-3 lg:order-3">
+                    @if($monster)
+                        {{-- Monster info always visible on the right --}}
+                        <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-5 backdrop-blur-sm">
+                            <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Przeciwnik</h3>
+                            <div class="text-center mb-5">
+                                <span class="text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">👹</span>
+                                <p class="font-bold text-red-300 mt-3 text-xl" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</p>
+                                <p class="text-gray-400 text-sm">Poziom {{ $monster->level }} • {{ ucfirst($monster->rank ?? 'normal') }}</p>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 mb-2">
+                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
+                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
+                                    <p class="font-bold text-red-400 text-lg">{{ $monster->stats['hp'] ?? $monster->level * 20 }}</p>
+                                </div>
+                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
+                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
+                                    <p class="font-bold text-orange-400 text-lg">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</p>
+                                </div>
+                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
+                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">DEF</p>
+                                    <p class="font-bold text-blue-400 text-lg">{{ $monster->stats['def'] ?? $monster->level }}</p>
+                                </div>
+                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
+                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">AGI</p>
+                                    <p class="font-bold text-green-400 text-lg">{{ $monster->stats['agi'] ?? $monster->level }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
             </div>
         @endif
     </div>
