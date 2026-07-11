@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Application\Dungeon\DungeonService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('components.layouts.app')]
 class DungeonRun extends Component
@@ -21,8 +22,15 @@ class DungeonRun extends Component
     public int $totalStages = 0;
     public ?array $battleResult = null;
     public array $turns = [];
+    public array $visibleTurns = [];
     public bool $showBattle = false;
     public ?string $errorMessage = null;
+
+    // Playback state
+    public bool $isCalculating = false;
+    public bool $isPlaying = false;
+    public int $currentTurnIndex = 0;
+    public int $playbackSpeed = 1;
 
     public function mount(Character $character, Dungeon $dungeon): void
     {
@@ -44,6 +52,21 @@ class DungeonRun extends Component
         if ($activeRun) {
             $this->runId = $activeRun->id;
             $this->currentStage = $activeRun->current_stage;
+            
+            if ($activeRun->combat_state === 'calculating') {
+                $this->isCalculating = true;
+                $this->showBattle = true;
+            } elseif ($activeRun->combat_state === 'completed' && $activeRun->combat_data) {
+                // If it finished while we were away, we can just load the result immediately
+                $this->battleResult = $activeRun->combat_data;
+                $this->turns = $this->battleResult['turns'] ?? [];
+                $this->visibleTurns = $this->turns; // Show all turns directly if revisiting
+                $this->showBattle = true;
+                $this->isCalculating = false;
+                
+                $activeRun->combat_state = 'idle';
+                $activeRun->save();
+            }
         }
     }
 
@@ -81,20 +104,77 @@ class DungeonRun extends Component
             return;
         }
 
-        $payload = $result->getPayload();
-        $this->turns = $payload['turns'] ?? [];
-        $this->battleResult = $payload;
+        $this->isCalculating = true;
         $this->showBattle = true;
+        $this->visibleTurns = [];
+        $this->currentTurnIndex = 0;
+        $this->turns = [];
+        $this->battleResult = null;
+    }
 
-        // Refresh run state
-        $run->refresh();
-        $this->currentStage = $run->current_stage;
-        $this->character->refresh();
+    public function checkCombatStatus(): void
+    {
+        if (!$this->isCalculating || !$this->runId) {
+            return;
+        }
+
+        $run = $this->getActiveRun();
+        
+        if (!$run) {
+            $this->errorMessage = 'Run nie istnieje.';
+            $this->isCalculating = false;
+            return;
+        }
+
+        if ($run->combat_state === 'error') {
+            $this->errorMessage = 'Wystąpił błąd podczas obliczania walki.';
+            $this->isCalculating = false;
+            $run->combat_state = 'idle';
+            $run->save();
+            return;
+        }
+
+        if ($run->combat_state === 'completed') {
+            $this->isCalculating = false;
+            
+            $this->battleResult = $run->combat_data;
+            $this->turns = $this->battleResult['turns'] ?? [];
+            
+            // Start playback
+            $this->isPlaying = true;
+            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+            
+            // Reset state
+            $run->combat_state = 'idle';
+            $run->save();
+            
+            // Refresh run state for UI
+            $run->refresh();
+            $this->currentStage = $run->current_stage;
+            $this->character->refresh();
+        }
+    }
+
+    #[On('resume-playback')]
+    public function resume(): void
+    {
+        if ($this->currentTurnIndex < count($this->turns)) {
+            $this->visibleTurns[] = $this->turns[$this->currentTurnIndex];
+            $this->currentTurnIndex++;
+        } else {
+            $this->isPlaying = false;
+            $this->dispatch('stop-playback');
+        }
     }
 
     public function usePotion(string $itemInstanceId): void
     {
         $this->errorMessage = null;
+        if ($this->isCalculating || $this->isPlaying) {
+            $this->errorMessage = 'Nie możesz używać mikstur w trakcie walki.';
+            return;
+        }
+
         $run = $this->getActiveRun();
         if (!$run) {
             $this->errorMessage = 'Brak aktywnej ekspedycji.';
@@ -118,6 +198,9 @@ class DungeonRun extends Component
     {
         $this->showBattle = false;
         $this->turns = [];
+        $this->visibleTurns = [];
+        $this->isPlaying = false;
+        $this->isCalculating = false;
 
         // If run ended, keep the result for display
         if ($this->battleResult && in_array($this->battleResult['result'] ?? '', ['dungeon_complete', 'loss'])) {

@@ -221,6 +221,10 @@ class GlobalChatComponent extends Component
                 return;
             }
 
+            $equippedPet = \App\Infrastructure\Persistence\Pet::where('character_id', $characterId)
+                ->where('is_equipped', true)
+                ->first();
+
             $equippedItems = $character->equippedItems->map(fn ($item) => [
                 'name'          => $item->template?->name ?? 'Nieznany',
                 'slot'          => $item->template?->slot ?? '?',
@@ -234,6 +238,12 @@ class GlobalChatComponent extends Component
                 'level'         => $character->level,
                 'combat_power'  => $character->getTotalCombatPower(),
                 'equipped_items' => $equippedItems,
+                'pet'           => $equippedPet ? [
+                    'name' => $equippedPet->name,
+                    'rarity' => $equippedPet->rarity,
+                    'level' => $equippedPet->level,
+                    'combat_power' => $equippedPet->getCombatPower(),
+                ] : null,
             ];
 
             $this->activeTooltipId = $characterId;

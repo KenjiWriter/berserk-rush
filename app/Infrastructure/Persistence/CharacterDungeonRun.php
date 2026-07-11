@@ -13,11 +13,14 @@ class CharacterDungeonRun extends Model
         'current_hp',
         'is_completed',
         'is_failed',
+        'combat_state',
+        'combat_data',
     ];
 
     protected $casts = [
         'is_completed' => 'boolean',
         'is_failed' => 'boolean',
+        'combat_data' => 'array',
     ];
 
     public function character()

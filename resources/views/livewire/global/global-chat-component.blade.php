@@ -103,6 +103,27 @@
                 </div>
             @endif
 
+            {{-- Equipped Pet --}}
+            @if(isset($td['pet']) && $td['pet'])
+                <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2 mt-2">Chowaniec</p>
+                @php
+                    $petRarityColor = match($td['pet']['rarity'] ?? 'common') {
+                        'uncommon'  => 'text-green-400',
+                        'rare'      => 'text-blue-400',
+                        'epic'      => 'text-purple-400',
+                        'legendary' => 'text-amber-400',
+                        default     => 'text-stone-300',
+                    };
+                @endphp
+                <div class="flex items-center justify-between text-xs mb-3">
+                    <span class="{{ $petRarityColor }} truncate max-w-[130px]">
+                        🐾 {{ $td['pet']['name'] }}
+                        <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
+                    </span>
+                    <span class="text-amber-700 text-[10px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
+                </div>
+            @endif
+
             {{-- Invite to Guild Button Placeholder --}}
             <button
                 wire:click="inviteToGuild('{{ $activeTooltipId }}')"

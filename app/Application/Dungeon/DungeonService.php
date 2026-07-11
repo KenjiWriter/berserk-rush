@@ -82,6 +82,25 @@ class DungeonService
             return Result::error('RUN_ENDED', 'Ta ekspedycja się już zakończyła.');
         }
 
+        if ($run->combat_state === 'calculating') {
+            return Result::error('ALREADY_CALCULATING', 'Walka jest już w trakcie obliczania.');
+        }
+
+        $run->combat_state = 'calculating';
+        $run->combat_data = null;
+        $run->save();
+
+        // Dispatch Job
+        dispatch(new \App\Jobs\SimulateDungeonStageJob($run->id));
+
+        return Result::ok(['status' => 'calculating']);
+    }
+
+    /**
+     * Wewnętrzna metoda symulująca walkę wywoływana przez Joba.
+     */
+    public function simulateStage(CharacterDungeonRun $run): Result
+    {
         $stage = $run->getCurrentStageModel();
         if (!$stage) {
             return Result::error('NO_STAGE', 'Nie znaleziono etapu.');

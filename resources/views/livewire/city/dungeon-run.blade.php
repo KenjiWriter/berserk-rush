@@ -157,8 +157,20 @@
                 </div>
 
                 {{-- Center: Fight Action / Battle Log --}}
-                <div class="space-y-4 order-2 lg:order-2 flex flex-col justify-center min-h-[400px]">
-                    @if($showBattle && $battleResult)
+                <div class="space-y-4 order-2 lg:order-2 flex flex-col justify-center min-h-[400px]"
+                     @if($isCalculating) wire:poll.1s="checkCombatStatus" @endif>
+                     
+                    @if($isCalculating)
+                        {{-- Calculating state --}}
+                        <div class="bg-gray-800/90 border border-amber-900/50 rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm flex flex-col justify-center h-full">
+                            <div class="text-5xl mb-4 animate-pulse">⏳</div>
+                            <h3 class="text-lg text-gray-400 uppercase tracking-widest mb-2 font-bold">Walka trwa</h3>
+                            <h2 class="text-2xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Trwa symulacja walki...</h2>
+                            <div class="flex justify-center items-center mt-4 text-amber-500">
+                                <svg class="animate-spin h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                            </div>
+                        </div>
+                    @elseif($showBattle && $battleResult)
                         {{-- Battle result overlay --}}
                         <div class="bg-gray-800/90 border {{ ($battleResult['result'] ?? '') === 'loss' ? 'border-red-700' : 'border-amber-600' }} rounded-xl p-6 backdrop-blur-sm h-full flex flex-col">
                             <h3 class="text-lg font-bold text-center mb-4 {{ ($battleResult['result'] ?? '') === 'loss' ? 'text-red-400' : 'text-amber-300' }}" style="font-family: 'Cinzel', serif;">
@@ -172,9 +184,9 @@
                             </h3>
 
                             {{-- Battle log --}}
-                            <div class="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1">
-                                @foreach($turns as $turn)
-                                    <div class="text-sm {{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }}">
+                            <div class="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1" id="dungeon-battle-log-container">
+                                @foreach($visibleTurns as $turn)
+                                    <div class="text-sm {{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }} animate-[fadeIn_0.3s_ease-out]">
                                         @if($turn['type'] === 'miss')
                                             <span class="text-gray-500">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : '👹 Potwór' }}: Pudło!</span>
                                         @else
@@ -188,25 +200,30 @@
                                         @endif
                                     </div>
                                 @endforeach
+                                @if($isPlaying)
+                                    <div class="text-gray-500 text-xs italic mt-2 animate-pulse">Trwa walka...</div>
+                                @endif
                             </div>
 
-                            {{-- Summary --}}
-                            <div class="text-center mt-auto">
-                                <p class="text-gray-400 text-sm mb-4">
-                                    Twoje HP po walce: <strong class="text-{{ ($battleResult['player_hp'] ?? 0) > 0 ? 'green' : 'red' }}-400">{{ $battleResult['player_hp'] ?? 0 }}</strong>
-                                </p>
-                                <button wire:click="dismissBattle"
-                                    class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 w-full"
-                                    style="font-family: 'Cinzel', serif;">
-                                    @if(($battleResult['result'] ?? '') === 'stage_clear')
-                                        ➡️ Następny etap
-                                    @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
-                                        🏆 Zobacz Podsumowanie
-                                    @else
-                                        💀 Podsumowanie Porażki
-                                    @endif
-                                </button>
-                            </div>
+                            {{-- Summary (Only show when playback is finished) --}}
+                            @if(!$isPlaying)
+                                <div class="text-center mt-auto animate-[fadeIn_0.5s_ease-out]">
+                                    <p class="text-gray-400 text-sm mb-4">
+                                        Twoje HP po walce: <strong class="text-{{ ($battleResult['player_hp'] ?? 0) > 0 ? 'green' : 'red' }}-400">{{ $battleResult['player_hp'] ?? 0 }}</strong>
+                                    </p>
+                                    <button wire:click="dismissBattle"
+                                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 w-full"
+                                        style="font-family: 'Cinzel', serif;">
+                                        @if(($battleResult['result'] ?? '') === 'stage_clear')
+                                            ➡️ Następny etap
+                                        @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
+                                            🏆 Zobacz Podsumowanie
+                                        @else
+                                            💀 Podsumowanie Porażki
+                                        @endif
+                                    </button>
+                                </div>
+                            @endif
                         </div>
                     @elseif($monster && !$showBattle)
                         {{-- Intermediate view in the center --}}
@@ -222,7 +239,7 @@
                                 <span wire:loading.remove wire:target="fight">⚔️ Rozpocznij Walkę</span>
                                 <span wire:loading wire:target="fight">
                                     <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                    Walka trwa...
+                                    Uruchamianie...
                                 </span>
                             </button>
                         </div>
@@ -269,5 +286,45 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
+
+    @script
+    <script>
+        let playbackInterval = null;
+
+        $wire.on('start-playback', (e) => {
+            let speedMultiplier = e.speed || 1;
+            let intervalTime = 600 / speedMultiplier; // base speed 600ms per turn
+            
+            if (playbackInterval) clearInterval(playbackInterval);
+            
+            playbackInterval = setInterval(() => {
+                $wire.dispatch('resume-playback');
+                
+                // Auto scroll to bottom
+                let container = document.getElementById('dungeon-battle-log-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, intervalTime);
+        });
+
+        $wire.on('stop-playback', () => {
+            if (playbackInterval) {
+                clearInterval(playbackInterval);
+                playbackInterval = null;
+            }
+        });
+
+        // Cleanup on unmount
+        document.addEventListener('livewire:navigating', () => {
+            if (playbackInterval) clearInterval(playbackInterval);
+        });
+    </script>
+    @endscript
 </div>
