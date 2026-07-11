@@ -497,7 +497,7 @@
                         $hasKey = $dungeon->entry_item_template_id ? $character->inventoryItems()->where('template_id', $dungeon->entry_item_template_id)->exists() : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
                     @endphp
-                    <div class="bg-slate-900/80 border-2 {{ $isInProgress ? 'border-amber-500' : ($canEnter && $hasKey ? 'border-slate-600 hover:border-slate-400' : 'border-red-900/50 opacity-75') }} rounded-xl p-6 transition-all duration-300 relative group flex flex-col h-full">
+                    <div x-data="{ showMonsters: false }" class="bg-slate-900/80 border-2 {{ $isInProgress ? 'border-amber-500' : ($canEnter && $hasKey ? 'border-slate-600 hover:border-slate-400' : 'border-red-900/50 opacity-75') }} rounded-xl p-6 transition-all duration-300 relative group flex flex-col h-full">
                         
                         <div class="flex justify-between items-start mb-4">
                             <h3 class="text-2xl font-bold text-slate-200 medieval-font">{{ $dungeon->name }}</h3>
@@ -523,6 +523,62 @@
                                     </span>
                                 </div>
                             @endif
+                        </div>
+
+                        <button @click="showMonsters = !showMonsters" class="w-full mb-4 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-4 rounded-lg transition-colors text-sm border border-slate-600">
+                            <span x-text="showMonsters ? 'Ukryj przeciwników' : '👁️ Lista przeciwników'"></span>
+                        </button>
+                        
+                        {{-- Expanded Monster List --}}
+                        <div x-show="showMonsters" x-transition class="mb-4 text-left border-t border-slate-700/50 pt-4" style="display: none;">
+                            <h4 class="text-slate-300 font-bold mb-2">Przeciwnicy (wg etapów):</h4>
+                            <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                                @foreach($dungeon->stages as $stage)
+                                    @php $monster = $stage->monster; @endphp
+                                    @if($monster)
+                                    <div x-data="{ showLoot: false }" class="bg-slate-800/50 rounded p-2 border border-slate-700/50">
+                                        <div class="flex justify-between items-center cursor-pointer hover:bg-slate-700/50 p-1 rounded transition" @click="showLoot = !showLoot">
+                                            <div>
+                                                <span class="text-xs text-amber-500 font-bold mr-1">Etap {{ $stage->stage_order }}:</span>
+                                                <span class="font-bold text-red-400">{{ $monster->name }}</span>
+                                                @if($monster->type)
+                                                    <span class="text-xs text-yellow-600 ml-1 font-bold">[{{ ucfirst($monster->type) }}]</span>
+                                                @endif
+                                                <span class="text-xs text-slate-400 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
+                                            </div>
+                                            <span class="text-xs text-slate-500" x-text="showLoot ? '▼' : '▶'"></span>
+                                        </div>
+                                        
+                                        {{-- Loot --}}
+                                        <div x-show="showLoot" class="mt-2 pl-2 border-l-2 border-slate-600/50 space-y-1 text-xs" style="display: none;">
+                                            @if($monster->lootTable && $monster->lootTable->entries->isNotEmpty())
+                                                @php
+                                                    $totalWeight = max(1, $monster->lootTable->entries->sum('weight'));
+                                                @endphp
+                                                @foreach($monster->lootTable->entries as $entry)
+                                                    <div class="flex items-center text-slate-300">
+                                                        @if($entry->reward_type === 'gold')
+                                                            <span class="text-yellow-500 font-bold mr-1">💰</span> Złoto ({{ $entry->min_qty }} - {{ $entry->max_qty }})
+                                                        @elseif($entry->reward_type === 'xp')
+                                                            <span class="text-blue-400 font-bold mr-1">✨</span> XP ({{ $entry->min_qty }} - {{ $entry->max_qty }})
+                                                        @elseif($entry->reward_type === 'item' && $entry->itemTemplate)
+                                                            <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-orange-500 font-bold' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-400 font-bold' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-400 font-bold' : 'text-slate-300')) }}">
+                                                                {{ $entry->itemTemplate->name }}
+                                                            </span>
+                                                        @else
+                                                            {{ $entry->reward_type }}
+                                                        @endif
+                                                        <span class="text-slate-500 font-bold ml-2">({{ round(($entry->weight / $totalWeight) * 100) }}%)</span>
+                                                    </div>
+                                                @endforeach
+                                            @else
+                                                <div class="text-slate-500 italic">Brak dropu</div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    @endif
+                                @endforeach
+                            </div>
                         </div>
 
                         @if($isInProgress)

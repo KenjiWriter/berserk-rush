@@ -80,7 +80,7 @@ class Adventure extends Component
         $activeRun = null;
         
         if ($this->tab === 'dungeons') {
-            $dungeons = Dungeon::with(['stages', 'entryItemTemplate'])->get();
+            $dungeons = Dungeon::with(['stages.monster.lootTable.entries.itemTemplate', 'entryItemTemplate'])->get();
             $activeRun = CharacterDungeonRun::where('character_id', $this->character->id)
                 ->where('is_completed', false)
                 ->where('is_failed', false)
