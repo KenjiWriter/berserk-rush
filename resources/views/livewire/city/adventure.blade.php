@@ -79,14 +79,26 @@
         </div>
 
         {{-- Title --}}
-        <div class="text-center mb-12">
+        <div class="text-center mb-8">
             <h1
                 class="text-5xl font-bold bg-gradient-to-r from-green-300 via-emerald-400 to-green-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl mb-2">
                 🗺️ Wybierz Przygodę
             </h1>
-            <p class="text-xl text-green-200 font-semibold drop-shadow-lg">
+            <p class="text-xl text-green-200 font-semibold drop-shadow-lg mb-6">
                 Twój poziom: {{ $character->level }} • Wybierz mapę odpowiednią dla Ciebie
             </p>
+
+            {{-- Tabs --}}
+            <div class="inline-flex bg-green-900/50 rounded-lg p-1 border border-green-700/50 mb-4">
+                <button wire:click="setTab('maps')" 
+                    class="px-8 py-3 rounded-md font-bold text-lg transition-all duration-200 {{ $tab === 'maps' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg' : 'text-green-300 hover:text-green-100 hover:bg-green-800/50' }}">
+                    🌲 Mapy
+                </button>
+                <button wire:click="setTab('dungeons')" 
+                    class="px-8 py-3 rounded-md font-bold text-lg transition-all duration-200 {{ $tab === 'dungeons' ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg' : 'text-green-300 hover:text-green-100 hover:bg-green-800/50' }}">
+                    🏰 Lochy
+                </button>
+            </div>
         </div>
 
         {{-- Map access error --}}
@@ -96,7 +108,8 @@
             </div>
         @enderror
 
-        {{-- Maps grid - 2 kolumny na desktop, 1 na mobile --}}
+        {{-- MAPS TAB --}}
+        @if($tab === 'maps')
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
             @foreach ($maps as $map)
                 @php
@@ -136,7 +149,7 @@
                     }
                 @endphp
 
-                <div class="relative group" x-data="{ showMonsters: false }">
+                <div class="relative group" x-data="{ showMonsters: false, showBossModal: false }">
                     <div
                         class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 {{ $isAccessible ? 'border-green-700' : 'border-gray-500' }} rounded-lg shadow-2xl backdrop-blur-sm {{ $isAccessible ? 'hover:from-green-100/95 hover:to-green-200/95 hover:shadow-3xl' : 'opacity-50' }} transition-all duration-300 {{ $isAccessible && empty($map->monsters) ? 'transform hover:scale-105 cursor-pointer' : '' }}">
 
@@ -244,10 +257,21 @@
                                 {{-- Action button --}}
                                 @if ($isAccessible)
                                     <button @click="travelingTo = '{{ addslashes($map->name) }}'; setTimeout(() => $wire.enterMap('{{ $map->id }}'), 500)"
-                                        class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
+                                        class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font mb-4">
                                         ⚔️ Wejdź na mapę
                                     </button>
                                     
+                                    {{-- World Boss --}}
+                                    @if(isset($activeWorldBosses[$map->id]))
+                                        <button @click="showBossModal = true" class="w-full mb-4 bg-purple-900/80 hover:bg-purple-800 text-purple-200 font-bold py-2 rounded-lg border-2 border-purple-600 transition-colors shadow-lg shadow-purple-900/50">
+                                            👑 World Boss: {{ $activeWorldBosses[$map->id]->monster->name }}
+                                        </button>
+                                    @elseif(isset($defeatedWorldBosses[$map->id]))
+                                        <div class="w-full mb-4 bg-gray-800/80 border border-gray-600 rounded-lg p-3 text-center">
+                                            <p class="text-gray-400 font-bold text-sm">👑 World Boss powróci o: {{ now()->addHour()->startOfHour()->format('H:i') }}</p>
+                                        </div>
+                                    @endif
+
                                     <button @click="showMonsters = !showMonsters" class="w-full mt-2 bg-green-800/80 hover:bg-green-700 text-green-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm border border-green-600">
                                         <span x-text="showMonsters ? 'Ukryj przeciwników' : '👁️ Lista przeciwników'"></span>
                                     </button>
@@ -321,13 +345,121 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        {{-- World Boss Modal --}}
+                        @if(isset($activeWorldBosses[$map->id]))
+                            @php
+                                $boss = $activeWorldBosses[$map->id];
+                                $hpPercent = max(0, min(100, ($boss->current_hp / max(1, $boss->total_hp)) * 100));
+                                $hasParticipated = in_array($boss->id, $participatedBosses);
+                                $deadlineTimestamp = now()->endOfHour()->timestamp * 1000;
+                                $topDmg = $topDamageDealers[$boss->id] ?? collect();
+                            @endphp
+                            <template x-teleport="body">
+                                <div x-show="showBossModal" style="display: none;" 
+                                     x-data="{ 
+                                         timeLeftStr: 'Obliczanie...', 
+                                         deadline: {{ $deadlineTimestamp }},
+                                         init() {
+                                             this.updateTimer();
+                                             setInterval(() => this.updateTimer(), 1000);
+                                         },
+                                         updateTimer() {
+                                             let now = new Date().getTime();
+                                             let diff = this.deadline - now;
+                                             if (diff <= 0) {
+                                                 this.timeLeftStr = '00:00';
+                                                 return;
+                                             }
+                                             let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                                             let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                                             this.timeLeftStr = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                                         }
+                                     }"
+                                     class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                                    <div @click.outside="showBossModal = false" class="bg-gradient-to-br from-gray-900 to-purple-950 border-2 border-purple-500 rounded-xl max-w-4xl w-full p-6 shadow-2xl relative text-left">
+                                        <button @click="showBossModal = false" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+                                        
+                                        <h2 class="text-3xl font-bold text-center text-purple-300 medieval-font mb-6 border-b border-purple-700/50 pb-4">
+                                            👑 Najeźdźca: {{ $boss->monster->name }}
+                                        </h2>
+                                        
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {{-- Left: Boss Info --}}
+                                            <div class="space-y-4 bg-black/30 p-5 rounded-lg border border-purple-900/50">
+                                                <h3 class="text-xl font-bold text-purple-200">Informacje</h3>
+                                                <p class="text-red-300 font-bold">Pozostały czas: <span x-text="timeLeftStr"></span></p>
+                                            
+                                            <div class="mt-4">
+                                                <div class="flex justify-between text-sm mb-1">
+                                                    <span class="text-gray-300 font-bold">Punkty Życia (HP)</span>
+                                                    <span class="text-red-400 font-bold">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
+                                                </div>
+                                                <div class="w-full bg-gray-900 rounded-full h-4 border border-gray-600 overflow-hidden">
+                                                    <div class="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-1000 rounded-full" style="width: {{ $hpPercent }}%"></div>
+                                                </div>
+                                                <div class="text-right text-xs text-red-500 font-bold mt-1">{{ round($hpPercent, 1) }}%</div>
+                                            </div>
+                                            
+                                            <div class="mt-4 pt-4 border-t border-purple-900/50 text-sm text-gray-400 leading-relaxed">
+                                                Każde zadane obrażenia zostają na stałe! Dołącz do walki by pomóc innym pokonać bossa. 
+                                                Nagrody są przyznawane po pokonaniu lub po upływie czasu na podstawie zadanego DMG (Klucze do lochów dla TOP 10).
+                                            </div>
+                                        </div>
+                                        
+                                        {{-- Right: Top DMG --}}
+                                        <div class="space-y-4 bg-black/30 p-5 rounded-lg border border-purple-900/50">
+                                            <h3 class="text-xl font-bold text-purple-200 flex items-center justify-between">
+                                                <span>Top 10 Wojowników</span>
+                                                <span class="text-xs text-gray-500 bg-black/50 px-2 py-1 rounded">DMG</span>
+                                            </h3>
+                                            <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                                @if($topDmg->isEmpty())
+                                                    <p class="text-gray-500 italic text-center py-4">Brak uczestników. Bądź pierwszy!</p>
+                                                @else
+                                                    @foreach($topDmg as $index => $log)
+                                                        <div class="flex justify-between items-center text-sm {{ $log->character_id === $character->id ? 'bg-purple-900/40 border border-purple-500/50' : 'bg-gray-800/50' }} p-2 rounded">
+                                                            <div class="flex items-center gap-2">
+                                                                <span class="font-bold {{ $index === 0 ? 'text-yellow-400' : ($index === 1 ? 'text-gray-300' : ($index === 2 ? 'text-amber-600' : 'text-gray-500')) }}">
+                                                                    #{{ $index + 1 }}
+                                                                </span>
+                                                                <span class="{{ $log->character_id === $character->id ? 'text-purple-300 font-bold' : 'text-gray-300' }}">
+                                                                    {{ $log->character->name }}
+                                                                </span>
+                                                            </div>
+                                                            <span class="text-red-400 font-bold">{{ number_format($log->damage) }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {{-- Bottom Action --}}
+                                    <div class="mt-8 pt-6 border-t border-purple-700/50">
+                                        @if($hasParticipated)
+                                            <button disabled class="w-full bg-gray-700 text-gray-400 font-bold py-4 rounded-lg cursor-not-allowed border-2 border-gray-600 text-xl medieval-font shadow-inner">
+                                                Już brałeś udział w tej walce
+                                            </button>
+                                        @else
+                                            <a href="{{ route('adventure.map', ['character' => $character, 'map' => $map, 'world_boss' => $boss->monster_id]) }}" wire:navigate class="block w-full text-center bg-gradient-to-r from-red-700 via-purple-600 to-red-700 hover:from-red-600 hover:via-purple-500 hover:to-red-600 text-white font-bold py-4 rounded-lg shadow-lg shadow-red-900/50 border-2 border-red-500 transition-all transform hover:scale-[1.02] text-2xl medieval-font">
+                                                ⚔️ DOŁĄCZ DO WALKI! ⚔️
+                                            </a>
+                                        @endif
+                                    </div>
+                                    </div>
+                                </div>
+                            </template>
+                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
+        @endif
 
         {{-- No maps available message --}}
         @if ($maps->isEmpty())
+            @if($tab === 'maps')
             <div class="text-center">
                 <div
                     class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-12 shadow-2xl backdrop-blur-sm max-w-2xl mx-auto">
@@ -338,6 +470,92 @@
                     </p>
                 </div>
             </div>
+            @endif
+        @endif
+
+        {{-- DUNGEONS TAB --}}
+        @if($tab === 'dungeons')
+        <div style="display: block;">
+            @if($activeRun)
+                <div class="bg-amber-900/80 border border-amber-500 rounded-xl p-6 mb-8 flex items-center justify-between shadow-2xl max-w-4xl mx-auto">
+                    <div>
+                        <h3 class="text-2xl font-bold text-amber-300 medieval-font mb-2">Trwająca Ekspedycja</h3>
+                        <p class="text-amber-100">Jesteś w trakcie przemierzania lochu. Kontynuuj swoją przygodę!</p>
+                        <p class="text-sm text-amber-400 mt-1 font-bold">Etap: {{ $activeRun->current_stage }}</p>
+                    </div>
+                    <button wire:click="enterDungeon({{ $activeRun->dungeon_id }})" 
+                        class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg border border-amber-500">
+                        ➡️ Kontynuuj
+                    </button>
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                @foreach($dungeons as $dungeon)
+                    @php
+                        $canEnter = $dungeon->canCharacterEnter($character);
+                        $hasKey = $dungeon->entry_item_template_id ? $character->inventoryItems()->where('template_id', $dungeon->entry_item_template_id)->exists() : true;
+                        $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
+                    @endphp
+                    <div class="bg-slate-900/80 border-2 {{ $isInProgress ? 'border-amber-500' : ($canEnter && $hasKey ? 'border-slate-600 hover:border-slate-400' : 'border-red-900/50 opacity-75') }} rounded-xl p-6 transition-all duration-300 relative group flex flex-col h-full">
+                        
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-2xl font-bold text-slate-200 medieval-font">{{ $dungeon->name }}</h3>
+                            <div class="bg-slate-800 text-slate-300 text-xs font-bold px-2 py-1 rounded border border-slate-700">
+                                Wym. Poz: {{ $dungeon->min_level }}
+                            </div>
+                        </div>
+
+                        <p class="text-slate-400 text-sm mb-6 flex-grow">{{ $dungeon->description }}</p>
+
+                        <div class="space-y-3 mb-6 bg-slate-950/50 p-3 rounded-lg border border-slate-800">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-slate-400">Liczba etapów:</span>
+                                <span class="text-slate-200 font-bold">{{ $dungeon->stages->count() }}</span>
+                            </div>
+                            
+                            @if($dungeon->entryItemTemplate)
+                                <div class="flex justify-between items-center text-sm border-t border-slate-800 pt-2 mt-2">
+                                    <span class="text-slate-400">Klucz:</span>
+                                    <span class="font-bold {{ $hasKey ? 'text-green-400' : 'text-red-400' }} flex items-center gap-1">
+                                        @if($hasKey) ✓ @else ✗ @endif 
+                                        {{ $dungeon->entryItemTemplate->name }}
+                                    </span>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($isInProgress)
+                            <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-lg transition-colors border border-amber-500">
+                                Kontynuuj Ekspedycję
+                            </button>
+                        @elseif($canEnter && $hasKey && !$activeRun)
+                            <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-4 rounded-lg transition-colors border border-slate-500">
+                                Rozpocznij Ekspedycję
+                            </button>
+                        @else
+                            <button disabled class="w-full bg-slate-800 text-slate-500 font-bold py-3 px-4 rounded-lg cursor-not-allowed border border-slate-700">
+                                @if($activeRun)
+                                    Inna ekspedycja trwa
+                                @elseif(!$canEnter)
+                                    Za niski poziom
+                                @else
+                                    Brak klucza
+                                @endif
+                            </button>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+            
+            @if($dungeons && $dungeons->isEmpty())
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4 opacity-50">🏰</div>
+                    <h3 class="text-2xl font-bold text-slate-400 medieval-font mb-2">Brak dostępnych lochów</h3>
+                    <p class="text-slate-500">Wróć później, gdy pojawią się nowe wyzwania.</p>
+                </div>
+            @endif
+        </div>
         @endif
     </div>
 

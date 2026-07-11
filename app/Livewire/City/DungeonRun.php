@@ -9,7 +9,9 @@ use App\Infrastructure\Persistence\CharacterDungeonRun;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Application\Dungeon\DungeonService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class DungeonRun extends Component
 {
     public Character $character;

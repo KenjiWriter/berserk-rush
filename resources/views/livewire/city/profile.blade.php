@@ -154,12 +154,15 @@
             <!-- Stats -->
             <div class="bg-gray-800 border border-gray-700 rounded p-4 mt-auto">
                 <div class="flex justify-between items-end border-b border-gray-700 pb-2 mb-3">
-                    <div class="flex gap-6">
-                        <button wire:click="setTab('attributes')" class="font-bold text-lg transition-colors {{ $activeTab === 'attributes' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                    <div class="flex gap-4">
+                        <button wire:click="setTab('attributes')" class="font-bold text-md transition-colors {{ $activeTab === 'attributes' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
                             Atrybuty
                         </button>
-                        <button wire:click="setTab('stats')" class="font-bold text-lg transition-colors {{ $activeTab === 'stats' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                        <button wire:click="setTab('stats')" class="font-bold text-md transition-colors {{ $activeTab === 'stats' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
                             Statystyki
+                        </button>
+                        <button wire:click="setTab('pets')" class="font-bold text-md transition-colors {{ $activeTab === 'pets' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                            Pety & Inkubator
                         </button>
                     </div>
                     @if($activeTab === 'attributes' && $character->character_points > 0)
@@ -259,6 +262,10 @@
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na całkowite uniknięcie ciosu przeciwnika.">Dodge Chance:</span>
                             <span class="text-emerald-400 font-bold text-base">{{ $derivedStats['dodge_chance'] }}%</span>
                         </div>
+                    </div>
+                @elseif($activeTab === 'pets')
+                    <div class="mt-4">
+                        @include('livewire.city.pets')
                     </div>
                 @endif
             </div>

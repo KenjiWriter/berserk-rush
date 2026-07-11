@@ -26,4 +26,9 @@ class Dungeon extends Model
     {
         return $this->hasMany(CharacterDungeonRun::class);
     }
+
+    public function canCharacterEnter(Character $character): bool
+    {
+        return $character->level >= $this->min_level;
+    }
 }

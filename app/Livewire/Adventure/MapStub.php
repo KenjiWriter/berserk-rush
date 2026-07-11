@@ -40,6 +40,7 @@ class MapStub extends Component
     public array $drops = [];
     public array $levelUps = [];
     public bool $battleCompleted = false;
+    public int $damageDealt = 0;
 
     public function mount(Character $character, Map $map): void
     {
@@ -56,15 +57,41 @@ class MapStub extends Component
         $this->character = $character;
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
+
+        if (request()->has('world_boss')) {
+            $worldBossId = (int)request()->query('world_boss');
+            
+            // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss
+            $worldBossInstance = \App\Infrastructure\Persistence\WorldBossInstance::where('map_id', $this->map->id)
+                ->where('monster_id', $worldBossId)
+                ->where('is_defeated', false)
+                ->first();
+
+            if ($worldBossInstance) {
+                $hasParticipated = \App\Infrastructure\Persistence\WorldBossDamageLog::where('world_boss_instance_id', $worldBossInstance->id)
+                    ->where('character_id', $this->character->id)
+                    ->exists();
+
+                if ($hasParticipated) {
+                    session()->flash('warning', 'Już brałeś udział w walce z tym World Bossem!');
+                } else {
+                    $this->startBattle($worldBossId);
+                }
+            } else {
+                // If it's not a world boss, just start the battle normally
+                $this->startBattle($worldBossId);
+            }
+        }
     }
 
-    public function startBattle(): void
+    public function startBattle(?int $monsterId = null): void
     {
         $this->resetBattleState();
 
         // Start new encounter
         $encounterService = app(EncounterService::class);
-        $startResult = $encounterService->start($this->character, $this->map);
+        $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
+        $startResult = $encounterService->start($this->character, $this->map, $forcedMonster);
 
         if ($startResult->isError()) {
             $this->addError('battle', $startResult->getErrorMessage());
@@ -136,7 +163,7 @@ class MapStub extends Component
         $this->currentEncounterId = null;
         $this->enemy = [];
         
-        $this->redirectRoute('adventure', navigate: true);
+        $this->resetBattleState();
     }
 
     private function reconstructCombatResult(Encounter $encounter): array
@@ -157,6 +184,7 @@ class MapStub extends Component
                 'xp' => $encounter->xp_reward,
                 'gold_data' => $combatData['rewards']['gold_data'] ?? [],
                 'xp_data' => $combatData['rewards']['xp_data'] ?? [],
+                'damage_dealt' => $combatData['damage_dealt'] ?? 0,
             ]
         ];
     }
@@ -248,6 +276,7 @@ class MapStub extends Component
         $this->xpData = [];
         $this->levelUps = [];
         $this->result = '';
+        $this->damageDealt = 0;
     }
 
     private function setupBattleData(Encounter $encounter, array $combatResult): void
@@ -299,6 +328,7 @@ class MapStub extends Component
         $this->xpGained = $combatResult['rewards']['xp'] ?? 0;
         $this->goldData = $combatResult['rewards']['gold_data'] ?? [];
         $this->xpData = $combatResult['rewards']['xp_data'] ?? [];
+        $this->damageDealt = $combatResult['rewards']['damage_dealt'] ?? 0;
     }
 
     /**

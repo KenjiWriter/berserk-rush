@@ -15,44 +15,57 @@ use App\Infrastructure\Persistence\WorldBossDamageLog;
 
 class EncounterService
 {
-    public function start(Character $character, Map $map): Result
+    public function start(Character $character, Map $map, ?Monster $forcedMonster = null): Result
     {
         Log::info('EncounterService::start called', [
             'character_id' => $character->id,
             'character_name' => $character->name,
             'map_id' => $map->id,
             'map_name' => $map->name,
+            'forced_monster_id' => $forcedMonster?->id,
         ]);
 
         try {
-            return DB::transaction(function () use ($character, $map) {
+            return DB::transaction(function () use ($character, $map, $forcedMonster) {
                 Log::info('Starting transaction for encounter');
 
-                // Get monsters for this map
-                $monsters = $map->monsters;
+                $monster = $forcedMonster;
 
-                Log::info('Found monsters for map', [
-                    'map_id' => $map->id,
-                    'monsters_count' => $monsters->count(),
-                    'monsters' => $monsters->map(fn($m) => [
-                        'id' => $m->id,
-                        'name' => $m->name,
-                        'level' => $m->level
-                    ])->toArray()
-                ]);
+                if (!$monster) {
+                    // Get monsters for this map
+                    $monsters = $map->monsters;
 
-                if ($monsters->isEmpty()) {
-                    return Result::error('NO_MONSTERS', 'Brak potworów na tej mapie');
+                    if ($monsters->isEmpty()) {
+                        return Result::error('NO_MONSTERS', 'Brak potworów na tej mapie');
+                    }
+
+                    // Get random monster
+                    $monster = $monsters->random();
                 }
-
-                // Get random monster
-                $monster = $monsters->random();
 
                 Log::info('Selected monster for encounter', [
                     'monster_id' => $monster->id,
                     'monster_name' => $monster->name,
                     'monster_level' => $monster->level
                 ]);
+
+                // Check if this is an active world boss
+                $activeBoss = WorldBossInstance::where('map_id', $map->id)
+                    ->where('monster_id', $monster->id)
+                    ->where('is_defeated', false)
+                    ->first();
+
+                if ($activeBoss) {
+                    $hasEncounter = Encounter::where('character_id', $character->id)
+                        ->where('monster_id', $monster->id)
+                        ->where('map_id', $map->id)
+                        ->where('created_at', '>=', $activeBoss->created_at)
+                        ->exists();
+
+                    if ($hasEncounter) {
+                        return Result::error('ALREADY_PARTICIPATED', 'Już walczyłeś z tym World Bossem!');
+                    }
+                }
 
                 // Determine turn order
                 $totalAttributes = $character->getTotalAttributes();
@@ -156,9 +169,9 @@ class EncounterService
                     $winner = 'enemy'; // Worldboss always wins/survives
                     $damageDealt = max(0, $monsterMaxHp - $finalMonsterHp);
                     
-                    // Skalowanie nagród (np. 1 gold za każde 10 dmg, 1 exp za każde 5 dmg)
-                    $baseGold = max(10, (int)($damageDealt / 10));
-                    $baseXp = max(20, (int)($damageDealt / 5));
+                    // Skalowanie nagród używając spłaszczonej krzywej (np. pierwiastek) by zapobiec nieskończonemu wzrostowi
+                    $baseGold = max(10, (int)ceil(pow($damageDealt, 0.7)));
+                    $baseXp = max(20, (int)ceil(pow($damageDealt, 0.75)));
 
                     $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
                     $goldMult = $multiplierService->getGoldMultiplier($character);
@@ -241,6 +254,7 @@ class EncounterService
                     'player_max_hp' => $playerMaxHp,
                     'monster_max_hp' => $monsterMaxHp,
                     'completed_at' => now()->toISOString(),
+                    'damage_dealt' => $isWorldBoss ? $damageDealt : null,
                     'rewards' => [
                         'gold_data' => $goldRewardData,
                         'xp_data' => $xpRewardData,
@@ -276,12 +290,13 @@ class EncounterService
                         ]
                     ],
                     'turns' => $turns,
-                    'result' => $winner === 'player' ? 'win' : 'loss',
+                    'result' => $isWorldBoss ? 'finished' : ($winner === 'player' ? 'win' : 'loss'),
                     'rewards' => [
                         'gold' => $goldReward,
                         'xp' => $xpReward,
                         'gold_data' => $goldRewardData,
                         'xp_data' => $xpRewardData,
+                        'damage_dealt' => $isWorldBoss ? $damageDealt : null,
                     ]
                 ];
 

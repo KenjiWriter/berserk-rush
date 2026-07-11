@@ -6,6 +6,9 @@ use App\Application\Items\EquipItem;
 use App\Application\Items\UnequipItem;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\ItemInstance;
+use App\Infrastructure\Persistence\Pet;
+use App\Infrastructure\Persistence\CharacterIncubator;
+use App\Application\Pets\IncubatorService;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
@@ -114,6 +117,60 @@ class Profile extends Component
         }
     }
 
+    // --- PETS & INCUBATOR LOGIC ---
+    public function placeEgg(string $eggItemInstanceId): void
+    {
+        $service = app(IncubatorService::class);
+        $result = $service->placeEgg($this->character, $eggItemInstanceId);
+
+        if ($result->isError()) {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            return;
+        }
+
+        $this->dispatch('notify', type: 'success', message: 'Jajko zostało umieszczone w inkubatorze!');
+    }
+
+    public function hatchEgg(): void
+    {
+        $service = app(IncubatorService::class);
+        $result = $service->hatchEgg($this->character);
+
+        if ($result->isError()) {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            return;
+        }
+
+        $pet = $result->getPayload();
+        $this->dispatch('notify', type: 'success', message: "Wykluł się nowy pet: {$pet->name} ({$pet->rarity})!");
+        $this->character->refresh();
+    }
+
+    public function toggleEquipPet(int $petId): void
+    {
+        $service = app(IncubatorService::class);
+        $result = $service->toggleEquipPet($this->character, $petId);
+
+        if ($result->isError()) {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            return;
+        }
+
+        $payload = $result->getPayload();
+        $action = $payload['action'] ?? '';
+        $pet = $payload['pet'] ?? null;
+
+        if ($action === 'equipped') {
+            $this->dispatch('notify', type: 'success', message: "Pet {$pet->name} został założony!");
+        } else {
+            $this->dispatch('notify', type: 'success', message: "Pet {$pet->name} został zdjęty.");
+        }
+
+        $this->character->clearStatsCache();
+        $this->character->refresh();
+    }
+    // -----------------------------
+
     public function addAttribute(string $attribute, int $amount = 1)
     {
         $validAttributes = ['str', 'int', 'vit', 'agi'];
@@ -220,11 +277,25 @@ class Profile extends Component
             });
         }
 
+        $pets = Pet::where('character_id', $this->character->id)
+            ->orderByDesc('is_equipped')
+            ->orderByDesc('rarity')
+            ->get();
+
+        $incubator = CharacterIncubator::where('character_id', $this->character->id)->first();
+
+        $eggs = $this->character->inventoryItems->filter(function($item) {
+            return $item->template->type === 'egg';
+        });
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
             'totalAttributes' => $totalAttributes,
             'derivedStats' => $derivedStats,
+            'pets' => $pets,
+            'incubator' => $incubator,
+            'eggs' => $eggs,
         ]);
     }
 }

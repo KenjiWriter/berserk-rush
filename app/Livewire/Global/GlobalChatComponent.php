@@ -163,6 +163,16 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if (str_starts_with(strtolower($message), '/set level ')) {
+            if ($character->user->permission_level == 9) {
+                $this->handleSetLevelCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
         $cp = $character->getTotalCombatPower();
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
@@ -450,12 +460,35 @@ class GlobalChatComponent extends Component
         $character->save();
 
         $levelUpService = app(\App\Application\Characters\LevelUpService::class);
-        $levelUpResult = $levelUpService->processLevelUps($character);
+        $result = $levelUpService->checkAndApply($character);
 
         $this->dispatch('notify', message: "Dodano {$amount} expa.", type: 'success');
 
-        if ($levelUpResult->hadLevelUp) {
-            $this->dispatch('notify', message: "Awansowałeś na poziom {$character->level}!", type: 'success');
+        if ($result->isOk()) {
+            $levelUpResult = $result->getPayload();
+            if ($levelUpResult && $levelUpResult->hadLevelUp) {
+                $this->dispatch('notify', message: "Awansowałeś na poziom {$character->level}!", type: 'success');
+            }
         }
+    }
+
+    private function handleSetLevelCommand(string $command, Character $character): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 3 || strtolower($parts[1]) !== 'level') {
+            $this->addError('newMessage', 'Użycie: /set level <poziom>');
+            return;
+        }
+
+        $level = (int) $parts[2];
+        if ($level <= 0) {
+            $this->addError('newMessage', 'Poziom musi być większy niż 0.');
+            return;
+        }
+
+        $character->level = $level;
+        $character->save();
+
+        $this->dispatch('notify', message: "Zmieniono poziom na {$level}.", type: 'success');
     }
 }

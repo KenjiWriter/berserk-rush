@@ -399,6 +399,22 @@ class ItemTemplateSeeder extends Seeder
                     'rare' => 10,
                 ],
             ],
+            // Keys
+            [
+                'id' => '01k4jpx94j70x2vv10b835key1',
+                'name' => 'Zardzewiały Klucz do Lochów',
+                'type' => 'material',
+                'slot' => null,
+                'level_requirement' => 8,
+                'base_stats' => [],
+                'description' => 'Tajemniczy stary klucz, który otwiera pobliskie zapomniane lochy.',
+                'icon' => 'key-rusty',
+                'rarity_weights' => [
+                    'common' => 0,
+                    'uncommon' => 70,
+                    'rare' => 30,
+                ],
+            ],
         ];
 
         foreach ($templates as $template) {

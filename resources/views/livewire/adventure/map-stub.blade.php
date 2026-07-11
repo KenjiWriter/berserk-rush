@@ -314,12 +314,18 @@
                                 {{-- Battle Result & Rewards --}}
                                 @if ($battleCompleted)
                                     <li
-                                        class="text-center mt-6 p-4 rounded-xl {{ $result == 'win' ? 'bg-green-200/90 border-2 border-green-600 text-green-800' : 'bg-red-200/90 border-2 border-red-600 text-red-800' }} shadow-lg">
-                                        <div class="text-4xl mb-2">{{ $result == 'win' ? '🏆' : '💀' }}</div>
+                                        class="text-center mt-6 p-4 rounded-xl {{ $result == 'win' ? 'bg-green-200/90 border-2 border-green-600 text-green-800' : ($result == 'finished' ? 'bg-purple-200/90 border-2 border-purple-600 text-purple-900' : 'bg-red-200/90 border-2 border-red-600 text-red-800') }} shadow-lg">
+                                        <div class="text-4xl mb-2">{{ $result == 'win' ? '🏆' : ($result == 'finished' ? '⚔️' : '💀') }}</div>
                                         <div class="text-2xl font-bold medieval-font">
-                                            {{ $result == 'win' ? 'TRIUMF!' : 'KLĘSKA!' }}
+                                            {{ $result == 'win' ? 'TRIUMF!' : ($result == 'finished' ? 'WALKA ZAKOŃCZONA' : 'KLĘSKA!') }}
                                         </div>
-                                        @if ($result == 'win')
+                                        @if ($result == 'win' || $result == 'finished')
+                                            @if($result == 'finished')
+                                                <div class="text-lg mt-2 font-bold text-purple-900">
+                                                    Łączny dmg: <span class="text-red-700 drop-shadow-md">{{ number_format($damageDealt) }}</span>
+                                                </div>
+                                            @endif
+
                                             {{-- Loot Display --}}
                                             @if (!empty($drops))
                                                 <div
@@ -393,16 +399,23 @@
                             <div class="flex items-center justify-center gap-3">
                                 @if ($isCalculating)
                                     <button wire:click="cancelBattle"
-                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
+                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden group"
+                                        wire:loading.attr="disabled"
+                                        wire:target="cancelBattle">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-red-800/60"></div>
-                                        <span
+                                        <div class="absolute inset-0 bg-red-800/60 group-hover:bg-red-700/60 transition-colors"></div>
+                                        
+                                        <span wire:loading.remove wire:target="cancelBattle"
                                             class="relative text-white font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                             🛑 Przerwij walkę
                                         </span>
+                                        <span wire:loading wire:target="cancelBattle"
+                                            class="relative text-white font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                            ⏳ Przerywanie...
+                                        </span>
                                     </button>
-                                @elseif ((empty($visibleTurns) && !$isPlaying) || ($battleCompleted && !$isPlaying))
+                                @elseif (empty($visibleTurns) && !$isPlaying && !$battleCompleted)
                                     <button wire:click="startBattle"
                                         class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
@@ -457,7 +470,7 @@
                                 @endif
 
                                 {{-- Reset Battle --}}
-                                @if ($battleCompleted)
+                                @if ($battleCompleted && !$isWorldBoss)
                                     <button wire:click="resetEncounter"
                                         class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
@@ -465,7 +478,7 @@
                                         <div class="absolute inset-0 bg-slate-700/60"></div>
                                         <span
                                             class="relative text-slate-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                            🔄 Nowa Walka
+                                            🔄 Kolejna Walka
                                         </span>
                                     </button>
                                 @endif

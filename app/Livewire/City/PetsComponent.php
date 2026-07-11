@@ -9,7 +9,9 @@ use App\Infrastructure\Persistence\CharacterIncubator;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Application\Pets\IncubatorService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class PetsComponent extends Component
 {
     public Character $character;
