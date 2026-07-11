@@ -84,17 +84,17 @@ Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`
 
 ---
 
-## 🟢 Faza 10: Doskonalenie UI, Skalowalność i Optymalizacja
+## 🟢 Faza 10: Doskonalenie UI, Skalowalność i Optymalizacja (✅ Zakończona)
 Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i wydajności gry (Core V1).
 - [x] **Zwiększenie Immersji UI:** Dodanie płynnych przejść (nakładka ładowania) podczas poruszania się między mapami, tchnięcie życia w walkę (fizyczne uderzenia, potrząśnięcia paneli) i animacje ubywającego zdrowia.
 - [x] **Skalowalna Walka (Workery w tle):** Przeniesienie ciężkich obliczeń zapytań bitewnych do systemów kolejkowych. Główny proces HTTP zostaje odciążony, a walki są obliczane asynchronicznie, co pozwala na bezproblemową grę dla setek graczy naraz.
-- [ ] **Optymalizacja DB:** Indeksy, optymalizacja zapytań i cachowanie często używanych statystyk w Redis.
+- [x] **Optymalizacja DB:** Indeksy, optymalizacja zapytań i cachowanie często używanych statystyk w Redis.
 
 ---
 
 ## 🟡 Faza 11: Rozszerzenie PvE i Endgame (World Boss & Dungeons)
 Gdy podstawa gry jest solidna, dodajemy wymagający kontent (Endgame) angażujący całą społeczność.
-- [ ] **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
+- [x] **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
 - [x] **World Bossowie:** Epickie czasowe wydarzenia, w których wszyscy serwerowi gracze atakują jednego bossa z potężną pulą HP. Nagrody są przyznawane proporcjonalnie do zadanego Damage'u po ubiciu bossa.
 - [ ] **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
 
