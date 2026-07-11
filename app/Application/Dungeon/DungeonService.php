@@ -400,8 +400,8 @@ class DungeonService
 
             // Grant XP
             if (($loot['xp'] ?? 0) > 0) {
-                $levelService = app(\App\Application\Character\LevelingService::class);
-                $levelService->addExperience($character, $loot['xp']);
+                $character->increment('xp', $loot['xp']);
+                app(\App\Application\Characters\LevelUpService::class)->checkAndApply($character);
             }
 
             // Grant Items
