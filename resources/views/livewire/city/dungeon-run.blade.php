@@ -250,7 +250,7 @@
                             @endif
 
                             {{-- Battle log --}}
-                            <div class="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1" id="dungeon-battle-log-container">
+                            <div class="flex-1 overflow-y-auto max-h-80 bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1 custom-scrollbar" id="dungeon-battle-log-container">
                                 @foreach($visibleTurns as $turn)
                                     <div class="text-sm {{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }} animate-[fadeIn_0.3s_ease-out]">
                                         @if($turn['type'] === 'miss')
@@ -388,6 +388,21 @@
             0% { transform: translateX(0); }
             50% { transform: translateX(-20px); border-color: rgba(239, 68, 68, 0.8); }
             100% { transform: translateX(0); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(17, 24, 39, 0.5); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 0.8); 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8); 
         }
     </style>
 
