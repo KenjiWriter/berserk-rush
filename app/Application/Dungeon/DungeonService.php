@@ -320,8 +320,11 @@ class DungeonService
         $baseGold = (int)($baseGold * mt_rand(90, 110) / 100);
         $baseXp = (int)($baseXp * mt_rand(90, 110) / 100);
 
-        $goldData = $multiplierService->applyMultiplier($character, 'gold', $baseGold);
-        $xpData = $multiplierService->applyMultiplier($character, 'xp', $baseXp);
+        $goldMult = $multiplierService->getGoldMultiplier($character);
+        $xpMult = $multiplierService->getExpMultiplier($character);
+        
+        $totalGold = (int)round($baseGold * $goldMult);
+        $totalXp = (int)round($baseXp * $xpMult);
 
         $items = [];
         
@@ -337,7 +340,7 @@ class DungeonService
                     $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
                     
                     if ($selectedEntry['reward_type'] === 'gold') {
-                        $goldData['total'] += $quantity;
+                        $totalGold += $quantity;
                     } elseif ($selectedEntry['reward_type'] === 'gems') {
                         $items[] = [
                             'type' => 'gems',
@@ -359,8 +362,8 @@ class DungeonService
         }
 
         return [
-            'gold' => $goldData['total'],
-            'xp' => $xpData['total'],
+            'gold' => $totalGold,
+            'xp' => $totalXp,
             'items' => $items,
         ];
     }
