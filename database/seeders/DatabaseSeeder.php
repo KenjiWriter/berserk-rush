@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             ItemTemplateSeeder::class,
             DungeonSeeder::class,
             LootTableSeeder::class,
+            PetSeeder::class,
         ]);
     }
 }

@@ -403,13 +403,43 @@ class GlobalChatComponent extends Component
 
     private function handleGiveCommand(string $command, Character $character): void
     {
-        $parts = explode(' ', trim($command));
+        $commandTrimmed = trim($command);
+        $parts = explode(' ', $commandTrimmed);
         if (count($parts) < 3) {
-            $this->addError('newMessage', 'Użycie: /give <item_id|gold|gems> <ilość>');
+            $this->addError('newMessage', 'Użycie: /give <item_id|gold|gems|pet> <ilość|nazwa>');
             return;
         }
 
         $type = strtolower($parts[1]);
+
+        if ($type === 'pet') {
+            $petName = trim(substr($commandTrimmed, 10)); 
+            if (empty($petName)) {
+                $this->addError('newMessage', 'Użycie: /give pet <nazwa peta>');
+                return;
+            }
+            
+            $petTemplate = \App\Infrastructure\Persistence\PetTemplate::whereRaw('LOWER(name) = ?', [strtolower($petName)])->first();
+            if (!$petTemplate) {
+                $this->addError('newMessage', "Nie znaleziono peta o nazwie: {$petName}");
+                return;
+            }
+            
+            \App\Infrastructure\Persistence\Pet::create([
+                'character_id' => $character->id,
+                'name' => $petTemplate->name,
+                'rarity' => $petTemplate->rarity,
+                'stats' => $petTemplate->base_stats,
+                'level' => 1,
+                'exp' => 0,
+                'is_equipped' => false,
+                'icon' => $petTemplate->icon,
+            ]);
+            
+            $this->dispatch('notify', message: "Otrzymano chowańca: {$petTemplate->name}!", type: 'success');
+            return;
+        }
+
         $amount = (int) $parts[2];
 
         if ($amount <= 0) {

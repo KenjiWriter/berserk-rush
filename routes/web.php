@@ -62,6 +62,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
+    Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
 });
 
 require __DIR__ . '/auth.php';

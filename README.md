@@ -45,6 +45,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - `/give <item_id> <amount>` - Spawn a specific item directly in your character's inventory.
 - `/give gold <amount>` - Add Gold to your character.
 - `/give gems <amount>` - Add Gems to your user account.
+- `/give pet <pet_name>` - Dodaj określonego zwierzaka (np. Leśny Wilk) dla postaci.
 - `/exp <amount>` - Grant EXP to your character and trigger level ups if applicable.
 - `/set level <level>` - Instantly set your character to a specific level.
 - `/set sp <amount>` - Add Stat Points (character_points) to your character.

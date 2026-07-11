@@ -41,6 +41,7 @@
                                 <option value="accessory">Akcesorium</option>
                                 <option value="consumable">Użytkowe</option>
                                 <option value="material">Materiał</option>
+                                <option value="egg">Jajo Peta (Egg)</option>
                             </select>
                             @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
