@@ -156,7 +156,7 @@
         </template>
     </div>
 
-    <div class="min-h-screen bg-gray-100">
+    <div class="min-h-screen bg-gray-100 pb-16 lg:pb-0">
 
         @livewire('global.active-buffs')
 
@@ -178,6 +178,7 @@
     @auth
         @if (session('active_character'))
             @livewire('global.global-chat-component')
+            <x-mobile-nav />
         @endif
     @endauth
 </body>

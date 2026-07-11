@@ -22,10 +22,10 @@
 
 
 
-        <div class="max-w-4xl mx-auto flex gap-4 mb-6">
-            <button wire:click="switchTab('special')" class="{{ $activeTab === 'special' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all">✨ Wywary Specjalne</button>
-            <button wire:click="switchTab('shop')" class="{{ $activeTab === 'shop' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all">🛒 Sklep Alchemiczny</button>
-            <button wire:click="switchTab('crafting')" class="{{ $activeTab === 'crafting' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all">⚗️ Warzenie Mikstur</button>
+        <div class="max-w-4xl mx-auto flex overflow-x-auto whitespace-nowrap gap-4 mb-6 pb-2 custom-scrollbar">
+            <button wire:click="switchTab('special')" class="{{ $activeTab === 'special' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all shrink-0">✨ Wywary Specjalne</button>
+            <button wire:click="switchTab('shop')" class="{{ $activeTab === 'shop' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all shrink-0">🛒 Sklep Alchemiczny</button>
+            <button wire:click="switchTab('crafting')" class="{{ $activeTab === 'crafting' ? 'bg-purple-700' : 'bg-purple-900/50' }} hover:bg-purple-600 px-6 py-3 rounded-lg font-bold border-2 border-purple-500 transition-all shrink-0">⚗️ Warzenie Mikstur</button>
         </div>
 
         {{-- Witch content --}}

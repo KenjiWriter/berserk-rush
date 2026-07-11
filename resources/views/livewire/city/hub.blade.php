@@ -37,10 +37,10 @@
 
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
         {{-- Header with character info --}}
-        <div class="flex items-center justify-between mb-8">
+        <div class="flex flex-col md:flex-row items-center md:justify-between mb-8 gap-4 text-center md:text-left">
             <div
-                class="bg-gradient-to-r from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm">
-                <div class="flex items-center space-x-3">
+                class="bg-gradient-to-r from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm w-full md:w-auto">
+                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
                     {{-- Character avatar --}}
                     <div
                         class="w-12 h-12 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-300">
@@ -66,7 +66,7 @@
             </div>
 
             {{-- Back buttons --}}
-            <div class="flex gap-4">
+            <div class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-4 w-full md:w-auto">
                 @if(auth()->user()->permission_level >= 9)
                     <a href="{{ route('admin.dashboard') }}"
                         class="bg-gradient-to-r from-red-800 to-red-900 hover:from-red-700 hover:to-red-800 text-amber-100 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font flex items-center">
@@ -91,8 +91,8 @@
             </p>
         </div>
 
-        {{-- City layout --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        {{-- City layout (Desktop) --}}
+        <div class="hidden lg:grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {{-- Left side buildings --}}
             <div class="space-y-6">
                 {{-- Profile --}}

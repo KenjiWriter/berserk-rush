@@ -24,31 +24,36 @@
                 <div class="flex flex-col gap-4">
                     <!-- Pet Slot -->
                     @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
-                    <div class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative group"
-                         @if($activePet) wire:click="toggleEquipPet({{ $activePet->id }})" @endif>
+                    <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative"
+                         @if($activePet) @click="open = true" @endif>
                         @if($activePet)
                             <div class="text-center text-xs text-white">
                                 <span class="text-xl">🐾</span>
                                 <span class="block truncate w-14 text-[10px] text-amber-400 mt-1">{{ $activePet->name }}</span>
                             </div>
-                            <!-- Tooltip -->
-                            <div class="hidden group-hover:block absolute left-full ml-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
-                                <div class="flex justify-between items-center">
-                                    <p class="font-bold text-amber-400">{{ $activePet->name }}</p>
-                                    <span class="text-indigo-300 font-bold text-xs">⚡ {{ $activePet->getCombatPower() }}</span>
-                                </div>
-                                <p class="text-gray-300">Poziom: {{ $activePet->level }}</p>
-                                @if(count($activePet->stats ?? []) > 0)
-                                    <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                        @foreach($activePet->stats ?? [] as $stat => $val)
-                                            <div class="flex justify-between text-amber-200">
-                                                <span class="capitalize">{{ $stat }}</span>
-                                                <span class="font-bold">+{{ $val }}</span>
-                                            </div>
-                                        @endforeach
+                            <!-- Modal -->
+                            <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                                <div class="bg-gray-900 border border-amber-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
+                                    <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                    <div class="flex justify-between items-center mb-2">
+                                        <p class="font-bold text-amber-400 text-lg">{{ $activePet->name }}</p>
+                                        <span class="text-indigo-300 font-bold">⚡ {{ $activePet->getCombatPower() }}</span>
                                     </div>
-                                @endif
-                                <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Kliknij by zdjąć</p>
+                                    <p class="text-gray-300 mb-2">Poziom: {{ $activePet->level }}</p>
+                                    @if(count($activePet->stats ?? []) > 0)
+                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
+                                            @foreach($activePet->stats ?? [] as $stat => $val)
+                                                <div class="flex justify-between text-amber-200">
+                                                    <span class="capitalize">{{ $stat }}</span>
+                                                    <span class="font-bold">+{{ $val }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    <button wire:click="toggleEquipPet({{ $activePet->id }})" @click="open = false" class="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                        Odwołaj Peta
+                                    </button>
+                                </div>
                             </div>
                         @else
                             <div class="text-gray-500 flex flex-col items-center">
@@ -59,44 +64,49 @@
                     </div>
 
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
-                             @if(isset($equipped[$slot])) wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @endif>
+                        <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             @if(isset($equipped[$slot])) @click="open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
-                                <!-- Tooltip -->
-                                <div class="hidden group-hover:block absolute left-full ml-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
-                                    <div class="flex justify-between items-center">
-                                        <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
-                                        <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
-                                    </div>
-                                    <p class="text-gray-300">Slot: {{ $slot }}</p>
-                                    @if(isset($equipped[$slot]->roll_stats['mint']))
-                                        <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
-                                            🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
-                                        </p>
-                                    @endif
-                                    
-                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
-                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                            @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
-                                                <div class="flex justify-between">
-                                                    <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                                    <span class="font-bold">+{{ $val }}</span>
-                                                </div>
-                                            @endforeach
-                                            @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
-                                                <div class="flex justify-between text-purple-400">
-                                                    <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
-                                                    <span class="font-bold">+{{ $val }}</span>
-                                                </div>
-                                            @endforeach
+                                <!-- Modal -->
+                                <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
+                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
+                                            <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                         </div>
-                                    @endif
+                                        <p class="text-gray-300 mb-2">Slot: {{ $slot }}</p>
+                                        @if(isset($equipped[$slot]->roll_stats['mint']))
+                                            <p class="text-red-400 font-bold text-xs uppercase mb-2 animate-pulse border-b border-red-500/50 pb-1">
+                                                🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
+                                            </p>
+                                        @endif
+                                        
+                                        @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
+                                            <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1 mb-4 text-sm">
+                                                @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
+                                                    <div class="flex justify-between">
+                                                        <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                        <span class="font-bold">+{{ $val }}</span>
+                                                    </div>
+                                                @endforeach
+                                                @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
+                                                    <div class="flex justify-between text-purple-400">
+                                                        <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
+                                                        <span class="font-bold">+{{ $val }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
 
-                                    <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Click to unequip</p>
+                                        <button wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @click="open = false" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                            Zdejmij przedmiot
+                                        </button>
+                                    </div>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -140,44 +150,49 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
-                             @if(isset($equipped[$slot])) wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @endif>
+                        <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             @if(isset($equipped[$slot])) @click="open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
-                                <!-- Tooltip -->
-                                <div class="hidden group-hover:block absolute right-full mr-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
-                                    <div class="flex justify-between items-center">
-                                        <p class="font-bold text-yellow-400">{{ $equipped[$slot]->template->name }}</p>
-                                        <span class="text-indigo-300 font-bold text-xs">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
-                                    </div>
-                                    <p class="text-gray-300">Slot: {{ $slot }}</p>
-                                    @if(isset($equipped[$slot]->roll_stats['mint']))
-                                        <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
-                                            🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
-                                        </p>
-                                    @endif
-                                    
-                                    @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
-                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                            @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
-                                                <div class="flex justify-between">
-                                                    <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                                    <span class="font-bold">+{{ $val }}</span>
-                                                </div>
-                                            @endforeach
-                                            @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
-                                                <div class="flex justify-between text-purple-400">
-                                                    <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
-                                                    <span class="font-bold">+{{ $val }}</span>
-                                                </div>
-                                            @endforeach
+                                <!-- Modal -->
+                                <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
+                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                        <div class="flex justify-between items-center mb-2">
+                                            <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
+                                            <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                         </div>
-                                    @endif
+                                        <p class="text-gray-300 mb-2">Slot: {{ $slot }}</p>
+                                        @if(isset($equipped[$slot]->roll_stats['mint']))
+                                            <p class="text-red-400 font-bold text-xs uppercase mb-2 animate-pulse border-b border-red-500/50 pb-1">
+                                                🔥 Nakład: {{ $equipped[$slot]->roll_stats['mint'] }} / {{ $equipped[$slot]->roll_stats['max_mint'] }}
+                                            </p>
+                                        @endif
+                                        
+                                        @if(count($equipped[$slot]->template->base_stats ?? []) > 0 || count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0)
+                                            <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1 mb-4 text-sm">
+                                                @foreach($equipped[$slot]->template->base_stats ?? [] as $stat => $val)
+                                                    <div class="flex justify-between">
+                                                        <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                        <span class="font-bold">+{{ $val }}</span>
+                                                    </div>
+                                                @endforeach
+                                                @foreach($equipped[$slot]->roll_stats['enchants'] ?? [] as $stat => $val)
+                                                    <div class="flex justify-between text-purple-400">
+                                                        <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
+                                                        <span class="font-bold">+{{ $val }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
 
-                                    <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Click to unequip</p>
+                                        <button wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @click="open = false" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                            Zdejmij przedmiot
+                                        </button>
+                                    </div>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -317,14 +332,13 @@
                 </div>
             </div>
 
-            <!-- Inventory Filters & Actions -->
-            <div class="flex flex-wrap gap-2 mb-3">
-                <button wire:click="setInventoryFilter('all')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'all' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">All</button>
-                <button wire:click="setInventoryFilter('weapon')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'weapon' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Weapons</button>
-                <button wire:click="setInventoryFilter('armor')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'armor' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Armor</button>
-                <button wire:click="setInventoryFilter('accessory')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'accessory' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Accessories</button>
-                <button wire:click="setInventoryFilter('material')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'material' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Materials</button>
-                <button wire:click="setInventoryFilter('consumable')" class="px-2 py-1 text-xs rounded transition-colors {{ $inventoryFilter === 'consumable' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Consumables</button>
+            <div class="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2 custom-scrollbar">
+                <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Wszystko</button>
+                <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'weapon' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Bronie</button>
+                <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'armor' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Pancerz</button>
+                <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'accessory' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Akcesoria</button>
+                <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'material' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Materiały</button>
+                <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'consumable' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Mikstury</button>
                 
                 <div class="flex-grow"></div>
                 
@@ -335,10 +349,11 @@
             </div>
 
             <!-- Inventory Grid -->
-            <div class="grid grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
+            <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
                 @foreach($inventory as $item)
-                    <div wire:click="equipItem('{{ $item->id }}')" 
-                         class="aspect-square bg-gray-700 border border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative group transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
+                    <div x-data="{ open: false }" @click.outside="open = false" 
+                         class="aspect-square bg-gray-700 border border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                         @click="open = true">
                         
                         <div class="text-center text-xs text-white">
                             <span class="block truncate w-14">{{ $item->template->name }}</span>
@@ -350,49 +365,62 @@
                             @endif
                         </div>
 
-                        <!-- Tooltip -->
-                        <div class="hidden group-hover:block absolute bottom-full mb-2 left-1/2 -translate-x-1/2 z-50 bg-gray-900 border border-gray-500 p-2 rounded text-xs w-48 shadow-xl">
-                            <div class="flex justify-between items-center">
-                                <p class="font-bold text-blue-300">{{ $item->template->name }}</p>
-                                <span class="text-indigo-300 font-bold text-xs">⚡ {{ $item->getCombatPower() }}</span>
-                            </div>
-                            <p class="text-gray-400">Slot: {{ $item->template->slot ?? 'None' }}</p>
-                            <p class="text-gray-400">Level Req: {{ $item->template->level_requirement }}</p>
-                            @if(isset($item->roll_stats['mint']))
-                                <p class="text-red-400 font-bold text-[10px] uppercase mt-1 animate-pulse border-b border-red-500/50 pb-1">
-                                    🔥 Nakład: {{ $item->roll_stats['mint'] }} / {{ $item->roll_stats['max_mint'] }}
-                                </p>
-                            @endif
-                            
-                            @if(count($item->template->base_stats ?? []) > 0 || count($item->roll_stats['enchants'] ?? []) > 0)
-                                <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                    @foreach($item->template->base_stats ?? [] as $stat => $val)
-                                        <div class="flex justify-between">
-                                            <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                            <span class="font-bold">+{{ $val }}</span>
-                                        </div>
-                                    @endforeach
-                                    @foreach($item->roll_stats['enchants'] ?? [] as $stat => $val)
-                                        <div class="flex justify-between text-purple-400">
-                                            <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
-                                            <span class="font-bold">+{{ $val }}</span>
-                                        </div>
-                                    @endforeach
+                        <!-- Modal -->
+                        <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                            <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
+                                <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                
+                                <div class="flex justify-between items-center mb-2 pr-4">
+                                    <p class="font-bold text-blue-300 text-lg">{{ $item->template->name }}</p>
+                                    <span class="text-indigo-300 font-bold">⚡ {{ $item->getCombatPower() }}</span>
                                 </div>
-                            @endif
-                            
-                            <div class="mt-2 border-t border-gray-700 pt-2 flex justify-between items-center gap-2">
-                                @if($character->level < $item->template->level_requirement)
-                                    <p class="text-red-500 font-bold">Level too low!</p>
-                                @else
-                                    <p class="text-green-500">Click to equip</p>
+                                <p class="text-gray-400 mb-1">Slot: {{ $item->template->slot ?? 'Brak' }}</p>
+                                <p class="text-gray-400 mb-2">Wymagany Poz: <span class="text-white">{{ $item->template->level_requirement }}</span></p>
+                                
+                                @if(isset($item->roll_stats['mint']))
+                                    <p class="text-red-400 font-bold text-xs uppercase mb-2 animate-pulse border-b border-red-500/50 pb-1">
+                                        🔥 Nakład: {{ $item->roll_stats['mint'] }} / {{ $item->roll_stats['max_mint'] }}
+                                    </p>
                                 @endif
                                 
-                                @if(!($item->bound_to_character ?? false))
-                                    <button wire:click.stop="openSellModal('{{ $item->id }}')" class="bg-yellow-600 hover:bg-yellow-500 text-white px-2 py-1 rounded text-[10px] font-bold shadow transition-colors">
-                                        Wystaw
-                                    </button>
+                                @if(count($item->template->base_stats ?? []) > 0 || count($item->roll_stats['enchants'] ?? []) > 0)
+                                    <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1 mb-4 text-sm">
+                                        @foreach($item->template->base_stats ?? [] as $stat => $val)
+                                            <div class="flex justify-between">
+                                                <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
+                                                <span class="font-bold">+{{ $val }}</span>
+                                            </div>
+                                        @endforeach
+                                        @foreach($item->roll_stats['enchants'] ?? [] as $stat => $val)
+                                            <div class="flex justify-between text-purple-400">
+                                                <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
+                                                <span class="font-bold">+{{ $val }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 @endif
+                                
+                                <div class="mt-4 border-t border-gray-700 pt-4 flex flex-col gap-2">
+                                    @if($character->level < $item->template->level_requirement)
+                                        <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
+                                    @else
+                                        @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
+                                            <button wire:click="equipItem('{{ $item->id }}')" @click="open = false" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors">
+                                                Załóż sprzęt
+                                            </button>
+                                        @elseif($item->template->type === 'consumable')
+                                            <button wire:click="equipItem('{{ $item->id }}')" @click="open = false" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors">
+                                                Użyj przedmiotu
+                                            </button>
+                                        @endif
+                                    @endif
+                                    
+                                    @if(!($item->bound_to_character ?? false))
+                                        <button wire:click.stop="openSellModal('{{ $item->id }}'); open = false;" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                            Wystaw na targowisko
+                                        </button>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>

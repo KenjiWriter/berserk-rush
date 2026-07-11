@@ -35,12 +35,12 @@
 
     <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen flex flex-col">
         {{-- Header with navigation --}}
-        <div class="flex items-center justify-between mb-8">
-            <h1 class="text-4xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-3">
-                <span class="text-5xl">🏟️</span> Arena Gladiatorów
+        <div class="flex flex-col md:flex-row items-center md:justify-between mb-8 gap-4 text-center md:text-left">
+            <h1 class="text-2xl md:text-4xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-3 justify-center md:justify-start">
+                <span class="text-4xl md:text-5xl">🏟️</span> Arena Gladiatorów
             </h1>
-            <div class="flex items-center space-x-3">
-                <div class="text-amber-100 text-sm medieval-font mr-4 text-right">
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                <div class="text-amber-100 text-sm medieval-font text-center sm:text-right">
                     <div class="font-bold text-lg">{{ $character->name }}</div>
                     <div class="text-amber-300">Ranking: {{ $character->elo }} ({{ ucfirst($currentLeague) }})</div>
                     <div class="text-yellow-400">Żetony: {{ $character->arena_tokens }}</div>
@@ -64,13 +64,13 @@
             <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl border-2 border-amber-900/50">
             <div class="absolute inset-0 bg-amber-950/80 rounded-2xl backdrop-blur-sm"></div>
 
-            <div class="relative p-8">
-                <div class="flex justify-between items-center mb-8 border-b-2 border-amber-800/50 pb-4">
-                    <div>
-                        <h2 class="text-3xl font-bold text-amber-100 medieval-font">Dostępni przeciwnicy</h2>
-                        <p class="text-amber-300/80 text-sm mt-1">Znajdź rywala w swojej lidze i walcz o chwałę oraz żetony areny!</p>
+            <div class="relative p-4 md:p-8">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b-2 border-amber-800/50 pb-4 gap-4">
+                    <div class="text-center md:text-left">
+                        <h2 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font">Dostępni przeciwnicy</h2>
+                        <p class="text-amber-300/80 text-xs md:text-sm mt-1">Znajdź rywala w swojej lidze i walcz o chwałę oraz żetony areny!</p>
                     </div>
-                    <div class="text-right">
+                    <div class="text-center md:text-right">
                         <button wire:click="refreshOpponents" class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
                             <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                             <div class="absolute inset-0 bg-amber-800/60 group-hover:bg-amber-700/60 transition-colors rounded-lg"></div>

@@ -24,18 +24,18 @@
         <div class="bg-gray-900 border-2 border-amber-700 rounded-lg shadow-xl p-4">
             
             {{-- Tabs --}}
-            <div class="flex border-b border-gray-700 mb-4 gap-2">
-                <button wire:click="setTab('buy')" class="px-6 py-2 font-bold transition-colors {{ $activeTab === 'buy' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
+            <div class="flex overflow-x-auto whitespace-nowrap border-b border-gray-700 mb-4 gap-2 pb-2 custom-scrollbar flex-nowrap">
+                <button wire:click="setTab('buy')" class="px-6 py-2 font-bold transition-colors shrink-0 {{ $activeTab === 'buy' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
                     Kup
                 </button>
-                <button wire:click="setTab('sell')" class="px-6 py-2 font-bold transition-colors {{ $activeTab === 'sell' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
+                <button wire:click="setTab('sell')" class="px-6 py-2 font-bold transition-colors shrink-0 {{ $activeTab === 'sell' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
                     Sprzedaj
                 </button>
-                <button wire:click="setTab('upgrade')" class="px-6 py-2 font-bold transition-colors flex items-center gap-2 {{ $activeTab === 'upgrade' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
+                <button wire:click="setTab('upgrade')" class="px-6 py-2 font-bold transition-colors flex items-center gap-2 shrink-0 {{ $activeTab === 'upgrade' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     Kuźnia Ulepszeń
                 </button>
-                <button wire:click="setTab('crafting')" class="px-6 py-2 font-bold transition-colors flex items-center gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
+                <button wire:click="setTab('crafting')" class="px-6 py-2 font-bold transition-colors flex items-center gap-2 shrink-0 {{ $activeTab === 'crafting' ? 'bg-amber-700 text-white rounded-t-lg' : 'text-gray-400 hover:text-amber-500' }}">
                     🛠️ Rzemiosło
                 </button>
             </div>

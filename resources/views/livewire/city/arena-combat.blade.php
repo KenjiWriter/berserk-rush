@@ -41,14 +41,14 @@
 
     <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen">
         {{-- Header with navigation --}}
-        <div class="flex items-center justify-between mb-6">
-            <h1 class="text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
+        <div class="flex flex-col md:flex-row items-center md:justify-between mb-6 gap-4 text-center md:text-left">
+            <h1 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
                 ⚔️ Odtwarzacz Walki {{ $type === 'pvp' ? 'PvP' : 'GvG' }}
             </h1>
 
-            <div class="flex items-center space-x-3">
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
                 {{-- Character info --}}
-                <div class="text-amber-100 text-sm medieval-font mr-4">
+                <div class="text-amber-100 text-sm medieval-font sm:mr-4">
                     <div>{{ $character->name }}</div>
                 </div>
 

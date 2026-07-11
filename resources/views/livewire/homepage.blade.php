@@ -36,12 +36,22 @@
         /%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
 
     <div class="relative container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-6 gap-6">
+        {{-- Game title (Moved to top for mobile) --}}
+        <div class="text-center mb-8">
+            <h1 class="text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl animate-pulse">
+                Berserk Rush
+            </h1>
+            <p class="text-xl text-amber-200 mt-2 font-semibold drop-shadow-lg">
+                Średniowieczne RPG przeglądarowe
+            </p>
+        </div>
+
+        <div class="flex flex-col lg:grid lg:grid-cols-6 lg:gap-6">
             {{-- Left Sidebar --}}
-            <div class="lg:col-span-1 space-y-6 order-2 lg:order-1">
+            <div class="contents lg:block lg:col-span-1 lg:space-y-6">
                 {{-- Active players --}}
                 <div
-                    class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    class="order-1 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                     {{-- Decorative corners --}}
                     <div
                         class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -70,7 +80,7 @@
 
                 {{-- Top Characters --}}
                 <div
-                    class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    class="order-4 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                     {{-- Decorative corners --}}
                     <div
                         class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -107,7 +117,7 @@
 
                 {{-- Top Guilds --}}
                 <div
-                    class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    class="order-5 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                     {{-- Decorative corners --}}
                     <div
                         class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -146,20 +156,9 @@
             </div>
 
             {{-- Main content area --}}
-            <div class="lg:col-span-4 order-1 lg:order-2">
-                {{-- Game title --}}
-                <div class="text-center mb-8">
-                    <h1
-                        class="text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl animate-pulse">
-                        Berserk Rush
-                    </h1>
-                    <p class="text-xl text-amber-200 mt-2 font-semibold drop-shadow-lg">
-                        Średniowieczne RPG przeglądarowe
-                    </p>
-                </div>
-
+            <div class="contents lg:block lg:col-span-4 lg:order-2">
                 {{-- Admin messages parchment --}}
-                <div class="relative">
+                <div class="order-6 lg:order-none mb-6 lg:mb-0 relative">
                     {{-- Parchment background --}}
                     <div
                         class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 rounded-lg border-4 border-amber-700 shadow-2xl relative overflow-hidden backdrop-blur-sm">
@@ -206,11 +205,11 @@
             </div>
 
             {{-- Right Sidebar --}}
-            <div class="lg:col-span-1 space-y-6 order-3">
+            <div class="contents lg:block lg:col-span-1 lg:space-y-6 lg:order-3">
                 @auth
                     {{-- User Info Panel --}}
                     <div
-                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        class="order-2 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -241,7 +240,7 @@
 
                     {{-- My Characters (when logged in) --}}
                     <div
-                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -325,7 +324,7 @@
                 @else
                     {{-- Login/Register section (when not logged in) --}}
                     <div
-                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        class="order-2 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
@@ -363,7 +362,7 @@
 
                     {{-- Quick game info --}}
                     <div
-                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                         {{-- Decorative corners --}}
                         <div
                             class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
