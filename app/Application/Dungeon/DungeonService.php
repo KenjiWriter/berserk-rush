@@ -389,6 +389,8 @@ class DungeonService
                     'amount' => $loot['gold'],
                     'balance_after' => $newGold,
                     'idempotency_key' => "{$idempotencyKey}:gold",
+                    'source_type' => 'dungeon',
+                    'source_id' => $run->id,
                     'created_at' => now(),
                 ]);
             }

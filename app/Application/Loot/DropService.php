@@ -145,6 +145,8 @@ class DropService
             'amount' => $amount,
             'balance_after' => $newBalance,
             'idempotency_key' => $idempotencyKey,
+            'source_type' => 'encounter',
+            'source_id' => $encounter->id,
             'created_at' => now(),
         ]);
     }
