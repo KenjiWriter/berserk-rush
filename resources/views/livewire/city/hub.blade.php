@@ -201,6 +201,21 @@
                     </button>
                 </div>
 
+                {{-- Arena --}}
+                <div class="relative group w-full max-w-xs">
+                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'"
+                        class="w-full bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-orange-600/95 hover:to-orange-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
+                        <div class="relative text-center">
+                            <div class="text-5xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('arena')">🏟️</div>
+                                <div wire:loading wire:target="goTo('arena')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Arena Gladiatorów</h3>
+                            <p class="text-orange-200/80 text-sm font-semibold">Walki PvP o chwałę</p>
+                        </div>
+                    </button>
+                </div>
+
                 <div class="text-center my-4 hidden lg:block">
                     <div class="w-24 h-24 mx-auto bg-gradient-to-b from-stone-400 to-stone-600 rounded-full border-4 border-stone-700 shadow-2xl flex items-center justify-center mb-2">
                         <div class="text-3xl">🏰</div>
@@ -325,7 +340,7 @@
                                 <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                             </div>
                             <h3 class="text-2xl font-bold text-green-900 medieval-font mb-2">Przygoda</h3>
-                            <p class="text-green-800 font-semibold">Wyrusz na niebezpieczne ekspedycje</p>
+                            <p class="text-green-800 font-semibold">Wyrusz na ekspedycje</p>
                         </div>
                     </button>
                 </div>
@@ -396,6 +411,15 @@
                                 <div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                             </div>
                     <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
+                </button>
+
+                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'"
+                    class="bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('arena')">🏟️</div>
+                                <div wire:loading wire:target="goTo('arena')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
+                    <div class="font-bold text-amber-100 medieval-font">Arena</div>
                 </button>
 
                 <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'"

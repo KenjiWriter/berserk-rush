@@ -16,7 +16,7 @@ class GuildComponent extends Component
     public Character $character;
 
     public string $viewMode = 'list'; // 'list', 'create', 'panel'
-    public string $panelTab = 'members'; // 'members', 'logs'
+    public string $panelTab = 'members'; // 'members', 'logs', 'wars'
     
     // Create form
     public string $newGuildName = '';
@@ -88,6 +88,20 @@ class GuildComponent extends Component
             ->where('guild_id', $this->character->guild_id)
             ->latest()
             ->take(50)
+            ->get();
+    }
+
+    public function getWarsProperty()
+    {
+        if ($this->viewMode !== 'panel' || !$this->character->guild_id) {
+            return collect();
+        }
+
+        return \App\Infrastructure\Persistence\GuildWar::with(['fights', 'challengerGuild', 'defenderGuild'])
+            ->where('challenger_guild_id', $this->character->guild_id)
+            ->orWhere('defender_guild_id', $this->character->guild_id)
+            ->orderByDesc('created_at')
+            ->take(10)
             ->get();
     }
 

@@ -17,6 +17,8 @@ class MerchantItem extends Model
         'is_limited',
         'max_quantity',
         'sold_quantity',
+        'currency_type',
+        'price',
     ];
 
     protected $casts = [
@@ -24,6 +26,7 @@ class MerchantItem extends Model
         'required_level' => 'integer',
         'max_quantity' => 'integer',
         'sold_quantity' => 'integer',
+        'price' => 'integer',
     ];
 
     public function template(): BelongsTo

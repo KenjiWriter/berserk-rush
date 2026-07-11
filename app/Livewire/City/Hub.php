@@ -35,6 +35,8 @@ class Hub extends Component
             'mailbox' => route('city.mailbox', $this->character),
             'adventure' => route('city.adventure', $this->character),
             'guild' => route('city.guild', $this->character),
+            'arena' => route('city.arena', $this->character),
+            'gladiator' => route('city.gladiator', $this->character),
             default => route('city.hub', $this->character),
         };
 

@@ -25,6 +25,7 @@
                             <option value="armorsmith">Zbrojmistrz</option>
                             <option value="weaponsmith">Brońmistrz</option>
                             <option value="witch">Wiedźma</option>
+                            <option value="gladiator">Gladiator</option>
                         </select>
                         @error('merchant_id') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -45,6 +46,23 @@
                         <input type="number" wire:model="required_level" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                         <p class="text-xs text-gray-500 mt-1">Gracz nie zobaczy go przed tym levelem.</p>
                         @error('required_level') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-4 grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Waluta</label>
+                            <select wire:model="currency_type" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                                <option value="gold">Złoto</option>
+                                <option value="gems">Diamenty</option>
+                                <option value="arena_tokens">Żetony Areny</option>
+                            </select>
+                            @error('currency_type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Cena</label>
+                            <input type="number" wire:model="price" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                            @error('price') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     <div class="mb-4 p-3 border border-gray-700 rounded bg-gray-900">
@@ -92,6 +110,7 @@
                                     <td class="p-3">
                                         <div class="text-xs text-blue-400 font-bold uppercase">{{ $item->merchant_id }}</div>
                                         <div class="text-white font-bold">{{ $item->template->name }}</div>
+                                        <div class="text-xs text-amber-400 mt-1">Cena: {{ $item->price }} {{ $item->currency_type }}</div>
                                     </td>
                                     <td class="p-3 text-center text-gray-300">{{ $item->required_level }}</td>
                                     <td class="p-3 text-center">

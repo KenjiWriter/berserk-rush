@@ -44,6 +44,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/adventure', Adventure::class)->name('adventure');
         Route::get('/dungeon/{dungeon}', \App\Livewire\City\DungeonRun::class)->name('dungeon.run');
         Route::get('/pets', \App\Livewire\City\PetsComponent::class)->name('pets');
+        Route::get('/arena', \App\Livewire\City\Arena::class)->name('arena');
+        Route::get('/arena/combat/pvp/{pvpId}', \App\Livewire\City\ArenaCombat::class)->name('arena.combat.pvp');
+        Route::get('/arena/combat/gvg/{gvgId}', \App\Livewire\City\ArenaCombat::class)->name('arena.combat.gvg');
+        Route::get('/gladiator', \App\Livewire\City\GladiatorShop::class)->name('gladiator');
     });
 
     // Adventure map routes

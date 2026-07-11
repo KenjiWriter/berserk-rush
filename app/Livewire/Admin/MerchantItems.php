@@ -18,6 +18,8 @@ class MerchantItems extends Component
     public $required_level = 1;
     public $is_limited = false;
     public $max_quantity = null;
+    public $currency_type = 'gold';
+    public $price = 0;
     
     public $editingId = null;
 
@@ -27,6 +29,8 @@ class MerchantItems extends Component
         'required_level' => 'required|integer|min:1',
         'is_limited' => 'boolean',
         'max_quantity' => 'nullable|integer|min:1',
+        'currency_type' => 'required|string|in:gold,gems,arena_tokens',
+        'price' => 'required|integer|min:0',
     ];
 
     public function mount()
@@ -54,6 +58,8 @@ class MerchantItems extends Component
             'required_level' => $this->required_level,
             'is_limited' => $this->is_limited,
             'max_quantity' => $this->max_quantity,
+            'currency_type' => $this->currency_type,
+            'price' => $this->price,
         ];
 
         if ($this->editingId) {
@@ -62,7 +68,9 @@ class MerchantItems extends Component
             MerchantItem::create($data);
         }
 
-        $this->reset(['item_template_id', 'required_level', 'is_limited', 'max_quantity', 'editingId']);
+        $this->reset(['item_template_id', 'required_level', 'is_limited', 'max_quantity', 'currency_type', 'price', 'editingId']);
+        $this->currency_type = 'gold';
+        $this->price = 0;
         $this->loadData();
         session()->flash('message', 'Zapisano asortyment handlarza.');
     }
@@ -76,6 +84,8 @@ class MerchantItems extends Component
         $this->required_level = $mi->required_level;
         $this->is_limited = $mi->is_limited;
         $this->max_quantity = $mi->max_quantity;
+        $this->currency_type = $mi->currency_type ?? 'gold';
+        $this->price = $mi->price ?? 0;
     }
 
     public function delete($id)

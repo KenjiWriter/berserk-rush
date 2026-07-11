@@ -100,31 +100,39 @@ Gdy podstawa gry jest solidna, dodajemy wymagający kontent (Endgame) angażują
 
 ---
 
-## 🟠 Faza 12: Player vs Player (PvP) i Wojny Gildii
+## 🟢 Faza 12: Player vs Player (PvP) i Wojny Gildii (✅ Zakończona)
 Wprowadzenie pełnoprawnej rywalizacji bezpośredniej między graczami. Główny nacisk na architekturę obliczeń w tle (Jobs), żeby walki nie blokowały żądań HTTP.
 
-- [ ] **Arena PvP (Asynchroniczna) - Podstawa:**
+- [x] **Arena PvP (Asynchroniczna) - Podstawa:**
   - Utworzenie widoku Areny w Mieście (`CityController` / `Arena.php` Livewire).
   - Wyświetlanie listy przeciwników o zbliżonym poziomie / ELO z możliwością wyzwania do walki.
   - Zapisywanie "migawki" (snapshot) statystyk gracza (tzw. widmo/ghost) by zapobiec exploitom przy wyzywaniu i móc z nim walczyć asynchronicznie, gdy jest offline.
-- [ ] **Moduł Walki PvP:**
+- [x] **Moduł Walki PvP:**
   - Dostosowanie silnika `EncounterService` lub stworzenie `PvPEncounterService`, gdzie docelowym wrogiem jest struktura danych postaci innego gracza.
   - Obliczenia bitewne koniecznie asynchroniczne (Jobs/Queues) – analogicznie do Dungeonów.
   - Przebudowa interfejsu symulacji walki, by radził sobie z postaciami i ich pancerzem w obu narożnikach.
-- [ ] **System ELO i Rankingów:**
+- [x] **System ELO i Rankingów:**
   - Zaimplementowany System ELO / MMR do rankingowania graczy (przyrost/strata punktów po wygranej/przegranej).
   - Podział na ligi: Brązowa, Srebrna, Złota, Platynowa.
   - Tabela Wyników (Leaderboard) aktualizowana i keszowana cyklicznie za pomocą Redis Sorted Sets.
-- [ ] **Sklep Areny i Nagrody:**
+- [x] **Sklep Areny i Nagrody:**
   - Nowa waluta `PVP Tokens` rozliczana bezpiecznie w tabeli `currency_ledgers`. Otrzymywana za wygrane walki, i jako nagroda na koniec tygodnia za ligę.
   - Osobny NPC Sklep Areny (Arena Shop) umożliwiający zakup ekskluzywnego wyposażenia Gladiatora niedostępnego u potworów.
-- [ ] **Gildie i Wojny Gildii (GvG):**
+- [x] **Gildie i Wojny Gildii (GvG):**
   - Pełnoprawne zakładanie gildii (dokończenie wstępu z Fazy 8), dodawanie członków, wpłacanie waluty by ulepszać pasywne bonusy gildii.
-  - Masowe starcia między zrzeszeniami graczy (GvG). Zwycięska gildia przejmuje czasowo kontrolę nad "kopalniami" gwarantującymi stały przychód Gemsów.
+  - Masowe starcia między zrzeszeniami graczy (GvG). 
 
 ---
 
-## 🔴 Faza 13: System Kolekcji, Osiągnięć i Tytułów
+## 🔴 Faza 13: Przygotowanie UI do wersji mobilnej
+Obecny interfejs użytkownika był projektowany z myślą o przeglądarkach desktopowych. Posiada liczne problemy z wyświetlaniem i interakcjami na urządzeniach mobilnych, przez co gra na smartfonach jest niemożliwa lub utrudniona.
+- **RWD (Responsive Web Design):** Przebudowa istniejących widoków, głównie paneli z ekwipunkiem, sklepów oraz areny pod ekrany smartfonów.
+- **Menu i Nawigacja:** Zamiana nawigacji bocznej lub górnej na dolny pasek (bottom tab bar) lub wygodne rozwijane menu tzw. "hamburger".
+- **Interakcje:** Poprawa klikalności i drag&drop dla urządzeń dotykowych.
+
+---
+
+## 🟤 Faza 14: System Kolekcji, Osiągnięć i Tytułów
 Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów do "kolekcjonowania".
 - **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
 - **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
@@ -132,7 +140,7 @@ Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów 
 
 ---
 
-## 🟤 Faza 14: Ekonomia 2.0 i System Zawodów
+## 🟣 Faza 15: Ekonomia 2.0 i System Zawodów
 Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surowce i nakręcali popyt, co ożywi mocniej Fazy 7 (Market) i 9 (Rzemiosło).
 - **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
 - **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.

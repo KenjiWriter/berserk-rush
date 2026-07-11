@@ -26,6 +26,11 @@ class Character extends Model
         'version',
         'character_points',
         'guild_id',
+        'elo',
+        'league',
+        'arena_tokens',
+        'pvp_refreshes_used',
+        'pvp_refreshes_reset_at',
     ];
 
     protected $casts = [
@@ -35,6 +40,10 @@ class Character extends Model
         'xp' => 'integer',
         'gold' => 'integer',
         'version' => 'integer',
+        'elo' => 'integer',
+        'arena_tokens' => 'integer',
+        'pvp_refreshes_used' => 'integer',
+        'pvp_refreshes_reset_at' => 'datetime',
     ];
 
     protected static function booted()
@@ -247,5 +256,47 @@ class Character extends Model
 
             return $cp;
         });
+    }
+
+    public function pvpEncountersAsAttacker(): HasMany
+    {
+        return $this->hasMany(PvpEncounter::class, 'attacker_character_id');
+    }
+
+    public function pvpEncountersAsDefender(): HasMany
+    {
+        return $this->hasMany(PvpEncounter::class, 'defender_character_id');
+    }
+
+    public function createSnapshot(): array
+    {
+        return [
+            'character_id' => $this->id,
+            'name' => $this->name,
+            'level' => $this->level,
+            'attributes' => $this->getTotalAttributes(),
+            'equipment_stats' => $this->getEquipmentStats(),
+            'max_hp' => $this->getMaxHp(),
+            'combat_power' => $this->getTotalCombatPower(),
+        ];
+    }
+
+    public function getLeagueForElo(): string
+    {
+        $elo = $this->elo ?? 1000;
+
+        if ($elo < 1200) {
+            return 'bronze';
+        }
+
+        if ($elo < 1500) {
+            return 'silver';
+        }
+
+        if ($elo < 1800) {
+            return 'gold';
+        }
+
+        return 'platinum';
     }
 }

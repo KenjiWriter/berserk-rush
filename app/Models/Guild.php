@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\GuildWar;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class Guild extends Model
 {
@@ -22,6 +24,8 @@ class Guild extends Model
         'gems',
         'bonus_xp_level',
         'bonus_gold_level',
+        'war_team',
+        'is_war_locked',
     ];
 
     protected $casts = [
@@ -33,6 +37,8 @@ class Guild extends Model
         'gems' => 'integer',
         'bonus_xp_level' => 'integer',
         'bonus_gold_level' => 'integer',
+        'war_team' => 'array',
+        'is_war_locked' => 'boolean',
     ];
 
     public function members(): HasMany
@@ -94,5 +100,27 @@ class Guild extends Model
         }
 
         $this->save();
+    }
+
+    /**
+     * Get all guild wars where this guild is challenger or defender.
+     */
+    public function wars(): Collection
+    {
+        return GuildWar::where('challenger_guild_id', $this->id)
+            ->orWhere('defender_guild_id', $this->id)
+            ->get();
+    }
+
+    public function hasWarTeam(): bool
+    {
+        $team = $this->war_team ?? [];
+
+        return count($team) === 5;
+    }
+
+    public function isLockedForWar(): bool
+    {
+        return (bool) $this->is_war_locked;
     }
 }

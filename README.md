@@ -57,7 +57,8 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Dynamic Item System:** Items drop with random stats, rarities, and can be upgraded from +0 to +9. Be careful, upgrades can fail!
 - **Crafting & Professions:** Gather materials, learn recipes, and craft unique gear with a chance to proc higher Rarities (Common up to Legendary).
 - **Player-Driven Economy:** An active market / auction house where players dictate the prices of items and materials.
-- **Guilds & Social:** Join or create Guilds with their own treasuries, role structures, private real-time chat, and an internal mail invitation system. Members can use `/donate` commands to support their guild.
+- **Player vs Player (PvP):** Challenge other players in the Arena to climb the ELO leaderboard, earn leagues, and get Arena Tokens to spend in the Gladiator Shop.
+- **Guilds & Social:** Join or create Guilds with their own treasuries, role structures, private real-time chat, and an internal mail invitation system. Members can use `/donate` commands to support their guild. Engage in Guild Wars (GvG) to earn rewards and assert dominance.
 - **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) chat panel pinned to the corner of the screen. Supports multiple channels (Global/Guild), unread counters, in-chat slash commands, and player inspection tooltips showing equipped gear.
 - **Admin Panel & Tools:** Game masters (permission_level == 9) have access to a suite of in-chat commands for testing and a dedicated web-based administrative panel to manage the game state.
 - **World Bosses:** Epic global events where the entire server collaborates to defeat a massive boss, with live leaderboards and proportional rewards based on damage dealt.
@@ -175,6 +176,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [Economy & Mail](./docs/modules/economy.md)
 - [**Global & Guild Chat (Reverb)**](./docs/modules/global_chat.md)
 - [**Guilds**](./docs/modules/guilds.md)
+- [**PvP Arena & Guild Wars**](./docs/modules/pvp_and_arena.md)
 - [**World Bosses**](./docs/modules/world_boss.md)
 
 ## 🛡️ License

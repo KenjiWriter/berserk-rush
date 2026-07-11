@@ -186,6 +186,8 @@
                     <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-6 shadow-2xl backdrop-blur-sm">
                         <div class="flex gap-4 border-b border-slate-700 pb-2 mb-4">
                             <button wire:click="setPanelTab('members')" class="text-lg font-bold {{ $panelTab === 'members' ? 'text-amber-200 underline decoration-amber-500' : 'text-slate-400 hover:text-amber-300' }}">Członkowie Gildii</button>
+                            <span class="text-slate-600">|</span>
+                            <button wire:click="setPanelTab('wars')" class="text-lg font-bold {{ $panelTab === 'wars' ? 'text-amber-200 underline decoration-amber-500' : 'text-slate-400 hover:text-amber-300' }}">Wojny Gildii</button>
                             @if($myMember && $myMember->role === 'leader')
                                 <span class="text-slate-600">|</span>
                                 <button wire:click="setPanelTab('logs')" class="text-lg font-bold {{ $panelTab === 'logs' ? 'text-amber-200 underline decoration-amber-500' : 'text-slate-400 hover:text-amber-300' }}">Logi Gildii (Tylko Lider)</button>
@@ -244,6 +246,59 @@
                                         @endforelse
                                     </tbody>
                                 </table>
+                            </div>
+                        @elseif($panelTab === 'wars')
+                            <div class="space-y-4">
+                                @forelse($this->wars as $war)
+                                    <div class="bg-slate-900/50 border border-slate-700 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <div class="flex items-center gap-4">
+                                                <span class="font-bold {{ $war->challenger_guild_id === $guild->id ? 'text-blue-400' : 'text-red-400' }}">
+                                                    {{ $war->challengerGuild->name }}
+                                                </span>
+                                                <span class="text-slate-500 font-bold text-sm">VS</span>
+                                                <span class="font-bold {{ $war->defender_guild_id === $guild->id ? 'text-blue-400' : 'text-red-400' }}">
+                                                    {{ $war->defenderGuild->name }}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                @if($war->status === 'finished')
+                                                    @if($war->winner_guild_id === $guild->id)
+                                                        <span class="text-green-400 font-bold border border-green-500/50 bg-green-900/30 px-2 py-1 rounded text-xs">Zwycięstwo</span>
+                                                    @else
+                                                        <span class="text-red-400 font-bold border border-red-500/50 bg-red-900/30 px-2 py-1 rounded text-xs">Porażka</span>
+                                                    @endif
+                                                @else
+                                                    <span class="text-amber-400 font-bold border border-amber-500/50 bg-amber-900/30 px-2 py-1 rounded text-xs">W trakcie</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="text-xs text-slate-400 mb-3 border-b border-slate-700/50 pb-2">
+                                            Data: {{ $war->created_at->format('Y-m-d H:i') }}
+                                        </div>
+                                        
+                                        @if($war->fights->count() > 0)
+                                            <div class="grid grid-cols-5 gap-2">
+                                                @foreach($war->fights as $fight)
+                                                    @php 
+                                                        $amIChallenger = $war->challenger_guild_id === $guild->id;
+                                                        $myCharId = $amIChallenger ? $fight->challenger_character_id : $fight->defender_character_id;
+                                                        $won = $fight->winner_character_id === $myCharId;
+                                                    @endphp
+                                                    <a href="{{ route('city.arena.combat.gvg', ['character' => $character, 'gvgId' => $fight->id]) }}" wire:navigate class="block border {{ $won ? 'border-green-600/50 bg-green-900/20 hover:bg-green-800/40' : 'border-red-600/50 bg-red-900/20 hover:bg-red-800/40' }} rounded p-2 text-center transition">
+                                                        <div class="text-[10px] text-slate-400 mb-1">Runda {{ $fight->fight_order }}</div>
+                                                        <div class="text-sm font-bold {{ $won ? 'text-green-400' : 'text-red-400' }} mb-1">{{ $won ? 'W' : 'P' }}</div>
+                                                        <div class="text-xs text-amber-200 truncate">▶ Obejrzyj</div>
+                                                    </a>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <div class="text-xs text-slate-500 italic text-center">Brak rozegranych walk.</div>
+                                        @endif
+                                    </div>
+                                @empty
+                                    <div class="text-center py-8 text-slate-500 italic">Twoja gildia nie brała jeszcze udziału w żadnych wojnach.</div>
+                                @endforelse
                             </div>
                         @endif
                     </div>
