@@ -175,6 +175,8 @@ class DungeonService
                 'stage' => $run->current_stage,
                 'player_hp' => $playerHp,
                 'monster_max_hp' => $monsterMaxHp,
+                'start_player_hp' => $run->current_hp,
+                'start_monster_hp' => $monsterMaxHp,
             ]);
         }
 
@@ -190,6 +192,8 @@ class DungeonService
                 'stage' => $run->current_stage,
                 'player_hp' => $playerHp,
                 'monster_max_hp' => $monsterMaxHp,
+                'start_player_hp' => $run->current_hp,
+                'start_monster_hp' => $monsterMaxHp,
             ]);
         }
 
@@ -204,6 +208,8 @@ class DungeonService
             'next_stage' => $run->current_stage,
             'player_hp' => $playerHp,
             'monster_max_hp' => $monsterMaxHp,
+            'start_player_hp' => $run->current_hp,
+            'start_monster_hp' => $monsterMaxHp,
         ]);
     }
 

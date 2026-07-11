@@ -83,7 +83,7 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {{-- Left: Character status + Potions --}}
-                <div class="space-y-4 order-1 lg:order-1">
+                <div class="space-y-4 order-1 lg:order-1" id="player-panel-container">
                     {{-- Character HP --}}
                     <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5 backdrop-blur-sm">
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Twoja postać</h3>
@@ -97,13 +97,14 @@
                         <div class="mb-2">
                             <div class="flex justify-between text-sm mb-1">
                                 <span class="text-gray-400">HP</span>
-                                <span class="text-{{ $currentHp > $maxHp * 0.5 ? 'green' : ($currentHp > $maxHp * 0.25 ? 'yellow' : 'red') }}-400 font-bold">
-                                    {{ $currentHp }} / {{ $maxHp }}
+                                @php $displayPlayerHp = $showBattle ? $animatedPlayerHp : $currentHp; @endphp
+                                <span class="text-{{ $displayPlayerHp > $maxHp * 0.5 ? 'green' : ($displayPlayerHp > $maxHp * 0.25 ? 'yellow' : 'red') }}-400 font-bold">
+                                    {{ $displayPlayerHp }} / {{ $maxHp }}
                                 </span>
                             </div>
                             <div class="w-full bg-gray-900 rounded-full h-4 border border-gray-600">
-                                @php $hpPercent = $maxHp > 0 ? ($currentHp / $maxHp) * 100 : 0; @endphp
-                                <div class="h-full rounded-full transition-all duration-500 {{ $hpPercent > 50 ? 'bg-gradient-to-r from-green-600 to-green-500' : ($hpPercent > 25 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500') }}"
+                                @php $hpPercent = $maxHp > 0 ? ($displayPlayerHp / $maxHp) * 100 : 0; @endphp
+                                <div class="h-full rounded-full transition-all duration-300 ease-out {{ $hpPercent > 50 ? 'bg-gradient-to-r from-green-600 to-green-500' : ($hpPercent > 25 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500') }}"
                                      style="width: {{ $hpPercent }}%"></div>
                             </div>
                         </div>
@@ -247,7 +248,7 @@
                 </div>
 
                 {{-- Right: Monster --}}
-                <div class="space-y-4 order-3 lg:order-3">
+                <div class="space-y-4 order-3 lg:order-3" id="enemy-panel-container">
                     @if($monster)
                         {{-- Monster info always visible on the right --}}
                         <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-5 backdrop-blur-sm">
@@ -261,7 +262,8 @@
                             <div class="grid grid-cols-2 gap-3 mb-2">
                                 <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
                                     <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
-                                    <p class="font-bold text-red-400 text-lg">{{ $monster->stats['hp'] ?? $monster->level * 20 }}</p>
+                                    @php $displayMonsterHp = $showBattle ? $animatedEnemyHp : ($monster->stats['hp'] ?? $monster->level * 20); @endphp
+                                    <p class="font-bold text-red-400 text-lg">{{ $displayMonsterHp }}</p>
                                 </div>
                                 <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
                                     <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
@@ -291,6 +293,37 @@
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        
+        .anim-damage {
+            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .anim-attack-player {
+            animation: attack-player 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .anim-attack-enemy {
+            animation: attack-enemy 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0) scale(0.98); border-color: rgba(239, 68, 68, 0.8); }
+            20%, 80% { transform: translate3d(3px, 0, 0) scale(0.98); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0) scale(0.98); }
+            40%, 60% { transform: translate3d(5px, 0, 0) scale(0.98); }
+        }
+
+        @keyframes attack-player {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(20px); border-color: rgba(59, 130, 246, 0.8); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes attack-enemy {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(-20px); border-color: rgba(239, 68, 68, 0.8); }
+            100% { transform: translateX(0); }
+        }
     </style>
 
     @script
@@ -318,6 +351,37 @@
             if (playbackInterval) {
                 clearInterval(playbackInterval);
                 playbackInterval = null;
+            }
+        });
+
+        $wire.on('turn-played', (event) => {
+            const data = (event && event[0]) ? event[0] : event;
+            const actor = data.actor;
+            const type = data.type;
+            
+            const playerPanel = document.getElementById('player-panel-container');
+            const enemyPanel = document.getElementById('enemy-panel-container');
+            
+            if (!playerPanel || !enemyPanel) return;
+
+            // Remove existing animation classes to re-trigger
+            playerPanel.classList.remove('anim-attack-player', 'anim-damage');
+            enemyPanel.classList.remove('anim-attack-enemy', 'anim-damage');
+            
+            // Force reflow
+            void playerPanel.offsetWidth;
+            void enemyPanel.offsetWidth;
+
+            if (actor === 'player') {
+                playerPanel.classList.add('anim-attack-player');
+                if (type !== 'miss') {
+                    setTimeout(() => enemyPanel.classList.add('anim-damage'), 150);
+                }
+            } else {
+                enemyPanel.classList.add('anim-attack-enemy');
+                if (type !== 'miss') {
+                    setTimeout(() => playerPanel.classList.add('anim-damage'), 150);
+                }
             }
         });
 

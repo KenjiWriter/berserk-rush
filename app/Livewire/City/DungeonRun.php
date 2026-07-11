@@ -31,6 +31,8 @@ class DungeonRun extends Component
     public bool $isPlaying = false;
     public int $currentTurnIndex = 0;
     public int $playbackSpeed = 1;
+    public int $animatedPlayerHp = 0;
+    public int $animatedEnemyHp = 0;
 
     public function mount(Character $character, Dungeon $dungeon): void
     {
@@ -140,6 +142,9 @@ class DungeonRun extends Component
             $this->battleResult = $run->combat_data;
             $this->turns = $this->battleResult['turns'] ?? [];
             
+            $this->animatedPlayerHp = $this->battleResult['start_player_hp'] ?? $run->current_hp;
+            $this->animatedEnemyHp = $this->battleResult['start_monster_hp'] ?? ($this->battleResult['monster_max_hp'] ?? 0);
+            
             // Start playback
             $this->isPlaying = true;
             $this->dispatch('start-playback', speed: $this->playbackSpeed);
@@ -159,8 +164,20 @@ class DungeonRun extends Component
     public function resume(): void
     {
         if ($this->currentTurnIndex < count($this->turns)) {
-            $this->visibleTurns[] = $this->turns[$this->currentTurnIndex];
+            $turn = $this->turns[$this->currentTurnIndex];
+            $this->visibleTurns[] = $turn;
+            
+            // Update animated HP for UI bindings
+            if ($turn['actor'] === 'player') {
+                $this->animatedEnemyHp = max(0, $this->animatedEnemyHp - $turn['value']);
+            } else {
+                $this->animatedPlayerHp = max(0, $this->animatedPlayerHp - $turn['value']);
+            }
+            
             $this->currentTurnIndex++;
+            
+            // Dispatch event for UI shake animations
+            $this->dispatch('turn-played', actor: $turn['actor'], type: $turn['type'], value: $turn['value'] ?? 0);
         } else {
             $this->isPlaying = false;
             $this->dispatch('stop-playback');
