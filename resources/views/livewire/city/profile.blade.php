@@ -22,6 +22,42 @@
             <div class="flex justify-center items-start gap-4 md:gap-8 mb-8 mt-4">
                 <!-- Left Slots -->
                 <div class="flex flex-col gap-4">
+                    <!-- Pet Slot -->
+                    @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
+                    <div class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative group"
+                         @if($activePet) wire:click="toggleEquipPet({{ $activePet->id }})" @endif>
+                        @if($activePet)
+                            <div class="text-center text-xs text-white">
+                                <span class="text-xl">🐾</span>
+                                <span class="block truncate w-14 text-[10px] text-amber-400 mt-1">{{ $activePet->name }}</span>
+                            </div>
+                            <!-- Tooltip -->
+                            <div class="hidden group-hover:block absolute left-full ml-2 z-50 bg-gray-900 border border-gray-600 p-2 rounded text-xs w-48 shadow-lg">
+                                <div class="flex justify-between items-center">
+                                    <p class="font-bold text-amber-400">{{ $activePet->name }}</p>
+                                    <span class="text-indigo-300 font-bold text-xs">⚡ {{ $activePet->getCombatPower() }}</span>
+                                </div>
+                                <p class="text-gray-300">Poziom: {{ $activePet->level }}</p>
+                                @if(count($activePet->stats ?? []) > 0)
+                                    <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
+                                        @foreach($activePet->stats ?? [] as $stat => $val)
+                                            <div class="flex justify-between text-amber-200">
+                                                <span class="capitalize">{{ $stat }}</span>
+                                                <span class="font-bold">+{{ $val }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                                <p class="text-red-400 mt-2 border-t border-gray-700 pt-2">Kliknij by zdjąć</p>
+                            </div>
+                        @else
+                            <div class="text-gray-500 flex flex-col items-center">
+                                <span class="text-xl opacity-50 mb-1">🐾</span>
+                                <span class="text-[10px]">Pet</span>
+                            </div>
+                        @endif
+                    </div>
+
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
                         <div class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative group {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @endif>
