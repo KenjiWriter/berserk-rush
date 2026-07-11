@@ -306,6 +306,42 @@ class GuildComponent extends Component
         $this->refreshState();
     }
 
+    public function toggleWarRoster(string $characterId): void
+    {
+        if (!$this->character->guild_id) return;
+        
+        $guild = Guild::find($this->character->guild_id);
+        if (!$guild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->addError('roster', 'Tylko lider może zarządzać drużyną wojenną.');
+            return;
+        }
+
+        if ($guild->is_war_locked) {
+            $this->addError('roster', 'Gildia bierze udział w wojnie. Nie można teraz zmieniać drużyny.');
+            return;
+        }
+
+        $team = $guild->war_team ?? [];
+        
+        if (in_array($characterId, $team)) {
+            $team = array_values(array_filter($team, fn($id) => $id !== $characterId));
+        } else {
+            if (count($team) >= 5) {
+                $this->addError('roster', 'Drużyna wojenna może składać się z maksymalnie 5 członków.');
+                return;
+            }
+            $team[] = $characterId;
+        }
+
+        $guild->war_team = $team;
+        $guild->save();
+
+        $this->refreshState();
+    }
+
     public function render()
     {
         return view('livewire.city.guild-component');

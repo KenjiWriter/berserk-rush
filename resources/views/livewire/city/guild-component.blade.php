@@ -195,6 +195,12 @@
                         </div>
                         
                         @if($panelTab === 'members')
+                            <div class="mb-2">
+                                @error('roster')
+                                    <div class="bg-red-900/50 border border-red-500 text-red-200 px-4 py-2 rounded mb-4 text-sm">{{ $message }}</div>
+                                @enderror
+                                <div class="text-xs text-slate-400 mb-2">Drużyna wojenna: {{ count($guild->war_team ?? []) }}/5</div>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-sm text-slate-300">
                                     <thead class="text-xs uppercase bg-slate-900/50 text-slate-500">
@@ -202,14 +208,33 @@
                                             <th class="px-4 py-2">Gracz</th>
                                             <th class="px-4 py-2">Rola</th>
                                             <th class="px-4 py-2">Poz.</th>
+                                            @if($myMember && $myMember->role === 'leader')
+                                                <th class="px-4 py-2 text-right">Akcje</th>
+                                            @endif
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php $warTeam = $guild->war_team ?? []; @endphp
                                         @foreach($guild->members()->with('character')->get() as $member)
+                                            @php $inWar = in_array($member->character_id, $warTeam); @endphp
                                             <tr class="border-b border-slate-700/50 hover:bg-slate-700/30">
-                                                <td class="px-4 py-2 font-bold text-amber-400">{{ $member->character->name }}</td>
+                                                <td class="px-4 py-2 font-bold text-amber-400">
+                                                    {{ $member->character->name }}
+                                                    @if($inWar)
+                                                        <span class="text-red-500 ml-1" title="W drużynie wojennej">⚔️</span>
+                                                    @endif
+                                                </td>
                                                 <td class="px-4 py-2 capitalize text-amber-600">{{ $member->role }}</td>
                                                 <td class="px-4 py-2">{{ $member->character->level }}</td>
+                                                @if($myMember && $myMember->role === 'leader')
+                                                    <td class="px-4 py-2 text-right">
+                                                        <button wire:click="toggleWarRoster('{{ $member->character_id }}')"
+                                                                wire:loading.attr="disabled"
+                                                                class="text-xs border px-2 py-1 rounded transition {{ $inWar ? 'border-red-600 text-red-400 hover:bg-red-900/30' : 'border-slate-500 text-slate-400 hover:bg-slate-700' }}">
+                                                            {{ $inWar ? 'Wycofaj z wojny' : 'Dodaj do wojny' }}
+                                                        </button>
+                                                    </td>
+                                                @endif
                                             </tr>
                                         @endforeach
                                     </tbody>
