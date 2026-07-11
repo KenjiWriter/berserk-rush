@@ -221,7 +221,7 @@
                         <div class="bg-gray-800/90 border border-amber-900/50 rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm flex flex-col justify-center h-full">
                             <div class="text-5xl mb-4 animate-pulse">⏳</div>
                             <h3 class="text-lg text-gray-400 uppercase tracking-widest mb-2 font-bold">Walka trwa</h3>
-                            <h2 class="text-2xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Trwa symulacja walki...</h2>
+                            <h2 class="text-2xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Trwa obliczanie walki...</h2>
                             <div class="flex justify-center items-center mt-4 text-amber-500">
                                 <svg class="animate-spin h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                             </div>
