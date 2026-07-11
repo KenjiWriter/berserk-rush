@@ -15,12 +15,14 @@ class CharacterDungeonRun extends Model
         'is_failed',
         'combat_state',
         'combat_data',
+        'accumulated_loot',
     ];
 
     protected $casts = [
         'is_completed' => 'boolean',
         'is_failed' => 'boolean',
         'combat_data' => 'array',
+        'accumulated_loot' => 'array',
     ];
 
     public function character()

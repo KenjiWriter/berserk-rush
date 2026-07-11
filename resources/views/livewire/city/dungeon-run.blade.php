@@ -52,11 +52,66 @@
 
         {{-- DUNGEON COMPLETE --}}
         @elseif($battleResult && ($battleResult['result'] ?? '') === 'dungeon_complete' && !$showBattle)
-            <div class="bg-gray-800/80 border border-amber-500 rounded-xl p-8 text-center backdrop-blur-sm">
+            <div class="bg-gray-800/80 border border-amber-500 rounded-xl p-8 text-center backdrop-blur-sm shadow-2xl">
                 <div class="text-7xl mb-4">🏆</div>
                 <h2 class="text-3xl font-bold text-amber-300 mb-3" style="font-family: 'Cinzel', serif;">Gratulacje!</h2>
                 <p class="text-gray-300 text-lg mb-2">Ukończyłeś loch <strong class="text-amber-400">{{ $dungeon->name }}</strong>!</p>
                 <p class="text-gray-400 mb-6">Przetrwałeś wszystkie {{ $totalStages }} etapów.</p>
+                
+                @if(isset($battleResult['total_loot']))
+                    <div class="max-w-md mx-auto bg-gray-900/80 border-2 border-amber-600/50 rounded-lg p-5 mb-8 text-left shadow-inner">
+                        <h4 class="font-bold text-amber-500 mb-3 text-center uppercase tracking-widest text-sm">🎁 Zgromadzony Łup</h4>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-blue-500">✨</span>
+                                    <span class="text-gray-300 font-semibold">Doświadczenie</span>
+                                </div>
+                                <span class="text-amber-400 font-bold">+{{ $battleResult['total_loot']['xp'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-yellow-500">💰</span>
+                                    <span class="text-gray-300 font-semibold">Złoto</span>
+                                </div>
+                                <span class="text-amber-400 font-bold">+{{ $battleResult['total_loot']['gold'] ?? 0 }}</span>
+                            </div>
+                            
+                            @if(isset($battleResult['total_loot']['items']) && count($battleResult['total_loot']['items']) > 0)
+                                @php
+                                    // Group items by name to display stacks properly
+                                    $groupedItems = [];
+                                    foreach ($battleResult['total_loot']['items'] as $item) {
+                                        $name = $item['name'];
+                                        if (!isset($groupedItems[$name])) {
+                                            $groupedItems[$name] = [
+                                                'type' => $item['type'],
+                                                'quantity' => 0,
+                                            ];
+                                        }
+                                        $groupedItems[$name]['quantity'] += $item['quantity'];
+                                    }
+                                @endphp
+                                
+                                @foreach($groupedItems as $name => $data)
+                                    <div class="flex items-center justify-between pb-1 pt-1">
+                                        <div class="flex items-center space-x-2">
+                                            <span>
+                                                @if($data['type'] === 'gems') 💎
+                                                @elseif($data['type'] === 'material') 🌿
+                                                @else ⚔️
+                                                @endif
+                                            </span>
+                                            <span class="text-gray-300">{{ $name }}</span>
+                                        </div>
+                                        <span class="text-amber-500 font-bold">{{ $data['quantity'] }}x</span>
+                                    </div>
+                                @endforeach
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
                 <button wire:click="backToDungeonList"
                     class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
                     style="font-family: 'Cinzel', serif;">

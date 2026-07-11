@@ -9,6 +9,13 @@ use App\Infrastructure\Persistence\Dungeon;
 use App\Infrastructure\Persistence\DungeonStage;
 use App\Infrastructure\Persistence\CharacterDungeonRun;
 use App\Infrastructure\Persistence\ItemInstance;
+use App\Infrastructure\Persistence\ItemInstance;
+use App\Infrastructure\Persistence\ItemLedger;
+use App\Infrastructure\Persistence\CurrencyLedger;
+use App\Application\Loot\WeightedPicker;
+use App\Infrastructure\RNG\RandomProvider;
+use App\Application\Combat\RewardMultiplierService;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -164,6 +171,8 @@ class DungeonService
 
         // Zapisz stan HP po walce
         $run->current_hp = $playerHp;
+        
+        $accumulatedLoot = $run->accumulated_loot ?? ['gold' => 0, 'xp' => 0, 'items' => []];
 
         if (!$won || $playerHp <= 0) {
             $run->is_failed = true;
@@ -180,11 +189,23 @@ class DungeonService
             ]);
         }
 
+        // Przeciwnik pokonany - losujemy loot
+        $lootFromThisStage = $this->calculateStageLoot($character, $monster);
+        $accumulatedLoot['gold'] += $lootFromThisStage['gold'];
+        $accumulatedLoot['xp'] += $lootFromThisStage['xp'];
+        foreach ($lootFromThisStage['items'] as $item) {
+            $accumulatedLoot['items'][] = $item;
+        }
+        $run->accumulated_loot = $accumulatedLoot;
+
         // Sprawdź czy to ostatni etap
         $totalStages = $run->dungeon->stages()->count();
         if ($run->current_stage >= $totalStages) {
             $run->is_completed = true;
             $run->save();
+            
+            // Ostatni etap wygrany -> przyznaj cały loot
+            $this->grantAccumulatedLoot($run);
 
             return Result::ok([
                 'turns' => $turns,
@@ -194,6 +215,8 @@ class DungeonService
                 'monster_max_hp' => $monsterMaxHp,
                 'start_player_hp' => $run->current_hp,
                 'start_monster_hp' => $monsterMaxHp,
+                'loot' => $lootFromThisStage,
+                'total_loot' => $accumulatedLoot,
             ]);
         }
 
@@ -210,6 +233,7 @@ class DungeonService
             'monster_max_hp' => $monsterMaxHp,
             'start_player_hp' => $run->current_hp,
             'start_monster_hp' => $monsterMaxHp,
+            'loot' => $lootFromThisStage,
         ]);
     }
 
@@ -284,5 +308,191 @@ class DungeonService
         $defense = $vitality + ($character->level / 2) + $eq['defense'];
 
         return max(1, $baseDamage - ($defense / 2));
+    }
+
+    private function calculateStageLoot(Character $character, $monster): array
+    {
+        $multiplierService = app(RewardMultiplierService::class);
+        
+        $baseGold = $monster->stats['gold'] ?? $monster->level * 10;
+        $baseXp = $monster->stats['xp'] ?? $monster->level * 15;
+
+        // Apply variance
+        $baseGold = (int)($baseGold * mt_rand(90, 110) / 100);
+        $baseXp = (int)($baseXp * mt_rand(90, 110) / 100);
+
+        $goldData = $multiplierService->applyMultiplier($character, 'gold', $baseGold);
+        $xpData = $multiplierService->applyMultiplier($character, 'xp', $baseXp);
+
+        $items = [];
+        
+        // Roll loot table
+        if ($monster->lootTable) {
+            $entries = $monster->lootTable->entries->toArray();
+            if (!empty($entries)) {
+                $picker = app(WeightedPicker::class);
+                $rng = app(RandomProvider::class);
+                
+                $selectedEntry = $picker->pick($entries);
+                if ($selectedEntry) {
+                    $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+                    
+                    if ($selectedEntry['reward_type'] === 'gold') {
+                        $goldData['total'] += $quantity;
+                    } elseif ($selectedEntry['reward_type'] === 'gems') {
+                        $items[] = [
+                            'type' => 'gems',
+                            'name' => 'Klejnoty',
+                            'quantity' => $quantity,
+                            'ref_ulid' => null,
+                        ];
+                    } elseif (in_array($selectedEntry['reward_type'], ['item', 'material'])) {
+                        $template = \App\Infrastructure\Persistence\ItemTemplate::find($selectedEntry['ref_ulid']);
+                        $items[] = [
+                            'type' => $selectedEntry['reward_type'],
+                            'name' => $template ? $template->name : 'Przedmiot',
+                            'quantity' => $quantity,
+                            'ref_ulid' => $selectedEntry['ref_ulid'],
+                        ];
+                    }
+                }
+            }
+        }
+
+        return [
+            'gold' => $goldData['total'],
+            'xp' => $xpData['total'],
+            'items' => $items,
+        ];
+    }
+
+    private function grantAccumulatedLoot(CharacterDungeonRun $run): void
+    {
+        $character = $run->character;
+        $loot = $run->accumulated_loot;
+        if (!$loot) return;
+
+        DB::transaction(function () use ($character, $loot, $run) {
+            $idempotencyKey = "dungeon_run:{$run->id}";
+            
+            // Grant Gold
+            if (($loot['gold'] ?? 0) > 0) {
+                $newGold = $character->gold + $loot['gold'];
+                $character->update(['gold' => $newGold]);
+                
+                CurrencyLedger::create([
+                    'id' => Str::ulid(),
+                    'character_id' => $character->id,
+                    'currency_type' => 'gold',
+                    'amount' => $loot['gold'],
+                    'balance_after' => $newGold,
+                    'idempotency_key' => "{$idempotencyKey}:gold",
+                    'created_at' => now(),
+                ]);
+            }
+
+            // Grant XP
+            if (($loot['xp'] ?? 0) > 0) {
+                $levelService = app(\App\Application\Character\LevelingService::class);
+                $levelService->addExperience($character, $loot['xp']);
+            }
+
+            // Grant Items
+            $items = $loot['items'] ?? [];
+            foreach ($items as $index => $itemData) {
+                if ($itemData['type'] === 'gems') {
+                    $user = $character->user;
+                    $newGems = $user->gems + $itemData['quantity'];
+                    $user->update(['gems' => $newGems]);
+                    
+                    CurrencyLedger::create([
+                        'id' => Str::ulid(),
+                        'character_id' => $character->id,
+                        'currency_type' => 'gems',
+                        'amount' => $itemData['quantity'],
+                        'balance_after' => $newGems,
+                        'idempotency_key' => "{$idempotencyKey}:gems:{$index}",
+                        'created_at' => now(),
+                    ]);
+                } elseif (in_array($itemData['type'], ['item', 'material'])) {
+                    $templateUlid = $itemData['ref_ulid'];
+                    $quantity = $itemData['quantity'];
+                    if (!$templateUlid) continue;
+                    
+                    $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid);
+                    if (!$template) continue;
+
+                    if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+                        $existingItem = ItemInstance::where('owner_character_id', $character->id)
+                            ->where('template_id', $templateUlid)
+                            ->where('location', 'inventory')
+                            ->first();
+
+                        if ($existingItem) {
+                            $existingItem->stack_size += $quantity;
+                            $existingItem->save();
+                            
+                            ItemLedger::create([
+                                'id' => Str::ulid(),
+                                'character_id' => $character->id,
+                                'item_instance_id' => $existingItem->id,
+                                'action' => 'drop',
+                                'ref_type' => 'dungeon_run',
+                                'ref_id' => $run->id,
+                                'quantity_change' => $quantity,
+                                'idempotency_key' => "{$idempotencyKey}:item:{$index}"
+                            ]);
+                        } else {
+                            $instance = ItemInstance::create([
+                                'id' => Str::ulid(),
+                                'template_id' => $templateUlid,
+                                'owner_character_id' => $character->id,
+                                'location' => 'inventory',
+                                'stack_size' => $quantity,
+                                'rarity' => 'common',
+                                'roll_stats' => [],
+                                'upgrade_level' => 0
+                            ]);
+                            
+                            ItemLedger::create([
+                                'id' => Str::ulid(),
+                                'character_id' => $character->id,
+                                'item_instance_id' => $instance->id,
+                                'action' => 'drop',
+                                'ref_type' => 'dungeon_run',
+                                'ref_id' => $run->id,
+                                'quantity_change' => $quantity,
+                                'idempotency_key' => "{$idempotencyKey}:item:{$index}"
+                            ]);
+                        }
+                    } else {
+                        // Unstackable items
+                        for ($i = 0; $i < $quantity; $i++) {
+                            $instance = ItemInstance::create([
+                                'id' => Str::ulid(),
+                                'template_id' => $templateUlid,
+                                'owner_character_id' => $character->id,
+                                'location' => 'inventory',
+                                'stack_size' => 1,
+                                'rarity' => 'common',
+                                'roll_stats' => [],
+                                'upgrade_level' => 0
+                            ]);
+                            
+                            ItemLedger::create([
+                                'id' => Str::ulid(),
+                                'character_id' => $character->id,
+                                'item_instance_id' => $instance->id,
+                                'action' => 'drop',
+                                'ref_type' => 'dungeon_run',
+                                'ref_id' => $run->id,
+                                'quantity_change' => 1,
+                                'idempotency_key' => "{$idempotencyKey}:item:{$index}:{$i}"
+                            ]);
+                        }
+                    }
+                }
+            }
+        });
     }
 }
