@@ -33,10 +33,10 @@ class EncounterService
 
                 if (!$monster) {
                     // Get monsters for this map
-                    $monsters = $map->monsters;
+                    $monsters = $map->monsters->where('rank', '!=', 'worldboss');
 
                     if ($monsters->isEmpty()) {
-                        return Result::error('NO_MONSTERS', 'Brak potworów na tej mapie');
+                        return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
                     }
 
                     // Get random monster
@@ -56,13 +56,11 @@ class EncounterService
                     ->first();
 
                 if ($activeBoss) {
-                    $hasEncounter = Encounter::where('character_id', $character->id)
-                        ->where('monster_id', $monster->id)
-                        ->where('map_id', $map->id)
-                        ->where('created_at', '>=', $activeBoss->created_at)
+                    $hasParticipated = WorldBossDamageLog::where('world_boss_instance_id', $activeBoss->id)
+                        ->where('character_id', $character->id)
                         ->exists();
 
-                    if ($hasEncounter) {
+                    if ($hasParticipated) {
                         return Result::error('ALREADY_PARTICIPATED', 'Już walczyłeś z tym World Bossem!');
                     }
                 }

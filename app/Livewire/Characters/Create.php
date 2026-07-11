@@ -105,21 +105,6 @@ class Create extends Component
         $this->validateOnly($propertyName);
     }
 
-    public function incrementStat(string $stat): void
-    {
-        if ($this->getRemainingPoints() > 0 && $this->$stat < 10) {
-            $this->$stat++;
-            $this->validateStatAllocation();
-        }
-    }
-
-    public function decrementStat(string $stat): void
-    {
-        if ($this->$stat > 0) {
-            $this->$stat--;
-            $this->validateStatAllocation();
-        }
-    }
 
     public function getRemainingPoints(): int
     {

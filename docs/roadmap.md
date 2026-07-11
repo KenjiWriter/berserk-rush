@@ -141,7 +141,16 @@ Obecny interfejs użytkownika był projektowany z myślą o przeglądarkach desk
 
 ---
 
-## 🟤 Faza 14: System Kolekcji, Osiągnięć i Tytułów
+## 🟢 Faza 14: System Tutorialu i Wprowadzenie (Onboarding) (✅ Zakończona)
+Stworzenie kompleksowego systemu wprowadzającego nowych graczy w mechaniki gry.
+- [x] **Layout Tutorialu:** Dedykowany komponent Livewire `TutorialOverlay` z avatarem Kapitana, który w formie dialogu tłumaczy graczowi zawiłości systemu.
+- [x] **Część 1 (Strona Główna i Profil):** Wyskakujące instrukcje po utworzeniu postaci, nakierowujące gracza na naukę rozdawania pierwszych statystyk i uświadamiające, jak działają atrybuty.
+- [x] **Część 2 (Ekwipunek i Walka):** Wręczenie Zardzewiałego Miecza, nauka zakładania ekwipunku, a następnie wyprawa na pierwszą mapę PvE, wyłączenie trybu auto-battle w celu objaśnienia starcia i zdobycie nagrody (Hełm).
+- [x] **Część 3 (Gospodarka i Ulepszenia):** Wizyta u Brońmistrza, omówienie Kuźni (+0 do +9) i kupno lepszej broni, za co gracz otrzymuje ostateczną nagrodę (Skórzaną Zbroję) kończącą etap samouczka.
+
+---
+
+## 🟤 Faza 15: System Kolekcji, Osiągnięć i Tytułów
 Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów do "kolekcjonowania".
 - **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
 - **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
@@ -149,7 +158,7 @@ Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów 
 
 ---
 
-## 🟣 Faza 15: Ekonomia 2.0 i System Zawodów
+## 🟣 Faza 16: Ekonomia 2.0 i System Zawodów
 Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surowce i nakręcali popyt, co ożywi mocniej Fazy 7 (Market) i 9 (Rzemiosło).
 - **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
 - **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.

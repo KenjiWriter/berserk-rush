@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
+use Livewire\Attributes\On;
 
 #[Layout('components.layouts.app')]
 class Adventure extends Component
@@ -37,6 +38,12 @@ class Adventure extends Component
         $this->maps = Map::with(['monsters.lootTable.entries.itemTemplate'])->orderBy('level_min')->get();
     }
 
+    #[On('tutorial-completed')]
+    public function refreshOnTutorial()
+    {
+        // Trigger a re-render so $gameStage in blade gets updated
+    }
+
     public function enterMap(string $mapId): void
     {
         $map = Map::findOrFail($mapId);
@@ -44,6 +51,12 @@ class Adventure extends Component
         if (!$map->isAccessibleBy($this->character)) {
             $this->addError('map_access', 'Twój poziom nie pozwala na wejście na tę mapę.');
             return;
+        }
+
+        $user = Auth::user();
+        if ($user && $user->game_stage == 10 && $map->level_min == 0) {
+            $user->game_stage = 11;
+            $user->save();
         }
 
         $this->redirect(

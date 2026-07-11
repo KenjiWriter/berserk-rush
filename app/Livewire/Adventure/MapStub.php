@@ -9,6 +9,7 @@ use App\Application\Combat\EncounterService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
 use App\Application\Characters\LevelUpService;
+use Livewire\Attributes\On;
 
 class MapStub extends Component
 {
@@ -41,6 +42,14 @@ class MapStub extends Component
     public array $levelUps = [];
     public bool $battleCompleted = false;
     public int $damageDealt = 0;
+    public bool $isWorldBoss = false;
+
+    #[On('tutorial-completed')]
+    public function refreshOnTutorial()
+    {
+        // Force refresh
+        $this->character->refresh();
+    }
 
     public function mount(Character $character, Map $map): void
     {
@@ -58,7 +67,12 @@ class MapStub extends Component
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
 
+        if ($character->game_stage <= 12) {
+            $this->autoChain = false;
+        }
+
         if (request()->has('world_boss')) {
+            $this->isWorldBoss = true;
             $worldBossId = (int)request()->query('world_boss');
             
             // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss
@@ -73,13 +87,15 @@ class MapStub extends Component
                     ->exists();
 
                 if ($hasParticipated) {
+                    $this->isWorldBoss = false;
                     session()->flash('warning', 'Już brałeś udział w walce z tym World Bossem!');
                 } else {
                     $this->startBattle($worldBossId);
                 }
             } else {
-                // If it's not a world boss, just start the battle normally
-                $this->startBattle($worldBossId);
+                $this->isWorldBoss = false;
+                session()->flash('warning', 'Ten World Boss nie jest obecnie aktywny na tej mapie.');
+                $this->startBattle();
             }
         }
     }
@@ -90,11 +106,19 @@ class MapStub extends Component
 
         // Start new encounter
         $encounterService = app(EncounterService::class);
+        
+        // Zabezpieczenie: tylko przy aktywnym statusie World Boss pozwalamy na wymuszone ID potwora
+        if (!$this->isWorldBoss) {
+            $monsterId = null;
+        }
+        
         $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
         $startResult = $encounterService->start($this->character, $this->map, $forcedMonster);
 
         if ($startResult->isError()) {
             $this->addError('battle', $startResult->getErrorMessage());
+            $this->isCalculating = false;
+            $this->enemy = [];
             return;
         }
 
@@ -223,6 +247,9 @@ class MapStub extends Component
 
     public function toggleAutoChain(): void
     {
+        if ($this->character->game_stage <= 12) {
+            return;
+        }
         $this->autoChain = !$this->autoChain;
     }
 

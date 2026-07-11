@@ -178,6 +178,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [**Guilds**](./docs/modules/guilds.md)
 - [**PvP Arena & Guild Wars**](./docs/modules/pvp_and_arena.md)
 - [**World Bosses**](./docs/modules/world_boss.md)
+- [**Tutorial & Onboarding**](./docs/modules/tutorial.md)
 
 ## 🛡️ License
 

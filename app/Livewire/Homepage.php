@@ -9,9 +9,10 @@ use Livewire\Attributes\On;
 class Homepage extends Component
 {
     #[On('user-logged-in')]
+    #[On('tutorial-completed')]
     public function refreshAfterLogin()
     {
-        // This will trigger a re-render to show the logged-in state
+        // This will trigger a re-render to show the logged-in state or updated tutorial state
     }
 
     public function render()

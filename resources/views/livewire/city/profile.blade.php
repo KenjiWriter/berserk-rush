@@ -2,6 +2,16 @@
     <div class="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-800/50 to-slate-900/60"></div>
 
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
+        @php
+            $gameStage = auth()->user()->game_stage;
+        @endphp
+
+        @if($gameStage == 5)
+            <livewire:global.tutorial-overlay :step="6" />
+        @elseif($gameStage == 7)
+            <livewire:global.tutorial-overlay :step="8" :rewardXp="50" />
+        @endif
+
         {{-- Header --}}
         <div class="flex items-center justify-between mb-8">
             <div class="bg-gradient-to-r from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm">
@@ -9,7 +19,7 @@
             </div>
 
             <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
+                class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg medieval-font {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}">
                 🏰 Powrót do miasta
             </button>
         </div>
@@ -64,17 +74,17 @@
                     </div>
 
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
-                             @if(isset($equipped[$slot])) @click="open = true" @endif>
+                        <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
-                                <!-- Modal -->
-                                <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
-                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                <!-- Tooltip / Modal -->
+                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-64 z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
+                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                         <div class="flex justify-between items-center mb-2">
                                             <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
                                             <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
@@ -107,6 +117,8 @@
                                             Zdejmij przedmiot
                                         </button>
                                     </div>
+                                    <!-- Arrow (Desktop only) -->
+                                    <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-blue-500 transform rotate-45"></div>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -150,17 +162,17 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
-                             @if(isset($equipped[$slot])) @click="open = true" @endif>
+                        <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
                                     <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
                                     <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
                                 </div>
-                                <!-- Modal -->
-                                <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
-                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                                <!-- Tooltip / Modal -->
+                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-64 z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                                    <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
+                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                         <div class="flex justify-between items-center mb-2">
                                             <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
                                             <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
@@ -193,6 +205,8 @@
                                             Zdejmij przedmiot
                                         </button>
                                     </div>
+                                    <!-- Arrow (Desktop only) -->
+                                    <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-blue-500 transform rotate-45"></div>
                                 </div>
                             @else
                                 <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
@@ -216,42 +230,73 @@
                             Pety & Inkubator
                         </button>
                     </div>
-                    @if($activeTab === 'attributes' && $character->character_points > 0)
-                        <span class="text-green-400 font-bold text-sm animate-pulse bg-green-900/40 px-2 py-1 rounded border border-green-700">Punkty: {{ $character->character_points }}</span>
+                    @if($activeTab === 'attributes')
+                        <span x-data="{ points: {{ $character->character_points }} }" @stats-saved.window="points = $event.detail.points" x-show="points > 0" class="text-green-400 font-bold text-sm animate-pulse bg-green-900/40 px-2 py-1 rounded border border-green-700">Punkty: <span x-text="points"></span></span>
                     @endif
                 </div>
-                
                 @if($activeTab === 'attributes')
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mt-4">
+                    <div x-data="{
+                        points: {{ $character->character_points }},
+                        added: { str: 0, int: 0, vit: 0, agi: 0 },
+                        saveTimeout: null,
+                        
+                        add(stat, amount) {
+                            let actual = Math.min(amount, this.points);
+                            if (actual > 0) {
+                                this.added[stat] += actual;
+                                this.points -= actual;
+                                
+                                // Animacja po dodaniu punktu
+                                let el = document.getElementById('stat-flash-' + stat);
+                                if (el) {
+                                    el.style.animation = 'none';
+                                    el.offsetHeight; // trigger reflow
+                                    el.style.animation = 'flashText 0.5s ease-out forwards';
+                                }
+                                
+                                // Auto-zapis po sekundzie bezczynności
+                                clearTimeout(this.saveTimeout);
+                                this.saveTimeout = setTimeout(() => {
+                                    let toSave = { ...this.added };
+                                    this.added = { str: 0, int: 0, vit: 0, agi: 0 };
+                                    $wire.saveAttributes(toSave);
+                                }, 800);
+                            }
+                        }
+                    }" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mt-4 relative" @stats-saved.window="points = $event.detail.points">
+                    
+                        <style>
+                            @keyframes flashText {
+                                0% { color: #4ade80; transform: scale(1.4); text-shadow: 0 0 10px #4ade80; }
+                                100% { color: white; transform: scale(1); text-shadow: none; }
+                            }
+                        </style>
+                        
+                        <!-- Wskaźnik zapisu -->
+                        <div wire:loading wire:target="saveAttributes" class="absolute inset-0 bg-gray-900/20 backdrop-blur-[1px] flex items-center justify-center rounded z-10">
+                        </div>
+
                         <!-- STR -->
                         <div class="flex justify-between items-center group">
                             <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['str'] ?? 0 }}</span>
-                                @if($character->character_points > 0)
-                                    <div class="flex gap-1">
-                                        <button wire:click="addAttribute('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                        @if($character->character_points >= 5)
-                                            <button wire:click="addAttribute('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                        @endif
-                                    </div>
-                                @endif
+                                <span id="stat-flash-str" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str"></span>
+                                <div class="flex gap-1" x-show="points > 0">
+                                    <button @click="add('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                </div>
                             </div>
                         </div>
                         
                         <!-- INT -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną (w przyszłości na moc magii).">Intelligence (INT):</span>
+                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną.">Intelligence (INT):</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['int'] ?? 0 }}</span>
-                                @if($character->character_points > 0)
-                                    <div class="flex gap-1">
-                                        <button wire:click="addAttribute('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                        @if($character->character_points >= 5)
-                                            <button wire:click="addAttribute('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                        @endif
-                                    </div>
-                                @endif
+                                <span id="stat-flash-int" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int"></span>
+                                <div class="flex gap-1" x-show="points > 0">
+                                    <button @click="add('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                </div>
                             </div>
                         </div>
                         
@@ -259,15 +304,11 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['vit'] ?? 0 }}</span>
-                                @if($character->character_points > 0)
-                                    <div class="flex gap-1">
-                                        <button wire:click="addAttribute('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                        @if($character->character_points >= 5)
-                                            <button wire:click="addAttribute('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                        @endif
-                                    </div>
-                                @endif
+                                <span id="stat-flash-vit" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit"></span>
+                                <div class="flex gap-1" x-show="points > 0">
+                                    <button @click="add('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                </div>
                             </div>
                         </div>
                         
@@ -275,15 +316,11 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
                             <div class="flex items-center gap-2">
-                                <span class="text-white font-bold text-base w-8 text-right">{{ $totalAttributes['agi'] ?? 0 }}</span>
-                                @if($character->character_points > 0)
-                                    <div class="flex gap-1">
-                                        <button wire:click="addAttribute('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                        @if($character->character_points >= 5)
-                                            <button wire:click="addAttribute('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
-                                        @endif
-                                    </div>
-                                @endif
+                                <span id="stat-flash-agi" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi"></span>
+                                <div class="flex gap-1" x-show="points > 0">
+                                    <button @click="add('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -351,9 +388,22 @@
             <!-- Inventory Grid -->
             <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
                 @foreach($inventory as $item)
-                    <div x-data="{ open: false }" @click.outside="open = false" 
-                         class="aspect-square bg-gray-700 border border-gray-600 rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
-                         @click="open = true">
+                    @php
+                        $isRustySwordTutorial = $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
+                    @endphp
+                    <div x-data="{ 
+                        open: false, 
+                        hoverTimeout: null,
+                        posClass: 'sm:bottom-full sm:mb-2',
+                        checkPosition() { 
+                            this.posClass = this.$el.getBoundingClientRect().top < window.innerHeight / 2 ? 'sm:top-full sm:mt-2' : 'sm:bottom-full sm:mb-2'; 
+                        }
+                    }" @click.outside="open = false" 
+                         class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative transition-all duration-300 {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
+                         :class="{ 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open }"
+                         @mouseenter="clearTimeout(hoverTimeout); checkPosition(); open = true" 
+                         @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
+                         @click="clearTimeout(hoverTimeout); checkPosition(); open = true">
                         
                         <div class="text-center text-xs text-white">
                             <span class="block truncate w-14">{{ $item->template->name }}</span>
@@ -365,10 +415,12 @@
                             @endif
                         </div>
 
-                        <!-- Modal -->
-                        <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                            <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
-                                <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
+                        <!-- Tooltip / Modal -->
+                        <div x-show="open" x-transition.opacity style="display: none;" 
+                             :class="posClass"
+                             class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-64 z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                            <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
+                                <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                 
                                 <div class="flex justify-between items-center mb-2 pr-4">
                                     <p class="font-bold text-blue-300 text-lg">{{ $item->template->name }}</p>
@@ -422,6 +474,9 @@
                                     @endif
                                 </div>
                             </div>
+                            <!-- Arrow (Desktop only) -->
+                            <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45"
+                                 :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-blue-500' : '-bottom-2 border-b border-r border-blue-500'"></div>
                         </div>
                     </div>
                 @endforeach

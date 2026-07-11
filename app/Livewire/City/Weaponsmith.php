@@ -15,6 +15,12 @@ class Weaponsmith extends Component
 
     public string $activeTab = 'buy';
     
+    #[\Livewire\Attributes\On('tutorial-completed')]
+    public function onTutorialCompleted()
+    {
+        // Refresh component state
+    }
+    
     public bool $showUpgradeModal = false;
     public string $upgradeModalTitle = '';
     public string $upgradeModalMessage = '';
@@ -42,6 +48,12 @@ class Weaponsmith extends Component
         $result = $shop->buyItem($this->character, $merchantItem);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
+            
+            $user = auth()->user();
+            if ($user && $user->game_stage == 19 && $merchantItem->template->id === 'miecz-nowicjusza') {
+                $user->game_stage = 20;
+                $user->save();
+            }
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }

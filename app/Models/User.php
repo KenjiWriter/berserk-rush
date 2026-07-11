@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'permission_level',
         'gems',
+        'game_stage',
     ];
 
     /**

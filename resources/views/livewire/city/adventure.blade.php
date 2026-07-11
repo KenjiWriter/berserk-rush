@@ -42,6 +42,14 @@
     </div>
 
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
+        @php
+            $gameStage = auth()->user()->game_stage;
+        @endphp
+
+        @if($gameStage == 9)
+            <livewire:global.tutorial-overlay :step="10" />
+        @endif
+
         {{-- Header with character info --}}
         <div class="flex items-center justify-between mb-8">
             <div
@@ -150,8 +158,11 @@
                 @endphp
 
                 <div class="relative group" x-data="{ showMonsters: false, showBossModal: false }">
+                    @php
+                        $isFirstMapTutorial = $isAccessible && $gameStage == 10 && $map->level_min == 0;
+                    @endphp
                     <div
-                        class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 {{ $isAccessible ? 'border-green-700' : 'border-gray-500' }} rounded-lg shadow-2xl backdrop-blur-sm {{ $isAccessible ? 'hover:from-green-100/95 hover:to-green-200/95 hover:shadow-3xl' : 'opacity-50' }} transition-all duration-300 {{ $isAccessible && empty($map->monsters) ? 'transform hover:scale-105 cursor-pointer' : '' }}">
+                        class="bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 {{ $isAccessible ? 'border-green-700' : 'border-gray-500' }} rounded-lg shadow-2xl backdrop-blur-sm {{ $isAccessible ? 'hover:from-green-100/95 hover:to-green-200/95 hover:shadow-3xl' : 'opacity-50' }} transition-all duration-300 {{ $isAccessible && empty($map->monsters) ? 'transform hover:scale-105 cursor-pointer' : '' }} {{ $isFirstMapTutorial ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}">
 
                         {{-- Decorative corners --}}
                         @if ($isAccessible)

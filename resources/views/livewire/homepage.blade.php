@@ -261,9 +261,14 @@
                                 🗡️ Moje Postacie
                             </h3>
                             <div class="space-y-3">
+                                @php
+                                    $shouldHighlightNewCharacter = Auth::check() && Auth::user()->game_stage == 1 && collect($myCharacters)->filter()->count() == 0;
+                                    $shouldHighlightPlayButton = Auth::check() && Auth::user()->game_stage == 3 && collect($myCharacters)->filter()->count() > 0;
+                                @endphp
+
                                 @foreach ($myCharacters as $index => $character)
                                     <div
-                                        class="bg-amber-100/80 border-2 border-amber-600 rounded p-3 hover:bg-amber-200/80 transition-colors cursor-pointer shadow-lg">
+                                        class="bg-amber-100/80 border-2 border-amber-600 rounded p-3 hover:bg-amber-200/80 transition-colors cursor-pointer shadow-lg {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10 relative' : '' }}">
                                         @if ($character)
                                             <a href="{{ route('characters.play', $character) }}" class="block">
                                                 <div class="flex items-center space-x-3">
@@ -302,15 +307,15 @@
                                             </a>
                                         @else
                                             @if ($canCreateCharacter ?? true)
-                                                <a href="{{ route('characters.create') }}" class="block">
+                                                <a href="{{ route('characters.create') }}" class="block h-full">
                                                     <div
-                                                        class="text-center text-amber-700 opacity-75 hover:opacity-100 transition-opacity">
+                                                        class="text-center text-amber-700 opacity-75 hover:opacity-100 transition-opacity flex flex-col items-center justify-center h-full min-h-[48px]">
                                                         <div class="text-2xl mb-1">➕</div>
                                                         <div class="text-sm font-semibold">Utwórz postać</div>
                                                     </div>
                                                 </a>
                                             @else
-                                                <div class="text-center text-amber-700 opacity-50">
+                                                <div class="text-center text-amber-700 opacity-50 flex flex-col items-center justify-center min-h-[48px]">
                                                     <div class="text-2xl mb-1">🔒</div>
                                                     <div class="text-sm font-semibold">Slot zablokowany</div>
                                                 </div>
@@ -605,4 +610,12 @@
             }
         }
     </style>
+
+    @auth
+        @if(Auth::user()->characters()->count() == 0 && Auth::user()->game_stage == 0)
+            <livewire:global.tutorial-overlay step="1" />
+        @elseif(Auth::user()->characters()->count() > 0 && Auth::user()->game_stage == 2)
+            <livewire:global.tutorial-overlay step="3" />
+        @endif
+    @endauth
 </div>

@@ -73,7 +73,15 @@
                     @enderror
 
                     {{-- Form --}}
-                    <form wire:submit="createCharacter" class="space-y-6">
+                    <form wire:submit="createCharacter" class="space-y-6" x-data="{
+                        str: @entangle('str'),
+                        int: @entangle('int'),
+                        vit: @entangle('vit'),
+                        agi: @entangle('agi'),
+                        get remainingPoints() {
+                            return 10 - (this.str + this.int + this.vit + this.agi);
+                        }
+                    }">
                         {{-- Character name --}}
                         <div>
                             <label for="name" class="block text-lg font-bold text-amber-900 mb-3 medieval-font">
@@ -168,9 +176,7 @@
                             <div class="flex items-center justify-between mb-4">
                                 <h3 class="text-lg font-bold text-amber-900 medieval-font">Atrybuty Postaci</h3>
                                 <div class="text-right">
-                                    <div
-                                        class="text-2xl font-bold {{ $this->getRemainingPoints() > 0 ? 'text-green-700' : 'text-amber-900' }}">
-                                        {{ $this->getRemainingPoints() }}
+                                    <div class="text-2xl font-bold" :class="remainingPoints > 0 ? 'text-green-700' : 'text-amber-900'" x-text="remainingPoints">
                                     </div>
                                     <div class="text-sm text-amber-700">punktów do rozdania</div>
                                 </div>
@@ -184,21 +190,21 @@
                                             <h4 class="font-bold text-amber-900">💪 Siła (STR)</h4>
                                             <p class="text-xs text-amber-700">Obrażenia fizyczne, bonus HP</p>
                                         </div>
-                                        <div class="text-2xl font-bold text-amber-900">{{ $str }}</div>
+                                        <div class="text-2xl font-bold text-amber-900" x-text="str"></div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <button type="button" wire:click="decrementStat('str')"
+                                        <button type="button" @click="if(str > 0) str--"
                                             class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded font-bold"
-                                            {{ $str <= 0 ? 'disabled' : '' }}>
+                                            :disabled="str <= 0">
                                             -
                                         </button>
                                         <div class="flex-1 bg-amber-200 rounded-full h-2">
                                             <div class="bg-red-600 h-2 rounded-full transition-all duration-300"
-                                                style="width: {{ ($str / 10) * 100 }}%"></div>
+                                                :style="`width: ${(str / 10) * 100}%`"></div>
                                         </div>
-                                        <button type="button" wire:click="incrementStat('str')"
+                                        <button type="button" @click="if(str < 10 && remainingPoints > 0) str++"
                                             class="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded font-bold"
-                                            {{ $str >= 10 || $this->getRemainingPoints() <= 0 ? 'disabled' : '' }}>
+                                            :disabled="str >= 10 || remainingPoints <= 0">
                                             +
                                         </button>
                                     </div>
@@ -211,21 +217,21 @@
                                             <h4 class="font-bold text-amber-900">🧠 Inteligencja (INT)</h4>
                                             <p class="text-xs text-amber-700">Obrażenia magiczne, mana</p>
                                         </div>
-                                        <div class="text-2xl font-bold text-amber-900">{{ $int }}</div>
+                                        <div class="text-2xl font-bold text-amber-900" x-text="int"></div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <button type="button" wire:click="decrementStat('int')"
+                                        <button type="button" @click="if(int > 0) int--"
                                             class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded font-bold"
-                                            {{ $int <= 0 ? 'disabled' : '' }}>
+                                            :disabled="int <= 0">
                                             -
                                         </button>
                                         <div class="flex-1 bg-amber-200 rounded-full h-2">
                                             <div class="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                                                style="width: {{ ($int / 10) * 100 }}%"></div>
+                                                :style="`width: ${(int / 10) * 100}%`"></div>
                                         </div>
-                                        <button type="button" wire:click="incrementStat('int')"
+                                        <button type="button" @click="if(int < 10 && remainingPoints > 0) int++"
                                             class="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded font-bold"
-                                            {{ $int >= 10 || $this->getRemainingPoints() <= 0 ? 'disabled' : '' }}>
+                                            :disabled="int >= 10 || remainingPoints <= 0">
                                             +
                                         </button>
                                     </div>
@@ -238,21 +244,21 @@
                                             <h4 class="font-bold text-amber-900">❤️ Witalność (VIT)</h4>
                                             <p class="text-xs text-amber-700">Maksymalne HP, obrona</p>
                                         </div>
-                                        <div class="text-2xl font-bold text-amber-900">{{ $vit }}</div>
+                                        <div class="text-2xl font-bold text-amber-900" x-text="vit"></div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <button type="button" wire:click="decrementStat('vit')"
+                                        <button type="button" @click="if(vit > 0) vit--"
                                             class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded font-bold"
-                                            {{ $vit <= 0 ? 'disabled' : '' }}>
+                                            :disabled="vit <= 0">
                                             -
                                         </button>
                                         <div class="flex-1 bg-amber-200 rounded-full h-2">
                                             <div class="bg-green-600 h-2 rounded-full transition-all duration-300"
-                                                style="width: {{ ($vit / 10) * 100 }}%"></div>
+                                                :style="`width: ${(vit / 10) * 100}%`"></div>
                                         </div>
-                                        <button type="button" wire:click="incrementStat('vit')"
+                                        <button type="button" @click="if(vit < 10 && remainingPoints > 0) vit++"
                                             class="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded font-bold"
-                                            {{ $vit >= 10 || $this->getRemainingPoints() <= 0 ? 'disabled' : '' }}>
+                                            :disabled="vit >= 10 || remainingPoints <= 0">
                                             +
                                         </button>
                                     </div>
@@ -265,21 +271,21 @@
                                             <h4 class="font-bold text-amber-900">🏃 Zręczność (AGI)</h4>
                                             <p class="text-xs text-amber-700">Obrażenia dystansowe, unik, krytyki</p>
                                         </div>
-                                        <div class="text-2xl font-bold text-amber-900">{{ $agi }}</div>
+                                        <div class="text-2xl font-bold text-amber-900" x-text="agi"></div>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <button type="button" wire:click="decrementStat('agi')"
+                                        <button type="button" @click="if(agi > 0) agi--"
                                             class="w-8 h-8 bg-red-600 hover:bg-red-700 text-white rounded font-bold"
-                                            {{ $agi <= 0 ? 'disabled' : '' }}>
+                                            :disabled="agi <= 0">
                                             -
                                         </button>
                                         <div class="flex-1 bg-amber-200 rounded-full h-2">
                                             <div class="bg-yellow-600 h-2 rounded-full transition-all duration-300"
-                                                style="width: {{ ($agi / 10) * 100 }}%"></div>
+                                                :style="`width: ${(agi / 10) * 100}%`"></div>
                                         </div>
-                                        <button type="button" wire:click="incrementStat('agi')"
+                                        <button type="button" @click="if(agi < 10 && remainingPoints > 0) agi++"
                                             class="w-8 h-8 bg-green-600 hover:bg-green-700 text-white rounded font-bold"
-                                            {{ $agi >= 10 || $this->getRemainingPoints() <= 0 ? 'disabled' : '' }}>
+                                            :disabled="agi >= 10 || remainingPoints <= 0">
                                             +
                                         </button>
                                     </div>
@@ -290,7 +296,7 @@
                         {{-- Submit button --}}
                         <button type="submit"
                             class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-4 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font text-lg"
-                            {{ $this->getRemainingPoints() !== 0 ? 'disabled' : '' }}>
+                            :disabled="remainingPoints !== 0">
                             🛡️ Stwórz Wojownika
                         </button>
                     </form>
@@ -399,4 +405,10 @@
             background: rgba(180, 83, 9, 1);
         }
     </style>
+
+    @auth
+        @if(Auth::user()->game_stage == 1)
+            <livewire:global.tutorial-overlay step="2" />
+        @endif
+    @endauth
 </div>

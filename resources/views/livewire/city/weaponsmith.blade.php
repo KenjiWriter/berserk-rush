@@ -1,6 +1,16 @@
 <div class="min-h-screen bg-gradient-to-b from-blue-900/90 via-indigo-800/90 to-purple-900/90 text-amber-100 relative overflow-hidden">
     <div class="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-800/50 to-slate-900/60"></div>
 
+    @php
+        $gameStage = auth()->user()->game_stage;
+    @endphp
+
+    @if($gameStage == 17)
+        <livewire:global.tutorial-overlay :step="18" />
+    @elseif($gameStage == 18)
+        <livewire:global.tutorial-overlay :step="19" />
+    @endif
+
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
         {{-- Header --}}
         <div class="flex items-center justify-between mb-8">
@@ -15,7 +25,7 @@
                     🪙 {{ $character->gold }}
                 </div>
                 <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                    class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
+                    class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font {{ $gameStage == 20 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10 border-2 border-amber-500' : '' }}">
                     🏰 Powrót do miasta
                 </button>
             </div>
@@ -45,7 +55,7 @@
                 @if($activeTab === 'buy')
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         @foreach($shopItems as $item)
-                            <div class="bg-gray-800 border border-gray-600 rounded p-4 flex flex-col items-center text-center relative">
+                            <div class="bg-gray-800 border {{ $gameStage == 19 && $item->template->id === 'miecz-nowicjusza' ? 'border-amber-500 animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : 'border-gray-600' }} rounded p-4 flex flex-col items-center text-center relative transition-all">
                                 @if($item->is_limited)
                                     <div class="absolute -top-3 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg animate-pulse">
                                         🔥 Zostało: {{ $item->max_quantity - $item->sold_quantity }}

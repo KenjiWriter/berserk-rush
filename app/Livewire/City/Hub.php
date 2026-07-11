@@ -3,6 +3,7 @@
 namespace App\Livewire\City;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use App\Infrastructure\Persistence\Character;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,6 +22,12 @@ class Hub extends Component
 
         // Set active character in session
         session(['active_character' => $character->id]);
+    }
+
+    #[On('tutorial-completed')]
+    public function refreshOnTutorial()
+    {
+        // Just trigger a re-render so $gameStage in blade gets updated
     }
 
     public function goTo(string $building): void

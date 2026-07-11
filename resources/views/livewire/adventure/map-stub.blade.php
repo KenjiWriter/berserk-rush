@@ -49,6 +49,16 @@
     @enderror
 
     <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen">
+        @php
+            $gameStage = auth()->user()->game_stage;
+        @endphp
+
+        @if($gameStage == 11)
+            <livewire:global.tutorial-overlay :step="12" />
+        @elseif($gameStage == 12 && $battleCompleted)
+            <livewire:global.tutorial-overlay :step="13" rewardItemTemplateId="01KX9NE31YJ98KTT8AAG6061AG" />
+        @endif
+
         {{-- Header with navigation --}}
         <div class="flex items-center justify-between mb-6">
             <h1 class="text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
@@ -417,7 +427,7 @@
                                     </button>
                                 @elseif (empty($visibleTurns) && !$isPlaying && !$battleCompleted)
                                     <button wire:click="startBattle"
-                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
+                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden {{ $gameStage == 12 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-emerald-800/40"></div>
@@ -488,7 +498,8 @@
                             @if (!empty($visibleTurns))
                                 <div class="flex items-center justify-center gap-3">
                                     <button wire:click="toggleAutoChain"
-                                        class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden">
+                                        class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden {{ $gameStage <= 12 ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                        {{ $gameStage <= 12 ? 'disabled' : '' }}>
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div

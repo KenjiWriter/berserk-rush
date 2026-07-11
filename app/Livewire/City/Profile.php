@@ -11,6 +11,7 @@ use App\Infrastructure\Persistence\CharacterIncubator;
 use App\Application\Pets\IncubatorService;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class Profile extends Component
 {
@@ -23,6 +24,12 @@ class Profile extends Component
     public int $sellPrice = 100;
     public string $sellCurrency = 'gold';
     public int $sellDuration = 24;
+
+    #[On('tutorial-completed')]
+    public function refreshProfile()
+    {
+        $this->character->refresh();
+    }
 
     public function mount(Character $character)
     {
@@ -87,6 +94,13 @@ class Profile extends Component
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot założony pomyślnie.');
+            
+            $user = auth()->user();
+            if ($user && $user->game_stage == 6 && $item->template->type === 'weapon') {
+                $user->game_stage = 7;
+                $user->save();
+            }
+
             $this->character->refresh();
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
@@ -171,32 +185,43 @@ class Profile extends Component
     }
     // -----------------------------
 
-    public function addAttribute(string $attribute, int $amount = 1)
+    public function saveAttributes(array $addedStats)
     {
         $validAttributes = ['str', 'int', 'vit', 'agi'];
-        if (!in_array($attribute, $validAttributes)) {
-            return;
+        $totalRequested = 0;
+        
+        foreach ($validAttributes as $stat) {
+            $val = (int)($addedStats[$stat] ?? 0);
+            if ($val < 0) return; // invalid
+            $totalRequested += $val;
         }
 
         $points = $this->character->character_points ?? 0;
         
-        // Use all available points if requested amount is very large (e.g. 999)
-        if ($amount > $points) {
-            $amount = $points;
-        }
-
-        if ($amount <= 0) {
+        if ($totalRequested > $points || $totalRequested <= 0) {
             return;
         }
 
         $attributes = $this->character->getAttribute('attributes') ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
-        $attributes[$attribute] = ($attributes[$attribute] ?? 0) + $amount;
+        
+        foreach ($validAttributes as $stat) {
+            $val = (int)($addedStats[$stat] ?? 0);
+            $attributes[$stat] = ($attributes[$stat] ?? 0) + $val;
+        }
 
         $this->character->attributes = $attributes;
-        $this->character->character_points = $points - $amount;
+        $this->character->character_points = $points - $totalRequested;
+
+        $user = auth()->user();
+        if ($user && $user->game_stage == 14) {
+            $user->game_stage = 15;
+            $user->save();
+        }
+
         $this->character->save();
 
-        $this->dispatch('notify', type: 'success', message: "Atrybut zwiększony o {$amount}.");
+        $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalRequested}.");
+        $this->dispatch('stats-saved', points: $this->character->character_points);
     }
 
     public function openSellModal(string $itemUlid)
