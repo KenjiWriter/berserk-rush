@@ -184,6 +184,28 @@ class DungeonRun extends Component
         }
     }
 
+    public function skipBattle(): void
+    {
+        if ($this->isPlaying) {
+            $this->isPlaying = false;
+            $this->dispatch('stop-playback');
+            
+            // Fast-forward UI state
+            $this->visibleTurns = $this->turns;
+            $this->currentTurnIndex = count($this->turns);
+            $this->animatedPlayerHp = $this->battleResult['player_hp'] ?? 0;
+            
+            $lastEnemyHp = 0;
+            if (count($this->turns) > 0) {
+                $lastEnemyHp = end($this->turns)['enemyHp'] ?? 0;
+            }
+            $this->animatedEnemyHp = $lastEnemyHp;
+            
+            // Auto scroll to bottom via JS event
+            $this->dispatch('scroll-to-bottom');
+        }
+    }
+
     public function usePotion(string $itemInstanceId): void
     {
         $this->errorMessage = null;

@@ -26,6 +26,12 @@ Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każ
   - `/donate exp <ilość>`
   - `/donate gold <ilość>`
   - `/donate gems <ilość>`
+- **Komendy administratora (Game Master):** (wymagany `permission_level == 9`)
+  - `/give pet <nazwa_peta>` — Precyzyjnie generuje wskazanego chowańca (np. `/give pet Mroczny Smok`). System wyszukuje odpowiedni wzorzec w `PetTemplate` po nazwie, po czym automatycznie przypisuje nowego zwierzaka na 1. poziomie wprost do postaci gracza (z jego bazowymi statystykami i stopniem rzadkości).
+  - `/give <item_id> <ilość>` — Dodaje określoną ilość wskazanego przedmiotu do ekwipunku postaci.
+  - `/give gold <ilość>`, `/give gems <ilość>` — Dodaje waluty.
+  - `/exp <ilość>` — Dodaje punkty doświadczenia.
+  - `/set level <poziom>`, `/set sp <ilość>` — Ustawia poziom postaci lub dodaje punkty atrybutów.
 
 ### Format wiadomości
 ```

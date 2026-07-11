@@ -184,6 +184,16 @@
                                 @endif
                             </h3>
 
+                            @if($isPlaying)
+                                <div class="text-center mb-3">
+                                    <button wire:click="skipBattle"
+                                        class="text-gray-400 hover:text-amber-300 text-sm italic transition-colors font-semibold"
+                                        style="font-family: 'Cinzel', serif;">
+                                        ⏩ Pomiń animację walki
+                                    </button>
+                                </div>
+                            @endif
+
                             {{-- Battle log --}}
                             <div class="flex-1 overflow-y-auto bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1" id="dungeon-battle-log-container">
                                 @foreach($visibleTurns as $turn)
@@ -383,6 +393,15 @@
                     setTimeout(() => playerPanel.classList.add('anim-damage'), 150);
                 }
             }
+        });
+
+        $wire.on('scroll-to-bottom', () => {
+            setTimeout(() => {
+                let container = document.getElementById('dungeon-battle-log-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 50);
         });
 
         // Cleanup on unmount
