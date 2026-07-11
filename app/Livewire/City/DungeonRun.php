@@ -155,7 +155,6 @@ class DungeonRun extends Component
             
             // Refresh run state for UI
             $run->refresh();
-            $this->currentStage = $run->current_stage;
             $this->character->refresh();
         }
     }
@@ -248,6 +247,11 @@ class DungeonRun extends Component
         }
 
         $this->battleResult = null;
+        
+        $run = $this->getActiveRun();
+        if ($run) {
+            $this->currentStage = $run->current_stage;
+        }
     }
 
     public function backToDungeonList(): void
@@ -269,7 +273,7 @@ class DungeonRun extends Component
     public function render()
     {
         $run = $this->getActiveRun();
-        $currentStageModel = $run?->getCurrentStageModel();
+        $currentStageModel = $this->dungeon->stages()->where('stage_order', $this->currentStage)->first();
         $monster = $currentStageModel?->monster;
 
         $maxHp = $this->character->getMaxHp();
