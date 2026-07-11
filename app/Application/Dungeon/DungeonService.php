@@ -134,6 +134,9 @@ class DungeonService
         $turns = [];
         $turnCount = 0;
         $maxTurns = 50;
+        $monsterHp = $monsterMaxHp;
+        
+        $startPlayerHp = $playerHp;
 
         while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
             $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
@@ -183,7 +186,7 @@ class DungeonService
                 'stage' => $run->current_stage,
                 'player_hp' => $playerHp,
                 'monster_max_hp' => $monsterMaxHp,
-                'start_player_hp' => $run->current_hp,
+                'start_player_hp' => $startPlayerHp,
                 'start_monster_hp' => $monsterMaxHp,
             ]);
         }
@@ -212,7 +215,7 @@ class DungeonService
                 'stage' => $run->current_stage,
                 'player_hp' => $playerHp,
                 'monster_max_hp' => $monsterMaxHp,
-                'start_player_hp' => $run->current_hp,
+                'start_player_hp' => $startPlayerHp,
                 'start_monster_hp' => $monsterMaxHp,
                 'loot' => $lootFromThisStage,
                 'total_loot' => $accumulatedLoot,
@@ -230,7 +233,7 @@ class DungeonService
             'next_stage' => $run->current_stage,
             'player_hp' => $playerHp,
             'monster_max_hp' => $monsterMaxHp,
-            'start_player_hp' => $run->current_hp,
+            'start_player_hp' => $startPlayerHp,
             'start_monster_hp' => $monsterMaxHp,
             'loot' => $lootFromThisStage,
         ]);

@@ -327,8 +327,17 @@
                             <div class="grid grid-cols-2 gap-3 mb-2">
                                 <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
                                     <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
-                                    @php $displayMonsterHp = $showBattle ? $animatedEnemyHp : ($monster->stats['hp'] ?? $monster->level * 20); @endphp
-                                    <p class="font-bold text-red-400 text-lg">{{ $displayMonsterHp }}</p>
+                                    @php 
+                                        $baseMonsterHp = $monster->stats['hp'] ?? $monster->level * 20;
+                                        $displayMonsterHp = ($showBattle && !$isCalculating) ? $animatedEnemyHp : $baseMonsterHp; 
+                                    @endphp
+                                    <p class="font-bold text-red-400 text-lg">
+                                        @if($isCalculating)
+                                            <span class="animate-pulse">?</span> / {{ $baseMonsterHp }}
+                                        @else
+                                            {{ $displayMonsterHp }}
+                                        @endif
+                                    </p>
                                 </div>
                                 <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
                                     <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
