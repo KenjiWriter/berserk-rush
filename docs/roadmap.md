@@ -92,19 +92,35 @@ Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i w
 
 ---
 
-## 🟡 Faza 11: Rozszerzenie PvE i Endgame (World Boss & Dungeons)
+## 🟢 Faza 11: Rozszerzenie PvE i Endgame (World Boss & Dungeons) (✅ Zakończona)
 Gdy podstawa gry jest solidna, dodajemy wymagający kontent (Endgame) angażujący całą społeczność.
 - [x] **Dungeony (Lochy Instancjonowane):** Wymagające lokacje ze stadiami (piętrami), gdzie na końcu czeka unikalny boss ze swoimi tabelami unikatowego dropu. Koszt wejścia to rzadkie klucze z bossów z map.
 - [x] **World Bossowie:** Epickie czasowe wydarzenia, w których wszyscy serwerowi gracze atakują jednego bossa z potężną pulą HP. Nagrody są przyznawane proporcjonalnie do zadanego Damage'u po ubiciu bossa.
-- [ ] **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
+- [x] **Pety i Towarzysze (Companions):** Małe chowańce podążające za graczem, dające unikalne statystyki pasywne (np. +5% drop rate, auto-looting złota). Możliwość wykluwania ich z rzadkich jaj z dungeona.
 
 ---
 
 ## 🟠 Faza 12: Player vs Player (PvP) i Wojny Gildii
-Wprowadzenie pełnoprawnej rywalizacji bezpośredniej między graczami.
-- **Arena PvP (Asynchroniczna):** Gracz może wyzwać "widmo" (zapisany stan ekwipunku i statystyk) innego gracza na arenie. Zaimplementowany System ELO / MMR do rankingowania graczy (liga brązowa, srebrna, złota).
-- **Wojny Gildii (GvG):** Masowe starcia między zrzeszeniami graczy. Zwycięska gildia przejmuje czasowo kontrolę nad "kopalniami" gwarantującymi stały przychód Gemsów.
-- **Sklep Areny:** Zbieranie specjalnej waluty "PVP Tokens" (za walki z ludźmi), którą wymienia się na niedostępne nigdzie indziej wyposażenie i gladiator-skórki w mieście.
+Wprowadzenie pełnoprawnej rywalizacji bezpośredniej między graczami. Główny nacisk na architekturę obliczeń w tle (Jobs), żeby walki nie blokowały żądań HTTP.
+
+- [ ] **Arena PvP (Asynchroniczna) - Podstawa:**
+  - Utworzenie widoku Areny w Mieście (`CityController` / `Arena.php` Livewire).
+  - Wyświetlanie listy przeciwników o zbliżonym poziomie / ELO z możliwością wyzwania do walki.
+  - Zapisywanie "migawki" (snapshot) statystyk gracza (tzw. widmo/ghost) by zapobiec exploitom przy wyzywaniu i móc z nim walczyć asynchronicznie, gdy jest offline.
+- [ ] **Moduł Walki PvP:**
+  - Dostosowanie silnika `EncounterService` lub stworzenie `PvPEncounterService`, gdzie docelowym wrogiem jest struktura danych postaci innego gracza.
+  - Obliczenia bitewne koniecznie asynchroniczne (Jobs/Queues) – analogicznie do Dungeonów.
+  - Przebudowa interfejsu symulacji walki, by radził sobie z postaciami i ich pancerzem w obu narożnikach.
+- [ ] **System ELO i Rankingów:**
+  - Zaimplementowany System ELO / MMR do rankingowania graczy (przyrost/strata punktów po wygranej/przegranej).
+  - Podział na ligi: Brązowa, Srebrna, Złota, Platynowa.
+  - Tabela Wyników (Leaderboard) aktualizowana i keszowana cyklicznie za pomocą Redis Sorted Sets.
+- [ ] **Sklep Areny i Nagrody:**
+  - Nowa waluta `PVP Tokens` rozliczana bezpiecznie w tabeli `currency_ledgers`. Otrzymywana za wygrane walki, i jako nagroda na koniec tygodnia za ligę.
+  - Osobny NPC Sklep Areny (Arena Shop) umożliwiający zakup ekskluzywnego wyposażenia Gladiatora niedostępnego u potworów.
+- [ ] **Gildie i Wojny Gildii (GvG):**
+  - Pełnoprawne zakładanie gildii (dokończenie wstępu z Fazy 8), dodawanie członków, wpłacanie waluty by ulepszać pasywne bonusy gildii.
+  - Masowe starcia między zrzeszeniami graczy (GvG). Zwycięska gildia przejmuje czasowo kontrolę nad "kopalniami" gwarantującymi stały przychód Gemsów.
 
 ---
 
