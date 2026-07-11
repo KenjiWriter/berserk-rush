@@ -4,15 +4,19 @@
         showCommands: false,
         isSending: false,
         commands: [
-            { cmd: '/donate exp <ilość>', desc: 'Przekaż EXP do gildii' },
-            { cmd: '/donate gold <ilość>', desc: 'Przekaż złoto do gildii' },
-            { cmd: '/donate gems <ilość>', desc: 'Przekaż klejnoty do gildii' }
+            { cmd: '/donate exp <ilość>', desc: 'Przekaż EXP do gildii', channel: 'guild' },
+            { cmd: '/donate gold <ilość>', desc: 'Przekaż złoto do gildii', channel: 'guild' },
+            { cmd: '/donate gems <ilość>', desc: 'Przekaż klejnoty do gildii', channel: 'guild' }
+            {!! (Auth::check() && Auth::user()->permission_level == 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }" : "" !!}
         ],
         filteredCommands: [],
         checkCommands() {
-            if (this.$wire.currentChannel === 'guild' && (this.message || '').startsWith('/')) {
+            if ((this.message || '').startsWith('/')) {
                 let search = (this.message || '').toLowerCase().split(' ')[0];
-                this.filteredCommands = this.commands.filter(c => c.cmd.toLowerCase().startsWith(search));
+                this.filteredCommands = this.commands.filter(c => {
+                    if (c.channel !== 'all' && c.channel !== this.$wire.currentChannel) return false;
+                    return c.cmd.toLowerCase().startsWith(search);
+                });
                 this.showCommands = this.filteredCommands.length > 0;
             } else {
                 this.showCommands = false;

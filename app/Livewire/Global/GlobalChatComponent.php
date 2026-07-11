@@ -143,6 +143,26 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if (str_starts_with(strtolower($message), '/give ')) {
+            if ($character->user->permission_level == 9) {
+                $this->handleGiveCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
+        if (str_starts_with(strtolower($message), '/exp ')) {
+            if ($character->user->permission_level == 9) {
+                $this->handleExpCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
         $cp = $character->getTotalCombatPower();
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
@@ -369,5 +389,73 @@ class GlobalChatComponent extends Component
     public function render()
     {
         return view('livewire.global.global-chat-component');
+    }
+
+    private function handleGiveCommand(string $command, Character $character): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 3) {
+            $this->addError('newMessage', 'Użycie: /give <item_id|gold|gems> <ilość>');
+            return;
+        }
+
+        $type = strtolower($parts[1]);
+        $amount = (int) $parts[2];
+
+        if ($amount <= 0) {
+            $this->addError('newMessage', 'Ilość musi być większa niż 0.');
+            return;
+        }
+
+        if ($type === 'gold') {
+            $character->gold += $amount;
+            $character->save();
+            $this->dispatch('notify', message: "Dodano {$amount} złota.", type: 'success');
+        } elseif ($type === 'gems') {
+            $character->user->gems += $amount;
+            $character->user->save();
+            $this->dispatch('notify', message: "Dodano {$amount} diamentów.", type: 'success');
+        } else {
+            $template = \App\Infrastructure\Persistence\ItemTemplate::find($parts[1]);
+            if (!$template) {
+                $this->addError('newMessage', 'Nie znaleziono przedmiotu o podanym ID.');
+                return;
+            }
+            \App\Infrastructure\Persistence\ItemInstance::create([
+                'template_id' => $template->id,
+                'owner_character_id' => $character->id,
+                'location' => 'inventory',
+                'stack_size' => $amount,
+                'rarity' => 'common',
+            ]);
+            $this->dispatch('notify', message: "Dodano przedmiot {$template->name} ({$amount}x).", type: 'success');
+        }
+    }
+
+    private function handleExpCommand(string $command, Character $character): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 2) {
+            $this->addError('newMessage', 'Użycie: /exp <ilość>');
+            return;
+        }
+
+        $amount = (int) $parts[1];
+        if ($amount <= 0) {
+            $this->addError('newMessage', 'Ilość musi być większa niż 0.');
+            return;
+        }
+
+        $character->xp += $amount;
+        $character->save();
+
+        $levelUpService = app(\App\Application\Characters\LevelUpService::class);
+        $levelUpResult = $levelUpService->processLevelUps($character);
+
+        $this->dispatch('notify', message: "Dodano {$amount} expa.", type: 'success');
+
+        if ($levelUpResult->hadLevelUp) {
+            $this->dispatch('notify', message: "Awansowałeś na poziom {$character->level}!", type: 'success');
+        }
     }
 }
