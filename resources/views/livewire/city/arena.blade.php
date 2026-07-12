@@ -51,7 +51,7 @@
                     <div class="absolute inset-0 bg-amber-900/40 group-hover:bg-amber-800/40 transition-colors rounded-lg"></div>
                     <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">🏛️ Sklep Gladiatora</span>
                 </button>
-                <button wire:click="backToHub" @click="travelingTo = 'Miasto'" 
+                <button wire:click="backToHub" @click="travelingTo = 'Miasto'; $dispatch('play-audio', { type: 'tab' })" 
                     class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
                     <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                     <div class="absolute inset-0 bg-amber-900/40 group-hover:bg-amber-800/40 transition-colors rounded-lg"></div>

@@ -48,6 +48,7 @@ class Weaponsmith extends Component
         $result = $shop->buyItem($this->character, $merchantItem);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('play-audio', type: 'buy');
             
             $user = auth()->user();
             if ($user && $user->game_stage == 19 && $merchantItem->template->id === 'miecz-nowicjusza') {
@@ -66,6 +67,7 @@ class Weaponsmith extends Component
         $result = $shop->sellItem($this->character, $item);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('play-audio', type: 'sell');
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }
@@ -81,6 +83,8 @@ class Weaponsmith extends Component
         $this->upgradeModalTitle = $result['success'] ? 'Sukces!' : 'Niepowodzenie';
         $this->upgradeModalMessage = $result['message'];
         $this->showUpgradeModal = true;
+        
+        $this->dispatch('play-audio', type: $result['success'] ? 'upgrade-success' : 'upgrade-fail');
         
         $this->character->refresh();
     }
@@ -99,6 +103,7 @@ class Weaponsmith extends Component
 
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('play-audio', type: 'upgrade-success');
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }

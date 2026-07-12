@@ -84,7 +84,7 @@
                         🗺️ Mapy
                     </span>
                 </button>
-                <button @click="travelingTo = 'Miasto'; setTimeout(() => $wire.backToHub(), 500)" 
+                <button @click="travelingTo = 'Miasto'; $dispatch('play-audio', { type: 'tab' }); setTimeout(() => $wire.backToHub(), 500)" 
                     class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                         class="absolute inset-0 w-full h-full object-cover rounded-lg">

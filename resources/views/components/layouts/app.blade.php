@@ -81,6 +81,44 @@
          </h2>
     </div>
 
+    {{-- ===== Global Audio Player ===== --}}
+    <div x-data="{
+        sounds: {
+            unequip: 3,
+            equip: 2,
+            sell: 2,
+            buy: 1,
+            levelup: 1,
+            'upgrade-success': 1,
+            'upgrade-fail': 1,
+            shop: 1,
+            tab: 1,
+            stat: 1,
+            combat: 1,
+            profile: 1,
+            hover: 1,
+            victory: 1,
+            defeat: 1
+        },
+        activeSounds: {},
+        playAudio(type) {
+            if (!this.sounds[type]) return;
+            
+            if (this.activeSounds[type]) {
+                this.activeSounds[type].pause();
+                this.activeSounds[type].currentTime = 0;
+            }
+            
+            let maxVariants = this.sounds[type];
+            let variant = Math.floor(Math.random() * maxVariants) + 1;
+            let audio = new Audio('/storage/sound/' + type + '-' + variant + '.mp3');
+            audio.volume = 0.5;
+            
+            this.activeSounds[type] = audio;
+            audio.play().catch(e => console.log('Audio play failed: ', e));
+        }
+    }" @play-audio.window="playAudio($event.detail.type)"></div>
+
     {{-- ===== Toast Notification System ===== --}}
     <div
         x-data="{

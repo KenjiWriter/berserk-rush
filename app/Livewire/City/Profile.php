@@ -94,6 +94,7 @@ class Profile extends Component
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot założony pomyślnie.');
+            $this->dispatch('play-audio', type: 'equip');
             
             $user = auth()->user();
             if ($user && $user->game_stage == 6 && $item->template->type === 'weapon') {
@@ -125,6 +126,7 @@ class Profile extends Component
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot zdjęty pomyślnie.');
+            $this->dispatch('play-audio', type: 'unequip');
             $this->character->refresh();
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
@@ -221,6 +223,7 @@ class Profile extends Component
         $this->character->save();
 
         $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalRequested}.");
+        $this->dispatch('play-audio', type: 'stat');
         $this->dispatch('stats-saved', points: $this->character->character_points);
     }
 

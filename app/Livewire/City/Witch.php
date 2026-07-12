@@ -119,6 +119,7 @@ class Witch extends Component
         });
 
         $this->showMessage('Kupiłeś: ' . $template->name, 'success');
+        $this->dispatch('play-audio', type: 'buy');
     }
 
     public function craftPotion($recipeId)
@@ -131,6 +132,7 @@ class Witch extends Component
 
         if ($result['success']) {
             $this->showMessage($result['message'], 'success');
+            $this->dispatch('play-audio', type: 'upgrade-success');
         } else {
             $this->showMessage($result['message'], 'error');
         }

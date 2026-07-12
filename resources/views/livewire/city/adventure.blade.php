@@ -267,7 +267,7 @@
 
                                 {{-- Action button --}}
                                 @if ($isAccessible)
-                                    <button @click="travelingTo = '{{ addslashes($map->name) }}'; setTimeout(() => $wire.enterMap('{{ $map->id }}'), 500)"
+                                    <button @click="travelingTo = '{{ addslashes($map->name) }}'; $dispatch('play-audio', { type: 'combat' }); setTimeout(() => $wire.enterMap('{{ $map->id }}'), 500)"
                                         class="w-full bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font mb-4">
                                         ⚔️ Wejdź na mapę
                                     </button>

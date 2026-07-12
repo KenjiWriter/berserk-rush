@@ -117,7 +117,7 @@
             <div class="space-y-6">
                 {{-- Profile --}}
                 <div class="relative group {{ in_array($gameStage, [5, 14]) ? 'z-10' : '' }}">
-                    <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'"
+                    <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-blue-100/95 hover:to-blue-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
                         {{-- Decorative corners --}}
                         <div
@@ -146,7 +146,7 @@
 
                 {{-- Armorsmith --}}
                 <div class="relative group">
-                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'"
+                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
                         {{-- Decorative corners --}}
                         <div
@@ -175,7 +175,7 @@
 
                 {{-- Weaponsmith --}}
                 <div class="relative group {{ $gameStage == 17 ? 'z-10' : '' }}">
-                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'"
+                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
                         {{-- Decorative corners --}}
                         <div
@@ -208,7 +208,7 @@
                 
                 {{-- Market --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'"
+                    <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-yellow-600/95 hover:to-yellow-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
@@ -223,7 +223,7 @@
 
                 {{-- Arena --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'"
+                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-orange-600/95 hover:to-orange-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
@@ -245,7 +245,7 @@
 
                 {{-- Guilds --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'"
+                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-red-600/95 hover:to-red-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
@@ -260,7 +260,7 @@
 
                 {{-- Mailbox --}}
                 <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'"
+                    <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
@@ -288,7 +288,7 @@
             <div class="space-y-6">
                 {{-- Witch --}}
                 <div class="relative group">
-                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'"
+                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-purple-100/95 hover:to-purple-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
                         {{-- Decorative corners --}}
                         <div
@@ -317,7 +317,7 @@
 
                 {{-- Wizard --}}
                 <div class="relative group">
-                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'"
+                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-indigo-100/95 hover:to-indigo-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
                         {{-- Decorative corners --}}
                         <div class="absolute top-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
@@ -338,7 +338,7 @@
 
                 {{-- Adventure --}}
                 <div class="relative group {{ $gameStage == 9 ? 'z-10' : '' }}">
-                    <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'"
+                    <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                         class="w-full bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-green-100/95 hover:to-green-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
                         {{-- Decorative corners --}}
                         <div
@@ -370,7 +370,7 @@
         {{-- Mobile layout --}}
         <div class="lg:hidden mt-8">
             <div class="grid grid-cols-2 gap-4">
-                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'"
+                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-4 text-center shadow-xl {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('profile')">👤</div>
@@ -379,7 +379,7 @@
                     <div class="font-bold text-blue-900 medieval-font">Postać</div>
                 </button>
 
-                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'"
+                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div>
@@ -388,7 +388,7 @@
                     <div class="font-bold text-amber-900 medieval-font">Zbrojmistrz</div>
                 </button>
 
-                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'"
+                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div>
@@ -397,7 +397,7 @@
                     <div class="font-bold text-amber-900 medieval-font">Brońmistrz</div>
                 </button>
 
-                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'"
+                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div>
@@ -406,7 +406,7 @@
                     <div class="font-bold text-purple-900 medieval-font">Wiedźma</div>
                 </button>
 
-                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'"
+                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div>
@@ -415,7 +415,7 @@
                     <div class="font-bold text-indigo-900 medieval-font">Czarodziej</div>
                 </button>
 
-                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'"
+                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="col-span-2 bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
@@ -424,7 +424,7 @@
                     <div class="font-bold text-green-900 medieval-font">Przygoda</div>
                 </button>
                 
-                <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'"
+                <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('market')">⚖️</div>
@@ -433,7 +433,7 @@
                     <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
                 </button>
 
-                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'"
+                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('arena')">🏟️</div>
@@ -442,7 +442,7 @@
                     <div class="font-bold text-amber-100 medieval-font">Arena</div>
                 </button>
 
-                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'"
+                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('guild')">🚩</div>
@@ -451,7 +451,7 @@
                     <div class="font-bold text-amber-100 medieval-font">Gildia</div>
                 </button>
 
-                <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'"
+                <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
                     class="bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 text-center shadow-xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>

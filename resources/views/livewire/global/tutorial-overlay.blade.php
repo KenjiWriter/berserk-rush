@@ -54,6 +54,12 @@
                         @endif
                     </div>
 
+                    @if(file_exists(storage_path('app/public/voice/tutorial-' . $step . '.mp3')))
+                        <audio autoplay class="hidden">
+                            <source src="{{ asset('storage/voice/tutorial-' . $step . '.mp3') }}" type="audio/mpeg">
+                        </audio>
+                    @endif
+
                     @if($rewardItem)
                         @php
                             $itemEmoji = '🎁';

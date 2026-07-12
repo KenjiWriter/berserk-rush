@@ -383,6 +383,12 @@ class MapStub extends Component
         $this->isPlaying = false;
         $this->battleCompleted = true;
         $this->dispatch('stop-playback');
+        
+        if ($this->result === 'win' || $this->result === 'finished') {
+            $this->dispatch('play-audio', type: 'victory');
+        } elseif ($this->result === 'loss' || $this->result === 'dead') {
+            $this->dispatch('play-audio', type: 'defeat');
+        }
 
         if ($this->result === 'win' || $this->result === 'finished') {
             $this->applyRewards();
@@ -442,6 +448,7 @@ class MapStub extends Component
 
         // Update character if leveled up
         if ($currentLevel > $this->character->level) {
+            $this->dispatch('play-audio', type: 'levelup');
             // Get current character points or default to 0 if null
             $currentPoints = $this->character->character_points ?? 0;
 
