@@ -67,7 +67,7 @@ class MapStub extends Component
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
 
-        if ($character->game_stage <= 12) {
+        if (Auth::user()->game_stage <= 12) {
             $this->autoChain = false;
         }
 
@@ -133,7 +133,8 @@ class MapStub extends Component
             'level' => $monster->level,
             'maxHp' => $monster->stats['hp'] ?? $monster->level * 20,
             'hp' => $monster->stats['hp'] ?? $monster->level * 20,
-            'stats' => $monster->stats
+            'stats' => $monster->stats,
+            'avatar' => $monster->avatar,
         ];
 
         // Dispatch combat simulation to worker
@@ -247,7 +248,7 @@ class MapStub extends Component
 
     public function toggleAutoChain(): void
     {
-        if ($this->character->game_stage <= 12) {
+        if (Auth::user()->game_stage <= 12) {
             return;
         }
         $this->autoChain = !$this->autoChain;
@@ -344,7 +345,8 @@ class MapStub extends Component
             'level' => $monster->level,
             'maxHp' => $monsterMaxHp,
             'hp' => $monsterMaxHp,
-            'stats' => $monsterStats
+            'stats' => $monsterStats,
+            'avatar' => $monster->avatar,
         ];
 
         $this->allTurns = $combatResult['turns'];

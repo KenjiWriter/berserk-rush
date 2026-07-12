@@ -284,13 +284,9 @@ class GuildWarService
         while ($attackerHp > 0 && $defenderHp > 0 && $turnCount < $maxTurns) {
             $isAttackerTurn = $attackerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
-            if ($isAttackerTurn) {
-                $result = $this->gvgAttack($attackerSnap, $defenderSnap, $attackerHp, $defenderHp, 'attacker');
-                $defenderHp = $result['defenderHp'];
-            } else {
-                $result = $this->gvgAttack($defenderSnap, $attackerSnap, $defenderHp, $attackerHp, 'defender');
-                $attackerHp = $result['attackerHp'];
-            }
+            $result = $this->gvgAttack($attackerSnap, $defenderSnap, $attackerHp, $defenderHp, $isAttackerTurn ? 'attacker' : 'defender');
+            $attackerHp = $result['attackerHp'];
+            $defenderHp = $result['defenderHp'];
 
             $turns[] = $result;
             $turnCount++;
@@ -320,19 +316,22 @@ class GuildWarService
 
     private function gvgAttack(array $atkSnap, array $defSnap, int $atkHp, int $defHp, string $actor): array
     {
-        $str = $atkSnap['attributes']['str'] ?? 1;
-        $eq = $atkSnap['equipment_stats'] ?? [];
-        $dmgMin = 10 + ($str * 2) + ($atkSnap['level'] * 1) + ($eq['attack_min'] ?? 0);
-        $dmgMax = 10 + ($str * 2) + ($atkSnap['level'] * 1) + ($eq['attack_max'] ?? 0);
+        $actingSnap = $actor === 'attacker' ? $atkSnap : $defSnap;
+        $targetSnap = $actor === 'attacker' ? $defSnap : $atkSnap;
+
+        $str = $actingSnap['attributes']['str'] ?? 1;
+        $eq = $actingSnap['equipment_stats'] ?? [];
+        $dmgMin = 10 + ($str * 2) + ($actingSnap['level'] * 1) + ($eq['attack_min'] ?? 0);
+        $dmgMax = 10 + ($str * 2) + ($actingSnap['level'] * 1) + ($eq['attack_max'] ?? 0);
         if ($dmgMax < $dmgMin) $dmgMax = $dmgMin;
         $damage = mt_rand($dmgMin, $dmgMax);
 
-        $defVit = $defSnap['attributes']['vit'] ?? 1;
-        $defEq = $defSnap['equipment_stats'] ?? [];
-        $defense = $defVit + ($defSnap['level'] / 2) + ($defEq['defense'] ?? 0);
+        $defVit = $targetSnap['attributes']['vit'] ?? 1;
+        $defEq = $targetSnap['equipment_stats'] ?? [];
+        $defense = $defVit + ($targetSnap['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
-        $agi = $atkSnap['attributes']['agi'] ?? 1;
+        $agi = $actingSnap['attributes']['agi'] ?? 1;
         $critChance = min(0.3, 0.05 + ($agi * 0.01) + (($eq['crit_chance'] ?? 0) / 100));
         $isCrit = mt_rand(1, 100) <= ($critChance * 100);
         $isMiss = mt_rand(1, 100) <= 5;
@@ -343,8 +342,8 @@ class GuildWarService
                 'type' => 'miss',
                 'value' => 0,
                 'crit' => false,
-                'attackerHp' => $actor === 'attacker' ? $atkHp : $defHp,
-                'defenderHp' => $actor === 'attacker' ? $defHp : $atkHp,
+                'attackerHp' => $atkHp,
+                'defenderHp' => $defHp,
             ];
         }
 

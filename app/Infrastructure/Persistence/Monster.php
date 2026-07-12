@@ -15,6 +15,7 @@ class Monster extends Model
         'stats',
         'abilities',
         'loot_table_id',
+        'avatar',
     ];
 
     protected $casts = [

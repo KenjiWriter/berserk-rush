@@ -175,13 +175,10 @@ class PvPEncounterService
         while ($attackerHp > 0 && $defenderHp > 0 && $turnCount < $maxTurns) {
             $isAttackerTurn = $attackerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
-            if ($isAttackerTurn) {
-                $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, 'attacker');
-                $defenderHp = $turn['defenderHp'];
-            } else {
-                $turn = $this->performAttack($defender, $attacker, $defenderHp, $attackerHp, 'defender');
-                $attackerHp = $turn['attackerHp'];
-            }
+            $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $isAttackerTurn ? 'attacker' : 'defender');
+            
+            $attackerHp = $turn['attackerHp'];
+            $defenderHp = $turn['defenderHp'];
 
             $turns[] = $turn;
             $turnCount++;
@@ -192,24 +189,27 @@ class PvPEncounterService
 
     private function performAttack(array $attackerSnapshot, array $defenderSnapshot, int $attackerHp, int $defenderHp, string $actor): array
     {
+        $actingSnapshot = $actor === 'attacker' ? $attackerSnapshot : $defenderSnapshot;
+        $targetSnapshot = $actor === 'attacker' ? $defenderSnapshot : $attackerSnapshot;
+
         // Calculate damage using snapshot equipment stats
-        $strength = $attackerSnapshot['attributes']['str'] ?? 1;
-        $eqStats = $attackerSnapshot['equipment_stats'] ?? [];
+        $strength = $actingSnapshot['attributes']['str'] ?? 1;
+        $eqStats = $actingSnapshot['equipment_stats'] ?? [];
         
-        $baseDmgMin = 10 + ($strength * 2) + ($attackerSnapshot['level'] * 1) + ($eqStats['attack_min'] ?? 0);
-        $baseDmgMax = 10 + ($strength * 2) + ($attackerSnapshot['level'] * 1) + ($eqStats['attack_max'] ?? 0);
+        $baseDmgMin = 10 + ($strength * 2) + ($actingSnapshot['level'] * 1) + ($eqStats['attack_min'] ?? 0);
+        $baseDmgMax = 10 + ($strength * 2) + ($actingSnapshot['level'] * 1) + ($eqStats['attack_max'] ?? 0);
         if ($baseDmgMax < $baseDmgMin) $baseDmgMax = $baseDmgMin;
         
         $damage = mt_rand($baseDmgMin, $baseDmgMax);
         
         // Defender's defense
-        $defVit = $defenderSnapshot['attributes']['vit'] ?? 1;
-        $defEq = $defenderSnapshot['equipment_stats'] ?? [];
-        $defense = $defVit + ($defenderSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
+        $defVit = $targetSnapshot['attributes']['vit'] ?? 1;
+        $defEq = $targetSnapshot['equipment_stats'] ?? [];
+        $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
         // Crit check
-        $agi = $attackerSnapshot['attributes']['agi'] ?? 1;
+        $agi = $actingSnapshot['attributes']['agi'] ?? 1;
         $critChance = min(0.3, 0.05 + ($agi * 0.01) + (($eqStats['crit_chance'] ?? 0) / 100));
         $isCrit = mt_rand(1, 100) <= ($critChance * 100);
 
@@ -222,8 +222,8 @@ class PvPEncounterService
                 'type' => 'miss',
                 'value' => 0,
                 'crit' => false,
-                'attackerHp' => $actor === 'attacker' ? $attackerHp : $defenderHp,
-                'defenderHp' => $actor === 'attacker' ? $defenderHp : $attackerHp,
+                'attackerHp' => $attackerHp,
+                'defenderHp' => $defenderHp,
             ];
         }
 

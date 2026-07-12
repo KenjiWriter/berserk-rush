@@ -545,9 +545,15 @@
                         {{-- Enemy Portrait --}}
                         <div class="text-center">
                             <div class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl">
-                                <img src="{{ asset('img/monsters/placeholder.png') }}"
-                                    alt="{{ !empty($enemy) ? $enemy['name'] : 'Potwór' }}"
-                                    class="w-full h-full object-cover">
+                                @if(!empty($enemy) && !empty($enemy['avatar']))
+                                    <img src="{{ route('assets.monsters.avatars', ['filename' => $enemy['avatar']]) }}"
+                                        alt="{{ $enemy['name'] }}"
+                                        class="w-full h-full object-cover">
+                                @else
+                                    <img src="{{ asset('img/monsters/placeholder.png') }}"
+                                        alt="{{ !empty($enemy) ? $enemy['name'] : 'Potwór' }}"
+                                        class="w-full h-full object-cover">
+                                @endif
                             </div>
 
                             {{-- Name & Level --}}

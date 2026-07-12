@@ -76,4 +76,12 @@ Route::get('/assets/items/{filename}', function ($filename) {
     return response()->file($path);
 })->name('assets.items');
 
+Route::get('/assets/monsters/avatars/{filename}', function ($filename) {
+    $path = storage_path('app/assets/monsters/avatars/' . $filename);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path);
+})->name('assets.monsters.avatars');
+
 require __DIR__ . '/auth.php';

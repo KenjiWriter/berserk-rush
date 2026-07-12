@@ -33,7 +33,7 @@ class EncounterService
 
                 if (!$monster) {
                     // Get monsters for this map
-                    $monsters = $map->monsters->where('rank', '!=', 'worldboss');
+                    $monsters = $map->monsters->whereNotIn('rank', ['worldboss', 'boss']);
 
                     if ($monsters->isEmpty()) {
                         return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
