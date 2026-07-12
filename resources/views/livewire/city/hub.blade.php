@@ -258,10 +258,30 @@
                     </button>
                 </div>
 
+                {{-- Quests --}}
+                <div class="relative group w-full max-w-xs">
+                    <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
+                        class="w-full bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-teal-600/95 hover:to-teal-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
+                        <div class="relative text-center">
+                            <div class="text-5xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('quests')">📜</div>
+                                <div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Tablica Wyzwań</h3>
+                            <p class="text-teal-200/80 text-sm font-semibold">Misje i zadania</p>
+                        </div>
+                        @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                            <div class="absolute -top-3 -right-3 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-lg font-bold border-2 border-amber-200 shadow-lg animate-bounce">
+                                !
+                            </div>
+                        @endif
+                    </button>
+                </div>
+
                 {{-- Mailbox --}}
                 <div class="relative group w-full max-w-xs">
                     <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
+                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>
@@ -449,6 +469,20 @@
                                 <div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                             </div>
                     <div class="font-bold text-amber-100 medieval-font">Gildia</div>
+                </button>
+
+                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
+                    class="bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 text-center shadow-xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
+                    <div class="text-4xl mb-2">
+                                <div wire:loading.remove wire:target="goTo('quests')">📜</div>
+                                <div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                            </div>
+                    <div class="font-bold text-amber-100 medieval-font">Wyzwania</div>
+                    @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold border-2 border-amber-200 shadow-lg animate-bounce">
+                            !
+                        </div>
+                    @endif
                 </button>
 
                 <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"

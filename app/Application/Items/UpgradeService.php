@@ -102,6 +102,14 @@ class UpgradeService
         if ($roll <= $chance) {
             $item->upgrade_level += 1;
             $item->save();
+
+            // Quest progress
+            app(\App\Application\Quests\QuestService::class)->progressQuest(
+                $character, 
+                'action', 
+                ['upgrade_item', 'upgrade_to_' . $item->upgrade_level]
+            );
+
             return [
                 'success' => true, 
                 'message' => "Ulepszenie zakończone sukcesem! {$item->template->name} ma teraz poziom +{$item->upgrade_level}."

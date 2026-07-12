@@ -62,6 +62,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Real-time Global Chat:** A WebSocket-powered (Laravel Reverb) chat panel pinned to the corner of the screen. Supports multiple channels (Global/Guild), unread counters, in-chat slash commands, and player inspection tooltips showing equipped gear.
 - **Admin Panel & Tools:** Game masters (permission_level == 9) have access to a suite of in-chat commands for testing and a dedicated web-based administrative panel to manage the game state.
 - **World Bosses:** Epic global events where the entire server collaborates to defeat a massive boss, with live leaderboards and proportional rewards based on damage dealt.
+- **Quests & Challenges:** A comprehensive questing system where players can accept missions, hunt specific monsters, gather items, and earn extra gold and experience.
 - **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
 ## 🛠️ Tech Stack
@@ -179,6 +180,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [**PvP Arena & Guild Wars**](./docs/modules/pvp_and_arena.md)
 - [**World Bosses**](./docs/modules/world_boss.md)
 - [**Tutorial & Onboarding**](./docs/modules/tutorial.md)
+- [**Quests & Challenges**](./docs/modules/quests.md)
 
 ## 🛡️ License
 

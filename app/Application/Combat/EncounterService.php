@@ -229,6 +229,10 @@ class EncounterService
                     $dropService = app(DropService::class);
                     $dropResult = $dropService->rollAndApplyRewards($encounter);
 
+                    // Update hunting quests
+                    $questService = app(\App\Application\Quests\QuestService::class);
+                    $questService->progressQuest($character, 'hunting', [(string)$monster->id, (string)$encounter->map_id]);
+
                     if ($dropResult->isError()) {
                         Log::warning('Failed to apply loot drops', [
                             'encounter_id' => $encounter->id,

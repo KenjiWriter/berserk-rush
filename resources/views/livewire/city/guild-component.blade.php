@@ -171,6 +171,11 @@
                         </div>
                     </div>
 
+                    @error('leave')
+                        <div class="bg-red-900/50 border border-red-500 text-red-200 px-4 py-2 rounded-lg text-sm mb-4">
+                            {{ $message }}
+                        </div>
+                    @enderror
                     <button wire:click="leaveGuild"
                         wire:loading.attr="disabled" wire:target="leaveGuild"
                         wire:loading.class="opacity-50 cursor-not-allowed" wire:target="leaveGuild"
@@ -208,7 +213,7 @@
                                             <th class="px-4 py-2">Gracz</th>
                                             <th class="px-4 py-2">Rola</th>
                                             <th class="px-4 py-2">Poz.</th>
-                                            @if($myMember && $myMember->role === 'leader')
+                                            @if($myMember && in_array($myMember->role, ['leader', 'commander']))
                                                 <th class="px-4 py-2 text-right">Akcje</th>
                                             @endif
                                         </tr>
@@ -226,13 +231,42 @@
                                                 </td>
                                                 <td class="px-4 py-2 capitalize text-amber-600">{{ $member->role }}</td>
                                                 <td class="px-4 py-2">{{ $member->character->level }}</td>
-                                                @if($myMember && $myMember->role === 'leader')
+                                                @if($myMember && in_array($myMember->role, ['leader', 'commander']))
                                                     <td class="px-4 py-2 text-right">
-                                                        <button wire:click="toggleWarRoster('{{ $member->character_id }}')"
-                                                                wire:loading.attr="disabled"
-                                                                class="text-xs border px-2 py-1 rounded transition {{ $inWar ? 'border-red-600 text-red-400 hover:bg-red-900/30' : 'border-slate-500 text-slate-400 hover:bg-slate-700' }}">
-                                                            {{ $inWar ? 'Wycofaj z wojny' : 'Dodaj do wojny' }}
-                                                        </button>
+                                                        @if($myMember->role === 'leader')
+                                                            <button wire:click="toggleWarRoster('{{ $member->character_id }}')"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="text-xs border px-2 py-1 rounded transition {{ $inWar ? 'border-red-600 text-red-400 hover:bg-red-900/30' : 'border-slate-500 text-slate-400 hover:bg-slate-700' }}">
+                                                                {{ $inWar ? 'Wycofaj z wojny' : 'Dodaj do wojny' }}
+                                                            </button>
+                                                        @endif
+                                                        @if($member->character_id !== $character->id && $myMember->role === 'leader')
+                                                            <button wire:click="changeRole('{{ $member->character_id }}', 'leader')"
+                                                                    wire:confirm="Czy na pewno chcesz przekazać przywództwo gildii tej osobie?"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="text-xs border border-amber-500 text-amber-400 hover:bg-amber-900/30 px-2 py-1 rounded transition ml-1 mt-1 sm:mt-0">
+                                                                Przekaż Lidera
+                                                            </button>
+                                                        @endif
+                                                        @if($member->character_id !== $character->id && ($myMember->role === 'leader' || ($myMember->role === 'commander' && !in_array($member->role, ['leader', 'commander']))))
+                                                            <select wire:change="changeRole('{{ $member->character_id }}', $event.target.value)" class="text-xs bg-slate-900 border border-slate-600 rounded px-1 py-1 text-amber-100 focus:outline-none focus:border-red-500 ml-1 mt-1 sm:mt-0">
+                                                                <option value="" disabled selected>Zmień rolę</option>
+                                                                @if($myMember->role === 'leader')
+                                                                    <option value="commander" {{ $member->role === 'commander' ? 'disabled' : '' }}>Dowódca</option>
+                                                                @endif
+                                                                <option value="elder" {{ $member->role === 'elder' ? 'disabled' : '' }}>Starszy</option>
+                                                                <option value="member" {{ $member->role === 'member' ? 'disabled' : '' }}>Członek</option>
+                                                                <option value="novice" {{ $member->role === 'novice' ? 'disabled' : '' }}>Nowicjusz</option>
+                                                            </select>
+                                                        @endif
+                                                        @if($member->character_id !== $character->id && $member->role !== 'leader' && !($myMember->role === 'commander' && $member->role === 'commander'))
+                                                            <button wire:click="kickMember('{{ $member->character_id }}')"
+                                                                    wire:confirm="Czy na pewno chcesz wyrzucić tego gracza z gildii?"
+                                                                    wire:loading.attr="disabled"
+                                                                    class="text-xs border border-red-600 text-red-400 hover:bg-red-900/30 px-2 py-1 rounded transition ml-1 mt-1 sm:mt-0">
+                                                                Wyrzuć
+                                                            </button>
+                                                        @endif
                                                     </td>
                                                 @endif
                                             </tr>

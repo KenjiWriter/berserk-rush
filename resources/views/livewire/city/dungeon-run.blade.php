@@ -135,22 +135,22 @@
 
         {{-- ACTIVE RUN --}}
         @else
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
 
                 {{-- Left: Character status + Potions --}}
-                <div class="space-y-4 order-1 lg:order-1" id="player-panel-container">
+                <div class="col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-2 lg:order-1" id="player-panel-container">
                     {{-- Character HP --}}
-                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5 backdrop-blur-sm">
-                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">Twoja postać</h3>
-                        <div class="text-center mb-3">
+                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
+                        <h3 class="text-[10px] lg:text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 lg:mb-3">Twoja postać</h3>
+                        <div class="text-center mb-2 lg:mb-3">
                             <span class="text-3xl">🛡️</span>
-                            <p class="font-bold text-amber-300 mt-1" style="font-family: 'Cinzel', serif;">{{ $character->name }}</p>
-                            <p class="text-gray-400 text-sm">Poziom {{ $character->level }}</p>
+                            <p class="font-bold text-sm lg:text-base text-amber-300 mt-1 truncate" style="font-family: 'Cinzel', serif;">{{ $character->name }}</p>
+                            <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $character->level }}</p>
                         </div>
 
                         {{-- HP Bar --}}
                         <div class="mb-2">
-                            <div class="flex justify-between text-sm mb-1">
+                            <div class="flex justify-between text-[10px] lg:text-sm mb-1">
                                 <span class="text-gray-400">HP</span>
                                 @php $displayPlayerHp = $showBattle ? $animatedPlayerHp : $currentHp; @endphp
                                 <span class="text-{{ $displayPlayerHp > $maxHp * 0.5 ? 'green' : ($displayPlayerHp > $maxHp * 0.25 ? 'yellow' : 'red') }}-400 font-bold">
@@ -165,8 +165,8 @@
                         </div>
 
                         {{-- Stage progress --}}
-                        <div class="mt-4">
-                            <div class="flex justify-between text-sm mb-1">
+                        <div class="mt-2 lg:mt-4">
+                            <div class="flex justify-between text-[10px] lg:text-sm mb-1">
                                 <span class="text-gray-400">Postęp</span>
                                 <span class="text-amber-300 font-bold">Etap {{ $currentStage }} / {{ $totalStages }}</span>
                             </div>
@@ -179,7 +179,7 @@
                     </div>
 
                     {{-- Potions --}}
-                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5 backdrop-blur-sm">
+                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
                         <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">🧪 Mikstury</h3>
                         @if($potions->count() > 0)
                             <div class="space-y-2">
@@ -213,7 +213,7 @@
                 </div>
 
                 {{-- Center: Fight Action / Battle Log --}}
-                <div class="space-y-4 order-2 lg:order-2 flex flex-col justify-center min-h-[400px]"
+                <div class="col-span-2 lg:col-span-1 space-y-4 order-1 lg:order-2 flex flex-col justify-center min-h-[300px] lg:min-h-[400px] mb-4 lg:mb-0"
                      @if($isCalculating) wire:poll.1s="checkCombatStatus" @endif>
                      
                     @if($isCalculating)
@@ -313,25 +313,25 @@
                 </div>
 
                 {{-- Right: Monster --}}
-                <div class="space-y-4 order-3 lg:order-3" id="enemy-panel-container">
+                <div class="col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-3 lg:order-3" id="enemy-panel-container">
                     @if($monster)
                         {{-- Monster info always visible on the right --}}
-                        <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-5 backdrop-blur-sm">
-                            <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Przeciwnik</h3>
-                            <div class="text-center mb-5">
-                                <span class="text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">👹</span>
-                                <p class="font-bold text-red-300 mt-3 text-xl" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</p>
-                                <p class="text-gray-400 text-sm">Poziom {{ $monster->level }} • {{ ucfirst($monster->rank ?? 'normal') }}</p>
+                        <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
+                            <h3 class="text-[10px] lg:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 lg:mb-3">Przeciwnik</h3>
+                            <div class="text-center mb-3 lg:mb-5">
+                                <span class="text-4xl lg:text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">👹</span>
+                                <p class="font-bold text-red-300 mt-2 lg:mt-3 text-sm lg:text-xl truncate" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</p>
+                                <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $monster->level }}<span class="hidden lg:inline"> • {{ ucfirst($monster->rank ?? 'normal') }}</span></p>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3 mb-2">
-                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
+                            <div class="grid grid-cols-2 gap-1 lg:gap-3 mb-2">
+                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
+                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
                                     @php 
                                         $baseMonsterHp = $monster->stats['hp'] ?? $monster->level * 20;
                                         $displayMonsterHp = ($showBattle && !$isCalculating) ? $animatedEnemyHp : $baseMonsterHp; 
                                     @endphp
-                                    <p class="font-bold text-red-400 text-lg">
+                                    <p class="font-bold text-red-400 text-sm lg:text-lg">
                                         @if($isCalculating)
                                             <span class="animate-pulse">?</span> / {{ $baseMonsterHp }}
                                         @else
@@ -339,17 +339,17 @@
                                         @endif
                                     </p>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
-                                    <p class="font-bold text-orange-400 text-lg">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</p>
+                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
+                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
+                                    <p class="font-bold text-orange-400 text-sm lg:text-lg">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</p>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">DEF</p>
-                                    <p class="font-bold text-blue-400 text-lg">{{ $monster->stats['def'] ?? $monster->level }}</p>
+                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
+                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">DEF</p>
+                                    <p class="font-bold text-blue-400 text-sm lg:text-lg">{{ $monster->stats['def'] ?? $monster->level }}</p>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-3 border border-gray-700/50 text-center">
-                                    <p class="text-xs text-gray-500 uppercase tracking-widest mb-1">AGI</p>
-                                    <p class="font-bold text-green-400 text-lg">{{ $monster->stats['agi'] ?? $monster->level }}</p>
+                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
+                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">AGI</p>
+                                    <p class="font-bold text-green-400 text-sm lg:text-lg">{{ $monster->stats['agi'] ?? $monster->level }}</p>
                                 </div>
                             </div>
                         </div>

@@ -98,10 +98,10 @@
         </div>
 
         {{-- Classic RPG Battle Layout --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 max-w-7xl mx-auto">
 
             {{-- Left Side - Player Panel --}}
-            <div class="order-1 lg:order-1" id="player-panel-container">
+            <div class="col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
                 <div id="player-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isPlayerTurn() ? 'ring-4 ring-amber-300 shadow-[0_0_30px_rgba(255,200,60,.4)]' : '' }}">
                     {{-- Wooden background --}}
@@ -111,11 +111,11 @@
                     {{-- Wooden overlay for better contrast --}}
                     <div class="absolute inset-0 bg-amber-900/25"></div>
 
-                    <div class="relative p-6 space-y-4">
+                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
                         {{-- Player Portrait --}}
                         <div class="text-center">
                             <div
-                                class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
+                                class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
                                 @if (!empty($player) && $player['avatar'])
                                     <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}"
                                         class="w-full h-full object-cover">
@@ -134,19 +134,19 @@
 
                             {{-- Name & Level --}}
                             <h3
-                                class="mt-3 text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
                                 {{ !empty($player) ? $player['name'] : $character->name }}
                             </h3>
-                            <p class="text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <p class="text-[10px] lg:text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                 Poziom {{ !empty($player) ? $player['level'] : $character->level }}
                             </p>
                         </div>
 
                         {{-- Player HP Bar --}}
                         @if (!empty($player))
-                            <div class="space-y-2">
+                            <div class="space-y-1 lg:space-y-2">
                                 <div
-                                    class="flex justify-between text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     <span>❤️ Życie</span>
                                     <span>{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] }}</span>
                                 </div>
@@ -157,10 +157,10 @@
                             </div>
 
                             {{-- XP Progress Bar (NEW) --}}
-                            <div class="space-y-1 mt-1">
+                            <div class="space-y-1 mt-1 hidden sm:block">
                                 <div
-                                    class="flex justify-between text-sm font-semibold text-indigo-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                    <span>⭐ Doświadczenie</span>
+                                    class="flex justify-between text-[10px] lg:text-sm font-semibold text-indigo-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    <span>⭐ Dośw.</span>
                                     <span>{{ $character->xp }}/{{ $this->getXpToNextLevel() }}</span>
                                 </div>
                                 <div class="h-3 w-full rounded-full bg-indigo-900/40 ring-1 ring-indigo-950/50">
@@ -172,18 +172,18 @@
                             {{-- Player Stats --}}
                             <div>
                                 <h4
-                                    class="text-sm font-semibold text-amber-100 mb-3 medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    class="hidden lg:block text-sm font-semibold text-amber-100 mb-2 lg:mb-3 medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     📊 Atrybuty
                                 </h4>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-2 gap-1 lg:gap-3">
                                     <div class="relative rounded-lg overflow-hidden shadow-lg">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-red-900/30"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-amber-200 tracking-wider">💪 STR</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-amber-200 tracking-wider">STR</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $player['stats']['str'] ?? 0 }}
                                             </div>
                                         </div>
@@ -192,10 +192,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-blue-900/30"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-amber-200 tracking-wider">🧠 INT</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-amber-200 tracking-wider">INT</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $player['stats']['int'] ?? 0 }}
                                             </div>
                                         </div>
@@ -204,10 +204,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-green-900/30"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-amber-200 tracking-wider">❤️ VIT</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-amber-200 tracking-wider">VIT</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $player['stats']['vit'] ?? 0 }}
                                             </div>
                                         </div>
@@ -216,10 +216,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-yellow-900/30"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-amber-200 tracking-wider">💨 AGI</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-amber-200 tracking-wider">AGI</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $player['stats']['agi'] ?? 0 }}
                                             </div>
                                         </div>
@@ -232,8 +232,8 @@
             </div>
 
             {{-- Center - Parchment Battle Log --}}
-            <div class="order-3 lg:order-2">
-                <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[500px] flex flex-col">
+            <div class="col-span-2 lg:col-span-1 order-1 lg:order-2 mb-4 lg:mb-0">
+                <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[400px] lg:h-[500px] flex flex-col">
                     {{-- Parchment background --}}
                     <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                         class="absolute inset-0 w-full h-full object-cover">
@@ -531,7 +531,7 @@
             </div>
 
             {{-- Right Side - Enemy Panel --}}
-            <div class="order-2 lg:order-3" id="enemy-panel-container">
+            <div class="col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
                 <div id="enemy-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isEnemyTurn() ? 'ring-4 ring-red-300 shadow-[0_0_30px_rgba(255,100,100,.4)]' : '' }}">
                     {{-- Wooden background --}}
@@ -541,10 +541,10 @@
                     {{-- Wooden overlay for better contrast --}}
                     <div class="absolute inset-0 bg-red-900/20"></div>
 
-                    <div class="relative p-6 space-y-4">
+                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
                         {{-- Enemy Portrait --}}
                         <div class="text-center">
-                            <div class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl">
                                 @if(!empty($enemy) && !empty($enemy['avatar']))
                                     <img src="{{ route('assets.monsters.avatars', ['filename' => $enemy['avatar']]) }}"
                                         alt="{{ $enemy['name'] }}"
@@ -558,10 +558,10 @@
 
                             {{-- Name & Level --}}
                             <h3
-                                class="mt-3 text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                                class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
                                 {{ !empty($enemy) ? $enemy['name'] : 'Oczekuje...' }}
                             </h3>
-                            <p class="text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <p class="text-[10px] lg:text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                 @if (!empty($enemy))
                                     Poziom {{ $enemy['level'] }}
                                 @else
@@ -572,9 +572,9 @@
 
                         {{-- Enemy HP Bar --}}
                         @if (!empty($enemy))
-                            <div class="space-y-2">
+                            <div class="space-y-1 lg:space-y-2">
                                 <div
-                                    class="flex justify-between text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     <span>❤️ Życie</span>
                                     <span>{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] }}</span>
                                 </div>
@@ -587,18 +587,18 @@
                             {{-- Enemy Stats --}}
                             <div>
                                 <h4
-                                    class="text-sm font-semibold text-amber-100 mb-3 medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                    class="hidden lg:block text-sm font-semibold text-amber-100 mb-2 lg:mb-3 medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     ⚡ Statystyki
                                 </h4>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-2 gap-1 lg:gap-3">
                                     <div class="relative rounded-lg overflow-hidden shadow-lg">
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-red-900/40"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-red-200 tracking-wider">⚔️ ATK</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-red-200 tracking-wider">ATK</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $enemy['stats']['atk'] ?? 0 }}
                                             </div>
                                         </div>
@@ -607,11 +607,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-slate-900/40"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-slate-200 tracking-wider">🛡️ DEF
-                                            </div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-slate-200 tracking-wider">DEF</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $enemy['stats']['def'] ?? 0 }}
                                             </div>
                                         </div>
@@ -620,11 +619,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-yellow-900/40"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-yellow-200 tracking-wider">💨 AGI
-                                            </div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-yellow-200 tracking-wider">AGI</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $enemy['stats']['agi'] ?? 0 }}
                                             </div>
                                         </div>
@@ -633,10 +631,10 @@
                                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                                             class="absolute inset-0 w-full h-full object-cover">
                                         <div class="absolute inset-0 bg-blue-900/40"></div>
-                                        <div class="relative px-3 py-3 text-center">
-                                            <div class="text-xs font-medium text-blue-200 tracking-wider">🧠 INT</div>
+                                        <div class="relative px-1 py-1 lg:px-3 lg:py-3 text-center">
+                                            <div class="text-[9px] lg:text-xs font-medium text-blue-200 tracking-wider">INT</div>
                                             <div
-                                                class="text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                                class="text-sm lg:text-xl font-bold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                                 {{ $enemy['stats']['int'] ?? 0 }}
                                             </div>
                                         </div>

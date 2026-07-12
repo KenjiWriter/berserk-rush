@@ -32,4 +32,9 @@ class ItemTemplate extends Model
     {
         return $this->hasMany(ItemInstance::class, 'template_id');
     }
+
+    public function quest(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Quest::class, 'quest_id');
+    }
 }

@@ -99,6 +99,16 @@ class Character extends Model
         return $this->hasMany(ItemInstance::class, 'owner_character_id');
     }
 
+    public function characterQuests(): HasMany
+    {
+        return $this->hasMany(CharacterQuest::class, 'character_id');
+    }
+
+    public function activeQuests()
+    {
+        return $this->characterQuests()->where('status', \App\Domain\Quests\Enums\QuestStatus::ACTIVE->value);
+    }
+
     public function equippedItems()
     {
         return $this->items()->where('location', 'equipped')->with('template');

@@ -37,6 +37,11 @@
                 <h2 class="text-xl font-bold mb-2">🐉 Pety (Szablony)</h2>
                 <p class="text-gray-400">Zarządzanie gatunkami chowańców, z których wykluwają się jaja.</p>
             </a>
+
+            <a href="{{ route('admin.quests') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">📜 Questy</h2>
+                <p class="text-gray-400">Zarządzanie zadaniami, celami i nagrodami.</p>
+            </a>
         </div>
 
         <div class="mt-8">

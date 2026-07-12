@@ -48,6 +48,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/arena/combat/pvp/{pvpId}', \App\Livewire\City\ArenaCombat::class)->name('arena.combat.pvp');
         Route::get('/arena/combat/gvg/{gvgId}', \App\Livewire\City\ArenaCombat::class)->name('arena.combat.gvg');
         Route::get('/gladiator', \App\Livewire\City\GladiatorShop::class)->name('gladiator');
+        Route::get('/quests', \App\Livewire\City\Quests::class)->name('quests');
     });
 
     // Adventure map routes
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
+    Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {

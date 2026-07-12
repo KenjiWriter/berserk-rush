@@ -158,16 +158,20 @@ class GuildComponent extends Component
     {
         if (!$this->character->guild_id) return;
 
-        DB::transaction(function () {
-            $member = GuildMember::where('character_id', $this->character->id)->first();
+        $member = GuildMember::where('character_id', $this->character->id)->first();
+        if ($member && $member->role === 'leader') {
+            $guild = Guild::find($this->character->guild_id);
+            if ($guild->members()->count() > 1) {
+                $this->addError('leave', 'Musisz najpierw oddać przywództwo innemu graczowi.');
+                return;
+            }
+        }
+
+        DB::transaction(function () use ($member) {
             if ($member && $member->role === 'leader') {
-                // Jeśli jest liderem, nie może wyjść, chyba że zniszczy gildię lub odda władzę
-                // Na ten moment usuwamy całą gildię, jeśli to jedyny lider / gracz
                 $guild = Guild::find($this->character->guild_id);
                 if ($guild->members()->count() === 1) {
                     $guild->delete(); // Cascade zniszczy membersów
-                } else {
-                    throw new \Exception('Musisz najpierw oddać przywództwo innemu graczowi.');
                 }
             } else if ($member) {
                 $member->delete();
@@ -338,6 +342,100 @@ class GuildComponent extends Component
 
         $guild->war_team = $team;
         $guild->save();
+
+        $this->refreshState();
+    }
+
+    public function kickMember(string $characterId): void
+    {
+        if (!$this->character->guild_id) return;
+        
+        $guild = Guild::find($this->character->guild_id);
+        if (!$guild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || !in_array($myMember->role, ['leader', 'commander'])) {
+            $this->addError('roster', 'Tylko lider lub dowódca może wyrzucać członków.');
+            return;
+        }
+
+        $targetMember = GuildMember::where('character_id', $characterId)->where('guild_id', $guild->id)->first();
+        if (!$targetMember) return;
+        
+        if ($targetMember->role === 'leader') {
+            $this->addError('roster', 'Nie można wyrzucić lidera.');
+            return;
+        }
+        
+        if ($myMember->role === 'commander' && in_array($targetMember->role, ['leader', 'commander'])) {
+            $this->addError('roster', 'Dowódca nie może wyrzucić innego dowódcy ani lidera.');
+            return;
+        }
+
+        DB::transaction(function () use ($targetMember, $characterId) {
+            $targetMember->delete();
+            $char = \App\Infrastructure\Persistence\Character::find($characterId);
+            if ($char) {
+                $char->guild_id = null;
+                $char->save();
+            }
+        });
+        
+        $team = $guild->war_team ?? [];
+        if (in_array($characterId, $team)) {
+            $team = array_values(array_filter($team, fn($id) => $id !== $characterId));
+            $guild->war_team = $team;
+            $guild->save();
+        }
+
+        $this->refreshState();
+    }
+
+    public function changeRole(string $characterId, string $newRole): void
+    {
+        if (!$this->character->guild_id) return;
+        
+        $guild = Guild::find($this->character->guild_id);
+        if (!$guild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || !in_array($myMember->role, ['leader', 'commander'])) {
+            $this->addError('roster', 'Brak uprawnień do zmiany ról.');
+            return;
+        }
+
+        $targetMember = GuildMember::where('character_id', $characterId)->where('guild_id', $guild->id)->first();
+        if (!$targetMember) return;
+
+        if ($myMember->role === 'commander') {
+            if (in_array($targetMember->role, ['leader', 'commander'])) {
+                $this->addError('roster', 'Dowódca nie może zmieniać ról innych dowódców ani lidera.');
+                return;
+            }
+            if (in_array($newRole, ['leader', 'commander'])) {
+                $this->addError('roster', 'Dowódca nie może nadać roli lidera ani dowódcy.');
+                return;
+            }
+        }
+        
+        $validRoles = ['commander', 'elder', 'member', 'novice'];
+        
+        if ($newRole === 'leader' && $myMember->role === 'leader') {
+            DB::transaction(function () use ($myMember, $targetMember) {
+                $myMember->role = 'commander';
+                $myMember->save();
+                
+                $targetMember->role = 'leader';
+                $targetMember->save();
+            });
+        } elseif (in_array($newRole, $validRoles)) {
+            if ($targetMember->role === 'leader') {
+                 $this->addError('roster', 'Nie można zmienić roli lidera w ten sposób.');
+                 return;
+            }
+            $targetMember->role = $newRole;
+            $targetMember->save();
+        }
 
         $this->refreshState();
     }

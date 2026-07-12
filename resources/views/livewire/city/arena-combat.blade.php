@@ -77,35 +77,35 @@
         </div>
 
         {{-- Classic RPG Battle Layout --}}
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 max-w-7xl mx-auto">
 
             {{-- Left Side - Player Panel --}}
-            <div class="order-1 lg:order-1" id="player-panel-container">
+            <div class="col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
                 <div id="player-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isPlayerTurn() ? 'ring-4 ring-amber-300 shadow-[0_0_30px_rgba(255,200,60,.4)]' : '' }}">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-amber-900/25"></div>
 
-                    <div class="relative p-6 space-y-4">
+                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
                         <div class="text-center">
-                            <div class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
                                 @if (!empty($player) && $player['avatar'])
                                     <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full bg-gradient-to-b from-amber-200 to-amber-300 flex items-center justify-center text-4xl text-amber-800">👤</div>
                                 @endif
                             </div>
-                            <h3 class="mt-3 text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                            <h3 class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
                                 {{ $player['name'] ?? '?' }}
                             </h3>
-                            <p class="text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <p class="text-[10px] lg:text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                 Poziom {{ $player['level'] ?? '?' }}
                             </p>
                         </div>
 
                         @if (!empty($player))
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <div class="space-y-1 lg:space-y-2">
+                                <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     <span>❤️ Życie</span>
                                     <span>{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] }}</span>
                                 </div>
@@ -120,8 +120,8 @@
             </div>
 
             {{-- Center - Parchment Battle Log --}}
-            <div class="order-3 lg:order-2">
-                <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[500px] flex flex-col">
+            <div class="col-span-2 lg:col-span-1 order-1 lg:order-2 mb-4 lg:mb-0">
+                <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[400px] lg:h-[500px] flex flex-col">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-amber-100/80"></div>
 
@@ -248,31 +248,31 @@
             </div>
 
             {{-- Right Side - Enemy Panel --}}
-            <div class="order-2 lg:order-3" id="enemy-panel-container">
+            <div class="col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
                 <div id="enemy-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isEnemyTurn() ? 'ring-4 ring-red-300 shadow-[0_0_30px_rgba(255,100,100,.4)]' : '' }}">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-red-900/20"></div>
 
-                    <div class="relative p-6 space-y-4">
+                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
                         <div class="text-center">
                             {{-- WIDMO GRACZA EFEKT --}}
-                            <div class="w-28 h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl bg-black">
+                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl bg-black">
                                 <img src="{{ $enemy['avatar'] ?? asset('img/avatars/default.png') }}"
                                     alt="{{ $enemy['name'] ?? '?' }}"
                                     class="w-full h-full object-cover opacity-70 mix-blend-luminosity filter sepia hue-rotate-180 drop-shadow-[0_0_15px_rgba(255,50,50,0.8)]">
                             </div>
-                            <h3 class="mt-3 text-xl font-bold text-red-200 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                            <h3 class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-red-200 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
                                 {{ $enemy['name'] ?? '?' }}
                             </h3>
-                            <p class="text-sm text-red-300 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <p class="text-[10px] lg:text-sm text-red-300 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                 Poziom {{ $enemy['level'] ?? '?' }}
                             </p>
                         </div>
 
                         @if (!empty($enemy))
-                            <div class="space-y-2">
-                                <div class="flex justify-between text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                            <div class="space-y-1 lg:space-y-2">
+                                <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     <span>❤️ Życie</span>
                                     <span>{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] }}</span>
                                 </div>

@@ -22,6 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Event::listen(function (\App\Domain\Characters\Events\CharacterLeveledUp $event) {
+            app(\App\Application\Quests\QuestService::class)->cancelExpiredQuests($event->character);
+        });
     }
 }

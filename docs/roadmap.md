@@ -150,7 +150,20 @@ Stworzenie kompleksowego systemu wprowadzającego nowych graczy w mechaniki gry.
 
 ---
 
-## 🟤 Faza 15: System Kolekcji, Osiągnięć i Tytułów
+## 🟢 Faza 15: System Questów (Tablica wyzwań) (✅ Zakończona)
+Wprowadzenie systemu misji jako dodatkowej formy aktywności i progresji dla gracza.
+- [x] **Tablica Wyzwań:** Nowa domena (NPC/lokacja) w Hubie (Mieście) z listą dostępnych misji, zależnych od obecnego poziomu gracza.
+- [x] **Typy Misji:**
+  - **Zbieractwo:** Konieczność oddania określonej ilości przedmiotów, które można zdobyć z określonego w queście potwora.
+  - **Polowanie:** Zabicie określonej liczby konkretnych potworów lub ogólnie potworów z danej mapy.
+  - **Czynności:** Wykonanie określonej akcji, np. ulepszenie dowolnego przedmiotu na +5, lub ulepszenie przedmiotów łącznie 10 razy. (Opcjonalnie, do rozbudowy w przyszłości)
+- [x] **Limity Poziomowe:** Questy posiadają maksymalny poziom, do którego można je wykonać.
+- [x] **Nagrody:** Zdobywanie Złota, Doświadczenia (EXP) i opcjonalnie nagród rzeczowych (przedmiotów) za ukończenie wyzwań.
+- [x] **Panel Administracyjny:** Wprowadzenie dedykowanego panelu w GUI administracyjnym do swobodnego tworzenia i konfigurowania questów.
+
+---
+
+## 🟤 Faza 16: System Kolekcji, Osiągnięć i Tytułów
 Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów do "kolekcjonowania".
 - **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
 - **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
@@ -158,7 +171,7 @@ Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów 
 
 ---
 
-## 🟣 Faza 16: Ekonomia 2.0 i System Zawodów
+## 🟣 Faza 17: Ekonomia 2.0 i System Zawodów
 Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surowce i nakręcali popyt, co ożywi mocniej Fazy 7 (Market) i 9 (Rzemiosło).
 - **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
 - **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.

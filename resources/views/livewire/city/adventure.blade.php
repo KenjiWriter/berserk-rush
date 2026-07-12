@@ -333,7 +333,14 @@
                                                                     <span class="text-yellow-600 font-bold mr-1">💰</span> Złoto ({{ $entry->min_qty }} - {{ $entry->max_qty }})
                                                                 @elseif($entry->reward_type === 'xp')
                                                                     <span class="text-blue-700 font-bold mr-1">✨</span> XP ({{ $entry->min_qty }} - {{ $entry->max_qty }})
-                                                                @elseif($entry->reward_type === 'item' && $entry->itemTemplate)
+                                                                @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
+                                                                    @php
+                                                                        if ($entry->itemTemplate->type === 'quest_item') {
+                                                                            if (!$entry->itemTemplate->quest_id || !in_array($entry->itemTemplate->quest_id, $activeQuestIds)) {
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                    @endphp
                                                                     <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-orange-600 font-bold' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-700 font-bold' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-700 font-bold' : 'text-gray-800')) }}">
                                                                         {{ $entry->itemTemplate->name }}
                                                                     </span>

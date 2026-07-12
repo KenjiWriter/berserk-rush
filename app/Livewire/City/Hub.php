@@ -44,6 +44,7 @@ class Hub extends Component
             'guild' => route('city.guild', $this->character),
             'arena' => route('city.arena', $this->character),
             'gladiator' => route('city.gladiator', $this->character),
+            'quests' => route('city.quests', $this->character),
             default => route('city.hub', $this->character),
         };
 
@@ -58,6 +59,12 @@ class Hub extends Component
 
     public function render()
     {
-        return view('livewire.city.hub');
+        $questService = app(\App\Application\Quests\QuestService::class);
+        $availableQuestsCount = count($questService->getAvailableQuests($this->character));
+        $completedQuestsCount = $this->character->characterQuests()->where('status', 'completed')->count();
+        
+        return view('livewire.city.hub', [
+            'completedQuestsCount' => $completedQuestsCount + $availableQuestsCount
+        ]);
     }
 }

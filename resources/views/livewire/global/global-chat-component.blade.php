@@ -51,86 +51,96 @@
             this.$watch('$wire.currentChannel', () => this.checkCommands());
         }
     }"
-    class="fixed bottom-0 right-0 m-4 z-50 font-sans select-none flex items-end gap-2"
+    class="fixed bottom-16 lg:bottom-0 right-0 m-4 z-[9950] font-sans select-none flex items-end gap-2"
     style="font-family: 'Cinzel', serif;"
     wire:mouseleave="closeTooltip"
 >
-    {{-- ========== GLOBAL TOOLTIP (LEFT OF CHAT) ========== --}}
+    {{-- ========== GLOBAL TOOLTIP ========== --}}
     @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
         @php $td = $tooltipData[$activeTooltipId]; @endphp
-        <div
-            class="relative z-[60] rounded-xl border border-amber-700/60 shadow-2xl p-4 w-64 text-left pointer-events-auto flex flex-col mb-12"
-            style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
+        
+        {{-- Tooltip Container: Modal on mobile, static flex item on desktop --}}
+        <div 
+            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:static lg:inset-auto lg:bg-transparent lg:backdrop-blur-none lg:z-auto lg:block lg:mb-12 p-4 lg:p-0"
+            wire:click.self="closeTooltip"
         >
-            {{-- Arrow pointing right --}}
-            <div class="absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900/80 border-t border-r border-amber-700/60"></div>
-
-            {{-- Character header --}}
-            <div class="mb-2 border-b border-amber-800/50 pb-2">
-                <p class="text-amber-300 font-bold text-base">{{ $td['name'] }}</p>
-                <div class="flex gap-3 text-xs mt-1">
-                    <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
-                    <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
-                </div>
-            </div>
-
-            {{-- Equipped items --}}
-            <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2">Ekwipunek</p>
-            @if (count($td['equipped_items']) === 0)
-                <p class="text-amber-700/60 text-xs italic mb-3">Brak założonego ekwipunku</p>
-            @else
-                <div class="space-y-1 mb-3">
-                    @foreach ($td['equipped_items'] as $ei)
-                        @php
-                            $rarityColor = match($ei['rarity'] ?? 'common') {
-                                'uncommon'  => 'text-green-400',
-                                'rare'      => 'text-blue-400',
-                                'epic'      => 'text-purple-400',
-                                'legendary' => 'text-amber-400',
-                                default     => 'text-stone-300',
-                            };
-                        @endphp
-                        <div class="flex items-center justify-between text-xs">
-                            <span class="{{ $rarityColor }} truncate max-w-[130px]">
-                                {{ $ei['name'] }}
-                                @if ($ei['upgrade_level'] > 0)
-                                    <span class="text-emerald-400">+{{ $ei['upgrade_level'] }}</span>
-                                @endif
-                            </span>
-                            <span class="text-amber-700 text-[10px] ml-1">{{ number_format($ei['combat_power']) }} CP</span>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-            {{-- Equipped Pet --}}
-            @if(isset($td['pet']) && $td['pet'])
-                <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2 mt-2">Chowaniec</p>
-                @php
-                    $petRarityColor = match($td['pet']['rarity'] ?? 'common') {
-                        'uncommon'  => 'text-green-400',
-                        'rare'      => 'text-blue-400',
-                        'epic'      => 'text-purple-400',
-                        'legendary' => 'text-amber-400',
-                        default     => 'text-stone-300',
-                    };
-                @endphp
-                <div class="flex items-center justify-between text-xs mb-3">
-                    <span class="{{ $petRarityColor }} truncate max-w-[130px]">
-                        🐾 {{ $td['pet']['name'] }}
-                        <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
-                    </span>
-                    <span class="text-amber-700 text-[10px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
-                </div>
-            @endif
-
-            {{-- Invite to Guild Button Placeholder --}}
-            <button
-                wire:click="inviteToGuild('{{ $activeTooltipId }}')"
-                class="mt-auto w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer"
+            <div
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[280px] lg:w-64 text-left pointer-events-auto flex flex-col"
+                style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
-                ➕ Wyślij zaproszenie do gildii
-            </button>
+                {{-- Close button for mobile --}}
+                <button wire:click="closeTooltip" class="absolute top-2 right-3 text-amber-500 hover:text-amber-300 lg:hidden font-bold text-xl leading-none cursor-pointer">&times;</button>
+
+                {{-- Arrow pointing right (hidden on mobile) --}}
+                <div class="hidden lg:block absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900/80 border-t border-r border-amber-700/60"></div>
+
+                {{-- Character header --}}
+                <div class="mb-2 border-b border-amber-800/50 pb-2 pr-4">
+                    <p class="text-amber-300 font-bold text-base">{{ $td['name'] }}</p>
+                    <div class="flex gap-3 text-xs mt-1">
+                        <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
+                        <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
+                    </div>
+                </div>
+
+                {{-- Equipped items --}}
+                <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2">Ekwipunek</p>
+                @if (count($td['equipped_items']) === 0)
+                    <p class="text-amber-700/60 text-xs italic mb-3">Brak założonego ekwipunku</p>
+                @else
+                    <div class="space-y-1 mb-3">
+                        @foreach ($td['equipped_items'] as $ei)
+                            @php
+                                $rarityColor = match($ei['rarity'] ?? 'common') {
+                                    'uncommon'  => 'text-green-400',
+                                    'rare'      => 'text-blue-400',
+                                    'epic'      => 'text-purple-400',
+                                    'legendary' => 'text-amber-400',
+                                    default     => 'text-stone-300',
+                                };
+                            @endphp
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="{{ $rarityColor }} truncate max-w-[130px]">
+                                    {{ $ei['name'] }}
+                                    @if ($ei['upgrade_level'] > 0)
+                                        <span class="text-emerald-400">+{{ $ei['upgrade_level'] }}</span>
+                                    @endif
+                                </span>
+                                <span class="text-amber-700 text-[10px] ml-1">{{ number_format($ei['combat_power']) }} CP</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Equipped Pet --}}
+                @if(isset($td['pet']) && $td['pet'])
+                    <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2 mt-2">Chowaniec</p>
+                    @php
+                        $petRarityColor = match($td['pet']['rarity'] ?? 'common') {
+                            'uncommon'  => 'text-green-400',
+                            'rare'      => 'text-blue-400',
+                            'epic'      => 'text-purple-400',
+                            'legendary' => 'text-amber-400',
+                            default     => 'text-stone-300',
+                        };
+                    @endphp
+                    <div class="flex items-center justify-between text-xs mb-3">
+                        <span class="{{ $petRarityColor }} truncate max-w-[130px]">
+                            🐾 {{ $td['pet']['name'] }}
+                            <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
+                        </span>
+                        <span class="text-amber-700 text-[10px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
+                    </div>
+                @endif
+
+                {{-- Invite to Guild Button Placeholder --}}
+                <button
+                    wire:click="inviteToGuild('{{ $activeTooltipId }}')"
+                    class="mt-auto w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer"
+                >
+                    ➕ Wyślij zaproszenie do gildii
+                </button>
+            </div>
         </div>
     @endif
 
@@ -212,8 +222,9 @@
                             {{-- Nick + hover tooltip trigger --}}
                             <div class="relative ml-1">
                                 <span
+                                    wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
                                     wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"
-                                    class="text-amber-400 hover:text-amber-200 font-bold cursor-help transition-colors hover:underline decoration-dotted"
+                                    class="text-amber-400 hover:text-amber-200 font-bold cursor-pointer lg:cursor-help transition-colors hover:underline decoration-dotted"
                                 >{{ $msg['character_name'] }}</span>
 
                                 <span class="text-amber-600/70">[{{ $msg['character_level'] }}]</span>

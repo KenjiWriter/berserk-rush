@@ -47,7 +47,23 @@ class DropService
                     return Result::ok(new DropResult(0, 0, [], [], false));
                 }
 
-                $entries = $lootTable->entries->toArray();
+                $activeQuestIds = $encounter->character->activeQuests()->pluck('quest_id')->toArray();
+
+                $entriesCollection = $lootTable->entries()->with('itemTemplate')->get();
+                
+                $filteredEntries = $entriesCollection->filter(function($entry) use ($activeQuestIds) {
+                    if (in_array($entry->reward_type, ['item', 'material'])) {
+                        $template = $entry->itemTemplate;
+                        if ($template && $template->type === 'quest_item') {
+                            if (!$template->quest_id || !in_array($template->quest_id, $activeQuestIds)) {
+                                return false; // Ukryj, jeśli nie ma tego questa aktywnego
+                            }
+                        }
+                    }
+                    return true;
+                });
+
+                $entries = array_values($filteredEntries->toArray());
                 if (empty($entries)) {
                     return Result::ok(new DropResult(0, 0, [], [], false));
                 }

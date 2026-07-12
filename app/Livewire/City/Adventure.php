@@ -132,6 +132,8 @@ class Adventure extends Component
             }
         }
 
+        $activeQuestIds = $this->character->activeQuests()->pluck('quest_id')->toArray();
+
         return view('livewire.city.adventure', [
             'dungeons' => $dungeons,
             'activeRun' => $activeRun,
@@ -139,6 +141,7 @@ class Adventure extends Component
             'defeatedWorldBosses' => $defeatedWorldBosses,
             'participatedBosses' => $participatedBosses,
             'topDamageDealers' => $topDamageDealers,
+            'activeQuestIds' => $activeQuestIds,
         ]);
     }
 }
