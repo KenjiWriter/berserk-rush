@@ -34,7 +34,9 @@
                 <div class="flex flex-col gap-4">
                     <!-- Pet Slot -->
                     @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
-                    <div x-data="{ open: false }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative"
+                    <div id="equip-slot-pet" x-data="{ open: false }" @click.outside="open = false" 
+                         @if($activePet) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="toggleEquipPet({{ $activePet->id }})" @endif
+                         class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
                             <div class="text-center text-xs text-white">
@@ -60,7 +62,7 @@
                                             @endforeach
                                         </div>
                                     @endif
-                                    <button wire:click="toggleEquipPet({{ $activePet->id }})" @click="open = false" class="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                    <button @click="open = false; flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet({{ $activePet->id }}))" class="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
                                         Odwołaj Peta
                                     </button>
                                 </div>
@@ -74,7 +76,9 @@
                     </div>
 
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" 
+                             @if(isset($equipped[$slot])) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="unequipItem('{{ $equipped[$slot]->id }}')" @endif
+                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
@@ -113,7 +117,7 @@
                                             </div>
                                         @endif
 
-                                        <button wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @click="open = false" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                        <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
                                             Zdejmij przedmiot
                                         </button>
                                     </div>
@@ -162,7 +166,9 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" 
+                             @if(isset($equipped[$slot])) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="unequipItem('{{ $equipped[$slot]->id }}')" @endif
+                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 <div class="text-center text-xs text-white">
@@ -201,7 +207,7 @@
                                             </div>
                                         @endif
 
-                                        <button wire:click="unequipItem('{{ $equipped[$slot]->id }}')" @click="open = false" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                        <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
                                             Zdejmij przedmiot
                                         </button>
                                     </div>
@@ -386,12 +392,12 @@
             </div>
 
             <!-- Inventory Grid -->
-            <div class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
+            <div id="inventory-grid" class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
                 @foreach($inventory as $item)
                     @php
                         $isRustySwordTutorial = $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
                     @endphp
-                    <div x-data="{ 
+                    <div id="backpack-item-{{ $item->id }}" x-data="{ 
                         open: false, 
                         hoverTimeout: null,
                         posClass: 'sm:bottom-full sm:mb-2',
@@ -399,6 +405,7 @@
                             this.posClass = this.$el.getBoundingClientRect().top < window.innerHeight / 2 ? 'sm:top-full sm:mt-2' : 'sm:bottom-full sm:mb-2'; 
                         }
                     }" @click.outside="open = false" 
+                         wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                          class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative transition-all duration-300 {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
                          :class="{ 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open }"
                          @mouseenter="clearTimeout(hoverTimeout); checkPosition(); open = true" 
@@ -457,7 +464,7 @@
                                         <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
                                     @else
                                         @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
-                                            <button wire:click="equipItem('{{ $item->id }}')" @click="open = false" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors">
+                                            <button @click="open = false; flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ $item->template->slot }}', () => $wire.equipItem('{{ $item->id }}'))" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors">
                                                 Załóż sprzęt
                                             </button>
                                         @elseif($item->template->type === 'consumable')
@@ -484,7 +491,7 @@
                 <!-- Empty Slots Filler -->
                 @php $emptySlots = max(0, 25 - count($inventory)) @endphp
                 @for($i = 0; $i < $emptySlots; $i++)
-                    <div class="aspect-square bg-gray-800 border border-gray-700 rounded"></div>
+                    <div class="empty-slot aspect-square bg-gray-800 border border-gray-700 rounded"></div>
                 @endfor
             </div>
         </div>
@@ -570,4 +577,169 @@
             z-index: 10;
         }
     </style>
+    <script>
+        window.flyItem = async function(sourceId, targetId, wireCall) {
+            let sourceEl = document.getElementById(sourceId);
+            let targetEl = document.getElementById(targetId);
+            
+            if (!sourceEl || !targetEl) {
+                if (wireCall) wireCall();
+                return;
+            }
+            
+            if (targetId === 'inventory-grid') {
+                let firstEmptySlot = targetEl.querySelector('.empty-slot');
+                if (firstEmptySlot) {
+                    targetEl = firstEmptySlot;
+                }
+            }
+            
+            let rect1 = sourceEl.getBoundingClientRect();
+            let rect2 = targetEl.getBoundingClientRect();
+            
+            if (targetId === 'inventory-grid' && !targetEl.classList.contains('empty-slot')) {
+                // Fallback if inventory is full: keep original item size and target grid center
+                rect2 = {
+                    top: rect2.top + rect2.height / 2 - rect1.height / 2,
+                    left: rect2.left + rect2.width / 2 - rect1.width / 2,
+                    width: rect1.width,
+                    height: rect1.height
+                };
+            }
+            
+            let targetHasItem = sourceId.includes('backpack') && targetEl.querySelector('.text-center.text-xs.text-white') !== null;
+            
+            let ghost = sourceEl.cloneNode(true);
+            let tooltip = ghost.querySelector('[x-show]');
+            if(tooltip) tooltip.remove();
+            
+            let spinner = document.createElement('div');
+            spinner.innerHTML = `<svg class="animate-spin h-6 w-6 text-white drop-shadow-md" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>`;
+            spinner.className = 'absolute inset-0 bg-black/40 flex items-center justify-center rounded z-20';
+            ghost.appendChild(spinner);
+            
+            ghost.style.position = 'fixed';
+            ghost.style.top = rect1.top + 'px';
+            ghost.style.left = rect1.left + 'px';
+            ghost.style.width = rect1.width + 'px';
+            ghost.style.height = rect1.height + 'px';
+            ghost.style.zIndex = '9999';
+            ghost.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+            ghost.style.margin = '0';
+            ghost.style.pointerEvents = 'none';
+            document.body.appendChild(ghost);
+            
+            let oldGhost = null;
+            if (targetHasItem) {
+                oldGhost = targetEl.cloneNode(true);
+                let oldTooltip = oldGhost.querySelector('[x-show]');
+                if(oldTooltip) oldTooltip.remove();
+                
+                oldGhost.style.position = 'fixed';
+                oldGhost.style.top = rect2.top + 'px';
+                oldGhost.style.left = rect2.left + 'px';
+                oldGhost.style.width = rect2.width + 'px';
+                oldGhost.style.height = rect2.height + 'px';
+                oldGhost.style.zIndex = '9998';
+                oldGhost.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+                oldGhost.style.margin = '0';
+                oldGhost.style.pointerEvents = 'none';
+                document.body.appendChild(oldGhost);
+                
+                // Hide only inner content for target
+                Array.from(targetEl.children).forEach(c => {
+                    if(!c.classList.contains('absolute') && c.tagName !== 'SCRIPT') {
+                        c.style.opacity = '0';
+                    }
+                });
+            }
+            
+            // Hide only inner content for source, leaving the slot background visible
+            Array.from(sourceEl.children).forEach(c => {
+                if(!c.classList.contains('absolute') && c.tagName !== 'SCRIPT') {
+                    c.style.opacity = '0';
+                }
+            });
+            
+            // 1. New item hovers up
+            setTimeout(() => {
+                ghost.style.transform = 'scale(1.1) translateY(-20px)';
+            }, 10);
+            await new Promise(r => setTimeout(r, 300));
+            
+            // 2. Old item flies to backpack
+            if (targetHasItem) {
+                oldGhost.style.top = rect1.top + 'px';
+                oldGhost.style.left = rect1.left + 'px';
+                oldGhost.style.opacity = '0.7';
+                await new Promise(r => setTimeout(r, 400));
+            }
+            
+            let livewirePromise = null;
+            if (wireCall) {
+                livewirePromise = wireCall();
+            }
+            
+            // 3. New item flies to equip slot
+            ghost.style.transition = 'all 0.6s cubic-bezier(0.25, 1, 0.5, 1)';
+            ghost.style.transform = 'scale(1) translateY(0)';
+            ghost.style.top = rect2.top + 'px';
+            ghost.style.left = rect2.left + 'px';
+            ghost.style.width = rect2.width + 'px';
+            ghost.style.height = rect2.height + 'px';
+            ghost.style.opacity = '0.7';
+            
+            await new Promise(r => setTimeout(r, 600));
+            
+            try {
+                if (livewirePromise) await livewirePromise;
+                
+                let operationFailed = false;
+                if (sourceId.includes('backpack')) {
+                    operationFailed = document.getElementById(sourceId) !== null;
+                } else {
+                    let sourceSlot = document.getElementById(sourceId);
+                    operationFailed = sourceSlot && sourceSlot.querySelector('.text-center.text-xs.text-white') !== null;
+                }
+                
+                if (operationFailed) {
+                    let currentSourceRect = document.getElementById(sourceId).getBoundingClientRect();
+                    ghost.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+                    ghost.style.top = currentSourceRect.top + 'px';
+                    ghost.style.left = currentSourceRect.left + 'px';
+                    ghost.style.width = currentSourceRect.width + 'px';
+                    ghost.style.height = currentSourceRect.height + 'px';
+                    ghost.style.opacity = '1';
+                    
+                    if (oldGhost) {
+                        let currentTargetRect = document.getElementById(targetId).getBoundingClientRect();
+                        oldGhost.style.transition = 'all 0.5s cubic-bezier(0.25, 1, 0.5, 1)';
+                        oldGhost.style.top = currentTargetRect.top + 'px';
+                        oldGhost.style.left = currentTargetRect.left + 'px';
+                        oldGhost.style.width = currentTargetRect.width + 'px';
+                        oldGhost.style.height = currentTargetRect.height + 'px';
+                        oldGhost.style.opacity = '1';
+                    }
+                    
+                    if (spinner) spinner.remove();
+                    await new Promise(r => setTimeout(r, 500));
+                }
+            } catch (e) {
+                console.error(e);
+            }
+            
+            ghost.remove();
+            if (oldGhost) oldGhost.remove();
+            
+            let currentSource = document.getElementById(sourceId);
+            if(currentSource) {
+                Array.from(currentSource.children).forEach(c => c.style.opacity = '');
+            }
+            
+            let currentTarget = document.getElementById(targetId);
+            if(currentTarget) {
+                Array.from(currentTarget.children).forEach(c => c.style.opacity = '');
+            }
+        }
+    </script>
 </div>
