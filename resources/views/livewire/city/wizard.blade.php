@@ -48,7 +48,12 @@
                                     Założone
                                 </div>
                             @endif
-                            <h3 class="font-bold text-lg text-blue-300 mb-2 mt-2">
+                            @if($item->template->icon)
+                                <div class="w-16 h-16 mx-auto mt-2">
+                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                </div>
+                            @endif
+                            <h3 class="font-bold text-lg text-blue-300 mb-2 {{ $item->template->icon ? 'mt-1' : 'mt-2' }}">
                                 {{ $item->template->name }} 
                                 @if($item->upgrade_level > 0)<span class="text-yellow-400">+{{ $item->upgrade_level }}</span>@endif
                             </h3>

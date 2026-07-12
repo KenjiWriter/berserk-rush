@@ -30,9 +30,26 @@ class ItemTemplates extends Component
         'duration_minutes' => 'nullable|integer|min:1',
     ];
 
+    public $availableIcons = [];
+
     public function mount()
     {
         $this->loadData();
+        $this->loadAvailableIcons();
+    }
+
+    public function loadAvailableIcons()
+    {
+        $this->availableIcons = [];
+        $path = storage_path('app/assets/items');
+        if (\Illuminate\Support\Facades\File::exists($path)) {
+            $files = \Illuminate\Support\Facades\File::files($path);
+            foreach ($files as $file) {
+                if (in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'])) {
+                    $this->availableIcons[] = $file->getFilename();
+                }
+            }
+        }
     }
 
     public function loadData()

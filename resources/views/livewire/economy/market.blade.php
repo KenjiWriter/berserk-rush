@@ -131,12 +131,16 @@
                                             @elseif($listing->item->rarity === 'legendary') border-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.5)]
                                             @endif
                                         ">
-                                            @if($listing->item->template->slot === 'weapon') ⚔️
-                                            @elseif($listing->item->template->slot === 'head') 🪖
-                                            @elseif($listing->item->template->slot === 'chest') 🛡️
-                                            @elseif($listing->item->template->slot === 'legs') 👖
-                                            @elseif($listing->item->template->slot === 'boots') 👢
-                                            @else 📦
+                                            @if($listing->item->template->icon)
+                                                <img src="{{ route('assets.items', ['filename' => $listing->item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md p-0.5" alt="{{ $listing->item->template->name }}">
+                                            @else
+                                                @if($listing->item->template->slot === 'weapon') ⚔️
+                                                @elseif($listing->item->template->slot === 'head') 🪖
+                                                @elseif($listing->item->template->slot === 'chest') 🛡️
+                                                @elseif($listing->item->template->slot === 'legs') 👖
+                                                @elseif($listing->item->template->slot === 'boots') 👢
+                                                @else 📦
+                                                @endif
                                             @endif
                                         </div>
                                         
@@ -231,13 +235,17 @@
                                     <tr class="border-b border-slate-700/50 hover:bg-slate-800/80 transition-colors">
                                         <td class="p-3">
                                             <div class="flex items-center space-x-3">
-                                                <div class="text-2xl">
-                                                    @if($listing->item->template->slot === 'weapon') ⚔️
-                                                    @elseif($listing->item->template->slot === 'head') 🪖
-                                                    @elseif($listing->item->template->slot === 'chest') 🛡️
-                                                    @elseif($listing->item->template->slot === 'legs') 👖
-                                                    @elseif($listing->item->template->slot === 'boots') 👢
-                                                    @else 📦
+                                                <div class="text-2xl w-8 h-8 flex items-center justify-center">
+                                                    @if($listing->item->template->icon)
+                                                        <img src="{{ route('assets.items', ['filename' => $listing->item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-sm" alt="{{ $listing->item->template->name }}">
+                                                    @else
+                                                        @if($listing->item->template->slot === 'weapon') ⚔️
+                                                        @elseif($listing->item->template->slot === 'head') 🪖
+                                                        @elseif($listing->item->template->slot === 'chest') 🛡️
+                                                        @elseif($listing->item->template->slot === 'legs') 👖
+                                                        @elseif($listing->item->template->slot === 'boots') 👢
+                                                        @else 📦
+                                                        @endif
                                                     @endif
                                                 </div>
                                                 <div>

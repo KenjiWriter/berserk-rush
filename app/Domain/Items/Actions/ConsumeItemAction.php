@@ -77,13 +77,6 @@ class ConsumeItemAction
                 ]);
             }
 
-            // Odejmujemy przedmiot
-            if ($item->stack_size > 1) {
-                $item->decrement('stack_size');
-            } else {
-                $item->delete();
-            }
-
             // Log
             ItemLedger::create([
                 'id' => (string) Str::ulid(),
@@ -94,6 +87,13 @@ class ConsumeItemAction
                 'quantity_change' => -1,
                 'idempotency_key' => 'consume_' . Str::ulid(),
             ]);
+
+            // Odejmujemy przedmiot
+            if ($item->stack_size > 1) {
+                $item->decrement('stack_size');
+            } else {
+                $item->delete();
+            }
 
             return ['success' => true, 'message' => 'Wypito miksturę. Zastosowano nowe efekty.'];
         });

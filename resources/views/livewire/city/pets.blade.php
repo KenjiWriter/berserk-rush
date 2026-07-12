@@ -77,7 +77,11 @@
                                 @foreach($eggs as $egg)
                                     <div class="flex items-center justify-between bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
                                         <div class="flex items-center space-x-2">
-                                            <span class="text-lg">🥚</span>
+                                            @if($egg->template->icon)
+                                                <img src="{{ route('assets.items', ['filename' => $egg->template->icon]) }}" class="w-8 h-8 object-contain drop-shadow-md" alt="{{ $egg->template->name }}">
+                                            @else
+                                                <span class="text-lg">🥚</span>
+                                            @endif
                                             <div class="text-left">
                                                 <p class="text-sm font-semibold text-gray-200">{{ $egg->template->name }}</p>
                                                 <p class="text-xs font-bold

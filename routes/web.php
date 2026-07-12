@@ -68,4 +68,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
 });
 
+Route::get('/assets/items/{filename}', function ($filename) {
+    $path = storage_path('app/assets/items/' . $filename);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path);
+})->name('assets.items');
+
 require __DIR__ . '/auth.php';

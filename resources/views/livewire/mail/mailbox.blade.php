@@ -82,13 +82,17 @@
                                                     @endphp
                                                     @if($item)
                                                         <div class="flex items-center space-x-2 bg-slate-900/80 border border-slate-600 rounded p-2 pr-3">
-                                                            <div class="text-lg">
-                                                                @if($item->template->slot === 'weapon') ⚔️
-                                                                @elseif($item->template->slot === 'head') 🪖
-                                                                @elseif($item->template->slot === 'chest') 🛡️
-                                                                @elseif($item->template->slot === 'legs') 👖
-                                                                @elseif($item->template->slot === 'boots') 👢
-                                                                @else 📦
+                                                            <div class="text-lg flex items-center justify-center w-8 h-8">
+                                                                @if($item->template->icon)
+                                                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-sm" alt="{{ $item->template->name }}">
+                                                                @else
+                                                                    @if($item->template->slot === 'weapon') ⚔️
+                                                                    @elseif($item->template->slot === 'head') 🪖
+                                                                    @elseif($item->template->slot === 'chest') 🛡️
+                                                                    @elseif($item->template->slot === 'legs') 👖
+                                                                    @elseif($item->template->slot === 'boots') 👢
+                                                                    @else 📦
+                                                                    @endif
                                                                 @endif
                                                             </div>
                                                             <div class="text-sm font-semibold 

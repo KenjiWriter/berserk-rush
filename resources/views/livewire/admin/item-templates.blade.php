@@ -67,6 +67,38 @@
                         @error('level_requirement') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
 
+                    <div class="mb-4">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Opis (opcjonalnie)</label>
+                        <textarea wire:model="description" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500" rows="3"></textarea>
+                        @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Ikona Przedmiotu</label>
+                        @if(empty($availableIcons))
+                            <p class="text-sm text-gray-500">Brak ikon w katalogu <code>storage/app/assets/items/</code>. Dodaj tam pliki graficzne.</p>
+                        @else
+                            <div class="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900 rounded border border-gray-700">
+                                @foreach($availableIcons as $availableIcon)
+                                    <div 
+                                        wire:click="$set('icon', '{{ $availableIcon }}')" 
+                                        class="cursor-pointer border-2 rounded p-1 transition-all flex flex-col items-center justify-center {{ $icon === $availableIcon ? 'border-amber-500 bg-amber-500/20' : 'border-transparent hover:border-gray-500 hover:bg-gray-800' }}"
+                                        title="{{ $availableIcon }}"
+                                    >
+                                        <img src="{{ route('assets.items', ['filename' => $availableIcon]) }}" alt="{{ $availableIcon }}" class="w-10 h-10 object-contain drop-shadow-md" />
+                                    </div>
+                                @endforeach
+                            </div>
+                            @error('icon') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @endif
+                        @if($icon)
+                            <div class="mt-2 text-xs text-amber-500 font-semibold flex items-center gap-2">
+                                Wybrano: {{ $icon }}
+                                <button type="button" wire:click="$set('icon', null)" class="text-red-400 hover:text-red-300 ml-2">Usuń</button>
+                            </div>
+                        @endif
+                    </div>
+
                     @if($type === 'consumable')
                     <div class="mb-4 p-3 bg-blue-900/30 border border-blue-800 rounded">
                         <label class="block text-blue-400 text-sm font-bold mb-2">Czas trwania buffu (w minutach)</label>
@@ -145,8 +177,17 @@
                             @foreach($templates as $item)
                                 <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition">
                                     <td class="p-3 text-white">
-                                        <div class="font-bold text-yellow-500">{{ $item->name }}</div>
-                                        <div class="text-xs text-gray-500">{{ $item->id }}</div>
+                                        <div class="flex items-center gap-3">
+                                            @if($item->icon)
+                                                <img src="{{ route('assets.items', ['filename' => $item->icon]) }}" class="w-10 h-10 object-contain drop-shadow-md bg-gray-800 rounded p-1" alt="icon">
+                                            @else
+                                                <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-xs text-gray-500">Brak</div>
+                                            @endif
+                                            <div>
+                                                <div class="font-bold text-yellow-500">{{ $item->name }}</div>
+                                                <div class="text-xs text-gray-500">{{ $item->id }}</div>
+                                            </div>
+                                        </div>
                                     </td>
                                     <td class="p-3 text-gray-300">
                                         {{ $item->type }}

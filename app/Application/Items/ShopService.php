@@ -116,14 +116,6 @@ class ShopService
 
         $price = $this->getSellPrice($item);
         
-        // Handling stack
-        if ($item->stack_size > 1) {
-            $item->stack_size -= 1;
-            $item->save();
-        } else {
-            $item->delete();
-        }
-
         $character->gold += $price;
         $character->save();
 
@@ -136,6 +128,14 @@ class ShopService
             'quantity_change' => -1,
             'idempotency_key' => Str::ulid(),
         ]);
+
+        // Handling stack
+        if ($item->stack_size > 1) {
+            $item->stack_size -= 1;
+            $item->save();
+        } else {
+            $item->delete();
+        }
 
         return ['success' => true, 'message' => "Sprzedano {$item->template->name} za {$price} złota."];
     }

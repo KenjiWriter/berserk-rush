@@ -61,7 +61,14 @@
                                         🔥 Zostało: {{ $item->max_quantity - $item->sold_quantity }}
                                     </div>
                                 @endif
-                                <h3 class="font-bold text-lg text-blue-300 mb-2">{{ $item->template->name }}</h3>
+                                @if($item->template->icon)
+                                    <div class="w-16 h-16 mx-auto mb-2">
+                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                    </div>
+                                    <h3 class="font-bold text-lg text-blue-300 mb-2">{{ $item->template->name }}</h3>
+                                @else
+                                    <h3 class="font-bold text-lg text-blue-300 mb-2">{{ $item->template->name }}</h3>
+                                @endif
                                 <p class="text-sm text-gray-400 mb-2">Poziom: {{ $item->template->level_requirement }}</p>
                                 
                                 @if(count($item->template->base_stats ?? []) > 0)
@@ -89,15 +96,30 @@
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         @foreach($inventoryItems as $item)
                             <div wire:click="sellItem('{{ $item->id }}')" class="aspect-square bg-gray-800 border border-gray-600 rounded flex flex-col items-center justify-center cursor-pointer hover:border-red-500 relative group transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
-                                <div class="text-center text-xs text-white my-4">
-                                    <span class="block truncate w-20">{{ $item->template->name }}</span>
-                                    @if($item->upgrade_level > 0)
-                                        <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
-                                    @endif
-                                    @if($item->stack_size > 1)
-                                        <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
-                                    @endif
-                                </div>
+                                @if($item->template->icon)
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-2 relative">
+                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                        
+                                        <div class="absolute bottom-1 right-1 flex flex-col items-end gap-0.5 pointer-events-none">
+                                            @if($item->upgrade_level > 0)
+                                                <span class="text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $item->upgrade_level }}</span>
+                                            @endif
+                                            @if($item->stack_size > 1)
+                                                <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @else
+                                    <div class="text-center text-xs text-white my-4">
+                                        <span class="block truncate w-20">{{ $item->template->name }}</span>
+                                        @if($item->upgrade_level > 0)
+                                            <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
+                                        @endif
+                                        @if($item->stack_size > 1)
+                                            <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
+                                        @endif
+                                    </div>
+                                @endif
                                 @if($item->location === 'equipped')
                                     <div class="absolute top-0 right-0 bg-blue-600/90 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-bl-lg rounded-tr border-b border-l border-blue-500 shadow-sm">
                                         Założone
@@ -143,7 +165,12 @@
                                             Założone
                                         </div>
                                     @endif
-                                    <h3 class="font-bold text-lg text-blue-300 mb-2 mt-2">
+                                    @if($item->template->icon)
+                                        <div class="w-16 h-16 mx-auto mt-2">
+                                            <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                        </div>
+                                    @endif
+                                    <h3 class="font-bold text-lg text-blue-300 mb-2 {{ $item->template->icon ? 'mt-1' : 'mt-2' }}">
                                         {{ $item->template->name }} 
                                         @if($item->upgrade_level > 0)<span class="text-yellow-400">+{{ $item->upgrade_level }}</span>@endif
                                     </h3>

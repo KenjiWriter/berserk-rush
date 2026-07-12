@@ -38,7 +38,11 @@
                         <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-amber-700/50 rounded-tr"></div>
                         
                         <div class="flex items-center gap-3 mb-4">
-                            <img src="{{ asset('img/items/' . $item->template->type . '.png') }}" class="w-12 h-12 rounded bg-amber-900/50 p-1 border border-amber-700">
+                            @if($item->template->icon)
+                                <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-12 h-12 rounded bg-amber-900/50 p-1 border border-amber-700 object-contain drop-shadow-md" alt="{{ $item->template->name }}">
+                            @else
+                                <img src="{{ asset('img/items/' . $item->template->type . '.png') }}" class="w-12 h-12 rounded bg-amber-900/50 p-1 border border-amber-700" alt="{{ $item->template->name }}">
+                            @endif
                             <div>
                                 <h4 class="font-bold text-lg text-amber-100">{{ $item->template->name }}</h4>
                                 <div class="text-xs text-amber-500 uppercase">{{ $item->template->type }}</div>

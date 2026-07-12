@@ -81,10 +81,21 @@
                              class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
-                                <div class="text-center text-xs text-white">
-                                    <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
-                                    <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
-                                </div>
+                                @if($equipped[$slot]->template->icon)
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                        @if($equipped[$slot]->upgrade_level > 0)
+                                            <span class="absolute bottom-0 right-0 text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-center text-xs text-white">
+                                        <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
+                                        @if($equipped[$slot]->upgrade_level > 0)
+                                            <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @endif
+                                    </div>
+                                @endif
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-64 z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
@@ -171,10 +182,21 @@
                              class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
-                                <div class="text-center text-xs text-white">
-                                    <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
-                                    <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
-                                </div>
+                                @if($equipped[$slot]->template->icon)
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                        @if($equipped[$slot]->upgrade_level > 0)
+                                            <span class="absolute bottom-0 right-0 text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @endif
+                                    </div>
+                                @else
+                                    <div class="text-center text-xs text-white">
+                                        <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
+                                        @if($equipped[$slot]->upgrade_level > 0)
+                                            <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @endif
+                                    </div>
+                                @endif
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-64 z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
@@ -412,15 +434,30 @@
                          @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
                          @click="clearTimeout(hoverTimeout); checkPosition(); open = true">
                         
-                        <div class="text-center text-xs text-white">
-                            <span class="block truncate w-14">{{ $item->template->name }}</span>
-                            @if($item->upgrade_level > 0)
-                                <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
-                            @endif
-                            @if($item->stack_size > 1)
-                                <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
-                            @endif
-                        </div>
+                        @if($item->template->icon)
+                            <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
+                                <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                
+                                <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
+                                    @if($item->upgrade_level > 0)
+                                        <span class="text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $item->upgrade_level }}</span>
+                                    @endif
+                                    @if($item->stack_size > 1)
+                                        <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @else
+                            <div class="text-center text-xs text-white">
+                                <span class="block truncate w-14">{{ $item->template->name }}</span>
+                                @if($item->upgrade_level > 0)
+                                    <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
+                                @endif
+                                @if($item->stack_size > 1)
+                                    <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
+                                @endif
+                            </div>
+                        @endif
 
                         <!-- Tooltip / Modal -->
                         <div x-show="open" x-transition.opacity style="display: none;" 

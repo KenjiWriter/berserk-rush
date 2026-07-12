@@ -72,7 +72,11 @@
                         <div x-data="{ openTooltip: false }" class="mt-4 mb-6 bg-gradient-to-r from-amber-200/50 to-orange-200/50 border-2 border-amber-500 rounded-xl p-4 flex items-center justify-center transition-all" :class="{ 'animate-pulse': !openTooltip }">
                             <div class="flex items-center space-x-4 bg-slate-800/90 rounded-lg p-3 border border-amber-400 shadow-xl relative cursor-help" @mouseenter="openTooltip = true" @mouseleave="openTooltip = false" @click="openTooltip = true">
                                 <div class="w-16 h-16 bg-gradient-to-br from-slate-700 to-slate-900 border-2 border-amber-500 rounded flex items-center justify-center text-3xl">
-                                    {{ $itemEmoji }}
+                                    @if($rewardItem->icon)
+                                        <img src="{{ route('assets.items', ['filename' => $rewardItem->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $rewardItem->name }}">
+                                    @else
+                                        {{ $itemEmoji }}
+                                    @endif
                                 </div>
                                 <div class="text-left pr-2">
                                     <div class="text-amber-400 font-bold text-lg medieval-font">{{ $rewardItem->name }}</div>
