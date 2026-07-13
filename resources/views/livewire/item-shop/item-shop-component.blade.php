@@ -86,6 +86,15 @@
                     <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
                 @endif
             </button>
+            <button 
+                wire:click="setTab('avatars')" 
+                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'avatars' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+            >
+                Avatary
+                @if($activeTab === 'avatars')
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
+                @endif
+            </button>
         </div>
 
         {{-- Tab Content: Gems --}}
@@ -224,6 +233,42 @@
                     </div>
                 </div>
             </div>
+        @endif
+
+        {{-- Tab Content: Avatars --}}
+        @if($activeTab === 'avatars')
+            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 max-w-5xl mx-auto">
+                @foreach($premiumAvatars as $avatar)
+                    @php
+                        $isOwned = in_array($avatar, $user->unlocked_avatars ?? []);
+                    @endphp
+                    <div class="group relative bg-gradient-to-b from-stone-900/90 to-black border {{ $isOwned ? 'border-green-600/60 shadow-[0_0_15px_rgba(22,163,74,0.3)]' : 'border-amber-800/40 hover:border-amber-500/60 hover:shadow-[0_0_20px_rgba(217,119,6,0.3)]' }} rounded-2xl p-4 text-center transition-all duration-300 flex flex-col items-center">
+                        <div class="w-24 h-24 rounded-full overflow-hidden border-2 {{ $isOwned ? 'border-green-500' : 'border-amber-600' }} mb-4">
+                            <img src="{{ asset('img/avatars/premium/' . $avatar . '.png') }}" alt="{{ $avatar }}" class="w-full h-full object-cover">
+                        </div>
+                        <h4 class="text-amber-200 font-bold mb-4 capitalize">{{ str_replace('_', ' ', $avatar) }}</h4>
+                        
+                        @if($isOwned)
+                            <div class="w-full py-2 bg-green-900/50 text-green-400 font-bold rounded-lg border border-green-600/50">
+                                Posiadany
+                            </div>
+                        @else
+                            <button 
+                                wire:click="buyAvatar('{{ $avatar }}')"
+                                class="w-full py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg shadow-md transition-colors flex items-center justify-center gap-1"
+                            >
+                                150 <span class="text-xs">💎</span>
+                            </button>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+            
+            @if(empty($premiumAvatars))
+                <div class="text-center text-amber-700/60 italic py-10">
+                    Brak dostępnych avatarów premium.
+                </div>
+            @endif
         @endif
     </div>
 

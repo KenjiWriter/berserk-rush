@@ -1,4 +1,12 @@
-<div
+<div x-data="{ 
+        teleporting: false, 
+        startTeleport(url) {
+            this.teleporting = true;
+            setTimeout(() => {
+                window.location.href = url;
+            }, 1200);
+        }
+    }"
     class="min-h-screen bg-gradient-to-b from-slate-800/90 via-slate-700/90 to-slate-800/90 text-amber-100 relative overflow-hidden">
     {{-- Background image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -296,7 +304,7 @@
                                     <div
                                         class="bg-amber-100/80 border-2 border-amber-600 rounded p-3 hover:bg-amber-200/80 transition-colors cursor-pointer shadow-lg {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10 relative' : '' }}">
                                         @if ($character)
-                                            <a href="{{ route('characters.play', $character) }}" class="block">
+                                            <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block">
                                                 <div class="flex items-center space-x-3">
                                                     {{-- Avatar --}}
                                                     <div
@@ -644,4 +652,30 @@
             <livewire:global.tutorial-overlay step="3" />
         @endif
     @endauth
+
+    {{-- Teleport Animation Overlay --}}
+    <div x-show="teleporting" 
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         class="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center"
+         style="display: none;">
+         
+        <div class="relative flex flex-col items-center justify-center"
+             x-show="teleporting"
+             x-transition:enter="transition ease-in duration-700 delay-100"
+             x-transition:enter-start="scale-50 opacity-0"
+             x-transition:enter-end="scale-100 opacity-100">
+             
+            {{-- Magical Portal effect --}}
+            <div class="absolute w-64 h-64 border-t-4 border-l-4 border-amber-500 rounded-full animate-[spin_1.5s_linear_infinite] shadow-[0_0_50px_rgba(245,158,11,0.5)]"></div>
+            <div class="absolute w-48 h-48 border-b-4 border-r-4 border-yellow-400 rounded-full animate-[spin_1s_linear_infinite_reverse] shadow-[0_0_30px_rgba(250,204,21,0.6)]"></div>
+            <div class="absolute w-24 h-24 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-full animate-pulse shadow-[0_0_60px_rgba(251,191,36,1)]"></div>
+            
+            <div class="mt-80 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 medieval-font drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse text-center">
+                Wkraczanie do świata gry...<br>
+                <span class="text-sm text-amber-600/80 font-sans tracking-widest uppercase mt-3 block">Przygotuj się do walki</span>
+            </div>
+        </div>
+    </div>
 </div>

@@ -7,6 +7,7 @@ use App\Models\ItemShopPackage;
 use Illuminate\Support\Facades\Auth;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
+use Illuminate\Support\Facades\File;
 
 class ItemShopComponent extends Component
 {
@@ -45,6 +46,34 @@ class ItemShopComponent extends Component
         });
 
         $this->dispatch('notify', message: "Pomyślnie zakupiono Konto Premium na $days dni!", type: 'success');
+    }
+
+    public function buyAvatar(string $avatarFilename)
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $cost = 150;
+
+        $unlocked = $user->unlocked_avatars ?? [];
+        if (in_array($avatarFilename, $unlocked)) {
+            $this->dispatch('notify', message: 'Już posiadasz ten avatar!', type: 'error');
+            return;
+        }
+
+        if ($user->gems < $cost) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, $avatarFilename, $unlocked) {
+            $user->gems -= $cost;
+            $unlocked[] = $avatarFilename;
+            $user->unlocked_avatars = array_values(array_unique($unlocked));
+            $user->save();
+        });
+
+        $this->dispatch('notify', message: 'Pomyślnie zakupiono avatar!', type: 'success');
     }
 
     public function buyGems(string $packageId)
@@ -90,8 +119,20 @@ class ItemShopComponent extends Component
     {
         $packages = ItemShopPackage::where('is_active', true)->orderBy('price_in_cents', 'asc')->get();
 
+        $premiumAvatars = [];
+        $avatarPath = public_path('img/avatars/premium');
+        if (File::exists($avatarPath)) {
+            $files = File::files($avatarPath);
+            foreach ($files as $file) {
+                if (in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'webp'])) {
+                    $premiumAvatars[] = $file->getFilenameWithoutExtension();
+                }
+            }
+        }
+
         return view('livewire.item-shop.item-shop-component', [
             'packages' => $packages,
+            'premiumAvatars' => $premiumAvatars,
             'user' => Auth::user(),
         ])->layout('components.layouts.app');
     }

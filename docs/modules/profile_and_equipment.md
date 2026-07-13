@@ -10,7 +10,7 @@ Moduł ten odpowiada za prezentację statystyk gracza, rozwój postaci (rozdawan
 ## Mechaniki
 
 ### 1. Interfejs Użytkownika (UI Profilu)
-- **Informacje Podstawowe:** Wyświetla aktualny poziom postaci, nazwę, awatar oraz wizualny pasek postępu (XP Bar) z informacją, ile doświadczenia brakuje do następnego awansu.
+- **Informacje Podstawowe:** Wyświetla aktualny poziom postaci, nazwę, awatar oraz wizualny pasek postępu (XP Bar) z informacją, ile doświadczenia brakuje do następnego awansu. Gracz posiada również możliwość edycji swojego awatara klikając ikonę ołówka obok portretu. Otwiera to modal z darmowymi avatarami oraz odblokowanymi avatarami premium.
 - **Portrety i Sloty:** Graficzna reprezentacja ubranej postaci z 6 slotami na sprzęt: Głowa (Head), Klatka (Chest), Główna Ręka (Main hand), Szyja (Neck), Pierścień (Ring), Stopy (Feet).
 
 ### 2. Zarządzanie Przedmiotami (Equip / Unequip)

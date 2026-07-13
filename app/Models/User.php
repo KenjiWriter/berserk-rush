@@ -27,6 +27,7 @@ class User extends Authenticatable
         'gems',
         'game_stage',
         'premium_until',
+        'unlocked_avatars',
     ];
 
     /**
@@ -50,6 +51,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'premium_until' => 'datetime',
+            'unlocked_avatars' => 'array',
         ];
     }
 

@@ -82,6 +82,10 @@ class Create extends Component
         $this->availableAvatars = [];
 
         foreach ($files as $file) {
+            if ($file->getFilename() === 'plate.png') {
+                continue;
+            }
+
             if (in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'webp'])) {
                 $filename = $file->getFilenameWithoutExtension();
                 $this->availableAvatars[$filename] = asset('img/avatars/' . $file->getFilename());

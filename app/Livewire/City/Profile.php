@@ -261,6 +261,29 @@ class Profile extends Component
         }
     }
 
+    public function changeAvatar(string $avatar, bool $isPremium = false)
+    {
+        $user = auth()->user();
+
+        if ($isPremium) {
+            if (!in_array($avatar, $user->unlocked_avatars ?? [])) {
+                $this->dispatch('notify', type: 'error', message: 'Nie posiadasz tego avatara!');
+                return;
+            }
+            $this->character->avatar = 'premium/' . $avatar;
+        } else {
+            $avatarPath = public_path('img/avatars/' . $avatar . '.png');
+            if (!\Illuminate\Support\Facades\File::exists($avatarPath) || $avatar === 'plate') {
+                $this->dispatch('notify', type: 'error', message: 'Niedozwolony avatar.');
+                return;
+            }
+            $this->character->avatar = $avatar;
+        }
+
+        $this->character->save();
+        $this->dispatch('notify', type: 'success', message: 'Avatar zmieniony pomyślnie!');
+    }
+
     public function render()
     {
         $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template']);
@@ -316,6 +339,18 @@ class Profile extends Component
             return $item->template->type === 'egg';
         });
 
+        $baseAvatars = [];
+        $avatarPath = public_path('img/avatars');
+        if (\Illuminate\Support\Facades\File::exists($avatarPath)) {
+            $files = \Illuminate\Support\Facades\File::files($avatarPath);
+            foreach ($files as $file) {
+                if ($file->getFilename() === 'plate.png') continue;
+                if (in_array($file->getExtension(), ['png', 'jpg', 'jpeg', 'webp'])) {
+                    $baseAvatars[] = $file->getFilenameWithoutExtension();
+                }
+            }
+        }
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
@@ -324,6 +359,7 @@ class Profile extends Component
             'pets' => $pets,
             'incubator' => $incubator,
             'eggs' => $eggs,
+            'baseAvatars' => $baseAvatars,
         ]);
     }
 }

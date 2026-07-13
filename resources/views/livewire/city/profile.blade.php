@@ -143,8 +143,8 @@
                 </div>
 
                 <!-- Portrait & Info -->
-                <div class="flex flex-col items-center w-48">
-                    <div class="w-full h-64 bg-gray-800 border-4 border-yellow-700 rounded-lg overflow-hidden flex items-center justify-center mb-4 shadow-lg">
+                <div class="flex flex-col items-center w-48" x-data="{ avatarModalOpen: false }">
+                    <div class="w-full h-64 bg-gray-800 border-4 border-yellow-700 rounded-lg overflow-hidden flex items-center justify-center mb-4 shadow-lg relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
@@ -153,6 +153,38 @@
                                 <span>No Avatar</span>
                             </div>
                         @endif
+
+                        <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-8 h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400">
+                            ✏️
+                        </button>
+                    </div>
+
+                    <!-- Avatar Modal -->
+                    <div x-show="avatarModalOpen" style="display: none;" class="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                        <div class="bg-gray-900 border border-amber-500 p-6 rounded-lg w-full max-w-2xl shadow-2xl relative" @click.outside="avatarModalOpen = false">
+                            <button @click="avatarModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">✕</button>
+                            <h3 class="text-2xl font-bold text-amber-400 mb-6 border-b border-amber-900 pb-2">Wybierz Avatar</h3>
+                            
+                            <h4 class="text-lg font-bold text-gray-300 mb-4">Podstawowe Avatary</h4>
+                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-4 mb-8">
+                                @foreach($baseAvatars as $avatar)
+                                    <button @click="$wire.changeAvatar('{{ $avatar }}', false); avatarModalOpen = false" class="aspect-square border-2 border-gray-600 hover:border-amber-500 rounded overflow-hidden {{ $character->avatar === $avatar ? 'ring-4 ring-amber-500 border-amber-500' : '' }}">
+                                        <img src="{{ asset('img/avatars/' . $avatar . '.png') }}" class="w-full h-full object-cover">
+                                    </button>
+                                @endforeach
+                            </div>
+
+                            @if(!empty(auth()->user()->unlocked_avatars))
+                                <h4 class="text-lg font-bold text-yellow-400 mb-4 flex items-center gap-2"><span>💎</span> Avatary Premium</h4>
+                                <div class="grid grid-cols-4 sm:grid-cols-6 gap-4">
+                                    @foreach(auth()->user()->unlocked_avatars as $premiumAvatar)
+                                        <button @click="$wire.changeAvatar('{{ $premiumAvatar }}', true); avatarModalOpen = false" class="aspect-square border-2 border-yellow-600 hover:border-yellow-400 rounded overflow-hidden {{ $character->avatar === 'premium/' . $premiumAvatar ? 'ring-4 ring-yellow-400 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : '' }}">
+                                            <img src="{{ asset('img/avatars/premium/' . $premiumAvatar . '.png') }}" class="w-full h-full object-cover">
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
 
                     @if($character->activeTitle)

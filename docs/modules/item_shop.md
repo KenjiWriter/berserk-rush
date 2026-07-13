@@ -20,6 +20,11 @@ Players can spend Gems to activate or extend their **Premium Account**. Premium 
 - The `StripeWebhookController` listens for the `checkout.session.completed` event.
 - Secure processing ensures players only receive Gems after the payment is fully authorized.
 
+### 4. Premium Avatars
+- Players can purchase exclusive Premium Avatars from the Item Shop using Gems.
+- Each Premium Avatar costs a fixed amount of Gems.
+- Purchased avatars are permanently unlocked on the player's account (`unlocked_avatars` JSON field) and can be set at any time via the Character Profile.
+
 ## Technical Implementation
 - **Livewire Components**: Managed via `ItemShopComponent` for the user interface, and `Admin\ItemShopPackages` for backend management.
 - **Database Models**: 
