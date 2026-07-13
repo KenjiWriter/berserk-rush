@@ -13,6 +13,7 @@ use Livewire\Component;
 class GlobalChatComponent extends Component
 {
     /** @var array<int, array<string, mixed>> */
+    #[Session]
     public array $messages = [];
 
     public string $newMessage = '';
@@ -21,7 +22,10 @@ class GlobalChatComponent extends Component
     public bool $isOpen = true;
     public string $currentChannel = 'global';
 
+    #[Session]
     public int $unreadGlobalCount = 0;
+
+    #[Session]
     public int $unreadGuildCount = 0;
 
     // Tooltip state: character_id => loaded data
@@ -31,7 +35,15 @@ class GlobalChatComponent extends Component
 
     public function mount(): void
     {
-        // Chat is ephemeral — no DB history loaded
+        // Purge messages older than 10 minutes from session
+        $tenMinutesAgo = now()->subMinutes(10)->timestamp;
+
+        $this->messages = array_filter($this->messages, function ($msg) use ($tenMinutesAgo) {
+            return ($msg['received_at'] ?? 0) >= $tenMinutesAgo;
+        });
+
+        // Reindex array
+        $this->messages = array_values($this->messages);
     }
 
     public function getListeners()
@@ -67,6 +79,7 @@ class GlobalChatComponent extends Component
             'sent_at'         => $event['sent_at'],
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
+            'received_at'     => now()->timestamp,
         ];
 
         // Keep at most 100 messages in memory per browser session
@@ -91,6 +104,7 @@ class GlobalChatComponent extends Component
             'channel'         => 'guild',
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
+            'received_at'     => now()->timestamp,
         ];
 
         if (count($this->messages) > 100) {

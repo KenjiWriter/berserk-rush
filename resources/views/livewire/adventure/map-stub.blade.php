@@ -804,7 +804,7 @@
         }
     </script>
     {{-- Session Tracker --}}
-    <div class="fixed bottom-4 left-4 z-50 bg-amber-900/80 text-amber-100 p-4 rounded-xl shadow-2xl border-2 border-amber-600 backdrop-blur-md transition-all hover:bg-amber-900/90"
+    <div class="fixed bottom-20 md:bottom-4 left-2 md:left-4 z-50 bg-amber-900/80 text-amber-100 p-2 md:p-4 rounded-xl shadow-2xl border-2 border-amber-600 backdrop-blur-md transition-all hover:bg-amber-900/90 flex flex-row md:flex-col items-center md:items-stretch gap-3 md:gap-0"
          x-data="{ 
             startTime: {{ $sessionStartTime }},
             elapsed: '00:00:00',
@@ -818,14 +818,14 @@
             }
          }"
          x-init="updateTime(); setInterval(() => updateTime(), 1000)">
-        <h4 class="font-bold medieval-font text-lg mb-2 text-amber-300 drop-shadow-md border-b border-amber-700/50 pb-1">📊 Statystyki Sesji</h4>
-        <div class="flex items-center justify-between text-sm mb-1">
-            <span class="text-amber-200">⚔️ Pokonani:</span>
-            <span class="font-bold text-white drop-shadow-md text-base ml-4">{{ $sessionMonstersDefeated }}</span>
+        <h4 class="hidden md:block font-bold medieval-font text-lg mb-2 text-amber-300 drop-shadow-md border-b border-amber-700/50 pb-1">📊 Statystyki Sesji</h4>
+        <div class="flex items-center justify-between text-xs md:text-sm md:mb-1">
+            <span class="text-amber-200">⚔️ <span class="hidden md:inline">Pokonani:</span></span>
+            <span class="font-bold text-white drop-shadow-md text-sm md:text-base ml-1 md:ml-4">{{ $sessionMonstersDefeated }}</span>
         </div>
-        <div class="flex items-center justify-between text-sm">
-            <span class="text-amber-200">⏱️ Czas:</span>
-            <span class="font-bold text-white drop-shadow-md font-mono ml-4" x-text="elapsed"></span>
+        <div class="flex items-center justify-between text-xs md:text-sm">
+            <span class="text-amber-200">⏱️ <span class="hidden md:inline">Czas:</span></span>
+            <span class="font-bold text-white drop-shadow-md font-mono ml-1 md:ml-4" x-text="elapsed"></span>
         </div>
     </div>
 </div>
