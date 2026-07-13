@@ -31,12 +31,10 @@ class RewardMultiplierService
             $multiplier += $guildBonus;
         }
 
-        // 3. Status Premium (Placeholder na przyszłość)
-        /*
-        if ($character->user && $character->user->is_premium) {
+        // 3. Status Premium
+        if ($character->user && $character->user->hasPremium()) {
             $multiplier += 0.20; // +20% za premium
         }
-        */
 
         // 4. Globalny Event (Placeholder na przyszłość)
         /*
@@ -73,12 +71,10 @@ class RewardMultiplierService
         }
         $multiplier += $buffBonus;
 
-        // 3. Status Premium (Placeholder)
-        /*
-        if ($character->user && $character->user->is_premium) {
-            $multiplier += 0.10; // +10% złota za premium
+        // 3. Status Premium
+        if ($character->user && $character->user->hasPremium()) {
+            $multiplier += 0.20; // +20% złota za premium
         }
-        */
 
         // 4. Globalny Event
         /*

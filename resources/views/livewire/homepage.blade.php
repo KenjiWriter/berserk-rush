@@ -238,6 +238,32 @@
                         </div>
                     </div>
 
+                    {{-- Premium Shop Panel --}}
+                    <div
+                        class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-yellow-100/90 to-amber-200/90 border-4 border-yellow-500 rounded-lg p-4 shadow-[0_0_20px_rgba(250,204,21,0.4)] backdrop-blur-sm relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_30px_rgba(250,204,21,0.6)]">
+                        <div class="absolute top-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                        <div class="relative text-center">
+                            <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-yellow-600 pb-2 medieval-font flex items-center justify-center gap-2">
+                                <span class="relative">💎<span class="absolute -top-2 -right-2 text-xs animate-pulse">✨</span></span> Sklep Premium
+                            </h3>
+                            
+                            <a href="{{ route('itemshop') }}" wire:navigate
+                                class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg text-center block medieval-font tracking-widest border border-yellow-400">
+                                👑 PRZEJDŹ DO SKLEPU
+                            </a>
+                            
+                            @if(Auth::user()->hasPremium())
+                                <div class="mt-3 text-xs font-bold text-yellow-700 bg-yellow-500/20 rounded py-1 px-2">
+                                    Premium aktywne ({{ Auth::user()->premium_until->diffForHumans() }})
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                     {{-- My Characters (when logged in) --}}
                     <div
                         class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">

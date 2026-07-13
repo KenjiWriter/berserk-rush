@@ -20,7 +20,8 @@ class GuildMessageSent implements ShouldBroadcastNow
         public string $sentAt,
         public string $characterId,
         public string $guildId,
-        public ?string $titlePrefix = null
+        public ?string $titlePrefix = null,
+        public bool $isPremium = false
     ) {}
 
     public function broadcastOn(): array
@@ -41,6 +42,7 @@ class GuildMessageSent implements ShouldBroadcastNow
             'sent_at'         => $this->sentAt,
             'guild_id'        => $this->guildId,
             'title_prefix'    => $this->titlePrefix,
+            'is_premium'      => $this->isPremium,
         ];
     }
 }

@@ -123,7 +123,7 @@ class EncounterService
         try {
             return DB::transaction(function () use ($encounter) {
                 // Load relations
-                $encounter->load(['character', 'monster']);
+                $encounter->load(['character.user', 'character.guild', 'monster']);
 
                 $character = $encounter->character;
                 $monster = $encounter->monster;

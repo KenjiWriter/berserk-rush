@@ -227,8 +227,18 @@
                                 <span
                                     wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
                                     wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"
-                                    class="text-amber-400 hover:text-amber-200 font-bold cursor-pointer lg:cursor-help transition-colors hover:underline decoration-dotted"
-                                >{{ $msg['character_name'] }}</span>
+                                    class="font-bold cursor-pointer lg:cursor-help transition-colors hover:underline decoration-dotted 
+                                    {{ ($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200' }}"
+                                >
+                                    @if($msg['is_premium'] ?? false)
+                                        <span class="inline-block relative">
+                                            <span class="absolute -top-1 -right-1 text-[8px] animate-pulse">✨</span>
+                                            {{ $msg['character_name'] }}
+                                        </span>
+                                    @else
+                                        {{ $msg['character_name'] }}
+                                    @endif
+                                </span>
 
                                 <span class="text-amber-600/70">[{{ $msg['character_level'] }}]</span>
                             </div>
@@ -305,6 +315,14 @@
     }
     .chat-msg-appear {
         animation: chatMsgAppear 0.25s ease-out forwards;
+    }
+    
+    @keyframes premiumGlow {
+        0%, 100% { text-shadow: 0 0 4px rgba(250,204,21,0.5), 0 0 8px rgba(250,204,21,0.3); }
+        50% { text-shadow: 0 0 8px rgba(250,204,21,0.9), 0 0 16px rgba(250,204,21,0.6); }
+    }
+    .premium-glow {
+        animation: premiumGlow 2s ease-in-out infinite;
     }
 </style>
 </div>

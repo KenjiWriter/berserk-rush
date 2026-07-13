@@ -66,6 +66,7 @@ class GlobalChatComponent extends Component
             'message'         => $event['message'],
             'sent_at'         => $event['sent_at'],
             'title_prefix'    => $event['title_prefix'] ?? null,
+            'is_premium'      => $event['is_premium'] ?? false,
         ];
 
         // Keep at most 100 messages in memory per browser session
@@ -89,6 +90,7 @@ class GlobalChatComponent extends Component
             'sent_at'         => $event['sent_at'],
             'channel'         => 'guild',
             'title_prefix'    => $event['title_prefix'] ?? null,
+            'is_premium'      => $event['is_premium'] ?? false,
         ];
 
         if (count($this->messages) > 100) {
@@ -194,6 +196,7 @@ class GlobalChatComponent extends Component
                 characterId:    $character->id,
                 guildId:        $character->guild_id,
                 titlePrefix:    $titlePrefix,
+                isPremium:      $character->user->hasPremium(),
             ));
         } else {
             broadcast(new MessageSent(
@@ -204,6 +207,7 @@ class GlobalChatComponent extends Component
                 sentAt:         now()->toTimeString(),
                 characterId:    $character->id,
                 titlePrefix:    $titlePrefix,
+                isPremium:      $character->user->hasPremium(),
             ));
         }
 
@@ -367,7 +371,7 @@ class GlobalChatComponent extends Component
             $this->broadcastSystemGuildMessage($guild->id, "Gracz {$character->name} wpłacił {$amount} złota do skarbca gildii.");
         } elseif ($type === 'gems') {
             if ($character->user->gems < $amount) {
-                $this->addError('newMessage', 'Nie masz tyle diamentów.');
+                $this->dispatch('not-enough-gems');
                 return;
             }
             if ($guild->gems + $amount > $guild->getMaxGems()) {

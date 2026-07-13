@@ -26,6 +26,7 @@ class User extends Authenticatable
         'permission_level',
         'gems',
         'game_stage',
+        'premium_until',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'premium_until' => 'datetime',
         ];
     }
 
@@ -76,5 +78,10 @@ class User extends Authenticatable
     public function hasMaxCharacters(): bool
     {
         return $this->characters()->count() >= 4;
+    }
+
+    public function hasPremium(): bool
+    {
+        return $this->premium_until && $this->premium_until->isFuture();
     }
 }

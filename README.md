@@ -64,6 +64,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **World Bosses:** Epic global events where the entire server collaborates to defeat a massive boss, with live leaderboards and proportional rewards based on damage dealt.
 - **Quests & Challenges:** A comprehensive questing system where players can accept missions, hunt specific monsters, gather items, and earn extra gold and experience.
 - **Achievements & Titles:** Extensive collection systems that provide long-term retention goals. Unlock achievements, fill your Bestiary, and earn unique chat Titles with passive stats.
+- **Item Shop & Premium:** Support the game via Stripe to purchase Gems. Unlock Premium status for a golden chat nickname and +20% bonus EXP and Gold from battles.
 - **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
 ## 🛠️ Tech Stack
@@ -183,6 +184,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [**Tutorial & Onboarding**](./docs/modules/tutorial.md)
 - [**Quests & Challenges**](./docs/modules/quests.md)
 - [**Achievements & Collections**](./docs/modules/achievements.md)
+- [**Item Shop & Premium**](./docs/modules/item_shop.md)
 
 ## 🛡️ License
 

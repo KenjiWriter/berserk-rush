@@ -171,7 +171,20 @@ Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów 
 
 ---
 
-## 🟣 Faza 17: Ekonomia 2.0 i System Zawodów
+## 🟣 Faza 17: Itemshop oraz Mikropłatności
+Monetyzacja gry i funkcje premium. Waluta premium (Gemy) jest przypisana do konta gracza (User).
+- **Zakładka Item-Shop (Strona Główna):** Nowy interfejs sklepu premium dostępny z poziomu strony głównej.
+- **Doładowanie Gemów (Stripe):** Integracja z systemem płatności Stripe umożliwiająca zakup pakietów Gemów za prawdziwe pieniądze.
+- **Konto Premium:** Możliwość zakupu statusu VIP (na 3, 14 lub 30 dni) przy użyciu Gemów.
+- **Benefity Premium:** 
+  - Złoty nick (kolor na czacie globalnym).
+  - Zwiększony Drop Rate z potworów o 20%.
+  - Zwiększone zdobywane Doświadczenie (EXP) o 20%.
+- **Panel Administratora (Item Shop):** Dodanie dedykowanej zakładki w panelu administracyjnym do zarządzania ofertami pakietów Gemów (cena, ilość, bonusy).
+
+---
+
+## 🟣 Faza 18: Ekonomia 2.0 i System Zawodów
 Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surowce i nakręcali popyt, co ożywi mocniej Fazy 7 (Market) i 9 (Rzemiosło).
 - **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
 - **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.

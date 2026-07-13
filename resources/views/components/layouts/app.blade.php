@@ -209,6 +209,40 @@
         </template>
     </div>
 
+    {{-- ===== Not Enough Gems Modal ===== --}}
+    <div x-data="{ open: false }" 
+         @not-enough-gems.window="open = true; window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'error' } }));"
+         x-show="open" 
+         style="display: none; font-family: 'Cinzel', serif;"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+         
+         {{-- Backdrop --}}
+         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="open = false"></div>
+         
+         {{-- Modal content --}}
+         <div class="relative bg-gradient-to-b from-slate-900 to-black border-2 border-amber-600 rounded-xl shadow-[0_0_30px_rgba(217,119,6,0.5)] p-8 max-w-md w-full text-center"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 scale-90"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-90">
+              
+             <div class="text-6xl mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">💎</div>
+             <h2 class="text-2xl font-bold text-amber-300 mb-2">Brak Gemów</h2>
+             <p class="text-amber-100/80 mb-8">Nie masz wystarczającej ilości Gemów, aby wykonać tę akcję. Czy chcesz doładować swoje konto w Sklepie Premium?</p>
+             
+             <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                 <button @click="open = false" class="px-6 py-2 border border-stone-500 text-stone-300 hover:bg-stone-800 hover:text-white rounded-lg transition-colors font-bold uppercase tracking-wider">
+                     Anuluj
+                 </button>
+                 <a href="{{ route('itemshop') }}" class="px-6 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold rounded-lg transition-all shadow-lg shadow-amber-500/30 uppercase tracking-wider text-center block" wire:navigate>
+                     Tak, Doładuj Gemy
+                 </a>
+             </div>
+         </div>
+    </div>
+
     <div class="min-h-screen bg-gray-100 pb-16 lg:pb-0">
 
         @livewire('global.active-buffs')

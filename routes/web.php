@@ -17,7 +17,11 @@ use App\Infrastructure\Persistence\Character;
 Route::get('/', Homepage::class)->name('homepage');
 Route::get('/register', Register::class)->name('register');
 
+// Stripe Webhook (Unauthenticated, CSRF exempt)
+Route::post('/webhooks/stripe', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
+
 Route::middleware('auth')->group(function () {
+    Route::get('/itemshop', \App\Livewire\ItemShop\ItemShopComponent::class)->name('itemshop');
     Route::get('/characters/create', Create::class)->name('characters.create');
 
     // Character selection redirect
@@ -62,6 +66,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/maps', \App\Livewire\Admin\Maps::class)->name('maps');
     Route::get('/monsters', \App\Livewire\Admin\Monsters::class)->name('monsters');
     Route::get('/item-templates', \App\Livewire\Admin\ItemTemplates::class)->name('item-templates');
+    Route::get('/item-shop-packages', \App\Livewire\Admin\ItemShopPackages::class)->name('item-shop-packages');
     Route::get('/merchant-items', \App\Livewire\Admin\MerchantItems::class)->name('merchant-items');
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');

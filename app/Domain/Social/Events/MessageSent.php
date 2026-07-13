@@ -20,6 +20,7 @@ class MessageSent implements ShouldBroadcastNow
         public readonly string $sentAt,
         public readonly string $characterId,
         public readonly ?string $titlePrefix = null,
+        public readonly bool $isPremium = false,
     ) {}
 
     public function broadcastOn(): array
@@ -41,6 +42,7 @@ class MessageSent implements ShouldBroadcastNow
             'message'         => $this->message,
             'sent_at'         => $this->sentAt,
             'title_prefix'    => $this->titlePrefix,
+            'is_premium'      => $this->isPremium,
         ];
     }
 }

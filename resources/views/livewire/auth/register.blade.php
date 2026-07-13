@@ -112,8 +112,17 @@
 
                         {{-- Submit button --}}
                         <button type="submit"
-                            class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-4 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font text-lg">
-                            🛡️ Stwórz konto wojownika
+                            class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-4 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font text-lg relative disabled:opacity-70 disabled:cursor-not-allowed"
+                            wire:loading.attr="disabled"
+                            wire:target="register">
+                            <span wire:loading.remove wire:target="register">🛡️ Stwórz konto wojownika</span>
+                            <span wire:loading wire:target="register" class="flex items-center justify-center gap-2">
+                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Tworzenie konta...
+                            </span>
                         </button>
 
                         {{-- Login link --}}

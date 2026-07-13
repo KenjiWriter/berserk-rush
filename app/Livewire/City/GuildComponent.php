@@ -113,7 +113,7 @@ class GuildComponent extends Component
         }
 
         if ($this->character->user->gems < 150) {
-            $this->addError('create', 'Nie masz wystarczającej ilości diamentów (wymagane 150).');
+            $this->dispatch('not-enough-gems');
             return;
         }
 
