@@ -63,6 +63,7 @@ The game focuses on **micromanagement, crafting, economy, and emergent classes**
 - **Admin Panel & Tools:** Game masters (permission_level == 9) have access to a suite of in-chat commands for testing and a dedicated web-based administrative panel to manage the game state.
 - **World Bosses:** Epic global events where the entire server collaborates to defeat a massive boss, with live leaderboards and proportional rewards based on damage dealt.
 - **Quests & Challenges:** A comprehensive questing system where players can accept missions, hunt specific monsters, gather items, and earn extra gold and experience.
+- **Achievements & Titles:** Extensive collection systems that provide long-term retention goals. Unlock achievements, fill your Bestiary, and earn unique chat Titles with passive stats.
 - **No Mission Timers:** Play at your own pace without arbitrary stamina bars or time limits.
 
 ## 🛠️ Tech Stack
@@ -181,6 +182,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [**World Bosses**](./docs/modules/world_boss.md)
 - [**Tutorial & Onboarding**](./docs/modules/tutorial.md)
 - [**Quests & Challenges**](./docs/modules/quests.md)
+- [**Achievements & Collections**](./docs/modules/achievements.md)
 
 ## 🛡️ License
 

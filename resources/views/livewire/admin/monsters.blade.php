@@ -43,15 +43,20 @@
                         </div>
                         <div class="w-1/3">
                             <label class="block text-gray-400 text-sm font-bold mb-2">Typ</label>
-                            <input type="text" wire:model="type" placeholder="np. zwierzę" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                            <select wire:model="type" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                                <option value="">-- Wybierz Typ --</option>
+                                @foreach(\App\Domain\Combat\Enums\MonsterType::cases() as $t)
+                                    <option value="{{ $t->value }}">{{ $t->label() }}</option>
+                                @endforeach
+                            </select>
                             @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
                         <div class="w-1/3">
                             <label class="block text-gray-400 text-sm font-bold mb-2">Ranga</label>
                             <select wire:model="rank" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
-                                <option value="regular">Zwykły (Regular)</option>
-                                <option value="boss">Boss</option>
-                                <option value="worldboss">Worldboss</option>
+                                @foreach(\App\Domain\Combat\Enums\MonsterRank::cases() as $r)
+                                    <option value="{{ $r->value }}">{{ $r->label() }} ({{ $r->value }})</option>
+                                @endforeach
                             </select>
                             @error('rank') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
@@ -160,12 +165,12 @@
                                             @endif
                                             <div>
                                                 {{ $monster->name }}
-                                                @if($monster->rank === 'worldboss')
+                                                @if($monster->rank?->value === 'worldboss')
                                                     <span class="ml-2 text-xs bg-red-900 text-red-200 px-2 py-0.5 rounded border border-red-700">Worldboss</span>
-                                                @elseif($monster->rank === 'boss')
+                                                @elseif($monster->rank?->value === 'boss')
                                                     <span class="ml-2 text-xs bg-purple-900 text-purple-200 px-2 py-0.5 rounded border border-purple-700">Boss</span>
                                                 @endif
-                                                <div class="text-xs text-gray-500">Typ: {{ $monster->type }}</div>
+                                                <div class="text-xs text-gray-500">Typ: {{ $monster->type?->label() ?? 'Nieznany' }}</div>
                                             </div>
                                         </div>
                                     </td>

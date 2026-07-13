@@ -321,7 +321,7 @@
                             <div class="text-center mb-3 lg:mb-5">
                                 <span class="text-4xl lg:text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">👹</span>
                                 <p class="font-bold text-red-300 mt-2 lg:mt-3 text-sm lg:text-xl truncate" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</p>
-                                <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $monster->level }}<span class="hidden lg:inline"> • {{ ucfirst($monster->rank ?? 'normal') }}</span></p>
+                                <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $monster->level }}<span class="hidden lg:inline"> • {{ $monster->rank?->label() ?? 'Normal' }}</span></p>
                             </div>
 
                             <div class="grid grid-cols-2 gap-1 lg:gap-3 mb-2">

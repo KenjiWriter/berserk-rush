@@ -118,8 +118,8 @@ class Monsters extends Component
         $this->editingId = $monster->id;
         $this->map_id = $monster->map_id;
         $this->name = $monster->name;
-        $this->type = $monster->type ?? 'zwierzę';
-        $this->rank = $monster->rank ?? 'regular';
+        $this->type = $monster->type?->value ?? 'animal';
+        $this->rank = $monster->rank?->value ?? 'regular';
         $this->level = $monster->level;
         $this->hp = $monster->stats['hp'] ?? 100;
         $this->atk = $monster->stats['atk'] ?? 10;

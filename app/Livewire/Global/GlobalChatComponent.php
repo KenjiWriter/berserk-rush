@@ -65,6 +65,7 @@ class GlobalChatComponent extends Component
             'combat_power'    => $event['combat_power'],
             'message'         => $event['message'],
             'sent_at'         => $event['sent_at'],
+            'title_prefix'    => $event['title_prefix'] ?? null,
         ];
 
         // Keep at most 100 messages in memory per browser session
@@ -87,6 +88,7 @@ class GlobalChatComponent extends Component
             'message'         => $event['message'],
             'sent_at'         => $event['sent_at'],
             'channel'         => 'guild',
+            'title_prefix'    => $event['title_prefix'] ?? null,
         ];
 
         if (count($this->messages) > 100) {
@@ -177,6 +179,11 @@ class GlobalChatComponent extends Component
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
 
+        $titlePrefix = null;
+        if ($character->active_title_id && $character->activeTitle) {
+            $titlePrefix = $character->activeTitle->prefix;
+        }
+
         if ($this->currentChannel === 'guild' && $character->guild_id) {
             broadcast(new \App\Domain\Social\Events\GuildMessageSent(
                 characterName:  $character->name,
@@ -186,6 +193,7 @@ class GlobalChatComponent extends Component
                 sentAt:         now()->toTimeString(),
                 characterId:    $character->id,
                 guildId:        $character->guild_id,
+                titlePrefix:    $titlePrefix,
             ));
         } else {
             broadcast(new MessageSent(
@@ -195,6 +203,7 @@ class GlobalChatComponent extends Component
                 message:        $message,
                 sentAt:         now()->toTimeString(),
                 characterId:    $character->id,
+                titlePrefix:    $titlePrefix,
             ));
         }
 
@@ -416,7 +425,7 @@ class GlobalChatComponent extends Component
         $commandTrimmed = trim($command);
         $parts = explode(' ', $commandTrimmed);
         if (count($parts) < 3) {
-            $this->addError('newMessage', 'Użycie: /give <item_id|gold|gems|pet> <ilość|nazwa>');
+            $this->addError('newMessage', 'Użycie: /give <item_id|gold|gems|pet|title> <ilość|nazwa>');
             return;
         }
 
@@ -447,6 +456,30 @@ class GlobalChatComponent extends Component
             ]);
             
             $this->dispatch('notify', message: "Otrzymano chowańca: {$petTemplate->name}!", type: 'success');
+            return;
+        }
+
+        if ($type === 'title') {
+            $titleName = trim(substr($commandTrimmed, 12)); 
+            if (empty($titleName)) {
+                $this->addError('newMessage', 'Użycie: /give title <nazwa tytułu>');
+                return;
+            }
+            
+            $title = \App\Infrastructure\Persistence\Title::whereRaw('LOWER(name) = ?', [strtolower($titleName)])->first();
+            if (!$title) {
+                $this->addError('newMessage', "Nie znaleziono tytułu o nazwie: {$titleName}");
+                return;
+            }
+
+            \App\Infrastructure\Persistence\CharacterTitle::firstOrCreate([
+                'character_id' => $character->id,
+                'title_id' => $title->id,
+            ], [
+                'unlocked_at' => now()
+            ]);
+            
+            $this->dispatch('notify', message: "Otrzymano tytuł: {$title->name}!", type: 'success');
             return;
         }
 

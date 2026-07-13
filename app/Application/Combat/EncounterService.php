@@ -33,7 +33,10 @@ class EncounterService
 
                 if (!$monster) {
                     // Get monsters for this map
-                    $monsters = $map->monsters->whereNotIn('rank', ['worldboss', 'boss']);
+                    $monsters = $map->monsters->whereNotIn('rank', [
+                        \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
+                        \App\Domain\Combat\Enums\MonsterRank::BOSS
+                    ]);
 
                     if ($monsters->isEmpty()) {
                         return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
@@ -148,7 +151,7 @@ class EncounterService
                 ]);
 
                 // Simulate combat
-                $isWorldBoss = ($monster->rank === 'worldboss');
+                $isWorldBoss = ($monster->rank?->value === 'worldboss');
                 if ($isWorldBoss) {
                     $monsterMaxHp = 999999999;
                     $monsterHp = $monsterMaxHp;
@@ -232,6 +235,9 @@ class EncounterService
                     // Update hunting quests
                     $questService = app(\App\Application\Quests\QuestService::class);
                     $questService->progressQuest($character, 'hunting', [(string)$monster->id, (string)$encounter->map_id]);
+
+                    // Fire MonsterDefeated event for Bestiary and Achievements
+                    event(new \App\Domain\Collections\Events\MonsterDefeated($character, $monster, $encounter->map_id));
 
                     if ($dropResult->isError()) {
                         Log::warning('Failed to apply loot drops', [

@@ -163,11 +163,11 @@ Wprowadzenie systemu misji jako dodatkowej formy aktywności i progresji dla gra
 
 ---
 
-## 🟤 Faza 16: System Kolekcji, Osiągnięć i Tytułów
+## 🟢 Faza 16: System Kolekcji, Osiągnięć i Tytułów (✅ Zakończona)
 Zatrzymanie graczy (Retencja) przez dawanie długoterminowych celów i powodów do "kolekcjonowania".
-- **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
-- **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
-- **Tytuły (Titles):** Przedrostki przed Nickiem gracza na globalnym czacie (np. `[Zabójca Smoków] koxu [Poz. 99]`), dające drobne pasywne statystyki. Tytuły można dobrowolnie ustawiać w profilu.
+- [x] **Bestiariusz i Pokedex Przedmiotów:** Drobne stałe bonusy do ataku za np. pokonanie 10 000 Orków lub znalezienie/wytworzenie wszystkich legendarnych mieczy w grze.
+- [x] **Osiągnięcia (Achievements):** Skomplikowane lub rzadkie wydarzenia na koncie gracza (np. "Spal 50 przedmiotów u Kowala z rzędu") nagradzane specjalnymi skrzynkami i punktami osiągnięć.
+- [x] **Tytuły (Titles):** Przedrostki przed Nickiem gracza na globalnym czacie (np. `[Zabójca Smoków] koxu [Poz. 99]`), dające drobne pasywne statystyki. Tytuły można dobrowolnie ustawiać w profilu.
 
 ---
 

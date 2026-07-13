@@ -42,6 +42,16 @@
                 <h2 class="text-xl font-bold mb-2">📜 Questy</h2>
                 <p class="text-gray-400">Zarządzanie zadaniami, celami i nagrodami.</p>
             </a>
+            
+            <a href="{{ route('admin.titles') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">👑 Tytuły</h2>
+                <p class="text-gray-400">Zarządzanie tytułami postaci i ich bonusami.</p>
+            </a>
+
+            <a href="{{ route('admin.achievements') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">🏆 Osiągnięcia</h2>
+                <p class="text-gray-400">Zarządzanie osiągnięciami, punktami i nagrodami.</p>
+            </a>
         </div>
 
         <div class="mt-8">

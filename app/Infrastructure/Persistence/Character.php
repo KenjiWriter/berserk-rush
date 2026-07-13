@@ -31,6 +31,8 @@ class Character extends Model
         'arena_tokens',
         'pvp_refreshes_used',
         'pvp_refreshes_reset_at',
+        'active_title_id',
+        'achievement_points',
     ];
 
     protected $casts = [
@@ -66,6 +68,31 @@ class Character extends Model
     public function guildMember(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(\App\Models\GuildMember::class, 'character_id');
+    }
+
+    public function activeTitle(): BelongsTo
+    {
+        return $this->belongsTo(Title::class, 'active_title_id');
+    }
+
+    public function unlockedTitles(): HasMany
+    {
+        return $this->hasMany(CharacterTitle::class, 'character_id');
+    }
+
+    public function achievements(): HasMany
+    {
+        return $this->hasMany(CharacterAchievement::class, 'character_id');
+    }
+
+    public function bestiary(): HasMany
+    {
+        return $this->hasMany(CharacterBestiary::class, 'character_id');
+    }
+
+    public function pokedex(): HasMany
+    {
+        return $this->hasMany(CharacterPokedex::class, 'character_id');
     }
 
     public function getStrengthAttribute(): int
@@ -191,6 +218,36 @@ class Character extends Model
                 }
             }
 
+            // Add Title bonuses
+            if ($this->active_title_id && $this->activeTitle) {
+                $titleStats = $this->activeTitle->stats_bonus ?? [];
+                foreach (['str', 'int', 'vit', 'agi'] as $stat) {
+                    if (isset($titleStats[$stat])) {
+                        $total[$stat] += $titleStats[$stat];
+                    }
+                    if (isset($titleStats[$stat . '_bonus'])) {
+                        $total[$stat] += $titleStats[$stat . '_bonus'];
+                    }
+                }
+            }
+
+            // Add Achievement bonuses
+            $completedAchievements = CharacterAchievement::with('achievement')
+                ->where('character_id', $this->id)
+                ->where('rewarded', true)
+                ->get();
+            foreach ($completedAchievements as $ca) {
+                $achStats = $ca->achievement->stats_bonus ?? [];
+                foreach (['str', 'int', 'vit', 'agi'] as $stat) {
+                    if (isset($achStats[$stat])) {
+                        $total[$stat] += $achStats[$stat];
+                    }
+                    if (isset($achStats[$stat . '_bonus'])) {
+                        $total[$stat] += $achStats[$stat . '_bonus'];
+                    }
+                }
+            }
+
             return $total;
         });
     }
@@ -235,6 +292,51 @@ class Character extends Model
                 $stats['magic_attack_max'] += ($effects['magic_attack_max'] ?? 0);
                 $stats['defense'] += ($effects['defense'] ?? 0);
                 $stats['crit_chance'] += ($effects['crit_chance'] ?? 0);
+            }
+
+            // Add Title bonuses
+            if ($this->active_title_id && $this->activeTitle) {
+                $titleStats = $this->activeTitle->stats_bonus ?? [];
+                $stats['hp_bonus'] += ($titleStats['hp_bonus'] ?? 0) + ($titleStats['hp'] ?? 0);
+                $stats['mana_bonus'] += ($titleStats['mana_bonus'] ?? 0);
+                $stats['attack_min'] += ($titleStats['attack_min'] ?? 0);
+                $stats['attack_max'] += ($titleStats['attack_max'] ?? 0);
+                $stats['magic_attack_min'] += ($titleStats['magic_attack_min'] ?? 0);
+                $stats['magic_attack_max'] += ($titleStats['magic_attack_max'] ?? 0);
+                $stats['defense'] += ($titleStats['defense'] ?? 0);
+                $stats['crit_chance'] += ($titleStats['crit_chance'] ?? 0);
+                
+                // You might want to copy other non-standard modifiers (like bonus_vs_demon) into stats directly
+                foreach ($titleStats as $k => $v) {
+                    if (!isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
+                        $stats[$k] = $v;
+                    }
+                }
+            }
+
+            // Add Achievement bonuses
+            $completedAchievements = CharacterAchievement::with('achievement')
+                ->where('character_id', $this->id)
+                ->where('rewarded', true)
+                ->get();
+            foreach ($completedAchievements as $ca) {
+                $achStats = $ca->achievement->stats_bonus ?? [];
+                $stats['hp_bonus'] += ($achStats['hp_bonus'] ?? 0) + ($achStats['hp'] ?? 0);
+                $stats['mana_bonus'] += ($achStats['mana_bonus'] ?? 0);
+                $stats['attack_min'] += ($achStats['attack_min'] ?? 0);
+                $stats['attack_max'] += ($achStats['attack_max'] ?? 0);
+                $stats['magic_attack_min'] += ($achStats['magic_attack_min'] ?? 0);
+                $stats['magic_attack_max'] += ($achStats['magic_attack_max'] ?? 0);
+                $stats['defense'] += ($achStats['defense'] ?? 0);
+                $stats['crit_chance'] += ($achStats['crit_chance'] ?? 0);
+                
+                foreach ($achStats as $k => $v) {
+                    if (!isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
+                        $stats[$k] = $v;
+                    } else if (isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
+                        $stats[$k] += $v;
+                    }
+                }
             }
 
             return $stats;

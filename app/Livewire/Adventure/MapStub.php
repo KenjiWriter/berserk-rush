@@ -270,6 +270,9 @@ class MapStub extends Component
             // Dispatch event for UI animations
             $this->dispatch('turn-played', actor: $turn['actor'], type: $turn['type'], value: $turn['value'] ?? 0);
 
+            $audioType = $turn['type'] === 'miss' ? 'dodge' : (!empty($turn['crit']) ? 'crit' : 'hit');
+            $this->dispatch('play-audio', type: $audioType);
+
             if ($this->currentTurnIndex >= count($this->allTurns)) {
                 $this->completeBattle();
             }
@@ -467,8 +470,7 @@ class MapStub extends Component
 
     private function getXpRequiredForLevel(int $level): int
     {
-        // Simple formula: level * 100 XP required for next level
-        return $level * 100;
+        return app(\App\Application\Characters\LevelUpService::class)->xpToNext($level - 1);
     }
 
     // Helper methods for UI state

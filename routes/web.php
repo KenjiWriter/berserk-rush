@@ -68,6 +68,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
     Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');
+    Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');
+    Route::get('/achievements', \App\Livewire\Admin\Achievements::class)->name('achievements');
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {

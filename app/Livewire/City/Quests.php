@@ -12,6 +12,7 @@ use Livewire\Attributes\Layout;
 class Quests extends Component
 {
     public Character $character;
+    public string $activeTab = 'quests';
 
     public function mount(Character $character)
     {
@@ -45,9 +46,30 @@ class Quests extends Component
 
         if ($result->isOk()) {
             session()->flash('message', $result->getPayload());
+            $this->dispatch('reward-claimed');
         } else {
             session()->flash('error', $result->getErrorMessage());
         }
+    }
+
+    public function claimAchievement($characterAchievementId)
+    {
+        $achievementService = app(\App\Application\Achievements\AchievementService::class);
+        $ca = \App\Infrastructure\Persistence\CharacterAchievement::findOrFail($characterAchievementId);
+
+        $result = $achievementService->claimReward($this->character, $ca);
+
+        if ($result->isOk()) {
+            session()->flash('message', $result->getPayload());
+            $this->dispatch('reward-claimed');
+        } else {
+            session()->flash('error', $result->getErrorMessage());
+        }
+    }
+
+    public function setTab($tab)
+    {
+        $this->activeTab = $tab;
     }
 
     public function backToHub()
@@ -138,10 +160,26 @@ class Quests extends Component
             ->where('status', \App\Domain\Quests\Enums\QuestStatus::REWARDED->value)
             ->get();
 
+        $achievements = [];
+        if ($this->activeTab === 'achievements') {
+            $achievements = \App\Infrastructure\Persistence\Achievement::with(['title', 'itemTemplate', 'characterAchievements' => function ($query) {
+                $query->where('character_id', $this->character->id);
+            }])
+            ->where(function ($query) {
+                $query->whereNull('parent_achievement_id')
+                      ->orWhereHas('parentAchievement.characterAchievements', function ($subQuery) {
+                          $subQuery->where('character_id', $this->character->id)
+                                   ->whereNotNull('completed_at');
+                      });
+            })
+            ->get();
+        }
+
         return view('livewire.city.quests', [
             'availableQuests' => $availableQuests,
             'activeQuests' => $activeQuests,
             'completedQuests' => $completedQuests,
+            'achievements' => $achievements,
         ]);
     }
 }

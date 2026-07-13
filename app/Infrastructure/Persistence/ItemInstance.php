@@ -41,6 +41,12 @@ class ItemInstance extends Model
 
         static::saved($clearCache);
         static::deleted($clearCache);
+        
+        static::created(function ($item) {
+            if ($item->owner_character_id && $item->template_id) {
+                event(new \App\Domain\Collections\Events\ItemDiscovered($item->owner, $item->template_id));
+            }
+        });
     }
 
     public function template(): BelongsTo

@@ -24,6 +24,8 @@ class Monster extends Model
         'stats' => 'array',
         'abilities' => 'array',
         'loot_table_id' => 'integer',
+        'type' => \App\Domain\Combat\Enums\MonsterType::class,
+        'rank' => \App\Domain\Combat\Enums\MonsterRank::class,
     ];
 
     public function map()

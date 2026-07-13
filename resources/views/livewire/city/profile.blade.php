@@ -155,15 +155,19 @@
                         @endif
                     </div>
 
+                    @if($character->activeTitle)
+                        <div class="text-[11px] text-purple-400 font-bold uppercase tracking-widest mt-2 -mb-1 drop-shadow-md text-center">
+                            {{ $character->activeTitle->prefix }}
+                        </div>
+                    @endif
                     <h2 class="text-2xl font-bold text-yellow-500 text-center drop-shadow-md">{{ $character->name }}</h2>
                     <p class="text-gray-400 font-semibold text-sm">Poziom {{ $character->level }}</p>
                     <div class="bg-indigo-900/80 border border-indigo-500 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold shadow-lg my-2">
                         ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
                     </div>
                     
-                    <!-- XP Bar -->
                     @php 
-                        $xpRequired = $character->level * 100;
+                        $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
                         $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
                     @endphp
                     <div class="w-full bg-gray-900 rounded-full h-5 relative border-2 border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
@@ -256,6 +260,9 @@
                         </button>
                         <button wire:click="setTab('pets')" class="font-bold text-md transition-colors {{ $activeTab === 'pets' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
                             Pety & Inkubator
+                        </button>
+                        <button wire:click="setTab('collections')" class="font-bold text-md transition-colors {{ $activeTab === 'collections' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                            Kolekcje & Tytuły
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
@@ -382,6 +389,10 @@
                 @elseif($activeTab === 'pets')
                     <div class="mt-4">
                         @include('livewire.city.pets')
+                    </div>
+                @elseif($activeTab === 'collections')
+                    <div class="mt-4">
+                        @livewire('profile.collections-tab', ['character' => $character])
                     </div>
                 @endif
             </div>

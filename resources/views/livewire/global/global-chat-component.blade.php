@@ -221,6 +221,9 @@
                         @else
                             {{-- Nick + hover tooltip trigger --}}
                             <div class="relative ml-1">
+                                @if(!empty($msg['title_prefix']))
+                                    <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mr-1" title="Tytuł">{{ $msg['title_prefix'] }}</span>
+                                @endif
                                 <span
                                     wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
                                     wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"

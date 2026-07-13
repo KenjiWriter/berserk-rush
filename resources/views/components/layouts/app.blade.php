@@ -56,6 +56,13 @@
             to { width: 0%; }
         }
     </style>
+    <script>
+        document.addEventListener('pointerdown', function unlock() {
+            let audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
+            audio.play().catch(() => {});
+            document.removeEventListener('pointerdown', unlock);
+        }, { once: true });
+    </script>
 </head>
 
 <body class="font-sans antialiased">
@@ -98,7 +105,11 @@
             profile: 1,
             hover: 1,
             victory: 1,
-            defeat: 1
+            defeat: 1,
+            hit: 1,
+            crit: 1,
+            dodge: 1,
+            error: 1
         },
         activeSounds: {},
         playAudio(type) {
@@ -128,6 +139,10 @@
                 const id = ++this.counter;
                 this.toasts.push({ id, type, message, duration, leaving: false });
                 setTimeout(() => this.removeToast(id), duration);
+
+                if (type === 'error') {
+                    window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'error' } }));
+                }
             },
             removeToast(id) {
                 const toast = this.toasts.find(t => t.id === id);

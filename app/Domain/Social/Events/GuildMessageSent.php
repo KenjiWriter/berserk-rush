@@ -19,7 +19,8 @@ class GuildMessageSent implements ShouldBroadcastNow
         public string $message,
         public string $sentAt,
         public string $characterId,
-        public string $guildId
+        public string $guildId,
+        public ?string $titlePrefix = null
     ) {}
 
     public function broadcastOn(): array
@@ -39,6 +40,7 @@ class GuildMessageSent implements ShouldBroadcastNow
             'message'         => $this->message,
             'sent_at'         => $this->sentAt,
             'guild_id'        => $this->guildId,
+            'title_prefix'    => $this->titlePrefix,
         ];
     }
 }

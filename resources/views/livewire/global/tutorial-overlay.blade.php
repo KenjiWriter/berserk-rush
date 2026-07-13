@@ -142,7 +142,7 @@
                     @endif
 
                     <div class="flex justify-end">
-                        <button wire:click="nextStep" class="bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-bold py-3 px-8 rounded-lg shadow-[0_4px_0_rgb(120,53,15)] hover:shadow-[0_2px_0_rgb(120,53,15)] hover:translate-y-[2px] transition-all border-2 border-amber-900 medieval-font text-lg">
+                        <button wire:click="nextStep" onclick="new Audio('{{ asset('storage/sound/A_short,_satisfying__%234-1783930877243.mp3') }}').play()" onmouseenter="new Audio('{{ asset('storage/sound/A_very_subtle,_soft__%232-1783932173771.mp3') }}').play()" onmouseleave="new Audio('{{ asset('storage/sound/A_very_subtle,_soft__%232-1783932173771.mp3') }}').play()" class="bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-700 hover:to-amber-900 text-white font-bold py-3 px-8 rounded-lg shadow-[0_4px_0_rgb(120,53,15)] hover:shadow-[0_2px_0_rgb(120,53,15)] hover:translate-y-[2px] transition-all border-2 border-amber-900 medieval-font text-lg">
                             Tak jest, Kapitanie!
                         </button>
                     </div>

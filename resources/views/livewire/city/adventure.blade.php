@@ -314,7 +314,7 @@
                                                     <div>
                                                         <span class="font-bold text-red-700">{{ $monster->name }}</span>
                                                         @if($monster->type)
-                                                            <span class="text-xs text-yellow-700 ml-1 font-bold">[{{ ucfirst($monster->type) }}]</span>
+                                                            <span class="text-xs text-yellow-700 ml-1 font-bold">[{{ $monster->type->label() }}]</span>
                                                         @endif
                                                         <span class="text-xs text-green-800 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
                                                     </div>
@@ -560,7 +560,7 @@
                                                 <span class="text-xs text-amber-500 font-bold mr-1">Etap {{ $stage->stage_order }}:</span>
                                                 <span class="font-bold text-red-400">{{ $monster->name }}</span>
                                                 @if($monster->type)
-                                                    <span class="text-xs text-yellow-600 ml-1 font-bold">[{{ ucfirst($monster->type) }}]</span>
+                                                    <span class="text-xs text-yellow-600 ml-1 font-bold">[{{ $monster->type->label() }}]</span>
                                                 @endif
                                                 <span class="text-xs text-slate-400 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
                                             </div>
