@@ -26,6 +26,10 @@ class MapStub extends Component
     public string $result = '';
     public bool $playerFirst = true;
 
+    // Session Tracking
+    public int $sessionMonstersDefeated = 0;
+    public int $sessionStartTime = 0;
+
     // Playback controls
     public bool $isPlaying = false;
     public int $playbackSpeed = 1;
@@ -53,6 +57,8 @@ class MapStub extends Component
 
     public function mount(Character $character, Map $map): void
     {
+        $this->sessionStartTime = time();
+
         // Authorization check
         if (Auth::user()->id !== $character->user_id) {
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
@@ -390,6 +396,7 @@ class MapStub extends Component
         $this->dispatch('stop-playback');
         
         if ($this->result === 'win' || $this->result === 'finished') {
+            $this->sessionMonstersDefeated++;
             $this->dispatch('play-audio', type: 'victory');
         } elseif ($this->result === 'loss' || $this->result === 'dead') {
             $this->dispatch('play-audio', type: 'defeat');
@@ -415,57 +422,31 @@ class MapStub extends Component
             return;
         }
 
-        // Check for level up BEFORE applying rewards
-        $oldLevel = $this->character->level;
-        $this->checkLevelUp();
-
         // Apply gold and XP rewards to character
         $this->character->update([
             'gold' => $this->character->gold + $this->goldGained,
             'xp' => $this->character->xp + $this->xpGained,
         ]);
 
-        // Mark encounter rewards as applied
-        $encounter->markRewardsApplied();
-    }
+        $this->character = $this->character->fresh();
 
-    private function checkLevelUp(): void
-    {
-        $currentLevel = $this->character->level;
-        $currentXp = $this->character->xp;
-        $newXp = $currentXp + $this->xpGained;
-        $totalPointsGained = 0;
-
-        // Check for multiple level ups
-        while ($newXp >= $this->getXpRequiredForLevel($currentLevel + 1)) {
-            $xpNeeded = $this->getXpRequiredForLevel($currentLevel + 1);
-            $newXp -= $xpNeeded;
-            $currentLevel++;
-            $totalPointsGained += 3; // 3 character points per level
-
-            // Add level up data consistent with view expectations
-            $this->levelUps[] = [
-                'to' => $currentLevel,
-                'attribute_points' => 3,
-                'from' => $currentLevel - 1,
-            ];
-        }
-
-        // Update character if leveled up
-        if ($currentLevel > $this->character->level) {
+        $levelUpService = app(\App\Application\Characters\LevelUpService::class);
+        $result = $levelUpService->checkAndApply($this->character);
+        
+        if ($result->isOk() && $result->getPayload()->hadLevelUp) {
             $this->dispatch('play-audio', type: 'levelup');
-            // Get current character points or default to 0 if null
-            $currentPoints = $this->character->character_points ?? 0;
-
-            $this->character->update([
-                'level' => $currentLevel,
-                'xp' => $newXp,
-                'character_points' => $currentPoints + $totalPointsGained
-            ]);
-
-            // Refresh character instance for UI
+            foreach ($result->getPayload()->levelUps as $levelUp) {
+                 $this->levelUps[] = [
+                     'from' => $levelUp['from'],
+                     'to' => $levelUp['to'],
+                     'attribute_points' => 3,
+                 ];
+            }
             $this->character = $this->character->fresh();
         }
+
+        // Mark encounter rewards as applied
+        $encounter->markRewardsApplied();
     }
 
     private function getXpRequiredForLevel(int $level): int

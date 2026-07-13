@@ -32,6 +32,11 @@ class Quests extends Component
 
         if ($result->isOk()) {
             session()->flash('message', $result->getPayload());
+            
+            // Tutorial step
+            if (auth()->user()->game_stage == 24) {
+                auth()->user()->update(['game_stage' => 25]);
+            }
         } else {
             session()->flash('error', $result->getErrorMessage());
         }
@@ -47,6 +52,11 @@ class Quests extends Component
         if ($result->isOk()) {
             session()->flash('message', $result->getPayload());
             $this->dispatch('reward-claimed');
+            
+            // Tutorial step
+            if (auth()->user()->game_stage == 27) {
+                auth()->user()->update(['game_stage' => 28]);
+            }
         } else {
             session()->flash('error', $result->getErrorMessage());
         }

@@ -51,6 +51,18 @@
                             Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Brońmistrza Miecz Nowicjusza - znacznie ułatwi Ci to początkowe potyczki!
                         @elseif($step == 21)
                             Wspaniale! Wygląda na to, że jesteś już w pełni gotowy, by samodzielnie przetrwać w tym brutalnym świecie. Mój wstępny trening dobiegł końca, jednak jestem pewien, że spotkamy się jeszcze w przyszłości. Na koniec, przyjmij ode mnie tę Skórzaną Zbroję. Niech chroni Cię przed atakami! Powodzenia!
+                        @elseif($step == 23)
+                            Witaj po przerwie! Widzę, że od naszej ostatniej rozmowy nabrałeś sporo doświadczenia. W mieście pojawiła się nowa Tablica Wyzwań. Odwiedź ją, gdy tylko będziesz gotowy!
+                        @elseif($step == 24)
+                            Witaj przy Tablicy Wyzwań! To miejsce, gdzie mieszkańcy i gildie wywieszają różne zadania. Możesz tu zdobyć dodatkowe złoto, doświadczenie, a czasem nawet cenne przedmioty. Podejdź i odbierz swoją pierwszą misję!
+                        @elseif($step == 26)
+                            Świetnie! Po prawej stronie widoczne są informacje o Twojej bieżącej misji oraz postęp w jej realizacji. Teraz udaj się w świat, wykonaj misję i powróć do tego okna, kiedy skończysz!
+                        @elseif($step == 27)
+                            Wspaniale! Wykonałeś zadanie w stu procentach. W ten sposób pomagasz mieszkańcom i zdobywasz zasoby na dalsze wyprawy. Teraz odbierz swoją zasłużoną nagrodę!
+                        @elseif($step == 29)
+                            Dobra robota! Odbieranie wyzwań to świetny sposób na zarobek. Ale to nie wszystko! Zwróć uwagę na zakładkę "Osiągnięcia Bohatera". Przejdź tam teraz.
+                        @elseif($step == 30)
+                            W tym miejscu możesz śledzić swoje wielkie czyny! Za wypełnianie osiągnięć zdobędziesz dodatkowe złoto, doświadczenie, przedmioty oraz specjalne tytuły, które możesz wyposażyć w swoim profilu. Powodzenia w dalszym rozwoju!
                         @endif
                     </div>
 

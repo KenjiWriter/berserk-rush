@@ -803,4 +803,29 @@
             }, 100);
         }
     </script>
+    {{-- Session Tracker --}}
+    <div class="fixed bottom-4 left-4 z-50 bg-amber-900/80 text-amber-100 p-4 rounded-xl shadow-2xl border-2 border-amber-600 backdrop-blur-md transition-all hover:bg-amber-900/90"
+         x-data="{ 
+            startTime: {{ $sessionStartTime }},
+            elapsed: '00:00:00',
+            updateTime() {
+                let now = Math.floor(Date.now() / 1000);
+                let diff = now - this.startTime;
+                let h = Math.floor(diff / 3600).toString().padStart(2, '0');
+                let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                let s = Math.floor(diff % 60).toString().padStart(2, '0');
+                this.elapsed = `${h}:${m}:${s}`;
+            }
+         }"
+         x-init="updateTime(); setInterval(() => updateTime(), 1000)">
+        <h4 class="font-bold medieval-font text-lg mb-2 text-amber-300 drop-shadow-md border-b border-amber-700/50 pb-1">📊 Statystyki Sesji</h4>
+        <div class="flex items-center justify-between text-sm mb-1">
+            <span class="text-amber-200">⚔️ Pokonani:</span>
+            <span class="font-bold text-white drop-shadow-md text-base ml-4">{{ $sessionMonstersDefeated }}</span>
+        </div>
+        <div class="flex items-center justify-between text-sm">
+            <span class="text-amber-200">⏱️ Czas:</span>
+            <span class="font-bold text-white drop-shadow-md font-mono ml-4" x-text="elapsed"></span>
+        </div>
+    </div>
 </div>

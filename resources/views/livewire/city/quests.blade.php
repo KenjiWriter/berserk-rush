@@ -1,5 +1,8 @@
 <div x-data @reward-claimed.window="let a = new Audio('/storage/sound/An_uplifting,_ascend_%232-1783933793835.mp3'); a.volume = 0.5; a.play().catch(e => console.log(e))" class="min-h-screen bg-gradient-to-b from-teal-900/90 via-emerald-800/90 to-teal-900/90 text-amber-100 relative py-8 px-4 font-sans">
-    <div class="max-w-5xl mx-auto">
+    @php
+        $gameStage = auth()->user()->game_stage;
+    @endphp
+    <div class="max-w-5xl mx-auto relative z-10">
         <div class="flex items-center justify-between mb-8">
             <h1 class="text-4xl font-bold text-teal-300 medieval-font drop-shadow-lg">📜 Tablica Wyzwań</h1>
             <button wire:click="backToHub" @click="$dispatch('location-leave')" class="bg-slate-700 hover:bg-slate-600 text-amber-100 px-4 py-2 rounded-lg font-bold shadow transition-colors">
@@ -22,7 +25,7 @@
             <button wire:click="setTab('quests')" class="px-6 py-2 rounded-lg font-bold border {{ $activeTab === 'quests' ? 'bg-teal-700 text-white border-teal-500' : 'bg-black/40 text-teal-500 border-teal-900 hover:bg-teal-900/40' }} transition-colors">
                 Misje w Gildii
             </button>
-            <button wire:click="setTab('achievements')" class="px-6 py-2 rounded-lg font-bold border {{ $activeTab === 'achievements' ? 'bg-amber-700 text-white border-amber-500' : 'bg-black/40 text-amber-500 border-amber-900 hover:bg-amber-900/40' }} transition-colors">
+            <button wire:click="setTab('achievements')" class="px-6 py-2 rounded-lg font-bold border {{ $activeTab === 'achievements' ? 'bg-amber-700 text-white border-amber-500' : 'bg-black/40 text-amber-500 border-amber-900 hover:bg-amber-900/40' }} transition-colors {{ $gameStage == 29 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
                 Osiągnięcia Bohatera
             </button>
         </div>
@@ -60,7 +63,7 @@
                                 @endif
                             </div>
 
-                            <button wire:click="acceptQuest('{{ $quest->id }}')" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2 rounded shadow transition-colors">
+                            <button wire:click="acceptQuest('{{ $quest->id }}')" class="w-full bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold py-2 rounded shadow transition-colors {{ $gameStage == 24 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
                                 Przyjmij Wyzwanie
                             </button>
                         </div>
@@ -107,7 +110,7 @@
                                 </div>
                                 
                                 @if($cq->status->value === 'completed' || $quest->type->value === 'gathering')
-                                    <button wire:click="claimReward('{{ $cq->id }}')" class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 rounded shadow transition-colors">
+                                    <button wire:click="claimReward('{{ $cq->id }}')" class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 rounded shadow transition-colors {{ $gameStage == 27 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
                                         Odbierz Nagrodę
                                     </button>
                                 @else
@@ -228,4 +231,20 @@
             </div>
         @endif
     </div>
+
+    @php
+        $hasCompletedQuest = $activeQuests->contains(fn($cq) => $cq->status->value === 'completed');
+    @endphp
+
+    @if($gameStage == 23 && $activeTab === 'quests')
+        <livewire:global.tutorial-overlay :step="24" />
+    @elseif($gameStage == 25 && $activeTab === 'quests')
+        <livewire:global.tutorial-overlay :step="26" />
+    @elseif($gameStage == 26 && $hasCompletedQuest)
+        <livewire:global.tutorial-overlay :step="27" />
+    @elseif($gameStage == 28)
+        <livewire:global.tutorial-overlay :step="29" />
+    @elseif($gameStage == 29 && $activeTab === 'achievements')
+        <livewire:global.tutorial-overlay :step="30" />
+    @endif
 </div>

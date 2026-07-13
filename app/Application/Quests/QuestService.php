@@ -138,14 +138,15 @@ class QuestService
             }
 
             if ($quest->reward_exp > 0) {
-                // To nie awansuje automatycznie, ale dla uproszczenia (system w berserk-rush korzysta ze swojego mechanizmu po walce zazwyczaj, tu dodajemy xp do postaci)
-                // Używamy CharacterDungeonRun lub podobnych do dodawania xp, lub manualnie dodajemy:
                 $character->xp += $quest->reward_exp;
-                // Ewentualny event awansu należy sprawdzić ręcznie w Livewire lub wyrzucić event jeśli zaszła potrzeba
             }
 
             // Zapisujemy zmiany
             $character->save();
+
+            if ($quest->reward_exp > 0) {
+                app(\App\Application\Characters\LevelUpService::class)->checkAndApply($character);
+            }
 
             // Dodaj przedmioty (reward_items)
             if ($quest->reward_items && is_array($quest->reward_items)) {

@@ -36,6 +36,7 @@ class LevelUpService
                     $character->update([
                         'level' => $currentLevel,
                         'character_points' => $character->character_points + $pointsGained,
+                        'xp' => $currentXp,
                     ]);
 
                     // Fire events for each level up
@@ -45,6 +46,11 @@ class LevelUpService
                             $levelUp['from'],
                             $levelUp['to']
                         ));
+                    }
+                    
+                    // Tutorial stage update
+                    if ($currentLevel >= 5 && $character->user && $character->user->game_stage == 21) {
+                        $character->user->update(['game_stage' => 22]);
                     }
                 }
 

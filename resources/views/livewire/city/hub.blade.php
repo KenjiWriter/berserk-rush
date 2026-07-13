@@ -53,6 +53,8 @@
         <livewire:global.tutorial-overlay :step="17" />
     @elseif($gameStage == 20)
         <livewire:global.tutorial-overlay :step="21" :rewardItemTemplateId="'01KX77GX1KG1K0ZJGTKRWV3DT6'" />
+    @elseif($gameStage == 22)
+        <livewire:global.tutorial-overlay :step="23" />
     @endif
 
     <div class="relative container mx-auto px-4 py-8 min-h-screen">
@@ -259,9 +261,9 @@
                 </div>
 
                 {{-- Quests --}}
-                <div class="relative group w-full max-w-xs">
+                <div class="relative group w-full max-w-xs {{ $gameStage == 23 ? 'z-10' : '' }}">
                     <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-teal-600/95 hover:to-teal-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
+                        class="w-full bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-teal-600/95 hover:to-teal-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
                         <div class="relative text-center">
                             <div class="text-5xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('quests')">📜</div>
@@ -472,7 +474,7 @@
                 </button>
 
                 <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 text-center shadow-xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
+                    class="bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 text-center shadow-xl relative {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
                     <div class="text-4xl mb-2">
                                 <div wire:loading.remove wire:target="goTo('quests')">📜</div>
                                 <div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>

@@ -31,7 +31,8 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Walka (game_stage 8-13)**: Przejście do mapy wypraw (Przygoda). Opis World Bossa, list przeciwników. Kapitan każe wyruszyć w pierwszy bój (poziomy 0-15). Podczas pierwszej walki wyłączony jest system `auto-battle`, aby gracz mógł śledzić mechanikę. Po wygranej dostaje łup z potwora oraz bonusowy Hełm od Kapitana.
 - **Rozwój Po Walce (game_stage 13-16)**: Powrót do miasta i rozdanie punktów statystyk z awansu poziomu po walce. Za wykonanie tego zadania gracz dostaje 150 złota.
 - **Brońmistrz i Ulepszenia (game_stage 17-20)**: Kapitan zabiera gracza do Brońmistrza, objaśnia mechaniki kupna, sprzedaży oraz Kuźni Ulepszeń (+0 do +9). Gracz dostaje zadanie kupienia "Miecza Nowicjusza". 
-- **Zakończenie (game_stage 20 -> 21)**: Powrót do miasta i otrzymanie nagrody finałowej – Skórzanej Zbroi. Po tym etapie gracz jest wolny od samouczka.
+- **Zakończenie (game_stage 20 -> 21)**: Powrót do miasta i otrzymanie nagrody finałowej – Skórzanej Zbroi. Po tym etapie gracz jest wolny od samouczka pierwszego etapu.
+- **Tablica Wyzwań i Osiągnięcia (game_stage 22-30)**: Aktywowane po wbiciu 5 poziomu postaci. Kapitan ponownie wita gracza, zachęca do odwiedzenia Tablicy Wyzwań, instruuje jak odbierać misje, wykonuje się przykładową misję, odbiera nagrodę, po czym Kapitan przedstawia system Osiągnięć.
 
 ## Implementacja na przyszłość
 
