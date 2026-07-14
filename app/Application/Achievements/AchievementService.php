@@ -50,11 +50,14 @@ class AchievementService
             );
 
             if ($charAchievement->completed_at === null) {
+                $oldProgress = $charAchievement->progress;
                 $charAchievement->progress += $amount;
                 
                 if ($charAchievement->progress >= $achievement->target_value) {
                     $charAchievement->progress = $achievement->target_value;
                     $charAchievement->completed_at = now();
+                    
+                    app(\App\Application\Shared\NotificationTracker::class)->addSuccess("Osiągnięcie '{$achievement->name}' zostało wykonane!");
                     
                     // Inicjalizacja kolejnego stopnia (dziecka) od razu po ukończeniu rodzica
                     $childAchievements = Achievement::where('parent_achievement_id', $achievement->id)->get();
@@ -67,6 +70,9 @@ class AchievementService
                             ]
                         );
                     }
+                } else if ($charAchievement->progress > $oldProgress) {
+                    // Dodaj info o postępie
+                    app(\App\Application\Shared\NotificationTracker::class)->addInfo("Osiągnięcie {$achievement->name}:<br>{$charAchievement->progress} / {$achievement->target_value}");
                 }
                 
                 $charAchievement->save();

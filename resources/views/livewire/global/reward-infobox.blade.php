@@ -116,10 +116,18 @@ document.addEventListener('alpine:init', () => {
                 if (data.gemsAdded) this.stats.gems += Number(data.gemsAdded);
                 
                 // Prosty mechanizm levelowania na frontendzie
+                let leveledUpTo = null;
                 while (this.stats.experience >= this.stats.experience_required) {
                     this.stats.experience -= this.stats.experience_required;
                     this.stats.level++;
                     this.stats.experience_required = Math.round(50 * Math.pow(1.25, this.stats.level - 1));
+                    leveledUpTo = this.stats.level;
+                }
+                
+                if (leveledUpTo) {
+                    // Odpal dźwięk i pokaż modal z awansem
+                    window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'levelup' } }));
+                    Livewire.dispatch('open-level-up-modal', { level: leveledUpTo });
                 }
             }
             

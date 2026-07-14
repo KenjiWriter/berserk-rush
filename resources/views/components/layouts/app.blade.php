@@ -126,7 +126,11 @@
             audio.volume = 0.5;
             
             this.activeSounds[type] = audio;
-            audio.play().catch(e => console.log('Audio play failed: ', e));
+            audio.play().catch(e => {
+                if (e.name !== 'AbortError') {
+                    console.log('Audio play failed: ', e);
+                }
+            });
         }
     }" @play-audio.window="playAudio($event.detail.type)"></div>
 
@@ -185,7 +189,7 @@
                             toast.type === 'error' ? 'text-red-200' :
                             'text-blue-200'
                         "
-                        x-text="toast.message"
+                        x-html="toast.message"
                     ></p>
                 </div>
 
@@ -265,6 +269,7 @@
     @auth
         @if (session('active_character'))
             @livewire('global.reward-infobox')
+            @livewire('global.level-up-modal')
             @livewire('global.global-chat-component')
             <x-mobile-nav />
         @endif

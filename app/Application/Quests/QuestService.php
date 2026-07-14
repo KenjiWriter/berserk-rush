@@ -84,11 +84,17 @@ class QuestService
 
             // Aktualizacja progresu (dla 'gathering' progres może być liczony dynamicznie, ale tu robimy sztywny licznik dla hunting i action)
             if (in_array($quest->type, [QuestType::HUNTING, QuestType::ACTION])) {
+                $oldProgress = $cq->progress;
                 $cq->progress += $amount;
                 
                 if ($cq->progress >= $quest->target_amount) {
                     $cq->progress = $quest->target_amount;
-                    $cq->status = QuestStatus::COMPLETED;
+                    if ($cq->status !== QuestStatus::COMPLETED) {
+                        $cq->status = QuestStatus::COMPLETED;
+                        app(\App\Application\Shared\NotificationTracker::class)->addSuccess("Misja '{$quest->title}' została wykonana!");
+                    }
+                } else if ($cq->progress > $oldProgress) {
+                    app(\App\Application\Shared\NotificationTracker::class)->addInfo("Misja {$quest->title}:<br>{$cq->progress} / {$quest->target_amount}");
                 }
                 
                 $cq->save();

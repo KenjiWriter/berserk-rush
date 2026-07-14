@@ -15,6 +15,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // Bind RandomProvider interface to default implementation
         $this->app->bind(RandomProvider::class, DefaultRandomProvider::class);
+
+        $this->app->singleton(\App\Application\Shared\NotificationTracker::class, function ($app) {
+            return new \App\Application\Shared\NotificationTracker();
+        });
     }
 
     /**

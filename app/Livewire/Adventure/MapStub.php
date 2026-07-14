@@ -47,6 +47,7 @@ class MapStub extends Component
     public bool $battleCompleted = false;
     public int $damageDealt = 0;
     public bool $isWorldBoss = false;
+    public array $pendingNotifications = [];
 
     #[On('tutorial-completed')]
     public function refreshOnTutorial()
@@ -216,7 +217,8 @@ class MapStub extends Component
                 'gold_data' => $combatData['rewards']['gold_data'] ?? [],
                 'xp_data' => $combatData['rewards']['xp_data'] ?? [],
                 'damage_dealt' => $combatData['damage_dealt'] ?? 0,
-            ]
+            ],
+            'notifications' => $combatData['notifications'] ?? []
         ];
     }
 
@@ -367,6 +369,7 @@ class MapStub extends Component
         $this->goldData = $combatResult['rewards']['gold_data'] ?? [];
         $this->xpData = $combatResult['rewards']['xp_data'] ?? [];
         $this->damageDealt = $combatResult['rewards']['damage_dealt'] ?? 0;
+        $this->pendingNotifications = $combatResult['notifications'] ?? [];
     }
 
     /**
@@ -406,10 +409,21 @@ class MapStub extends Component
             $this->applyRewards();
         }
 
+        // Emit pending notifications
+        if (!empty($this->pendingNotifications)) {
+            foreach ($this->pendingNotifications as $notification) {
+                $this->dispatch('notify', type: $notification['type'], message: $notification['message']);
+            }
+            $this->pendingNotifications = []; // clear after sending
+        }
+
         // Auto-chain next battle (not for worldboss 'finished')
-        if ($this->autoChain && $this->result === 'win') {
+        if ($this->autoChain && $this->result === 'win' && empty($this->levelUps)) {
             $this->dispatch('auto-chain-next-battle');
         } else {
+            if (!empty($this->levelUps)) {
+                $this->autoChain = false; // Zatrzymaj automat na stałe
+            }
             $this->dispatch('encounter-finished', result: $this->result);
         }
     }
@@ -443,6 +457,10 @@ class MapStub extends Component
                  ];
             }
             $this->character = $this->character->fresh();
+            
+            // Pokaż okno awansu dla najwyższego zdobytego poziomu
+            $highestLevel = end($this->levelUps)['to'];
+            $this->dispatch('open-level-up-modal', level: $highestLevel);
         }
 
         // Mark encounter rewards as applied

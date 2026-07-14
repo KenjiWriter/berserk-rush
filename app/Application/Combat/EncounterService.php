@@ -257,6 +257,9 @@ class EncounterService
                 $encounter->setRewards($goldReward, $xpReward);
                 $encounter->setTurns($turns);
 
+                // Zbieranie powiadomień wygenerowanych podczas walki (np. awanse misji, osiągnięcia)
+                $notifications = app(\App\Application\Shared\NotificationTracker::class)->flush();
+
                 // Update combat_data
                 $combatData = array_merge($encounter->combat_data ?? [], [
                     'player_max_hp' => $playerMaxHp,
@@ -266,7 +269,8 @@ class EncounterService
                     'rewards' => [
                         'gold_data' => $goldRewardData,
                         'xp_data' => $xpRewardData,
-                    ]
+                    ],
+                    'notifications' => $notifications
                 ]);
                 $encounter->combat_data = $combatData;
                 $encounter->save();
