@@ -125,45 +125,18 @@ class ItemTemplates extends Component
         $this->previewCP = (int) round($cp);
     }
 
-    private function normalizeIconName($filename, $itemName)
-    {
-        if (empty($filename) || empty($itemName)) return $filename;
-
-        $extension = \Illuminate\Support\Facades\File::extension($filename) ?: 'png';
-        $expectedName = \Illuminate\Support\Str::slug($itemName) . '.' . $extension;
-
-        if ($filename !== $expectedName) {
-            $baseDir = storage_path('app/assets/items/icons');
-            if (!\Illuminate\Support\Facades\File::exists($baseDir)) {
-                $baseDir = storage_path('app/assets/items');
-            }
-            $oldPath = $baseDir . DIRECTORY_SEPARATOR . basename($filename);
-            $newPath = $baseDir . DIRECTORY_SEPARATOR . $expectedName;
-
-            if (\Illuminate\Support\Facades\File::exists($oldPath)) {
-                if (\Illuminate\Support\Facades\File::exists($newPath) && $oldPath !== $newPath) {
-                    \Illuminate\Support\Facades\File::delete($newPath);
-                }
-                \Illuminate\Support\Facades\File::move($oldPath, $newPath);
-            }
-            return $expectedName;
-        }
-
-        return $filename;
-    }
 
     public function setIcon($filename)
     {
         if ($this->editingId) {
             $item = ItemTemplate::find($this->editingId);
             if ($item) {
-                $finalName = $this->normalizeIconName($filename, $item->name);
-                $this->icon = $finalName;
-                $item->update(['icon' => $finalName]);
+                $this->icon = $filename;
+                $item->update(['icon' => $filename]);
                 $this->cacheBuster = time();
                 $this->loadAvailableIcons();
                 $this->loadData();
-                session()->flash('message', 'Ikona została przypisana i (w razie potrzeby) zaktualizowana fizycznie!');
+                session()->flash('message', 'Ikona została pomyślnie przypisana!');
             }
         } else {
             $this->icon = $filename;
@@ -190,9 +163,6 @@ class ItemTemplates extends Component
         }
 
         $finalIcon = $this->icon;
-        if ($finalIcon && $this->name) {
-            $finalIcon = $this->normalizeIconName($finalIcon, $this->name);
-        }
 
         $data = [
             'id' => $this->template_id,
