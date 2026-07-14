@@ -148,7 +148,7 @@ class ArenaCombat extends Component
             if (!$isAttacker) $this->playerFirst = !$this->playerFirst;
             
             $iAmWinner = ($fight->winner_character_id === ($isAttacker ? $fight->challenger_character_id : $fight->defender_character_id));
-            $this->result = $iAmWinner ? 'win' : 'loss';
+            $this->result = $iAmWinner ? 'win' : 'lose';
             
             // Auto start playback for GvG - triggered via wire:init
             $this->isPlaying = true;
@@ -183,7 +183,7 @@ class ArenaCombat extends Component
         }
 
         $iAmWinner = ($encounter->winner_character_id === $this->character->id);
-        $this->result = $iAmWinner ? 'win' : 'loss';
+        $this->result = $iAmWinner ? 'win' : 'lose';
 
         if ($this->type === 'pvp') {
             $this->eloChange = $isAttacker ? $encounter->attacker_elo_change : $encounter->defender_elo_change;

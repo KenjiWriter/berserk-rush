@@ -241,7 +241,7 @@ class DungeonRun extends Component
         $this->isCalculating = false;
 
         // If run ended, keep the result for display
-        if ($this->battleResult && in_array($this->battleResult['result'] ?? '', ['dungeon_complete', 'loss'])) {
+        if ($this->battleResult && in_array($this->battleResult['result'] ?? '', ['dungeon_complete', 'lose'])) {
             // Keep battleResult for final screen
             return;
         }

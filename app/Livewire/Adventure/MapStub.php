@@ -168,7 +168,7 @@ class MapStub extends Component
             return;
         }
 
-        if (in_array($encounter->state, ['win', 'loss', 'finished'])) {
+        if (in_array($encounter->state, ['win', 'lose', 'finished'])) {
             $this->isCalculating = false;
             
             // Reconstruct combatResult from DB
@@ -401,7 +401,7 @@ class MapStub extends Component
         if ($this->result === 'win' || $this->result === 'finished') {
             $this->sessionMonstersDefeated++;
             $this->dispatch('play-audio', type: 'victory');
-        } elseif ($this->result === 'loss' || $this->result === 'dead') {
+        } elseif ($this->result === 'lose' || $this->result === 'dead') {
             $this->dispatch('play-audio', type: 'defeat');
         }
 

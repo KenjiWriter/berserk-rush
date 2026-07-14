@@ -182,7 +182,7 @@ class DungeonService
 
             return Result::ok([
                 'turns' => $turns,
-                'result' => 'loss',
+                'result' => 'lose',
                 'stage' => $run->current_stage,
                 'player_hp' => $playerHp,
                 'monster_max_hp' => $monsterMaxHp,

@@ -302,7 +302,7 @@ class EncounterService
                         ]
                     ],
                     'turns' => $turns,
-                    'result' => $isWorldBoss ? 'finished' : ($winner === 'player' ? 'win' : 'loss'),
+                    'result' => $isWorldBoss ? 'finished' : ($winner === 'player' ? 'win' : 'lose'),
                     'rewards' => [
                         'gold' => $goldReward,
                         'xp' => $xpReward,

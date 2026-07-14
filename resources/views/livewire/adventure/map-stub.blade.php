@@ -138,7 +138,7 @@
                                 {{ !empty($player) ? $player['name'] : $character->name }}
                             </h3>
                             <p class="text-[10px] lg:text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Poziom {{ !empty($player) ? $player['level'] : $character->level }}
+                                Poziom {{ $character->level }}
                             </p>
                         </div>
 
