@@ -178,6 +178,24 @@
 
             <!-- Lista -->
             <div class="lg:col-span-2">
+                <!-- Filtrowanie -->
+                <div class="bg-gray-800 p-4 rounded-lg shadow-lg border border-gray-700 mb-4 flex gap-4 items-center">
+                    <div class="w-2/3">
+                        <input type="text" wire:model.live="search" placeholder="Szukaj po nazwie lub ID..." class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
+                    </div>
+                    <div class="w-1/3">
+                        <select wire:model.live="filterType" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                            <option value="">Wszystkie Typy</option>
+                            <option value="weapon">Broń</option>
+                            <option value="armor">Pancerz</option>
+                            <option value="accessory">Akcesorium</option>
+                            <option value="consumable">Użytkowe</option>
+                            <option value="material">Materiał</option>
+                            <option value="egg">Jajo Peta (Egg)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="bg-gray-800 rounded-lg shadow-lg border border-gray-700 overflow-hidden">
                     <table class="w-full text-left border-collapse">
                         <thead>

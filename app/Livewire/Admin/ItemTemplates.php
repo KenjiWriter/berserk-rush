@@ -18,6 +18,8 @@ class ItemTemplates extends Component
     public $description, $icon;
     public $editingId = null;
     public $duration_minutes = null;
+    public $search = '';
+    public $filterType = '';
 
     protected $rules = [
         'template_id' => 'required|string|max:255',
@@ -54,10 +56,33 @@ class ItemTemplates extends Component
         }
     }
 
+    public function updatedSearch()
+    {
+        $this->loadData();
+    }
+
+    public function updatedFilterType()
+    {
+        $this->loadData();
+    }
+
     public function loadData()
     {
-        $this->templates = ItemTemplate::orderBy('level_requirement')->get();
-        $this->usedIcons = $this->templates->pluck('icon')->filter()->unique()->toArray();
+        $query = ItemTemplate::query();
+
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('name', 'ilike', '%' . $this->search . '%')
+                  ->orWhere('id', 'ilike', '%' . $this->search . '%');
+            });
+        }
+
+        if (!empty($this->filterType)) {
+            $query->where('type', $this->filterType);
+        }
+
+        $this->templates = $query->orderBy('level_requirement')->get();
+        $this->usedIcons = ItemTemplate::pluck('icon')->filter()->unique()->toArray();
     }
 
     public function updatedName($value)
