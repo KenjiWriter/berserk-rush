@@ -157,7 +157,7 @@
                     }
                 @endphp
 
-                <div class="relative group" x-data="{ showMonsters: false, showBossModal: false }">
+                <div class="relative group" x-data="{ showBestiaryModal: false, showBossModal: false, selectedMonster: '{{ $map->monsters->first()->id ?? '' }}' }">
                     @php
                         $isFirstMapTutorial = $isAccessible && $gameStage == 10 && $map->level_min == 0;
                     @endphp
@@ -283,8 +283,8 @@
                                         </div>
                                     @endif
 
-                                    <button @click="showMonsters = !showMonsters" class="w-full mt-2 bg-green-800/80 hover:bg-green-700 text-green-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm border border-green-600">
-                                        <span x-text="showMonsters ? 'Ukryj przeciwników' : '👁️ Lista przeciwników'"></span>
+                                    <button @click="showBestiaryModal = true" class="w-full mt-2 bg-gradient-to-r from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 font-bold py-2 px-4 rounded-lg transition-colors text-sm border-2 border-amber-500 shadow-[0_0_15px_rgba(217,119,6,0.3)] medieval-font">
+                                        📖 Otwórz Bestiariusz
                                     </button>
                                 @else
                                     <div
@@ -304,63 +304,173 @@
                                     </div>
                                 @endif
                                 
-                                {{-- Expanded Monster List --}}
-                                <div x-show="showMonsters" x-transition class="mt-4 text-left border-t border-green-200/50 pt-4" style="display: none;">
-                                    <h4 class="text-green-900 font-bold mb-2">Przeciwnicy:</h4>
-                                    <div class="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                                        @foreach($map->monsters as $monster)
-                                            <div x-data="{ showLoot: false }" class="bg-green-800/10 rounded p-2 border border-green-700/30">
-                                                <div class="flex justify-between items-center cursor-pointer hover:bg-green-800/20 p-1 rounded transition" @click="showLoot = !showLoot">
-                                                    <div>
-                                                        <span class="font-bold text-red-700">{{ $monster->name }}</span>
-                                                        @if($monster->type)
-                                                            <span class="text-xs text-yellow-700 ml-1 font-bold">[{{ $monster->type->label() }}]</span>
-                                                        @endif
-                                                        <span class="text-xs text-green-800 ml-1 font-bold">(Lvl {{ $monster->level }})</span>
+                                {{-- Bestiary Modal --}}
+                                <template x-teleport="body">
+                                    <div x-show="showBestiaryModal" style="display: none;" 
+                                         class="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-sm">
+                                        
+                                        <div @click.outside="showBestiaryModal = false" class="bg-[url('{{ asset('img/avatars/plate.png') }}')] bg-cover bg-center border-4 border-amber-900 rounded-xl max-w-5xl w-full h-[90vh] sm:h-[80vh] shadow-2xl relative flex flex-col overflow-hidden">
+                                            {{-- Dark overlay for text readability --}}
+                                            <div class="absolute inset-0 bg-amber-100/90"></div>
+
+                                            <button @click="showBestiaryModal = false" class="absolute top-2 right-4 z-20 text-amber-900 hover:text-red-700 text-3xl font-bold drop-shadow-md">&times;</button>
+                                            
+                                            <div class="relative z-10 flex flex-col h-full p-2 sm:p-4">
+                                                <h2 class="text-2xl sm:text-3xl font-bold text-center text-amber-900 medieval-font mb-4 border-b-2 border-amber-800/30 pb-2 drop-shadow-sm">
+                                                    📖 Bestiariusz: {{ $map->name }}
+                                                </h2>
+
+                                                @if($map->monsters->isEmpty())
+                                                    <div class="flex items-center justify-center h-full">
+                                                        <p class="text-amber-800 italic text-xl font-bold">Brak danych o przeciwnikach na tej mapie.</p>
                                                     </div>
-                                                    <span class="text-xs text-green-700" x-text="showLoot ? '▼' : '▶'"></span>
-                                                </div>
-                                                
-                                                {{-- Loot --}}
-                                                <div x-show="showLoot" class="mt-2 pl-2 border-l-2 border-green-600/50 space-y-1 text-xs" style="display: none;">
-                                                    @if($monster->lootTable && $monster->lootTable->entries->isNotEmpty())
-                                                        @php
-                                                            $totalWeight = max(1, $monster->lootTable->entries->sum('weight'));
-                                                        @endphp
-                                                        @foreach($monster->lootTable->entries as $entry)
-                                                            <div class="flex items-center text-green-900">
-                                                                @if($entry->reward_type === 'gold')
-                                                                    <span class="text-yellow-600 font-bold mr-1">💰</span> Złoto ({{ $entry->min_qty }} - {{ $entry->max_qty }})
-                                                                @elseif($entry->reward_type === 'xp')
-                                                                    <span class="text-blue-700 font-bold mr-1">✨</span> XP ({{ $entry->min_qty }} - {{ $entry->max_qty }})
-                                                                @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
-                                                                    @php
-                                                                        if ($entry->itemTemplate->type === 'quest_item') {
-                                                                            if (!$entry->itemTemplate->quest_id || !in_array($entry->itemTemplate->quest_id, $activeQuestIds)) {
-                                                                                continue;
-                                                                            }
-                                                                        }
-                                                                    @endphp
-                                                                    <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-orange-600 font-bold' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-700 font-bold' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-700 font-bold' : 'text-gray-800')) }}">
-                                                                        {{ $entry->itemTemplate->name }}
-                                                                    </span>
-                                                                @else
-                                                                    {{ $entry->reward_type }}
-                                                                @endif
-                                                                <span class="text-green-700/80 font-bold ml-2">({{ round(($entry->weight / $totalWeight) * 100) }}%)</span>
+                                                @else
+                                                    {{-- Tabs --}}
+                                                    <div class="flex overflow-x-auto gap-2 mb-4 pb-2 custom-scrollbar">
+                                                        @foreach($map->monsters as $monster)
+                                                            <button @click="selectedMonster = '{{ $monster->id }}'" 
+                                                                :class="selectedMonster == '{{ $monster->id }}' ? 'bg-amber-800 text-amber-100 shadow-inner -translate-y-1' : 'bg-amber-200/80 text-amber-900 hover:bg-amber-300 hover:-translate-y-0.5'"
+                                                                class="px-4 py-2 rounded-t-lg font-bold border-t-2 border-x-2 border-amber-800/50 whitespace-nowrap transition-all duration-200 flex items-center gap-2">
+                                                                @if($monster->type && $monster->type->value === 'undead') 💀
+                                                                @elseif($monster->type && $monster->type->value === 'demon') 👹
+                                                                @elseif($monster->type && $monster->type->value === 'beast') 🐺
+                                                                @elseif($monster->type && $monster->type->value === 'orc') 🧌
+                                                                @else 👹 @endif
+                                                                {{ $monster->name }}
+                                                            </button>
+                                                        @endforeach
+                                                    </div>
+
+                                                    {{-- Book Pages --}}
+                                                    <div class="flex flex-col md:flex-row flex-1 gap-4 overflow-y-auto custom-scrollbar bg-amber-50/50 rounded-lg p-2 sm:p-4 border-2 border-amber-800/20 shadow-inner">
+                                                        @foreach($map->monsters as $monster)
+                                                            <div x-show="selectedMonster == '{{ $monster->id }}'" class="flex flex-col md:flex-row w-full gap-6">
+                                                                {{-- Left Page: Stats & Avatar --}}
+                                                                <div class="w-full md:w-1/2 flex flex-col items-center">
+                                                                    <div class="w-32 h-32 sm:w-48 sm:h-48 rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-2xl mb-4 relative">
+                                                                        @if(!empty($monster->avatar))
+                                                                            <img src="{{ route('assets.monsters.avatars', ['filename' => $monster->avatar]) }}"
+                                                                                alt="{{ $monster->name }}"
+                                                                                class="w-full h-full object-cover">
+                                                                        @else
+                                                                            <img src="{{ asset('img/monsters/placeholder.png') }}"
+                                                                                alt="{{ $monster->name }}"
+                                                                                class="w-full h-full object-cover">
+                                                                        @endif
+                                                                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                                                        <div class="absolute bottom-2 left-0 w-full text-center text-amber-100 font-bold medieval-font text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,1)]">
+                                                                            Lvl {{ $monster->level }}
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <h3 class="text-2xl font-bold text-amber-900 medieval-font mb-2 text-center">{{ $monster->name }}</h3>
+                                                                    
+                                                                    @if($monster->type)
+                                                                        <div class="bg-amber-800 text-amber-100 px-3 py-1 rounded-full text-sm font-bold shadow-md mb-4">
+                                                                            Typ: {{ $monster->type->label() }}
+                                                                        </div>
+                                                                    @endif
+
+                                                                    <div class="w-full bg-white/40 rounded-lg p-4 border border-amber-800/30">
+                                                                        <h4 class="font-bold text-amber-900 mb-2 border-b border-amber-800/20 pb-1">⚡ Podstawowe parametry</h4>
+                                                                        <div class="grid grid-cols-2 gap-2 text-sm">
+                                                                            <div class="flex justify-between items-center bg-amber-100/50 p-2 rounded">
+                                                                                <span class="text-amber-800 font-bold">HP</span>
+                                                                                <span class="text-red-700 font-bold">{{ $monster->stats['hp'] ?? $monster->level * 20 }} ❤️</span>
+                                                                            </div>
+                                                                            <div class="flex justify-between items-center bg-amber-100/50 p-2 rounded">
+                                                                                <span class="text-amber-800 font-bold">ATK</span>
+                                                                                <span class="text-amber-900 font-bold">{{ $monster->stats['atk'] ?? '?' }} 🗡️</span>
+                                                                            </div>
+                                                                            <div class="flex justify-between items-center bg-amber-100/50 p-2 rounded">
+                                                                                <span class="text-amber-800 font-bold">DEF</span>
+                                                                                <span class="text-slate-700 font-bold">{{ $monster->stats['def'] ?? '?' }} 🛡️</span>
+                                                                            </div>
+                                                                            <div class="flex justify-between items-center bg-amber-100/50 p-2 rounded">
+                                                                                <span class="text-amber-800 font-bold">AGI</span>
+                                                                                <span class="text-green-700 font-bold">{{ $monster->stats['agi'] ?? '?' }} 🍃</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {{-- Right Page: Loot --}}
+                                                                <div class="w-full md:w-1/2">
+                                                                    <h4 class="text-xl font-bold text-amber-900 medieval-font mb-4 border-b border-amber-800/30 pb-2">🎁 Możliwe Zdobycze</h4>
+                                                                    
+                                                                    <div class="space-y-3">
+                                                                        @if($monster->lootTable && $monster->lootTable->entries->isNotEmpty())
+                                                                            @php
+                                                                                $totalWeight = max(1, $monster->lootTable->entries->sum('weight'));
+                                                                            @endphp
+                                                                            @foreach($monster->lootTable->entries->sortByDesc('weight') as $entry)
+                                                                                @php
+                                                                                    $chance = round(($entry->weight / $totalWeight) * 100, 1);
+                                                                                    $isQuestItem = false;
+                                                                                    if (in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate) {
+                                                                                        if ($entry->itemTemplate->type === 'quest_item') {
+                                                                                            if (!$entry->itemTemplate->quest_id || !in_array($entry->itemTemplate->quest_id, $activeQuestIds)) {
+                                                                                                continue;
+                                                                                            }
+                                                                                            $isQuestItem = true;
+                                                                                        }
+                                                                                    }
+                                                                                @endphp
+                                                                                <div class="bg-white/60 rounded-lg p-3 border border-amber-800/20 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                                                                                    {{-- Background chance indicator --}}
+                                                                                    <div class="absolute inset-y-0 left-0 bg-amber-200/40 transition-all" style="width: {{ $chance }}%"></div>
+                                                                                    
+                                                                                    <div class="relative z-10 flex items-center justify-between">
+                                                                                        <div class="flex items-center gap-3">
+                                                                                            <div class="w-10 h-10 rounded bg-amber-100 border border-amber-300 flex items-center justify-center text-xl shadow-inner">
+                                                                                                @if($entry->reward_type === 'gold') 💰
+                                                                                                @elseif($entry->reward_type === 'xp') ✨
+                                                                                                @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
+                                                                                                    <img src="{{ route('assets.items', ['filename' => $entry->itemTemplate->icon]) }}" 
+                                                                                                         onerror="this.src='{{ route('assets.items', ['filename' => 'default.png']) }}'" 
+                                                                                                         class="w-8 h-8 object-contain">
+                                                                                                @endif
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <div class="font-bold text-amber-900">
+                                                                                                    @if($entry->reward_type === 'gold') Złoto
+                                                                                                    @elseif($entry->reward_type === 'xp') Punkty Doświadczenia
+                                                                                                    @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
+                                                                                                        <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-orange-600' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-700' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-700' : 'text-slate-800')) }}">
+                                                                                                            {{ $entry->itemTemplate->name }}
+                                                                                                        </span>
+                                                                                                        @if($isQuestItem) <span class="text-xs bg-yellow-400 text-yellow-900 px-1 rounded ml-1">Quest</span> @endif
+                                                                                                    @endif
+                                                                                                </div>
+                                                                                                <div class="text-xs text-amber-700 font-semibold">
+                                                                                                    Ilość: {{ $entry->min_qty }}{{ $entry->min_qty != $entry->max_qty ? ' - ' . $entry->max_qty : '' }}
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        
+                                                                                        <div class="text-right">
+                                                                                            <div class="text-lg font-bold text-amber-800">{{ $chance }}%</div>
+                                                                                            <div class="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Szansa</div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            @endforeach
+                                                                        @else
+                                                                            <div class="text-center py-8">
+                                                                                <div class="text-4xl mb-2 opacity-50">🕸️</div>
+                                                                                <p class="text-amber-800 italic font-bold">Bestia nie posiada znanych łupów...</p>
+                                                                            </div>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         @endforeach
-                                                    @else
-                                                        <div class="text-green-700 italic">Brak dropu</div>
-                                                    @endif
-                                                </div>
+                                                    </div>
+                                                @endif
                                             </div>
-                                        @endforeach
-                                        @if($map->monsters->isEmpty())
-                                            <div class="text-green-700 italic text-center py-2">Brak danych o przeciwnikach.</div>
-                                        @endif
+                                        </div>
                                     </div>
-                                </div>
+                                </template>
                             </div>
                         </div>
                         

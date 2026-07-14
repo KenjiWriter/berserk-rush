@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Berserk Rush - Trailer</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+        }
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+        .scene.active {
+            opacity: 1;
+            z-index: 2;
+        }
+        .media-element {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%) scale(1.02);
+            object-fit: cover;
+            z-index: -1;
+            /* Delikatne przybliżenie (Ken Burns) dla filmów oraz zdjęć UI */
+            animation: kenburns 15s infinite alternate ease-in-out;
+        }
+        @keyframes kenburns {
+            from { transform: translateX(-50%) translateY(-50%) scale(1.02); }
+            to { transform: translateX(-50%) translateY(-50%) scale(1.1); }
+        }
+        .text-overlay {
+            position: relative;
+            z-index: 10;
+            color: #fff;
+            font-size: 5vw;
+            text-align: center;
+            text-shadow: 0 0 20px #000, 0 0 40px #ff4500, 2px 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.5s ease-out;
+            letter-spacing: 0.1em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .scene.active .text-overlay {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 1.5s; /* Tekst pojawia się chwilę po wczytaniu sceny */
+        }
+        
+        #start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            background: rgba(255, 69, 0, 0.8);
+            color: white;
+            border: 2px solid #fff;
+            cursor: pointer;
+            z-index: 100;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+            transition: background 0.3s, transform 0.3s;
+        }
+        #start-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0,0,0,0.9); /* Zaciemnione krawędzie */
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Particle effects w CSS dla iskier */
+        .particles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            background: transparent;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="start-btn">Odtwórz Zwiastun</button>
+
+    <div class="vignette"></div>
+    <div class="particles" id="particles-container"></div>
+
+    <!-- Audio Player dla Lektora / Muzyki -->
+    <audio id="bg-music" src="trailer.mp3" loop></audio>
+    <audio class="voiceover" src="1.mp3"></audio>
+    <audio class="voiceover" src="2.mp3"></audio>
+    <audio class="voiceover" src="3.mp3"></audio>
+    <audio class="voiceover" src="4.mp3"></audio>
+    <audio class="voiceover" src="5.mp3"></audio>
+
+    <!-- Scena 1: Las -->
+    <div class="scene" data-voice="0">
+        <video src="scene1.mp4" class="media-element" muted playsinline></video>
+        <div class="text-overlay">ŚWIAT POGRĄŻONY W CHAOSIE...</div>
+    </div>
+    
+    <!-- Scena 2: Kuźnia -->
+    <div class="scene" data-voice="1">
+        <video src="scene2.mp4" class="media-element" muted playsinline></video>
+        <div class="text-overlay">WYKUJ SWOJĄ LEGENDĘ</div>
+    </div>
+
+    <!-- Scena 3: Game Footage - Hub (Static) -->
+    <div class="scene">
+        <img src="scene2a.png" class="media-element">
+    </div>
+
+    <!-- Scena 4: Game Footage - Profil (Animated) -->
+    <div class="scene">
+        <video src="3A.mp4" class="media-element" muted playsinline></video>
+    </div>
+    
+    <!-- Scena 5: World Boss -->
+    <div class="scene" data-voice="2">
+        <video src="scene3.mp4" class="media-element" muted playsinline></video>
+        <div class="text-overlay">PODEJMIJ WYZWANIE</div>
+    </div>
+
+    <!-- Scena 6: Game Footage - Wybór Mapy (Static) -->
+    <div class="scene">
+        <img src="scene4a.png" class="media-element">
+    </div>
+
+    <!-- Scena 7: Game Footage - Walka (Static) -->
+    <div class="scene">
+        <img src="5a.png" class="media-element">
+    </div>
+    
+    <!-- Scena 8: Arena -->
+    <div class="scene" data-voice="3">
+        <video src="scene4.mp4" class="media-element" muted playsinline></video>
+        <div class="text-overlay">ZDOMINUJ ARENĘ</div>
+    </div>
+    
+    <!-- Scena 9: Outro / Logo -->
+    <div class="scene" data-voice="4">
+        <video src="scene5.mp4" class="media-element" muted playsinline></video>
+        <!-- Logo jest w wideo, więc tekst przenosimy niżej -->
+        <div class="text-overlay" style="font-size: 3vw; margin-top: 35vh; text-shadow: 0 0 20px #000, 0 0 30px rgba(255,255,255,0.5);">GRAJ ZA DARMO W PRZEGLĄDARCE</div>
+    </div>
+
+    <script>
+        const scenes = document.querySelectorAll('.scene');
+        const startBtn = document.getElementById('start-btn');
+        const bgMusic = document.getElementById('bg-music');
+        const voiceovers = document.querySelectorAll('.voiceover');
+        
+        // Czasy:
+        // 1 (Las): 7s, 2 (Kuźnia): 7s, 3 (UI Hub): 3s, 4 (UI Profil): 3s
+        // 5 (Boss): 7s, 6 (UI Mapa): 3s, 7 (UI Walka): 3s
+        // 8 (Arena): 7s, 9 (Outro): 7s
+        const timings = [7000, 7000, 3000, 3000, 7000, 3000, 3000, 7000, 7000]; 
+        
+        startBtn.addEventListener('click', () => {
+            startBtn.style.opacity = '0';
+            setTimeout(() => { startBtn.style.display = 'none'; }, 300);
+            
+            // Odpalamy muzykę w tle na 40% głośności
+            bgMusic.volume = 0.4;
+            bgMusic.play().catch(e => console.log("Muzyka zablokowana:", e));
+            
+            playTrailerSequence();
+            createParticles();
+        });
+
+        async function playTrailerSequence() {
+            let delayAcc = 0;
+            
+            for (let i = 0; i < scenes.length; i++) {
+                setTimeout(() => {
+                    // Ukryj poprzednią scenę
+                    if(i > 0) {
+                        scenes[i-1].classList.remove('active');
+                        let prevVideo = scenes[i-1].querySelector('video');
+                        if (prevVideo) prevVideo.pause(); 
+                    }
+                    
+                    // Pokaż obecną scenę
+                    scenes[i].classList.add('active');
+                    
+                    // Jeśli to wideo, odtwórz od początku
+                    let currentVideo = scenes[i].querySelector('video');
+                    if(currentVideo) {
+                        currentVideo.currentTime = 0;
+                        currentVideo.play().catch(e => console.log("Odtwarzanie wideo zablokowane:", e));
+                    }
+                    
+                    // Sprawdź, czy scena ma przypisanego lektora
+                    let voiceIndex = scenes[i].getAttribute('data-voice');
+                    if(voiceIndex !== null) {
+                        // Jeśli ma, wycisz ewentualnego poprzedniego lektora i odtwórz nowego z 0.5s opóźnienia
+                        setTimeout(() => {
+                            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; }); // Zatrzymuje chaos
+                            voiceovers[voiceIndex].play().catch(e => console.log("Lektor zablokowany:", e));
+                        }, 500);
+                    }
+                    // UWAGA: Jeśli scena nie ma przypisanego lektora (np. przebitka UI), 
+                    // stary lektor nadal może kontynuować swoją wypowiedź! To świetny efekt trailerowy.
+                    
+                }, delayAcc);
+                
+                delayAcc += timings[i];
+            }
+        }
+        
+        // Prosty efekt cząsteczek (iskier) latających po ekranie
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            for(let i=0; i<50; i++) {
+                let particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 4 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = '#ffaa00';
+                particle.style.boxShadow = '0 0 10px #ff0000';
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.opacity = Math.random();
+                
+                // Animacja przesuwania do góry
+                particle.animate([
+                    { transform: `translate(0, 0)`, opacity: 0 },
+                    { opacity: Math.random() },
+                    { transform: `translate(${Math.random()*100 - 50}px, -${Math.random()*200 + 100}px)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    iterations: Infinity,
+                    delay: Math.random() * 2000
+                });
+                
+                container.appendChild(particle);
+            }
+        }
+    </script>
+</body>
+</html>
