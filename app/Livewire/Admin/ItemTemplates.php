@@ -72,8 +72,8 @@ class ItemTemplates extends Component
 
         if (!empty($this->search)) {
             $query->where(function($q) {
-                $q->where('name', 'ilike', '%' . $this->search . '%')
-                  ->orWhere('id', 'ilike', '%' . $this->search . '%');
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('id', 'like', '%' . $this->search . '%');
             });
         }
 
