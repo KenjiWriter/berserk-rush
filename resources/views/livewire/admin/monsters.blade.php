@@ -11,9 +11,21 @@
             </div>
         @endif
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <!-- Formularz -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 h-fit">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 h-fit lg:order-last lg:sticky lg:top-8 max-h-[calc(100vh-4rem)] overflow-y-auto relative">
+                
+                <!-- Loading Overlay -->
+                <div wire:loading wire:target="edit" class="absolute inset-0 bg-gray-900/80 z-50 flex items-center justify-center rounded-lg backdrop-blur-sm">
+                    <div class="text-amber-500 font-bold flex flex-col items-center">
+                        <svg class="animate-spin h-10 w-10 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Wczytywanie danych...
+                    </div>
+                </div>
+
                 <h2 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">
                     {{ $editingId ? 'Edytuj Potwora' : 'Dodaj Nowego Potwora' }}
                 </h2>
@@ -89,11 +101,14 @@
                             <div class="grid grid-cols-6 sm:grid-cols-8 gap-2 max-h-48 overflow-y-auto p-2 bg-gray-900 rounded border border-gray-700">
                                 @foreach($availableAvatars as $availableAvatar)
                                     <div 
-                                        wire:click="$set('avatar', '{{ $availableAvatar }}')" 
-                                        class="cursor-pointer border-2 rounded p-1 transition-all flex flex-col items-center justify-center {{ $avatar === $availableAvatar ? 'border-amber-500 bg-amber-500/20' : 'border-transparent hover:border-gray-500 hover:bg-gray-800' }}"
+                                        wire:click="setAvatar('{{ $availableAvatar }}')" 
+                                        class="relative cursor-pointer border-2 rounded p-1 transition-all flex flex-col items-center justify-center {{ $avatar === $availableAvatar ? 'border-amber-500 bg-amber-500/20' : 'border-transparent hover:border-gray-500 hover:bg-gray-800' }}"
                                         title="{{ $availableAvatar }}"
                                     >
-                                        <img src="{{ route('assets.monsters.avatars', ['filename' => $availableAvatar]) }}" alt="{{ $availableAvatar }}" class="w-10 h-10 object-contain drop-shadow-md" />
+                                        @if(in_array($availableAvatar, $usedAvatars))
+                                            <div class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] px-1 py-0.5 rounded shadow border border-gray-900 pointer-events-none" title="Avatar w użyciu">Używany</div>
+                                        @endif
+                                        <img src="{{ asset('assets/monsters/avatars/' . $availableAvatar) }}?v={{ @filemtime(storage_path('app/assets/monsters/avatars/' . $availableAvatar)) }}" alt="{{ $availableAvatar }}" class="w-10 h-10 object-contain drop-shadow-md" />
                                     </div>
                                 @endforeach
                             </div>
@@ -155,11 +170,11 @@
                         </thead>
                         <tbody>
                             @foreach($monsters as $monster)
-                                <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition">
+                                <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition cursor-pointer" wire:click="edit('{{ $monster->id }}')">
                                     <td class="p-3 text-white font-bold">
                                         <div class="flex items-center gap-3">
                                             @if($monster->avatar)
-                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $monster->avatar]) }}" class="w-10 h-10 object-contain drop-shadow-md bg-gray-800 rounded p-1" alt="avatar">
+                                                <img src="{{ asset('assets/monsters/avatars/' . $monster->avatar) }}?v={{ $monster->updated_at?->timestamp ?? 1 }}-{{ $cacheBuster }}" class="w-10 h-10 object-contain drop-shadow-md bg-gray-800 rounded p-1" alt="avatar">
                                             @else
                                                 <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-xs text-gray-500">Brak</div>
                                             @endif
@@ -183,8 +198,7 @@
                                         {{ $this->calculateMonsterCP($monster->stats ?? []) }} ⚡
                                     </td>
                                     <td class="p-3 text-right">
-                                        <button wire:click="edit('{{ $monster->id }}')" class="text-blue-400 hover:text-blue-300 mr-3">Edytuj</button>
-                                        <button wire:click="delete('{{ $monster->id }}')" class="text-red-400 hover:text-red-300" onclick="confirm('Na pewno usunąć?') || event.stopImmediatePropagation()">Usuń</button>
+                                        <button wire:click.stop="delete('{{ $monster->id }}')" class="text-red-400 hover:text-red-300" onclick="confirm('Na pewno usunąć?') || event.stopImmediatePropagation()">Usuń</button>
                                     </td>
                                 </tr>
                             @endforeach

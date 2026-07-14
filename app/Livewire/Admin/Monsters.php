@@ -17,6 +17,8 @@ class Monsters extends Component
     public $previewCP = 0;
     public $editingId = null;
     public $availableAvatars = [];
+    public $usedAvatars = [];
+    public $cacheBuster = 0;
 
     protected $rules = [
         'map_id' => 'required|exists:maps,id',
@@ -83,11 +85,59 @@ class Monsters extends Component
     public function loadData()
     {
         $this->monsters = Monster::with(['map', 'lootTable'])->orderBy('level')->get();
+        $this->usedAvatars = $this->monsters->pluck('avatar')->filter()->unique()->toArray();
+    }
+
+    private function normalizeAvatarName($filename, $monsterName)
+    {
+        if (empty($filename) || empty($monsterName)) return $filename;
+
+        $extension = \Illuminate\Support\Facades\File::extension($filename) ?: 'png';
+        $expectedName = \Illuminate\Support\Str::slug($monsterName) . '.' . $extension;
+
+        if ($filename !== $expectedName) {
+            $baseDir = storage_path('app/assets/monsters/avatars');
+            $oldPath = $baseDir . DIRECTORY_SEPARATOR . basename($filename);
+            $newPath = $baseDir . DIRECTORY_SEPARATOR . $expectedName;
+
+            if (\Illuminate\Support\Facades\File::exists($oldPath)) {
+                if (\Illuminate\Support\Facades\File::exists($newPath) && $oldPath !== $newPath) {
+                    \Illuminate\Support\Facades\File::delete($newPath);
+                }
+                \Illuminate\Support\Facades\File::move($oldPath, $newPath);
+            }
+            return $expectedName;
+        }
+
+        return $filename;
+    }
+
+    public function setAvatar($filename)
+    {
+        if ($this->editingId) {
+            $monster = Monster::find($this->editingId);
+            if ($monster) {
+                $finalName = $this->normalizeAvatarName($filename, $monster->name);
+                $this->avatar = $finalName;
+                $monster->update(['avatar' => $finalName]);
+                $this->cacheBuster = time();
+                $this->loadAvailableAvatars();
+                $this->loadData();
+                session()->flash('message', 'Avatar został przypisany i (w razie potrzeby) zaktualizowany fizycznie!');
+            }
+        } else {
+            $this->avatar = $filename;
+        }
     }
 
     public function save()
     {
         $this->validate();
+
+        $finalAvatar = $this->avatar;
+        if ($finalAvatar && $this->name) {
+            $finalAvatar = $this->normalizeAvatarName($finalAvatar, $this->name);
+        }
 
         $data = [
             'map_id' => $this->map_id,
@@ -97,7 +147,7 @@ class Monsters extends Component
             'rank' => $this->rank ?? 'regular',
             'stats' => ['hp' => $this->hp, 'atk' => $this->atk, 'def' => $this->def, 'crit' => $this->crit],
             'loot_table_id' => $this->loot_table_id ?: null,
-            'avatar' => $this->avatar,
+            'avatar' => $finalAvatar,
         ];
 
         if ($this->editingId) {

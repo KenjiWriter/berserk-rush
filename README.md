@@ -121,7 +121,22 @@ The codebase is structured around **Domain-Driven Design (DDD)** concepts and **
    php artisan migrate --seed
    ```
 
-6. **Start the WebSocket server (Laravel Reverb)**
+6. **Create Assets Symlink**
+
+   > [!IMPORTANT]
+   > To serve game assets (monsters avatars, items icons) efficiently, you must create a symlink from `storage/app/assets` to `public/assets`.
+
+   **Windows (PowerShell):**
+   ```powershell
+   New-Item -ItemType Junction -Path public\assets -Target storage\app\assets
+   ```
+
+   **Linux/macOS:**
+   ```bash
+   ln -s ../storage/app/assets public/assets
+   ```
+
+7. **Start the WebSocket server (Laravel Reverb)**
 
    > [!IMPORTANT]
    > The real-time global chat requires the Reverb WebSocket server to be running. Without it, chat messages will not be delivered between players.
@@ -136,7 +151,7 @@ The codebase is structured around **Domain-Driven Design (DDD)** concepts and **
    composer dev
    ```
 
-7. **Start the Queue Worker (Combat & Async Tasks)**
+8. **Start the Queue Worker (Combat & Async Tasks)**
 
    > [!IMPORTANT]
    > Combat calculation is fully offloaded to background workers to ensure horizontal scaling. Without running a worker, battles will remain stuck in the "Calculating..." state.
@@ -162,7 +177,7 @@ The codebase is structured around **Domain-Driven Design (DDD)** concepts and **
    stdout_logfile=/path/to/berserk-rush/storage/logs/worker.log
    ```
 
-8. **Open in browser**
+9. **Open in browser**
 
    Navigate to `http://localhost:8000`.
 
