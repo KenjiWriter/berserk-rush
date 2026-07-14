@@ -72,6 +72,14 @@ class TutorialOverlay extends Component
 
                 $user->game_stage = $this->step;
                 $user->save();
+
+                if ($this->rewardGold > 0 || $this->rewardXp > 0) {
+                    $this->dispatch('stats-updated', 
+                        goldAdded: $this->rewardGold,
+                        xpAdded: $this->rewardXp,
+                        gemsAdded: 0
+                    );
+                }
             }
         }
         

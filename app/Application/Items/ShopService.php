@@ -137,6 +137,6 @@ class ShopService
             $item->delete();
         }
 
-        return ['success' => true, 'message' => "Sprzedano {$item->template->name} za {$price} złota."];
+        return ['success' => true, 'message' => "Sprzedano {$item->template->name} za {$price} złota.", 'goldAdded' => $price];
     }
 }

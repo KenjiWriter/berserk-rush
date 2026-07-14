@@ -150,6 +150,11 @@ class AchievementService
         // Czyścimy cache dla statystyk, w razie gdyby achievement dawał pasywne bonusy
         $character->clearStatsCache();
 
-        return Result::ok(null, 'Odebrano nagrodę za osiągnięcie!');
+        return Result::ok([
+            'goldAdded' => $achievement->reward_gold,
+            'xpAdded' => $achievement->reward_exp,
+            'gemsAdded' => 0, // Zależnie czy achievement daje gemy
+            'message' => 'Odebrano nagrodę za osiągnięcie!'
+        ]);
     }
 }

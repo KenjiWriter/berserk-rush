@@ -61,7 +61,7 @@ class QuestService
             ['status' => QuestStatus::ACTIVE, 'progress' => 0]
         );
 
-        return Result::ok(null, 'Pomyślnie przyjęto misję: ' . $quest->name);
+        return Result::ok('Pomyślnie przyjęto misję: ' . $quest->name);
     }
 
     public function progressQuest(Character $character, string $type, array $targets = [], int $amount = 1): void
@@ -162,7 +162,12 @@ class QuestService
             $cq->status = QuestStatus::REWARDED;
             $cq->save();
 
-            return Result::ok(null, 'Odebrano nagrodę za questa: ' . $quest->name);
+            return Result::ok([
+                'goldAdded' => $quest->reward_gold, 
+                'xpAdded' => $quest->reward_exp, 
+                'gemsAdded' => 0,
+                'message' => 'Odebrano nagrodę za questa: ' . $quest->name
+            ]);
         });
     }
 

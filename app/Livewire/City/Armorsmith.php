@@ -55,7 +55,9 @@ class Armorsmith extends Component
         $result = $shop->sellItem($this->character, $item);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
-            $this->dispatch('play-audio', type: 'sell');
+            // Zamiast play-audio 'sell', będzie to robił globalny handler, ale można zostawić lub usunąć, usuniemy z play-audio na rzecz animacji.
+            // Dispatch the global stats update
+            $this->dispatch('stats-updated', goldAdded: $result['goldAdded'] ?? 0);
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }

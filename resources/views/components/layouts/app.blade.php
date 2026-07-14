@@ -264,6 +264,7 @@
 
     @auth
         @if (session('active_character'))
+            @livewire('global.reward-infobox')
             @livewire('global.global-chat-component')
             <x-mobile-nav />
         @endif

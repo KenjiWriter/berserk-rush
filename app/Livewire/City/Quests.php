@@ -50,7 +50,11 @@ class Quests extends Component
         $result = $questService->claimReward($this->character, $cq);
 
         if ($result->isOk()) {
-            session()->flash('message', $result->getPayload());
+            session()->flash('message', $result->getErrorMessage() ?: $result->getPayload()['message'] ?? 'Odebrano nagrodę.');
+            // dispatch stat changes for animation
+            if (is_array($result->getPayload())) {
+                $this->dispatch('stats-updated', ...$result->getPayload());
+            }
             $this->dispatch('reward-claimed');
             
             // Tutorial step
@@ -70,7 +74,10 @@ class Quests extends Component
         $result = $achievementService->claimReward($this->character, $ca);
 
         if ($result->isOk()) {
-            session()->flash('message', $result->getPayload());
+            session()->flash('message', $result->getErrorMessage() ?: $result->getPayload()['message'] ?? 'Odebrano nagrodę.');
+            if (is_array($result->getPayload())) {
+                $this->dispatch('stats-updated', ...$result->getPayload());
+            }
             $this->dispatch('reward-claimed');
         } else {
             session()->flash('error', $result->getErrorMessage());

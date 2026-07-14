@@ -85,7 +85,16 @@
                 @elseif($activeTab === 'sell')
                     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
                         @foreach($inventoryItems as $item)
-                            <div class="bg-gray-800 border border-gray-600 rounded p-2 flex flex-col items-center group relative cursor-pointer hover:border-red-500 transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}" wire:click="sellItem('{{ $item->id }}')">
+                            <div wire:click="sellItem('{{ $item->id }}')" 
+                                 wire:loading.class="opacity-50 grayscale pointer-events-none" 
+                                 wire:target="sellItem('{{ $item->id }}')"
+                                 class="bg-gray-800 border border-gray-600 rounded p-2 flex flex-col items-center group relative cursor-pointer hover:border-red-500 transition-colors {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
+                                
+                                {{-- Loading Overlay --}}
+                                <div wire:loading wire:target="sellItem('{{ $item->id }}')" class="absolute inset-0 bg-black/60 flex items-center justify-center z-20 rounded">
+                                    <svg class="animate-spin h-8 w-8 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                </div>
+
                                 @if($item->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-2 relative">
                                         <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
@@ -115,7 +124,7 @@
                                         Założone
                                     </div>
                                 @endif
-                                <div class="mt-auto font-bold text-yellow-500 text-sm">
+                                <div class="mt-auto font-bold text-yellow-500 text-sm mb-1 z-10">
                                     🪙 {{ $sellPrices[$item->id] }}
                                 </div>
 

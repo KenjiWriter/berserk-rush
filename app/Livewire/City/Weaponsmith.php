@@ -67,7 +67,7 @@ class Weaponsmith extends Component
         $result = $shop->sellItem($this->character, $item);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
-            $this->dispatch('play-audio', type: 'sell');
+            $this->dispatch('stats-updated', goldAdded: $result['goldAdded'] ?? 0);
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }
