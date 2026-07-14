@@ -40,4 +40,5 @@ Obecny system obsługuje trzy podstawowe typy misji:
 - **Service Class:** `App\Application\Quests\QuestService` odpowiada za weryfikację logiki biznesowej – sprawdzanie możliwości rozpoczęcia i odebrania zadania, a także manipulację procesem pobierania przedmiotów z ekwipunku dla misji typu Gathering.
 
 ## Nasłuchiwanie Postępów
-Aktualizacja statusów działa asynchronicznie i bezinwazyjnie. Wykorzystano architekturę opartą na Event Sourcing / Event Listeners. Na przykład w momencie zakończenia walki z potworem rzucany jest event `EncounterFinished`, który nasłuchiwany jest przez Listenery należące do modułu Quests. To one analizują, co zostało zabite i w razie konieczności odpowiednio inkrementują wartość `progress` u gracza.
+Aktualizacja statusów działa asynchronicznie i bezinwazyjnie. Na przykład w momencie zakończenia walki z potworem `EncounterService` wywołuje logikę aktualizacji w `QuestService`.
+Jeśli misja typu Hunting zanotuje postęp (ale gracz nie zabił jeszcze wszystkich wymaganych potworów), system również odnotuje to poprzez powiadomienie do `NotificationTracker` używając mechanizmu właściwości statycznych (static properties). Dzięki temu powiadomienia o postępie w zadaniu sprawnie trafiają do widoku (UI), nawet jeśli walka rozgrywała się w tle przez workera kolejkowego.

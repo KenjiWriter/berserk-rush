@@ -42,7 +42,17 @@ Projekt stosuje koncepcje Domain-Driven Design (DDD) i CQRS-lite. Każdy moduł 
    - Jeśli po zakończeniu walki ma stać się coś pobocznego (np. wysłanie maila w grze, zaktualizowanie rankingu najlepszych graczy), nie dodawaj tego bezpośrednio w usłudze (`EncounterService`). 
    - Wyemituj zdarzenie (np. `EncounterFinished`), a dedykowany nasłuchiwacz (Listener) na to zdarzenie powinien zareagować i asynchronicznie (w kolejce) wykonać zadanie.
 
-5. **Aktualizacja Dokumentacji:**
+5. **Powiadomienia i Śledzenie Postępu (NotificationTracker):**
+   - Aby pokazać graczowi progres misji lub osiągnięcia (szczególnie podczas walk rozstrzyganych w tle przez Joby na kolejkach), używaj `app(\App\Application\Shared\NotificationTracker::class)`.
+   - `NotificationTracker` opiera się na **właściwościach statycznych (`static`)**, co pozwala uniknąć błędów nieodświeżania cyklu pamięci przez worker procesujący kolejki.
+   - Proces walki (np. `EncounterService`) pobiera zapamiętane powiadomienia wywołując `flush()` i dołącza je do `combat_data`. Frontend (Livewire) odczytuje te dane i dispatchuje UI toasty (`dispatch('notify')`).
+
+6. **Animacje UI i Okienka (Eventy Frontendowe):**
+   - Aplikacja posiada bogate mechanizmy Alpine.js na frontendzie (np. `rewardInfobox`).
+   - Gdy dodajesz graczowi walutę, wyślij zdarzenie, by uruchomić spójną animację lotu monet: `$this->dispatch('trigger-reward-animation', type: 'gold', amount: $amount)`.
+   - Przy osiąganiu nowego poziomu używaj globalnego modala (np. z poziomu mapy): `$this->dispatch('open-level-up-modal', level: $newLevel)`. Dodawaj również odpowiedni dźwięk (`$this->dispatch('play-audio', type: 'levelup')`).
+
+7. **Aktualizacja Dokumentacji:**
    - W przypadku dodania nowej mechaniki (np. System Rzemiosła), odnotuj to, dodając nowy plik dokumentacji do katalogu `docs/modules/`. Sprawdź również plik `roadmap.md` by zaznaczyć ewentualny postęp.
 
 ## 3. Podsumowanie Typowego Cyklu Pracy Agenta

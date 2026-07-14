@@ -12,6 +12,7 @@ Mechanika opiera się w całości na asynchronicznych eventach:
 - Listener `MonsterDefeatedListener` wywołuje kod w `CollectionService`, który m.in. inkrementuje liczbę zabić w `CharacterBestiary`.
 - Następnie wysyłany jest uniwersalny event `AchievementProgressed` z typem m.in. `monsters_killed`.
 - Listener `AchievementProgressedListener` wywołuje kod w `AchievementService`, który sprawdza czy event z podanym typem i kontekstem odpowiada wymogom aktywnego osiągnięcia.
+- Jeśli osiągnięcie zanotuje postęp (ale nie osiągnie jeszcze 100%), `AchievementService` wywołuje `app(NotificationTracker::class)->addInfo(...)`, które dzięki mechanice pól statycznych przekazuje ten toast UI z workera do frontendu.
 
 ### 2. Tablice w Bazie Danych
 *   `achievements`: Słownik osiągnięć utworzonych przez administratorów. Posiada kluczowe pole `conditions` (JSON), gdzie ustala się filtry, np. by osiągnięcie dotyczyło jedynie potwora o rangu "boss".
