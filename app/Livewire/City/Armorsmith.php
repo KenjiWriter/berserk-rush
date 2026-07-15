@@ -13,7 +13,19 @@ class Armorsmith extends Component
 {
     public Character $character;
 
-    public string $activeTab = 'buy';
+    public string $activeTab = 'shop'; // 'shop', 'forge', 'craft'
+    public ?string $selectedUpgradeItemId = null;
+
+    public function selectItemForUpgrade($itemId)
+    {
+        $this->selectedUpgradeItemId = $itemId;
+        $this->activeTab = 'forge';
+    }
+
+    public function cancelUpgradeSelection()
+    {
+        $this->selectedUpgradeItemId = null;
+    }
     
     public bool $showUpgradeModal = false;
     public string $upgradeModalTitle = '';

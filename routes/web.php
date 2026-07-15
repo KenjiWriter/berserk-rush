@@ -70,6 +70,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/merchant-items', \App\Livewire\Admin\MerchantItems::class)->name('merchant-items');
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
+    Route::get('/upgrade-rules', \App\Livewire\Admin\UpgradeRules::class)->name('upgrade-rules');
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
     Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');

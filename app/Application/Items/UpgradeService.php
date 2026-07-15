@@ -7,45 +7,53 @@ use App\Infrastructure\Persistence\ItemInstance;
 
 class UpgradeService
 {
-    private array $upgradeChances = [
-        0 => 100, // 0 -> 1
-        1 => 75,  // 1 -> 2
-        2 => 65,  // 2 -> 3
-        3 => 55,  // 3 -> 4
-        4 => 45,  // 4 -> 5
-        5 => 40,  // 5 -> 6
-        6 => 35,  // 6 -> 7
-        7 => 25,  // 7 -> 8
-        8 => 20,  // 8 -> 9
-    ];
+    // Removed hardcoded upgradeChances
 
-    public function getUpgradeCost(ItemInstance $item): array
+    public function getUpgradeCost(ItemInstance $item): ?array
     {
         $level = $item->upgrade_level;
-        $baseLevelReq = $item->template->level_requirement;
         
-        // Gold cost scales with item level and current upgrade level
-        $goldCost = ($baseLevelReq * 50) + ($level * 100) + 100;
-        
-        $materialName = 'Wilcza Skóra';
-        if ($level >= 3 && $level < 6) {
-            $materialName = 'Odłamek Kości';
-        } elseif ($level >= 6) {
-            $materialName = 'Klejnot Pustyni';
+        $rule = \App\Infrastructure\Persistence\UpgradeRule::where('from_level', $level)
+            ->where(function($q) use ($item) {
+                $q->where(function($q2) use ($item) {
+                    $q2->where('applies_to', 'type')->where('applies_value', $item->template->type);
+                })
+                ->orWhere(function($q2) use ($item) {
+                    $q2->where('applies_to', 'slot')->where('applies_value', $item->template->slot);
+                })
+                ->orWhere(function($q2) use ($item) {
+                    $q2->where('applies_to', 'template')->where('applies_value', $item->template->id);
+                })
+                ->orWhere(function($q2) use ($item) {
+                    $q2->where('applies_to', 'rarity')->where('applies_value', $item->rarity);
+                });
+            })
+            ->first();
+
+        if (!$rule) {
+            return null; // No rule found
         }
-        
-        $materialTemplate = \App\Infrastructure\Persistence\ItemTemplate::where('name', $materialName)->first();
+
+        $materials = [];
+        if (isset($rule->cost['materials']) && is_array($rule->cost['materials'])) {
+            foreach ($rule->cost['materials'] as $mat) {
+                $template = \App\Infrastructure\Persistence\ItemTemplate::find($mat['template_id']);
+                if ($template) {
+                    $materials[] = [
+                        'template_id' => $template->id,
+                        'name' => $template->name,
+                        'quantity' => $mat['quantity'],
+                    ];
+                }
+            }
+        }
 
         return [
-            'gold' => $goldCost,
-            'chance' => $this->upgradeChances[$level] ?? 0,
-            'materials' => $materialTemplate ? [
-                [
-                    'template_id' => $materialTemplate->id,
-                    'name' => $materialTemplate->name,
-                    'quantity' => ($level % 3) + 1,
-                ]
-            ] : []
+            'gold' => $rule->cost['gold'] ?? 0,
+            'chance' => $rule->success_chance * 100,
+            'materials' => $materials,
+            'on_fail' => $rule->on_fail,
+            'rule_id' => $rule->id,
         ];
     }
 
@@ -60,6 +68,9 @@ class UpgradeService
         }
 
         $cost = $this->getUpgradeCost($item);
+        if (!$cost) {
+            return ['success' => false, 'message' => 'Brak zasad ulepszania dla tego przedmiotu na obecnym poziomie.'];
+        }
 
         if ($character->gold < $cost['gold']) {
             return ['success' => false, 'message' => 'Nie masz wystarczająco złota na ulepszenie.'];
@@ -115,10 +126,24 @@ class UpgradeService
                 'message' => "Ulepszenie zakończone sukcesem! {$item->template->name} ma teraz poziom +{$item->upgrade_level}."
             ];
         } else {
-            // Failure: Only lose gold/materials
+            // Failure logic
+            $failAction = $cost['on_fail'] ?? 'nothing';
+            $failMessage = "Ulepszenie nie powiodło się. Straciłeś materiały.";
+
+            if ($failAction === 'downgrade' && $item->upgrade_level > 0) {
+                $item->upgrade_level -= 1;
+                $item->save();
+                $failMessage .= " Poziom przedmiotu spadł do +{$item->upgrade_level}.";
+            } elseif ($failAction === 'break') {
+                $item->delete();
+                $failMessage .= " Przedmiot został ZNISZCZONY!";
+            } else {
+                $failMessage .= " Przedmiot pozostaje nietknięty.";
+            }
+
             return [
                 'success' => false, 
-                'message' => "Ulepszenie nie powiodło się. Straciłeś materiały, ale przedmiot pozostaje nietknięty."
+                'message' => $failMessage
             ];
         }
     }

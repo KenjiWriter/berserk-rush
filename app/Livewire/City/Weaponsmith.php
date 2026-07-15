@@ -13,7 +13,19 @@ class Weaponsmith extends Component
 {
     public Character $character;
 
-    public string $activeTab = 'buy';
+    public string $activeTab = 'shop'; // 'shop', 'forge', 'craft'
+    public ?string $selectedUpgradeItemId = null;
+
+    public function selectItemForUpgrade($itemId)
+    {
+        $this->selectedUpgradeItemId = $itemId;
+        $this->activeTab = 'forge';
+    }
+
+    public function cancelUpgradeSelection()
+    {
+        $this->selectedUpgradeItemId = null;
+    }
     
     #[\Livewire\Attributes\On('tutorial-completed')]
     public function onTutorialCompleted()
