@@ -28,6 +28,15 @@ class User extends Authenticatable
         'game_stage',
         'premium_until',
         'unlocked_avatars',
+        'auth_provider',
+        'auth_provider_id',
+        'gender',
+        'birthday',
+        'age_range',
+        'location',
+        'hometown',
+        'profile_url',
+        'is_social_setup_pending',
     ];
 
     /**
@@ -52,6 +61,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'premium_until' => 'datetime',
             'unlocked_avatars' => 'array',
+            'is_social_setup_pending' => 'boolean',
+            'birthday' => 'date',
         ];
     }
 

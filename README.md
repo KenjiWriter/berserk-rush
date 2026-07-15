@@ -200,6 +200,7 @@ Detailed documentation of implemented systems can be found in the [docs/](./docs
 - [**Quests & Challenges**](./docs/modules/quests.md)
 - [**Achievements & Collections**](./docs/modules/achievements.md)
 - [**Item Shop & Premium**](./docs/modules/item_shop.md)
+- [**Social Login & Auth**](./docs/modules/social_login.md)
 
 ## 🛡️ License
 

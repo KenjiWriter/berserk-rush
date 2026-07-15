@@ -10,12 +10,19 @@ use App\Livewire\City\Armorsmith;
 use App\Livewire\City\Weaponsmith;
 use App\Livewire\Characters\Create;
 use App\Livewire\Adventure\MapStub;
+use App\Http\Controllers\Auth\SocialLoginController;
 use Illuminate\Support\Facades\Route;
 use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Character;
 
 Route::get('/', Homepage::class)->name('homepage');
 Route::get('/register', Register::class)->name('register');
+
+// Social Login Routes
+Route::middleware('guest')->group(function () {
+    Route::get('/auth/{provider}/redirect', [SocialLoginController::class, 'redirect'])->name('auth.social.redirect');
+    Route::get('/auth/{provider}/callback', [SocialLoginController::class, 'callback'])->name('auth.social.callback');
+});
 
 // Stripe Webhook (Unauthenticated, CSRF exempt)
 Route::post('/webhooks/stripe', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');

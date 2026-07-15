@@ -863,4 +863,10 @@
              </div>
          </div>
     </div>
+
+    @auth
+        @if(Auth::user()->is_social_setup_pending)
+            <livewire:auth.social-setup-modal />
+        @endif
+    @endauth
 </div>

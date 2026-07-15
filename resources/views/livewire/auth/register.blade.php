@@ -1,139 +1,171 @@
-<div
-    class="min-h-screen bg-gradient-to-b from-slate-800/90 via-slate-700/90 to-slate-800/90 text-amber-100 relative overflow-hidden">
+<div class="min-h-screen bg-slate-900 text-slate-300 relative overflow-hidden font-sans"
+    x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)">
+    
     {{-- Background image --}}
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-40 transition-opacity duration-1000"
+        :class="show ? 'opacity-40' : 'opacity-0'"
         style="background-image: url('{{ asset('img/homepage-background.png') }}');">
     </div>
 
-    {{-- Dark overlay for readability --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-800/70 to-slate-900/60"></div>
+    {{-- Dark vignette overlay --}}
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950/80 via-transparent to-slate-950/90"></div>
 
-    {{-- Floating particles --}}
+    {{-- Embers Particles --}}
     <div class="particles-container absolute inset-0 pointer-events-none">
-        <div class="particle particle-1"></div>
-        <div class="particle particle-2"></div>
-        <div class="particle particle-3"></div>
-        <div class="particle particle-4"></div>
-        <div class="particle particle-5"></div>
+        @for($i = 1; $i <= 12; $i++)
+            <div class="ember ember-{{ $i }}"></div>
+        @endfor
     </div>
 
     <div class="relative flex items-center justify-center min-h-screen px-4 py-8">
-        <div class="w-full max-w-md">
+        <div class="w-full max-w-md z-10">
+            
             {{-- Back to homepage link --}}
-            <div class="text-center mb-6">
+            <div class="text-center mb-6" 
+                 x-show="show" x-transition:enter="transition ease-out duration-700 delay-100" 
+                 x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
                 <a href="{{ route('homepage') }}"
-                    class="inline-flex items-center text-amber-300 hover:text-amber-100 transition-colors font-semibold">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    class="inline-flex items-center text-slate-400 hover:text-amber-500 transition-colors font-semibold group">
+                    <svg class="w-5 h-5 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    Powrót do gry
+                    Opuść Karczmę (Powrót)
                 </a>
             </div>
 
-            {{-- Registration form --}}
-            <div
-                class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                {{-- Decorative corners --}}
-                <div
-                    class="absolute top-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 -translate-y-4">
-                </div>
-                <div
-                    class="absolute top-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 -translate-y-4">
-                </div>
-                <div
-                    class="absolute bottom-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 translate-y-4">
-                </div>
-                <div
-                    class="absolute bottom-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 translate-y-4">
-                </div>
+            {{-- Registration form container --}}
+            <div x-show="show" x-transition:enter="transition ease-out duration-1000 delay-300"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-8" 
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 class="bg-slate-900/80 border border-slate-700 rounded-lg shadow-2xl backdrop-blur-md relative overflow-hidden shadow-black/50">
+                
+                {{-- Metallic Corners --}}
+                <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-amber-600/50"></div>
+                <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-amber-600/50"></div>
+                <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-amber-600/50"></div>
+                <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-amber-600/50"></div>
+
+                {{-- Bloody/Amber Top highlight --}}
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-800 to-transparent opacity-70"></div>
 
                 <div class="relative p-8">
                     {{-- Header --}}
-                    <div class="text-center mb-6">
-                        <h1 class="text-3xl font-bold text-amber-900 medieval-font mb-2">
-                            ⚔️ Dołącz do Berserk Rush
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-amber-500 medieval-font mb-2 drop-shadow-md">
+                            Księga Rejestrów
                         </h1>
-                        <p class="text-amber-800 font-semibold">
-                            Stwórz konto i rozpocznij przygodę
+                        <p class="text-slate-400 text-sm">
+                            Zapisz swe miano, by rozpocząć rzeź
                         </p>
                     </div>
 
                     {{-- Form --}}
-                    <form wire:submit="register" class="space-y-4">
+                    <form wire:submit="register" class="space-y-6">
                         {{-- Name field --}}
-                        <div>
-                            <label for="name" class="block text-sm font-bold text-amber-900 mb-2">
-                                Nazwa użytkownika
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                            <label for="name" class="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
+                                Miano Wojownika
                             </label>
                             <input type="text" id="name" wire:model.live="name"
-                                class="w-full px-4 py-3 border-2 border-amber-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50 text-amber-900 placeholder-amber-600"
-                                placeholder="TwojaSkrytobójcza" autocomplete="name">
+                                class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300"
+                                placeholder="Guts..." autocomplete="name">
                             @error('name')
-                                <p class="mt-1 text-sm text-red-600 font-semibold">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-500 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Email field --}}
-                        <div>
-                            <label for="email" class="block text-sm font-bold text-amber-900 mb-2">
-                                Email
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-600" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                            <label for="email" class="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
+                                Magiczny Zwój (Email)
                             </label>
                             <input type="email" id="email" wire:model.live="email"
-                                class="w-full px-4 py-3 border-2 border-amber-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50 text-amber-900 placeholder-amber-600"
+                                class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300"
                                 placeholder="twoj@email.com" autocomplete="email">
                             @error('email')
-                                <p class="mt-1 text-sm text-red-600 font-semibold">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-500 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Password field --}}
-                        <div>
-                            <label for="password" class="block text-sm font-bold text-amber-900 mb-2">
-                                Hasło
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-700" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                            <label for="password" class="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
+                                Tajny Kod Dostępu
                             </label>
                             <input type="password" id="password" wire:model.live="password"
-                                class="w-full px-4 py-3 border-2 border-amber-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50 text-amber-900 placeholder-amber-600"
+                                class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 tracking-widest"
                                 placeholder="••••••••" autocomplete="new-password">
                             @error('password')
-                                <p class="mt-1 text-sm text-red-600 font-semibold">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-500 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
                         {{-- Password confirmation field --}}
-                        <div>
-                            <label for="password_confirmation" class="block text-sm font-bold text-amber-900 mb-2">
-                                Potwierdź hasło
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-800" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                            <label for="password_confirmation" class="block text-xs uppercase tracking-wider font-bold text-slate-400 mb-2">
+                                Potwierdź Kod
                             </label>
                             <input type="password" id="password_confirmation" wire:model.live="password_confirmation"
-                                class="w-full px-4 py-3 border-2 border-amber-600 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-amber-50 text-amber-900 placeholder-amber-600"
+                                class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 tracking-widest"
                                 placeholder="••••••••" autocomplete="new-password">
                         </div>
 
                         {{-- Submit button --}}
-                        <button type="submit"
-                            class="w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-4 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font text-lg relative disabled:opacity-70 disabled:cursor-not-allowed"
-                            wire:loading.attr="disabled"
-                            wire:target="register">
-                            <span wire:loading.remove wire:target="register">🛡️ Stwórz konto wojownika</span>
-                            <span wire:loading wire:target="register" class="flex items-center justify-center gap-2">
-                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Tworzenie konta...
-                            </span>
-                        </button>
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-900" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="pt-2">
+                            <button type="submit"
+                                class="w-full relative group overflow-hidden bg-gradient-to-b from-red-800 to-red-950 border border-red-700/50 text-amber-100 font-bold py-4 px-4 rounded transition-all duration-300 transform hover:scale-[1.02] shadow-[0_0_15px_rgba(153,27,27,0.3)] hover:shadow-[0_0_25px_rgba(185,28,28,0.5)] medieval-font text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                                wire:loading.attr="disabled"
+                                wire:target="register">
+                                
+                                {{-- Button shine effect --}}
+                                <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shine_1.5s_ease-in-out_infinite]"></div>
+
+                                <span wire:loading.remove wire:target="register" class="relative z-10 drop-shadow-md">⚔️ Wykuj Swoje Przeznaczenie</span>
+                                
+                                <span wire:loading wire:target="register" class="relative z-10 flex items-center justify-center gap-2">
+                                    <svg class="animate-spin h-5 w-5 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Kucie losu...
+                                </span>
+                            </button>
+                        </div>
 
                         {{-- Login link --}}
-                        <div class="text-center pt-4 border-t-2 border-amber-600">
-                            <p class="text-amber-800">
-                                Masz już konto?
+                        <div class="text-center pt-4" x-show="show" x-transition:enter="transition ease-out duration-500 delay-1000" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                            <p class="text-slate-500 text-sm">
+                                Znany wojownik?
                                 <a href="{{ route('homepage') }}"
-                                    class="font-bold text-amber-900 hover:text-amber-700 underline transition-colors">
-                                    Zaloguj się
+                                    class="font-bold text-amber-600 hover:text-amber-400 hover:drop-shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-all">
+                                    Wejdź do gry
                                 </a>
                             </p>
+                        </div>
+
+                        {{-- Social Login section --}}
+                        <div class="mt-4 pt-4 border-t border-slate-800" x-show="show" x-transition:enter="transition ease-out duration-500 delay-1100" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+                            <div class="relative flex justify-center text-xs uppercase tracking-widest text-slate-600 mb-4 font-bold">
+                                <span>Lub użyj paktu z</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <a href="{{ route('auth.social.redirect', 'google') }}" 
+                                   class="flex items-center justify-center px-4 py-2 bg-slate-900 border border-slate-700 hover:border-slate-500 rounded text-slate-300 hover:text-white transition-all transform hover:-translate-y-0.5 shadow-md">
+                                    <svg class="w-5 h-5 mr-2 text-white" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z"/>
+                                    </svg>
+                                    <span class="font-bold text-sm">Google</span>
+                                </a>
+                                
+                                <a href="{{ route('auth.social.redirect', 'facebook') }}" 
+                                   class="flex items-center justify-center px-4 py-2 bg-slate-900 border border-slate-700 hover:border-blue-500/50 rounded text-slate-300 hover:text-white transition-all transform hover:-translate-y-0.5 shadow-md">
+                                    <svg class="w-5 h-5 mr-2 text-[#1877F2]" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                                    </svg>
+                                    <span class="font-bold text-sm">Facebook</span>
+                                </a>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -148,73 +180,52 @@
             font-family: 'Cinzel', serif;
         }
 
-        /* Floating particles */
-        .particle {
+        /* Embers Animation */
+        .ember {
             position: absolute;
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.8) 0%, rgba(251, 191, 36, 0.4) 50%, transparent 100%);
+            bottom: -20px;
+            width: 4px;
+            height: 4px;
+            background: #f59e0b;
             border-radius: 50%;
-            pointer-events: none;
-            animation: float 15s infinite linear;
+            box-shadow: 0 0 10px 2px rgba(245, 158, 11, 0.8), 0 0 20px 4px rgba(220, 38, 38, 0.6);
+            animation: rise linear infinite;
+            opacity: 0;
+            filter: blur(1px);
         }
 
-        .particle-1 {
-            width: 4px;
-            height: 4px;
-            left: 10%;
-            animation-delay: 0s;
-            animation-duration: 20s;
-        }
-
-        .particle-2 {
-            width: 6px;
-            height: 6px;
-            left: 30%;
-            animation-delay: 5s;
-            animation-duration: 18s;
-        }
-
-        .particle-3 {
-            width: 3px;
-            height: 3px;
-            left: 50%;
-            animation-delay: 10s;
-            animation-duration: 22s;
-        }
-
-        .particle-4 {
-            width: 5px;
-            height: 5px;
-            left: 70%;
-            animation-delay: 15s;
-            animation-duration: 16s;
-        }
-
-        .particle-5 {
-            width: 4px;
-            height: 4px;
-            left: 90%;
-            animation-delay: 20s;
-            animation-duration: 19s;
-        }
-
-        @keyframes float {
+        @keyframes rise {
             0% {
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                transform: translateY(0) scale(1) rotate(0deg);
                 opacity: 0;
             }
-
-            10% {
-                opacity: 1;
+            20% {
+                opacity: 0.8;
             }
-
-            90% {
-                opacity: 1;
+            80% {
+                opacity: 0.5;
             }
-
             100% {
-                transform: translateY(-100px) translateX(100px) rotate(360deg);
+                transform: translateY(-100vh) scale(0.2) rotate(360deg);
                 opacity: 0;
             }
         }
+
+        @keyframes shine {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        /* Generated Embers config */
+        @for($i = 1; $i <= 12; $i++)
+            .ember-{{ $i }} {
+                left: {{ rand(5, 95) }}%;
+                animation-duration: {{ rand(8, 15) }}s;
+                animation-delay: {{ rand(0, 10) }}s;
+                width: {{ rand(3, 6) }}px;
+                height: {{ rand(3, 6) }}px;
+            }
+        @endfor
     </style>
 </div>

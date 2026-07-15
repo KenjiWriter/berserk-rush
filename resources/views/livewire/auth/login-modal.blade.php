@@ -116,6 +116,32 @@
                                         </a>
                                     </p>
                                 </div>
+
+                                {{-- Social Login section --}}
+                                <div class="mt-6">
+                                    <div class="relative">
+                                        <div class="absolute inset-0 flex items-center">
+                                            <div class="w-full border-t-2 border-amber-600"></div>
+                                        </div>
+                                        <div class="relative flex justify-center text-sm">
+                                            <span class="px-2 bg-amber-100 text-amber-800 font-bold medieval-font">ALBO KONTYNUUJ PRZEZ</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-6 grid grid-cols-1 gap-3">
+                                        <a href="{{ route('auth.social.redirect', 'google') }}" class="w-full flex items-center justify-center px-4 py-2 border-2 border-red-700 rounded-lg shadow-sm bg-gradient-to-r from-red-600 to-red-700 text-sm font-bold text-white hover:from-red-700 hover:to-red-800 transition-colors transform hover:scale-105">
+                                            <span class="mr-2">G</span> Google
+                                        </a>
+                                        
+                                        <a href="{{ route('auth.social.redirect', 'facebook') }}" class="w-full flex items-center justify-center px-4 py-2 border-2 border-blue-700 rounded-lg shadow-sm bg-gradient-to-r from-blue-600 to-blue-700 text-sm font-bold text-white hover:from-blue-700 hover:to-blue-800 transition-colors transform hover:scale-105">
+                                            <span class="mr-2">f</span> Facebook
+                                        </a>
+
+                                        <!-- <a href="{{ route('auth.social.redirect', 'apple') }}" class="w-full flex items-center justify-center px-4 py-2 border-2 border-slate-900 rounded-lg shadow-sm bg-gradient-to-r from-slate-800 to-black text-sm font-bold text-white hover:from-slate-900 hover:to-black transition-colors transform hover:scale-105">
+                                            <span class="mr-2"></span> Apple
+                                        </a> -->
+                                    </div>
+                                </div>
                             </form>
                         </div>
                     </div>
