@@ -98,6 +98,8 @@
             levelup: 1,
             'upgrade-success': 1,
             'upgrade-fail': 1,
+            'enchant-success': 1,
+            'enchant-fail': 1,
             shop: 1,
             tab: 1,
             stat: 1,

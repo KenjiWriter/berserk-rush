@@ -13,11 +13,9 @@ class Wizard extends Component
 {
     public Character $character;
     
-    public bool $showEnchantModal = false;
-    public string $selectedItemId = '';
-    public string $enchantModalTitle = '';
-    public string $enchantModalMessage = '';
-    public string $enchantModalType = 'success';
+    public ?string $activeItemId = null;
+    public ?string $actionMessage = null;
+    public ?string $actionType = null; // 'success' or 'error'
 
     public function mount(Character $character): void
     {
@@ -25,86 +23,93 @@ class Wizard extends Component
         $this->character = $character;
     }
 
-    public function closeEnchantModal()
+    public function selectItemToEnchant(string $itemInstanceId)
     {
-        $this->showEnchantModal = false;
-        $this->selectedItemId = '';
+        $this->activeItemId = $itemInstanceId;
+        $this->clearMessages();
     }
 
-    public function openEnchantModal(string $itemInstanceId)
+    public function deselectItem()
     {
-        $this->selectedItemId = $itemInstanceId;
-        $this->enchantModalType = 'info';
-        $this->enchantModalTitle = 'Zaklinanie Przedmiotu';
-        $this->enchantModalMessage = 'Wybierz metodę zaklinania. Co wolisz poświęcić?';
-        $this->showEnchantModal = true;
+        $this->activeItemId = null;
+        $this->clearMessages();
+    }
+
+    public function clearMessages()
+    {
+        $this->actionMessage = null;
+        $this->actionType = null;
     }
 
     public function enchant(string $currencyType, EnchantItem $enchantItemAction)
     {
-        if (!$this->selectedItemId) return;
+        $this->clearMessages();
         
-        $item = ItemInstance::find($this->selectedItemId);
+        if (!$this->activeItemId) return;
+        
+        $item = ItemInstance::find($this->activeItemId);
         if (!$item) return;
 
         try {
             $result = $enchantItemAction->execute($item, $this->character, $currencyType);
             
             if ($result->isError()) {
-                $this->enchantModalType = 'error';
-                $this->enchantModalTitle = 'Błąd';
-                $this->enchantModalMessage = $result->getErrorMessage();
+                $this->actionType = 'error';
+                $this->actionMessage = $result->getErrorMessage();
+                $this->dispatch('play-audio', type: 'enchant-fail');
             } else {
                 $payload = $result->getPayload();
                 if ($payload['success'] ?? false) {
-                    $this->enchantModalType = 'success';
-                    $this->enchantModalTitle = 'Sukces!';
-                    $this->enchantModalMessage = $payload['message'] ?? 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
+                    $this->actionType = 'success';
+                    $this->actionMessage = $payload['message'] ?? 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
+                    $this->dispatch('play-audio', type: 'enchant-success');
                 } else {
-                    $this->enchantModalType = 'error';
-                    $this->enchantModalTitle = 'Niepowodzenie';
-                    $this->enchantModalMessage = $payload['message'] ?? 'Zaklinanie nie powiodło się.';
+                    $this->actionType = 'error';
+                    $this->actionMessage = $payload['message'] ?? 'Zaklinanie nie powiodło się.';
+                    $this->dispatch('play-audio', type: 'enchant-fail');
                 }
                 $this->character->refresh();
             }
         } catch (\Exception $e) {
-            $this->enchantModalType = 'error';
-            $this->enchantModalTitle = 'Niepowodzenie';
-            $this->enchantModalMessage = $e->getMessage();
+            $this->actionType = 'error';
+            $this->actionMessage = $e->getMessage();
+            $this->dispatch('play-audio', type: 'enchant-fail');
         }
     }
 
     public function reroll(string $currencyType, RerollEnchantments $rerollAction)
     {
-        if (!$this->selectedItemId) return;
+        $this->clearMessages();
         
-        $item = ItemInstance::find($this->selectedItemId);
+        if (!$this->activeItemId) return;
+        
+        $item = ItemInstance::find($this->activeItemId);
         if (!$item) return;
 
         try {
             $result = $rerollAction->execute($item, $this->character, $currencyType);
             
             if ($result->isError()) {
-                $this->enchantModalType = 'error';
-                $this->enchantModalTitle = 'Błąd';
-                $this->enchantModalMessage = $result->getErrorMessage();
+                $this->actionType = 'error';
+                $this->actionMessage = $result->getErrorMessage();
+                $this->dispatch('play-audio', type: 'enchant-fail');
             } else {
                 $payload = $result->getPayload();
                 if ($payload['success'] ?? false) {
-                    $this->enchantModalType = 'success';
-                    $this->enchantModalTitle = 'Sukces!';
-                    $this->enchantModalMessage = $payload['message'] ?? 'Bonusy przedmiotu zostały wylosowane na nowo!';
+                    $this->actionType = 'success';
+                    $this->actionMessage = $payload['message'] ?? 'Bonusy przedmiotu zostały wylosowane na nowo!';
+                    $this->dispatch('play-audio', type: 'enchant-success');
                 } else {
-                    $this->enchantModalType = 'error';
-                    $this->enchantModalTitle = 'Niepowodzenie';
-                    $this->enchantModalMessage = $payload['message'] ?? 'Operacja nie powiodła się.';
+                    $this->actionType = 'error';
+                    $this->actionMessage = $payload['message'] ?? 'Operacja nie powiodła się.';
+                    $this->dispatch('play-audio', type: 'enchant-fail');
                 }
                 $this->character->refresh();
             }
         } catch (\Exception $e) {
-            $this->enchantModalType = 'error';
-            $this->enchantModalTitle = 'Niepowodzenie';
-            $this->enchantModalMessage = $e->getMessage();
+            $this->actionType = 'error';
+            $this->actionMessage = $e->getMessage();
+            $this->dispatch('play-audio', type: 'enchant-fail');
         }
     }
 
@@ -126,6 +131,7 @@ class Wizard extends Component
 
         return view('livewire.city.wizard', [
             'enchantableItems' => $enchantableItems,
+            'activeItem' => $this->activeItemId ? $enchantableItems->firstWhere('id', $this->activeItemId) : null,
         ]);
     }
 }
