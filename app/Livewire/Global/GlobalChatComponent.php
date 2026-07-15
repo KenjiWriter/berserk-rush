@@ -255,6 +255,8 @@ class GlobalChatComponent extends Component
             $equippedItems = $character->equippedItems->map(fn ($item) => [
                 'name'          => $item->template?->name ?? 'Nieznany',
                 'slot'          => $item->template?->slot ?? '?',
+                'type'          => $item->template?->type ?? 'unknown',
+                'icon'          => $item->template?->icon,
                 'upgrade_level' => $item->upgrade_level,
                 'rarity'        => $item->rarity,
                 'combat_power'  => $item->getCombatPower(),

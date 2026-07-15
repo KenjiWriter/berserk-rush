@@ -84,8 +84,8 @@
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
-                                        @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="absolute bottom-0 right-0 text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                            <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
@@ -101,7 +101,12 @@
                                     <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
                                         <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                         <div class="flex justify-between items-center mb-2">
-                                            <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
+                                            <p class="font-bold text-yellow-400 text-lg">
+                                                {{ $equipped[$slot]->template->name }}
+                                                @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                                    <span class="text-amber-500 text-sm ml-1">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                                @endif
+                                            </p>
                                             <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                         </div>
                                         <p class="text-gray-300 mb-2">Slot: {{ $slot }}</p>
@@ -221,8 +226,8 @@
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
-                                        @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="absolute bottom-0 right-0 text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                        @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                            <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
@@ -238,7 +243,12 @@
                                     <div class="bg-gray-900 border border-blue-500 p-4 rounded w-full max-w-xs sm:w-auto sm:max-w-none shadow-2xl relative" @click.stop>
                                         <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                         <div class="flex justify-between items-center mb-2">
-                                            <p class="font-bold text-yellow-400 text-lg">{{ $equipped[$slot]->template->name }}</p>
+                                            <p class="font-bold text-yellow-400 text-lg">
+                                                {{ $equipped[$slot]->template->name }}
+                                                @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                                    <span class="text-amber-500 text-sm ml-1">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                                @endif
+                                            </p>
                                             <span class="text-indigo-300 font-bold">⚡ {{ $equipped[$slot]->getCombatPower() }}</span>
                                         </div>
                                         <p class="text-gray-300 mb-2">Slot: {{ $slot }}</p>
@@ -482,13 +492,13 @@
                                 <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
                                 
                                 <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
-                                    @if($item->upgrade_level > 0)
-                                        <span class="text-yellow-400 font-bold text-[10px] bg-black/70 px-1 rounded-tl">+{{ $item->upgrade_level }}</span>
-                                    @endif
                                     @if($item->stack_size > 1)
                                         <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
                                     @endif
                                 </div>
+                                @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                    <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50 pointer-events-none">+{{ $item->upgrade_level ?? 0 }}</span>
+                                @endif
                             </div>
                         @else
                             <div class="text-center text-xs text-white">
@@ -510,7 +520,12 @@
                                 <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden">✕</button>
                                 
                                 <div class="flex justify-between items-center mb-2 pr-4">
-                                    <p class="font-bold text-blue-300 text-lg">{{ $item->template->name }}</p>
+                                    <p class="font-bold text-blue-300 text-lg">
+                                        {{ $item->template->name }}
+                                        @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']))
+                                            <span class="text-amber-500 text-sm ml-1">+{{ $item->upgrade_level ?? 0 }}</span>
+                                        @endif
+                                    </p>
                                     <span class="text-indigo-300 font-bold">⚡ {{ $item->getCombatPower() }}</span>
                                 </div>
                                 <p class="text-gray-400 mb-1">Slot: {{ $item->template->slot ?? 'Brak' }}</p>

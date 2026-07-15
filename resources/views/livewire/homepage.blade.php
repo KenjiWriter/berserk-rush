@@ -5,8 +5,45 @@
             setTimeout(() => {
                 window.location.href = url;
             }, 1200);
+        },
+        trailerOpen: false,
+        galleryGridOpen: false,
+        gallerySliderOpen: false,
+        currentGalleryIndex: 0,
+        images: {{ isset($galleryImages) ? json_encode($galleryImages->map(fn($img) => ['path' => asset($img->image_path), 'title' => $img->title])->toArray()) : '[]' }},
+        init() {
+            if (!localStorage.getItem('trailer_seen')) {
+                setTimeout(() => {
+                    this.trailerOpen = true;
+                    localStorage.setItem('trailer_seen', 'true');
+                }, 1000);
+            }
+        },
+        openGalleryGrid() {
+            this.galleryGridOpen = true;
+        },
+        openGallerySlider(index) {
+            this.currentGalleryIndex = index;
+            this.gallerySliderOpen = true;
+        },
+        nextImage() {
+            if (this.currentGalleryIndex < this.images.length - 1) {
+                this.currentGalleryIndex++;
+            } else {
+                this.currentGalleryIndex = 0;
+            }
+        },
+        prevImage() {
+            if (this.currentGalleryIndex > 0) {
+                this.currentGalleryIndex--;
+            } else {
+                this.currentGalleryIndex = this.images.length - 1;
+            }
         }
     }"
+    @keydown.right.window="if(gallerySliderOpen) nextImage()" 
+    @keydown.left.window="if(gallerySliderOpen) prevImage()" 
+    @keydown.escape.window="gallerySliderOpen = false; galleryGridOpen = false; trailerOpen = false"
     class="min-h-screen bg-gradient-to-b from-slate-800/90 via-slate-700/90 to-slate-800/90 text-amber-100 relative overflow-hidden">
     {{-- Background image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -57,6 +94,43 @@
         <div class="flex flex-col lg:grid lg:grid-cols-6 lg:gap-6">
             {{-- Left Sidebar --}}
             <div class="contents lg:block lg:col-span-1 lg:space-y-6">
+                {{-- Gallery Section --}}
+                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
+                <div class="order-0 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    {{-- Decorative corners --}}
+                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                    <div class="relative">
+                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
+                            🖼️ Galeria Gry
+                        </h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            @foreach($galleryImages->take(4) as $image)
+                                <div class="relative group cursor-pointer border-2 border-amber-600 rounded overflow-hidden aspect-video" @click="openGallerySlider({{ $loop->index }})">
+                                    <img src="{{ asset($image->image_path) }}" alt="{{ $image->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <span class="text-white text-xs font-bold drop-shadow-md">Powiększ</span>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        
+                        <div class="mt-4 text-center">
+                            <button @click="openGalleryGrid()" class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-2 px-4 rounded w-full border border-amber-500 shadow-md transition-all duration-300 transform hover:scale-[1.02]">
+                                @if($galleryImages->count() > 4)
+                                    Pokaż całą galerię ({{ $galleryImages->count() }})
+                                @else
+                                    Otwórz galerię
+                                @endif
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                @endif
+
                 {{-- Active players --}}
                 <div
                     class="order-1 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
@@ -677,5 +751,116 @@
                 <span class="text-sm text-amber-600/80 font-sans tracking-widest uppercase mt-3 block">Przygotuj się do walki</span>
             </div>
         </div>
+    </div>
+
+    {{-- Trailer Modal --}}
+    <div x-show="trailerOpen" 
+         style="display: none;"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+         
+         <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="trailerOpen = false"></div>
+         
+         <div class="relative bg-gradient-to-b from-slate-900 to-black border-4 border-amber-600 rounded-xl shadow-[0_0_50px_rgba(217,119,6,0.5)] p-2 w-full max-w-4xl"
+              x-transition:enter="transition ease-out duration-500"
+              x-transition:enter-start="opacity-0 scale-90 translate-y-8"
+              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+              x-transition:leave="transition ease-in duration-300"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95">
+              
+             <button @click="trailerOpen = false" class="absolute -top-4 -right-4 w-10 h-10 bg-amber-600 hover:bg-amber-500 text-white rounded-full border-2 border-amber-200 shadow-lg flex items-center justify-center font-bold text-xl z-10 transition-colors">✕</button>
+             
+             <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center medieval-font mt-4">Zobacz zwiastun</h2>
+             
+             <div class="relative pt-[56.25%] w-full bg-black rounded border border-amber-800 overflow-hidden">
+                 <template x-if="trailerOpen">
+                     <iframe class="absolute inset-0 w-full h-full" 
+                             src="https://www.youtube.com/embed/GuD7lisUF3E?autoplay=1" 
+                             title="YouTube video player" 
+                             frameborder="0" 
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                             allowfullscreen>
+                     </iframe>
+                 </template>
+             </div>
+         </div>
+    </div>
+
+    {{-- Gallery Grid Modal --}}
+    <div x-show="galleryGridOpen" 
+         style="display: none;"
+         class="fixed inset-0 z-[105] flex items-center justify-center p-4">
+         
+         <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="galleryGridOpen = false"></div>
+         
+         <div class="relative w-full max-w-6xl flex flex-col items-center bg-slate-900 border-4 border-amber-700 rounded-xl shadow-[0_0_50px_rgba(217,119,6,0.3)] p-6 max-h-[90vh] overflow-hidden"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 scale-95"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95">
+              
+             <button @click="galleryGridOpen = false" class="absolute top-4 right-4 text-amber-500 hover:text-white font-bold text-xl flex items-center gap-2 transition-colors z-10">
+                 <span class="text-3xl drop-shadow-md">✕</span>
+             </button>
+             
+             <h2 class="text-3xl font-bold text-amber-400 mb-6 text-center medieval-font w-full border-b border-amber-800 pb-4">Wszystkie Zdjęcia</h2>
+             
+             <div class="w-full overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #b45309 #1e293b;">
+                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                     <template x-for="(image, index) in images" :key="index">
+                         <div class="relative group cursor-pointer border-2 border-amber-700 rounded-lg overflow-hidden aspect-video shadow-lg hover:border-amber-400 transition-colors" 
+                              @click="openGallerySlider(index)">
+                             <img :src="image.path" :alt="image.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                 <span class="text-amber-300 text-sm font-bold truncate drop-shadow-md" x-text="image.title"></span>
+                             </div>
+                         </div>
+                     </template>
+                 </div>
+             </div>
+         </div>
+    </div>
+
+    {{-- Gallery Slider Modal --}}
+    <div x-show="gallerySliderOpen" 
+         style="display: none;"
+         class="fixed inset-0 z-[110] flex items-center justify-center p-4 group/slider">
+         
+         <div class="absolute inset-0 bg-black/95 backdrop-blur-md" @click="gallerySliderOpen = false"></div>
+         
+         <div class="relative w-full max-w-6xl flex flex-col items-center"
+              x-transition:enter="transition ease-out duration-300"
+              x-transition:enter-start="opacity-0 scale-95"
+              x-transition:enter-end="opacity-100 scale-100"
+              x-transition:leave="transition ease-in duration-200"
+              x-transition:leave-start="opacity-100 scale-100"
+              x-transition:leave-end="opacity-0 scale-95">
+              
+             <button @click="gallerySliderOpen = false" class="absolute -top-12 right-0 text-amber-500 hover:text-white font-bold text-xl flex items-center gap-2 transition-colors">
+                 <span>ZAMKNIJ</span> <span class="text-3xl">✕</span>
+             </button>
+             
+             {{-- Prev Arrow --}}
+             <button @click.stop="prevImage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-amber-600 border border-amber-600/50 hover:border-amber-400 rounded-full text-white flex items-center justify-center text-2xl transition-all opacity-50 group-hover/slider:opacity-100 z-20">
+                 &#10094;
+             </button>
+             
+             {{-- Next Arrow --}}
+             <button @click.stop="nextImage()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-amber-600 border border-amber-600/50 hover:border-amber-400 rounded-full text-white flex items-center justify-center text-2xl transition-all opacity-50 group-hover/slider:opacity-100 z-20">
+                 &#10095;
+             </button>
+
+             <div class="bg-slate-900 border-4 border-amber-700 rounded-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden w-full relative">
+                 <img :src="images[currentGalleryIndex]?.path" :alt="images[currentGalleryIndex]?.title" class="w-full h-auto max-h-[85vh] object-contain bg-black">
+                 <div class="p-4 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent absolute bottom-0 left-0 right-0">
+                     <h3 class="text-2xl font-bold text-amber-400 medieval-font text-center drop-shadow-md" x-text="images[currentGalleryIndex]?.title"></h3>
+                     <p class="text-center text-amber-600 text-sm mt-1">
+                         <span x-text="currentGalleryIndex + 1"></span> / <span x-text="images.length"></span>
+                     </p>
+                 </div>
+             </div>
+         </div>
     </div>
 </div>

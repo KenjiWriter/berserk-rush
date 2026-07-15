@@ -123,6 +123,7 @@ class MarketComponent extends Component
         } else {
             $myListings = MarketListing::with('item.template')
                 ->where('seller_character_id', $character->id)
+                ->has('item')
                 ->orderBy('created_at', 'desc')
                 ->paginate(12);
         }

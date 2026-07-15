@@ -76,6 +76,8 @@ class Homepage extends Component
             $mockData['canCreateCharacter'] = !Auth::user()->hasMaxCharacters();
         }
 
+        $mockData['galleryImages'] = \App\Infrastructure\Persistence\GalleryImage::where('is_active', true)->orderBy('order')->get();
+
         return view('livewire.homepage', $mockData);
     }
 }

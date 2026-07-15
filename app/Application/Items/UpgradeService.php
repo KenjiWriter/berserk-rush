@@ -39,10 +39,16 @@ class UpgradeService
             foreach ($rule->cost['materials'] as $mat) {
                 $template = \App\Infrastructure\Persistence\ItemTemplate::find($mat['template_id']);
                 if ($template) {
+                    $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($template) {
+                        $q->where('ref_ulid', $template->id);
+                    })->pluck('name')->toArray();
+
                     $materials[] = [
                         'template_id' => $template->id,
                         'name' => $template->name,
+                        'icon' => $template->icon,
                         'quantity' => $mat['quantity'],
+                        'dropped_by' => $dropMonsters,
                     ];
                 }
             }

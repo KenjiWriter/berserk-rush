@@ -65,7 +65,7 @@
             wire:click.self="closeTooltip"
         >
             <div
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[280px] lg:w-64 text-left pointer-events-auto flex flex-col"
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left pointer-events-auto flex flex-col"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button for mobile --}}
@@ -100,11 +100,16 @@
                                 };
                             @endphp
                             <div class="flex items-center justify-between text-xs">
-                                <span class="{{ $rarityColor }} truncate max-w-[130px]">
-                                    {{ $ei['name'] }}
-                                    @if ($ei['upgrade_level'] > 0)
-                                        <span class="text-emerald-400">+{{ $ei['upgrade_level'] }}</span>
+                                <span class="{{ $rarityColor }} flex items-center gap-1.5">
+                                    @if(!empty($ei['icon']))
+                                        <img src="{{ route('assets.items', ['filename' => $ei['icon']]) }}" class="w-5 h-5 object-contain" alt="">
                                     @endif
+                                    <span>
+                                        {{ $ei['name'] }}
+                                        @if(in_array($ei['type'] ?? '', ['weapon', 'armor', 'accessory']))
+                                            <span class="text-emerald-400">+{{ $ei['upgrade_level'] ?? 0 }}</span>
+                                        @endif
+                                    </span>
                                 </span>
                                 <span class="text-amber-700 text-[10px] ml-1">{{ number_format($ei['combat_power']) }} CP</span>
                             </div>

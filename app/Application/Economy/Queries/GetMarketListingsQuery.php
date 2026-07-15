@@ -10,6 +10,7 @@ class GetMarketListingsQuery
     {
         $query = MarketListing::query()
             ->where('status', 'active')
+            ->has('item')
             ->with(['item.template', 'seller']);
 
         // Search by item name

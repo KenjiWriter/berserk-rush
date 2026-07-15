@@ -217,9 +217,29 @@
                                                             $owned = $inventoryMaterials->where('template_id', $reqMat['template_id'])->sum('stack_size');
                                                             $hasEnough = $owned >= $reqMat['quantity'];
                                                         @endphp
-                                                        <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
-                                                            <span class="text-gray-300">{{ $reqMat['name'] }}:</span>
-                                                            <span class="font-bold {{ $hasEnough ? 'text-purple-400' : 'text-red-400' }}">{{ $owned }} / {{ $reqMat['quantity'] }}</span>
+                                                        <div class="relative group">
+                                                            <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50 cursor-help transition hover:bg-gray-800">
+                                                                <div class="flex items-center gap-2">
+                                                                    @if(isset($reqMat['icon']) && $reqMat['icon'])
+                                                                        <img src="{{ route('assets.items', ['filename' => $reqMat['icon']]) }}" class="w-6 h-6 object-contain" alt="">
+                                                                    @endif
+                                                                    <span class="text-gray-300">{{ $reqMat['name'] }}:</span>
+                                                                </div>
+                                                                <span class="font-bold {{ $hasEnough ? 'text-purple-400' : 'text-red-400' }}">{{ $owned }} / {{ $reqMat['quantity'] }}</span>
+                                                            </div>
+                                                            <!-- Tooltip -->
+                                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-50 shadow-2xl backdrop-blur-sm">
+                                                                <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
+                                                                @if(isset($reqMat['dropped_by']) && count($reqMat['dropped_by']) > 0)
+                                                                    <div class="flex flex-wrap justify-center gap-1 mt-2">
+                                                                        @foreach(array_unique($reqMat['dropped_by']) as $monsterName)
+                                                                            <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                                        @endforeach
+                                                                    </div>
+                                                                @else
+                                                                    <div class="text-[10px] text-gray-500 text-center italic mt-2">Brak w znanych tabelach łupów.</div>
+                                                                @endif
+                                                            </div>
                                                         </div>
                                                     @endforeach
                                                 </div>
