@@ -2,8 +2,8 @@
 
 ## 1. Sklep Alchemiczny i Mikstury Specjalne
 Czarownica służy w grze jako punkt handlowy dla przedmiotów typu **consumable** (mikstury użytkowe).
-*   **Wywary Specjalne:** Gracz ma możliwość zakupu specjalnej mikstury (+20% doświadczenia) raz na dobę. Ograniczenie realizowane jest przez tabelę `character_cooldowns` (klucz `witch_exp_potion_daily`).
-*   **Sklep Alchemiczny:** Wiedźma sprzedaje standardowe mikstury zdefiniowane w `item_templates`. Kupno wymaga odpowiedniej ilości złota, pobiera je z konta gracza i umieszcza nowy obiekt w ekwipunku poprzez `ItemInstance`, a także tworzy wpis w `ItemLedger` potwierdzający zakup u NPC.
+*   **Wywary Specjalne:** Gracz ma możliwość zakupu specjalnej mikstury (+20% doświadczenia) raz na dobę. Ograniczenie realizowane jest przez tabelę `character_cooldowns` (klucz `witch_exp_potion_daily`). Oferta ta jest wyróżniona na samym szczycie asortymentu w zakładce Sklepu.
+*   **Sklep Alchemiczny:** Wiedźma sprzedaje mikstury zdefiniowane i przydzielone jej poprzez panel zarządzania **Handlarzami** (model `MerchantItem` dla `merchant_id = 'witch'`). Kupno wymaga odpowiedniej ilości złota, pobiera je z konta gracza (kwota obliczana przez `ShopService`) i umieszcza nowy obiekt w ekwipunku poprzez `ItemInstance`, a także tworzy wpis w `ItemLedger` potwierdzający zakup u NPC.
 
 ## 2. System Warzenia i Rzemiosła (Crafting)
 System craftingu służy do wytwarzania mikstur, a także broni i zbroi na podstawie zebranych zasobów (materiałów rzemieślniczych). Oparty jest o tabelę receptur i obsługiwany przez uniwersalny `CraftingService`.
@@ -25,11 +25,10 @@ Realizacją craftingu zajmuje się wywoływany w akcji interfejsu (Livewire) mec
 6.  **Rejestracja Historii**: Wpis logów transakcji do `ItemLedger` (`action` => 'crafting', `ref_type` => 'crafting_service') na rzecz Idempotency i celów analitycznych.
 
 ### Panel Administratora
-Gra posiada pełnoprawny widok graficzny zarządzania przepisami w zakładce Administracji (`ItemRecipes.php`). Administrator może ustalać dowolne przedmioty wynikowe, koszty złota, oraz dynamicznie dodawać i usuwać potrzebne materiały.
+Gra posiada pełnoprawny widok graficzny zarządzania przepisami w zakładce Administracji (`ItemRecipes.php`). Administrator może ustalać dowolne przedmioty wynikowe, koszty złota, oraz dynamicznie dodawać i usuwać potrzebne materiały. Asortyment sklepu wiedźmy konfiguruje się natomiast w zakładce Handlarzy (`MerchantItems.php`).
 
 ### Elementy UI
-Widok Czarownicy (`Witch.php`), Kowala Broni (`Weaponsmith.php`) oraz Płatnerza (`Armorsmith.php`) posiadają dedykowane zakładki "Rzemiosło".
-Wiedźma ponadto posiada podział na zakładki:
-*   `special`: Wyświetla dedykowaną potkę lub czas oczekiwania w formie odliczania Alpine.js, opartym o timestamp zapisany w `character_cooldowns`.
-*   `shop`: Wylistowuje dostępne mikstury i ich ceny kupna.
-*   `crafting`: Lista przepisów. Komponent sam przeszukuje ekwipunek i renderuje brakujące materiały na czerwono, lub gotowe na zielono (kontrolując atrybut `disabled` na przycisku).
+Widok Czarownicy (`Witch.php`), Kowala Broni (`Weaponsmith.php`) oraz Płatnerza (`Armorsmith.php`) posiadają dedykowane zakładki.
+Wiedźma posiada podział na dwie główne zakładki:
+*   `shop`: Wylistowuje dostępne mikstury z modelu `MerchantItem` oraz wyróżnioną ofertę na miksturę doświadczenia (limitowaną dziennie opartą o `character_cooldowns`).
+*   `crafting`: Lista przepisów alchemicznych. Komponent sam przeszukuje ekwipunek i renderuje postęp zebrania składników wizualnie, kontrolując aktywność przycisku "Uwarz".

@@ -355,7 +355,11 @@ class EncounterService
 
     private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp): array
     {
-        $damage = $this->calculateDamage($character, $monster);
+        $damageData = $this->calculateDamage($character, $monster);
+        $damage = $damageData['total'];
+        $baseDamage = $damageData['base'];
+        $bonusDamage = $damageData['bonus'];
+
         $isCrit = $this->rollCritical($character);
         $isMiss = $this->rollMiss();
 
@@ -372,11 +376,13 @@ class EncounterService
 
         if ($isCrit) {
             $damage = (int)($damage * 1.5);
+            $baseDamage = (int)($baseDamage * 1.5);
+            $bonusDamage = (int)($bonusDamage * 1.5);
         }
 
         $newMonsterHp = max(0, $monsterHp - $damage);
 
-        return [
+        $turn = [
             'actor' => 'player',
             'type' => 'hit',
             'value' => $damage,
@@ -384,11 +390,22 @@ class EncounterService
             'playerHp' => $playerHp,
             'enemyHp' => $newMonsterHp,
         ];
+
+        if ($bonusDamage > 0) {
+            $turn['baseDamage'] = $baseDamage;
+            $turn['bonusDamage'] = $bonusDamage;
+        }
+
+        return $turn;
     }
 
     private function monsterAttack(Monster $monster, Character $character, int $playerHp, int $monsterHp): array
     {
-        $damage = $this->calculateMonsterDamage($monster, $character);
+        $damageData = $this->calculateMonsterDamage($monster, $character);
+        $damage = $damageData['total'];
+        $baseDamage = $damageData['base'];
+        $resistDamage = $damageData['resist'];
+
         $isCrit = $this->rollMonsterCritical($monster);
         $isMiss = $this->rollMiss();
 
@@ -405,11 +422,13 @@ class EncounterService
 
         if ($isCrit) {
             $damage = (int)($damage * 1.5);
+            $baseDamage = (int)($baseDamage * 1.5);
+            $resistDamage = (int)($resistDamage * 1.5);
         }
 
         $newPlayerHp = max(0, $playerHp - $damage);
 
-        return [
+        $turn = [
             'actor' => 'enemy',
             'type' => 'hit',
             'value' => $damage,
@@ -417,17 +436,24 @@ class EncounterService
             'playerHp' => $newPlayerHp,
             'enemyHp' => $monsterHp,
         ];
+
+        if ($resistDamage > 0) {
+            $turn['baseDamage'] = $baseDamage;
+            $turn['resistDamage'] = $resistDamage;
+        }
+
+        return $turn;
     }
 
 
 
-    private function calculateDamage(Character $character, Monster $monster): int
+    private function calculateDamage(Character $character, Monster $monster): array
     {
         $strength = $character->getTotalAttributes()['str'] ?? 1;
         $eq = $character->getEquipmentStats();
         
-        $baseDamageMin = 10 + ($strength * 2) + ($character->level * 1) + $eq['attack_min'];
-        $baseDamageMax = 10 + ($strength * 2) + ($character->level * 1) + $eq['attack_max'];
+        $baseDamageMin = 10 + ($strength * 2) + ($character->level * 1) + ($eq['attack_min'] ?? 0);
+        $baseDamageMax = 10 + ($strength * 2) + ($character->level * 1) + ($eq['attack_max'] ?? 0);
         
         // Ensure max is at least min
         if ($baseDamageMax < $baseDamageMin) {
@@ -437,17 +463,54 @@ class EncounterService
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
         $defense = $monster->stats['def'] ?? $monster->level;
 
-        return max(1, $damage - ($defense / 2));
+        $baseDamage = max(1, $damage - ($defense / 2));
+        $bonusDamage = 0;
+
+        if (isset($monster->type)) {
+            $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
+            $bonusKey = 'strong_vs_' . $typeStr;
+            $altBonusKey = 'bonus_vs_' . $typeStr;
+            $pluralBonusKey = 'strong_vs_' . $typeStr . 's';
+            
+            $bonusPercentage = ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
+            if ($bonusPercentage > 0) {
+                $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
+            }
+        }
+
+        return [
+            'base' => $baseDamage,
+            'bonus' => $bonusDamage,
+            'total' => $baseDamage + $bonusDamage
+        ];
     }
 
-    private function calculateMonsterDamage(Monster $monster, Character $character): int
+    private function calculateMonsterDamage(Monster $monster, Character $character): array
     {
         $baseDamage = $monster->stats['atk'] ?? $monster->level * 2;
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $eq = $character->getEquipmentStats();
-        $defense = $vitality + ($character->level / 2) + $eq['defense'];
+        $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
 
-        return max(1, $baseDamage - ($defense / 2));
+        $damage = max(1, $baseDamage - ($defense / 2));
+        $resistDamage = 0;
+
+        if (isset($monster->type)) {
+            $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
+            $resistKey = 'resist_' . $typeStr;
+            $pluralResistKey = 'resist_' . $typeStr . 's';
+            
+            $resistPercentage = ($eq[$resistKey] ?? 0) + ($eq[$pluralResistKey] ?? 0);
+            if ($resistPercentage > 0) {
+                $resistDamage = (int)($damage * ($resistPercentage / 100));
+            }
+        }
+
+        return [
+            'base' => (int)$damage,
+            'resist' => $resistDamage,
+            'total' => max(1, (int)$damage - $resistDamage)
+        ];
     }
 
     private function rollCritical(Character $character): bool

@@ -89,6 +89,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 Route::get('/assets/items/{filename}', function ($filename) {
     $path = storage_path('app/assets/items/' . $filename);
     if (!file_exists($path)) {
+        $placeholder = public_path('img/avatars/plate.png');
+        if (file_exists($placeholder)) {
+            return response()->file($placeholder);
+        }
         abort(404);
     }
     return response()->file($path);
@@ -97,6 +101,10 @@ Route::get('/assets/items/{filename}', function ($filename) {
 Route::get('/assets/monsters/avatars/{filename}', function ($filename) {
     $path = storage_path('app/assets/monsters/avatars/' . $filename);
     if (!file_exists($path)) {
+        $placeholder = public_path('img/monsters/placeholder.png');
+        if (file_exists($placeholder)) {
+            return response()->file($placeholder);
+        }
         abort(404);
     }
     return response()->file($path);

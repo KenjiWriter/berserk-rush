@@ -92,6 +92,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['exp_bonus' => 20, 'duration_minutes' => 10],
                 'description' => 'Tajemniczy wywar zwiększający zdobywane doświadczenie z potworów o 20% przez 10 minut.',
+                'is_tradeable' => false,
             ],
         ];
 

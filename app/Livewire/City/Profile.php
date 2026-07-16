@@ -133,6 +133,20 @@ class Profile extends Component
         }
     }
 
+    public function consumeItem(string $itemUlid, \App\Domain\Items\Actions\ConsumeItemAction $consumeAction)
+    {
+        $result = $consumeAction->execute($this->character, $itemUlid);
+
+        if ($result['success']) {
+            $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('play-audio', type: 'equip'); // Or some consume sound
+            $this->dispatch('buff-applied');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result['message']);
+        }
+    }
+
     // --- PETS & INCUBATOR LOGIC ---
     public function placeEgg(string $eggItemInstanceId): void
     {

@@ -563,13 +563,13 @@
                                                 Załóż sprzęt
                                             </button>
                                         @elseif($item->template->type === 'consumable')
-                                            <button wire:click="equipItem('{{ $item->id }}')" @click="open = false" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors">
+                                            <button wire:click="consumeItem('{{ $item->id }}')" @click="open = false" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors">
                                                 Użyj przedmiotu
                                             </button>
                                         @endif
                                     @endif
                                     
-                                    @if(!($item->bound_to_character ?? false))
+                                    @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
                                         <button wire:click.stop="openSellModal('{{ $item->id }}'); open = false;" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
                                             Wystaw na targowisko
                                         </button>

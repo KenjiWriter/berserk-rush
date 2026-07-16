@@ -5,9 +5,16 @@ namespace App\Livewire\Global;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
+use Livewire\Attributes\On;
 
 class ActiveBuffs extends Component
 {
+    #[On('buff-applied')]
+    public function refreshBuffs()
+    {
+        // Re-renders the component
+    }
+
     public function render()
     {
         $buffs = [];

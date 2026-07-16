@@ -2,7 +2,7 @@
     class="min-h-screen bg-gradient-to-b from-blue-900/90 via-indigo-800/90 to-purple-900/90 text-amber-100 relative overflow-hidden">
     
     {{-- Entering Location Transition Overlay --}}
-    <div x-show="travelingTo !== ''"
+    <div x-show="$data.travelingTo !== ''"
          x-transition:enter="transition ease-in-out duration-300"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100"
@@ -14,7 +14,7 @@
              
              <div class="absolute inset-0 flex items-center justify-center flex-col mt-4">
                  <svg class="animate-spin h-10 w-10 text-amber-400 mb-2 drop-shadow-md" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                 <span class="text-amber-100 font-bold text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-center px-4" style="font-family: 'Cinzel', serif;" x-text="'Przenoszenie do ' + travelingTo"></span>
+                 <span class="text-amber-100 font-bold text-xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] text-center px-4" style="font-family: 'Cinzel', serif;" x-text="'Przenoszenie do ' + $data.travelingTo"></span>
              </div>
          </div>
     </div>

@@ -279,6 +279,15 @@ class Character extends Model
                 $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0) + ($upgrade['magic_attack_max'] ?? 0);
                 $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
                 $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
+                
+                if (isset($roll['enchants']) && is_array($roll['enchants'])) {
+                    foreach ($roll['enchants'] as $enchantType => $enchantValue) {
+                        if (!isset($stats[$enchantType])) {
+                            $stats[$enchantType] = 0;
+                        }
+                        $stats[$enchantType] += $enchantValue;
+                    }
+                }
             }
 
             // Add Active Buffs

@@ -10,7 +10,9 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\CharacterCooldown;
 use App\Infrastructure\Persistence\ItemRecipe;
+use App\Infrastructure\Persistence\MerchantItem;
 use App\Application\Items\CraftingService;
+use App\Application\Items\ShopService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -20,7 +22,7 @@ class Witch extends Component
     public Character $character;
     public $message = '';
     public $messageType = 'info';
-    public $activeTab = 'special'; // special, shop, crafting
+    public $activeTab = 'shop'; // shop, crafting
 
     public function mount(Character $character): void
     {
@@ -56,23 +58,6 @@ class Witch extends Component
         $price = 1500;
         $template = ItemTemplate::where('id', 'potion-exp-special')->first();
         
-        $this->processPurchase($character, $template, $price, $cooldown, 'witch_exp_potion_daily');
-    }
-
-    public function buyRegularPotion($templateId)
-    {
-        $character = $this->character;
-        $template = ItemTemplate::where('id', $templateId)->first();
-        if (!$template) return;
-
-        // Ceny zależne od "S" i "M"
-        $price = str_ends_with($templateId, '-m') ? 800 : 300;
-
-        $this->processPurchase($character, $template, $price);
-    }
-
-    private function processPurchase($character, $template, $price, $cooldown = null, $cooldownKey = null)
-    {
         if (!$template) {
             $this->showMessage('Mikstura nie istnieje w bazie.', 'error');
             return;
@@ -83,7 +68,7 @@ class Witch extends Component
             return;
         }
 
-        DB::transaction(function () use ($character, $template, $price, $cooldown, $cooldownKey) {
+        DB::transaction(function () use ($character, $template, $price, $cooldown) {
             $character->decrement('gold', $price);
 
             $item = ItemInstance::create([
@@ -105,21 +90,33 @@ class Witch extends Component
                 'idempotency_key' => 'witch_buy_' . Str::ulid(),
             ]);
 
-            if ($cooldownKey) {
-                if ($cooldown) {
-                    $cooldown->update(['expires_at' => Carbon::now()->addDay()]);
-                } else {
-                    CharacterCooldown::create([
-                        'character_id' => $character->id,
-                        'cooldown_key' => $cooldownKey,
-                        'expires_at' => Carbon::now()->addDay(),
-                    ]);
-                }
+            if ($cooldown) {
+                $cooldown->update(['expires_at' => Carbon::now()->addDay()]);
+            } else {
+                CharacterCooldown::create([
+                    'character_id' => $character->id,
+                    'cooldown_key' => 'witch_exp_potion_daily',
+                    'expires_at' => Carbon::now()->addDay(),
+                ]);
             }
         });
 
         $this->showMessage('Kupiłeś: ' . $template->name, 'success');
         $this->dispatch('play-audio', type: 'buy');
+        $this->character->refresh();
+    }
+
+    public function buyItem(int $merchantItemId, ShopService $shop)
+    {
+        $merchantItem = MerchantItem::with('template')->findOrFail($merchantItemId);
+        $result = $shop->buyItem($this->character, $merchantItem);
+        if ($result['success']) {
+            $this->showMessage($result['message'], 'success');
+            $this->dispatch('play-audio', type: 'buy');
+        } else {
+            $this->showMessage($result['message'], 'error');
+        }
+        $this->character->refresh();
     }
 
     public function craftPotion($recipeId)
@@ -136,6 +133,7 @@ class Witch extends Component
         } else {
             $this->showMessage($result['message'], 'error');
         }
+        $this->character->refresh();
     }
 
     private function showMessage($text, $type)
@@ -144,9 +142,9 @@ class Witch extends Component
         $this->messageType = $type;
     }
 
-    public function render()
+    public function render(ShopService $shopService)
     {
-        // Special Potion
+        // Special Potion Cooldown Logic
         $canBuySpecial = true;
         $specialCooldown = null;
         $cd = CharacterCooldown::where('character_id', $this->character->id)
@@ -158,14 +156,25 @@ class Witch extends Component
             $specialCooldown = $cd->expires_at;
         }
 
-        // Regular Potions
-        $regularPotions = ItemTemplate::where('type', 'consumable')
-            ->where('id', '!=', 'potion-exp-special')
-            ->get();
+        // Regular Potions from MerchantItems
+        $shopItems = MerchantItem::where('merchant_id', 'witch')
+            ->where('required_level', '<=', $this->character->level)
+            ->with('template')
+            ->get()
+            ->filter(function($mi) {
+                return !$mi->is_limited || $mi->sold_quantity < $mi->max_quantity;
+            });
+            
+        $shopPrices = [];
+        foreach($shopItems as $mi) {
+            $shopPrices[$mi->id] = $shopService->getBuyPrice($mi->template);
+        }
 
         // Crafting Recipes
-        $recipes = ItemRecipe::with('resultItemTemplate')->get();
-        // Zbudujmy stan ekwipunku, żeby pokazać czego brakuje
+        $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
+            $q->where('type', 'consumable');
+        })->get();
+
         $inventory = $this->character->inventoryItems()->get();
         
         $preparedRecipes = [];
@@ -200,7 +209,8 @@ class Witch extends Component
         return view('livewire.city.witch', [
             'canBuySpecial' => $canBuySpecial,
             'specialCooldown' => $specialCooldown,
-            'regularPotions' => $regularPotions,
+            'shopItems' => $shopItems,
+            'shopPrices' => $shopPrices,
             'recipes' => $preparedRecipes,
         ]);
     }

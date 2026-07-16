@@ -35,6 +35,10 @@ class CreateMarketListingAction
             return Result::error('ITEM_BOUND', 'Przedmiot jest przywiązany do postaci i nie może być sprzedany.');
         }
 
+        if (!($item->template->is_tradeable ?? true)) {
+            return Result::error('ITEM_UNTRADEABLE', 'Tego przedmiotu nie można wystawić na targowisko.');
+        }
+
         if ($price <= 0) {
             return Result::error('INVALID_PRICE', 'Cena musi być większa od zera.');
         }

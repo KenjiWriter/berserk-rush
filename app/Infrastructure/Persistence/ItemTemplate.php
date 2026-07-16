@@ -20,12 +20,14 @@ class ItemTemplate extends Model
         'description',
         'icon',
         'rarity_weights',
+        'is_tradeable',
     ];
 
     protected $casts = [
         'base_stats' => 'array',
         'rarity_weights' => 'array',
         'level_requirement' => 'integer',
+        'is_tradeable' => 'boolean',
     ];
 
     public function instances(): HasMany

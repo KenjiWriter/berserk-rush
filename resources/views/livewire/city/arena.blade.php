@@ -7,7 +7,7 @@
     <div class="absolute inset-0 bg-black/50"></div>
 
     {{-- Transition Overlay --}}
-    <div x-show="travelingTo" 
+    <div x-show="$data.travelingTo" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -17,9 +17,9 @@
             <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl border-4 border-amber-700">
             <div class="absolute inset-0 bg-amber-900/60 rounded-2xl"></div>
             <div class="relative z-10 flex flex-col items-center">
-                <div class="text-6xl mb-4 animate-bounce" x-text="travelingTo === 'Miasto' ? '🏰' : '🏟️'"></div>
+                <div class="text-6xl mb-4 animate-bounce" x-text="$data.travelingTo === 'Miasto' ? '🏰' : '🏟️'"></div>
                 <h2 class="text-3xl font-bold text-amber-100 medieval-font mb-4 drop-shadow-lg">Podróż do...</h2>
-                <h3 class="text-2xl text-amber-300 font-bold drop-shadow-md mb-6" x-text="travelingTo"></h3>
+                <h3 class="text-2xl text-amber-300 font-bold drop-shadow-md mb-6" x-text="$data.travelingTo"></h3>
                 <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
          </div>

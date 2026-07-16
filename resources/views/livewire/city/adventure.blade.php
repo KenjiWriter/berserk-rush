@@ -18,7 +18,7 @@
     </div>
 
     {{-- Transition Overlay --}}
-    <div x-show="travelingTo" 
+    <div x-show="$data.travelingTo" 
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
@@ -34,7 +34,7 @@
                 <h2 class="text-3xl font-bold text-amber-100 medieval-font mb-4 drop-shadow-lg">
                     Przenoszenie do...
                 </h2>
-                <h3 class="text-2xl text-emerald-300 font-bold drop-shadow-md mb-6" x-text="travelingTo"></h3>
+                <h3 class="text-2xl text-emerald-300 font-bold drop-shadow-md mb-6" x-text="$data.travelingTo"></h3>
                 
                 <div class="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
