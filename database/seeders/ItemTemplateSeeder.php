@@ -10,417 +10,214 @@ class ItemTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        // Clear existing templates first
         ItemTemplate::query()->delete();
 
-        $templates = [
-            // Weapons - STR based
-            [
-                'id' => '01k4jpx94j70x2vv10b835prm4', // Keep this specific ID for the error
-                'name' => 'Zardzewiały Miecz',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 1,
-                'base_stats' => [
-                    'attack_min' => 2,
-                    'attack_max' => 4,
-                    'str_bonus' => 1,
-                ],
-                'description' => 'Stary, zardzewiały miecz. Mimo wieku nadal może zadać obrażenia.',
-                'icon' => 'sword-rusty',
-                'rarity_weights' => [
-                    'common' => 70,
-                    'uncommon' => 25,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Bojowy Topór',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 4,
-                'base_stats' => [
-                    'attack_min' => 5,
-                    'attack_max' => 8,
-                    'str_bonus' => 2,
-                ],
-                'description' => 'Ciężki topór wojenny. Zadaje potężne obrażenia.',
-                'icon' => 'axe-battle',
-                'rarity_weights' => [
-                    'common' => 60,
-                    'uncommon' => 30,
-                    'rare' => 10,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Stalowy Miecz',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 7,
-                'base_stats' => [
-                    'attack_min' => 8,
-                    'attack_max' => 12,
-                    'str_bonus' => 3,
-                ],
-                'description' => 'Dobrze wykuty miecz ze stali. Ostrze błyszczy niebezpiecznie.',
-                'icon' => 'sword-steel',
-                'rarity_weights' => [
-                    'common' => 50,
-                    'uncommon' => 35,
-                    'rare' => 15,
-                ],
-            ],
-
-            // Weapons - AGI based (ranged)
-            [
-                'id' => Str::ulid(),
-                'name' => 'Drewniany Łuk',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 2,
-                'base_stats' => [
-                    'attack_min' => 3,
-                    'attack_max' => 6,
-                    'agi_bonus' => 1,
-                ],
-                'description' => 'Prosty łuk wykonany z elastycznego drewna.',
-                'icon' => 'bow-wooden',
-                'rarity_weights' => [
-                    'common' => 65,
-                    'uncommon' => 30,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Łuk Myśliwski',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 6,
-                'base_stats' => [
-                    'attack_min' => 7,
-                    'attack_max' => 11,
-                    'agi_bonus' => 2,
-                    'crit_chance' => 5,
-                ],
-                'description' => 'Precyzyjny łuk używany przez doświadczonych myśliwych.',
-                'icon' => 'bow-hunter',
-                'rarity_weights' => [
-                    'common' => 45,
-                    'uncommon' => 40,
-                    'rare' => 15,
-                ],
-            ],
-
-            // Weapons - INT based (magic)
-            [
-                'id' => Str::ulid(),
-                'name' => 'Drewniana Różdżka',
-                'type' => 'weapon',
-                'slot' => 'main_hand',
-                'level_requirement' => 3,
-                'base_stats' => [
-                    'magic_attack_min' => 4,
-                    'magic_attack_max' => 7,
-                    'int_bonus' => 2,
-                    'mana_bonus' => 10,
-                ],
-                'description' => 'Prosta różdżka z magicznego drewna. Pulsuje słabą energią.',
-                'icon' => 'wand-wooden',
-                'rarity_weights' => [
-                    'common' => 60,
-                    'uncommon' => 30,
-                    'rare' => 10,
-                ],
-            ],
-
-            // Armor - VIT focused
-            [
-                'id' => Str::ulid(),
-                'name' => 'Skórzana Zbroja',
-                'type' => 'armor',
-                'slot' => 'chest',
-                'level_requirement' => 1,
-                'base_stats' => [
-                    'defense' => 2,
-                    'hp_bonus' => 5,
-                    'vit_bonus' => 1,
-                ],
-                'description' => 'Podstawowa ochrona ze skóry. Lekka i wygodna.',
-                'icon' => 'armor-leather',
-                'rarity_weights' => [
-                    'common' => 75,
-                    'uncommon' => 20,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Żelazny Hełm',
-                'type' => 'armor',
-                'slot' => 'head',
-                'level_requirement' => 3,
-                'base_stats' => [
-                    'defense' => 3,
-                    'hp_bonus' => 8,
-                    'vit_bonus' => 1,
-                ],
-                'description' => 'Solidny hełm z żelaza. Chroni głowę przed ciosami.',
-                'icon' => 'helmet-iron',
-                'rarity_weights' => [
-                    'common' => 70,
-                    'uncommon' => 25,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Kolczuga',
-                'type' => 'armor',
-                'slot' => 'chest',
-                'level_requirement' => 5,
-                'base_stats' => [
-                    'defense' => 6,
-                    'hp_bonus' => 12,
-                    'vit_bonus' => 2,
-                ],
-                'description' => 'Zbroja z metalowych ogniw. Zapewnia dobrą ochronę.',
-                'icon' => 'armor-chainmail',
-                'rarity_weights' => [
-                    'common' => 55,
-                    'uncommon' => 35,
-                    'rare' => 10,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Skórzane Buty',
-                'type' => 'armor',
-                'slot' => 'feet',
-                'level_requirement' => 2,
-                'base_stats' => [
-                    'defense' => 1,
-                    'agi_bonus' => 1,
-                ],
-                'description' => 'Wygodne buty ze skóry. Ciche i elastyczne.',
-                'icon' => 'boots-leather',
-                'rarity_weights' => [
-                    'common' => 80,
-                    'uncommon' => 15,
-                    'rare' => 5,
-                ],
-            ],
-
-            // Accessories
-            [
-                'id' => Str::ulid(),
-                'name' => 'Pierścień Siły',
-                'type' => 'accessory',
-                'slot' => 'ring',
-                'level_requirement' => 3,
-                'base_stats' => [
-                    'str_bonus' => 2,
-                ],
-                'description' => 'Magiczny pierścień zwiększający siłę noszącego.',
-                'icon' => 'ring-strength',
-                'rarity_weights' => [
-                    'common' => 40,
-                    'uncommon' => 45,
-                    'rare' => 15,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Pierścień Zręczności',
-                'type' => 'accessory',
-                'slot' => 'ring',
-                'level_requirement' => 3,
-                'base_stats' => [
-                    'agi_bonus' => 2,
-                ],
-                'description' => 'Lekki pierścień poprawiający zręczność.',
-                'icon' => 'ring-agility',
-                'rarity_weights' => [
-                    'common' => 40,
-                    'uncommon' => 45,
-                    'rare' => 15,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Amulet Żywotności',
-                'type' => 'accessory',
-                'slot' => 'neck',
-                'level_requirement' => 4,
-                'base_stats' => [
-                    'vit_bonus' => 3,
-                    'hp_bonus' => 15,
-                ],
-                'description' => 'Pradawny amulet wzmacniający życiową energię.',
-                'icon' => 'amulet-vitality',
-                'rarity_weights' => [
-                    'common' => 35,
-                    'uncommon' => 45,
-                    'rare' => 20,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Amulet Mądrości',
-                'type' => 'accessory',
-                'slot' => 'neck',
-                'level_requirement' => 4,
-                'base_stats' => [
-                    'int_bonus' => 3,
-                    'mana_bonus' => 20,
-                ],
-                'description' => 'Mistyczny amulet zwiększający pojemność umysłu.',
-                'icon' => 'amulet-wisdom',
-                'rarity_weights' => [
-                    'common' => 35,
-                    'uncommon' => 45,
-                    'rare' => 20,
-                ],
-            ],
-
+        $manualItems = [
             // Consumables
-            [
-                'id' => Str::ulid(),
-                'name' => 'Mikstura Leczenia',
-                'type' => 'consumable',
-                'slot' => null,
-                'level_requirement' => 1,
-                'base_stats' => [
-                    'heal_amount' => 25,
-                ],
-                'description' => 'Czerwona mikstura przywracająca zdrowie.',
-                'icon' => 'potion-health',
-                'rarity_weights' => [
-                    'common' => 80,
-                    'uncommon' => 15,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Eliksir Many',
-                'type' => 'consumable',
-                'slot' => null,
-                'level_requirement' => 2,
-                'base_stats' => [
-                    'mana_amount' => 30,
-                ],
-                'description' => 'Niebieska mikstura przywracająca energię magiczną.',
-                'icon' => 'potion-mana',
-                'rarity_weights' => [
-                    'common' => 75,
-                    'uncommon' => 20,
-                    'rare' => 5,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Wielka Mikstura Leczenia',
-                'type' => 'consumable',
-                'slot' => null,
-                'level_requirement' => 5,
-                'base_stats' => [
-                    'heal_amount' => 60,
-                ],
-                'description' => 'Potężna mikstura przywracająca znaczną ilość zdrowia.',
-                'icon' => 'potion-health-greater',
-                'rarity_weights' => [
-                    'common' => 60,
-                    'uncommon' => 30,
-                    'rare' => 10,
-                ],
-            ],
+            ['id' => Str::ulid(), 'name' => 'Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['heal_amount' => 25], 'description' => 'Czerwona mikstura.', 'icon' => 'potion-health', 'rarity_weights' => ['common' => 80, 'uncommon' => 15, 'rare' => 5]],
+            ['id' => Str::ulid(), 'name' => 'Eliksir Many', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 2, 'base_stats' => ['mana_amount' => 30], 'description' => 'Niebieska mikstura.', 'icon' => 'potion-mana', 'rarity_weights' => ['common' => 75, 'uncommon' => 20, 'rare' => 5]],
+            ['id' => Str::ulid(), 'name' => 'Wielka Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 5, 'base_stats' => ['heal_amount' => 150], 'description' => 'Potężna mikstura.', 'icon' => 'potion-health-greater', 'rarity_weights' => ['common' => 60, 'uncommon' => 30, 'rare' => 10]],
 
             // Materials
-            [
-                'id' => Str::ulid(),
-                'name' => 'Wilcza Skóra',
-                'type' => 'material',
-                'slot' => null,
-                'level_requirement' => 1,
-                'base_stats' => [],
-                'description' => 'Gruba wilcza skóra. Można ją sprzedać lub wykorzystać do rzemiosła.',
-                'icon' => 'material-pelt',
-                'rarity_weights' => [
-                    'common' => 80,
-                    'uncommon' => 20,
-                    'rare' => 0,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Zioło Lecznika',
-                'type' => 'material',
-                'slot' => null,
-                'level_requirement' => 1,
-                'base_stats' => [],
-                'description' => 'Pachnące zioło o właściwościach leczniczych.',
-                'icon' => 'material-herb',
-                'rarity_weights' => [
-                    'common' => 90,
-                    'uncommon' => 10,
-                    'rare' => 0,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Odłamek Kości',
-                'type' => 'material',
-                'slot' => null,
-                'level_requirement' => 5,
-                'base_stats' => [],
-                'description' => 'Ostro zakończony odłamek kości. Może posłużyć do tworzenia broni.',
-                'icon' => 'material-bone',
-                'rarity_weights' => [
-                    'common' => 70,
-                    'uncommon' => 30,
-                    'rare' => 0,
-                ],
-            ],
-            [
-                'id' => Str::ulid(),
-                'name' => 'Klejnot Pustyni',
-                'type' => 'material',
-                'slot' => null,
-                'level_requirement' => 10,
-                'base_stats' => [],
-                'description' => 'Rzadki kryształ znajdowany na pustyni. Bardzo cenny.',
-                'icon' => 'material-gem',
-                'rarity_weights' => [
-                    'common' => 50,
-                    'uncommon' => 40,
-                    'rare' => 10,
-                ],
-            ],
+            ['id' => Str::ulid(), 'name' => 'Wilcza Skóra', 'type' => 'material', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Gruba wilcza skóra.', 'icon' => 'material-pelt', 'rarity_weights' => ['common' => 80, 'uncommon' => 20, 'rare' => 0]],
+            ['id' => Str::ulid(), 'name' => 'Zioło Lecznika', 'type' => 'material', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Zioło lecznicze.', 'icon' => 'material-herb', 'rarity_weights' => ['common' => 90, 'uncommon' => 10, 'rare' => 0]],
+            ['id' => Str::ulid(), 'name' => 'Odłamek Kości', 'type' => 'material', 'slot' => null, 'level_requirement' => 5, 'base_stats' => [], 'description' => 'Odłamek kości.', 'icon' => 'material-bone', 'rarity_weights' => ['common' => 70, 'uncommon' => 30, 'rare' => 0]],
+            
             // Keys
+            ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'key-rusty', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
+            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'sword-rusty', 'rarity_weights' => ['common' => 100]],
+        ];
+
+        foreach ($manualItems as $item) {
+            ItemTemplate::create($item);
+        }
+
+        $prototypes = [
+            'sword'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 2]],
+            'axe'      => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 8, 'str_bonus' => 3]],
+            'bow'      => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'agi_bonus' => 2]],
+            'bell'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 2, 'mana_bonus' => 10]],
+            'wand'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 8, 'int_bonus' => 3]],
+            'dagger'   => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 2, 'crit_chance' => 5]],
+            
+            'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 10, 'vit_bonus' => 1, 'str_bonus' => 1]],
+            'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 5, 'hp_bonus' => 20, 'vit_bonus' => 2, 'str_bonus' => 1]],
+            'boots_w'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 5, 'vit_bonus' => 1, 'str_bonus' => 1]],
+            
+            'helmet_m' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 1, 'mana_bonus' => 15, 'int_bonus' => 2]],
+            'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'mana_bonus' => 30, 'int_bonus' => 3]],
+            'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'mana_bonus' => 10, 'int_bonus' => 1]],
+            
+            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'agi_bonus' => 2, 'crit_chance' => 2]],
+            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'agi_bonus' => 3, 'crit_chance' => 3]],
+            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'agi_bonus' => 2, 'crit_chance' => 2]],
+            
+            'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 25, 'vit_bonus' => 2]],
+            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['str_bonus' => 3, 'agi_bonus' => 1, 'int_bonus' => 1]],
+        ];
+
+        $themes = [
             [
-                'id' => '01k4jpx94j70x2vv10b835key1',
-                'name' => 'Zardzewiały Klucz do Lochów',
-                'type' => 'material',
-                'slot' => null,
-                'level_requirement' => 8,
-                'base_stats' => [],
-                'description' => 'Tajemniczy stary klucz, który otwiera pobliskie zapomniane lochy.',
-                'icon' => 'key-rusty',
-                'rarity_weights' => [
-                    'common' => 0,
-                    'uncommon' => 70,
-                    'rare' => 30,
-                ],
+                'level' => 5, 'scale' => 2,
+                'names' => [
+                    'sword' => 'Miecz Leśnego Goblina', 'axe' => 'Topór Drwala z Mrocznego Lasu', 'bow' => 'Łuk z Pnia Suchodrzewu',
+                    'bell' => 'Dzwon Leśnego Szamana', 'wand' => 'Różdżka z Cisa', 'dagger' => 'Sztylety z Kości Wilka',
+                    'helmet_w' => 'Hełm Leśnego Strażnika', 'armor_w' => 'Pancerz z Wilczej Skóry', 'boots_w' => 'Buty Tropiącego',
+                    'helmet_m' => 'Kaptur Spleciony z Mchu', 'armor_m' => 'Szata Leśnego Ducha', 'boots_m' => 'Miękkie Mokasyny',
+                    'helmet_a' => 'Maska z Czaszki Wilka', 'armor_a' => 'Skórznia Nocnego Łowcy', 'boots_a' => 'Ciche Podeszwy',
+                    'amulet' => 'Naszyjnik z Kłów', 'ring' => 'Pierścień Wędrowca'
+                ]
+            ],
+            [
+                'level' => 15, 'scale' => 6,
+                'names' => [
+                    'sword' => 'Ostrze Króla Lasu', 'axe' => 'Ciężki Topór Enta', 'bow' => 'Łuk Nocnego Myśliwego',
+                    'bell' => 'Dzwon Prastarych Drzew', 'wand' => 'Kostur z Serca Suchodrzewu', 'dagger' => 'Zatrute Sztylety Goblina',
+                    'helmet_w' => 'Wzmocniony Hełm Strażnika', 'armor_w' => 'Zbroja z Twardej Kory', 'boots_w' => 'Okute Buty Leśnika',
+                    'helmet_m' => 'Kaptur Krwawego Mchu', 'armor_m' => 'Szata Spaczonego Lasu', 'boots_m' => 'Trzewiki Korzeni',
+                    'helmet_a' => 'Maska Półcienia', 'armor_a' => 'Płaszcz Liściastego Skrytobójcy', 'boots_a' => 'Buty Skoku',
+                    'amulet' => 'Amulet Prastarego Dębu', 'ring' => 'Pierścień Splecionych Korzeni'
+                ]
+            ],
+            [
+                'level' => 25, 'scale' => 15,
+                'names' => [
+                    'sword' => 'Zardzewiały Miecz Szkieletu', 'axe' => 'Ząbkowany Topór Upiora', 'bow' => 'Łuk z Kości Zjaw',
+                    'bell' => 'Dzwon Pokutny', 'wand' => 'Różdżka Potępionych Dusz', 'dagger' => 'Sztylety Skrytobójcy Dusz',
+                    'helmet_w' => 'Zardzewiały Hełm Rycerza', 'armor_w' => 'Kolczuga Strażnika Ruin', 'boots_w' => 'Żelazne Sabatony',
+                    'helmet_m' => 'Kaptur Zjaw', 'armor_m' => 'Zbutwiała Szata Licza', 'boots_m' => 'Buty Mgły',
+                    'helmet_a' => 'Maska Beztwarzowego Ducha', 'armor_a' => 'Skórznia Z Grobowca', 'boots_a' => 'Cmentarne Buty',
+                    'amulet' => 'Naszyjnik z Zimnej Stali', 'ring' => 'Pierścień Wiecznego Żalu'
+                ]
+            ],
+            [
+                'level' => 35, 'scale' => 35,
+                'names' => [
+                    'sword' => 'Maczuga Ogra', 'axe' => 'Rozłupywacz Czaszek', 'bow' => 'Łuk z Kości Jaskiniowca',
+                    'bell' => 'Dzwon Szamana Trolli', 'wand' => 'Różdżka Ziemnej Magii', 'dagger' => 'Sztylety z Zębów Nietoperza',
+                    'helmet_w' => 'Hełm z Czaszki Ogra', 'armor_w' => 'Gruboskórny Pancerz Trolla', 'boots_w' => 'Masywne Buciska',
+                    'helmet_m' => 'Szamański Kaptur Trolli', 'armor_m' => 'Szata z Futer Nietoperzy', 'boots_m' => 'Buty z Mchu Jaskiniowego',
+                    'helmet_a' => 'Maska Łowcy Ogrów', 'armor_a' => 'Płaszcz Skalnego Cienia', 'boots_a' => 'Buty Cichego Kroku',
+                    'amulet' => 'Amulet Skalnego Trolla', 'ring' => 'Kamienny Pierścień'
+                ]
+            ],
+            [
+                'level' => 45, 'scale' => 80,
+                'names' => [
+                    'sword' => 'Glewia Wodza Orków', 'axe' => 'Topór Berserkera Orków', 'bow' => 'Łuk Krwawego Zwiadu',
+                    'bell' => 'Dzwon Krwawego Rytuału', 'wand' => 'Kostur Szamana Krwi', 'dagger' => 'Sztylety Pustkowi',
+                    'helmet_w' => 'Hełm Wodza Orków', 'armor_w' => 'Pancerz z Hartowanej Stali', 'boots_w' => 'Buty Orkowego Wojownika',
+                    'helmet_m' => 'Kaptur Szamana Krwi', 'armor_m' => 'Szata Nasączona Krwią', 'boots_m' => 'Trzewiki Rytualne',
+                    'helmet_a' => 'Maska Pustynnego Wiatru', 'armor_a' => 'Skórznia Orkowego Zabójcy', 'boots_a' => 'Buty Burzy Piaskowej',
+                    'amulet' => 'Naszyjnik Orkowego Wodza', 'ring' => 'Pierścień Berserkera'
+                ]
+            ],
+            [
+                'level' => 55, 'scale' => 180,
+                'names' => [
+                    'sword' => 'Ostrze z Zęba Hydry', 'axe' => 'Zbutwiały Topór Topielca', 'bow' => 'Łuk z Wierzby Płaczącej',
+                    'bell' => 'Dzwon Utopców', 'wand' => 'Różdżka Wiedźmiej Straży', 'dagger' => 'Zatrute Kły Hydry',
+                    'helmet_w' => 'Zardzewiały Hełm z Głębin', 'armor_w' => 'Pancerz z Łusek Hydry', 'boots_w' => 'Mokre Buty Bagienne',
+                    'helmet_m' => 'Kaptur Wiedźmy Zgnilizny', 'armor_m' => 'Szata Tkana z Zielska', 'boots_m' => 'Buty Bagiennej Mgły',
+                    'helmet_a' => 'Maska z Błota', 'armor_a' => 'Skórznia Żmijowa', 'boots_a' => 'Podeszwy Bezdźwięku',
+                    'amulet' => 'Naszyjnik z Oka Hydry', 'ring' => 'Pierścień Zgniłego Mchu'
+                ]
+            ],
+            [
+                'level' => 65, 'scale' => 400,
+                'names' => [
+                    'sword' => 'Miecz Wykuty z Bazaltu', 'axe' => 'Topór Kamiennego Golema', 'bow' => 'Łuk z Piór Harpii',
+                    'bell' => 'Dzwon Górskiego Echa', 'wand' => 'Różdżka z Górskiego Kryształu', 'dagger' => 'Sztylety Skalnego Kła',
+                    'helmet_w' => 'Hełm z Czarnego Bazaltu', 'armor_w' => 'Pancerz Skalnego Golema', 'boots_w' => 'Ciężkie Kamienne Buty',
+                    'helmet_m' => 'Kaptur Burzowych Chmur', 'armor_m' => 'Szata z Piór Harpii', 'boots_m' => 'Trzewiki Górskiego Wiatru',
+                    'helmet_a' => 'Maska Nocnego Drapieżnika', 'armor_a' => 'Płaszcz Górskiego Cienia', 'boots_a' => 'Buty Sokolnika',
+                    'amulet' => 'Naszyjnik ze Szponu Harpii', 'ring' => 'Pierścień Czarnego Kryształu'
+                ]
+            ],
+            [
+                'level' => 75, 'scale' => 1000,
+                'names' => [
+                    'sword' => 'Piekielny Miecz Smoka', 'axe' => 'Topór Smoczego Gniewu', 'bow' => 'Smoczy Łuk',
+                    'bell' => 'Dzwon Oddechu Smoka', 'wand' => 'Różdżka Smoczej Łuski', 'dagger' => 'Sztylety z Cienia Smoka',
+                    'helmet_w' => 'Hełm Smoczej Straży', 'armor_w' => 'Pancerz ze Smoczych Łusek', 'boots_w' => 'Sabatony Smoka',
+                    'helmet_m' => 'Kaptur Cienia Smoka', 'armor_m' => 'Szata Smoczego Ognia', 'boots_m' => 'Buty z Popiołu',
+                    'helmet_a' => 'Maska Mrocznego Zabójcy', 'armor_a' => 'Skórznia Łowcy Smoków', 'boots_a' => 'Podeszwy Smoczego Lotu',
+                    'amulet' => 'Amulet Smoczego Oka', 'ring' => 'Pierścień Władcy Cienia'
+                ]
+            ],
+            [
+                'level' => 85, 'scale' => 3000,
+                'names' => [
+                    'sword' => 'Miecz Runicznego Gwardzisty', 'axe' => 'Topór Magicznego Płomienia', 'bow' => 'Łuk z Eterycznej Energii',
+                    'bell' => 'Dzwon Mistrza Iluzji', 'wand' => 'Kostur Arcymaga', 'dagger' => 'Sztylety z Czystej Energii',
+                    'helmet_w' => 'Hełm Strażnika Arkanów', 'armor_w' => 'Zbroja Runiczna', 'boots_w' => 'Buty Żywiołaka Płomieni',
+                    'helmet_m' => 'Kaptur Arcymaga', 'armor_m' => 'Szata Mistrza Iluzji', 'boots_m' => 'Buty Lewitacji',
+                    'helmet_a' => 'Maska Niewidzialności', 'armor_a' => 'Skórznia Nasączona Magią', 'boots_a' => 'Podeszwy z Eteru',
+                    'amulet' => 'Naszyjnik Runicznej Energii', 'ring' => 'Pierścień Absolutu'
+                ]
+            ],
+            [
+                'level' => 95, 'scale' => 7000,
+                'names' => [
+                    'sword' => 'Ostrze Skażonego Rycerza', 'axe' => 'Topór Czarownicy Zgnilizny', 'bow' => 'Łuk Tkany z Pajęczyny Plagi',
+                    'bell' => 'Dzwon Ostatniego Tchnienia', 'wand' => 'Różdżka Zmutowanego Czarownika', 'dagger' => 'Sztylety Jadu Pająka Plagi',
+                    'helmet_w' => 'Hełm Rycerza Skazy', 'armor_w' => 'Pancerz Skażonej Stali', 'boots_w' => 'Buty Zgnilizny',
+                    'helmet_m' => 'Kaptur Pająka Plagi', 'armor_m' => 'Szata z Przeklętego Jedwabiu', 'boots_m' => 'Buty Kwasu',
+                    'helmet_a' => 'Maska Cienia Skazy', 'armor_a' => 'Skórznia Upadłego Zabójcy', 'boots_a' => 'Podeszwy Trucizny',
+                    'amulet' => 'Amulet Zmutowanego Oka', 'ring' => 'Pierścień Zgnilizny'
+                ]
+            ],
+            [
+                'level' => 99, 'scale' => 15000,
+                'names' => [
+                    'sword' => 'Miecz Pana Zniszczenia', 'axe' => 'Rozdzieracz Światów', 'bow' => 'Łuk Apokalipsy',
+                    'bell' => 'Dzwon Sądu Ostatecznego', 'wand' => 'Kostur Władcy Mroku', 'dagger' => 'Sztylety Ostatecznego Zniszczenia',
+                    'helmet_w' => 'Korona Pana Zniszczenia', 'armor_w' => 'Pancerz Absolutnego Chaosu', 'boots_w' => 'Buty Deptania Światów',
+                    'helmet_m' => 'Kaptur Pożeracza Dusz', 'armor_m' => 'Szata Mrocznej Pustki', 'boots_m' => 'Buty Otchłani',
+                    'helmet_a' => 'Maska Bezwzględnego Zniszczenia', 'armor_a' => 'Płaszcz Końca Czasu', 'boots_a' => 'Ciche Podeszwy Zmierzchu',
+                    'amulet' => 'Serce Pana Zniszczenia', 'ring' => 'Sygnet Apokalipsy'
+                ]
             ],
         ];
 
-        foreach ($templates as $template) {
-            ItemTemplate::create($template);
+        $generatedCount = 0;
+
+        foreach ($themes as $index => $theme) {
+            foreach ($prototypes as $protoKey => $proto) {
+                
+                $scaledStats = [];
+                foreach ($proto['stats'] as $statName => $baseValue) {
+                    if ($statName === 'crit_chance') {
+                        $scaledStats[$statName] = min(50, $baseValue + ($index * 2));
+                    } else {
+                        $scaledStats[$statName] = (int) round($baseValue * $theme['scale']);
+                    }
+                }
+
+                $name = $theme['names'][$protoKey] ?? ('Przedmiot ' . $protoKey);
+
+                ItemTemplate::create([
+                    'id' => Str::ulid(),
+                    'name' => $name,
+                    'type' => $proto['type'],
+                    'slot' => $proto['slot'],
+                    'level_requirement' => $theme['level'],
+                    'base_stats' => $scaledStats,
+                    'description' => "Potężny artefakt odpowiedni dla poziomu " . $theme['level'] . ".",
+                    'icon' => Str::slug($name),
+                    'rarity_weights' => [
+                        'common' => 50,
+                        'uncommon' => 30,
+                        'rare' => 15,
+                        'epic' => 4,
+                        'legendary' => 1
+                    ],
+                ]);
+                $generatedCount++;
+            }
         }
 
-        $this->command->info('Created ' . count($templates) . ' item templates');
+        $this->command->info('Created ' . count($manualItems) . ' manual items and ' . $generatedCount . ' generated item templates (total: ' . (count($manualItems) + $generatedCount) . ').');
     }
 }
+
