@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             PetSeeder::class,
             RecipeSeeder::class,
             EquipmentRecipeSeeder::class,
+            NewsSeeder::class,
         ]);
     }
 }

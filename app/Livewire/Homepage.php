@@ -46,28 +46,24 @@ class Homepage extends Component
                 ];
             });
 
+        // Fetch real news from database
+        $adminMessages = \App\Infrastructure\Persistence\News::orderBy('published_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($n) {
+                return [
+                    'title' => $n->title,
+                    'content' => $n->content,
+                    'date' => $n->published_at ? $n->published_at->format('Y-m-d') : $n->created_at->format('Y-m-d')
+                ];
+            });
+
         // Mock data for rankings and admin messages
         $mockData = [
             'activePlayers' => $activePlayers,
             'topCharacters' => $topCharacters,
             'topGuilds' => $topGuilds,
-            'adminMessages' => [
-                [
-                    'title' => 'Nowa aktualizacja systemu walki!',
-                    'content' => 'Wprowadziliśmy zbalansowane zmiany w systemie walki. Teraz każda klasa ma równe szanse na zwycięstwo. Sprawdźcie nowe umiejętności w zakładce Bohater!',
-                    'date' => '2025-09-03'
-                ],
-                [
-                    'title' => 'Wydarzenie: Podwójna nagroda za questy',
-                    'content' => 'Od dziś do końca tygodnia wszystkie questy dają podwójną nagrodę doświadczenia i złota. Idealna okazja do szybkiego rozwoju postaci!',
-                    'date' => '2025-09-01'
-                ],
-                [
-                    'title' => 'Nowe przedmioty w sklepie',
-                    'content' => 'W sklepie pojawiły się nowe, potężne artefakty. Sprawdźcie sekcję broni i zbroi - znajdziecie tam legendarne przedmioty dla najodważniejszych wojowników.',
-                    'date' => '2025-08-28'
-                ]
-            ]
+            'adminMessages' => $adminMessages
         ];
 
         // Get real character data if user is authenticated

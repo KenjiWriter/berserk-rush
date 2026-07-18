@@ -70,6 +70,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
+    Route::get('/news', \App\Livewire\Admin\NewsList::class)->name('news');
     Route::get('/maps', \App\Livewire\Admin\Maps::class)->name('maps');
     Route::get('/monsters', \App\Livewire\Admin\Monsters::class)->name('monsters');
     Route::get('/item-templates', \App\Livewire\Admin\ItemTemplates::class)->name('item-templates');

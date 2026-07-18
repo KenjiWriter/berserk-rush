@@ -3,6 +3,11 @@
         <h1 class="text-3xl font-bold mb-8 text-amber-500">Berserk Rush - Panel Administracyjny</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <a href="{{ route('admin.news') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">📜 Aktualności</h2>
+                <p class="text-gray-400">Zarządzanie ogłoszeniami wyświetlanymi na stronie głównej.</p>
+            </a>
+
             <a href="{{ route('admin.maps') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
                 <h2 class="text-xl font-bold mb-2">🗺️ Mapy</h2>
                 <p class="text-gray-400">Zarządzanie mapami, poziomami dostępu i grafikami.</p>
