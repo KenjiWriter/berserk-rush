@@ -237,6 +237,9 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="mt-4">
+                    {{ $templates->links() }}
+                </div>
             </div>
         </div>
     </div>

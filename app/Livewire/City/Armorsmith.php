@@ -170,17 +170,30 @@ class Armorsmith extends Component
                 
                 if ($owned < $req) $canCraft = false;
 
+                $dropMonsters = [];
+                if ($mat) {
+                    $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($mat) {
+                        $q->where('ref_ulid', $mat->id);
+                    })->pluck('name')->toArray();
+                }
+
                 $preparedIngredients[] = [
                     'name' => $mat ? $mat->name : 'Nieznany',
+                    'icon' => $mat ? $mat->icon : null,
                     'owned' => $owned,
                     'required' => $req,
                     'ok' => $owned >= $req,
+                    'dropped_by' => $dropMonsters,
                 ];
             }
 
             $preparedRecipes[] = [
                 'id' => $recipe->id,
                 'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
+                'result_icon' => $recipe->resultItemTemplate->icon ?? null,
+                'result_level' => $recipe->resultItemTemplate->level_requirement ?? 1,
+                'result_type' => $recipe->resultItemTemplate->type ?? 'armor',
+                'result_stats' => $recipe->resultItemTemplate->base_stats ?? [],
                 'gold_cost' => $recipe->gold_cost,
                 'ingredients' => $preparedIngredients,
                 'can_craft' => $canCraft,

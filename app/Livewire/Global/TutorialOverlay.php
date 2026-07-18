@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Character;
+use App\Application\Characters\LevelUpService;
 
 class TutorialOverlay extends Component
 {
@@ -36,7 +37,7 @@ class TutorialOverlay extends Component
         }
     }
 
-    public function nextStep()
+    public function nextStep(LevelUpService $levelUpService)
     {
         $user = Auth::user();
         if ($user) {
@@ -68,6 +69,10 @@ class TutorialOverlay extends Component
 
                 if ($character) {
                     $character->save();
+                    
+                    if ($this->rewardXp > 0) {
+                        $levelUpService->checkAndApply($character);
+                    }
                 }
 
                 $user->game_stage = $this->step;

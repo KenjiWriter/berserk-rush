@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Infrastructure\Persistence\ItemTemplate;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Str;
@@ -10,7 +11,8 @@ use Illuminate\Support\Str;
 #[Layout('components.layouts.app')]
 class ItemTemplates extends Component
 {
-    public $templates;
+    use WithPagination;
+
     public $template_id, $name, $type, $slot, $level_requirement;
     public $selectedStats = [];
     public $statValues = [];
@@ -38,7 +40,6 @@ class ItemTemplates extends Component
 
     public function mount()
     {
-        $this->loadData();
         $this->loadAvailableIcons();
     }
 
@@ -58,31 +59,12 @@ class ItemTemplates extends Component
 
     public function updatedSearch()
     {
-        $this->loadData();
+        $this->resetPage();
     }
 
     public function updatedFilterType()
     {
-        $this->loadData();
-    }
-
-    public function loadData()
-    {
-        $query = ItemTemplate::query();
-
-        if (!empty($this->search)) {
-            $query->where(function($q) {
-                $q->where('name', 'like', '%' . $this->search . '%')
-                  ->orWhere('id', 'like', '%' . $this->search . '%');
-            });
-        }
-
-        if (!empty($this->filterType)) {
-            $query->where('type', $this->filterType);
-        }
-
-        $this->templates = $query->orderBy('level_requirement')->get();
-        $this->usedIcons = ItemTemplate::pluck('icon')->filter()->unique()->toArray();
+        $this->resetPage();
     }
 
     public function updatedName($value)
@@ -168,7 +150,6 @@ class ItemTemplates extends Component
                 $item->update(['icon' => $finalName]);
                 $this->cacheBuster = time();
                 $this->loadAvailableIcons();
-                $this->loadData();
                 session()->flash('message', 'Ikona została przypisana i zaktualizowana!');
             }
         } else {
@@ -225,7 +206,6 @@ class ItemTemplates extends Component
         }
 
         $this->reset(['template_id', 'name', 'type', 'slot', 'level_requirement', 'selectedStats', 'statValues', 'previewCP', 'description', 'icon', 'editingId', 'duration_minutes']);
-        $this->loadData();
         session()->flash('message', 'Szablon przedmiotu zapisany.');
     }
 
@@ -260,13 +240,30 @@ class ItemTemplates extends Component
     public function delete($id)
     {
         ItemTemplate::findOrFail($id)->delete();
-        $this->loadData();
     }
 
     // public function generateId() { ... } // Removed since we use updatedName()
 
     public function render()
     {
-        return view('livewire.admin.item-templates');
+        $query = ItemTemplate::query();
+
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhere('id', 'like', '%' . $this->search . '%');
+            });
+        }
+
+        if (!empty($this->filterType)) {
+            $query->where('type', $this->filterType);
+        }
+
+        $templates = $query->orderBy('level_requirement')->paginate(20);
+        $this->usedIcons = ItemTemplate::pluck('icon')->filter()->unique()->toArray();
+
+        return view('livewire.admin.item-templates', [
+            'templates' => $templates
+        ]);
     }
 }

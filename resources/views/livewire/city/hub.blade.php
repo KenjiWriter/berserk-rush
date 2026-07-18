@@ -1,5 +1,6 @@
-<div x-data="{ travelingTo: '' }"
-    class="min-h-screen bg-gradient-to-b from-blue-900/90 via-indigo-800/90 to-purple-900/90 text-amber-100 relative overflow-hidden">
+<div x-data="{ travelingTo: '', mouseX: 0, mouseY: 0 }"
+    @mousemove="if(window.innerWidth >= 1024) { mouseX = $event.clientX; mouseY = $event.clientY; }"
+    class="min-h-screen bg-black text-amber-100 relative overflow-hidden flex flex-col">
     
     {{-- Entering Location Transition Overlay --}}
     <div x-show="$data.travelingTo !== ''"
@@ -18,21 +19,26 @@
              </div>
          </div>
     </div>
-    {{-- Background city image --}}
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-60"
-        style="background-image: url('{{ asset('img/city-background.png') }}');">
+
+    {{-- Background city image with Parallax --}}
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-300 ease-out"
+        :style="`background-image: url('${'{{ asset('img/city-background.png') }}'}'); transform: scale(1.05) translate(${(mouseX - window.innerWidth/2) * 0.01}px, ${(mouseY - window.innerHeight/2) * 0.01}px);`">
     </div>
 
-    {{-- Dark overlay for readability --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-800/50 to-slate-900/60"></div>
+    {{-- Warm lighting overlay (Golden Hour / Magical) --}}
+    <div class="absolute inset-0 bg-gradient-to-br from-amber-900/40 via-purple-900/30 to-orange-900/50 mix-blend-overlay"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
-    {{-- Floating motes of light --}}
-    <div class="absolute inset-0 pointer-events-none">
-        <div class="magic-mote magic-mote-1"></div>
-        <div class="magic-mote magic-mote-2"></div>
-        <div class="magic-mote magic-mote-3"></div>
-        <div class="magic-mote magic-mote-4"></div>
-        <div class="magic-mote magic-mote-5"></div>
+    {{-- Floating motes & Clouds --}}
+    <div class="absolute inset-0 pointer-events-none overflow-hidden">
+        {{-- Sun rays --}}
+        <div class="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-b from-amber-300/10 to-transparent transform -skew-x-12 blur-3xl"></div>
+        
+        <div class="magic-mote magic-mote-1 bg-amber-300 shadow-[0_0_10px_#fcd34d]"></div>
+        <div class="magic-mote magic-mote-2 bg-orange-300 shadow-[0_0_10px_#fdba74]"></div>
+        <div class="magic-mote magic-mote-3 bg-purple-300 shadow-[0_0_10px_#d8b4fe]"></div>
+        <div class="magic-mote magic-mote-4 bg-amber-400 shadow-[0_0_10px_#fbbf24]"></div>
+        <div class="magic-mote magic-mote-5 bg-yellow-200 shadow-[0_0_10px_#fef08a]"></div>
     </div>
 
     @php
@@ -57,20 +63,19 @@
         <livewire:global.tutorial-overlay :step="23" />
     @endif
 
-    <div class="relative container mx-auto px-4 py-8 min-h-screen">
+    <div class="relative container mx-auto px-4 py-6 md:py-8 min-h-screen flex flex-col z-10">
         {{-- Header with character info --}}
         <div class="flex flex-col md:flex-row items-center md:justify-between mb-8 gap-4 text-center md:text-left">
-            <div
-                class="bg-gradient-to-r from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm w-full md:w-auto">
-                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3">
+            <div class="bg-black/60 border border-amber-900/50 rounded-2xl p-4 shadow-2xl backdrop-blur-md w-full md:w-auto relative overflow-hidden group">
+                <div class="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 relative z-10">
                     {{-- Character avatar --}}
-                    <div
-                        class="w-12 h-12 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-300">
+                    <div class="w-14 h-14 border-2 border-amber-500/70 rounded-full overflow-hidden bg-gradient-to-b from-amber-800 to-amber-950 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
                         @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}"
                                 alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
                         @else
-                            <div class="w-full h-full flex items-center justify-center text-lg text-amber-700">
+                            <div class="w-full h-full flex items-center justify-center text-xl text-amber-500">
                                 ⚔️
                             </div>
                         @endif
@@ -78,506 +83,352 @@
 
                     {{-- Character info --}}
                     <div>
-                        <h2 class="text-xl font-bold text-amber-900 medieval-font">{{ $character->name }}</h2>
-                        <div class="text-sm text-amber-700">
-                            Poziom {{ $character->level }} • {{ $character->xp }} XP •
-                            {{ number_format($character->gold) }} złota
+                        <h2 class="text-2xl font-bold text-amber-400 medieval-font drop-shadow-md">{{ $character->name }}</h2>
+                        <div class="text-sm text-amber-200/80 font-medium">
+                            Poziom {{ $character->level }} <span class="mx-1">•</span> {{ $character->xp }} XP <span class="mx-1">•</span>
+                            <span class="text-yellow-400">{{ number_format($character->gold) }} złota</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             {{-- Back buttons --}}
-            <div class="flex flex-wrap justify-center md:justify-end gap-2 md:gap-4 w-full md:w-auto">
+            <div class="flex flex-wrap justify-center md:justify-end gap-3 w-full md:w-auto">
                 @if(auth()->user()->permission_level >= 9)
                     <a href="{{ route('admin.dashboard') }}"
-                        class="bg-gradient-to-r from-red-800 to-red-900 hover:from-red-700 hover:to-red-800 text-amber-100 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font flex items-center">
-                        ⚙️ Admin Panel
+                        class="bg-red-950/80 border border-red-700/50 hover:bg-red-900 hover:border-red-500 text-red-200 font-bold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm">
+                        ⚙️ Admin
                     </a>
                 @endif
                 <button wire:click="backToHomepage"
-                    class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font flex items-center">
-                    🏠 Powrót do lobby
+                    class="bg-slate-900/80 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-500 text-slate-200 font-bold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm">
+                    🏠 Powrót
                 </button>
             </div>
         </div>
 
         {{-- City title --}}
-        <div class="text-center mb-12">
-            <h1
-                class="text-5xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl mb-2">
-                🏰 Miasto Berserków
+        <div class="text-center mb-10">
+            <h1 class="text-4xl md:text-6xl font-bold bg-gradient-to-b from-amber-200 via-amber-400 to-orange-500 bg-clip-text text-transparent medieval-font drop-shadow-[0_5px_5px_rgba(0,0,0,0.8)] mb-3 filter drop-shadow-lg">
+                Miasto Berserków
             </h1>
-            <p class="text-xl text-amber-200 font-semibold drop-shadow-lg">
-                Wybierz gdzie chcesz się udać
+            <p class="text-lg md:text-xl text-amber-200/80 font-medium tracking-wide">
+                Gdzie skierujesz swoje kroki?
             </p>
         </div>
 
-        {{-- City layout (Desktop) --}}
-        <div class="hidden lg:grid lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {{-- Left side buildings --}}
-            <div class="space-y-6">
-                {{-- Profile --}}
-                <div class="relative group {{ in_array($gameStage, [5, 14]) ? 'z-10' : '' }}">
-                    <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-blue-100/95 hover:to-blue-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-blue-800 transform rotate-45 -translate-x-3 -translate-y-3">
+        {{-- Desktop Asymmetrical Bento Layout --}}
+        <div class="hidden lg:grid grid-cols-12 gap-5 max-w-7xl mx-auto w-full flex-grow auto-rows-[160px]">
+            
+            {{-- ADVENTURE (Hero card, 8 cols, 2 rows) --}}
+            <div class="col-span-8 row-span-2 relative group rounded-3xl overflow-hidden border-2 border-green-900/50 shadow-2xl transition-all duration-300 hover:border-green-500/80 hover:shadow-[0_0_30px_rgba(34,197,94,0.3)] {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
+                 x-data="{ tiltX: 0, tiltY: 0 }"
+                 @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-8; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*8;"
+                 @mouseleave="tiltX = 0; tiltY = 0"
+                 :style="`transform: perspective(1200px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.01 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" 
+                    class="w-full h-full text-left relative" wire:loading.attr="disabled">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-110" style="background-image: url('{{ asset('img/adventure-background.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                    <div class="absolute inset-0 bg-green-900/20 mix-blend-color group-hover:bg-green-900/0 transition-colors duration-500"></div>
+                    
+                    <div class="absolute bottom-0 left-0 p-8">
+                        <div class="text-5xl mb-3 transform transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300">
+                            <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
+                            <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-blue-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-blue-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-blue-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
+                        <h3 class="text-4xl font-bold text-amber-100 medieval-font mb-2 drop-shadow-lg group-hover:text-amber-300 transition-colors">Przygoda</h3>
+                        <p class="text-green-200/90 font-medium text-lg">Wyrusz na dzikie terytoria, walcz z potworami i zdobywaj łupy.</p>
+                    </div>
+                </button>
+            </div>
 
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('profile')">👤</div>
-                                <div wire:loading wire:target="goTo('profile')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-blue-900 medieval-font mb-2">Postać</h3>
-                            <p class="text-blue-800 font-semibold">Ekwipunek i statystyki</p>
+            {{-- PROFILE (Tall card, 4 cols, 2 rows) --}}
+            <div class="col-span-4 row-span-2 relative group rounded-3xl overflow-hidden border-2 border-blue-900/50 shadow-2xl transition-all duration-300 hover:border-blue-500/80 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
+                 x-data="{ tiltX: 0, tiltY: 0 }"
+                 @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-10; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*10;"
+                 @mouseleave="tiltX = 0; tiltY = 0"
+                 :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" 
+                    class="w-full h-full text-center relative flex flex-col items-center justify-center bg-gradient-to-br from-blue-950 via-slate-900 to-blue-900" wire:loading.attr="disabled">
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/dark-matter.png')] opacity-20"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                    
+                    <div class="relative z-10 p-6 flex flex-col items-center">
+                        <div class="text-6xl mb-6 transform transition-transform group-hover:-translate-y-2 group-hover:scale-110 duration-300 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]">
+                            <div wire:loading.remove wire:target="goTo('profile')">👤</div>
+                            <div wire:loading wire:target="goTo('profile')"><svg class="animate-spin h-10 w-10 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         </div>
-                    </button>
-                </div>
+                        <h3 class="text-3xl font-bold text-blue-200 medieval-font mb-2 group-hover:text-blue-100 transition-colors">Postać</h3>
+                        <p class="text-blue-300/80 font-medium">Zarządzaj ekwipunkiem<br>i atrybutami bohatera</p>
+                    </div>
+                </button>
+            </div>
+
+            {{-- MARKET (4 cols, 1 row) --}}
+            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-yellow-900/50 shadow-lg transition-all duration-300 hover:border-yellow-500/80 hover:shadow-[0_0_20px_rgba(234,179,8,0.2)] bg-gradient-to-r from-yellow-950 to-stone-900"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
+                    <div class="text-4xl mr-4 transform transition-transform group-hover:scale-110">
+                        <div wire:loading.remove wire:target="goTo('market')">⚖️</div><div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-8 w-8 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-yellow-500 medieval-font group-hover:text-yellow-300">Targowisko</h3>
+                        <p class="text-yellow-200/60 text-sm">Handel z graczami</p>
+                    </div>
+                </button>
+            </div>
+
+            {{-- ARENA (5 cols, 1 row) --}}
+            <div class="col-span-5 row-span-1 relative group rounded-3xl overflow-hidden border border-orange-900/50 shadow-lg transition-all duration-300 hover:border-orange-500/80 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] bg-gradient-to-r from-orange-950 to-red-950"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-center p-6 relative">
+                    <div class="text-left flex items-center">
+                        <div class="text-5xl mr-5 transform transition-transform group-hover:rotate-12 duration-300">
+                            <div wire:loading.remove wire:target="goTo('arena')">🏟️</div><div wire:loading wire:target="goTo('arena')"><svg class="animate-spin h-10 w-10 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-orange-400 medieval-font group-hover:text-orange-300">Arena Gladiatorów</h3>
+                            <p class="text-orange-200/60 text-sm">Pojedynki PvP i rankingi</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            {{-- MAILBOX (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-sky-900/50 shadow-lg transition-all duration-300 hover:border-sky-500/80 hover:shadow-[0_0_20px_rgba(14,165,233,0.2)] bg-gradient-to-bl from-sky-950 to-slate-900"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="text-4xl mb-1 transform transition-transform group-hover:-translate-y-1">
+                        <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div><div wire:loading wire:target="goTo('mailbox')"><svg class="animate-spin h-8 w-8 text-sky-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <h3 class="text-xl font-bold text-sky-400 medieval-font">Poczta</h3>
+                    @php $unread = \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count(); @endphp
+                    @if($unread > 0)
+                        <div class="absolute top-3 right-3 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg animate-pulse">{{ $unread }}</div>
+                    @endif
+                </button>
+            </div>
+
+            {{-- ARMORSMITH (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-stone-700/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/armormaster.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20"></div>
+                    <div class="absolute inset-0 p-4 flex flex-col justify-end">
+                        <div class="text-3xl mb-1"><div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div><div wire:loading wire:target="goTo('armorsmith')"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div></div>
+                        <h3 class="text-xl font-bold text-amber-300 medieval-font">Zbrojmistrz</h3>
+                    </div>
+                </button>
+            </div>
+
+            {{-- WEAPONSMITH (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-stone-700/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20"></div>
+                    <div class="absolute inset-0 p-4 flex flex-col justify-end">
+                        <div class="text-3xl mb-1"><div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div><div wire:loading wire:target="goTo('weaponsmith')"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div></div>
+                        <h3 class="text-xl font-bold text-amber-300 medieval-font">Brońmistrz</h3>
+                    </div>
+                </button>
+            </div>
+
+            {{-- QUESTS (6 cols, 1 row) --}}
+            <div class="col-span-6 row-span-1 relative group rounded-3xl overflow-hidden border border-teal-900/50 shadow-lg transition-all duration-300 hover:border-teal-500/80 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] bg-gradient-to-r from-teal-950 via-slate-900 to-teal-950 {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-center p-6 relative">
+                    <div class="text-left flex items-center">
+                        <div class="text-5xl mr-5 transform transition-transform group-hover:-rotate-6 duration-300">
+                            <div wire:loading.remove wire:target="goTo('quests')">📜</div><div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold text-teal-400 medieval-font group-hover:text-teal-300">Tablica Wyzwań</h3>
+                            <p class="text-teal-200/60 text-sm">Misje, zadania i zlecenia</p>
+                        </div>
+                        @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                            <div class="absolute top-4 right-4 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-lg font-bold shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce">!</div>
+                        @endif
+                    </div>
+                </button>
+            </div>
+
+            {{-- WITCH (4 cols, 1 row) --}}
+            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-fuchsia-900/50 shadow-lg transition-all duration-300 hover:border-fuchsia-500/80 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] bg-gradient-to-br from-fuchsia-950 to-indigo-950"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
+                    <div class="text-4xl mr-4 transform transition-transform group-hover:scale-110">
+                        <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div><div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-8 w-8 text-fuchsia-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-fuchsia-400 medieval-font group-hover:text-fuchsia-300">Wiedźma</h3>
+                        <p class="text-fuchsia-200/60 text-sm">Alchemia i mikstury</p>
+                    </div>
+                </button>
+            </div>
+
+            {{-- WIZARD (4 cols, 1 row) --}}
+            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] bg-gradient-to-br from-indigo-950 to-blue-950"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
+                    <div class="text-4xl mr-4 transform transition-transform group-hover:scale-110">
+                        <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div><div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-indigo-400 medieval-font group-hover:text-indigo-300">Czarodziej</h3>
+                        <p class="text-indigo-200/60 text-sm">Magiczne zaklęcia</p>
+                    </div>
+                </button>
+            </div>
+
+            {{-- GUILD (4 cols, 1 row) --}}
+            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-red-900/50 shadow-lg transition-all duration-300 hover:border-red-500/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] bg-gradient-to-br from-red-950 to-stone-950"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'; $dispatch('play-audio', { type: 'hover' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
+                    <div class="text-4xl mr-4 transform transition-transform group-hover:-rotate-12">
+                        <div wire:loading.remove wire:target="goTo('guild')">🚩</div><div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-2xl font-bold text-red-500 medieval-font group-hover:text-red-400">Gildia</h3>
+                        <p class="text-red-200/60 text-sm">Sojusze i bonusy</p>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        {{-- Mobile Layout (Horizontal Carousel & Main Actions) --}}
+        <div class="lg:hidden mt-4 flex flex-col space-y-6 relative z-10">
+            {{-- Main Actions --}}
+            <div class="grid grid-cols-2 gap-3">
+                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })"
+                    class="col-span-2 relative overflow-hidden rounded-2xl border-2 border-green-700/80 shadow-xl p-6 {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                    <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('{{ asset('img/adventure-background.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-r from-green-950 via-green-900/80 to-transparent"></div>
+                    <div class="relative flex items-center justify-between">
+                        <div class="text-left">
+                            <div class="font-bold text-3xl text-green-400 medieval-font mb-1">Przygoda</div>
+                            <div class="text-green-200/70 text-sm font-medium">Wyrusz w nieznane</div>
+                        </div>
+                        <div class="text-5xl">🗺️</div>
+                    </div>
+                </button>
+
+                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })"
+                    class="relative overflow-hidden rounded-2xl border border-blue-800/80 shadow-lg p-6 bg-gradient-to-br from-blue-950 to-slate-900 {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                    <div class="text-5xl mb-3 text-center">👤</div>
+                    <div class="font-bold text-blue-300 medieval-font text-center text-xl">Postać</div>
+                </button>
+
+                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })"
+                    class="relative overflow-hidden rounded-2xl border border-teal-800/80 shadow-lg p-6 bg-gradient-to-br from-teal-950 to-slate-900 {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                    <div class="text-5xl mb-3 text-center relative inline-block w-full">📜
+                        @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                            <div class="absolute -top-2 right-4 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold shadow-lg animate-bounce">!</div>
+                        @endif
+                    </div>
+                    <div class="font-bold text-teal-300 medieval-font text-center text-xl">Wyzwania</div>
+                </button>
+            </div>
+
+            {{-- Carousel Title --}}
+            <div class="flex items-center space-x-4 px-2 mt-2">
+                <div class="h-px bg-gradient-to-r from-transparent to-amber-700/50 flex-grow"></div>
+                <h3 class="text-amber-500 medieval-font text-2xl drop-shadow-md">Dzielnica Handlowa</h3>
+                <div class="h-px bg-gradient-to-l from-transparent to-amber-700/50 flex-grow"></div>
+            </div>
+
+            {{-- Shop Grid --}}
+            <div class="grid grid-cols-2 gap-4 pb-6">
 
                 {{-- Armorsmith --}}
-                <div class="relative group">
-                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
-
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div>
-                                <div wire:loading wire:target="goTo('armorsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-amber-900 medieval-font mb-2">Zbrojmistrz</h3>
-                            <p class="text-amber-800 font-semibold">Zbroje i tarcze dla wojowników</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'" class="w-full h-40 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('{{ asset('img/armormaster.png') }}');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-4xl mb-2">🛡️</div>
+                            <div class="font-bold text-amber-300 medieval-font text-lg">Zbrojmistrz</div>
                         </div>
                     </button>
                 </div>
 
                 {{-- Weaponsmith --}}
-                <div class="relative group {{ $gameStage == 17 ? 'z-10' : '' }}">
-                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-amber-100/95 hover:to-amber-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
-
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div>
-                                <div wire:loading wire:target="goTo('weaponsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-amber-900 medieval-font mb-2">Brońmistrz</h3>
-                            <p class="text-amber-800 font-semibold">Miecze, łuki i magiczne berła</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" class="w-full h-40 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-4xl mb-2">⚔️</div>
+                            <div class="font-bold text-amber-300 medieval-font text-lg">Brońmistrz</div>
                         </div>
                     </button>
                 </div>
-            </div>
 
-            {{-- Center - Main road & Market/Mail --}}
-            <div class="flex flex-col items-center justify-center space-y-8">
-                
                 {{-- Market --}}
-                <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-yellow-600/95 hover:to-yellow-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
-                        <div class="relative text-center">
-                            <div class="text-5xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('market')">⚖️</div>
-                                <div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Targowisko</h3>
-                            <p class="text-amber-200/80 text-sm font-semibold">Handel z graczami</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'" class="w-full h-40 rounded-3xl border-2 border-yellow-800/50 bg-gradient-to-br from-yellow-950 to-stone-900 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">⚖️</div>
+                            <div class="font-bold text-yellow-500 medieval-font text-lg">Targowisko</div>
                         </div>
                     </button>
                 </div>
 
                 {{-- Arena --}}
-                <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-orange-600/95 hover:to-orange-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
-                        <div class="relative text-center">
-                            <div class="text-5xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('arena')">🏟️</div>
-                                <div wire:loading wire:target="goTo('arena')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Arena Gladiatorów</h3>
-                            <p class="text-orange-200/80 text-sm font-semibold">Walki PvP o chwałę</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'" class="w-full h-40 rounded-3xl border-2 border-orange-800/50 bg-gradient-to-br from-orange-950 to-red-950 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">🏟️</div>
+                            <div class="font-bold text-orange-400 medieval-font text-lg">Arena</div>
                         </div>
                     </button>
                 </div>
 
-                <div class="text-center my-4 hidden lg:block">
-                    <div class="w-24 h-24 mx-auto bg-gradient-to-b from-stone-400 to-stone-600 rounded-full border-4 border-stone-700 shadow-2xl flex items-center justify-center mb-2">
-                        <div class="text-3xl">🏰</div>
-                    </div>
-                    <h3 class="text-lg font-bold text-amber-300 medieval-font">Plac Centralny</h3>
-                </div>
-
-                {{-- Guilds --}}
-                <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-red-600/95 hover:to-red-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
-                        <div class="relative text-center">
-                            <div class="text-5xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('guild')">🚩</div>
-                                <div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Gildia</h3>
-                            <p class="text-red-200/80 text-sm font-semibold">Zjednocz się z innymi</p>
-                        </div>
-                    </button>
-                </div>
-
-                {{-- Quests --}}
-                <div class="relative group w-full max-w-xs {{ $gameStage == 23 ? 'z-10' : '' }}">
-                    <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-teal-600/95 hover:to-teal-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
-                        <div class="relative text-center">
-                            <div class="text-5xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('quests')">📜</div>
-                                <div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Tablica Wyzwań</h3>
-                            <p class="text-teal-200/80 text-sm font-semibold">Misje i zadania</p>
-                        </div>
-                        @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
-                            <div class="absolute -top-3 -right-3 w-8 h-8 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-lg font-bold border-2 border-amber-200 shadow-lg animate-bounce">
-                                !
-                            </div>
-                        @endif
-                    </button>
-                </div>
-
-                {{-- Mailbox --}}
-                <div class="relative group w-full max-w-xs">
-                    <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 shadow-2xl backdrop-blur-sm hover:from-blue-600/95 hover:to-blue-800/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
-                        <div class="relative text-center">
-                            <div class="text-5xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>
-                                <div wire:loading wire:target="goTo('mailbox')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">Poczta</h3>
-                            <p class="text-blue-200/80 text-sm font-semibold">
-                                Wiadomości
-                                @php
-                                    $unread = \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count();
-                                @endphp
-                                @if($unread > 0)
-                                    <span class="inline-flex items-center justify-center w-5 h-5 ml-1 text-xs font-bold text-white bg-red-500 rounded-full">
-                                        {{ $unread }}
-                                    </span>
-                                @endif
-                            </p>
-                        </div>
-                    </button>
-                </div>
-            </div>
-
-            {{-- Right side buildings --}}
-            <div class="space-y-6">
                 {{-- Witch --}}
-                <div class="relative group">
-                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-purple-100/95 hover:to-purple-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-purple-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-purple-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-purple-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-purple-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
-
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div>
-                                <div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-purple-900 medieval-font mb-2">Wiedźma</h3>
-                            <p class="text-purple-800 font-semibold">Alchemia i magiczne mikstury</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" class="w-full h-40 rounded-3xl border-2 border-fuchsia-800/50 bg-gradient-to-br from-fuchsia-950 to-indigo-950 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">🧙‍♀️</div>
+                            <div class="font-bold text-fuchsia-400 medieval-font text-lg">Wiedźma</div>
                         </div>
                     </button>
                 </div>
 
                 {{-- Wizard --}}
-                <div class="relative group">
-                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-indigo-100/95 hover:to-indigo-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
-                        {{-- Decorative corners --}}
-                        <div class="absolute top-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                        <div class="absolute top-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-indigo-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-indigo-800 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div>
-                                <div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-indigo-900 medieval-font mb-2">Czarodziej</h3>
-                            <p class="text-indigo-800 font-semibold">Magiczne bonusy przedmiotów</p>
+                <div class="col-span-1">
+                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'" class="w-full h-40 rounded-3xl border-2 border-indigo-800/50 bg-gradient-to-br from-indigo-950 to-blue-950 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">🧙‍♂️</div>
+                            <div class="font-bold text-indigo-400 medieval-font text-lg">Czarodziej</div>
                         </div>
                     </button>
                 </div>
 
-                {{-- Adventure --}}
-                <div class="relative group {{ $gameStage == 9 ? 'z-10' : '' }}">
-                    <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-6 shadow-2xl backdrop-blur-sm hover:from-green-100/95 hover:to-green-200/95 transition-all duration-300 transform hover:scale-105 hover:shadow-3xl {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-green-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-green-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-green-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-green-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
-
-                        <div class="relative text-center">
-                            <div class="text-6xl mb-4">
-                                <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
-                                <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                            <h3 class="text-2xl font-bold text-green-900 medieval-font mb-2">Przygoda</h3>
-                            <p class="text-green-800 font-semibold">Wyrusz na ekspedycje</p>
+                {{-- Guild --}}
+                <div class="col-span-1">
+                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" class="w-full h-40 rounded-3xl border-2 border-red-800/50 bg-gradient-to-br from-red-950 to-stone-900 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">🚩</div>
+                            <div class="font-bold text-red-500 medieval-font text-lg">Gildia</div>
                         </div>
                     </button>
                 </div>
-            </div>
-        </div>
 
-        {{-- Mobile layout --}}
-        <div class="lg:hidden mt-8">
-            <div class="grid grid-cols-2 gap-4">
-                <button wire:click="goTo('profile')" @click="travelingTo = 'Profil'; $dispatch('play-audio', { type: 'profile' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-blue-50/90 to-blue-100/90 border-4 border-blue-700 rounded-lg p-4 text-center shadow-xl {{ in_array($gameStage, [5, 14]) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('profile')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('profile')">👤</div>
-                                <div wire:loading wire:target="goTo('profile')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-blue-900 medieval-font">Postać</div>
-                </button>
-
-                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('armorsmith')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('armorsmith')">🛡️</div>
-                                <div wire:loading wire:target="goTo('armorsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-900 medieval-font">Zbrojmistrz</div>
-                </button>
-
-                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-amber-50/90 to-amber-100/90 border-4 border-amber-700 rounded-lg p-4 text-center shadow-xl {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('weaponsmith')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('weaponsmith')">⚔️</div>
-                                <div wire:loading wire:target="goTo('weaponsmith')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-900 medieval-font">Brońmistrz</div>
-                </button>
-
-                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-purple-50/90 to-purple-100/90 border-4 border-purple-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('witch')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div>
-                                <div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-purple-900 medieval-font">Wiedźma</div>
-                </button>
-
-                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-indigo-50/90 to-indigo-100/90 border-4 border-indigo-700 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('wizard')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div>
-                                <div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-indigo-900 medieval-font">Czarodziej</div>
-                </button>
-
-                <button wire:click="goTo('adventure')" @click="travelingTo = 'Wyprawy'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="col-span-2 bg-gradient-to-br from-green-50/90 to-green-100/90 border-4 border-green-700 rounded-lg p-4 text-center shadow-xl {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('adventure')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('adventure')">🗺️</div>
-                                <div wire:loading wire:target="goTo('adventure')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-green-900 medieval-font">Przygoda</div>
-                </button>
-                
-                <button wire:click="goTo('market')" @click="travelingTo = 'Targowisko'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-yellow-700/90 to-yellow-900/90 border-4 border-yellow-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('market')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('market')">⚖️</div>
-                                <div wire:loading wire:target="goTo('market')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-100 medieval-font">Targowisko</div>
-                </button>
-
-                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-orange-700/90 to-orange-900/90 border-4 border-orange-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('arena')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('arena')">🏟️</div>
-                                <div wire:loading wire:target="goTo('arena')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-100 medieval-font">Arena</div>
-                </button>
-
-                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-red-700/90 to-red-900/90 border-4 border-red-500 rounded-lg p-4 text-center shadow-xl" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('guild')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('guild')">🚩</div>
-                                <div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-100 medieval-font">Gildia</div>
-                </button>
-
-                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-teal-700/90 to-teal-900/90 border-4 border-teal-500 rounded-lg p-4 text-center shadow-xl relative {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10' : '' }}" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('quests')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('quests')">📜</div>
-                                <div wire:loading wire:target="goTo('quests')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-100 medieval-font">Wyzwania</div>
-                    @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
-                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold border-2 border-amber-200 shadow-lg animate-bounce">
-                            !
+                {{-- Mailbox --}}
+                <div class="col-span-1">
+                    <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'" class="w-full h-40 rounded-3xl border-2 border-sky-800/50 bg-gradient-to-br from-sky-950 to-slate-900 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center relative">
+                            @if(isset($unread) && $unread > 0)
+                                <div class="absolute top-2 right-6 w-6 h-6 bg-red-600 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">{{ $unread }}</div>
+                            @endif
+                            <div class="text-5xl mb-2">✉️</div>
+                            <div class="font-bold text-sky-400 medieval-font text-lg">Poczta</div>
                         </div>
-                    @endif
-                </button>
-
-                <button wire:click="goTo('mailbox')" @click="travelingTo = 'Poczta'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" @mouseleave="$dispatch('play-audio', { type: 'hover' })"
-                    class="bg-gradient-to-br from-blue-700/90 to-blue-900/90 border-4 border-blue-500 rounded-lg p-4 text-center shadow-xl relative" wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed" wire:target="goTo('mailbox')">
-                    <div class="text-4xl mb-2">
-                                <div wire:loading.remove wire:target="goTo('mailbox')">✉️</div>
-                                <div wire:loading wire:target="goTo('mailbox')"><svg class="animate-spin h-10 w-10 mx-auto text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                            </div>
-                    <div class="font-bold text-amber-100 medieval-font">Poczta</div>
-                    @if(isset($unread) && $unread > 0)
-                        <div class="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-slate-900 shadow-lg">
-                            {{ $unread }}
-                        </div>
-                    @endif
-                </button>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
-
-        .medieval-font {
-            font-family: 'Cinzel', serif;
-        }
-
-        /* Magic motes */
-        .magic-mote {
-            position: absolute;
-            background: radial-gradient(circle, rgba(147, 197, 253, 0.8) 0%, rgba(59, 130, 246, 0.4) 50%, transparent 100%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float-magic 20s infinite linear;
-        }
-
-        .magic-mote-1 {
-            width: 6px;
-            height: 6px;
-            left: 15%;
-            animation-delay: 0s;
-            animation-duration: 25s;
-        }
-
-        .magic-mote-2 {
-            width: 4px;
-            height: 4px;
-            left: 35%;
-            animation-delay: 5s;
-            animation-duration: 20s;
-        }
-
-        .magic-mote-3 {
-            width: 8px;
-            height: 8px;
-            left: 55%;
-            animation-delay: 10s;
-            animation-duration: 30s;
-        }
-
-        .magic-mote-4 {
-            width: 5px;
-            height: 5px;
-            left: 75%;
-            animation-delay: 15s;
-            animation-duration: 22s;
-        }
-
-        .magic-mote-5 {
-            width: 7px;
-            height: 7px;
-            left: 85%;
-            animation-delay: 20s;
-            animation-duration: 28s;
-        }
-
-        @keyframes float-magic {
-            0% {
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            90% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(50px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-    </style>
 </div>

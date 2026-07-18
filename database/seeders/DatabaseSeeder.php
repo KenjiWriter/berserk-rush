@@ -22,9 +22,13 @@ class DatabaseSeeder extends Seeder
             MapSeeder::class,
             MonsterSeeder::class,
             ItemTemplateSeeder::class,
+            MaterialItemSeeder::class,
             DungeonSeeder::class,
             LootTableSeeder::class,
+            MonsterLootSeeder::class,
             PetSeeder::class,
+            RecipeSeeder::class,
+            EquipmentRecipeSeeder::class,
         ]);
     }
 }

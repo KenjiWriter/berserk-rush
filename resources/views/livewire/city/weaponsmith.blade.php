@@ -330,38 +330,94 @@
                         </div>
                     </div>
                 @elseif($activeTab === 'crafting')
-                    <!-- Crafting View - zachowany z drobnymi modyfikacjami -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 h-full overflow-y-auto custom-scrollbar pr-2">
+                    <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pr-2">
                         @forelse($recipes as $recipe)
-                            <div class="bg-black/60 border border-gray-600 rounded-lg p-6 flex flex-col relative shadow-xl backdrop-blur">
-                                <div class="text-center mb-4 pb-4 border-b border-gray-700">
-                                    <h3 class="font-bold text-xl text-blue-300">{{ $recipe['result_name'] }}</h3>
-                                    <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold">🪙 {{ $recipe['gold_cost'] }}</span></p>
+                            <div x-data="{ showInfo: false }" 
+                                 :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                 class="bg-black/60 border border-amber-600/30 hover:border-amber-500/80 transition-all rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-xl backdrop-blur relative">
+                                
+                                <!-- Left: Result Item -->
+                                <div class="flex items-center gap-4 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-700 pb-4 md:pb-0 md:pr-4 relative" 
+                                     @mouseenter="showInfo = true"
+                                     @mouseleave="showInfo = false">
+                                     
+                                    <div class="w-16 h-16 bg-gray-900/80 rounded border border-gray-600 flex items-center justify-center p-2 flex-shrink-0 cursor-help">
+                                        @if($recipe['result_icon'])
+                                            <img src="{{ route('assets.items', ['filename' => $recipe['result_icon']]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $recipe['result_name'] }}">
+                                        @else
+                                            <span class="text-xs text-gray-500">Brak</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex-grow cursor-help">
+                                        <h3 class="font-bold text-lg text-blue-300">{{ $recipe['result_name'] }}</h3>
+                                        <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold">🪙 {{ number_format($recipe['gold_cost']) }}</span></p>
+                                    </div>
+
+                                    <!-- Infobox Docelowego Przedmiotu -->
+                                    <div x-show="showInfo" x-transition.opacity 
+                                         class="absolute z-50 top-full left-0 mt-2 w-64 bg-slate-900 border-2 border-slate-600 rounded-lg shadow-2xl p-4 pointer-events-none">
+                                        <h4 class="font-bold text-lg text-amber-400">{{ $recipe['result_name'] }}</h4>
+                                        <p class="text-xs text-gray-400 mb-2">Poziom: {{ $recipe['result_level'] }} | Typ: {{ ucfirst($recipe['result_type']) }}</p>
+                                        
+                                        <div class="text-sm text-green-400 mb-1 space-y-1">
+                                            @foreach($recipe['result_stats'] as $stat => $val)
+                                                <div class="flex justify-between"><span>{{ str_replace('_', ' ', $stat) }}</span><span>+{{ $val }}</span></div>
+                                            @endforeach
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="flex-grow">
-                                    <h4 class="text-amber-500 font-bold text-sm mb-2">Potrzebne materiały:</h4>
-                                    <div class="space-y-2">
+
+                                <!-- Center: Requirements -->
+                                <div class="flex-grow w-full flex flex-col">
+                                    <h4 class="text-amber-500 font-bold text-xs uppercase tracking-wider mb-2 hidden md:block">Wymagane materiały</h4>
+                                    <div class="flex flex-wrap items-center gap-3">
                                         @foreach($recipe['ingredients'] as $ing)
-                                            <div class="flex justify-between items-center text-sm bg-gray-900/80 p-2 rounded border border-gray-700">
-                                                <span class="text-gray-300">{{ $ing['name'] }}</span>
-                                                <span class="{{ $ing['ok'] ? 'text-green-400' : 'text-red-400' }} font-bold">
-                                                    {{ $ing['owned'] }} / {{ $ing['required'] }}
-                                                </span>
+                                            <div class="relative group cursor-help">
+                                                <div class="flex items-center gap-2 bg-gray-900/80 p-2 rounded border border-gray-700 transition hover:bg-gray-800">
+                                                    @if($ing['icon'])
+                                                        <img src="{{ route('assets.items', ['filename' => $ing['icon']]) }}" class="w-8 h-8 object-contain" alt="{{ $ing['name'] }}">
+                                                    @else
+                                                        <div class="w-8 h-8 bg-gray-800 rounded text-[10px] text-gray-500 flex items-center justify-center">{{ substr($ing['name'],0,3) }}</div>
+                                                    @endif
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xs text-gray-300 font-bold truncate max-w-[100px]">{{ $ing['name'] }}</span>
+                                                        <span class="text-xs {{ $ing['ok'] ? 'text-green-400' : 'text-red-400' }} font-bold">
+                                                            {{ $ing['owned'] }} / {{ $ing['required'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Tooltip -->
+                                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-50 shadow-2xl backdrop-blur-sm pointer-events-none">
+                                                    <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
+                                                    @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
+                                                        <div class="flex flex-wrap justify-center gap-1 mt-2">
+                                                            @foreach(array_unique($ing['dropped_by']) as $monsterName)
+                                                                <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <div class="text-[10px] text-gray-500 text-center italic mt-2">Brak w znanych tabelach łupów.</div>
+                                                    @endif
+                                                </div>
                                             </div>
                                         @endforeach
                                     </div>
                                 </div>
-                                <div class="mt-6 pt-4 border-t border-gray-700">
+
+                                <!-- Right: Craft Button -->
+                                <div class="w-full md:w-auto flex-shrink-0 flex items-center mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-700 pl-0 md:pl-4">
                                     @if($recipe['can_craft'])
-                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-3 px-4 rounded shadow transition-all">
+                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full md:w-48 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-3 px-6 rounded shadow transition-all whitespace-nowrap medieval-font">
                                             🛠️ Wytwórz
                                         </button>
                                     @else
-                                        <button disabled class="w-full bg-gray-800 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed">
+                                        <button disabled class="w-full md:w-48 bg-gray-800 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed whitespace-nowrap medieval-font border border-gray-700">
                                             ❌ Brak surowców
                                         </button>
                                     @endif
                                 </div>
+
                             </div>
                         @empty
                             <div class="col-span-full text-center text-gray-500 py-12">Brak dostępnych przepisów.</div>
