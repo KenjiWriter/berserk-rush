@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Berserk Rush - Trailer 2 Showcase</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Cinzel', serif;
+        }
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out; /* Szybsze cięcia dla dynamiki */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+        .scene.active {
+            opacity: 1;
+            z-index: 2;
+        }
+        .media-element {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            transform: translateX(-50%) translateY(-50%) scale(1.02);
+            object-fit: cover;
+            z-index: -1;
+        }
+        .ken-burns {
+            animation: kenburns 15s infinite alternate ease-in-out;
+        }
+        @keyframes kenburns {
+            from { transform: translateX(-50%) translateY(-50%) scale(1.02); }
+            to { transform: translateX(-50%) translateY(-50%) scale(1.1); }
+        }
+        
+        .text-overlay {
+            position: relative;
+            z-index: 10;
+            color: #fff;
+            font-size: 5vw;
+            text-align: center;
+            text-shadow: 0 0 20px #000, 0 0 40px #ff4500, 2px 2px 4px rgba(0,0,0,0.8);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.0s ease-out; /* Szybszy wjazd tekstu */
+            letter-spacing: 0.1em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .scene.active .text-overlay {
+            opacity: 1;
+            transform: translateY(0);
+            transition-delay: 0.5s; /* Krótsze opóźnienie, szybkie pojawienie się */
+        }
+        
+        /* Przycisk startowy */
+        #start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            background: rgba(255, 69, 0, 0.8);
+            color: white;
+            border: 2px solid #fff;
+            cursor: pointer;
+            z-index: 100;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            box-shadow: 0 0 20px rgba(255, 69, 0, 0.6);
+            transition: background 0.3s, transform 0.3s;
+        }
+        #start-btn:hover {
+            background: rgba(255, 0, 0, 0.9);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 4;
+            background: transparent;
+        }
+
+        /* --- Scena 2: Przewijanie (PowerPoint style) --- */
+        .ppt-scroll-scene {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        .ppt-scroll-container {
+            position: absolute;
+            width: 100%;
+            /* 200% by pomieścić dwa zrzuty ekranu symulujące długą stronę */
+            height: 200%; 
+            top: 0;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(0%); /* Na starcie widzimy górę strony */
+        }
+        .ppt-scroll-container img {
+            width: 100%;
+            height: 50%; /* Każdy zajmuje dokładnie jeden ekran */
+            object-fit: cover;
+            filter: brightness(0.85) contrast(1.1);
+            /* Usunięto marginesy, by obrazy zlewały się w jedną stronę */
+            margin: 0;
+            padding: 0;
+            display: block;
+        }
+        /* Animacja imitująca płynne ciągłe przewijanie strony w dół (obraz jedzie w górę) */
+        .scene.active .ppt-scroll-container {
+            animation: web-scroll-down 9.5s cubic-bezier(0.3, 0, 0.2, 1) forwards;
+        }
+        @keyframes web-scroll-down {
+            0% { transform: translateY(0%); }
+            10% { transform: translateY(0%); } /* Krótka pauza na starcie, by gracz zorientował się w widoku */
+            100% { transform: translateY(-50%); } /* Płynnie jedziemy na sam dół do drugiej mapy */
+        }
+
+        /* --- Scena 3: Combat Flash --- */
+        .combat-img {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1.02);
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.1s; /* Gwałtowne cięcia */
+        }
+        .combat-img.active {
+            opacity: 1;
+        }
+
+        /* --- Scena 4: Items Scroll --- */
+        .items-bg {
+            position: absolute;
+            top: -20%; left: -20%; width: 140%; height: 140%;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            opacity: 0.7;
+            transform: rotate(10deg);
+        }
+        .item-column {
+            display: flex;
+            flex-direction: column;
+            /* Brak gap tutaj, odstęp jest zarządzany przez item-group */
+        }
+        .item-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 20px; /* Tworzy równy odstęp przed kolejną taką samą grupą */
+            animation: scroll-up 8s linear infinite;
+        }
+        .item-column:nth-child(even) .item-group {
+            animation: scroll-down 10s linear infinite;
+        }
+        .item-icon {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.8);
+            object-fit: contain;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+        @keyframes scroll-up {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100%); } /* -100% wysokości pojedynczej grupy */
+        }
+        @keyframes scroll-down {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* --- Scena 5: Crafting & Upgrades --- */
+        .crafting-img {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(1.02);
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.2s; /* Szybkie przenikanie obrazów */
+        }
+        .enhance-frame {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <button id="start-btn">Odtwórz Showcase</button>
+
+    <div class="vignette"></div>
+    <div class="particles" id="particles-container"></div>
+
+    <!-- Audio Player -->
+    <audio id="bg-music" src="../trailer/trailer.mp3" loop></audio>
+    <audio class="voiceover" src="1.mp3"></audio> <!-- [0] -->
+    <audio class="voiceover" src="2.mp3"></audio> <!-- [1] -->
+    <audio class="voiceover" src="3.mp3"></audio> <!-- [2] -->
+    <audio class="voiceover" src="4.mp3"></audio> <!-- [3] -->
+    <audio class="voiceover" src="5.mp3"></audio> <!-- [4] -->
+    <audio class="voiceover" src="7.mp3"></audio> <!-- [5] Arena -->
+    <audio class="voiceover" src="6.mp3"></audio> <!-- [6] Outro -->
+
+    <!-- 1. Scena: Wstęp (Wideo Rycerza) -->
+    <div class="scene" data-voice="0">
+        <video src="1.mp4" class="media-element" muted playsinline loop></video>
+        <!-- Brak tekstu zgodnie ze scenariuszem, czysta grafika i lektor -->
+    </div>
+
+    <!-- 1b. Scena: Wstęp (Hub Cięcie) -->
+    <div class="scene" id="hub-scene">
+        <div id="hub-media-container" style="width: 100%; height: 100%; position: absolute; overflow: hidden; transform-origin: 30% 25%;">
+            <img src="hub.png" class="media-element">
+        </div>
+        
+        <!-- Tło przygody przygotowane pod efekt Zoom Out -->
+        <img src="adventure-1.png" id="adventure-expand-bg" style="
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 100%; height: 100%;
+            object-fit: cover;
+            transform: translate(-50%, -50%) scale(1.5);
+            opacity: 0;
+            z-index: 40;
+        ">
+
+        <!-- Kursor myszki do animacji kliknięcia w Przygodę -->
+        <svg id="trailer-cursor" width="80" height="80" viewBox="0 0 24 24" style="position: absolute; left: 80%; top: 80%; z-index: 50; opacity: 0; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.8));">
+            <path d="M7 2l12 11.2-5.8.5 3.3 7.3-2.2.9-3.2-7.4-4.4 4.7z" fill="white" stroke="black" stroke-width="1.5"/>
+        </svg>
+    </div>
+
+    <!-- 2. Scena: Lokacje (Płynny scroll jak na stronie) -->
+    <div class="scene ppt-scroll-scene" data-voice="1">
+        <div class="ppt-scroll-container">
+            <!-- Góra "strony" (adventure-1) -->
+            <img src="adventure-1.png">
+            <!-- Dół "strony" (adventure-2) -->
+            <img src="adventure-2.png">
+        </div>
+        <div class="text-overlay" style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) !important; width: 100%;">
+            DZIESIĄTKI LOKACJI
+        </div>
+    </div>
+
+    <!-- 3. Scena: Przeciwnicy i Walka (Szybkie migawki) -->
+    <div class="scene combat-scene" data-voice="2">
+        <img src="combat-1.png" class="combat-img active">
+        <img src="combat-2.png" class="combat-img">
+        <img src="combat-3.png" class="combat-img">
+        <div class="text-overlay">PONAD 40+ PRZECIWNIKÓW</div>
+    </div>
+
+    <!-- 4. Scena: Przedmioty -->
+    <div class="scene items-scene" data-voice="3">
+        <div class="items-bg">
+            <!-- Dodawane przez JS -->
+        </div>
+        <div class="text-overlay" style="text-shadow: 0 0 30px #000, 0 0 20px #00aaff;">
+            DO ODKRYCIA PONAD 300+ PRZEDMIOTÓW
+        </div>
+    </div>
+
+    <!-- 5. Scena: Crafting & Upgrades -->
+    <div class="scene" id="crafting-scene" data-voice="4">
+        <!-- Kolejne fazy rozwoju bohatera -->
+        <img src="buying.png" class="crafting-img" id="img-buy">
+        <img src="crafting.png" class="crafting-img" id="img-craft">
+        <img src="upgrade.png" class="crafting-img" id="img-upgrade">
+        
+        <!-- Kontener na animację zaczarowania (enhance) -->
+        <div id="enhance-container" class="crafting-img" style="transform: translate(-50%, -50%) scale(1.0);">
+            <img src="enchance-before.png" class="enhance-frame" id="enh-1">
+            <img src="enchance-while.png" class="enhance-frame" id="enh-2">
+            <img src="enchace-after.png" class="enhance-frame" id="enh-3"> <!-- Błąd w nazwie pliku u użytkownika: enchace -->
+        </div>
+        
+        <div class="text-overlay" style="bottom: 10%; top: auto; transform: translate(-50%, 0) !important; left: 50%; width: 100%; font-size: 4vw; text-shadow: 0 0 30px #000, 0 0 15px #ff4500;">
+            WYTWARZAJ, ULEPSZAJ, WZMACNIAJ
+        </div>
+    </div>
+
+    <!-- 6. Scena: Arena i PvP -->
+    <div class="scene" id="arena-scene">
+        <img src="arena.png" id="arena-img" style="position: absolute; top: 50%; left: 50%; width: 100vw !important; height: 100vh !important; object-fit: cover; transform: translate(-50%, -50%) scale(1.02); opacity: 1; transition: opacity 0.8s ease-in-out; z-index: 1;">
+        <img src="pvp.png" id="pvp-img" style="position: absolute; top: 50%; left: 50%; width: 100vw !important; height: 100vh !important; object-fit: cover; transform: translate(-50%, -50%) scale(1.02); opacity: 0; transition: opacity 0.8s ease-in-out; z-index: 2;">
+        
+        <div class="text-overlay" style="bottom: 10%; top: auto; transform: translate(-50%, 0) !important; left: 50%; width: 100%; font-size: 4vw; text-shadow: 0 0 30px #000, 0 0 20px #8b0000;">
+            ZDOMINUJ ARENĘ
+        </div>
+    </div>
+
+    <!-- 7. Scena: Outro -->
+    <div class="scene" id="outro-scene">
+        <video src="6.mp4" class="media-element" muted playsinline></video>
+        <div class="text-overlay" style="font-size: 6vw; text-shadow: 0 0 40px #ff0000, 0 0 20px #000;">
+            STAŃ SIĘ NIEPOKONANY!
+        </div>
+    </div>
+
+    <script>
+        const scenes = document.querySelectorAll('.scene');
+        const startBtn = document.getElementById('start-btn');
+        const bgMusic = document.getElementById('bg-music');
+        const voiceovers = document.querySelectorAll('.voiceover');
+        
+        // Koniec ze sztywnymi czasami! Skrypt dynamicznie nasłuchuje końca nagrań.
+        
+        startBtn.addEventListener('click', () => {
+            startBtn.style.opacity = '0';
+            setTimeout(() => { startBtn.style.display = 'none'; }, 300);
+            
+            bgMusic.volume = 0.5;
+            bgMusic.play().catch(e => console.log(e));
+            
+            playTrailerSequence();
+            createParticles();
+            startCombatFlashes();
+        });
+
+        // Funkcja pomocnicza do pauzowania wykonania na konkretny czas
+        function wait(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Funkcja pomocnicza czekająca na zakończenie pliku audio
+        function waitForAudio(audioEl) {
+            return new Promise(resolve => {
+                if (!audioEl || audioEl.ended || audioEl.error) {
+                    resolve();
+                    return;
+                }
+                const onEnd = () => {
+                    audioEl.removeEventListener('ended', onEnd);
+                    resolve();
+                };
+                audioEl.addEventListener('ended', onEnd);
+            });
+        }
+
+        async function playTrailerSequence() {
+            // Funkcja pomocnicza do aktywacji kolejnej sceny
+            const activateScene = (index) => {
+                if (index > 0) {
+                    scenes[index-1].classList.remove('active');
+                    let prevVideo = scenes[index-1].querySelector('video');
+                    if (prevVideo) prevVideo.pause();
+                }
+                scenes[index].classList.add('active');
+                
+                let currentVideo = scenes[index].querySelector('video');
+                if(currentVideo) {
+                    currentVideo.currentTime = 0;
+                    currentVideo.play().catch(e => console.log(e));
+                }
+                return scenes[index];
+            };
+
+            // SCENA 0: Intro Wideo
+            activateScene(0);
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[0].play().catch(e => console.log(e));
+            await wait(2500); // Tyle czasu ma wideo przed przejściem do Hubu
+            
+            // SCENA 1: Hub
+            activateScene(1);
+            const cursor = document.getElementById('trailer-cursor');
+            const hubContainer = document.getElementById('hub-media-container');
+            
+            // Reset
+            cursor.style.transition = 'none';
+            cursor.style.opacity = '0';
+            cursor.style.left = '80%';
+            cursor.style.top = '80%';
+            cursor.style.transform = 'scale(1)';
+            hubContainer.style.transition = 'none';
+            hubContainer.style.transform = 'scale(1)';
+            
+            setTimeout(() => {
+                cursor.style.transition = 'all 0.9s cubic-bezier(0.25, 1, 0.5, 1)';
+                cursor.style.opacity = '1';
+                cursor.style.left = '30%'; 
+                cursor.style.top = '25%';
+            }, 200);
+            
+            setTimeout(() => {
+                cursor.style.transition = 'transform 0.1s';
+                cursor.style.transform = 'scale(0.8)';
+            }, 1100);
+            
+            setTimeout(() => {
+                cursor.style.transform = 'scale(1)';
+                cursor.style.opacity = '0'; 
+                
+                hubContainer.style.transition = 'all 1.8s cubic-bezier(0.5, 0, 0, 1)'; 
+                hubContainer.style.transform = 'scale(0.6)'; 
+                hubContainer.style.opacity = '0';
+                
+                const expandBg = document.getElementById('adventure-expand-bg');
+                expandBg.style.transition = 'all 1.8s cubic-bezier(0.5, 0, 0, 1)'; 
+                expandBg.style.opacity = '1'; 
+                expandBg.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 1200);
+
+            // Czekamy na definitywny koniec kwestii lektora z pierwszego pliku audio
+            await waitForAudio(voiceovers[0]);
+            
+            // SCENA 2: Lokacje (Scroll)
+            activateScene(2);
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[1].play().catch(e => console.log(e));
+            await waitForAudio(voiceovers[1]); // Czeka na koniec audio
+            
+            // SCENA 3: Walka
+            activateScene(3);
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[2].play().catch(e => console.log(e));
+            await waitForAudio(voiceovers[2]); // Czeka na koniec audio
+            
+            // SCENA 4: Przedmioty
+            activateScene(4);
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[3].play().catch(e => console.log(e));
+            await waitForAudio(voiceovers[3]); // Ostra zmiana natychmiast po zakończeniu kwestii
+            
+            // SCENA 5: Crafting & Upgrades
+            activateScene(5);
+            const frames = [
+                document.getElementById('img-buy'),
+                document.getElementById('img-craft'),
+                document.getElementById('img-upgrade'),
+                document.getElementById('enhance-container')
+            ];
+            frames.forEach(f => f.style.opacity = '0');
+            let enh1 = document.getElementById('enh-1');
+            let enh2 = document.getElementById('enh-2');
+            let enh3 = document.getElementById('enh-3');
+            enh1.style.opacity = '1';
+            enh2.style.opacity = '0';
+            enh3.style.opacity = '0';
+
+            setTimeout(() => frames[0].style.opacity = '1', 100);  
+            setTimeout(() => frames[1].style.opacity = '1', 1300); 
+            setTimeout(() => frames[2].style.opacity = '1', 2500); 
+            setTimeout(() => {
+                frames[3].style.opacity = '1'; 
+                setTimeout(() => {
+                    enh1.style.opacity = '0';
+                    enh2.style.opacity = '1'; 
+                }, 500);
+                setTimeout(() => {
+                    enh2.style.opacity = '0';
+                    enh3.style.opacity = '1'; 
+                    const flash = document.createElement('div');
+                    flash.style.position = 'absolute';
+                    flash.style.top = '0'; flash.style.left = '0'; flash.style.width = '100%'; flash.style.height = '100%';
+                    flash.style.background = 'white'; flash.style.zIndex = '100'; flash.style.opacity = '1';
+                    flash.style.transition = 'opacity 0.5s';
+                    frames[3].appendChild(flash);
+                    setTimeout(() => flash.style.opacity = '0', 50);
+                    setTimeout(() => flash.remove(), 600);
+                }, 1300);
+            }, 3700);
+
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[4].play().catch(e => console.log(e));
+            await waitForAudio(voiceovers[4]); // Czeka na koniec audio
+            
+            // SCENA 6: Arena & PvP
+            activateScene(6);
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[5].play().catch(e => console.log(e)); // Odpalamy 7.mp3 (14 sekund)
+            
+            const arenaImg = document.getElementById('arena-img');
+            const pvpImg = document.getElementById('pvp-img');
+            arenaImg.style.opacity = '1';
+            pvpImg.style.opacity = '0';
+            
+            // Po 3.5s płynna zmiana ze screena Arena na screen walki PvP
+            setTimeout(() => {
+                arenaImg.style.opacity = '0';
+                pvpImg.style.opacity = '1';
+            }, 3500);
+
+            // Czekamy sztywno 7 sekund - ekran Areny gaśnie, a wchodzi Outro
+            await wait(7000); 
+            
+            // SCENA 7: Outro (Wideo zamykające)
+            activateScene(7);
+            
+            // Wideo Outro leci, ale w tle wciąż gra lektor z 7.mp3!
+            // Musimy poczekać na zakończenie wypowiedzi o "kuciu legendy".
+            await waitForAudio(voiceovers[5]);
+            
+            // Dopiero teraz, gdy lektor skończył, wyzwalamy ostatni okrzyk (6.mp3 / voiceovers[6])
+            voiceovers.forEach(v => { v.pause(); v.currentTime = 0; });
+            voiceovers[6].play().catch(e => console.log(e));
+        }
+        
+        // Animacja migających ekranów walki
+        function startCombatFlashes() {
+            const combatImages = document.querySelectorAll('.combat-img');
+            let currentCombatIndex = 0;
+            
+            setInterval(() => {
+                // Migaj tylko jeśli scena walki (index 3) jest aktywna
+                if(scenes[3].classList.contains('active')) {
+                    combatImages.forEach(img => img.classList.remove('active'));
+                    currentCombatIndex = (currentCombatIndex + 1) % combatImages.length;
+                    combatImages[currentCombatIndex].classList.add('active');
+                }
+            }, 350); // Szybkie uderzenia co 350ms
+        }
+        
+        // Generowanie tła cząsteczek
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            for(let i=0; i<60; i++) {
+                let particle = document.createElement('div');
+                particle.style.position = 'absolute';
+                particle.style.width = Math.random() * 4 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.background = '#ffaa00';
+                particle.style.boxShadow = '0 0 10px #ff0000';
+                particle.style.borderRadius = '50%';
+                particle.style.left = Math.random() * 100 + 'vw';
+                particle.style.top = Math.random() * 100 + 'vh';
+                particle.style.opacity = Math.random();
+                
+                particle.animate([
+                    { transform: `translate(0, 0)`, opacity: 0 },
+                    { opacity: Math.random() },
+                    { transform: `translate(${Math.random()*100 - 50}px, -${Math.random()*200 + 100}px)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 3000 + 2000,
+                    iterations: Infinity,
+                    delay: Math.random() * 2000
+                });
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // Zoptymalizowane ładowanie losowych ikon do Sceny 4 z uwzględnieniem ścieżki
+        function createItemsScroll() {
+            const bg = document.querySelector('.items-bg');
+            if(!bg) return;
+            
+            // Pobrane ikony z storage/app/assets/items
+            const itemIcons = [
+                'amulet-czempiona.png', 'bojowy-topor.png', 'czysta-mana.png',
+                'epickie-jajo-chowanca.png', 'helm-krwawej-areny.png', 'kaptur-burzowych-chmur.png',
+                'luk-apokalipsy.png', 'miecz-niezwyciezonego-gladiatora.png', 'naszyjnik-runicznej-energii.png',
+                'obsydianowy-pancerz.png', 'pancerz-absolutnego-chaosu.png', 'pierscien-absolutu.png',
+                'rozdzieracz-swiatow.png', 'runiczny-miecz.png', 'stalowa-zbroja.png',
+                'sztylety-ostatecznego-zniszczenia.png', 'tytanowy-miecz.png', 'zardzewialy-miecz.png'
+            ];
+            
+            for(let i = 0; i < 9; i++) {
+                let col = document.createElement('div');
+                col.className = 'item-column';
+                let iconsHTML = '';
+                
+                let shuffled = [...itemIcons].sort(() => 0.5 - Math.random());
+                
+                shuffled.forEach(item => {
+                    // Wskazanie na folder główny gry
+                    iconsHTML += `<img src="../../storage/app/assets/items/${item}" class="item-icon">`;
+                });
+                
+                // Zamiast wrzucać wszystko na płasko, tworzymy dwie identyczne grupy,
+                // co zapewnia perfekcyjne zapętlenie dzięki padding-bottom.
+                let group1 = document.createElement('div');
+                group1.className = 'item-group';
+                group1.innerHTML = iconsHTML;
+                
+                let group2 = document.createElement('div');
+                group2.className = 'item-group';
+                group2.innerHTML = iconsHTML;
+                
+                col.appendChild(group1);
+                col.appendChild(group2);
+                
+                bg.appendChild(col);
+            }
+        }
+        
+        createItemsScroll();
+    </script>
+</body>
+</html>
