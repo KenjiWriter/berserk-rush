@@ -210,6 +210,11 @@ class Weaponsmith extends Component
             ];
         }
 
+        $equipped = [];
+        foreach($this->character->equippedItems()->with('template')->get() as $eq) {
+            $equipped[$eq->template->slot] = $eq;
+        }
+
         return view('livewire.city.weaponsmith', [
             'shopItems' => $shopItems,
             'shopPrices' => $shopPrices,
@@ -219,6 +224,7 @@ class Weaponsmith extends Component
             'upgradeCosts' => $upgradeCosts,
             'inventoryMaterials' => $inventoryMaterials,
             'recipes' => $preparedRecipes,
+            'equipped' => $equipped,
         ]);
     }
 }

@@ -120,7 +120,18 @@
                     @if(count($listings) > 0)
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             @foreach($listings as $listing)
-                                <div class="bg-slate-800/80 border border-slate-600 rounded-lg p-4 flex flex-col justify-between shadow-lg hover:shadow-xl hover:border-amber-600/50 transition-all">
+                                <div class="bg-slate-800/80 border border-slate-600 rounded-lg p-4 flex flex-col justify-between shadow-lg hover:shadow-xl hover:border-amber-600/50 transition-all relative"
+                                     x-data="{ showInfo: false }" 
+                                     @mouseenter="showInfo = true" 
+                                     @mouseleave="showInfo = false" 
+                                     @click="showInfo = !showInfo">
+                                     
+                                    <!-- Infobox -->
+                                    <div x-show="showInfo" x-transition.opacity 
+                                         class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-none">
+                                        <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
+                                    </div>
+
                                     <div class="flex items-start space-x-3 mb-3">
                                         {{-- Item Icon placeholder based on slot/rarity --}}
                                         <div class="w-12 h-12 rounded border-2 border-slate-500 flex items-center justify-center shrink-0 bg-slate-900 text-2xl

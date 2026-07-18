@@ -83,32 +83,29 @@
 
                                         <!-- Infobox Ekwipunku -->
                                         <div x-show="showInfo" x-transition.opacity 
-                                             class="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 border-2 border-slate-600 rounded-lg shadow-2xl p-4 pointer-events-auto">
-                                            <h4 class="font-bold text-lg text-amber-400">{{ $item->template->name }} @if($item->upgrade_level > 0)+{{ $item->upgrade_level }}@endif</h4>
-                                            <p class="text-xs text-gray-400 mb-2">{{ ucfirst($item->template->type) }}</p>
-                                            
-                                            <div class="text-sm text-green-400 mb-3 space-y-1">
-                                                @foreach($item->template->base_stats ?? [] as $stat => $val)
-                                                    <div class="flex justify-between"><span>{{ str_replace('_', ' ', $stat) }}</span><span>+{{ $val }}</span></div>
-                                                @endforeach
-                                            </div>
-                                            
-                                            <div class="flex justify-between border-t border-slate-700 pt-2 mb-3">
-                                                <span class="text-gray-400 text-sm">Wartość:</span>
-                                                <span class="text-yellow-400 font-bold">🪙 {{ $sellPrices[$item->id] }}</span>
-                                            </div>
+                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                            <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                <x-slot:actions>
+                                                    <div class="flex flex-col gap-3 w-full">
+                                                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                                                            <span class="text-gray-400 text-sm">Wartość:</span>
+                                                            <span class="text-yellow-400 font-bold">🪙 {{ $sellPrices[$item->id] }}</span>
+                                                        </div>
 
-                                            <div class="flex gap-2">
-                                                @if($item->location !== 'equipped')
-                                                    <button wire:click.stop="sellItem('{{ $item->id }}')" class="flex-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition">Sprzedaj</button>
-                                                @else
-                                                    <button disabled class="flex-1 bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
-                                                @endif
+                                                        <div class="flex gap-2">
+                                                            @if($item->location !== 'equipped')
+                                                                <button wire:click.stop="sellItem('{{ $item->id }}')" class="flex-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition">Sprzedaj</button>
+                                                            @else
+                                                                <button disabled class="flex-1 bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
+                                                            @endif
 
-                                                @if($item->template->type === 'weapon' && $item->upgrade_level < 9)
-                                                    <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">Ulepsz</button>
-                                                @endif
-                                            </div>
+                                                            @if($item->template->type === 'weapon' && $item->upgrade_level < 9)
+                                                                <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">Ulepsz</button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </x-slot:actions>
+                                            </x-item-tooltip>
                                         </div>
                                     </div>
                                 @empty
@@ -140,19 +137,14 @@
 
                                         <!-- Infobox Sklepu -->
                                         <div x-show="showInfo" x-transition.opacity 
-                                             class="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 border-2 border-slate-600 rounded-lg shadow-2xl p-4 pointer-events-auto">
-                                            <h4 class="font-bold text-lg text-amber-400">{{ $item->template->name }}</h4>
-                                            <p class="text-xs text-gray-400 mb-2">Poziom: {{ $item->template->level_requirement }}</p>
-                                            
-                                            <div class="text-sm text-green-400 mb-3 space-y-1">
-                                                @foreach($item->template->base_stats ?? [] as $stat => $val)
-                                                    <div class="flex justify-between"><span>{{ str_replace('_', ' ', $stat) }}</span><span>+{{ $val }}</span></div>
-                                                @endforeach
-                                            </div>
-                                            
-                                            <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2">
-                                                <span>Kup za 🪙 {{ $shopPrices[$item->id] }}</span>
-                                            </button>
+                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                            <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                <x-slot:actions>
+                                                    <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2">
+                                                        <span>Kup za 🪙 {{ $shopPrices[$item->id] }}</span>
+                                                    </button>
+                                                </x-slot:actions>
+                                            </x-item-tooltip>
                                         </div>
                                     </div>
                                 @empty
@@ -355,15 +347,18 @@
 
                                     <!-- Infobox Docelowego Przedmiotu -->
                                     <div x-show="showInfo" x-transition.opacity 
-                                         class="absolute z-50 top-full left-0 mt-2 w-64 bg-slate-900 border-2 border-slate-600 rounded-lg shadow-2xl p-4 pointer-events-none">
-                                        <h4 class="font-bold text-lg text-amber-400">{{ $recipe['result_name'] }}</h4>
-                                        <p class="text-xs text-gray-400 mb-2">Poziom: {{ $recipe['result_level'] }} | Typ: {{ ucfirst($recipe['result_type']) }}</p>
-                                        
-                                        <div class="text-sm text-green-400 mb-1 space-y-1">
-                                            @foreach($recipe['result_stats'] as $stat => $val)
-                                                <div class="flex justify-between"><span>{{ str_replace('_', ' ', $stat) }}</span><span>+{{ $val }}</span></div>
-                                            @endforeach
-                                        </div>
+                                         class="absolute z-[100] top-full left-0 mt-2 w-auto pointer-events-none">
+                                        @php
+                                            // Tworzymy tymczasowy obiekt do tooltipa
+                                            $dummyItem = new \stdClass();
+                                            $dummyItem->template = new \stdClass();
+                                            $dummyItem->template->name = $recipe['result_name'];
+                                            $dummyItem->template->level_requirement = $recipe['result_level'];
+                                            $dummyItem->template->type = $recipe['result_type'];
+                                            $dummyItem->template->base_stats = $recipe['result_stats'];
+                                            $dummyItem->template->slot = \App\Infrastructure\Persistence\ItemTemplate::where('name', $recipe['result_name'])->value('slot');
+                                        @endphp
+                                        <x-item-tooltip :item="$dummyItem" :equippedItem="$equipped[$dummyItem->template->slot ?? ''] ?? null" />
                                     </div>
                                 </div>
 

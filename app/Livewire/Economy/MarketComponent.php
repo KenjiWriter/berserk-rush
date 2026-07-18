@@ -128,10 +128,16 @@ class MarketComponent extends Component
                 ->paginate(12);
         }
 
+        $equipped = [];
+        foreach($character->equippedItems()->with('template')->get() as $eq) {
+            $equipped[$eq->template->slot] = $eq;
+        }
+
         return view('livewire.economy.market', [
             'character' => $character,
             'listings' => $listings,
             'myListings' => $myListings,
+            'equipped' => $equipped,
         ]);
     }
 }
