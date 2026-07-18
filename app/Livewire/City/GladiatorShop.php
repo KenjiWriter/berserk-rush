@@ -67,6 +67,13 @@ class GladiatorShop extends Component
 
     public function render()
     {
-        return view('livewire.city.gladiator-shop');
+        $equipped = [];
+        foreach($this->character->equippedItems()->with('template')->get() as $eq) {
+            $equipped[$eq->template->slot] = $eq;
+        }
+
+        return view('livewire.city.gladiator-shop', [
+            'equipped' => $equipped
+        ]);
     }
 }
