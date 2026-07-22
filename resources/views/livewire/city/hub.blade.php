@@ -58,7 +58,7 @@
     @elseif($gameStage == 16)
         <livewire:global.tutorial-overlay :step="17" />
     @elseif($gameStage == 20)
-        <livewire:global.tutorial-overlay :step="21" :rewardItemTemplateId="'01KX77GX1KG1K0ZJGTKRWV3DT6'" />
+        <livewire:global.tutorial-overlay :step="21" :rewardItemTemplateId="'01k4jpx94j70x2vv10b835arm1'" />
     @elseif($gameStage == 22)
         <livewire:global.tutorial-overlay :step="23" />
     @endif

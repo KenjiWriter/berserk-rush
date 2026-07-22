@@ -63,7 +63,7 @@ class Weaponsmith extends Component
             $this->dispatch('play-audio', type: 'buy');
             
             $user = auth()->user();
-            if ($user && $user->game_stage == 19 && $merchantItem->template->id === 'miecz-nowicjusza') {
+            if ($user && $user->game_stage == 19 && $merchantItem->template->type === 'weapon') {
                 $user->game_stage = 20;
                 $user->save();
             }

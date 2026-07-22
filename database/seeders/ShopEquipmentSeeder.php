@@ -15,10 +15,16 @@ class ShopEquipmentSeeder extends Seeder
         MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'gladiator'])->delete();
 
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
-            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
-            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 8, 'str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
-            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 5, 'str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
+            'sword'   => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 1]],
+            'axe'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 7, 'str_bonus' => 1]],
+            'bow'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'agi_bonus' => 1]],
+            'wand'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 1]],
+            'dagger'  => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 1, 'crit_chance' => 3]],
+            'bell'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2, 'magic_attack_max' => 5, 'int_bonus' => 1]],
+
+            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1]],
+            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1]],
+            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 5, 'agi_bonus' => 1]],
             'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'mana_bonus' => 10, 'vit_bonus' => 1]],
             'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
         ];
@@ -28,7 +34,9 @@ class ShopEquipmentSeeder extends Seeder
             [
                 'level' => 1, 'scale' => 0.8,
                 'names' => [
-                    'sword' => 'Miecz Nowicjusza', 'armor' => 'Zbroja Rekruta', 'helmet' => 'Hełm Rekruta', 
+                    'sword' => 'Miecz Nowicjusza', 'axe' => 'Topór Nowicjusza', 'bow' => 'Łuk Nowicjusza',
+                    'wand' => 'Różdżka Nowicjusza', 'dagger' => 'Sztylet Nowicjusza', 'bell' => 'Dzwon Nowicjusza',
+                    'armor' => 'Zbroja Rekruta', 'helmet' => 'Hełm Rekruta', 
                     'boots' => 'Stalowe Trzewiki', 'amulet' => 'Amulet Ucznia', 'ring' => 'Pierścień Ucznia'
                 ]
             ],
@@ -111,7 +119,10 @@ class ShopEquipmentSeeder extends Seeder
             $merchantTarget = $theme['merchant'] ?? null;
 
             foreach ($prototypes as $protoKey => $proto) {
-                
+                if (!isset($theme['names'][$protoKey])) {
+                    continue;
+                }
+
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
                     $scaledValue = $baseValue * $theme['scale'];

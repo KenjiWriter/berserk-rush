@@ -23,9 +23,11 @@ class ItemTemplateSeeder extends Seeder
             ['id' => Str::ulid(), 'name' => 'Zioło Lecznika', 'type' => 'material', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Zioło lecznicze.', 'icon' => 'material-herb', 'rarity_weights' => ['common' => 90, 'uncommon' => 10, 'rare' => 0]],
             ['id' => Str::ulid(), 'name' => 'Odłamek Kości', 'type' => 'material', 'slot' => null, 'level_requirement' => 5, 'base_stats' => [], 'description' => 'Odłamek kości.', 'icon' => 'material-bone', 'rarity_weights' => ['common' => 70, 'uncommon' => 30, 'rare' => 0]],
             
-            // Keys
+            // Keys & Tutorial Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'key-rusty', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
             ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'sword-rusty', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helmet-w', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'armor-w', 'rarity_weights' => ['common' => 100]],
         ];
 
         foreach ($manualItems as $item) {

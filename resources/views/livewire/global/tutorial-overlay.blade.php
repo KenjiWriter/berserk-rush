@@ -48,7 +48,7 @@
                         @elseif($step == 18)
                             Witaj u Brońmistrza! To tutaj możesz kupować nowe bronie, sprzedawać zbędny balast, którego nie chcesz wystawiać na Targowisku, a co najważniejsze - ulepszać swój ekwipunek. Pamiętaj, że każdy przedmiot można ulepszyć od poziomu +0 aż do +9 w Kuźni Ulepszeń!
                         @elseif($step == 19)
-                            Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Brońmistrza Miecz Nowicjusza - znacznie ułatwi Ci to początkowe potyczki!
+                            Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Brońmistrza nową broń - znacznie ułatwi Ci to początkowe potyczki!
                         @elseif($step == 21)
                             Wspaniale! Wygląda na to, że jesteś już w pełni gotowy, by samodzielnie przetrwać w tym brutalnym świecie. Mój wstępny trening dobiegł końca, jednak jestem pewien, że spotkamy się jeszcze w przyszłości. Na koniec, przyjmij ode mnie tę Skórzaną Zbroję. Niech chroni Cię przed atakami! Powodzenia!
                         @elseif($step == 23)
