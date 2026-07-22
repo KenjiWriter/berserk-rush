@@ -430,80 +430,78 @@
                                 this.added[stat] += actual;
                                 this.points -= actual;
                                 
-                                // Animacja po dodaniu punktu
+                                // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
+                                window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
+
                                 let el = document.getElementById('stat-flash-' + stat);
                                 if (el) {
                                     el.style.animation = 'none';
                                     el.offsetHeight; // trigger reflow
-                                    el.style.animation = 'flashText 0.5s ease-out forwards';
+                                    el.style.animation = 'flashText 0.15s ease-out forwards';
                                 }
                                 
-                                // Auto-zapis po sekundzie bezczynności
+                                // Krótki, płynny auto-zapis (350ms)
                                 clearTimeout(this.saveTimeout);
                                 this.saveTimeout = setTimeout(() => {
                                     let toSave = { ...this.added };
                                     this.added = { str: 0, int: 0, vit: 0, agi: 0 };
                                     $wire.saveAttributes(toSave);
-                                }, 800);
+                                }, 350);
                             }
                         }
                     }" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mt-4 relative" @stats-saved.window="points = $event.detail.points">
                     
                         <style>
                             @keyframes flashText {
-                                0% { color: #4ade80; transform: scale(1.4); text-shadow: 0 0 10px #4ade80; }
-                                100% { color: white; transform: scale(1); text-shadow: none; }
+                                0% { color: #f59e0b; transform: scale(1.15); text-shadow: 0 0 8px rgba(245,158,11,0.8); }
+                                100% { color: #ffffff; transform: scale(1); text-shadow: none; }
                             }
                         </style>
-                        
-                        <!-- Wskaźnik zapisu -->
-                        <div wire:loading wire:target="saveAttributes" class="absolute inset-0 bg-gray-900/20 backdrop-blur-[1px] flex items-center justify-center rounded z-10">
-                        </div>
 
                         <!-- STR -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-str" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str"></span>
+                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str"></span>
                                 <div class="flex gap-1" x-show="points > 0">
-                                    <button @click="add('str', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('str', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    <button @click="add('str', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- INT -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Inteligencja: Wpływa na obronę magiczną.">Intelligence (INT):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Inteligencja: Wpływa na obronę magiczną.">Intelligence (INT):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-int" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int"></span>
+                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int"></span>
                                 <div class="flex gap-1" x-show="points > 0">
-                                    <button @click="add('int', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('int', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    <button @click="add('int', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- VIT -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-vit" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit"></span>
+                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit"></span>
                                 <div class="flex gap-1" x-show="points > 0">
-                                    <button @click="add('vit', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    <button @click="add('vit', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- AGI -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-gray-400 cursor-help border-b border-dashed border-gray-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-agi" class="text-white font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi"></span>
+                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi"></span>
                                 <div class="flex gap-1" x-show="points > 0">
-                                    <button @click="add('agi', 1)" class="w-6 h-6 bg-green-700 hover:bg-green-500 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-green-800 hover:bg-green-600 text-white rounded text-xs flex items-center justify-center font-bold transition shadow" title="Dodaj 5">+5</button>
+                                    <button @click="add('agi', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
+                                    <button x-show="points >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
@@ -572,20 +570,25 @@
                 </div>
             </div>
 
-            <div class="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2 custom-scrollbar relative z-10">
-                <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'all' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Wszystko</button>
-                <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'weapon' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Bronie</button>
-                <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'armor' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Pancerz</button>
-                <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'accessory' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Akcesoria</button>
-                <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'material' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Materiały</button>
-                <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'consumable' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Mikstury</button>
-                
-                <div class="flex-grow"></div>
-                
-                <button wire:click="stackItems" class="px-3 py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40" title="Połącz powtarzające się materiały">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                    Stackuj
-                </button>
+            <div class="flex flex-col gap-2.5 mb-3 relative z-10">
+                {{-- Category Filters --}}
+                <div class="flex flex-wrap gap-1.5 items-center">
+                    <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'all' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Wszystko</button>
+                    <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'weapon' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Bronie</button>
+                    <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'armor' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Pancerz</button>
+                    <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'accessory' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Akcesoria</button>
+                    <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'material' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Materiały</button>
+                    <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'consumable' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Mikstury</button>
+                </div>
+
+                {{-- Action Row (Stackuj Button) --}}
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-stone-400 text-xs font-medium">Miejsca: <strong class="text-amber-300">{{ count($inventory) }} / 25</strong></span>
+                    <button wire:click="stackItems" class="px-3 py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                        Połącz przedmioty (Stackuj)
+                    </button>
+                </div>
             </div>
 
             <!-- Inventory Grid -->
