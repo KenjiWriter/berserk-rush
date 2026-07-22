@@ -34,9 +34,28 @@
                 <div class="flex flex-col gap-4">
                     <!-- Pet Slot -->
                     @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
-                    <div id="equip-slot-pet" x-data="{ open: false }" @click.outside="open = false" 
-                         @if($activePet) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="toggleEquipPet({{ $activePet->id }})" @endif
-                         class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-pointer hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative"
+                    <div id="equip-slot-pet" x-data="{ open: false, hoverTimeout: null, isDragOver: false }" @click.outside="open = false" 
+                         @if($activePet) 
+                             wire:loading.class="opacity-50 scale-95 pointer-events-none" 
+                             wire:target="toggleEquipPet({{ $activePet->id }})" 
+                             draggable="true"
+                             @dragstart="open = false; clearTimeout(hoverTimeout); window.currentDragItem = { id: {{ $activePet->id }}, type: 'pet', source: 'equipped_pet', domId: 'equip-slot-pet' }"
+                             @dragend="window.currentDragItem = null"
+                             @dblclick="open = false; clearTimeout(hoverTimeout); flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet({{ $activePet->id }}))"
+                         @endif
+                         @dragover.prevent="if (window.currentDragItem && window.currentDragItem.type === 'egg') isDragOver = true"
+                         @dragleave="isDragOver = false"
+                         @drop.prevent="
+                             if (window.currentDragItem && window.currentDragItem.type === 'egg') {
+                                 let dragItem = window.currentDragItem;
+                                 isDragOver = false;
+                                 flyItem(dragItem.domId, 'equip-slot-pet', () => $wire.placeEgg(dragItem.id));
+                             } else {
+                                 isDragOver = false;
+                             }
+                         "
+                         class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative transition-all duration-200"
+                         :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver }"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
                             <div class="text-center text-xs text-white">
@@ -76,9 +95,39 @@
                     </div>
 
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" 
-                             @if(isset($equipped[$slot])) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="unequipItem('{{ $equipped[$slot]->id }}')" @endif
-                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
+                             @if(isset($equipped[$slot])) 
+                                 wire:loading.class="opacity-50 scale-95 pointer-events-none" 
+                                 wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
+                                 draggable="true"
+                                 @dragstart="open = false; clearTimeout(hoverTimeout); window.currentDragItem = { id: '{{ $equipped[$slot]->id }}', slot: '{{ $slot }}', source: 'equipped', domId: 'equip-slot-{{ $slot }}' }"
+                                 @dragend="window.currentDragItem = null"
+                                 @dblclick="open = false; clearTimeout(hoverTimeout); flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))"
+                             @endif
+                             @dragover.prevent="
+                                 if (window.currentDragItem && window.currentDragItem.source === 'backpack') {
+                                     if (window.currentDragItem.slot === '{{ $slot }}' && window.currentDragItem.charLevel >= window.currentDragItem.levelReq) {
+                                         isDragOver = true; isDragInvalid = false;
+                                     } else if (window.currentDragItem.slot === '{{ $slot }}') {
+                                         isDragOver = false; isDragInvalid = true;
+                                     }
+                                 }
+                             "
+                             @dragleave="isDragOver = false; isDragInvalid = false"
+                             @drop.prevent="
+                                 if (window.currentDragItem && window.currentDragItem.source === 'backpack' && window.currentDragItem.slot === '{{ $slot }}' && window.currentDragItem.charLevel >= window.currentDragItem.levelReq) {
+                                     let dragItem = window.currentDragItem;
+                                     isDragOver = false; isDragInvalid = false;
+                                     flyItem(dragItem.domId, 'equip-slot-{{ $slot }}', () => $wire.equipItem(dragItem.id));
+                                 } else {
+                                     isDragOver = false; isDragInvalid = false;
+                                 }
+                             "
+                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-grab active:cursor-grabbing hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             :class="{ 
+                                 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
+                                 'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
+                             }"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
@@ -260,9 +309,39 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-4">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false" 
-                             @if(isset($equipped[$slot])) wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="unequipItem('{{ $equipped[$slot]->id }}')" @endif
-                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-pointer hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
+                             @if(isset($equipped[$slot])) 
+                                 wire:loading.class="opacity-50 scale-95 pointer-events-none" 
+                                 wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
+                                 draggable="true"
+                                 @dragstart="open = false; clearTimeout(hoverTimeout); window.currentDragItem = { id: '{{ $equipped[$slot]->id }}', slot: '{{ $slot }}', source: 'equipped', domId: 'equip-slot-{{ $slot }}' }"
+                                 @dragend="window.currentDragItem = null"
+                                 @dblclick="open = false; clearTimeout(hoverTimeout); flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))"
+                             @endif
+                             @dragover.prevent="
+                                 if (window.currentDragItem && window.currentDragItem.source === 'backpack') {
+                                     if (window.currentDragItem.slot === '{{ $slot }}' && window.currentDragItem.charLevel >= window.currentDragItem.levelReq) {
+                                         isDragOver = true; isDragInvalid = false;
+                                     } else if (window.currentDragItem.slot === '{{ $slot }}') {
+                                         isDragOver = false; isDragInvalid = true;
+                                     }
+                                 }
+                             "
+                             @dragleave="isDragOver = false; isDragInvalid = false"
+                             @drop.prevent="
+                                 if (window.currentDragItem && window.currentDragItem.source === 'backpack' && window.currentDragItem.slot === '{{ $slot }}' && window.currentDragItem.charLevel >= window.currentDragItem.levelReq) {
+                                     let dragItem = window.currentDragItem;
+                                     isDragOver = false; isDragInvalid = false;
+                                     flyItem(dragItem.domId, 'equip-slot-{{ $slot }}', () => $wire.equipItem(dragItem.id));
+                                 } else {
+                                     isDragOver = false; isDragInvalid = false;
+                                 }
+                             "
+                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-grab active:cursor-grabbing hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             :class="{ 
+                                 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
+                                 'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
+                             }"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
@@ -488,7 +567,26 @@
             </div>
 
             <!-- Inventory Grid -->
-            <div id="inventory-grid" class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start">
+            <div id="inventory-grid" 
+                 x-data="{ isInventoryDragOver: false }"
+                 @dragover.prevent="if (window.currentDragItem && (window.currentDragItem.source === 'equipped' || window.currentDragItem.source === 'equipped_pet')) isInventoryDragOver = true"
+                 @dragleave="isInventoryDragOver = false"
+                 @drop.prevent="
+                     if (window.currentDragItem && window.currentDragItem.source === 'equipped') {
+                         let dragItem = window.currentDragItem;
+                         isInventoryDragOver = false;
+                         flyItem('equip-slot-' + dragItem.slot, 'inventory-grid', () => $wire.unequipItem(dragItem.id));
+                     } else if (window.currentDragItem && window.currentDragItem.source === 'equipped_pet') {
+                         let dragItem = window.currentDragItem;
+                         isInventoryDragOver = false;
+                         flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet(dragItem.id));
+                     } else {
+                         isInventoryDragOver = false;
+                     }
+                 "
+                 class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start transition-all"
+                 :class="{ 'ring-4 ring-blue-400 border-2 border-blue-400 bg-blue-950/40': isInventoryDragOver }"
+            >
                 @foreach($inventory as $item)
                     @php
                         $isRustySwordTutorial = $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
@@ -496,14 +594,49 @@
                     <div id="backpack-item-{{ $item->id }}" x-data="{ 
                         open: false, 
                         hoverTimeout: null,
+                        isDraggingThis: false,
                         posClass: 'sm:bottom-full sm:mb-2',
                         checkPosition() { 
                             this.posClass = this.$el.getBoundingClientRect().top < window.innerHeight / 2 ? 'sm:top-full sm:mt-2' : 'sm:bottom-full sm:mb-2'; 
                         }
                     }" @click.outside="open = false" 
                          wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
-                         class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-pointer hover:border-green-400 relative transition-all duration-300 {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
-                         :class="{ 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open }"
+                         draggable="true"
+                         @dragstart="
+                             open = false; 
+                             clearTimeout(hoverTimeout);
+                             isDraggingThis = true;
+                             window.currentDragItem = { 
+                                 id: '{{ $item->id }}', 
+                                 slot: '{{ $item->template->slot ?? '' }}', 
+                                 type: '{{ $item->template->type ?? '' }}', 
+                                 levelReq: {{ $item->template->level_requirement ?? 1 }}, 
+                                 charLevel: {{ $character->level }}, 
+                                 source: 'backpack', 
+                                 domId: 'backpack-item-{{ $item->id }}' 
+                             };
+                         "
+                         @dragend="isDraggingThis = false; window.currentDragItem = null;"
+                         @dblclick="
+                             open = false;
+                             clearTimeout(hoverTimeout);
+                             @if($character->level < ($item->template->level_requirement ?? 1))
+                                 $dispatch('notify', { type: 'error', message: 'Zbyt niski poziom aby założyć ten przedmiot!' });
+                             @else
+                                 @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']) && ($item->template->slot ?? null))
+                                     flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ $item->template->slot }}', () => $wire.equipItem('{{ $item->id }}'));
+                                 @elseif(($item->template->type ?? '') === 'consumable')
+                                     $wire.consumeItem('{{ $item->id }}');
+                                 @elseif(($item->template->type ?? '') === 'egg')
+                                     flyItem('backpack-item-{{ $item->id }}', 'equip-slot-pet', () => $wire.placeEgg('{{ $item->id }}'));
+                                 @endif
+                             @endif
+                         "
+                         class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-300 {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
+                         :class="{ 
+                             'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
+                             'opacity-40 scale-95 border-amber-400': isDraggingThis
+                         }"
                          @mouseenter="clearTimeout(hoverTimeout); checkPosition(); open = true" 
                          @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
                          @click="clearTimeout(hoverTimeout); checkPosition(); open = true">

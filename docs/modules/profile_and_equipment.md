@@ -19,6 +19,9 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
   - Czy postać posiada wystarczający poziom (`level_requirement`).
   - Zdejmuje ewentualny przedmiot zajmujący ten sam slot i zamienia go na nowy, przeliczając bonusy.
 - **`UnequipItem`:** Odpowiada za zdjęcie przedmiotu i przeniesienie go z powrotem do dostępnego ekwipunku postaci (do wolnego miejsca w plecaku).
+- **Obsługa Ekwipunku (Drag & Drop oraz Double-Click):**
+  - **Przeciągnij i Upuść (Drag & Drop):** Gracz może przeciągnąć przedmiot z plecaka bezpośrednio na odpowiadający mu slot na postaci (np. broń na slot `main_hand`, pancerz na `chest`). Poprawne sloty są podświetlane na zielono z powiększeniem, a sloty niedozwolone (np. zbyt niski poziom) na czerwono. Przeciągnięcie założonego przedmiotu lub peta z powrotem na siatkę plecaka automatycznie go zdejmuje.
+  - **Podwójne Kliknięcie (Double-Click):** Dwukrotne kliknięcie myszką na przedmiot w plecaku zakłada go automatycznie na odpowiedni slot (lub używa w przypadku mikstur / umieszcza jajko w inkubatorze). Dwukrotne kliknięcie na założony przedmiot zdejmuje go do plecaka.
 
 ### 3. Rozwój Atrybutów
 Postać zdobywa punkty postaci (`character_points`) za każdy zdobyty poziom (np. +3 punkty za każdy awans).
