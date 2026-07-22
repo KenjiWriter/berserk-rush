@@ -57,8 +57,10 @@
                         @endif
 
                         <div class="flex gap-4 mb-4">
-                            <div class="w-16 h-16 rounded-xl border-2 {{ $isUnlocked ? 'border-green-400 bg-green-900/50' : 'border-slate-600 bg-slate-800' }} flex items-center justify-center text-3xl shadow-inner shrink-0">
-                                @if($skill->effect_type === 'poison')
+                            <div class="w-16 h-16 rounded-xl border-2 {{ $isUnlocked ? 'border-green-400 bg-green-900/50' : 'border-slate-600 bg-slate-800' }} flex items-center justify-center text-3xl shadow-inner shrink-0 overflow-hidden">
+                                @if($skill->icon)
+                                    <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $skill->name }}">
+                                @elseif($skill->effect_type === 'poison')
                                     ☠️
                                 @elseif($skill->effect_type === 'fire')
                                     🔥

@@ -181,7 +181,11 @@
                                                         <span class="text-white font-bold text-xs sm:text-sm drop-shadow-md">{{ $cd }}</span>
                                                     </div>
                                                 @endif
-                                                <span class="text-sm sm:text-lg {{ $cd > 0 ? 'opacity-50' : 'opacity-100' }}">{{ $cs->skill->effect_type == 'poison' ? '🐍' : ($cs->skill->effect_type == 'fire' ? '🔥' : '⚔️') }}</span>
+                                                @if($cs->skill->icon)
+                                                    <img src="{{ route('assets.skills.icons', ['filename' => $cs->skill->icon]) }}" class="w-full h-full object-contain p-0.5 {{ $cd > 0 ? 'opacity-40' : 'opacity-100' }}" alt="{{ $cs->skill->name }}">
+                                                @else
+                                                    <span class="text-sm sm:text-lg {{ $cd > 0 ? 'opacity-50' : 'opacity-100' }}">{{ $cs->skill->effect_type == 'poison' ? '🐍' : ($cs->skill->effect_type == 'fire' ? '🔥' : '⚔️') }}</span>
+                                                @endif
                                             </div>
                                         @endforeach
                                     </div>

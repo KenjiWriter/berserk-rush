@@ -102,12 +102,25 @@ Route::get('/assets/items/{filename}', function ($filename) {
 })->where('filename', '.*')->name('assets.items');
 
 Route::get('/assets/skills/icons/{filename}', function ($filename) {
-    $path = storage_path('app/assets/skills/icons/' . $filename);
-    if (!file_exists($path)) {
-        abort(404);
+    $paths = [
+        storage_path('app/assets/skills/icons/' . $filename),
+        storage_path('app/public/skills/' . $filename),
+        public_path('img/skills/' . $filename),
+        public_path('assets/skills/icons/' . $filename),
+    ];
+
+    foreach ($paths as $path) {
+        if (file_exists($path) && !is_dir($path)) {
+            return response()->file($path);
+        }
     }
-    return response()->file($path);
-})->where('filename', '.*');
+
+    $placeholder = public_path('img/avatars/plate.png');
+    if (file_exists($placeholder)) {
+        return response()->file($placeholder);
+    }
+    abort(404);
+})->where('filename', '.*')->name('assets.skills.icons');
 
 Route::get('/assets/monsters/avatars/{filename}', function ($filename) {
     $path = storage_path('app/assets/monsters/avatars/' . $filename);

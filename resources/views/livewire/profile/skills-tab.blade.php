@@ -21,6 +21,9 @@
                 <div class="bg-gray-800 border {{ $isActive ? 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'border-gray-700' }} rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 transition-all duration-300">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1">
+                            @if($skill->icon)
+                                <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-7 h-7 object-contain bg-gray-900 border border-gray-700 rounded p-0.5" alt="{{ $skill->name }}">
+                            @endif
                             <h4 class="text-lg font-bold text-amber-400">{{ $skill->name }}</h4>
                             <span class="bg-gray-700 text-gray-300 px-2 py-0.5 rounded text-xs">Poziom {{ $characterSkill->level }}</span>
                             @if($skill->weapon_requirement)
