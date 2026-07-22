@@ -13,7 +13,7 @@
         <livewire:global.tutorial-overlay :step="19" />
     @endif
 
-    <div class="relative container mx-auto px-4 py-8 min-h-screen flex flex-col">
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen flex flex-col">
         {{-- Header --}}
         <div class="flex items-center justify-between mb-8">
             <div class="bg-black/60 border border-amber-700/50 rounded-lg p-4 shadow-2xl backdrop-blur-md">
@@ -162,7 +162,7 @@
                         @endphp
 
                         <!-- Top Section: Forge Template (3 columns) -->
-                        <div class="w-full max-w-5xl mx-auto flex flex-col md:flex-row items-stretch justify-between gap-8">
+                        <div class="w-full flex flex-col md:flex-row items-stretch justify-between gap-8">
                             
                             <!-- Lewo: Obecny Przedmiot -->
                             <div class="flex-1 bg-black/60 border border-slate-600 rounded-xl p-6 flex flex-col items-center text-center shadow-xl backdrop-blur">

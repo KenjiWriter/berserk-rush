@@ -63,49 +63,16 @@
         <livewire:global.tutorial-overlay :step="23" />
     @endif
 
-    <div class="relative container mx-auto px-4 py-6 md:py-8 min-h-screen flex flex-col z-10">
-        {{-- Header with character info --}}
-        <div class="flex flex-col md:flex-row items-center md:justify-between mb-8 gap-4 text-center md:text-left">
-            <div class="bg-black/60 border border-amber-900/50 rounded-2xl p-4 shadow-2xl backdrop-blur-md w-full md:w-auto relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 relative z-10">
-                    {{-- Character avatar --}}
-                    <div class="w-14 h-14 border-2 border-amber-500/70 rounded-full overflow-hidden bg-gradient-to-b from-amber-800 to-amber-950 shadow-[0_0_15px_rgba(245,158,11,0.3)]">
-                        @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
-                            <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}"
-                                alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center text-xl text-amber-500">
-                                ⚔️
-                            </div>
-                        @endif
-                    </div>
-
-                    {{-- Character info --}}
-                    <div>
-                        <h2 class="text-2xl font-bold text-amber-400 medieval-font drop-shadow-md">{{ $character->name }}</h2>
-                        <div class="text-sm text-amber-200/80 font-medium">
-                            Poziom {{ $character->level }} <span class="mx-1">•</span> {{ $character->xp }} XP <span class="mx-1">•</span>
-                            <span class="text-yellow-400">{{ number_format($character->gold) }} złota</span>
-                        </div>
-                    </div>
-                </div>
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
+        {{-- Admin Link Header --}}
+        @if(auth()->user()->permission_level >= 9)
+            <div class="flex justify-end mb-4">
+                <a href="{{ route('admin.dashboard') }}"
+                    class="bg-red-950/80 border border-red-700/50 hover:bg-red-900 hover:border-red-500 text-red-200 font-bold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm text-xs">
+                    ⚙️ Admin
+                </a>
             </div>
-
-            {{-- Back buttons --}}
-            <div class="flex flex-wrap justify-center md:justify-end gap-3 w-full md:w-auto">
-                @if(auth()->user()->permission_level >= 9)
-                    <a href="{{ route('admin.dashboard') }}"
-                        class="bg-red-950/80 border border-red-700/50 hover:bg-red-900 hover:border-red-500 text-red-200 font-bold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm">
-                        ⚙️ Admin
-                    </a>
-                @endif
-                <button wire:click="backToHomepage"
-                    class="bg-slate-900/80 border border-slate-700/50 hover:bg-slate-800 hover:border-slate-500 text-slate-200 font-bold py-2.5 px-5 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm">
-                    🏠 Powrót
-                </button>
-            </div>
-        </div>
+        @endif
 
         {{-- City title --}}
         <div class="text-center mb-10">
@@ -118,7 +85,7 @@
         </div>
 
         {{-- Desktop Asymmetrical Bento Layout --}}
-        <div class="hidden lg:grid grid-cols-12 gap-5 max-w-7xl mx-auto w-full flex-grow auto-rows-[160px]">
+        <div class="hidden lg:grid grid-cols-12 gap-5 w-full flex-grow auto-rows-[180px] xl:auto-rows-[200px]">
             
             {{-- ADVENTURE (Hero card, 8 cols, 2 rows) --}}
             <div class="col-span-8 row-span-2 relative group rounded-3xl overflow-hidden border-2 border-green-900/50 shadow-2xl transition-all duration-300 hover:border-green-500/80 hover:shadow-[0_0_30px_rgba(34,197,94,0.3)] {{ $gameStage == 9 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"

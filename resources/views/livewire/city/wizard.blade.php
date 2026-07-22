@@ -2,7 +2,7 @@
     {{-- Background particles / magic fog --}}
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent opacity-50"></div>
     
-    <div class="relative container mx-auto px-4 py-6 min-h-screen flex flex-col">
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 min-h-screen flex flex-col">
         {{-- Header --}}
         <div class="flex items-center justify-between mb-6">
             <div class="bg-indigo-900/50 border border-purple-500/50 rounded-lg p-3 shadow-lg backdrop-blur-md">

@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen flex flex-col">
+    <div class="relative z-10 w-full px-6 md:px-10 lg:px-12 py-6 min-h-screen flex flex-col">
         {{-- Header with navigation --}}
         <div class="flex flex-col md:flex-row items-center md:justify-between mb-8 gap-4 text-center md:text-left">
             <h1 class="text-2xl md:text-4xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-3 justify-center md:justify-start">
@@ -60,7 +60,7 @@
             </div>
         </div>
 
-        <div class="max-w-5xl mx-auto w-full relative flex-1">
+        <div class="w-full relative flex-1">
             <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-2xl shadow-2xl border-2 border-amber-900/50">
             <div class="absolute inset-0 bg-amber-950/80 rounded-2xl backdrop-blur-sm"></div>
 

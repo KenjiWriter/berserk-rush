@@ -15,7 +15,7 @@
     <div class="fixed inset-0 bg-gradient-to-b from-stone-950/80 via-amber-950/30 to-stone-950/95 pointer-events-none"></div>
     <div class="fixed inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(12,10,9,0.85)_100%)] pointer-events-none"></div>
 
-    <div class="max-w-6xl mx-auto relative z-10">
+    <div class="w-full relative z-10">
         {{-- Wood Board Decorative Header --}}
         <div class="relative bg-gradient-to-r from-stone-900 via-amber-950/90 to-stone-900 border-2 border-amber-800/70 rounded-2xl p-5 sm:p-6 mb-8 shadow-[0_10px_35px_rgba(0,0,0,0.8)] backdrop-blur-md overflow-hidden">
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-20"></div>

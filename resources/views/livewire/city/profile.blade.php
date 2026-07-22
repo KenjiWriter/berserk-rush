@@ -4,7 +4,7 @@
     <div class="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/40 to-slate-950/70 pointer-events-none"></div>
     <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-black/20 to-black/70 pointer-events-none"></div>
 
-    <div class="relative max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen z-10">
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen z-10">
         @php
             $gameStage = auth()->user()->game_stage;
         @endphp

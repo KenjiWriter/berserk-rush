@@ -41,7 +41,7 @@
          </div>
     </div>
 
-    <div class="relative container mx-auto px-4 py-8 min-h-screen">
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen">
         @php
             $gameStage = auth()->user()->game_stage;
         @endphp
@@ -118,7 +118,7 @@
 
         {{-- MAPS TAB --}}
         @if($tab === 'maps')
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
             @foreach ($maps as $map)
                 @php
                     $isAccessible = $map->isAccessibleBy($character);

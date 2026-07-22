@@ -249,23 +249,63 @@
          </div>
     </div>
 
-    <div class="min-h-screen bg-gray-100 pb-16 lg:pb-0">
+    <div class="min-h-screen bg-slate-950 text-amber-100 pb-16 lg:pb-0">
+        @auth
+            @if (session('active_character'))
+                <div class="lg:flex lg:flex-row min-h-screen w-full">
+                    <x-desktop-nav />
+                    <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+                        @livewire('global.active-buffs')
 
-        @livewire('global.active-buffs')
+                        <!-- Page Heading -->
+                        @if (isset($header))
+                            <header class="bg-stone-900 border-b border-amber-900/60 shadow">
+                                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                                    {{ $header }}
+                                </div>
+                            </header>
+                        @endif
 
-        <!-- Page Heading -->
-        @if (isset($header))
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
+                        <!-- Page Content -->
+                        <main class="flex-1 min-w-0">
+                            {{ $slot }}
+                        </main>
+                    </div>
                 </div>
-            </header>
-        @endif
+            @else
+                @livewire('global.active-buffs')
 
-        <!-- Page Content -->
-        <main>
-            {{ $slot }}
-        </main>
+                <!-- Page Heading -->
+                @if (isset($header))
+                    <header class="bg-white shadow">
+                        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @endif
+
+                <!-- Page Content -->
+                <main class="flex-1 min-w-0">
+                    {{ $slot }}
+                </main>
+            @endif
+        @else
+            @livewire('global.active-buffs')
+
+            <!-- Page Heading -->
+            @if (isset($header))
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endif
+
+            <!-- Page Content -->
+            <main class="flex-1 min-w-0">
+                {{ $slot }}
+            </main>
+        @endauth
     </div>
 
     @auth

@@ -4,7 +4,7 @@
     <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-fuchsia-600/20 rounded-full mix-blend-screen filter blur-3xl opacity-50 animate-pulse" style="animation-delay: 2s;"></div>
     <div class="absolute inset-0 bg-[url('/img/noise.png')] opacity-[0.03] mix-blend-overlay"></div>
 
-    <div class="relative container mx-auto px-4 py-8 min-h-screen flex flex-col">
+    <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen flex flex-col">
         
         {{-- Header Bar --}}
         <div class="flex flex-col md:flex-row items-center justify-between mb-10 gap-4">
@@ -62,7 +62,7 @@
         </div>
 
         {{-- Main Content Area --}}
-        <div class="max-w-6xl mx-auto w-full flex-1">
+        <div class="w-full flex-1">
             @if($activeTab === 'shop')
                 <div class="space-y-8 animate-[fade-in_0.4s_ease-out]">
                     

@@ -31,6 +31,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/itemshop', \App\Livewire\ItemShop\ItemShopComponent::class)->name('itemshop');
     Route::get('/characters/create', Create::class)->name('characters.create');
 
+    Route::get('/characters/leave', function () {
+        session()->forget('active_character');
+        return redirect()->route('homepage');
+    })->name('characters.leave');
+
     // Character selection redirect
     Route::get('/characters/{character}/play', function (Character $character) {
         if (auth()->user()->id !== $character->user_id) {
