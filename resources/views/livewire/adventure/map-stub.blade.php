@@ -56,7 +56,7 @@
         @if($gameStage == 11)
             <livewire:global.tutorial-overlay :step="12" />
         @elseif($gameStage == 12 && $battleCompleted)
-            <livewire:global.tutorial-overlay :step="13" rewardItemTemplateId="01KX9NE31YJ98KTT8AAG6061AG" />
+            <livewire:global.tutorial-overlay :step="13" :rewardItemTemplateId="'01k4jpx94j70x2vv10b835hlm1'" />
         @endif
 
         {{-- Header with navigation --}}
@@ -872,6 +872,7 @@
          x-data="{ 
             startTime: {{ $sessionStartTime }},
             elapsed: '00:00:00',
+            goldPerMin: 0,
             updateTime() {
                 let now = Math.floor(Date.now() / 1000);
                 let diff = now - this.startTime;
@@ -879,6 +880,13 @@
                 let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
                 let s = Math.floor(diff % 60).toString().padStart(2, '0');
                 this.elapsed = `${h}:${m}:${s}`;
+
+                let totalGold = $wire.sessionGoldEarned || 0;
+                if (diff > 0) {
+                    this.goldPerMin = Math.round((totalGold / diff) * 60);
+                } else {
+                    this.goldPerMin = 0;
+                }
             }
          }"
          x-init="updateTime(); setInterval(() => updateTime(), 1000)">
@@ -886,6 +894,10 @@
         <div class="flex items-center justify-between text-xs md:text-sm md:mb-1">
             <span class="text-amber-200">⚔️ <span class="hidden md:inline">Pokonani:</span></span>
             <span class="font-bold text-white drop-shadow-md text-sm md:text-base ml-1 md:ml-4">{{ $sessionMonstersDefeated }}</span>
+        </div>
+        <div class="flex items-center justify-between text-xs md:text-sm md:mb-1">
+            <span class="text-amber-200">💰 <span class="hidden md:inline">Złoto/min:</span></span>
+            <span class="font-bold text-yellow-400 drop-shadow-md text-sm md:text-base ml-1 md:ml-4" x-text="goldPerMin + '/min'"></span>
         </div>
         <div class="flex items-center justify-between text-xs md:text-sm">
             <span class="text-amber-200">⏱️ <span class="hidden md:inline">Czas:</span></span>

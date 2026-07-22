@@ -29,6 +29,7 @@ class MapStub extends Component
 
     // Session Tracking
     public int $sessionMonstersDefeated = 0;
+    public int $sessionGoldEarned = 0;
     public int $sessionStartTime = 0;
 
     // Playback controls
@@ -452,6 +453,7 @@ class MapStub extends Component
             'gold' => $this->character->gold + $this->goldGained,
             'xp' => $this->character->xp + $this->xpGained,
         ]);
+        $this->sessionGoldEarned += $this->goldGained;
 
         $this->character = $this->character->fresh();
 
