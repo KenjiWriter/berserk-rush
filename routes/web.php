@@ -90,15 +90,34 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {
-    $path = storage_path('app/assets/items/' . $filename);
-    if (!file_exists($path)) {
-        $placeholder = public_path('img/avatars/plate.png');
-        if (file_exists($placeholder)) {
-            return response()->file($placeholder);
+    $candidates = [
+        $filename,
+        $filename . '.png',
+        $filename . '.jpg',
+        $filename . '.jpeg',
+        $filename . '.webp',
+    ];
+
+    $directories = [
+        storage_path('app/assets/items'),
+        storage_path('app/public/items'),
+        public_path('img/items'),
+    ];
+
+    foreach ($directories as $dir) {
+        foreach ($candidates as $cand) {
+            $path = $dir . '/' . $cand;
+            if (file_exists($path) && !is_dir($path)) {
+                return response()->file($path);
+            }
         }
-        abort(404);
     }
-    return response()->file($path);
+
+    $placeholder = public_path('img/avatars/plate.png');
+    if (file_exists($placeholder)) {
+        return response()->file($placeholder);
+    }
+    abort(404);
 })->where('filename', '.*')->name('assets.items');
 
 Route::get('/assets/skills/icons/{filename}', function ($filename) {

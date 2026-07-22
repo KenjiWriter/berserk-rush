@@ -20,6 +20,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['str_bonus' => 10, 'duration_minutes' => 15],
                 'description' => 'Zwiększa obrażenia poprzez dodanie siły na 15 minut.',
+                'icon' => 'bagienne-ziolo.png',
             ],
             [
                 'id' => 'potion-str-m',
@@ -28,6 +29,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['str_bonus' => 25, 'duration_minutes' => 20],
                 'description' => 'Znacznie zwiększa obrażenia poprzez dodanie siły na 20 minut.',
+                'icon' => 'mroczne-ziolo.png',
             ],
             [
                 'id' => 'potion-def-s',
@@ -36,6 +38,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['defense' => 10, 'duration_minutes' => 15],
                 'description' => 'Zwiększa pancerz na 15 minut.',
+                'icon' => 'metna-woda.png',
             ],
             [
                 'id' => 'potion-def-m',
@@ -44,6 +47,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['defense' => 25, 'duration_minutes' => 20],
                 'description' => 'Znacznie zwiększa pancerz na 20 minut.',
+                'icon' => 'toksyczny-sluz.png',
             ],
             [
                 'id' => 'potion-crit-s',
@@ -52,6 +56,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['crit_chance' => 5, 'duration_minutes' => 15],
                 'description' => 'Zwiększa szansę na cios krytyczny na 15 minut.',
+                'icon' => 'zar-plomieni.png',
             ],
             [
                 'id' => 'potion-crit-m',
@@ -60,6 +65,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['crit_chance' => 10, 'duration_minutes' => 20],
                 'description' => 'Znacznie zwiększa szansę na cios krytyczny na 20 minut.',
+                'icon' => 'zar-plomieni.png',
             ],
             [
                 'id' => 'potion-hp-s',
@@ -68,6 +74,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['hp_bonus' => 50, 'duration_minutes' => 15],
                 'description' => 'Zwiększa maksymalne punkty zdrowia na 15 minut.',
+                'icon' => 'bagienne-ziolo.png',
             ],
             [
                 'id' => 'potion-hp-m',
@@ -76,6 +83,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['hp_bonus' => 120, 'duration_minutes' => 20],
                 'description' => 'Znacznie zwiększa maksymalne punkty zdrowia na 20 minut.',
+                'icon' => 'mroczne-ziolo.png',
             ],
             [
                 'id' => 'potion-agi-s',
@@ -84,6 +92,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['agi_bonus' => 10, 'duration_minutes' => 15],
                 'description' => 'Zwiększa zwinność (i szansę na unik/rozpoczęcie) na 15 minut.',
+                'icon' => 'czysta-mana.png',
             ],
             [
                 'id' => 'potion-exp-special',
@@ -93,6 +102,7 @@ class PotionSeeder extends Seeder
                 'base_stats' => ['exp_bonus' => 20, 'duration_minutes' => 10],
                 'description' => 'Tajemniczy wywar zwiększający zdobywane doświadczenie z potworów o 20% przez 10 minut.',
                 'is_tradeable' => false,
+                'icon' => 'czysta-mana.png',
             ],
         ];
 
