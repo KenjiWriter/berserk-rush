@@ -1,8 +1,45 @@
 <div>
     @if($show)
         <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
-             x-data="{ visible: false }"
-             x-init="setTimeout(() => visible = true, 50)"
+             x-data="{
+                 visible: false,
+                 progress: 100,
+                 duration: 5000,
+                 startTime: null,
+                 animFrame: null,
+                 initModal() {
+                     setTimeout(() => this.visible = true, 50);
+                     this.startCountdown();
+                 },
+                 startCountdown() {
+                     this.progress = 100;
+                     this.startTime = Date.now();
+                     const tick = () => {
+                         const elapsed = Date.now() - this.startTime;
+                         const remaining = Math.max(0, this.duration - elapsed);
+                         this.progress = (remaining / this.duration) * 100;
+                         if (remaining > 0) {
+                             this.animFrame = requestAnimationFrame(tick);
+                         } else {
+                             this.closeModal();
+                         }
+                     };
+                     this.animFrame = requestAnimationFrame(tick);
+                 },
+                 closeModal() {
+                     if (this.animFrame) {
+                         cancelAnimationFrame(this.animFrame);
+                         this.animFrame = null;
+                     }
+                     $wire.close();
+                 },
+                 destroy() {
+                     if (this.animFrame) {
+                         cancelAnimationFrame(this.animFrame);
+                     }
+                 }
+             }"
+             x-init="initModal()"
              x-show="visible"
              x-transition:enter="transition ease-out duration-500 transform"
              x-transition:enter-start="opacity-0 scale-50"
@@ -62,8 +99,25 @@
                     @endif
                 </div>
 
-                <button wire:click="close" class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg transform transition-all hover:scale-105 active:scale-95 w-full uppercase tracking-wider text-sm">
-                    Kontynuuj
+                <button @click="closeModal()" 
+                        class="relative overflow-hidden bg-stone-950 hover:bg-stone-900 border-2 border-amber-500/70 text-white font-bold py-3.5 px-8 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.3)] transform transition-all hover:scale-[1.02] active:scale-95 w-full uppercase tracking-wider text-sm group cursor-pointer">
+                    <!-- Progress Bar Background -->
+                    <div class="absolute inset-y-0 left-0 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 transition-none pointer-events-none opacity-90 group-hover:opacity-100"
+                         :style="`width: ${progress}%`">
+                    </div>
+
+                    <!-- Inner Glow Line at progress tip -->
+                    <div class="absolute inset-y-0 w-1 bg-white/80 shadow-[0_0_8px_#fff] pointer-events-none transition-none"
+                         :style="`left: calc(${progress}% - 2px)`"
+                         x-show="progress > 0 && progress < 100">
+                    </div>
+
+                    <!-- Button Content -->
+                    <span class="relative z-10 flex items-center justify-center gap-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] font-extrabold text-white text-base">
+                        <span>Kontynuuj</span>
+                        <span class="text-xs text-amber-200 font-mono bg-black/40 px-2 py-0.5 rounded-full border border-amber-400/30" 
+                              x-text="`(${Math.ceil((progress / 100) * 5)}s)`"></span>
+                    </span>
                 </button>
             </div>
         </div>

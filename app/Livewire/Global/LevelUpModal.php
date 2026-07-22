@@ -26,6 +26,8 @@ class LevelUpModal extends Component
     public function close()
     {
         $this->show = false;
+        $this->dispatch('level-up-modal-closed');
+        $this->dispatch('resume-auto-battle');
     }
 
     public function render()

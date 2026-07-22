@@ -480,6 +480,18 @@ class MapStub extends Component
         $encounter->markRewardsApplied();
     }
 
+    #[On('level-up-modal-closed')]
+    #[On('resume-auto-battle')]
+    public function resumeAutoBattle(): void
+    {
+        if (Auth::user()->game_stage > 12) {
+            $this->autoChain = true;
+            if ($this->battleCompleted || !$this->isPlaying) {
+                $this->startBattle();
+            }
+        }
+    }
+
     private function getXpRequiredForLevel(int $level): int
     {
         return app(\App\Application\Characters\LevelUpService::class)->xpToNext($level - 1);
