@@ -1,7 +1,10 @@
-<div class="min-h-screen bg-gradient-to-b from-blue-900/90 via-indigo-800/90 to-purple-900/90 text-amber-100 relative overflow-hidden">
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-900/40 via-slate-800/50 to-slate-900/60"></div>
+<div class="min-h-screen bg-slate-950 text-amber-100 relative overflow-hidden">
+    {{-- Bright Background Parallax Image & Ambient Gold Overlay --}}
+    <div class="fixed inset-0 bg-cover bg-center opacity-75 mix-blend-normal scale-105 pointer-events-none" style="background-image: url('{{ asset('img/profile-bg.png') }}');"></div>
+    <div class="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/40 to-slate-950/70 pointer-events-none"></div>
+    <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-black/20 to-black/70 pointer-events-none"></div>
 
-    <div class="relative container mx-auto px-4 py-8 min-h-screen">
+    <div class="relative max-w-[1440px] mx-auto px-4 md:px-8 py-8 min-h-screen z-10">
         @php
             $gameStage = auth()->user()->game_stage;
         @endphp
@@ -13,21 +16,29 @@
         @endif
 
         {{-- Header --}}
-        <div class="flex items-center justify-between mb-8">
-            <div class="bg-gradient-to-r from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm">
-                <h2 class="text-xl font-bold text-amber-900 medieval-font">Profil: {{ $character->name }}</h2>
+        <div class="bg-gradient-to-r from-amber-950/90 via-stone-900/90 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md flex items-center justify-between mb-8 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent pointer-events-none"></div>
+            <div class="relative flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">👤</div>
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-amber-300 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">Profil: {{ $character->name }}</h2>
+                    <p class="text-amber-200/80 text-xs md:text-sm font-medium">Zarządzaj ekwipunkiem, atrybutami, statystykami i umiejętnościami bohatera</p>
+                </div>
             </div>
 
             <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg medieval-font {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] relative z-10' : '' }}">
+                class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
                 🏰 Powrót do miasta
             </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
         
         <!-- Left Side: Character Profile -->
-        <div class="bg-gray-900 border-2 border-yellow-600 rounded-lg shadow-xl p-4 flex flex-col h-full">
+        <div class="bg-gradient-to-b from-slate-900/90 via-stone-900/85 to-slate-950/90 border-2 border-amber-500/70 rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-md p-6 flex flex-col h-full relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none"></div>
+
+
             <!-- Equipment Slots & Portrait -->
             <div class="flex justify-center items-start gap-4 md:gap-8 mb-8 mt-4">
                 <!-- Left Slots -->
@@ -170,7 +181,7 @@
 
                 <!-- Portrait & Info -->
                 <div class="flex flex-col items-center w-48" x-data="{ avatarModalOpen: false }">
-                    <div class="w-full h-64 bg-gray-800 border-4 border-yellow-700 rounded-lg overflow-hidden flex items-center justify-center mb-4 shadow-lg relative group">
+                    <div class="w-full h-64 bg-stone-950/90 border-4 border-amber-600/80 rounded-2xl overflow-hidden flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
@@ -189,7 +200,7 @@
                     <div x-show="avatarModalOpen" style="display: none;" class="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
                         <div class="bg-gray-900 border border-amber-500 p-6 rounded-lg w-full max-w-2xl shadow-2xl relative" @click.outside="avatarModalOpen = false">
                             <button @click="avatarModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">✕</button>
-                            <h3 class="text-2xl font-bold text-amber-400 mb-6 border-b border-amber-900 pb-2">Wybierz Avatar</h3>
+                            <h3 class="text-2xl font-bold text-amber-400 mb-6 border-b border-amber-900 pb-2 medieval-font">Wybierz Avatar</h3>
                             
                             <h4 class="text-lg font-bold text-gray-300 mb-4">Podstawowe Avatary</h4>
                             <div class="grid grid-cols-4 sm:grid-cols-6 gap-4 mb-8">
@@ -214,13 +225,13 @@
                     </div>
 
                     @if($character->activeTitle)
-                        <div class="text-[11px] text-purple-400 font-bold uppercase tracking-widest mt-2 -mb-1 drop-shadow-md text-center">
+                        <div class="text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-2 -mb-1 drop-shadow-md text-center">
                             {{ $character->activeTitle->prefix }}
                         </div>
                     @endif
-                    <h2 class="text-2xl font-bold text-yellow-500 text-center drop-shadow-md">{{ $character->name }}</h2>
-                    <p class="text-gray-400 font-semibold text-sm">Poziom {{ $character->level }}</p>
-                    <div class="bg-indigo-900/80 border border-indigo-500 text-indigo-200 px-3 py-1 rounded-full text-xs font-bold shadow-lg my-2">
+                    <h2 class="text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md">{{ $character->name }}</h2>
+                    <p class="text-amber-200/70 font-semibold text-sm">Poziom {{ $character->level }}</p>
+                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-4 py-1 rounded-full text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-2 medieval-font">
                         ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
                     </div>
                     
@@ -384,27 +395,27 @@
             </div>
 
             <!-- Stats -->
-            <div class="bg-gray-800 border border-gray-700 rounded p-4 mt-auto">
-                <div class="flex justify-between items-end border-b border-gray-700 pb-2 mb-3">
-                    <div class="flex gap-4">
-                        <button wire:click="setTab('attributes')" class="font-bold text-md transition-colors {{ $activeTab === 'attributes' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-4 mt-auto shadow-inner relative z-10">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
+                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-grow">
+                        <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
-                        <button wire:click="setTab('stats')" class="font-bold text-md transition-colors {{ $activeTab === 'stats' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                        <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Statystyki
                         </button>
-                        <button wire:click="setTab('pets')" class="font-bold text-md transition-colors {{ $activeTab === 'pets' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Pety & Inkubator
                         </button>
-                        <button wire:click="setTab('collections')" class="font-bold text-md transition-colors {{ $activeTab === 'collections' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                        <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Kolekcje & Tytuły
                         </button>
-                        <button wire:click="setTab('skills')" class="font-bold text-md transition-colors {{ $activeTab === 'skills' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                        <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
-                        <span x-data="{ points: {{ $character->character_points }} }" @stats-saved.window="points = $event.detail.points" x-show="points > 0" class="text-green-400 font-bold text-sm animate-pulse bg-green-900/40 px-2 py-1 rounded border border-green-700">Punkty: <span x-text="points"></span></span>
+                        <span x-data="{ points: {{ $character->character_points }} }" @stats-saved.window="points = $event.detail.points" x-show="points > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="points"></span></span>
                     @endif
                 </div>
                 @if($activeTab === 'attributes')
@@ -541,27 +552,38 @@
         </div>
 
         <!-- Right Side: Inventory -->
-        <div class="bg-gray-900 border-2 border-blue-900 rounded-lg shadow-xl p-4 flex flex-col h-full">
-            <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                <h2 class="text-2xl font-bold text-blue-400">Backpack</h2>
-                <div class="text-yellow-400 font-bold flex gap-4">
-                    <span>🪙 {{ $character->gold }}</span>
-                    <span>💎 {{ auth()->user()->gems }}</span>
+        <div class="bg-gradient-to-b from-stone-900/95 via-stone-900/90 to-stone-950/95 border-2 border-amber-700/60 rounded-3xl shadow-2xl backdrop-blur-md p-6 flex flex-col h-full relative overflow-hidden">
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/5 via-transparent to-transparent pointer-events-none"></div>
+
+            <div class="flex justify-between items-center mb-4 border-b border-amber-900/40 pb-3 relative z-10">
+                <div class="flex items-center gap-2">
+                    <span class="text-amber-400 text-xl">🎒</span>
+                    <h2 class="text-2xl font-bold text-amber-300 medieval-font drop-shadow-md">Ekwipunek</h2>
+                </div>
+                <div class="text-amber-300 font-bold flex gap-3 text-sm">
+                    <div class="bg-stone-950/90 border border-amber-800/60 px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5">
+                        <span class="text-yellow-400 drop-shadow">🪙</span>
+                        <span>{{ number_format($character->gold) }}</span>
+                    </div>
+                    <div class="bg-stone-950/90 border border-cyan-800/60 px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5 text-cyan-300">
+                        <span class="text-cyan-400 drop-shadow">💎</span>
+                        <span>{{ number_format(auth()->user()->gems) }}</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2 custom-scrollbar">
-                <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Wszystko</button>
-                <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'weapon' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Bronie</button>
-                <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'armor' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Pancerz</button>
-                <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'accessory' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Akcesoria</button>
-                <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'material' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Materiały</button>
-                <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded transition-colors {{ $inventoryFilter === 'consumable' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-800 text-gray-400 hover:bg-gray-700' }}">Mikstury</button>
+            <div class="flex overflow-x-auto whitespace-nowrap gap-2 mb-3 pb-2 custom-scrollbar relative z-10">
+                <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'all' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Wszystko</button>
+                <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'weapon' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Bronie</button>
+                <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'armor' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Pancerz</button>
+                <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'accessory' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Akcesoria</button>
+                <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'material' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Materiały</button>
+                <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'consumable' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Mikstury</button>
                 
                 <div class="flex-grow"></div>
                 
-                <button wire:click="stackItems" class="px-2 py-1 text-xs rounded bg-green-700 hover:bg-green-600 text-white flex items-center gap-1 shadow transition-colors" title="Połącz powtarzające się materiały">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
+                <button wire:click="stackItems" class="px-3 py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40" title="Połącz powtarzające się materiały">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
                     Stackuj
                 </button>
             </div>
