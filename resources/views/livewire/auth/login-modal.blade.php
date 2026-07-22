@@ -1,9 +1,11 @@
 <div>
     {{-- Login Button --}}
-    <button wire:click="openModal"
-        class="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center border-2 border-amber-600 medieval-font">
-        🗝️ Zaloguj się
-    </button>
+    @if(!($hideButton ?? false))
+        <button wire:click="openModal"
+            class="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center border-2 border-amber-600 medieval-font">
+            🗝️ Zaloguj się
+        </button>
+    @endif
 
     {{-- Modal - Portal to body to avoid container constraints --}}
     @if ($showModal)

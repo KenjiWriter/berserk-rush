@@ -35,6 +35,13 @@ class Register extends Component
         'password.confirmed' => 'Hasła muszą być identyczne',
     ];
 
+    public function mount()
+    {
+        if (Auth::check()) {
+            return redirect()->route('homepage');
+        }
+    }
+
     public function updated($propertyName)
     {
         $this->validateOnly($propertyName);
@@ -53,8 +60,9 @@ class Register extends Component
         Auth::login($user);
 
         session()->regenerate();
+        session()->forget('url.intended');
 
-        return redirect()->intended('/');
+        return redirect()->route('homepage');
     }
 
     public function render()

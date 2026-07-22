@@ -16,7 +16,7 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Character;
 
 Route::get('/', Homepage::class)->name('homepage');
-Route::get('/register', Register::class)->name('register');
+Route::get('/register', Register::class)->middleware('guest')->name('register');
 
 // Social Login Routes
 Route::middleware('guest')->group(function () {
