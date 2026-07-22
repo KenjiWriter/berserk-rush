@@ -40,9 +40,9 @@
 
 
             <!-- Equipment Slots & Portrait -->
-            <div class="flex justify-center items-start gap-4 md:gap-8 mb-8 mt-4">
+            <div class="flex justify-center items-start gap-3 sm:gap-6 md:gap-8 mb-3 mt-2">
                 <!-- Left Slots -->
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-3">
                     <!-- Pet Slot -->
                     @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
                     <div id="equip-slot-pet" x-data="{ open: false, hoverTimeout: null, isDragOver: false }" @click.outside="open = false" 
@@ -65,13 +65,13 @@
                                  isDragOver = false;
                              }
                          "
-                         class="w-16 h-16 bg-gray-800 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-gray-600 border-dashed' }} rounded flex items-center justify-center relative transition-all duration-200"
+                         class="w-20 h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
                          :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver }"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
-                            <div class="text-center text-xs text-white">
-                                <span class="text-xl">🐾</span>
-                                <span class="block truncate w-14 text-[10px] text-amber-400 mt-1">{{ $activePet->name }}</span>
+                            <div class="text-center text-xs text-white flex flex-col items-center justify-center p-1">
+                                <span class="text-2xl drop-shadow">🐾</span>
+                                <span class="block truncate w-16 text-[11px] text-amber-300 font-semibold mt-0.5">{{ $activePet->name }}</span>
                             </div>
                             <!-- Modal -->
                             <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
@@ -98,9 +98,9 @@
                                 </div>
                             </div>
                         @else
-                            <div class="text-gray-500 flex flex-col items-center">
-                                <span class="text-xl opacity-50 mb-1">🐾</span>
-                                <span class="text-[10px]">Pet</span>
+                            <div class="text-stone-500 flex flex-col items-center">
+                                <span class="text-2xl opacity-50 mb-0.5">🐾</span>
+                                <span class="text-[11px] font-semibold text-stone-400">Pet</span>
                             </div>
                         @endif
                     </div>
@@ -134,7 +134,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-grab active:cursor-grabbing hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-20 h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
@@ -142,21 +142,20 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
-                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[11px] bg-stone-950/90 px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
-                                    <div class="text-center text-xs text-white">
-                                        <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
+                                    <div class="text-center text-xs text-white p-1">
+                                        <span class="block truncate w-16 text-amber-200 font-semibold">{{ $equipped[$slot]->template->name }}</span>
                                         @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                            <span class="text-yellow-400 font-bold">+{{ $equipped[$slot]->upgrade_level }}</span>
                                         @endif
                                     </div>
                                 @endif
-                                <!-- Tooltip / Modal -->
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
@@ -173,15 +172,15 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
+                                <span class="text-stone-400 text-xs font-semibold capitalize">{{ ucfirst($slot) }}</span>
                             @endif
                         </div>
                     @endforeach
                 </div>
 
                 <!-- Portrait & Info -->
-                <div class="flex flex-col items-center w-48" x-data="{ avatarModalOpen: false }">
-                    <div class="w-full h-64 bg-stone-950/90 border-4 border-amber-600/80 rounded-2xl overflow-hidden flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
+                <div class="flex flex-col items-center w-52" x-data="{ avatarModalOpen: false }">
+                    <div class="w-full h-[270px] bg-stone-950/90 border-4 border-amber-600/80 rounded-2xl overflow-hidden flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
@@ -225,13 +224,13 @@
                     </div>
 
                     @if($character->activeTitle)
-                        <div class="text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-2 -mb-1 drop-shadow-md text-center">
+                        <div class="text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-1.5 -mb-1 drop-shadow-md text-center">
                             {{ $character->activeTitle->prefix }}
                         </div>
                     @endif
                     <h2 class="text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md">{{ $character->name }}</h2>
                     <p class="text-amber-200/70 font-semibold text-sm">Poziom {{ $character->level }}</p>
-                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-4 py-1 rounded-full text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-2 medieval-font">
+                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-4 py-1 rounded-full text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1.5 medieval-font">
                         ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
                     </div>
                     
@@ -245,15 +244,15 @@
                             XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
                         </span>
                     </div>
-                    <div class="w-full mt-4 border-t border-gray-700/50 pt-3">
-                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">Wyposażone Skille</h3>
-                        <div class="flex justify-center gap-3">
+                    <div class="w-full mt-3 border-t border-stone-800 pt-2.5">
+                        <h3 class="text-xs font-bold text-amber-400/90 uppercase tracking-widest mb-2 text-center medieval-font">Wyposażone Skille</h3>
+                        <div class="flex justify-center gap-3.5">
                             @for($i = 0; $i < 3; $i++)
                                 @php
                                     $equippedSkill = $character->equippedSkills[$i] ?? null;
                                 @endphp
                                 <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false"
-                                     class="w-10 h-10 rounded border border-gray-700 bg-gray-800 flex flex-col items-center justify-center relative shadow-inner {{ $equippedSkill ? 'border-amber-600/50 hover:border-amber-400 cursor-pointer' : '' }}"
+                                     class="w-16 h-16 rounded-2xl border-2 border-stone-700 bg-stone-900/90 flex flex-col items-center justify-center relative shadow-md transition-all duration-200 {{ $equippedSkill ? 'border-amber-500/80 hover:border-amber-400 bg-gradient-to-br from-amber-950/60 via-stone-900 to-amber-900/40 cursor-pointer shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105' : 'border-dashed border-stone-700/80' }}"
                                      @if($equippedSkill) 
                                         @mouseenter="clearTimeout(hoverTimeout); open = true" 
                                         @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
@@ -261,55 +260,55 @@
                                      @endif>
                                     @if($equippedSkill)
                                         @if($equippedSkill->skill->icon)
-                                            <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-6 h-6 object-contain drop-shadow" alt="{{ $equippedSkill->skill->name }}">
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-11 h-11 object-contain drop-shadow-md p-1" alt="{{ $equippedSkill->skill->name }}">
                                         @else
-                                            <div class="text-sm">✨</div>
+                                            <div class="text-xl">✨</div>
                                         @endif
-                                        <div class="absolute -bottom-1 -right-1 bg-gray-900 border border-gray-600 text-yellow-500 text-[8px] px-0.5 rounded shadow-md font-bold leading-none">
+                                        <div class="absolute -bottom-1 -right-1 bg-stone-950 border border-amber-500/70 text-amber-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shadow-lg leading-none">
                                             L{{ $equippedSkill->level }}
                                         </div>
 
                                         <!-- Infobox -->
                                         <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:bottom-full sm:left-1/2 sm:-translate-x-1/2 sm:mb-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
-                                            <div class="relative w-[280px] sm:w-[320px] bg-gray-900 border-2 border-amber-600 rounded-lg shadow-[0_0_15px_rgba(217,119,6,0.5)] p-4 text-left">
+                                            <div class="relative w-[280px] sm:w-[320px] bg-stone-900 border-2 border-amber-500 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] p-4 text-left">
                                                 <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                                 
-                                                <div class="flex items-center gap-3 mb-3 border-b border-gray-700 pb-3">
+                                                <div class="flex items-center gap-3 mb-3 border-b border-stone-800 pb-3">
                                                     @if($equippedSkill->skill->icon)
-                                                        <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-10 h-10 object-contain bg-gray-800 rounded p-1 border border-gray-700">
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-10 h-10 object-contain bg-stone-950 rounded-lg p-1 border border-amber-500/50">
                                                     @endif
                                                     <div>
-                                                        <h4 class="text-amber-500 font-bold text-sm">{{ $equippedSkill->skill->name }}</h4>
-                                                        <p class="text-gray-400 text-xs">Poziom {{ $equippedSkill->level }}</p>
+                                                        <h4 class="text-amber-400 font-bold text-sm medieval-font">{{ $equippedSkill->skill->name }}</h4>
+                                                        <p class="text-stone-400 text-xs">Poziom {{ $equippedSkill->level }}</p>
                                                     </div>
                                                 </div>
                                                 
-                                                <div class="text-gray-300 text-xs mb-3 space-y-2">
+                                                <div class="text-stone-300 text-xs mb-3 space-y-2">
                                                     <p>{{ $equippedSkill->skill->description }}</p>
                                                     <div class="flex flex-wrap gap-1.5 text-[11px] pt-1">
-                                                        <span class="bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700/50">Odnowienie: {{ $equippedSkill->skill->base_cooldown }} tur</span>
+                                                        <span class="bg-indigo-950/80 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700/50">Odnowienie: {{ $equippedSkill->skill->base_cooldown }} tur</span>
                                                         @if($equippedSkill->skill->base_duration > 0)
-                                                            <span class="bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded border border-purple-700/50">Czas trwania: {{ $equippedSkill->skill->base_duration }} tur</span>
+                                                            <span class="bg-purple-950/80 text-purple-300 px-2 py-0.5 rounded border border-purple-700/50">Czas trwania: {{ $equippedSkill->skill->base_duration }} tur</span>
                                                         @endif
                                                         @if($equippedSkill->skill->type === 'dot_poison')
-                                                            <span class="bg-green-900/60 text-green-300 px-2 py-0.5 rounded border border-green-700/50">Trucizna: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% aktualnego HP</span>
+                                                            <span class="bg-emerald-950/80 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700/50">Trucizna: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% aktualnego HP</span>
                                                         @elseif($equippedSkill->skill->type === 'dot_fire')
-                                                            <span class="bg-red-900/60 text-red-300 px-2 py-0.5 rounded border border-red-700/50">Ogień: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% max HP</span>
+                                                            <span class="bg-rose-950/80 text-rose-300 px-2 py-0.5 rounded border border-rose-700/50">Ogień: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% max HP</span>
                                                         @elseif($equippedSkill->skill->type === 'buff_damage')
-                                                            <span class="bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded border border-blue-700/50">Wzmocnienie: +{{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% obrażeń</span>
+                                                            <span class="bg-sky-950/80 text-sky-300 px-2 py-0.5 rounded border border-sky-700/50">Wzmocnienie: +{{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% obrażeń</span>
                                                         @endif
                                                     </div>
                                                 </div>
 
-                                                <button @click="open = false; $wire.unequipSkill('{{ $equippedSkill->id }}')" class="w-full bg-red-900/80 hover:bg-red-800 text-red-200 border border-red-700 font-bold py-1.5 px-3 rounded text-xs transition-colors">
+                                                <button @click="open = false; $wire.unequipSkill('{{ $equippedSkill->id }}')" class="w-full bg-rose-900/80 hover:bg-rose-800 text-rose-100 border border-rose-600/60 font-bold py-1.5 px-3 rounded-lg text-xs transition-colors shadow">
                                                     Zdejmij skill
                                                 </button>
                                             </div>
                                             <!-- Arrow (Desktop only) -->
-                                            <div class="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-b-2 border-r-2 border-amber-600 transform rotate-45 z-10"></div>
+                                            <div class="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-stone-900 border-b-2 border-r-2 border-amber-500 transform rotate-45 z-10"></div>
                                         </div>
                                     @else
-                                        <div class="text-gray-600 text-[10px]">-</div>
+                                        <div class="text-stone-600 text-sm">✨</div>
                                     @endif
                                 </div>
                             @endfor
@@ -318,7 +317,7 @@
                 </div>
 
                 <!-- Right Slots -->
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-3">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
                         <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
                              @if(isset($equipped[$slot])) 
@@ -348,7 +347,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-16 h-16 bg-gray-800 border-2 {{ isset($equipped[$slot]) ? 'border-blue-500 cursor-grab active:cursor-grabbing hover:border-red-500' : 'border-gray-600' }} rounded flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-20 h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
@@ -356,21 +355,20 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
-                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[11px] bg-stone-950/90 px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
-                                    <div class="text-center text-xs text-white">
-                                        <span class="block truncate w-14">{{ $equipped[$slot]->template->name }}</span>
+                                    <div class="text-center text-xs text-white p-1">
+                                        <span class="block truncate w-16 text-amber-200 font-semibold">{{ $equipped[$slot]->template->name }}</span>
                                         @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="text-yellow-400">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                            <span class="text-yellow-400 font-bold">+{{ $equipped[$slot]->upgrade_level }}</span>
                                         @endif
                                     </div>
                                 @endif
-                                <!-- Tooltip / Modal -->
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
@@ -387,7 +385,7 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="text-gray-500 text-xs">{{ ucfirst($slot) }}</span>
+                                <span class="text-stone-400 text-xs font-semibold capitalize">{{ ucfirst($slot) }}</span>
                             @endif
                         </div>
                     @endforeach
@@ -395,7 +393,7 @@
             </div>
 
             <!-- Stats -->
-            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-4 mt-auto shadow-inner relative z-10">
+            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-4 mt-3 shadow-inner relative z-10">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-grow">
                         <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
