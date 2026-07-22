@@ -31,6 +31,8 @@ class DatabaseSeeder extends Seeder
             EquipmentRecipeSeeder::class,
             ShopEquipmentSeeder::class,
             NewsSeeder::class,
+            TitleSeeder::class,
+            AchievementSeeder::class,
         ]);
     }
 }
