@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\GuildWarFight;
+use Livewire\Attributes\Computed;
 
 class ArenaCombat extends Component
 {
@@ -35,6 +36,16 @@ class ArenaCombat extends Component
     // Rewards
     public int $eloChange = 0;
     public int $tokensReward = 0;
+
+    #[Computed]
+    public function equippedSkills()
+    {
+        return \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+            ->where('character_id', $this->character->id)
+            ->where('is_equipped', true)
+            ->orderBy('equip_slot')
+            ->get();
+    }
 
     public function mount(Character $character, ?string $pvpId = null, ?int $gvgId = null): void
     {
@@ -74,7 +85,8 @@ class ArenaCombat extends Component
             'avatar' => $this->character->avatar ? asset("img/avatars/{$this->character->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
-            'stats' => $mySnap['attributes']
+            'stats' => $mySnap['attributes'],
+            'skills' => $mySnap['skills'] ?? []
         ];
 
         // Enemy Character to get their actual avatar
@@ -87,7 +99,8 @@ class ArenaCombat extends Component
             'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
-            'stats' => $enemySnap['attributes']
+            'stats' => $enemySnap['attributes'],
+            'skills' => $enemySnap['skills'] ?? []
         ];
 
         if ($encounter->state === 'calculating') {
@@ -129,7 +142,8 @@ class ArenaCombat extends Component
             'avatar' => ($myChar && $myChar->avatar) ? asset("img/avatars/{$myChar->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
-            'stats' => $mySnap['attributes']
+            'stats' => $mySnap['attributes'],
+            'skills' => $mySnap['skills'] ?? []
         ];
 
         $this->enemy = [
@@ -138,7 +152,8 @@ class ArenaCombat extends Component
             'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
-            'stats' => $enemySnap['attributes']
+            'stats' => $enemySnap['attributes'],
+            'skills' => $enemySnap['skills'] ?? []
         ];
 
         $this->isCalculating = false;
@@ -306,6 +321,12 @@ class ArenaCombat extends Component
     {
         if (empty($this->visibleTurns)) return !$this->playerFirst;
         return end($this->visibleTurns)['actor'] === 'enemy';
+    }
+
+    public function getCurrentState(): ?array
+    {
+        if (empty($this->visibleTurns)) return null;
+        return end($this->visibleTurns)['state'] ?? null;
     }
 
     public function render()

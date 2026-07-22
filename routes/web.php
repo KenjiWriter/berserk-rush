@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
         Route::get('/witch', Witch::class)->name('witch');
         Route::get('/wizard', \App\Livewire\City\Wizard::class)->name('wizard');
+        Route::get('/warlock', \App\Livewire\City\Warlock::class)->name('warlock');
         Route::get('/market', \App\Livewire\Economy\MarketComponent::class)->name('market');
         Route::get('/mailbox', \App\Livewire\Mail\MailboxComponent::class)->name('mailbox');
         Route::get('/guild', \App\Livewire\City\GuildComponent::class)->name('guild');
@@ -80,6 +81,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
     Route::get('/upgrade-rules', \App\Livewire\Admin\UpgradeRules::class)->name('upgrade-rules');
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
+    Route::get('/combat-skills', \App\Livewire\Admin\CombatSkills::class)->name('combat-skills');
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
     Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');
     Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');
@@ -97,7 +99,15 @@ Route::get('/assets/items/{filename}', function ($filename) {
         abort(404);
     }
     return response()->file($path);
-})->name('assets.items');
+})->where('filename', '.*')->name('assets.items');
+
+Route::get('/assets/skills/icons/{filename}', function ($filename) {
+    $path = storage_path('app/assets/skills/icons/' . $filename);
+    if (!file_exists($path)) {
+        abort(404);
+    }
+    return response()->file($path);
+})->where('filename', '.*');
 
 Route::get('/assets/monsters/avatars/{filename}', function ($filename) {
     $path = storage_path('app/assets/monsters/avatars/' . $filename);

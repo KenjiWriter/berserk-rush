@@ -146,6 +146,16 @@ class Character extends Model
         return $this->items()->where('location', 'inventory')->with('template');
     }
 
+    public function combatSkills(): HasMany
+    {
+        return $this->hasMany(CharacterCombatSkill::class, 'character_id');
+    }
+
+    public function equippedSkills()
+    {
+        return $this->combatSkills()->where('is_equipped', true)->with('skill');
+    }
+
     public function activeBuffs(): HasMany
     {
         return $this->hasMany(ActiveBuff::class, 'character_id');
@@ -391,6 +401,32 @@ class Character extends Model
 
     public function createSnapshot(): array
     {
+        // Ensure skills are loaded
+        $this->loadMissing('equippedSkills.skill');
+        
+        $skillsData = $this->equippedSkills->map(function($charSkill) {
+            return [
+                'id' => $charSkill->skill->id,
+                'name' => $charSkill->skill->name,
+                'effect_type' => $charSkill->skill->effect_type,
+                'base_cooldown' => $charSkill->skill->base_cooldown,
+                'base_duration' => $charSkill->skill->base_duration,
+                'base_value' => $charSkill->skill->base_value,
+                'scaling_value' => $charSkill->skill->scaling_value,
+                'level' => $charSkill->level,
+                'required_weapon_type' => $charSkill->skill->required_weapon_type,
+            ];
+        })->toArray();
+
+        // Check weapon type
+        $weaponType = 'barehands';
+        $weapon = $this->equippedItems()->whereHas('template', function($q) {
+            $q->where('slot', 'main_hand');
+        })->first();
+        if ($weapon) {
+            $weaponType = $weapon->template->weapon_type ?? 'sword'; // Assuming sword if not specified
+        }
+
         return [
             'character_id' => $this->id,
             'name' => $this->name,
@@ -399,6 +435,8 @@ class Character extends Model
             'equipment_stats' => $this->getEquipmentStats(),
             'max_hp' => $this->getMaxHp(),
             'combat_power' => $this->getTotalCombatPower(),
+            'skills' => $skillsData,
+            'weapon_type' => $weaponType,
         ];
     }
 

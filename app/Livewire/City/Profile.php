@@ -26,14 +26,17 @@ class Profile extends Component
     public int $sellDuration = 24;
 
     #[On('tutorial-completed')]
+    #[On('skill-equipped')]
     public function refreshProfile()
     {
         $this->character->refresh();
+        $this->character->load('equippedSkills.skill');
     }
 
     public function mount(Character $character)
     {
         $this->character = $character;
+        $this->character->load('equippedSkills.skill');
         
         // Ensure character belongs to user
         if (auth()->id() !== $character->user_id) {
@@ -79,6 +82,23 @@ class Profile extends Component
         
         $this->dispatch('notify', type: 'success', message: 'Ekwipunek został uporządkowany.');
         $this->character->refresh();
+        $this->character->load('equippedSkills.skill');
+    }
+
+    public function unequipSkill(string $characterSkillId)
+    {
+        $characterSkill = \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $this->character->id)
+            ->where('id', $characterSkillId)
+            ->first();
+
+        if ($characterSkill && $characterSkill->is_equipped) {
+            $characterSkill->is_equipped = false;
+            $characterSkill->save();
+            $this->dispatch('notify', type: 'success', message: 'Umiejętność zdjęta.');
+            $this->dispatch('skill-equipped');
+            $this->character->refresh();
+            $this->character->load('equippedSkills.skill');
+        }
     }
 
     public function equipItem(string $itemUlid, EquipItem $equipAction)
@@ -300,7 +320,7 @@ class Profile extends Component
 
     public function render()
     {
-        $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template']);
+        $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template', 'equippedSkills.skill']);
 
         $equipped = [];
         foreach ($this->character->equippedItems as $item) {

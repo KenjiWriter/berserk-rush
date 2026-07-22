@@ -104,6 +104,7 @@
                         </div>
 
                         @if (!empty($player))
+                            @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
                             <div class="space-y-1 lg:space-y-2">
                                 <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
                                     <span>❤️ Życie</span>
@@ -114,6 +115,16 @@
                                         style="width: {{ $this->getPlayerHpPercent() }}%"></div>
                                 </div>
                             </div>
+                            @if($currentState && !empty($currentState['buffs']))
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    @foreach($currentState['buffs'] as $key => $buff)
+                                        <div class="bg-blue-900/80 border border-blue-400 rounded px-2 py-0.5 text-xs text-blue-100 flex items-center gap-1 shadow-sm" title="Wzmocnienie">
+                                            <span>⚔️</span>
+                                            <span class="font-bold">{{ $buff['duration'] }}T</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -168,6 +179,16 @@
                                                 <span class="text-slate-700 italic font-semibold">
                                                     <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
                                                     pudłuje atak!
+                                                </span>
+                                            @elseif ($turn['type'] == 'dot')
+                                                <span class="text-purple-700 font-semibold italic">
+                                                    Zadano <strong class="text-purple-900">{{ $turn['value'] }}</strong> obrażeń od statusów.
+                                                </span>
+                                            @elseif ($turn['type'] == 'skill')
+                                                <span class="{{ $turn['actor'] == 'player' ? 'text-blue-800' : 'text-red-800' }} font-semibold">
+                                                    <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                    używa <span class="text-indigo-600 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong> obrażeń
+                                                    @if ($turn['crit']) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
                                                 </span>
                                             @else
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-800' : 'text-red-800' }} font-semibold">
@@ -281,6 +302,16 @@
                                         style="width: {{ $this->getEnemyHpPercent() }}%"></div>
                                 </div>
                             </div>
+                            @if(isset($currentState) && $currentState && !empty($currentState['dots']))
+                                <div class="flex flex-wrap gap-1 mt-2 justify-end">
+                                    @foreach($currentState['dots'] as $dot)
+                                        <div class="bg-purple-900/80 border border-purple-400 rounded px-2 py-0.5 text-xs text-purple-100 flex items-center gap-1 shadow-sm" title="Status: {{ $dot['type'] }}">
+                                            <span>{{ $dot['type'] == 'poison' ? '🐍' : '🔥' }}</span>
+                                            <span class="font-bold">{{ $dot['duration'] }}T</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         @endif
                     </div>
                 </div>

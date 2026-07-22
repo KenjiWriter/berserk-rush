@@ -115,6 +115,43 @@ class ItemShopComponent extends Component
         return redirect($checkout_session->url);
     }
 
+    public function resetSkills()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $cost = 50;
+
+        if ($user->gems < $cost) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost) {
+            $user->gems -= $cost;
+            $user->save();
+
+            $characters = $user->characters;
+            foreach ($characters as $character) {
+                $spentPoints = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+                    ->where('character_id', $character->id)
+                    ->get()
+                    ->sum(function($cs) {
+                        return $cs->skill->unlock_cost + ($cs->level - 1);
+                    });
+                
+                \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $character->id)->delete();
+                
+                if ($spentPoints > 0) {
+                    $character->skill_points += $spentPoints;
+                    $character->save();
+                }
+            }
+        });
+
+        $this->dispatch('notify', message: 'Zresetowano umiejętności wszystkich postaci pomyślnie!', type: 'success');
+    }
+
     public function render()
     {
         $packages = ItemShopPackage::where('is_active', true)->orderBy('price_in_cents', 'asc')->get();

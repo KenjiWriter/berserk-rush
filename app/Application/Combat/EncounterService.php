@@ -15,6 +15,11 @@ use App\Infrastructure\Persistence\WorldBossDamageLog;
 
 class EncounterService
 {
+    private array $activeCooldowns = [];
+    private array $activeDots = [];
+    private $equippedSkills = null;
+    private array $activeBuffs = [];
+
     public function start(Character $character, Map $map, ?Monster $forcedMonster = null): Result
     {
         Log::info('EncounterService::start called', [
@@ -327,6 +332,22 @@ class EncounterService
 
     private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false): array
     {
+        // Reset state for new combat
+        $this->activeCooldowns = [];
+        $this->activeDots = [];
+        $this->activeBuffs = [];
+        $this->equippedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+            ->where('character_id', $character->id)
+            ->where('is_equipped', true)
+            ->orderBy('equip_slot')
+            ->get();
+
+        foreach ($this->equippedSkills as $cs) {
+            if ($cs->skill->type === 'active') {
+                $this->activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1); // ready slightly earlier
+            }
+        }
+
         $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
         $monsterAgi = $monster->stats['agi'] ?? $monster->level;
         $playerFirst = $playerAgi >= $monsterAgi;
@@ -335,8 +356,57 @@ class EncounterService
         $turnCount = 0;
         $maxTurns = $isWorldBoss ? 20 : 50;
 
+        $monsterMaxHp = $monsterHp;
+
         while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
             $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
+
+            // Process DOTs before turn
+            if ($isPlayerTurn) {
+                // Player's turn: decrease skill cooldowns
+                foreach ($this->activeCooldowns as $id => $cd) {
+                    if ($cd > 0) $this->activeCooldowns[$id]--;
+                }
+                // Decrease active buffs duration
+                foreach ($this->activeBuffs as $k => $b) {
+                    $this->activeBuffs[$k]['duration']--;
+                    if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
+                }
+            } else {
+                // Monster's turn: process DOTs
+                $dotDamage = 0;
+                foreach ($this->activeDots as $k => $dot) {
+                    if ($dot['type'] === 'poison') {
+                        $dmg = (int)($monsterHp * $dot['value']);
+                    } else if ($dot['type'] === 'fire') {
+                        $dmg = (int)($monsterMaxHp * $dot['value']);
+                    } else {
+                        $dmg = 0;
+                    }
+                    $dmg = max(1, $dmg);
+                    $dotDamage += $dmg;
+                    
+                    $this->activeDots[$k]['duration']--;
+                    if ($this->activeDots[$k]['duration'] <= 0) unset($this->activeDots[$k]);
+                }
+                
+                if ($dotDamage > 0) {
+                    $monsterHp = max(0, $monsterHp - $dotDamage);
+                    $turns[] = [
+                        'actor' => 'system',
+                        'type' => 'dot',
+                        'value' => $dotDamage,
+                        'playerHp' => $playerHp,
+                        'enemyHp' => $monsterHp,
+                        'state' => [
+                            'dots' => $this->activeDots,
+                            'buffs' => $this->activeBuffs,
+                            'cooldowns' => $this->activeCooldowns,
+                        ]
+                    ];
+                    if ($monsterHp <= 0) break;
+                }
+            }
 
             if ($isPlayerTurn) {
                 $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp);
@@ -345,6 +415,12 @@ class EncounterService
                 $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp);
                 $playerHp = $turn['playerHp'];
             }
+
+            $turn['state'] = [
+                'dots' => $this->activeDots,
+                'buffs' => $this->activeBuffs,
+                'cooldowns' => $this->activeCooldowns,
+            ];
 
             $turns[] = $turn;
             $turnCount++;
@@ -355,10 +431,93 @@ class EncounterService
 
     private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp): array
     {
+        $weaponName = '';
+        foreach ($character->equippedItems as $item) {
+            if ($item->template->type === 'weapon') {
+                $weaponName = mb_strtolower($item->template->name, 'UTF-8');
+                break;
+            }
+        }
+
+        // Try to use skill
+        foreach ($this->equippedSkills as $cs) {
+            if ($cs->skill->type === 'active' && ($this->activeCooldowns[$cs->id] ?? 0) <= 0) {
+                // Check weapon requirement
+                $reqWep = $cs->skill->required_weapon_type;
+                if (!empty($reqWep)) {
+                    if ($reqWep === 'bow' && strpos($weaponName, 'łuk') === false && strpos($weaponName, 'bow') === false) continue;
+                    if ($reqWep === 'sword' && strpos($weaponName, 'miecz') === false && strpos($weaponName, 'ostrze') === false) continue;
+                    if ($reqWep === 'axe' && strpos($weaponName, 'topór') === false && strpos($weaponName, 'rozłupywacz') === false && strpos($weaponName, 'maczuga') === false) continue;
+                }
+
+                // Use skill
+                $this->activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
+                
+                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+                
+                if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
+                    $this->activeDots[] = [
+                        'type' => $cs->skill->effect_type,
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
+                } else if ($cs->skill->effect_type === 'buff_phys_dmg') {
+                    $this->activeBuffs['phys_dmg'] = [
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
+                }
+                
+                // Normal damage but potentially modified (if it's an attack skill)
+                $skillMultiplier = 1.0;
+                if ($cs->skill->effect_type === 'direct_dmg') {
+                    $skillMultiplier = $effVal;
+                }
+                
+                $damageData = $this->calculateDamage($character, $monster);
+                $damage = (int)($damageData['total'] * $skillMultiplier);
+                $baseDamage = (int)($damageData['base'] * $skillMultiplier);
+                $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
+                
+                // Active Buffs Application
+                if (isset($this->activeBuffs['phys_dmg'])) {
+                    $damage = (int)($damage * (1 + $this->activeBuffs['phys_dmg']['value']));
+                    $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
+                }
+
+                $isCrit = $this->rollCritical($character);
+                if ($isCrit) {
+                    $damage = (int)($damage * 1.5);
+                    $baseDamage = (int)($baseDamage * 1.5);
+                    $bonusDamage = (int)($bonusDamage * 1.5);
+                }
+
+                $newMonsterHp = max(0, $monsterHp - $damage);
+
+                return [
+                    'actor' => 'player',
+                    'type' => 'skill',
+                    'skill_name' => $cs->skill->name,
+                    'value' => $damage,
+                    'crit' => $isCrit,
+                    'playerHp' => $playerHp,
+                    'enemyHp' => $newMonsterHp,
+                    'baseDamage' => $baseDamage,
+                    'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
+                ];
+            }
+        }
+
         $damageData = $this->calculateDamage($character, $monster);
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
         $bonusDamage = $damageData['bonus'];
+
+        // Apply global buffs to normal attacks
+        if (isset($this->activeBuffs['phys_dmg'])) {
+            $damage = (int)($damage * (1 + $this->activeBuffs['phys_dmg']['value']));
+            $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
+        }
 
         $isCrit = $this->rollCritical($character);
         $isMiss = $this->rollMiss();

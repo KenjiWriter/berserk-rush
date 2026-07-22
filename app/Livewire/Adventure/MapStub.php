@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
 use App\Application\Characters\LevelUpService;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Computed;
 
 class MapStub extends Component
 {
@@ -36,6 +37,16 @@ class MapStub extends Component
     public bool $autoChain = true;
     public int $currentTurnIndex = 0;
     public bool $isCalculating = false;
+
+    #[Computed]
+    public function equippedSkills()
+    {
+        return \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+            ->where('character_id', $this->character->id)
+            ->where('is_equipped', true)
+            ->orderBy('equip_slot')
+            ->get();
+    }
 
     // Rewards
     public int $goldGained = 0;
@@ -523,6 +534,12 @@ class MapStub extends Component
 
         $lastTurn = end($this->visibleTurns);
         return $lastTurn['actor'] === 'enemy';
+    }
+
+    public function getCurrentState(): ?array
+    {
+        if (empty($this->visibleTurns)) return null;
+        return end($this->visibleTurns)['state'] ?? null;
     }
 
     private function backgroundFor(Map $map): string

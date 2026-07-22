@@ -95,6 +95,15 @@
                     <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
                 @endif
             </button>
+            <button 
+                wire:click="setTab('skills')" 
+                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'skills' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+            >
+                Umiejętności
+                @if($activeTab === 'skills')
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
+                @endif
+            </button>
         </div>
 
         {{-- Tab Content: Gems --}}
@@ -269,6 +278,29 @@
                     Brak dostępnych avatarów premium.
                 </div>
             @endif
+        @endif
+
+        {{-- Tab Content: Skills --}}
+        @if($activeTab === 'skills')
+            <div class="max-w-2xl mx-auto text-center">
+                <h2 class="text-3xl font-bold text-amber-300 mb-6">Reset Umiejętności</h2>
+                <p class="text-amber-500/80 mb-8">Czy dokonałeś złego wyboru? Możesz zresetować swoje umiejętności dla wszystkich postaci i odzyskać zainwestowane punkty umiejętności (Skill Points). Umiejętności zostaną zapomniane.</p>
+                
+                <div class="bg-black/50 border border-amber-900/50 p-8 rounded-2xl shadow-xl flex flex-col items-center">
+                    <div class="text-5xl mb-6">🔄</div>
+                    <div class="text-3xl font-bold text-amber-300 flex items-center justify-center gap-2 mb-8">
+                        50 <span class="text-xl">💎</span>
+                    </div>
+                    
+                    <button 
+                        wire:click="resetSkills"
+                        wire:confirm="Czy na pewno chcesz zresetować wszystkie umiejętności? Ta operacja jest nieodwracalna!"
+                        class="px-8 py-4 rounded-lg bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold tracking-wider shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all transform hover:scale-105"
+                    >
+                        Zresetuj Umiejętności
+                    </button>
+                </div>
+            </div>
         @endif
     </div>
 

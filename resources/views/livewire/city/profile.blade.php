@@ -185,6 +185,76 @@
                             XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
                         </span>
                     </div>
+                    <div class="w-full mt-4 border-t border-gray-700/50 pt-3">
+                        <h3 class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2 text-center">Wyposażone Skille</h3>
+                        <div class="flex justify-center gap-3">
+                            @for($i = 0; $i < 3; $i++)
+                                @php
+                                    $equippedSkill = $character->equippedSkills[$i] ?? null;
+                                @endphp
+                                <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false"
+                                     class="w-10 h-10 rounded border border-gray-700 bg-gray-800 flex flex-col items-center justify-center relative shadow-inner {{ $equippedSkill ? 'border-amber-600/50 hover:border-amber-400 cursor-pointer' : '' }}"
+                                     @if($equippedSkill) 
+                                        @mouseenter="clearTimeout(hoverTimeout); open = true" 
+                                        @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
+                                        @click="clearTimeout(hoverTimeout); open = true" 
+                                     @endif>
+                                    @if($equippedSkill)
+                                        @if($equippedSkill->skill->icon)
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-6 h-6 object-contain drop-shadow" alt="{{ $equippedSkill->skill->name }}">
+                                        @else
+                                            <div class="text-sm">✨</div>
+                                        @endif
+                                        <div class="absolute -bottom-1 -right-1 bg-gray-900 border border-gray-600 text-yellow-500 text-[8px] px-0.5 rounded shadow-md font-bold leading-none">
+                                            L{{ $equippedSkill->level }}
+                                        </div>
+
+                                        <!-- Infobox -->
+                                        <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:bottom-full sm:left-1/2 sm:-translate-x-1/2 sm:mb-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                                            <div class="relative w-[280px] sm:w-[320px] bg-gray-900 border-2 border-amber-600 rounded-lg shadow-[0_0_15px_rgba(217,119,6,0.5)] p-4 text-left">
+                                                <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                                
+                                                <div class="flex items-center gap-3 mb-3 border-b border-gray-700 pb-3">
+                                                    @if($equippedSkill->skill->icon)
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-10 h-10 object-contain bg-gray-800 rounded p-1 border border-gray-700">
+                                                    @endif
+                                                    <div>
+                                                        <h4 class="text-amber-500 font-bold text-sm">{{ $equippedSkill->skill->name }}</h4>
+                                                        <p class="text-gray-400 text-xs">Poziom {{ $equippedSkill->level }}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="text-gray-300 text-xs mb-3 space-y-2">
+                                                    <p>{{ $equippedSkill->skill->description }}</p>
+                                                    <div class="flex flex-wrap gap-1.5 text-[11px] pt-1">
+                                                        <span class="bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded border border-indigo-700/50">Odnowienie: {{ $equippedSkill->skill->base_cooldown }} tur</span>
+                                                        @if($equippedSkill->skill->base_duration > 0)
+                                                            <span class="bg-purple-900/60 text-purple-300 px-2 py-0.5 rounded border border-purple-700/50">Czas trwania: {{ $equippedSkill->skill->base_duration }} tur</span>
+                                                        @endif
+                                                        @if($equippedSkill->skill->type === 'dot_poison')
+                                                            <span class="bg-green-900/60 text-green-300 px-2 py-0.5 rounded border border-green-700/50">Trucizna: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% aktualnego HP</span>
+                                                        @elseif($equippedSkill->skill->type === 'dot_fire')
+                                                            <span class="bg-red-900/60 text-red-300 px-2 py-0.5 rounded border border-red-700/50">Ogień: {{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% max HP</span>
+                                                        @elseif($equippedSkill->skill->type === 'buff_damage')
+                                                            <span class="bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded border border-blue-700/50">Wzmocnienie: +{{ $equippedSkill->skill->base_value + ($equippedSkill->level * $equippedSkill->skill->scaling_value) }}% obrażeń</span>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <button @click="open = false; $wire.unequipSkill('{{ $equippedSkill->id }}')" class="w-full bg-red-900/80 hover:bg-red-800 text-red-200 border border-red-700 font-bold py-1.5 px-3 rounded text-xs transition-colors">
+                                                    Zdejmij skill
+                                                </button>
+                                            </div>
+                                            <!-- Arrow (Desktop only) -->
+                                            <div class="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-b-2 border-r-2 border-amber-600 transform rotate-45 z-10"></div>
+                                        </div>
+                                    @else
+                                        <div class="text-gray-600 text-[10px]">-</div>
+                                    @endif
+                                </div>
+                            @endfor
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Right Slots -->
@@ -249,6 +319,9 @@
                         </button>
                         <button wire:click="setTab('collections')" class="font-bold text-md transition-colors {{ $activeTab === 'collections' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
                             Kolekcje & Tytuły
+                        </button>
+                        <button wire:click="setTab('skills')" class="font-bold text-md transition-colors {{ $activeTab === 'skills' ? 'text-yellow-500 border-b-2 border-yellow-500' : 'text-gray-400 hover:text-yellow-400' }}">
+                            Umiejętności
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
@@ -379,6 +452,10 @@
                 @elseif($activeTab === 'collections')
                     <div class="mt-4">
                         @livewire('profile.collections-tab', ['character' => $character])
+                    </div>
+                @elseif($activeTab === 'skills')
+                    <div class="mt-4">
+                        @livewire('profile.skills-tab', ['character' => $character])
                     </div>
                 @endif
             </div>

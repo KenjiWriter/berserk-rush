@@ -77,6 +77,11 @@
                 <h2 class="text-xl font-bold mb-2">🏰 Lochy</h2>
                 <p class="text-gray-400">Zarządzanie instancjami, falami potworów i nagrodami za lochy.</p>
             </a>
+
+            <a href="{{ route('admin.combat-skills') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
+                <h2 class="text-xl font-bold mb-2">⚔️ Umiejętności Walki</h2>
+                <p class="text-gray-400">Zarządzanie umiejętnościami, ich siłą i wymaganą bronią.</p>
+            </a>
         </div>
 
         <div class="mt-8">

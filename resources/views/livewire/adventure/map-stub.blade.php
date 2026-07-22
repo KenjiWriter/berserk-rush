@@ -144,6 +144,7 @@
 
                         {{-- Player HP Bar --}}
                         @if (!empty($player))
+                            @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
                             <div class="space-y-1 lg:space-y-2">
                                 <div
                                     class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
@@ -155,6 +156,37 @@
                                         style="width: {{ $this->getPlayerHpPercent() }}%"></div>
                                 </div>
                             </div>
+
+                            @if($currentState && !empty($currentState['buffs']))
+                                <div class="flex flex-wrap gap-1 mt-2">
+                                    @foreach($currentState['buffs'] as $key => $buff)
+                                        <div class="bg-blue-900/80 border border-blue-400 rounded px-2 py-0.5 text-xs text-blue-100 flex items-center gap-1 shadow-sm" title="Wzmocnienie">
+                                            <span>⚔️</span>
+                                            <span class="font-bold">{{ $buff['duration'] }}T</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @if($this->equippedSkills && count($this->equippedSkills) > 0)
+                                <div class="mt-3 bg-black/40 rounded-lg p-2 border border-amber-900/50">
+                                    <div class="flex gap-2 justify-center">
+                                        @foreach($this->equippedSkills as $cs)
+                                            @php
+                                                $cd = $currentState['cooldowns'][$cs->id] ?? 0;
+                                            @endphp
+                                            <div class="relative w-8 h-8 sm:w-10 sm:h-10 rounded border {{ $cd > 0 ? 'border-gray-600 bg-gray-800' : 'border-amber-500 bg-amber-900/80 shadow-[0_0_8px_rgba(245,158,11,0.4)]' }} flex items-center justify-center overflow-hidden" title="{{ $cs->skill->name }}">
+                                                @if($cd > 0)
+                                                    <div class="absolute inset-0 bg-black/70 flex items-center justify-center z-10">
+                                                        <span class="text-white font-bold text-xs sm:text-sm drop-shadow-md">{{ $cd }}</span>
+                                                    </div>
+                                                @endif
+                                                <span class="text-sm sm:text-lg {{ $cd > 0 ? 'opacity-50' : 'opacity-100' }}">{{ $cs->skill->effect_type == 'poison' ? '🐍' : ($cs->skill->effect_type == 'fire' ? '🔥' : '⚔️') }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
 
                             {{-- XP Progress Bar (NEW) --}}
                             <div class="space-y-1 mt-1 hidden sm:block">
@@ -306,6 +338,16 @@
                                             <span class="text-slate-700 italic font-semibold">
                                                 <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
                                                 pudłuje atak!
+                                            </span>
+                                        @elseif ($turn['type'] == 'dot')
+                                            <span class="text-purple-700 font-semibold italic">
+                                                Zadano <strong class="text-purple-900">{{ $turn['value'] }}</strong> obrażeń od statusów.
+                                            </span>
+                                        @elseif ($turn['type'] == 'skill')
+                                            <span class="{{ $turn['actor'] == 'player' ? 'text-blue-800' : 'text-red-800' }} font-semibold">
+                                                <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                używa <span class="text-indigo-600 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong> obrażeń
+                                                @if (!empty($turn['crit'])) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
                                             </span>
                                         @else
                                             <span
@@ -590,6 +632,17 @@
                                         style="width: {{ $this->getEnemyHpPercent() }}%"></div>
                                 </div>
                             </div>
+
+                            @if(isset($currentState) && $currentState && !empty($currentState['dots']))
+                                <div class="flex flex-wrap gap-1 mt-2 justify-end">
+                                    @foreach($currentState['dots'] as $dot)
+                                        <div class="bg-purple-900/80 border border-purple-400 rounded px-2 py-0.5 text-xs text-purple-100 flex items-center gap-1 shadow-sm" title="Status: {{ $dot['type'] }}">
+                                            <span>{{ $dot['type'] == 'poison' ? '🐍' : '🔥' }}</span>
+                                            <span class="font-bold">{{ $dot['duration'] }}T</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
 
                             {{-- Enemy Stats --}}
                             <div>

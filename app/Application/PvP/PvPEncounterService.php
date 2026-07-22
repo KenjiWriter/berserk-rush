@@ -172,25 +172,83 @@ class PvPEncounterService
         $turnCount = 0;
         $maxTurns = 50;
 
+        $state = [
+            'attacker' => ['cooldowns' => [], 'effects' => []],
+            'defender' => ['cooldowns' => [], 'effects' => []],
+        ];
+
         while ($attackerHp > 0 && $defenderHp > 0 && $turnCount < $maxTurns) {
             $isAttackerTurn = $attackerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
+            $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
+            $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
-            $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $isAttackerTurn ? 'attacker' : 'defender');
+            // Process DoT for actor
+            if (!empty($state[$actorKey]['effects'])) {
+                foreach ($state[$actorKey]['effects'] as $id => &$eff) {
+                    if ($eff['duration'] > 0 && $eff['type'] === 'poison') {
+                        $dmg = (int)(($actorKey === 'attacker' ? $attacker['max_hp'] : $defender['max_hp']) * ($eff['value'] / 100));
+                        if ($actorKey === 'attacker') {
+                            $attackerHp = max(0, $attackerHp - $dmg);
+                        } else {
+                            $defenderHp = max(0, $defenderHp - $dmg);
+                        }
+                        $turns[] = [
+                            'actor' => $actorKey,
+                            'type' => 'dot',
+                            'value' => $dmg,
+                            'attackerHp' => $attackerHp,
+                            'defenderHp' => $defenderHp,
+                        ];
+                    }
+                }
+            }
+
+            if ($attackerHp <= 0 || $defenderHp <= 0) break;
+
+            $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $actorKey, $state[$actorKey], $state[$targetKey]);
             
             $attackerHp = $turn['attackerHp'];
             $defenderHp = $turn['defenderHp'];
-
             $turns[] = $turn;
+
+            // Decrement cooldowns
+            foreach ($state[$actorKey]['cooldowns'] as &$cd) {
+                if ($cd > 0) $cd--;
+            }
+
+            // Decrement effects duration
+            foreach ($state[$targetKey]['effects'] as $id => &$eff) {
+                if ($eff['duration'] > 0) $eff['duration']--;
+            }
+            
+            // Clean up expired effects
+            $state[$targetKey]['effects'] = array_filter($state[$targetKey]['effects'], fn($e) => $e['duration'] > 0);
+
             $turnCount++;
         }
 
         return $turns;
     }
 
-    private function performAttack(array $attackerSnapshot, array $defenderSnapshot, int $attackerHp, int $defenderHp, string $actor): array
+    private function performAttack(array $attackerSnapshot, array $defenderSnapshot, int $attackerHp, int $defenderHp, string $actor, array &$actorState, array &$targetState): array
     {
         $actingSnapshot = $actor === 'attacker' ? $attackerSnapshot : $defenderSnapshot;
         $targetSnapshot = $actor === 'attacker' ? $defenderSnapshot : $attackerSnapshot;
+
+        // Determine if a skill can be used
+        $skills = $actingSnapshot['skills'] ?? [];
+        $weaponType = $actingSnapshot['weapon_type'] ?? 'barehands';
+        
+        $skillToUse = null;
+        foreach ($skills as $skill) {
+            if ($skill['required_weapon_type'] === 'all' || $skill['required_weapon_type'] === $weaponType) {
+                $cd = $actorState['cooldowns'][$skill['id']] ?? 0;
+                if ($cd <= 0) {
+                    $skillToUse = $skill;
+                    break;
+                }
+            }
+        }
 
         // Calculate damage using snapshot equipment stats
         $strength = $actingSnapshot['attributes']['str'] ?? 1;
@@ -202,6 +260,20 @@ class PvPEncounterService
         
         $damage = mt_rand($baseDmgMin, $baseDmgMax);
         
+        if ($skillToUse) {
+            $actorState['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
+            $bonus = $skillToUse['base_value'] + ($skillToUse['level'] * $skillToUse['scaling_value']);
+            if ($skillToUse['effect_type'] === 'damage') {
+                $damage = (int)($damage * (1 + ($bonus / 100)));
+            } elseif ($skillToUse['effect_type'] === 'poison') {
+                $targetState['effects'][$skillToUse['id']] = [
+                    'type' => 'poison',
+                    'duration' => $skillToUse['base_duration'],
+                    'value' => $bonus,
+                ];
+            }
+        }
+
         // Defender's defense
         $defVit = $targetSnapshot['attributes']['vit'] ?? 1;
         $defEq = $targetSnapshot['equipment_stats'] ?? [];
@@ -231,27 +303,28 @@ class PvPEncounterService
             $damage = (int)($damage * 1.5);
         }
 
+        $turn = [
+            'actor' => $actor,
+            'type' => $skillToUse ? 'skill' : 'hit',
+            'value' => (int)$damage,
+            'crit' => $isCrit,
+        ];
+        
+        if ($skillToUse) {
+            $turn['skill_id'] = $skillToUse['id'];
+            $turn['skill_name'] = $skillToUse['name'];
+        }
+
         if ($actor === 'attacker') {
             $newDefenderHp = max(0, $defenderHp - (int)$damage);
-            return [
-                'actor' => 'attacker',
-                'type' => 'hit',
-                'value' => (int)$damage,
-                'crit' => $isCrit,
-                'attackerHp' => $attackerHp,
-                'defenderHp' => $newDefenderHp,
-            ];
+            $turn['attackerHp'] = $attackerHp;
+            $turn['defenderHp'] = $newDefenderHp;
         } else {
-            // Actor is 'defender' attacking, so attacker takes damage
             $newAttackerHp = max(0, $attackerHp - (int)$damage);
-            return [
-                'actor' => 'defender',
-                'type' => 'hit',
-                'value' => (int)$damage,
-                'crit' => $isCrit,
-                'attackerHp' => $newAttackerHp,
-                'defenderHp' => $defenderHp,
-            ];
+            $turn['attackerHp'] = $newAttackerHp;
+            $turn['defenderHp'] = $defenderHp;
         }
+
+        return $turn;
     }
 }

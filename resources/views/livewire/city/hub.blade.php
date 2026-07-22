@@ -255,44 +255,54 @@
                 </button>
             </div>
 
-            {{-- WITCH (4 cols, 1 row) --}}
-            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-fuchsia-900/50 shadow-lg transition-all duration-300 hover:border-fuchsia-500/80 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] bg-gradient-to-br from-fuchsia-950 to-indigo-950"
+            {{-- WITCH (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-fuchsia-900/50 shadow-lg transition-all duration-300 hover:border-fuchsia-500/80 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] bg-gradient-to-br from-fuchsia-950 to-indigo-950"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
-                    <div class="text-4xl mr-4 transform transition-transform group-hover:scale-110">
+                <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="text-4xl mb-1 transform transition-transform group-hover:scale-110">
                         <div wire:loading.remove wire:target="goTo('witch')">🧙‍♀️</div><div wire:loading wire:target="goTo('witch')"><svg class="animate-spin h-8 w-8 text-fuchsia-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                     </div>
-                    <div class="text-left">
-                        <h3 class="text-2xl font-bold text-fuchsia-400 medieval-font group-hover:text-fuchsia-300">Wiedźma</h3>
-                        <p class="text-fuchsia-200/60 text-sm">Alchemia i mikstury</p>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-fuchsia-400 medieval-font group-hover:text-fuchsia-300">Wiedźma</h3>
                     </div>
                 </button>
             </div>
 
-            {{-- WIZARD (4 cols, 1 row) --}}
-            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] bg-gradient-to-br from-indigo-950 to-blue-950"
+            {{-- WIZARD (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] bg-gradient-to-br from-indigo-950 to-blue-950"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
-                    <div class="text-4xl mr-4 transform transition-transform group-hover:scale-110">
+                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="text-4xl mb-1 transform transition-transform group-hover:scale-110">
                         <div wire:loading.remove wire:target="goTo('wizard')">🧙‍♂️</div><div wire:loading wire:target="goTo('wizard')"><svg class="animate-spin h-8 w-8 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                     </div>
-                    <div class="text-left">
-                        <h3 class="text-2xl font-bold text-indigo-400 medieval-font group-hover:text-indigo-300">Czarodziej</h3>
-                        <p class="text-indigo-200/60 text-sm">Magiczne zaklęcia</p>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-indigo-400 medieval-font group-hover:text-indigo-300">Czarodziej</h3>
                     </div>
                 </button>
             </div>
 
-            {{-- GUILD (4 cols, 1 row) --}}
-            <div class="col-span-4 row-span-1 relative group rounded-3xl overflow-hidden border border-red-900/50 shadow-lg transition-all duration-300 hover:border-red-500/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] bg-gradient-to-br from-red-950 to-stone-950"
+            {{-- WARLOCK (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-green-900/50 shadow-lg transition-all duration-300 hover:border-green-500/80 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)] bg-gradient-to-br from-green-950 to-slate-950"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'; $dispatch('play-audio', { type: 'hover' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center p-6 relative">
-                    <div class="text-4xl mr-4 transform transition-transform group-hover:-rotate-12">
+                <button wire:click="goTo('warlock')" @click="travelingTo = 'Czarnoksiężnik'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="text-4xl mb-1 transform transition-transform group-hover:scale-110">
+                        <div wire:loading.remove wire:target="goTo('warlock')">🦹‍♂️</div><div wire:loading wire:target="goTo('warlock')"><svg class="animate-spin h-8 w-8 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                    </div>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-green-400 medieval-font group-hover:text-green-300">Czarnoksiężnik</h3>
+                    </div>
+                </button>
+            </div>
+
+            {{-- GUILD (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-red-900/50 shadow-lg transition-all duration-300 hover:border-red-500/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] bg-gradient-to-br from-red-950 to-stone-950"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'; $dispatch('play-audio', { type: 'hover' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="text-4xl mb-1 transform transition-transform group-hover:-rotate-12">
                         <div wire:loading.remove wire:target="goTo('guild')">🚩</div><div wire:loading wire:target="goTo('guild')"><svg class="animate-spin h-8 w-8 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                     </div>
-                    <div class="text-left">
-                        <h3 class="text-2xl font-bold text-red-500 medieval-font group-hover:text-red-400">Gildia</h3>
-                        <p class="text-red-200/60 text-sm">Sojusze i bonusy</p>
+                    <div class="text-center">
+                        <h3 class="text-xl font-bold text-red-500 medieval-font group-hover:text-red-400">Gildia</h3>
                     </div>
                 </button>
             </div>
@@ -402,6 +412,16 @@
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="text-5xl mb-2">🧙‍♂️</div>
                             <div class="font-bold text-indigo-400 medieval-font text-lg">Czarodziej</div>
+                        </div>
+                    </button>
+                </div>
+
+                {{-- Warlock --}}
+                <div class="col-span-1">
+                    <button wire:click="goTo('warlock')" @click="travelingTo = 'Czarnoksiężnik'" class="w-full h-40 rounded-3xl border-2 border-green-800/50 bg-gradient-to-br from-green-950 to-slate-950 relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="text-5xl mb-2">🦹‍♂️</div>
+                            <div class="font-bold text-green-400 medieval-font text-lg">Czarnoksiężnik</div>
                         </div>
                     </button>
                 </div>
