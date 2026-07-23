@@ -61,6 +61,8 @@
         <livewire:global.tutorial-overlay :step="21" :rewardItemTemplateId="'01k4jpx94j70x2vv10b835arm1'" />
     @elseif($gameStage == 22)
         <livewire:global.tutorial-overlay :step="23" />
+    @elseif($gameStage == 30)
+        <livewire:global.tutorial-overlay :step="31" />
     @endif
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
@@ -236,7 +238,7 @@
             </div>
 
             {{-- WIZARD (3 cols, 1 row) --}}
-            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)]"
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
                 <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/wizard-bg.png') }}');"></div>
@@ -379,7 +381,7 @@
 
                 {{-- Wizard --}}
                 <div class="col-span-1">
-                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'" class="w-full h-36 rounded-3xl border-2 border-indigo-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'" class="w-full h-36 rounded-3xl border-2 border-indigo-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
                         <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/wizard-bg.png') }}');"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 w-full p-4 text-center">

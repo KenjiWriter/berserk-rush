@@ -33,6 +33,7 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Brońmistrz i Ulepszenia (game_stage 17-20)**: Kapitan zabiera gracza do Brońmistrza, objaśnia mechaniki kupna, sprzedaży oraz Kuźni Ulepszeń (+0 do +9). Gracz dostaje zadanie kupienia "Miecza Nowicjusza". 
 - **Zakończenie (game_stage 20 -> 21)**: Powrót do miasta i otrzymanie nagrody finałowej – Skórzanej Zbroi. Po tym etapie gracz jest wolny od samouczka pierwszego etapu.
 - **Tablica Wyzwań i Osiągnięcia (game_stage 22-30)**: Aktywowane po wbiciu 5 poziomu postaci. Kapitan ponownie wita gracza, zachęca do odwiedzenia Tablicy Wyzwań, instruuje jak odbierać misje, wykonuje się przykładową misję, odbiera nagrodę, po czym Kapitan przedstawia system Osiągnięć.
+- **Czarodziej i Zaklinanie Przedmiotów (game_stage 30-34)**: Po powrocie do Głównego Obozu Kapitan informuje gracza, że kolejnym mieszkańcem jest Czarodziej. Kafel Czarodzieja w Hubie zostaje podświetlony. Po przejściu do Czarodzieja Kapitan oprowadza gracza po mechanice zaklinania (dodawanie bonusów) i zleca pomyślne zaklecie dowolnego przedmiotu. Po wykonaniu zadania z sukcesem gracz otrzymuje nagrodę 200 EXP oraz 250 Golda.
 
 ## Implementacja na przyszłość
 

@@ -1,4 +1,14 @@
 <div class="min-h-screen bg-gradient-to-b from-purple-900 via-indigo-950 to-black text-amber-100 relative overflow-hidden font-sans">
+    @php
+        $gameStage = auth()->user()->game_stage;
+    @endphp
+
+    @if($gameStage == 31)
+        <livewire:global.tutorial-overlay :step="32" />
+    @elseif($gameStage == 33)
+        <livewire:global.tutorial-overlay :step="34" :rewardXp="200" :rewardGold="250" />
+    @endif
+
     {{-- Background particles / magic fog --}}
     <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/40 via-transparent to-transparent opacity-50"></div>
     
@@ -116,7 +126,7 @@
                         <div class="mt-8 flex flex-col gap-4 w-full max-w-md relative z-20">
                             @if($enchantCount < 5)
                                 <div class="text-center text-sm text-purple-300 mb-1">Szansa na sukces: <span class="font-bold text-white">{{ $nextChance }}%</span></div>
-                                <div class="grid grid-cols-2 gap-4">
+                                <div class="grid grid-cols-2 gap-4 {{ $gameStage == 32 ? 'ring-4 ring-amber-500 animate-pulse rounded-xl p-1 z-30' : '' }}">
                                     <button wire:click="enchant('gold')" wire:loading.attr="disabled" class="group relative overflow-hidden bg-gradient-to-br from-yellow-700 to-yellow-900 hover:from-yellow-600 hover:to-yellow-800 text-white font-bold py-3 px-4 rounded-xl shadow-[0_0_15px_rgba(202,138,4,0.4)] transition-all transform hover:scale-105 border border-yellow-500/50">
                                         <div class="absolute inset-0 bg-white/20 group-hover:translate-x-full -translate-x-full skew-x-12 transition-transform duration-700"></div>
                                         <span wire:loading.remove wire:target="enchant">Zaklnij (🪙 500)</span>

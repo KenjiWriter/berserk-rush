@@ -63,6 +63,12 @@
                             Dobra robota! Odbieranie wyzwań to świetny sposób na zarobek. Ale to nie wszystko! Zwróć uwagę na zakładkę "Osiągnięcia Bohatera". Przejdź tam teraz.
                         @elseif($step == 30)
                             W tym miejscu możesz śledzić swoje wielkie czyny! Za wypełnianie osiągnięć zdobędziesz dodatkowe złoto, doświadczenie, przedmioty oraz specjalne tytuły, które możesz wyposażyć w swoim profilu. Powodzenia w dalszym rozwoju!
+                        @elseif($step == 31)
+                            Witaj z powrotem w obozie! Kolejnym mieszkańcem naszej osady jest Czarodziej. Posiada on wiedzę o starożytnych zaklęciach, które mogą nasycić Twój ekwipunek potężną magią. Odwiedź go, aby poznać tajniki zaklinania przedmiotów!
+                        @elseif($step == 32)
+                            Witaj u Czarodzieja! To tutaj możesz nasycać swoje bronie, pancerze i biżuterię magicznymi właściwościami. Każde udane zaklinanie dodaje nową potężną statystykę do Twojego przedmiotu. Wybierz przedmiot ze swojego ekwipunku i zaklnij go z sukcesem!
+                        @elseif($step == 34)
+                            Niesamowite! Przedmiot został pomyślnie nasycony magią! Jak widzisz, czary potrafią znacząco zwiększyć Twoją moc bojową. Przyjmij tę nagrodę i wykorzystuj wiedzę Czarodzieja w swoich kolejnych przygodach!
                         @endif
                     </div>
 

@@ -9,6 +9,8 @@ use App\Application\Wizard\EnchantItem;
 use App\Application\Wizard\RerollEnchantments;
 use App\Infrastructure\Persistence\ItemInstance;
 
+use Livewire\Attributes\On;
+
 class Wizard extends Component
 {
     public Character $character;
@@ -16,6 +18,12 @@ class Wizard extends Component
     public ?string $activeItemId = null;
     public ?string $actionMessage = null;
     public ?string $actionType = null; // 'success' or 'error'
+
+    #[On('tutorial-completed')]
+    public function refreshOnTutorial()
+    {
+        // Re-render component on tutorial step update
+    }
 
     public function mount(Character $character): void
     {
@@ -63,6 +71,11 @@ class Wizard extends Component
                     $this->actionType = 'success';
                     $this->actionMessage = $payload['message'] ?? 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
                     $this->dispatch('play-audio', type: 'enchant-success');
+
+                    // Tutorial step update
+                    if (auth()->user()->game_stage == 32) {
+                        auth()->user()->update(['game_stage' => 33]);
+                    }
                 } else {
                     $this->actionType = 'error';
                     $this->actionMessage = $payload['message'] ?? 'Zaklinanie nie powiodło się.';
