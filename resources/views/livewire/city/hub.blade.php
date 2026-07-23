@@ -207,7 +207,11 @@
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/quest-board-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30"></div>
                     @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
-                        <div class="absolute top-4 right-4 z-20 w-7 h-7 bg-amber-500 rounded-full inline-flex items-center justify-center text-slate-900 text-sm font-black leading-none shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce select-none pb-[1px]">!</div>
+                        <div class="absolute top-4 right-4 z-20 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce">
+                            <svg class="w-4 h-4 text-slate-950 fill-current -mt-0.5" viewBox="0 0 24 24">
+                                <path d="M10.5 3h3v8.5h-3zm0 11h3v3h-3z"/>
+                            </svg>
+                        </div>
                     @endif
                     <div class="relative z-10 text-left">
                         <div wire:loading wire:target="goTo('quests')" class="mb-1"><svg class="animate-spin h-8 w-8 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
