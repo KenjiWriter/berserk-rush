@@ -206,13 +206,13 @@
                 <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-start p-6 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/quest-board-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30"></div>
+                    @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                        <div class="absolute top-4 right-4 z-20 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce">!</div>
+                    @endif
                     <div class="relative z-10 text-left">
                         <div wire:loading wire:target="goTo('quests')" class="mb-1"><svg class="animate-spin h-8 w-8 text-teal-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         <h3 class="text-2xl font-bold text-teal-400 medieval-font group-hover:text-teal-300 drop-shadow-md">Tablica Wyzwań</h3>
                         <p class="text-teal-200/70 text-sm font-medium">Misje, zadania i zlecenia</p>
-                        @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
-                            <div class="absolute top-4 right-4 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce">!</div>
-                        @endif
                     </div>
                 </button>
             </div>

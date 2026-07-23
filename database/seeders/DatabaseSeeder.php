@@ -33,6 +33,7 @@ class DatabaseSeeder extends Seeder
             NewsSeeder::class,
             TitleSeeder::class,
             AchievementSeeder::class,
+            QuestSeeder::class,
         ]);
     }
 }
