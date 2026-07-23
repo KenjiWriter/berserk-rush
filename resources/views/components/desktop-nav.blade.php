@@ -2,6 +2,18 @@
     @php
         $charId = session('active_character');
         $character = \App\Infrastructure\Persistence\Character::with('activeTitle')->find($charId);
+
+        $claimableQuests = $character ? $character->characterQuests()->where('status', 'completed')->count() : 0;
+        $availableQuests = $character ? app(\App\Application\Quests\QuestService::class)->getAvailableQuests($character)->count() : 0;
+        $questBadgeCount = $claimableQuests + $availableQuests;
+
+        $unclaimedAchievements = $character ? \App\Infrastructure\Persistence\CharacterAchievement::where('character_id', $character->id)->whereNotNull('completed_at')->where('rewarded', false)->count() : 0;
+        $unassignedStatPoints = $character ? ($character->character_points ?? 0) : 0;
+        $profileBadgeCount = $unclaimedAchievements + $unassignedStatPoints;
+
+        $skillPointsCount = $character ? ($character->skill_points ?? 0) : 0;
+
+        $unreadMailCount = $character ? \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count() : 0;
     @endphp
 
     <aside class="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 bg-stone-950 border-r-4 border-amber-800/80 shadow-[10px_0_30px_rgba(0,0,0,0.9)] z-40 overflow-y-auto select-none custom-scrollbar relative" 
@@ -42,7 +54,7 @@
             </div>
         @endif
 
-        {{-- Navigation Menu Links (Shakes & Fidget Bevelled Dark Stone Plate Buttons) --}}
+        {{-- Navigation Menu Links --}}
         <div class="p-3 space-y-4 flex-1">
             
             {{-- Sekcja: Eksploracja --}}
@@ -58,7 +70,7 @@
                     <a href="{{ route('city.hub', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: '🏰' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.hub') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.hub') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>MIASTO</span>
                     </a>
 
@@ -66,15 +78,18 @@
                     <a href="{{ route('city.profile', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: '👤' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.profile') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.profile') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>POSTAĆ & EKWIPUNEK</span>
+                        @if($profileBadgeCount > 0)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                        @endif
                     </a>
 
                     {{-- Wyprawy --}}
                     <a href="{{ route('city.adventure', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: '🗺️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>WYPRAWY</span>
                     </a>
 
@@ -82,8 +97,11 @@
                     <a href="{{ route('city.quests', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Karczmy...', icon: '🍺' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>ZADANIA & KARCZMA</span>
+                        @if($questBadgeCount > 0)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                        @endif
                     </a>
                 </div>
             </div>
@@ -101,7 +119,7 @@
                     <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: '⚔️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.weaponsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.weaponsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>HANDLARZ BRONIĄ</span>
                     </a>
 
@@ -109,7 +127,7 @@
                     <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: '🛡️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.armorsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.armorsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>ZBROJOWNIA</span>
                     </a>
 
@@ -117,7 +135,7 @@
                     <a href="{{ route('city.witch', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: '🔮' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.witch') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.witch') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>WIEDŹMA</span>
                     </a>
 
@@ -125,7 +143,7 @@
                     <a href="{{ route('city.wizard', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Sklepie Magicznym...', icon: '📜' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.wizard') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.wizard') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>SKLEP MAGICZNY</span>
                     </a>
 
@@ -133,15 +151,18 @@
                     <a href="{{ route('city.warlock', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Czarnoksiężnika...', icon: '💀' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.warlock') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.warlock') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>CZARNOKSIĘŻNIK</span>
+                        @if($skillPointsCount > 0)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                        @endif
                     </a>
 
                     {{-- Aukcje & Rynek --}}
                     <a href="{{ route('city.market', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż na Rynek...', icon: '⚖️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.market') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.market') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>AUKCJE & RYNEK</span>
                     </a>
                 </div>
@@ -160,7 +181,7 @@
                     <a href="{{ route('city.arena', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: '🏟️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.arena*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.arena*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>ARENA WALK</span>
                     </a>
 
@@ -168,7 +189,7 @@
                     <a href="{{ route('city.gladiator', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Gladiatora...', icon: '🩸' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.gladiator') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.gladiator') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>GLADIATOR SHOP</span>
                     </a>
 
@@ -176,7 +197,7 @@
                     <a href="{{ route('city.guild', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: '🚩' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.guild') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.guild') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>GILDIA</span>
                     </a>
 
@@ -184,16 +205,22 @@
                     <a href="{{ route('city.quests', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: '📜' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>WYZWANIA</span>
+                        @if($questBadgeCount > 0)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                        @endif
                     </a>
 
                     {{-- Poczta --}}
                     <a href="{{ route('city.mailbox', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Sprawdzanie Poczty...', icon: '✉️' })"
-                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('city.mailbox') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.mailbox') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>SKRZYNKA POCZTOWA</span>
+                        @if($unreadMailCount > 0)
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-[0_0_10px_rgba(239,68,68,0.9)] animate-bounce z-10">{{ $unreadMailCount }}</span>
+                        @endif
                     </a>
                 </div>
             </div>
@@ -203,7 +230,7 @@
                 <a href="{{ route('itemshop') }}" wire:navigate
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                    @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Sklepu Gemów...', icon: '💎' })"
-                   class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center {{ request()->routeIs('itemshop') ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-800 text-stone-950 border-yellow-300 shadow-[0_0_20px_rgba(245,158,11,0.7),inset_0_1px_0_rgba(255,255,255,0.5)] scale-[1.02]' : 'bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-amber-600/60 text-amber-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' }}">
+                   class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('itemshop') ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-800 text-stone-950 border-yellow-300 shadow-[0_0_20px_rgba(245,158,11,0.7),inset_0_1px_0_rgba(255,255,255,0.5)] scale-[1.02]' : 'bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-amber-600/60 text-amber-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' }}">
                     <span>SKLEP GEMÓW</span>
                 </a>
             </div>
@@ -213,7 +240,7 @@
                 <a href="{{ route('characters.leave') }}" wire:navigate
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                    @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: '🚪' })"
-                   class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative overflow-hidden group border-2 text-center bg-gradient-to-b from-stone-800 via-stone-900 to-black text-amber-200 border-amber-800/80 hover:border-red-500 hover:text-red-200 hover:bg-gradient-to-b hover:from-red-950 hover:to-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]">
+                   class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center bg-gradient-to-b from-stone-800 via-stone-900 to-black text-amber-200 border-amber-800/80 hover:border-red-500 hover:text-red-200 hover:bg-gradient-to-b hover:from-red-950 hover:to-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]">
                     <span>LOBBY</span>
                 </a>
             </div>
