@@ -77,10 +77,10 @@
         </div>
 
         {{-- Classic RPG Battle Layout --}}
-        <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-8 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-8 max-w-7xl mx-auto pb-24 lg:pb-6">
 
             {{-- Left Side - Player Panel --}}
-            <div class="col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
+            <div class="col-span-1 md:col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
                 <div id="player-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isPlayerTurn() ? 'ring-4 ring-amber-300 shadow-[0_0_30px_rgba(255,200,60,.4)]' : '' }}">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
@@ -131,7 +131,7 @@
             </div>
 
             {{-- Center - Parchment Battle Log --}}
-            <div class="col-span-2 lg:col-span-1 order-1 lg:order-2 mb-4 lg:mb-0">
+            <div class="col-span-1 md:col-span-2 lg:col-span-1 order-1 lg:order-2 mb-4 lg:mb-0">
                 <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[400px] lg:h-[500px] flex flex-col">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
                     <div class="absolute inset-0 bg-amber-100/80"></div>
@@ -269,7 +269,7 @@
             </div>
 
             {{-- Right Side - Enemy Panel --}}
-            <div class="col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
+            <div class="col-span-1 md:col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
                 <div id="enemy-panel"
                     class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isEnemyTurn() ? 'ring-4 ring-red-300 shadow-[0_0_30px_rgba(255,100,100,.4)]' : '' }}">
                     <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">

@@ -71,6 +71,7 @@ class MapStub extends Component
     public function mount(Character $character, Map $map): void
     {
         $this->sessionStartTime = time();
+        $this->playbackSpeed = session('combat_playback_speed', 1);
 
         // Authorization check
         if (Auth::user()->id !== $character->user_id) {
@@ -264,6 +265,7 @@ class MapStub extends Component
     public function setPlaybackSpeed(int $speed): void
     {
         $this->playbackSpeed = $speed;
+        session(['combat_playback_speed' => $speed]);
 
         if ($this->isPlaying) {
             $this->dispatch('update-playback-speed', speed: $speed);

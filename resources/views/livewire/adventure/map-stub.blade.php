@@ -101,10 +101,10 @@
         </div>
 
         {{-- Classic RPG Battle Layout --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 max-w-[1600px] w-full mx-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 max-w-[1600px] w-full mx-auto pb-24 lg:pb-6">
 
             {{-- Left Side - Player Panel --}}
-            <div class="col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
+            <div class="col-span-1 md:col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
                 <div id="player-panel"
                     class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 transition-all duration-300 {{ $this->isPlayerTurn() ? 'ring-2 ring-amber-400/80 shadow-[0_0_35px_rgba(245,158,11,0.4)] scale-[1.01]' : '' }}">
                     
@@ -229,7 +229,7 @@
             </div>
 
             {{-- Center - Glossy Battle Log --}}
-            <div class="col-span-2 lg:col-span-1 order-1 lg:order-2 mb-2 lg:mb-0">
+            <div class="col-span-1 md:col-span-2 lg:col-span-1 order-1 lg:order-2 mb-2 lg:mb-0">
                 <section class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 h-[340px] sm:h-[370px] md:h-[400px] lg:h-[420px] xl:h-[480px] 2xl:h-[540px] flex flex-col">
                     
                     {{-- Header --}}
@@ -394,7 +394,7 @@
                     <footer class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md"
                             x-data="{ 
                                 isPaused: false, 
-                                speed: 1, 
+                                speed: @entangle('playbackSpeed'), 
                                 autoChain: {{ $autoChain ? 'true' : 'false' }} 
                             }">
                         <div class="flex flex-col gap-2.5">
@@ -464,7 +464,7 @@
             </div>
 
             {{-- Right Side - Enemy Panel --}}
-            <div class="col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
+            <div class="col-span-1 md:col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
                 <div id="enemy-panel"
                     class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30 transition-all duration-300 {{ $this->isEnemyTurn() ? 'ring-2 ring-red-500/80 shadow-[0_0_35px_rgba(239,68,68,0.4)] scale-[1.01]' : '' }}">
                     
@@ -559,9 +559,6 @@
                                         Eksploruj obszar <span class="text-amber-300 font-bold">{{ $map->name }}</span> i zmierz się z panoszącymi się tutaj potworami!
                                     </p>
                                 </div>
-                                <button wire:click="startBattle" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-700 via-emerald-600 to-green-600 border border-emerald-400/60 text-white text-xs sm:text-sm font-extrabold shadow-[0_0_15px_rgba(16,185,129,0.4)] hover:scale-105 active:scale-95 transition-all cursor-pointer medieval-font">
-                                    <span>⚔️ Rozpocznij Walkę</span>
-                                </button>
                             </div>
                         @endif
                     </div>
@@ -744,8 +741,11 @@
             Livewire.on('start-playback', (event) => {
                 cleanUp();
                 isPaused = false;
-                currentSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : 1);
-                scheduleNextTurn(200);
+                let evtSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : null);
+                if (evtSpeed) {
+                    currentSpeed = evtSpeed;
+                }
+                scheduleNextTurn(currentSpeed === 2 ? 100 : 200);
             });
 
             Livewire.on('stop-playback', () => {

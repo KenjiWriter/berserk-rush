@@ -53,6 +53,7 @@ class ArenaCombat extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
+        $this->playbackSpeed = session('combat_playback_speed', 1);
         $this->character = $character;
         
         if ($pvpId) {
@@ -250,6 +251,7 @@ class ArenaCombat extends Component
     public function setPlaybackSpeed(int $speed): void
     {
         $this->playbackSpeed = $speed;
+        session(['combat_playback_speed' => $speed]);
         if ($this->isPlaying) {
             $this->dispatch('update-playback-speed', speed: $speed);
         }

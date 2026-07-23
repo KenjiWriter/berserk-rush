@@ -135,10 +135,10 @@
 
         {{-- ACTIVE RUN --}}
         @else
-            <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 pb-24 lg:pb-6">
 
                 {{-- Left: Character status + Potions --}}
-                <div class="col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-2 lg:order-1" id="player-panel-container">
+                <div class="col-span-1 md:col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-2 lg:order-1" id="player-panel-container">
                     {{-- Character HP --}}
                     <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
                         <h3 class="text-[10px] lg:text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 lg:mb-3">Twoja postać</h3>
@@ -213,7 +213,7 @@
                 </div>
 
                 {{-- Center: Fight Action / Battle Log --}}
-                <div class="col-span-2 lg:col-span-1 space-y-4 order-1 lg:order-2 flex flex-col justify-center min-h-[300px] lg:min-h-[400px] mb-4 lg:mb-0"
+                <div class="col-span-1 md:col-span-2 lg:col-span-1 space-y-4 order-1 lg:order-2 flex flex-col justify-center min-h-[300px] lg:min-h-[400px] mb-4 lg:mb-0"
                      @if($isCalculating) wire:poll.1s="checkCombatStatus" @endif>
                      
                     @if($isCalculating)
@@ -313,7 +313,7 @@
                 </div>
 
                 {{-- Right: Monster --}}
-                <div class="col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-3 lg:order-3" id="enemy-panel-container">
+                <div class="col-span-1 md:col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-3 lg:order-3" id="enemy-panel-container">
                     @if($monster)
                         {{-- Monster info always visible on the right --}}
                         <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-3 lg:p-5 backdrop-blur-sm">

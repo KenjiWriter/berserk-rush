@@ -40,6 +40,7 @@ class DungeonRun extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
+        $this->playbackSpeed = session('combat_playback_speed', 1);
         $this->character = $character;
         $this->dungeon = $dungeon;
         $this->totalStages = $dungeon->stages()->count();
@@ -252,6 +253,12 @@ class DungeonRun extends Component
         if ($run) {
             $this->currentStage = $run->current_stage;
         }
+    }
+
+    public function setPlaybackSpeed(int $speed): void
+    {
+        $this->playbackSpeed = $speed;
+        session(['combat_playback_speed' => $speed]);
     }
 
     public function backToDungeonList(): void
