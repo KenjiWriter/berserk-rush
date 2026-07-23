@@ -165,7 +165,12 @@ class GlobalChatComponent extends Component
             if ($character->user->permission_level == 9) {
                 $this->handleGiveCommand($message, $character);
             } else {
-                $this->addError('newMessage', 'Brak uprawnień.');
+                $lowerMsg = strtolower($message);
+                if ($character->guild_id && (str_contains($lowerMsg, ' exp') || str_contains($lowerMsg, ' gold') || str_contains($lowerMsg, ' gems'))) {
+                    $this->handleDonateCommand(str_replace('/give', '/donate', $message), $character);
+                } else {
+                    $this->addError('newMessage', 'Brak uprawnień.');
+                }
             }
             $this->newMessage = '';
             return;
@@ -363,6 +368,8 @@ class GlobalChatComponent extends Component
                 ]);
             });
             $this->broadcastSystemGuildMessage($guild->id, "Gracz {$character->name} przekazał {$amount} EXP na rozwój gildii.");
+            $this->dispatch('refresh-guild');
+            $this->dispatch('notify', message: "Przekazano {$amount} EXP dla gildii!", type: 'success');
         } elseif ($type === 'gold') {
             if ($character->gold < $amount) {
                 $this->addError('newMessage', 'Nie masz tyle złota.');
@@ -385,6 +392,8 @@ class GlobalChatComponent extends Component
                 ]);
             });
             $this->broadcastSystemGuildMessage($guild->id, "Gracz {$character->name} wpłacił {$amount} złota do skarbca gildii.");
+            $this->dispatch('refresh-guild');
+            $this->dispatch('notify', message: "Wpłacono {$amount} złota do skarbca gildii!", type: 'success');
         } elseif ($type === 'gems') {
             if ($character->user->gems < $amount) {
                 $this->dispatch('not-enough-gems');
@@ -407,6 +416,8 @@ class GlobalChatComponent extends Component
                 ]);
             });
             $this->broadcastSystemGuildMessage($guild->id, "Gracz {$character->name} wpłacił {$amount} diamentów do skarbca gildii.");
+            $this->dispatch('refresh-guild');
+            $this->dispatch('notify', message: "Wpłacono {$amount} diamentów do skarbca gildii!", type: 'success');
         } else {
             $this->addError('newMessage', 'Nieznany typ donacji (exp, gold, gems).');
         }
@@ -500,6 +511,70 @@ class GlobalChatComponent extends Component
             ]);
             
             $this->dispatch('notify', message: "Otrzymano tytuł: {$title->name}!", type: 'success');
+            return;
+        }
+
+        if ($type === 'exp') {
+            $amount = (int) ($parts[2] ?? 0);
+            if ($amount <= 0) {
+                $this->addError('newMessage', 'Ilość musi być większa niż 0.');
+                return;
+            }
+
+            if ((isset($parts[3]) && strtolower($parts[3]) === 'guild') || $this->currentChannel === 'guild') {
+                $guild = $character->guild;
+                if (!$guild) {
+                    $this->addError('newMessage', 'Nie jesteś w gildii.');
+                    return;
+                }
+                $guild->addXp($amount);
+                $this->broadcastSystemGuildMessage($guild->id, "Dodano {$amount} EXP na rozwój gildii.");
+                $this->dispatch('refresh-guild');
+                $this->dispatch('notify', message: "Dodano {$amount} EXP dla gildii!", type: 'success');
+                return;
+            }
+
+            $character->xp += $amount;
+            $character->save();
+            $levelUpService = app(\App\Application\Characters\LevelUpService::class);
+            $result = $levelUpService->checkAndApply($character);
+            $this->dispatch('notify', message: "Dodano {$amount} expa dla postaci.", type: 'success');
+            if ($result->isOk() && $result->getPayload()?->hadLevelUp) {
+                $this->dispatch('notify', message: "Awansowałeś na poziom {$character->level}!", type: 'success');
+            }
+            return;
+        }
+
+        if ($type === 'guild' || $type === 'gexp' || $type === 'gxp') {
+            $subType = strtolower($parts[2] ?? '');
+            $subAmount = (int) ($parts[3] ?? $parts[2] ?? 0);
+            if ($subAmount <= 0) {
+                $this->addError('newMessage', 'Użycie: /give guild <exp|gold|gems> <ilość>');
+                return;
+            }
+            $guild = $character->guild;
+            if (!$guild) {
+                $this->addError('newMessage', 'Nie jesteś w gildii.');
+                return;
+            }
+            if ($subType === 'exp' || $type === 'gexp' || $type === 'gxp') {
+                $guild->addXp($subAmount);
+                $this->broadcastSystemGuildMessage($guild->id, "Dodano {$subAmount} EXP na rozwój gildii.");
+                $this->dispatch('refresh-guild');
+                $this->dispatch('notify', message: "Dodano {$subAmount} EXP dla gildii!", type: 'success');
+            } elseif ($subType === 'gold') {
+                $guild->gold += $subAmount;
+                $guild->save();
+                $this->broadcastSystemGuildMessage($guild->id, "Dodano {$subAmount} złota do skarbca gildii.");
+                $this->dispatch('refresh-guild');
+                $this->dispatch('notify', message: "Dodano {$subAmount} złota dla gildii!", type: 'success');
+            } elseif ($subType === 'gems') {
+                $guild->gems += $subAmount;
+                $guild->save();
+                $this->broadcastSystemGuildMessage($guild->id, "Dodano {$subAmount} diamentów do skarbca gildii.");
+                $this->dispatch('refresh-guild');
+                $this->dispatch('notify', message: "Dodano {$subAmount} diamentów dla gildii!", type: 'success');
+            }
             return;
         }
 

@@ -39,6 +39,7 @@ class GuildComponent extends Component
         $this->refreshState();
     }
 
+    #[\Livewire\Attributes\On('refresh-guild')]
     public function refreshState(): void
     {
         $this->character->refresh();
