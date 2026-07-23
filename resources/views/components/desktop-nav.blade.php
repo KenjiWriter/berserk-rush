@@ -81,7 +81,7 @@
                        class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.profile') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>POSTAĆ & EKWIPUNEK</span>
                         @if($profileBadgeCount > 0)
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full inline-flex items-center justify-center text-slate-950 text-[11px] font-black leading-none shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10 select-none pb-[1px]">!</span>
                         @endif
                     </a>
 
@@ -100,7 +100,7 @@
                        class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>ZADANIA & KARCZMA</span>
                         @if($questBadgeCount > 0)
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full inline-flex items-center justify-center text-slate-950 text-[11px] font-black leading-none shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10 select-none pb-[1px]">!</span>
                         @endif
                     </a>
                 </div>
@@ -154,7 +154,7 @@
                        class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.warlock') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>CZARNOKSIĘŻNIK</span>
                         @if($skillPointsCount > 0)
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full inline-flex items-center justify-center text-slate-950 text-[11px] font-black leading-none shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10 select-none pb-[1px]">!</span>
                         @endif
                     </a>
 
@@ -208,7 +208,7 @@
                        class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>WYZWANIA</span>
                         @if($questBadgeCount > 0)
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[10px] font-black shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10">!</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-amber-500 rounded-full inline-flex items-center justify-center text-slate-950 text-[11px] font-black leading-none shadow-[0_0_10px_rgba(245,158,11,0.9)] animate-bounce z-10 select-none pb-[1px]">!</span>
                         @endif
                     </a>
 
@@ -219,7 +219,7 @@
                        class="flex items-center justify-center h-11 px-4 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-200 relative group border-2 text-center {{ request()->routeIs('city.mailbox') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span>SKRZYNKA POCZTOWA</span>
                         @if($unreadMailCount > 0)
-                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 rounded-full flex items-center justify-center text-white text-[10px] font-black shadow-[0_0_10px_rgba(239,68,68,0.9)] animate-bounce z-10">{{ $unreadMailCount }}</span>
+                            <span class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-red-600 rounded-full inline-flex items-center justify-center text-white text-[10px] font-black leading-none shadow-[0_0_10px_rgba(239,68,68,0.9)] animate-bounce z-10 select-none pb-[1px]">{{ $unreadMailCount }}</span>
                         @endif
                     </a>
                 </div>
