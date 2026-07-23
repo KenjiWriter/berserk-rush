@@ -314,7 +314,8 @@ class EncounterService
                         'gold_data' => $goldRewardData,
                         'xp_data' => $xpRewardData,
                         'damage_dealt' => $isWorldBoss ? $damageDealt : null,
-                    ]
+                    ],
+                    'notifications' => $notifications
                 ];
 
                 return Result::ok($combatResultData);

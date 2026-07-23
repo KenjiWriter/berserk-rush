@@ -91,10 +91,10 @@ class QuestService
                     $cq->progress = $quest->target_amount;
                     if ($cq->status !== QuestStatus::COMPLETED) {
                         $cq->status = QuestStatus::COMPLETED;
-                        app(\App\Application\Shared\NotificationTracker::class)->addSuccess("Misja '{$quest->title}' została wykonana!");
+                        app(\App\Application\Shared\NotificationTracker::class)->addSuccess("Misja '{$quest->name}' została wykonana!");
                     }
                 } else if ($cq->progress > $oldProgress) {
-                    app(\App\Application\Shared\NotificationTracker::class)->addInfo("Misja {$quest->title}:<br>{$cq->progress} / {$quest->target_amount}");
+                    app(\App\Application\Shared\NotificationTracker::class)->addInfo("Misja {$quest->name}:<br>{$cq->progress} / {$quest->target_amount}");
                 }
                 
                 $cq->save();
