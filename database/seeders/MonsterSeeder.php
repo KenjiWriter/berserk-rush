@@ -30,6 +30,14 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Pająk Leśny',
+                    'type' => 'animal',
+                    'level' => 5,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 125, 'atk' => 22, 'def' => 7, 'agi' => 19, 'int' => 4, 'crit' => 0.22, 'dodge' => 0.15],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Suchodrzew',
                     'type' => 'plant',
                     'level' => 6,
@@ -38,11 +46,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Zdziczały Dzik',
+                    'type' => 'animal',
+                    'level' => 7,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 150, 'atk' => 26, 'def' => 10, 'agi' => 12, 'int' => 2, 'crit' => 0.18, 'dodge' => 0.10],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Goblin Zwiadowca',
                     'type' => 'goblin',
                     'level' => 8,
                     'rank' => 'regular',
                     'stats' => ['hp' => 140, 'atk' => 28, 'def' => 8, 'agi' => 25, 'int' => 6, 'crit' => 0.32, 'dodge' => 0.24],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Strażnik Puszczy',
+                    'type' => 'plant',
+                    'level' => 12,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 2200, 'atk' => 38, 'def' => 18, 'agi' => 12, 'int' => 10, 'crit' => 0.25, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -61,6 +85,14 @@ class MonsterSeeder extends Seeder
                     'level' => 14,
                     'rank' => 'regular',
                     'stats' => ['hp' => 440, 'atk' => 72, 'def' => 36, 'agi' => 32, 'int' => 8, 'crit' => 0.24, 'dodge' => 0.12],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Mroczny Kultysta',
+                    'type' => 'human',
+                    'level' => 16,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 400, 'atk' => 68, 'def' => 28, 'agi' => 36, 'int' => 45, 'crit' => 0.26, 'dodge' => 0.14],
                     'abilities' => []
                 ],
                 [
@@ -88,6 +120,22 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Kamienny Gargulec',
+                    'type' => 'golem',
+                    'level' => 23,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 480, 'atk' => 84, 'def' => 48, 'agi' => 26, 'int' => 10, 'crit' => 0.20, 'dodge' => 0.08],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Władca Krypty',
+                    'type' => 'undead',
+                    'level' => 27,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 7500, 'atk' => 115, 'def' => 52, 'agi' => 35, 'int' => 40, 'crit' => 0.35, 'dodge' => 0.12],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Licz Cieni',
                     'type' => 'undead',
                     'level' => 25,
@@ -103,6 +151,14 @@ class MonsterSeeder extends Seeder
                     'level' => 26,
                     'rank' => 'regular',
                     'stats' => ['hp' => 880, 'atk' => 120, 'def' => 72, 'agi' => 24, 'int' => 8, 'crit' => 0.2, 'dodge' => 0.08],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Pełzacz Jaskiniowy',
+                    'type' => 'animal',
+                    'level' => 28,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 780, 'atk' => 110, 'def' => 60, 'agi' => 38, 'int' => 10, 'crit' => 0.22, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -130,6 +186,22 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Troll Scalony',
+                    'type' => 'troll',
+                    'level' => 34,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 960, 'atk' => 135, 'def' => 76, 'agi' => 22, 'int' => 12, 'crit' => 0.25, 'dodge' => 0.06],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Starożytny Ogr',
+                    'type' => 'ogre',
+                    'level' => 38,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 18000, 'atk' => 175, 'def' => 95, 'agi' => 25, 'int' => 15, 'crit' => 0.32, 'dodge' => 0.06],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Król Trolli',
                     'type' => 'troll',
                     'level' => 35,
@@ -148,11 +220,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Pustynny Skorpion',
+                    'type' => 'animal',
+                    'level' => 40,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1150, 'atk' => 180, 'def' => 76, 'agi' => 50, 'int' => 14, 'crit' => 0.38, 'dodge' => 0.18],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Ork Berserker',
                     'type' => 'orc',
                     'level' => 42,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1280, 'atk' => 208, 'def' => 80, 'agi' => 48, 'int' => 12, 'crit' => 0.48, 'dodge' => 0.16],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Ork Topornik',
+                    'type' => 'orc',
+                    'level' => 44,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1300, 'atk' => 215, 'def' => 88, 'agi' => 42, 'int' => 15, 'crit' => 0.42, 'dodge' => 0.14],
                     'abilities' => []
                 ],
                 [
@@ -169,6 +257,14 @@ class MonsterSeeder extends Seeder
                     'level' => 48,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1400, 'atk' => 232, 'def' => 96, 'agi' => 52, 'int' => 24, 'crit' => 0.48, 'dodge' => 0.2],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Niszczyciel Pustkowi',
+                    'type' => 'orc',
+                    'level' => 53,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 35000, 'atk' => 280, 'def' => 120, 'agi' => 55, 'int' => 30, 'crit' => 0.50, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -190,6 +286,14 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Błotny Bazyliszek',
+                    'type' => 'monster',
+                    'level' => 55,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1500, 'atk' => 230, 'def' => 100, 'agi' => 52, 'int' => 45, 'crit' => 0.35, 'dodge' => 0.20],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Wiedźmia Straż',
                     'type' => 'demon',
                     'level' => 58,
@@ -206,11 +310,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Widmo Bagien',
+                    'type' => 'undead',
+                    'level' => 62,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1600, 'atk' => 260, 'def' => 95, 'agi' => 70, 'int' => 85, 'crit' => 0.44, 'dodge' => 0.30],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Hydra Bagienna',
                     'type' => 'animal',
                     'level' => 64,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1920, 'atk' => 280, 'def' => 112, 'agi' => 64, 'int' => 72, 'crit' => 0.48, 'dodge' => 0.32],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Królowa Wiedźm',
+                    'type' => 'demon',
+                    'level' => 68,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 65000, 'atk' => 380, 'def' => 150, 'agi' => 60, 'int' => 150, 'crit' => 0.45, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -232,6 +352,14 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Mroczny Gryf',
+                    'type' => 'animal',
+                    'level' => 68,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1750, 'atk' => 280, 'def' => 110, 'agi' => 92, 'int' => 35, 'crit' => 0.52, 'dodge' => 0.38],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Golem Bazaltowy',
                     'type' => 'golem',
                     'level' => 70,
@@ -248,11 +376,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Cieniowy Gargulec',
+                    'type' => 'demon',
+                    'level' => 73,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1850, 'atk' => 290, 'def' => 130, 'agi' => 85, 'int' => 50, 'crit' => 0.50, 'dodge' => 0.35],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Wędrowny Czarownik',
                     'type' => 'human',
                     'level' => 74,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1800, 'atk' => 240, 'def' => 96, 'agi' => 64, 'int' => 128, 'crit' => 0.48, 'dodge' => 0.32],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Władca Cieni',
+                    'type' => 'demon',
+                    'level' => 78,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 120000, 'atk' => 490, 'def' => 200, 'agi' => 95, 'int' => 160, 'crit' => 0.65, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -274,6 +418,14 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Żywiołak Lodu',
+                    'type' => 'elemental',
+                    'level' => 78,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 1900, 'atk' => 260, 'def' => 125, 'agi' => 60, 'int' => 150, 'crit' => 0.50, 'dodge' => 0.28],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Strażnik Arkanów',
                     'type' => 'golem',
                     'level' => 80,
@@ -290,11 +442,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Runiczny Konstrukt',
+                    'type' => 'golem',
+                    'level' => 83,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 2200, 'atk' => 290, 'def' => 150, 'agi' => 50, 'int' => 165, 'crit' => 0.55, 'dodge' => 0.25],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Mistrz Iluzji',
                     'type' => 'human',
                     'level' => 84,
                     'rank' => 'regular',
                     'stats' => ['hp' => 2080, 'atk' => 272, 'def' => 104, 'agi' => 80, 'int' => 176, 'crit' => 0.64, 'dodge' => 0.4],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Wielki Inkwizytor',
+                    'type' => 'human',
+                    'level' => 88,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 220000, 'atk' => 430, 'def' => 180, 'agi' => 90, 'int' => 450, 'crit' => 0.75, 'dodge' => 0.45],
                     'abilities' => []
                 ],
                 [
@@ -316,11 +484,27 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
+                    'name' => 'Plagowy Kat',
+                    'type' => 'undead',
+                    'level' => 88,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 2500, 'atk' => 340, 'def' => 145, 'agi' => 75, 'int' => 70, 'crit' => 0.60, 'dodge' => 0.35],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Czarownica Zgnilizny',
                     'type' => 'demon',
                     'level' => 90,
                     'rank' => 'regular',
                     'stats' => ['hp' => 2320, 'atk' => 304, 'def' => 120, 'agi' => 80, 'int' => 192, 'crit' => 0.64, 'dodge' => 0.4],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Zbezczeszczony Golem',
+                    'type' => 'golem',
+                    'level' => 92,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 2700, 'atk' => 355, 'def' => 165, 'agi' => 65, 'int' => 80, 'crit' => 0.58, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -337,6 +521,14 @@ class MonsterSeeder extends Seeder
                     'level' => 98,
                     'rank' => 'regular',
                     'stats' => ['hp' => 2800, 'atk' => 368, 'def' => 176, 'agi' => 88, 'int' => 80, 'crit' => 0.64, 'dodge' => 0.4],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Książę Zniszczenia',
+                    'type' => 'demon',
+                    'level' => 102,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 450000, 'atk' => 780, 'def' => 320, 'agi' => 130, 'int' => 250, 'crit' => 0.90, 'dodge' => 0.50],
                     'abilities' => []
                 ],
                 [
@@ -379,4 +571,3 @@ class MonsterSeeder extends Seeder
         $this->command->info('Monster seeder completed - created/updated monsters for all maps.');
     }
 }
-

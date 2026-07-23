@@ -104,22 +104,22 @@ class Quests extends Component
             
             $monster = \App\Infrastructure\Persistence\Monster::find($quest->target_id);
             if ($monster) {
-                $maps = $monster->maps()->pluck('name')->join(', ');
-                return "Występuje: " . ($maps ?: 'Nieznane miejsce');
+                $mapName = $monster->map->name ?? 'Nieznane miejsce';
+                return "Występuje: " . $mapName;
             }
         } elseif ($quest->type->value === 'gathering') {
             $item = \App\Infrastructure\Persistence\ItemTemplate::find($quest->target_id);
             if ($item) {
                 // Find monsters that drop this item
-                $monsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTables', function($q) use ($item) {
-                    $q->where('item_template_id', $item->id);
-                })->with('maps')->get();
+                $monsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($item) {
+                    $q->where('ref_ulid', $item->id);
+                })->with('map')->get();
 
                 if ($monsters->isNotEmpty()) {
                     $hints = [];
                     foreach ($monsters as $m) {
-                        $maps = $m->maps->pluck('name')->join(', ');
-                        $hints[] = "{$m->name} (" . ($maps ?: 'Nieznane') . ")";
+                        $mapName = $m->map->name ?? 'Nieznane';
+                        $hints[] = "{$m->name} ({$mapName})";
                     }
                     return "Wypada z: " . implode(' | ', $hints);
                 } else {

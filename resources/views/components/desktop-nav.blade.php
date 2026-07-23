@@ -16,7 +16,7 @@
         $unreadMailCount = $character ? \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count() : 0;
     @endphp
 
-    <aside class="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 bg-stone-950 border-r-4 border-amber-800/80 shadow-[10px_0_30px_rgba(0,0,0,0.9)] z-40 overflow-y-auto select-none custom-scrollbar relative" 
+    <aside class="hidden lg:flex flex-col w-72 shrink-0 h-screen sticky top-0 bg-stone-950 border-r-4 border-amber-800/80 shadow-[10px_0_30px_rgba(0,0,0,0.9)] z-40 overflow-y-auto overflow-x-hidden select-none custom-scrollbar relative" 
            style="background: radial-gradient(circle at 50% 0%, #1c1917 0%, #0c0a09 70%, #050505 100%); font-family: 'Cinzel', serif;">
         
         {{-- Gothic / Metallic Filigree Border Trim --}}
