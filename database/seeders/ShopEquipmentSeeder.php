@@ -29,10 +29,10 @@ class ShopEquipmentSeeder extends Seeder
             'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
         ];
 
-        // Skala jest niższa niż w craftingu (~80%)
+        // Skala jest niższa niż w craftingu (~80%) -> teraz zmieniona na 1.2 aby Miecz Nowicjusza był lepszy od Zardzewiałego
         $themes = [
             [
-                'level' => 1, 'scale' => 0.8,
+                'level' => 1, 'scale' => 1.2,
                 'names' => [
                     'sword' => 'Miecz Nowicjusza', 'axe' => 'Topór Nowicjusza', 'bow' => 'Łuk Nowicjusza',
                     'wand' => 'Różdżka Nowicjusza', 'dagger' => 'Sztylet Nowicjusza', 'bell' => 'Dzwon Nowicjusza',
@@ -133,12 +133,15 @@ class ShopEquipmentSeeder extends Seeder
                 $name = $theme['names'][$protoKey];
                 $iconName = Str::slug($name);
 
+                $templateId = ($name === 'Miecz Nowicjusza') ? 'miecz-nowicjusza' : Str::ulid();
+
                 // Sprawdzamy czy template istnieje z seedera ItemTemplate (Miecz nowicjusza był wpisany ręcznie z innym ID, usuniemy go wcześniej lub nadpiszemy/użyjemy firstOrCreate wg nazwy).
                 // Najlepiej usunąć dotychczasowego miecza nowicjusza żeby nie było duplikatów.
                 ItemTemplate::where('name', $name)->delete();
+                ItemTemplate::where('id', $templateId)->delete();
 
                 $template = ItemTemplate::create([
-                    'id' => Str::ulid(),
+                    'id' => $templateId,
                     'name' => $name,
                     'type' => $proto['type'],
                     'slot' => $proto['slot'],

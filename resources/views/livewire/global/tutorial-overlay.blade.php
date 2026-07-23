@@ -7,7 +7,7 @@
             <div class="relative z-10 w-full max-w-6xl pointer-events-auto flex flex-col sm:flex-row items-end">
                 {{-- Captain Avatar --}}
                 <div class="flex-shrink-0 z-20 relative w-64 sm:w-[450px] lg:w-[550px] -mb-2 sm:mb-0">
-                    <img src="{{ asset('img/characters/captian.png') }}" alt="Kapitan" class="w-full h-auto object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.9)]" />
+                    <img src="{{ asset('img/characters/captain_' . $randomCaptainIndex . '.png') }}" alt="Kapitan" class="w-full h-auto object-contain object-bottom drop-shadow-[0_15px_15px_rgba(0,0,0,0.9)]" />
                 </div>
 
                 {{-- Chat Bubble --}}

@@ -420,6 +420,7 @@
                     <div x-data="{
                         points: {{ $character->character_points }},
                         added: { str: 0, int: 0, vit: 0, agi: 0 },
+                        pending: { str: 0, int: 0, vit: 0, agi: 0 },
                         saveTimeout: null,
                         
                         add(stat, amount) {
@@ -440,10 +441,24 @@
                                 
                                 // Krótki, płynny auto-zapis (350ms)
                                 clearTimeout(this.saveTimeout);
-                                this.saveTimeout = setTimeout(() => {
+                                this.saveTimeout = setTimeout(async () => {
                                     let toSave = { ...this.added };
+                                    if (toSave.str === 0 && toSave.int === 0 && toSave.vit === 0 && toSave.agi === 0) return;
+
                                     this.added = { str: 0, int: 0, vit: 0, agi: 0 };
-                                    $wire.saveAttributes(toSave);
+                                    this.pending.str += toSave.str;
+                                    this.pending.int += toSave.int;
+                                    this.pending.vit += toSave.vit;
+                                    this.pending.agi += toSave.agi;
+                                    
+                                    try {
+                                        await $wire.saveAttributes(toSave);
+                                    } finally {
+                                        this.pending.str -= toSave.str;
+                                        this.pending.int -= toSave.int;
+                                        this.pending.vit -= toSave.vit;
+                                        this.pending.agi -= toSave.agi;
+                                    }
                                 }, 350);
                             }
                         }
@@ -460,7 +475,7 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str"></span>
+                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str + pending.str"></span>
                                 <div class="flex gap-1" x-show="points > 0">
                                     <button @click="add('str', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="points >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -472,7 +487,7 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Inteligencja: Wpływa na obronę magiczną.">Intelligence (INT):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int"></span>
+                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int + pending.int"></span>
                                 <div class="flex gap-1" x-show="points > 0">
                                     <button @click="add('int', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="points >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -484,7 +499,7 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit"></span>
+                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit + pending.vit"></span>
                                 <div class="flex gap-1" x-show="points > 0">
                                     <button @click="add('vit', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="points >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -496,7 +511,7 @@
                         <div class="flex justify-between items-center group">
                             <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi"></span>
+                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi + pending.agi"></span>
                                 <div class="flex gap-1" x-show="points > 0">
                                     <button @click="add('agi', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="points >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>

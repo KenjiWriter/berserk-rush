@@ -236,6 +236,7 @@ class Profile extends Component
         $points = $this->character->character_points ?? 0;
         
         if ($totalRequested > $points || $totalRequested <= 0) {
+            $this->dispatch('stats-saved', points: $points);
             return;
         }
 

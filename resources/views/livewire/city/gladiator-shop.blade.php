@@ -35,11 +35,11 @@
             <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-6 flex flex-col mt-4">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
                     @foreach($merchantItems as $item)
-                        <div class="relative" x-data="{ showInfo: false }" 
+                        <div class="relative" x-data="{ showInfo: false, timeout: null }" 
                              :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                             @mouseenter="showInfo = true"
-                             @mouseleave="showInfo = false"
-                             @click="showInfo = !showInfo">
+                             @mouseenter="clearTimeout(timeout); showInfo = true"
+                             @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
+                             @click="clearTimeout(timeout); showInfo = !showInfo">
                              
                             <div class="bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg p-3 flex flex-col items-center text-center cursor-pointer transition-all h-full">
                                 @if($item->template->icon)

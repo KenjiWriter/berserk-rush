@@ -17,6 +17,7 @@ class TutorialOverlay extends Component
     public int $rewardXp = 0;
     public int $rewardGold = 0;
     public ?ItemTemplate $rewardItem = null;
+    public int $randomCaptainIndex = 1;
 
     public function mount(int $step = 1, ?string $rewardItemTemplateId = null, int $rewardXp = 0, int $rewardGold = 0)
     {
@@ -24,6 +25,7 @@ class TutorialOverlay extends Component
         $this->rewardItemTemplateId = $rewardItemTemplateId;
         $this->rewardXp = $rewardXp;
         $this->rewardGold = $rewardGold;
+        $this->randomCaptainIndex = rand(1, 4);
         
         $user = Auth::user();
         

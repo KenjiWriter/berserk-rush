@@ -59,11 +59,11 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Twój Ekwipunek</h3>
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 @forelse($inventoryItems as $item)
-                                    <div class="relative" x-data="{ showInfo: false }" 
+                                    <div class="relative" x-data="{ showInfo: false, timeout: null }" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                         @mouseenter="showInfo = true"
-                                         @mouseleave="showInfo = false"
-                                         @click="showInfo = !showInfo">
+                                         @mouseenter="clearTimeout(timeout); showInfo = true"
+                                         @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
+                                         @click="clearTimeout(timeout); showInfo = !showInfo">
                                         
                                         <div class="aspect-square bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
                                             @if($item->template->icon)
@@ -119,11 +119,11 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Asortyment</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 @forelse($shopItems as $item)
-                                    <div class="relative" x-data="{ showInfo: false }" 
+                                    <div class="relative" x-data="{ showInfo: false, timeout: null }" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                         @mouseenter="showInfo = true"
-                                         @mouseleave="showInfo = false"
-                                         @click="showInfo = !showInfo">
+                                         @mouseenter="clearTimeout(timeout); showInfo = true"
+                                         @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
+                                         @click="clearTimeout(timeout); showInfo = !showInfo">
                                          
                                         <div class="bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg p-3 flex flex-col items-center text-center cursor-pointer transition-all h-full {{ $gameStage == 19 && $item->template->id === 'miecz-nowicjusza' ? 'animate-pulse ring-2 ring-amber-500' : '' }}">
                                             @if($item->template->icon)
@@ -324,14 +324,14 @@
                 @elseif($activeTab === 'crafting')
                     <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pr-2">
                         @forelse($recipes as $recipe)
-                            <div x-data="{ showInfo: false }" 
+                            <div x-data="{ showInfo: false, timeout: null }" 
                                  :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
                                  class="bg-black/60 border border-amber-600/30 hover:border-amber-500/80 transition-all rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-xl backdrop-blur relative">
                                 
                                 <!-- Left: Result Item -->
                                 <div class="flex items-center gap-4 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-700 pb-4 md:pb-0 md:pr-4 relative" 
-                                     @mouseenter="showInfo = true"
-                                     @mouseleave="showInfo = false">
+                                     @mouseenter="clearTimeout(timeout); showInfo = true"
+                                     @mouseleave="timeout = setTimeout(() => showInfo = false, 300)">
                                      
                                     <div class="w-16 h-16 bg-gray-900/80 rounded border border-gray-600 flex items-center justify-center p-2 flex-shrink-0 cursor-help">
                                         @if($recipe['result_icon'])

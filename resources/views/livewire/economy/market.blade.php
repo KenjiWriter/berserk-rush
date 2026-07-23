@@ -121,10 +121,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             @foreach($listings as $listing)
                                 <div class="bg-slate-800/80 border border-slate-600 rounded-lg p-4 flex flex-col justify-between shadow-lg hover:shadow-xl hover:border-amber-600/50 transition-all relative"
-                                     x-data="{ showInfo: false }" 
-                                     @mouseenter="showInfo = true" 
-                                     @mouseleave="showInfo = false" 
-                                     @click="showInfo = !showInfo">
+                                     x-data="{ showInfo: false, timeout: null }" 
+                                     @mouseenter="clearTimeout(timeout); showInfo = true" 
+                                     @mouseleave="timeout = setTimeout(() => showInfo = false, 300)" 
+                                     @click="clearTimeout(timeout); showInfo = !showInfo">
                                      
                                     <!-- Infobox -->
                                     <div x-show="showInfo" x-transition.opacity 

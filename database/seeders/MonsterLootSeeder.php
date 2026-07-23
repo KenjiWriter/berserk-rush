@@ -104,8 +104,11 @@ class MonsterLootSeeder extends Seeder
             ]
         ];
 
-        // Pobierz szablony materiałów (ItemTemplate) dla szybkiego wyszukiwania
-        $itemTemplates = ItemTemplate::where('type', 'material')->get()->keyBy('name');
+        // Pobierz wszystkie przedmioty dla szybkiego wyszukiwania
+        $itemTemplates = ItemTemplate::all();
+        $materialsByName = $itemTemplates->where('type', 'material')->keyBy('name');
+        $equipments = $itemTemplates->whereIn('type', ['weapon', 'armor', 'accessory']);
+        $consumables = $itemTemplates->where('type', 'consumable');
 
         foreach ($mapsData as $mapName => $mapConfig) {
             foreach ($mapConfig['monsters'] as $monsterName => $specificDrops) {
@@ -134,9 +137,19 @@ class MonsterLootSeeder extends Seeder
                     $possibleDrops = array_merge($possibleDrops, $mapConfig['boss_general']);
                 }
 
-                // Przypisz wpisy LootTableEntries dla każdego przedmiotu
+                // Dodanie Złota
+                LootTableEntry::firstOrCreate([
+                    'loot_table_id' => $lootTable->id,
+                    'reward_type' => 'gold',
+                ], [
+                    'weight' => 50,
+                    'min_qty' => $monster->level * 2,
+                    'max_qty' => max($monster->level * 5, 10)
+                ]);
+
+                // Przypisz wpisy LootTableEntries dla każdego materiału
                 foreach ($possibleDrops as $dropName) {
-                    $template = $itemTemplates->get($dropName);
+                    $template = $materialsByName->get($dropName);
 
                     if (!$template) {
                         $this->command->warn("Nie znaleziono przedmiotu {$dropName} w bazie.");
@@ -152,6 +165,37 @@ class MonsterLootSeeder extends Seeder
                         'weight' => in_array($dropName, $specificDrops) ? 20 : (in_array($dropName, $mapConfig['boss_general'] ?? []) ? 5 : 10),
                         'min_qty' => 1,
                         'max_qty' => $monster->rank === 'worldboss' ? 3 : 1
+                    ]);
+                }
+
+                // Dodanie Sprzętu z odpowiedniego Tieru (Equipments)
+                $bestTierLevel = $equipments->where('level_requirement', '<=', $monster->level)->max('level_requirement');
+                if ($bestTierLevel) {
+                    $tierEquipments = $equipments->where('level_requirement', $bestTierLevel);
+                    foreach($tierEquipments as $equip) {
+                        LootTableEntry::firstOrCreate([
+                            'loot_table_id' => $lootTable->id,
+                            'reward_type' => 'item',
+                            'ref_ulid' => $equip->id,
+                        ], [
+                            'weight' => $monster->rank === 'worldboss' ? 3 : 1,
+                            'min_qty' => 1,
+                            'max_qty' => 1
+                        ]);
+                    }
+                }
+
+                // Dodanie Mikstur (Consumables)
+                $availableConsumables = $consumables->where('level_requirement', '<=', $monster->level);
+                foreach($availableConsumables as $cons) {
+                    LootTableEntry::firstOrCreate([
+                        'loot_table_id' => $lootTable->id,
+                        'reward_type' => 'item',
+                        'ref_ulid' => $cons->id,
+                    ], [
+                        'weight' => 5,
+                        'min_qty' => 1,
+                        'max_qty' => 2
                     ]);
                 }
             }
