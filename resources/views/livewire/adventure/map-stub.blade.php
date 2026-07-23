@@ -749,7 +749,6 @@
             });
 
             Livewire.on('stop-playback', () => {
-                isPaused = true;
                 cleanUp();
             });
 

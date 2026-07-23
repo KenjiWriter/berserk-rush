@@ -67,8 +67,8 @@
 
 <body class="font-sans antialiased">
     {{-- ===== Global Location Transition Overlay ===== --}}
-    <div x-data="{ leaving: false }"
-         @location-leave.window="leaving = true"
+    <div x-data="{ leaving: false, text: 'Podróż...', icon: '🏰' }"
+         @location-leave.window="leaving = true; text = $event.detail?.text || 'Podróż...'; icon = $event.detail?.icon || '🏰'"
          x-show="leaving"
          x-transition:enter="transition ease-in-out duration-500"
          x-transition:enter-start="opacity-0"
@@ -80,11 +80,10 @@
              <div class="absolute inset-0 rounded-full border-4 border-amber-900/30 border-t-amber-500 animate-spin"></div>
              <div class="absolute inset-2 rounded-full border-4 border-amber-800/20 border-t-amber-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
              <div class="absolute inset-4 rounded-full border-4 border-amber-700/10 border-t-amber-300 animate-spin" style="animation-duration: 2s;"></div>
-             <div class="absolute inset-0 flex items-center justify-center text-3xl">🏰</div>
+             <div class="absolute inset-0 flex items-center justify-center text-3xl" x-text="icon"></div>
          </div>
          
-         <h2 class="text-3xl font-bold text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" style="font-family: 'Cinzel', serif;">
-             Podróż do Miasta...
+         <h2 class="text-3xl font-bold text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" style="font-family: 'Cinzel', serif;" x-text="text">
          </h2>
     </div>
 
