@@ -36,6 +36,7 @@ class Profile extends Component
     public function mount(Character $character)
     {
         $this->character = $character;
+        $this->character->syncMissingPoints();
         $this->character->load('equippedSkills.skill');
         
         // Ensure character belongs to user

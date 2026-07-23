@@ -35,10 +35,12 @@ class LevelUpService
 
                     $character->update([
                         'level' => $currentLevel,
-                        'character_points' => $character->character_points + $pointsGained,
-                        'skill_points' => $character->skill_points + count($levelUps),
+                        'character_points' => ($character->character_points ?? 0) + $pointsGained,
+                        'skill_points' => ($character->skill_points ?? 0) + count($levelUps),
                         'xp' => $currentXp,
                     ]);
+
+                    $character->syncMissingPoints();
 
                     // Fire events for each level up
                     foreach ($levelUps as $levelUp) {

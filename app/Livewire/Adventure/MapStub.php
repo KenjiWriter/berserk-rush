@@ -83,8 +83,10 @@ class MapStub extends Component
         }
 
         $this->character = $character;
+        $this->character->syncMissingPoints();
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
+        $this->initPlayerData($character);
 
         if (Auth::user()->game_stage <= 12) {
             $this->autoChain = false;
@@ -143,21 +145,23 @@ class MapStub extends Component
 
         $encounter = $startResult->getPayload();
         $this->currentEncounterId = $encounter->id;
-        $this->isCalculating = true;
 
-        // Set enemy data early so the UI can show who we are fighting
-        $monster = clone $encounter->monster;
-        $this->enemy = [
-            'name' => $monster->name,
-            'level' => $monster->level,
-            'maxHp' => $monster->stats['hp'] ?? $monster->level * 20,
-            'hp' => $monster->stats['hp'] ?? $monster->level * 20,
-            'stats' => $monster->stats,
-            'avatar' => $monster->avatar,
-        ];
+        // Synchronous simulation: combat is calculated in ~2ms directly in PHP!
+        $simulateResult = $encounterService->simulate($encounter);
 
-        // Dispatch combat simulation to worker
-        dispatch(new \App\Jobs\SimulateCombatJob($encounter->id));
+        if ($simulateResult->isError()) {
+            $this->addError('battle', $simulateResult->getErrorMessage());
+            $this->isCalculating = false;
+            return;
+        }
+
+        $encounter->refresh();
+        $combatResult = $simulateResult->getPayload();
+        $this->setupBattleData($encounter, $combatResult);
+
+        $this->isCalculating = false;
+        $this->isPlaying = true;
+        $this->dispatch('start-playback', speed: $this->playbackSpeed);
     }
 
     public function checkCombatStatus(): void
@@ -282,16 +286,27 @@ class MapStub extends Component
 
     public function nextTurn(): void
     {
+        if (!$this->isPlaying) {
+            return;
+        }
+
         if ($this->currentTurnIndex < count($this->allTurns)) {
             $turn = $this->allTurns[$this->currentTurnIndex];
             $this->visibleTurns[] = $turn;
             $this->currentTurnIndex++;
             
-            // Dispatch event for UI animations
-            $this->dispatch('turn-played', actor: $turn['actor'], type: $turn['type'], value: $turn['value'] ?? 0);
-
             $audioType = $turn['type'] === 'miss' ? 'dodge' : (!empty($turn['crit']) ? 'crit' : 'hit');
-            $this->dispatch('play-audio', type: $audioType);
+
+            // Dispatch event for UI animations & synchronized audio
+            $this->dispatch('turn-played', 
+                actor: $turn['actor'], 
+                type: $turn['type'], 
+                value: $turn['value'] ?? 0,
+                crit: !empty($turn['crit']),
+                skillName: $turn['skill_name'] ?? null,
+                effectType: $turn['effect_type'] ?? null,
+                audioType: $audioType
+            );
 
             if ($this->currentTurnIndex >= count($this->allTurns)) {
                 $this->completeBattle();
@@ -569,6 +584,21 @@ class MapStub extends Component
             'Skażone Miasto' => asset('img/maps/corrupted-city.png'),
             default => asset('img/maps/default.jpg'),
         };
+    }
+
+    private function initPlayerData(Character $character): void
+    {
+        $playerAttributes = $character->getTotalAttributes();
+        $playerMaxHp = $character->getMaxHp();
+
+        $this->player = [
+            'name' => $character->name,
+            'level' => $character->level,
+            'avatar' => $character->avatar ? asset("img/avatars/{$character->avatar}.png") : asset('img/avatars/default.png'),
+            'maxHp' => $playerMaxHp,
+            'hp' => $playerMaxHp,
+            'stats' => $playerAttributes
+        ];
     }
 
     public function render()

@@ -498,6 +498,7 @@ class EncounterService
                     'actor' => 'player',
                     'type' => 'skill',
                     'skill_name' => $cs->skill->name,
+                    'effect_type' => $cs->skill->effect_type,
                     'value' => $damage,
                     'crit' => $isCrit,
                     'playerHp' => $playerHp,

@@ -25,6 +25,7 @@ class Character extends Model
         'avatar',
         'version',
         'character_points',
+        'skill_points',
         'guild_id',
         'elo',
         'league',
@@ -177,6 +178,29 @@ class Character extends Model
         Cache::forget($this->getCacheKey('equipment_stats'));
         Cache::forget($this->getCacheKey('max_hp'));
         Cache::forget($this->getCacheKey('combat_power'));
+    }
+
+    public function syncMissingPoints(): void
+    {
+        $expectedAttrPoints = max(0, ($this->level - 1) * 3);
+        $attrs = $this->getAttribute('attributes') ?? [];
+        $spentAttrPoints = ($attrs['str'] ?? 0) + ($attrs['int'] ?? 0) + ($attrs['vit'] ?? 0) + ($attrs['agi'] ?? 0);
+        $minCharacterPoints = max(0, $expectedAttrPoints - $spentAttrPoints);
+
+        if (($this->character_points ?? 0) < $minCharacterPoints) {
+            $this->character_points = $minCharacterPoints;
+            $this->save();
+        }
+
+        $expectedSkillPoints = max(0, $this->level - 1);
+        $unlockedSkillsCount = \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $this->id)->count();
+        $spentSkillPoints = max(0, $unlockedSkillsCount - 1);
+        $minSkillPoints = max(0, $expectedSkillPoints - $spentSkillPoints);
+
+        if (($this->skill_points ?? 0) < $minSkillPoints) {
+            $this->skill_points = $minSkillPoints;
+            $this->save();
+        }
     }
 
     public function getTotalAttributes(): array
