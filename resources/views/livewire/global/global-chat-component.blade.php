@@ -51,7 +51,7 @@
             this.$watch('$wire.currentChannel', () => this.checkCommands());
         }
     }"
-    class="fixed bottom-16 lg:bottom-0 right-0 m-4 z-[9950] font-sans select-none flex items-end gap-2"
+    class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none flex items-end gap-2"
     style="font-family: 'Cinzel', serif;"
     wire:mouseleave="closeTooltip"
 >

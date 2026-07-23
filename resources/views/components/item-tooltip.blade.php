@@ -73,7 +73,7 @@
         </button>
     @endif
 
-    <div class="flex flex-col sm:flex-row gap-4" :class="compare ? 'min-w-[450px]' : 'min-w-[200px]'">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[340px] md:min-w-[440px]' : 'w-full sm:min-w-[200px]'">
         <!-- Ten przedmiot -->
         <div class="flex-1">
             @if($hasAnyStats)

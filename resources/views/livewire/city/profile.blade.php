@@ -4,7 +4,7 @@
     <div class="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/40 to-slate-950/70 pointer-events-none"></div>
     <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-black/20 to-black/70 pointer-events-none"></div>
 
-    <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen z-10">
+    <div class="relative w-full px-2 xs:px-3 sm:px-6 md:px-10 lg:px-12 py-3 sm:py-6 md:py-8 pb-24 lg:pb-8 min-h-screen z-10">
         @php
             $gameStage = auth()->user()->game_stage;
         @endphp
@@ -16,33 +16,32 @@
         @endif
 
         {{-- Header --}}
-        <div class="bg-gradient-to-r from-amber-950/90 via-stone-900/90 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md flex items-center justify-between mb-8 relative overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-950/90 via-stone-900/90 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-3 sm:p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left mb-4 sm:mb-8 relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent pointer-events-none"></div>
             <div class="relative flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)]">👤</div>
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-xl sm:text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0">👤</div>
                 <div>
-                    <h2 class="text-2xl md:text-3xl font-bold text-amber-300 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">Profil: {{ $character->name }}</h2>
-                    <p class="text-amber-200/80 text-xs md:text-sm font-medium">Zarządzaj ekwipunkiem, atrybutami, statystykami i umiejętnościami bohatera</p>
+                    <h2 class="text-xl xs:text-2xl md:text-3xl font-bold text-amber-300 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">Profil: {{ $character->name }}</h2>
+                    <p class="text-amber-200/80 text-xs sm:text-sm font-medium">Zarządzaj ekwipunkiem, atrybutami, statystykami i umiejętnościami bohatera</p>
                 </div>
             </div>
 
             <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
+                class="w-full sm:w-auto text-center bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
                 🏰 Powrót do miasta
             </button>
         </div>
 
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-start">
         
-        <!-- Left Side: Character Profile -->
-        <div class="bg-gradient-to-b from-slate-900/90 via-stone-900/85 to-slate-950/90 border-2 border-amber-500/70 rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-md p-6 flex flex-col h-full relative overflow-hidden">
+        <div class="bg-gradient-to-b from-slate-900/90 via-stone-900/85 to-slate-950/90 border-2 border-amber-500/70 rounded-2xl sm:rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-md p-3 xs:p-4 sm:p-6 flex flex-col h-full relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none"></div>
 
 
             <!-- Equipment Slots & Portrait -->
-            <div class="flex justify-center items-start gap-3 sm:gap-6 md:gap-8 mb-3 mt-2">
+            <div class="flex justify-center items-start gap-1.5 xs:gap-2.5 sm:gap-4 md:gap-6 lg:gap-8 mb-3 mt-1 sm:mt-2">
                 <!-- Left Slots -->
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     <!-- Pet Slot -->
                     @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
                     <div id="equip-slot-pet" x-data="{ open: false, hoverTimeout: null, isDragOver: false }" @click.outside="open = false" 
@@ -65,17 +64,17 @@
                                  isDragOver = false;
                              }
                          "
-                         class="w-20 h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
+                         class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
                          :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver }"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
-                            <div class="text-center text-xs text-white flex flex-col items-center justify-center p-1">
-                                <span class="text-2xl drop-shadow">🐾</span>
-                                <span class="block truncate w-16 text-[11px] text-amber-300 font-semibold mt-0.5">{{ $activePet->name }}</span>
+                            <div class="text-center text-xs text-white flex flex-col items-center justify-center p-0.5 sm:p-1">
+                                <span class="text-xl xs:text-2xl drop-shadow">🐾</span>
+                                <span class="block truncate w-10 xs:w-12 sm:w-16 text-[9px] xs:text-[10px] sm:text-[11px] text-amber-300 font-semibold mt-0.5">{{ $activePet->name }}</span>
                             </div>
                             <!-- Modal -->
                             <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                                <div class="bg-gray-900 border border-amber-500 p-4 rounded w-full max-w-xs shadow-2xl relative" @click.stop>
+                                <div class="bg-gray-900 border border-amber-500 p-4 rounded-xl w-full max-w-xs shadow-2xl relative" @click.stop>
                                     <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
                                     <div class="flex justify-between items-center mb-2">
                                         <p class="font-bold text-amber-400 text-lg">{{ $activePet->name }}</p>
@@ -99,8 +98,8 @@
                             </div>
                         @else
                             <div class="text-stone-500 flex flex-col items-center">
-                                <span class="text-2xl opacity-50 mb-0.5">🐾</span>
-                                <span class="text-[11px] font-semibold text-stone-400">Pet</span>
+                                <span class="text-lg xs:text-xl sm:text-2xl opacity-50 mb-0.5">🐾</span>
+                                <span class="text-[9px] xs:text-[10px] sm:text-[11px] font-semibold text-stone-400">Pet</span>
                             </div>
                         @endif
                     </div>
@@ -134,7 +133,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-20 h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
@@ -142,17 +141,17 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
-                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[11px] bg-stone-950/90 px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[9px] xs:text-[10px] sm:text-[11px] bg-stone-950/90 px-1 py-0.2 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
-                                    <div class="text-center text-xs text-white p-1">
-                                        <span class="block truncate w-16 text-amber-200 font-semibold">{{ $equipped[$slot]->template->name }}</span>
+                                    <div class="text-center text-xs text-white p-0.5 sm:p-1">
+                                        <span class="block truncate w-10 xs:w-12 sm:w-16 text-amber-200 font-semibold text-[9px] xs:text-[10px] sm:text-xs">{{ $equipped[$slot]->template->name }}</span>
                                         @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="text-yellow-400 font-bold">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                            <span class="text-yellow-400 font-bold text-[9px] xs:text-[10px] sm:text-xs">+{{ $equipped[$slot]->upgrade_level }}</span>
                                         @endif
                                     </div>
                                 @endif
@@ -172,49 +171,49 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="text-stone-400 text-xs font-semibold capitalize">{{ ucfirst($slot) }}</span>
+                                <span class="text-stone-400 text-[9px] xs:text-[10px] sm:text-xs font-semibold capitalize px-0.5 text-center truncate">{{ ucfirst($slot) }}</span>
                             @endif
                         </div>
                     @endforeach
                 </div>
 
                 <!-- Portrait & Info -->
-                <div class="flex flex-col items-center w-52" x-data="{ avatarModalOpen: false }">
-                    <div class="w-full h-[270px] bg-stone-950/90 border-4 border-amber-600/80 rounded-2xl overflow-hidden flex items-center justify-center mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
+                <div class="flex flex-col items-center w-36 xs:w-44 sm:w-52 shrink-0" x-data="{ avatarModalOpen: false }">
+                    <div class="w-full h-[180px] xs:h-[220px] sm:h-[250px] md:h-[270px] bg-stone-950/90 border-2 sm:border-4 border-amber-600/80 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center mb-2 sm:mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
                             <div class="text-gray-500 flex flex-col items-center">
-                                <svg class="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                <svg class="w-12 h-12 sm:w-16 sm:h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                                 <span>No Avatar</span>
                             </div>
                         @endif
 
-                        <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-8 h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400">
+                        <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400 text-xs sm:text-sm">
                             ✏️
                         </button>
                     </div>
 
                     <!-- Avatar Modal -->
                     <div x-show="avatarModalOpen" style="display: none;" class="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                        <div class="bg-gray-900 border border-amber-500 p-6 rounded-lg w-full max-w-2xl shadow-2xl relative" @click.outside="avatarModalOpen = false">
-                            <button @click="avatarModalOpen = false" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl font-bold">✕</button>
-                            <h3 class="text-2xl font-bold text-amber-400 mb-6 border-b border-amber-900 pb-2 medieval-font">Wybierz Avatar</h3>
+                        <div class="bg-gray-900 border border-amber-500 p-4 sm:p-6 rounded-xl w-full max-w-2xl shadow-2xl relative" @click.outside="avatarModalOpen = false">
+                            <button @click="avatarModalOpen = false" class="absolute top-3 right-3 sm:top-4 sm:right-4 text-gray-400 hover:text-white text-xl font-bold">✕</button>
+                            <h3 class="text-xl sm:text-2xl font-bold text-amber-400 mb-4 sm:mb-6 border-b border-amber-900 pb-2 medieval-font">Wybierz Avatar</h3>
                             
-                            <h4 class="text-lg font-bold text-gray-300 mb-4">Podstawowe Avatary</h4>
-                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-4 mb-8">
+                            <h4 class="text-sm sm:text-lg font-bold text-gray-300 mb-3 sm:mb-4">Podstawowe Avatary</h4>
+                            <div class="grid grid-cols-4 sm:grid-cols-6 gap-3 sm:gap-4 mb-6 sm:mb-8">
                                 @foreach($baseAvatars as $avatar)
-                                    <button @click="$wire.changeAvatar('{{ $avatar }}', false); avatarModalOpen = false" class="aspect-square border-2 border-gray-600 hover:border-amber-500 rounded overflow-hidden {{ $character->avatar === $avatar ? 'ring-4 ring-amber-500 border-amber-500' : '' }}">
+                                    <button @click="$wire.changeAvatar('{{ $avatar }}', false); avatarModalOpen = false" class="aspect-square border-2 border-gray-600 hover:border-amber-500 rounded-lg overflow-hidden {{ $character->avatar === $avatar ? 'ring-4 ring-amber-500 border-amber-500' : '' }}">
                                         <img src="{{ asset('img/avatars/' . $avatar . '.png') }}" class="w-full h-full object-cover">
                                     </button>
                                 @endforeach
                             </div>
 
                             @if(!empty(auth()->user()->unlocked_avatars))
-                                <h4 class="text-lg font-bold text-yellow-400 mb-4 flex items-center gap-2"><span>💎</span> Avatary Premium</h4>
-                                <div class="grid grid-cols-4 sm:grid-cols-6 gap-4">
+                                <h4 class="text-sm sm:text-lg font-bold text-yellow-400 mb-3 sm:mb-4 flex items-center gap-2"><span>💎</span> Avatary Premium</h4>
+                                <div class="grid grid-cols-4 sm:grid-cols-6 gap-3 sm:gap-4">
                                     @foreach(auth()->user()->unlocked_avatars as $premiumAvatar)
-                                        <button @click="$wire.changeAvatar('{{ $premiumAvatar }}', true); avatarModalOpen = false" class="aspect-square border-2 border-yellow-600 hover:border-yellow-400 rounded overflow-hidden {{ $character->avatar === 'premium/' . $premiumAvatar ? 'ring-4 ring-yellow-400 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : '' }}">
+                                        <button @click="$wire.changeAvatar('{{ $premiumAvatar }}', true); avatarModalOpen = false" class="aspect-square border-2 border-yellow-600 hover:border-yellow-400 rounded-lg overflow-hidden {{ $character->avatar === 'premium/' . $premiumAvatar ? 'ring-4 ring-yellow-400 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : '' }}">
                                             <img src="{{ asset('img/avatars/premium/' . $premiumAvatar . '.png') }}" class="w-full h-full object-cover">
                                         </button>
                                     @endforeach
@@ -224,13 +223,13 @@
                     </div>
 
                     @if($character->activeTitle)
-                        <div class="text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-1.5 -mb-1 drop-shadow-md text-center">
+                        <div class="text-[9px] xs:text-[10px] sm:text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-1 -mb-0.5 drop-shadow-md text-center truncate max-w-full">
                             {{ $character->activeTitle->prefix }}
                         </div>
                     @endif
-                    <h2 class="text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md">{{ $character->name }}</h2>
-                    <p class="text-amber-200/70 font-semibold text-sm">Poziom {{ $character->level }}</p>
-                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-4 py-1 rounded-full text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1.5 medieval-font">
+                    <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
+                    <p class="text-amber-200/70 font-semibold text-xs sm:text-sm">Poziom {{ $character->level }}</p>
+                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1 sm:my-1.5 medieval-font text-center truncate max-w-full">
                         ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
                     </div>
                     
@@ -238,21 +237,21 @@
                         $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
                         $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
                     @endphp
-                    <div class="w-full bg-gray-900 rounded-full h-5 relative border-2 border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
+                    <div class="w-full bg-gray-900 rounded-full h-4 sm:h-5 relative border border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
                         <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
-                        <span class="absolute inset-0 flex items-center justify-center text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                        <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
                             XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
                         </span>
                     </div>
-                    <div class="w-full mt-3 border-t border-stone-800 pt-2.5">
-                        <h3 class="text-xs font-bold text-amber-400/90 uppercase tracking-widest mb-2 text-center medieval-font">Wyposażone Skille</h3>
-                        <div class="flex justify-center gap-3.5">
+                    <div class="w-full mt-2.5 sm:mt-3 border-t border-stone-800 pt-2 sm:pt-2.5">
+                        <h3 class="text-[10px] xs:text-xs font-bold text-amber-400/90 uppercase tracking-widest mb-1.5 sm:mb-2 text-center medieval-font">Wyposażone Skille</h3>
+                        <div class="flex justify-center gap-2 sm:gap-3.5">
                             @for($i = 0; $i < 3; $i++)
                                 @php
                                     $equippedSkill = $character->equippedSkills[$i] ?? null;
                                 @endphp
                                 <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false"
-                                     class="w-16 h-16 rounded-2xl border-2 border-stone-700 bg-stone-900/90 flex flex-col items-center justify-center relative shadow-md transition-all duration-200 {{ $equippedSkill ? 'border-amber-500/80 hover:border-amber-400 bg-gradient-to-br from-amber-950/60 via-stone-900 to-amber-900/40 cursor-pointer shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105' : 'border-dashed border-stone-700/80' }}"
+                                     class="w-11 h-11 xs:w-13 xs:h-13 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl border-2 border-stone-700 bg-stone-900/90 flex flex-col items-center justify-center relative shadow-md transition-all duration-200 {{ $equippedSkill ? 'border-amber-500/80 hover:border-amber-400 bg-gradient-to-br from-amber-950/60 via-stone-900 to-amber-900/40 cursor-pointer shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105' : 'border-dashed border-stone-700/80' }}"
                                      @if($equippedSkill) 
                                         @mouseenter="clearTimeout(hoverTimeout); open = true" 
                                         @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
@@ -260,11 +259,11 @@
                                      @endif>
                                     @if($equippedSkill)
                                         @if($equippedSkill->skill->icon)
-                                            <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-11 h-11 object-contain drop-shadow-md p-1" alt="{{ $equippedSkill->skill->name }}">
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-11 md:h-11 object-contain drop-shadow-md p-0.5 sm:p-1" alt="{{ $equippedSkill->skill->name }}">
                                         @else
-                                            <div class="text-xl">✨</div>
+                                            <div class="text-base sm:text-xl">✨</div>
                                         @endif
-                                        <div class="absolute -bottom-1 -right-1 bg-stone-950 border border-amber-500/70 text-amber-300 text-[10px] font-extrabold px-1.5 py-0.5 rounded-md shadow-lg leading-none">
+                                        <div class="absolute -bottom-1 -right-1 bg-stone-950 border border-amber-500/70 text-amber-300 text-[8px] sm:text-[10px] font-extrabold px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded-md shadow-lg leading-none">
                                             L{{ $equippedSkill->level }}
                                         </div>
 
@@ -308,7 +307,7 @@
                                             <div class="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-stone-900 border-b-2 border-r-2 border-amber-500 transform rotate-45 z-10"></div>
                                         </div>
                                     @else
-                                        <div class="text-stone-600 text-sm">✨</div>
+                                        <div class="text-stone-600 text-xs sm:text-sm">✨</div>
                                     @endif
                                 </div>
                             @endfor
@@ -317,7 +316,7 @@
                 </div>
 
                 <!-- Right Slots -->
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
                         <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
                              @if(isset($equipped[$slot])) 
@@ -347,7 +346,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-20 h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
@@ -355,17 +354,17 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
-                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-1" alt="{{ $equipped[$slot]->template->name }}">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
+                                        <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[11px] bg-stone-950/90 px-1.5 py-0.5 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
+                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[9px] xs:text-[10px] sm:text-[11px] bg-stone-950/90 px-1 py-0.2 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
                                         @endif
                                     </div>
                                 @else
-                                    <div class="text-center text-xs text-white p-1">
-                                        <span class="block truncate w-16 text-amber-200 font-semibold">{{ $equipped[$slot]->template->name }}</span>
+                                    <div class="text-center text-xs text-white p-0.5 sm:p-1">
+                                        <span class="block truncate w-10 xs:w-12 sm:w-16 text-amber-200 font-semibold text-[9px] xs:text-[10px] sm:text-xs">{{ $equipped[$slot]->template->name }}</span>
                                         @if($equipped[$slot]->upgrade_level > 0)
-                                            <span class="text-yellow-400 font-bold">+{{ $equipped[$slot]->upgrade_level }}</span>
+                                            <span class="text-yellow-400 font-bold text-[9px] xs:text-[10px] sm:text-xs">+{{ $equipped[$slot]->upgrade_level }}</span>
                                         @endif
                                     </div>
                                 @endif
@@ -385,7 +384,7 @@
                                     </div>
                                 </div>
                             @else
-                                <span class="text-stone-400 text-xs font-semibold capitalize">{{ ucfirst($slot) }}</span>
+                                <span class="text-stone-400 text-[9px] xs:text-[10px] sm:text-xs font-semibold capitalize px-0.5 text-center truncate">{{ ucfirst($slot) }}</span>
                             @endif
                         </div>
                     @endforeach
@@ -393,22 +392,22 @@
             </div>
 
             <!-- Stats -->
-            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-4 mt-3 shadow-inner relative z-10">
+            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
-                    <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 flex-grow">
-                        <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
+                        <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
-                        <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Statystyki
                         </button>
-                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
-                            Pety & Inkubator
+                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                            Pety<span class="hidden xs:inline"> & Inkubator</span>
                         </button>
-                        <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
-                            Kolekcje & Tytuły
+                        <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                            Kolekcje<span class="hidden xs:inline"> & Tytuły</span>
                         </button>
-                        <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold text-xs sm:text-sm rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
                         </button>
                     </div>
@@ -462,7 +461,7 @@
                                 }, 350);
                             }
                         }
-                    }" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 text-sm mt-4 relative" @stats-saved.window="points = $event.detail.points">
+                    }" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative" @stats-saved.window="points = $event.detail.points">
                     
                         <style>
                             @keyframes flashText {
@@ -563,20 +562,20 @@
         </div>
 
         <!-- Right Side: Inventory -->
-        <div class="bg-gradient-to-b from-stone-900/95 via-stone-900/90 to-stone-950/95 border-2 border-amber-700/60 rounded-3xl shadow-2xl backdrop-blur-md p-6 flex flex-col h-full relative overflow-hidden">
+        <div class="bg-gradient-to-b from-stone-900/95 via-stone-900/90 to-stone-950/95 border-2 border-amber-700/60 rounded-2xl sm:rounded-3xl shadow-2xl backdrop-blur-md p-3 xs:p-4 sm:p-6 flex flex-col h-full relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/5 via-transparent to-transparent pointer-events-none"></div>
 
-            <div class="flex justify-between items-center mb-4 border-b border-amber-900/40 pb-3 relative z-10">
+            <div class="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 mb-3 border-b border-amber-900/40 pb-2.5 relative z-10">
                 <div class="flex items-center gap-2">
-                    <span class="text-amber-400 text-xl">🎒</span>
-                    <h2 class="text-2xl font-bold text-amber-300 medieval-font drop-shadow-md">Ekwipunek</h2>
+                    <span class="text-amber-400 text-lg sm:text-xl">🎒</span>
+                    <h2 class="text-xl sm:text-2xl font-bold text-amber-300 medieval-font drop-shadow-md">Ekwipunek</h2>
                 </div>
-                <div class="text-amber-300 font-bold flex gap-3 text-sm">
-                    <div class="bg-stone-950/90 border border-amber-800/60 px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5">
+                <div class="text-amber-300 font-bold flex gap-2 sm:gap-3 text-xs sm:text-sm">
+                    <div class="bg-stone-950/90 border border-amber-800/60 px-2 sm:px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5">
                         <span class="text-yellow-400 drop-shadow">🪙</span>
                         <span>{{ number_format($character->gold) }}</span>
                     </div>
-                    <div class="bg-stone-950/90 border border-cyan-800/60 px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5 text-cyan-300">
+                    <div class="bg-stone-950/90 border border-cyan-800/60 px-2 sm:px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5 text-cyan-300">
                         <span class="text-cyan-400 drop-shadow">💎</span>
                         <span>{{ number_format(auth()->user()->gems) }}</span>
                     </div>
@@ -585,21 +584,21 @@
 
             <div class="flex flex-col gap-2.5 mb-3 relative z-10">
                 {{-- Category Filters --}}
-                <div class="flex flex-wrap gap-1.5 items-center">
-                    <button wire:click="setInventoryFilter('all')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'all' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Wszystko</button>
-                    <button wire:click="setInventoryFilter('weapon')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'weapon' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Bronie</button>
-                    <button wire:click="setInventoryFilter('armor')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'armor' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Pancerz</button>
-                    <button wire:click="setInventoryFilter('accessory')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'accessory' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Akcesoria</button>
-                    <button wire:click="setInventoryFilter('material')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'material' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Materiały</button>
-                    <button wire:click="setInventoryFilter('consumable')" class="px-3 py-1.5 text-xs rounded-xl font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'consumable' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Mikstury</button>
+                <div class="flex flex-wrap gap-1 xs:gap-1.5 items-center">
+                    <button wire:click="setInventoryFilter('all')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'all' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Wszystko</button>
+                    <button wire:click="setInventoryFilter('weapon')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'weapon' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Bronie</button>
+                    <button wire:click="setInventoryFilter('armor')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'armor' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Pancerz</button>
+                    <button wire:click="setInventoryFilter('accessory')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'accessory' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Akcesoria</button>
+                    <button wire:click="setInventoryFilter('material')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'material' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Materiały</button>
+                    <button wire:click="setInventoryFilter('consumable')" class="px-2 xs:px-3 py-1 text-[10px] xs:text-xs rounded-lg font-bold transition-all duration-200 medieval-font {{ $inventoryFilter === 'consumable' ? 'bg-gradient-to-r from-amber-600 to-yellow-600 text-stone-950 shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'bg-stone-950/70 border border-amber-900/40 text-stone-300 hover:bg-stone-800 hover:text-amber-300' }}">Mikstury</button>
                 </div>
 
                 {{-- Action Row (Stackuj Button) --}}
                 <div class="flex justify-between items-center pt-1">
                     <span class="text-stone-400 text-xs font-medium">Miejsca: <strong class="text-amber-300">{{ count($inventory) }} / 25</strong></span>
-                    <button wire:click="stackItems" class="px-3 py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
+                    <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-                        Połącz przedmioty (Stackuj)
+                        Połącz przedmioty
                     </button>
                 </div>
             </div>
@@ -622,7 +621,7 @@
                          isInventoryDragOver = false;
                      }
                  "
-                 class="grid grid-cols-4 sm:grid-cols-5 gap-2 bg-gray-800 p-2 rounded flex-grow content-start transition-all"
+                 class="grid grid-cols-5 gap-1.5 xs:gap-2 bg-gray-800/90 p-1.5 xs:p-2 rounded-xl flex-grow content-start transition-all"
                  :class="{ 'ring-4 ring-blue-400 border-2 border-blue-400 bg-blue-950/40': isInventoryDragOver }"
             >
                 @foreach($inventory as $item)
