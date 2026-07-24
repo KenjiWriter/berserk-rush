@@ -118,16 +118,19 @@ class Armorsmith extends Component
     {
         $shopItems = \App\Infrastructure\Persistence\MerchantItem::where('merchant_id', 'armorsmith')
             ->where('required_level', '<=', $this->character->level)
+            ->whereHas('template')
             ->with('template')
             ->get()
             ->filter(function($mi) {
-                return !$mi->is_limited || $mi->sold_quantity < $mi->max_quantity;
+                return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
             });
         
         $shopPrices = [];
         foreach($shopItems as $mi) {
+            if (!$mi->template) continue;
             $shopPrices[$mi->id] = $shopService->getBuyPrice($mi->template);
         }
+
 
         // Sell all types of items (inventory + equipped)
         $inventoryItems = $this->character->inventoryItems()->with('template')->get()->merge(

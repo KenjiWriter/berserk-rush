@@ -10,13 +10,17 @@ use App\Infrastructure\Persistence\ItemLedger;
 
 class ShopService
 {
-    public function getBuyPrice(ItemTemplate $template): int
+    public function getBuyPrice(?ItemTemplate $template): int
     {
+        if (!$template) {
+            return 0;
+        }
         if (in_array($template->type, ['material', 'consumable'])) {
             return $template->level_requirement * 20 + 10;
         }
         return $template->level_requirement * 100 + 50;
     }
+
 
     public function getSellPrice(ItemInstance $item): int
     {

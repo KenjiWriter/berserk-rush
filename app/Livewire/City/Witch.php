@@ -162,16 +162,19 @@ class Witch extends Component
         // Regular Potions from MerchantItems
         $shopItems = MerchantItem::where('merchant_id', 'witch')
             ->where('required_level', '<=', $this->character->level)
+            ->whereHas('template')
             ->with('template')
             ->get()
             ->filter(function($mi) {
-                return !$mi->is_limited || $mi->sold_quantity < $mi->max_quantity;
+                return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
             });
             
         $shopPrices = [];
         foreach($shopItems as $mi) {
+            if (!$mi->template) continue;
             $shopPrices[$mi->id] = $shopService->getBuyPrice($mi->template);
         }
+
 
         // Crafting Recipes
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
