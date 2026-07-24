@@ -86,29 +86,36 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     @forelse($opponents as $opponent)
+                        @php
+                            $oppId = is_array($opponent) ? $opponent['id'] : $opponent->id;
+                            $oppName = is_array($opponent) ? $opponent['name'] : $opponent->name;
+                            $oppLvl = is_array($opponent) ? $opponent['level'] : $opponent->level;
+                            $oppElo = is_array($opponent) ? $opponent['elo'] : $opponent->elo;
+                            $oppAvatar = is_array($opponent) ? ($opponent['avatar'] ?? 'default.png') : ($opponent->avatar ?? 'default.png');
+                            $avatarSrc = str_contains($oppAvatar, '/') || str_contains($oppAvatar, '.') ? asset('img/avatars/' . ltrim($oppAvatar, '/')) : asset('img/avatars/' . $oppAvatar . '.png');
+                        @endphp
                         <div class="relative rounded-xl overflow-hidden shadow-lg border border-amber-800/30 group hover:border-amber-500/50 transition-colors">
                             <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover">
                             <div class="absolute inset-0 bg-gradient-to-b from-amber-900/80 to-slate-900/90"></div>
                             
                             <div class="relative p-6 text-center flex flex-col items-center">
                                 <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-amber-700 shadow-xl mb-4 bg-black">
-                                    <img src="{{ $opponent['avatar'] ? asset('img/avatars/'.$opponent['avatar'].'.png') : asset('img/avatars/default.png') }}" 
-                                         class="w-full h-full object-cover">
+                                    <img src="{{ $avatarSrc }}" class="w-full h-full object-cover" alt="{{ $oppName }}">
                                 </div>
-                                <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">{{ $opponent['name'] }}</h3>
+                                <h3 class="text-xl font-bold text-amber-100 medieval-font mb-1">{{ $oppName }}</h3>
                                 <div class="flex gap-4 text-sm font-semibold text-amber-300 mb-4">
-                                    <span>Lvl: {{ $opponent['level'] }}</span>
-                                    <span>Elo: {{ $opponent['elo'] }}</span>
+                                    <span>Lvl: {{ $oppLvl }}</span>
+                                    <span>Elo: {{ $oppElo }}</span>
                                 </div>
                                 
-                                <button wire:click="challengeOpponent('{{ $opponent['id'] }}')" 
+                                <button wire:click="challengeOpponent('{{ $oppId }}')" 
                                     wire:loading.attr="disabled"
                                     class="w-full relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group/btn mt-auto disabled:opacity-50 disabled:cursor-wait">
                                     <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                                     <div class="absolute inset-0 bg-red-900/60 group-hover/btn:bg-red-800/60 transition-colors rounded-lg"></div>
                                     <span class="relative text-red-100 font-bold medieval-font drop-shadow-md">
-                                        <span wire:loading.remove wire:target="challengeOpponent('{{ $opponent['id'] }}')">⚔️ Wyzwij</span>
-                                        <span wire:loading wire:target="challengeOpponent('{{ $opponent['id'] }}')">
+                                        <span wire:loading.remove wire:target="challengeOpponent('{{ $oppId }}')">⚔️ Wyzwij</span>
+                                        <span wire:loading wire:target="challengeOpponent('{{ $oppId }}')">
                                             <svg class="animate-spin h-5 w-5 mx-auto text-red-200 inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
                                             Przygotowanie...
                                         </span>
@@ -116,6 +123,7 @@
                                 </button>
                             </div>
                         </div>
+
                     @empty
                         <div class="col-span-full text-center py-12">
                             <div class="text-5xl mb-4 opacity-50">👻</div>
