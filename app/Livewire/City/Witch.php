@@ -191,11 +191,20 @@ class Witch extends Component
                 
                 if ($owned < $req) $canCraft = false;
 
+                $dropMonsters = [];
+                if ($mat) {
+                    $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($mat) {
+                        $q->where('ref_ulid', $mat->id);
+                    })->pluck('name')->toArray();
+                }
+
                 $preparedIngredients[] = [
                     'name' => $mat ? $mat->name : 'Nieznany',
+                    'icon' => $mat ? $mat->icon : null,
                     'owned' => $owned,
                     'required' => $req,
                     'ok' => $owned >= $req,
+                    'dropped_by' => $dropMonsters,
                 ];
             }
 

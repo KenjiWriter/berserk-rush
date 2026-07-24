@@ -6,32 +6,28 @@ use Illuminate\Database\Seeder;
 use App\Infrastructure\Persistence\LootTable;
 use App\Infrastructure\Persistence\LootTableEntry;
 use App\Infrastructure\Persistence\Monster;
-use Illuminate\Support\Str;
 
 class LootTableSeeder extends Seeder
 {
     public function run(): void
     {
-        // Get available items and materials from DB
+        // Pobieramy materiały i uzbrojenie z bazy
         $materials = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'material')->get();
         $weapons = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'weapon')->get();
         $armors = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'armor')->get();
-        
-        $pelt = $materials->where('name', 'Wilcza Skóra')->first();
-        $herb = $materials->where('name', 'Zioło Lecznika')->first();
-        $bone = $materials->where('name', 'Odłamek Kości')->first();
-        $gem = $materials->where('name', 'Klejnot Pustyni')->first();
-        
+
+        $fang = $materials->where('name', 'Wilczy Kieł')->first();
+        $herb = $materials->where('name', 'Mroczne Zioło')->first();
+        $bone = $materials->where('name', 'Strzaskana Kość')->first();
+        $crystal = $materials->where('name', 'Kryształ Cienia')->first();
+
         $rustySword = $weapons->where('name', 'Zardzewiały Miecz')->first();
-        $woodenBow = $weapons->where('name', 'Drewniany Łuk')->first();
         $leatherArmor = $armors->where('name', 'Skórzana Zbroja')->first();
 
-        // Forest Common Loot Table (Mroczny Las)
-        $forestLoot = LootTable::create([
-            'name' => 'forest_common',
-        ]);
+        // Tabela ogólna dla Lasu
+        $forestLoot = LootTable::firstOrCreate(['name' => 'forest_common']);
+        LootTableEntry::where('loot_table_id', $forestLoot->id)->delete();
 
-        // Forest loot entries
         LootTableEntry::create([
             'loot_table_id' => $forestLoot->id,
             'reward_type' => 'gold',
@@ -40,17 +36,17 @@ class LootTableSeeder extends Seeder
             'max_qty' => 20
         ]);
 
-        if ($pelt) {
+        if ($fang) {
             LootTableEntry::create([
                 'loot_table_id' => $forestLoot->id,
-                'reward_type' => 'item', // 'item' is proper since it's an ItemTemplate now
-                'ref_ulid' => $pelt->id,
+                'reward_type' => 'item',
+                'ref_ulid' => $fang->id,
                 'weight' => 25,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
         }
-        
+
         if ($herb) {
             LootTableEntry::create([
                 'loot_table_id' => $forestLoot->id,
@@ -73,10 +69,9 @@ class LootTableSeeder extends Seeder
             ]);
         }
 
-        // Ruins Loot Table (Stare Ruiny)
-        $ruinsLoot = LootTable::create([
-            'name' => 'ruins_common',
-        ]);
+        // Tabela ogólna dla Ruin
+        $ruinsLoot = LootTable::firstOrCreate(['name' => 'ruins_common']);
+        LootTableEntry::where('loot_table_id', $ruinsLoot->id)->delete();
 
         LootTableEntry::create([
             'loot_table_id' => $ruinsLoot->id,
@@ -96,33 +91,21 @@ class LootTableSeeder extends Seeder
                 'max_qty' => 2
             ]);
         }
-        
-        if ($woodenBow) {
-            LootTableEntry::create([
-                'loot_table_id' => $ruinsLoot->id,
-                'reward_type' => 'item',
-                'ref_ulid' => $woodenBow->id,
-                'weight' => 10,
-                'min_qty' => 1,
-                'max_qty' => 1
-            ]);
-        }
 
         if ($leatherArmor) {
             LootTableEntry::create([
                 'loot_table_id' => $ruinsLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $leatherArmor->id,
-                'weight' => 5,
+                'weight' => 10,
                 'min_qty' => 1,
                 'max_qty' => 1
             ]);
         }
 
-        // Desert Loot Table (Pustynia Kości)
-        $desertLoot = LootTable::create([
-            'name' => 'desert_common',
-        ]);
+        // Tabela ogólna dla Pustyni
+        $desertLoot = LootTable::firstOrCreate(['name' => 'desert_common']);
+        LootTableEntry::where('loot_table_id', $desertLoot->id)->delete();
 
         LootTableEntry::create([
             'loot_table_id' => $desertLoot->id,
@@ -132,30 +115,22 @@ class LootTableSeeder extends Seeder
             'max_qty' => 30
         ]);
 
-        if ($gem) {
+        if ($crystal) {
             LootTableEntry::create([
                 'loot_table_id' => $desertLoot->id,
                 'reward_type' => 'item',
-                'ref_ulid' => $gem->id,
+                'ref_ulid' => $crystal->id,
                 'weight' => 25,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
         }
 
-        // Assign loot tables to monsters
-        $this->assignLootTablesToMonsters($forestLoot, $ruinsLoot, $desertLoot);
-    }
-
-    private function assignLootTablesToMonsters($forestLoot, $ruinsLoot, $desertLoot): void
-    {
-        // Forest monsters (levels 1-15)
+        // Przypisanie domyślne do potworów wg przedziału poziomów
         Monster::where('level', '<=', 15)->update(['loot_table_id' => $forestLoot->id]);
-
-        // Ruins monsters (levels 16-35)
         Monster::whereBetween('level', [16, 35])->update(['loot_table_id' => $ruinsLoot->id]);
-
-        // Desert monsters (levels 36+)
         Monster::where('level', '>=', 36)->update(['loot_table_id' => $desertLoot->id]);
+
+        $this->command->info('LootTableSeeder completed.');
     }
 }

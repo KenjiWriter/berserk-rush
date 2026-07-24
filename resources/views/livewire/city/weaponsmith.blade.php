@@ -18,17 +18,17 @@
         <div class="flex items-center justify-between mb-8">
             <div class="bg-black/60 border border-amber-700/50 rounded-lg p-4 shadow-2xl backdrop-blur-md">
                 <h2 class="text-2xl font-bold text-amber-500 medieval-font flex items-center gap-2 tracking-wider">
-                    <span class="text-3xl">⚔️</span> Brońmistrz
+                    <i class="fa-solid fa-khanda text-amber-500 text-2xl mr-1"></i> Brońmistrz
                 </h2>
             </div>
 
             <div class="flex items-center gap-4">
                 <div class="bg-black/80 border border-yellow-600/50 rounded px-4 py-2 font-bold text-yellow-400 backdrop-blur-sm shadow-inner">
-                    🪙 {{ number_format($character->gold) }}
+                    <i class="fa-solid fa-coins text-yellow-400 mr-1.5"></i> {{ number_format($character->gold) }}
                 </div>
                 <button wire:click="backToHub" @click="$dispatch('location-leave')"
                     class="bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 border border-slate-500 text-amber-200 font-bold py-2 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_15px_rgba(0,0,0,0.5)] medieval-font {{ $gameStage == 20 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}">
-                    🏰 Powrót
+                    <i class="fa-solid fa-archway mr-2 text-amber-400"></i> Powrót
                 </button>
             </div>
         </div>
@@ -37,15 +37,14 @@
             
             {{-- Tabs --}}
             <div class="flex border-b border-amber-900/50 bg-black/40">
-                <button wire:click="setTab('shop')" class="flex-1 py-4 font-bold text-lg transition-all {{ $activeTab === 'shop' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
-                    Sklep i Ekwipunek
+                <button wire:click="setTab('shop')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'shop' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                    <i class="fa-solid fa-store text-amber-400/80"></i> Sklep i Ekwipunek
                 </button>
                 <button wire:click="setTab('forge')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Kuźnia Ulepszeń
+                    <i class="fa-solid fa-fire-flame-curved text-amber-400/80"></i> Kuźnia Ulepszeń
                 </button>
                 <button wire:click="setTab('crafting')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
-                    🛠️ Rzemiosło
+                    <i class="fa-solid fa-anvil text-amber-400/80"></i> Rzemiosło
                 </button>
             </div>
 
@@ -89,7 +88,7 @@
                                                     <div class="flex flex-col gap-3 w-full">
                                                         <div class="flex justify-between border-b border-slate-700 pb-2">
                                                             <span class="text-gray-400 text-sm">Wartość:</span>
-                                                            <span class="text-yellow-400 font-bold">🪙 {{ $sellPrices[$item->id] }}</span>
+                                                            <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $sellPrices[$item->id] }}</span>
                                                         </div>
 
                                                         <div class="flex gap-2">
@@ -132,7 +131,7 @@
                                                 </div>
                                             @endif
                                             <h4 class="font-bold text-sm text-blue-300 line-clamp-2 leading-tight">{{ $item->template->name }}</h4>
-                                            <div class="mt-auto pt-2 text-yellow-400 text-sm font-bold">🪙 {{ $shopPrices[$item->id] }}</div>
+                                            <div class="mt-auto pt-2 text-yellow-400 text-sm font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $shopPrices[$item->id] }}</div>
                                         </div>
 
                                         <!-- Infobox Sklepu -->
@@ -141,7 +140,7 @@
                                             <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                                 <x-slot:actions>
                                                     <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2">
-                                                        <span>Kup za 🪙 {{ $shopPrices[$item->id] }}</span>
+                                                        <span>Kup za <i class="fa-solid fa-coins text-yellow-400 mx-1"></i> {{ $shopPrices[$item->id] }}</span>
                                                     </button>
                                                 </x-slot:actions>
                                             </x-item-tooltip>
@@ -202,15 +201,15 @@
                                                     </div>
                                                     <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
                                                         <span class="text-gray-300">Koszt złota:</span>
-                                                        <span class="font-bold text-yellow-400">🪙 {{ number_format($cost['gold']) }}</span>
+                                                        <span class="font-bold text-yellow-400"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ number_format($cost['gold']) }}</span>
                                                     </div>
                                                     @foreach($cost['materials'] as $reqMat)
                                                         @php
                                                             $owned = $inventoryMaterials->where('template_id', $reqMat['template_id'])->sum('stack_size');
                                                             $hasEnough = $owned >= $reqMat['quantity'];
                                                         @endphp
-                                                        <div class="relative group">
-                                                            <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50 cursor-help transition hover:bg-gray-800">
+                                                        <div class="relative group cursor-help hover:z-[100]">
+                                                            <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50 transition hover:bg-gray-800">
                                                                 <div class="flex items-center gap-2">
                                                                     @if(isset($reqMat['icon']) && $reqMat['icon'])
                                                                         <img src="{{ route('assets.items', ['filename' => $reqMat['icon']]) }}" class="w-6 h-6 object-contain" alt="">
@@ -220,7 +219,7 @@
                                                                 <span class="font-bold {{ $hasEnough ? 'text-purple-400' : 'text-red-400' }}">{{ $owned }} / {{ $reqMat['quantity'] }}</span>
                                                             </div>
                                                             <!-- Tooltip -->
-                                                            <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-50 shadow-2xl backdrop-blur-sm">
+                                                            <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-52 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-[9999] shadow-2xl backdrop-blur-sm pointer-events-none">
                                                                 <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
                                                                 @if(isset($reqMat['dropped_by']) && count($reqMat['dropped_by']) > 0)
                                                                     <div class="flex flex-wrap justify-center gap-1 mt-2">
@@ -240,7 +239,7 @@
                                                     wire:click="upgradeItem('{{ $upgradeItem->id }}')" 
                                                     @click="hammering = true; setTimeout(() => hammering = false, 1000)"
                                                     class="w-full bg-gradient-to-r from-amber-700 to-amber-500 hover:from-amber-600 hover:to-amber-400 text-white text-xl font-bold py-4 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.5)] transition-all transform hover:scale-105 active:scale-95 medieval-font tracking-wider border border-amber-300">
-                                                    🔨 Uderz młotem
+                                                    <i class="fa-solid fa-hammer mr-2"></i> Uderz młotem
                                                 </button>
                                             @else
                                                 <div class="space-y-3 mb-6 text-center text-red-400 font-bold py-4 border border-red-500/30 bg-red-900/20 rounded-lg">
@@ -248,7 +247,7 @@
                                                 </div>
                                                 <button disabled
                                                     class="w-full bg-gray-800 text-gray-500 text-xl font-bold py-4 rounded-lg border border-gray-600 cursor-not-allowed medieval-font tracking-wider">
-                                                    🔨 Uderz młotem
+                                                    <i class="fa-solid fa-hammer mr-2"></i> Uderz młotem
                                                 </button>
                                             @endif
                                         @else
@@ -257,7 +256,7 @@
                                             </div>
                                             <button disabled
                                                 class="w-full bg-gray-800 text-gray-500 text-xl font-bold py-4 rounded-lg border border-gray-600 cursor-not-allowed medieval-font tracking-wider">
-                                                🔨 Uderz młotem
+                                                <i class="fa-solid fa-hammer mr-2"></i> Uderz młotem
                                             </button>
                                         @endif
                                     </div>
@@ -322,10 +321,10 @@
                         </div>
                     </div>
                 @elseif($activeTab === 'crafting')
-                    <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pr-2">
+                    <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pt-6 pb-6 pr-2">
                         @forelse($recipes as $recipe)
                             <div x-data="{ showInfo: false, timeout: null }" 
-                                 :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                 :class="{ 'z-[100]': showInfo, 'z-10': !showInfo }"
                                  class="bg-black/60 border border-amber-600/30 hover:border-amber-500/80 transition-all rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-xl backdrop-blur relative">
                                 
                                 <!-- Left: Result Item -->
@@ -342,23 +341,23 @@
                                     </div>
                                     <div class="flex-grow cursor-help">
                                         <h3 class="font-bold text-lg text-blue-300">{{ $recipe['result_name'] }}</h3>
-                                        <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold">🪙 {{ number_format($recipe['gold_cost']) }}</span></p>
+                                        <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ number_format($recipe['gold_cost']) }}</span></p>
                                     </div>
 
                                     <!-- Infobox Docelowego Przedmiotu -->
                                     <div x-show="showInfo" x-transition.opacity 
-                                         class="absolute z-[100] top-full left-0 mt-2 w-auto pointer-events-none">
+                                         class="absolute z-[9999] top-full left-0 mt-2 w-auto pointer-events-auto">
                                         @php
-                                            // Tworzymy tymczasowy obiekt do tooltipa
+                                            $resultSlot = $recipe['result_slot'] ?? \App\Infrastructure\Persistence\ItemTemplate::where('name', $recipe['result_name'])->value('slot');
                                             $dummyItem = new \stdClass();
                                             $dummyItem->template = new \stdClass();
                                             $dummyItem->template->name = $recipe['result_name'];
                                             $dummyItem->template->level_requirement = $recipe['result_level'];
                                             $dummyItem->template->type = $recipe['result_type'];
+                                            $dummyItem->template->slot = $resultSlot;
                                             $dummyItem->template->base_stats = $recipe['result_stats'];
-                                            $dummyItem->template->slot = \App\Infrastructure\Persistence\ItemTemplate::where('name', $recipe['result_name'])->value('slot');
                                         @endphp
-                                        <x-item-tooltip :item="$dummyItem" :equippedItem="$equipped[$dummyItem->template->slot ?? ''] ?? null" />
+                                        <x-item-tooltip :item="$dummyItem" :equippedItem="$equipped[$resultSlot ?? ''] ?? null" />
                                     </div>
                                 </div>
 
@@ -403,12 +402,12 @@
                                 <!-- Right: Craft Button -->
                                 <div class="w-full md:w-auto flex-shrink-0 flex items-center mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-700 pl-0 md:pl-4">
                                     @if($recipe['can_craft'])
-                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full md:w-48 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-3 px-6 rounded shadow transition-all whitespace-nowrap medieval-font">
-                                            🛠️ Wytwórz
+                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full md:w-48 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-3 px-6 rounded shadow transition-all whitespace-nowrap medieval-font flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-hammer"></i> Wytwórz
                                         </button>
                                     @else
-                                        <button disabled class="w-full md:w-48 bg-gray-800 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed whitespace-nowrap medieval-font border border-gray-700">
-                                            ❌ Brak surowców
+                                        <button disabled class="w-full md:w-48 bg-gray-800 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed whitespace-nowrap medieval-font border border-gray-700 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-circle-xmark text-red-400"></i> Brak surowców
                                         </button>
                                     @endif
                                 </div>
@@ -428,11 +427,11 @@
     @if($showUpgradeModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md transition-opacity">
             <div class="bg-gray-900 border-4 {{ $upgradeModalType === 'success' ? 'border-green-500 shadow-[0_0_40px_rgba(34,197,94,0.3)]' : 'border-red-600 shadow-[0_0_40px_rgba(220,38,38,0.3)]' }} rounded-xl p-8 max-w-md w-full text-center transform transition-all scale-100">
-                <div class="text-7xl mb-6">
+                <div class="text-6xl mb-6 flex justify-center">
                     @if($upgradeModalType === 'success')
-                        ✨
+                        <i class="fa-solid fa-wand-magic-sparkles text-green-400"></i>
                     @else
-                        💥
+                        <i class="fa-solid fa-burst text-red-500"></i>
                     @endif
                 </div>
                 <h3 class="text-3xl font-bold {{ $upgradeModalType === 'success' ? 'text-green-400' : 'text-red-500' }} medieval-font mb-4 tracking-widest uppercase">

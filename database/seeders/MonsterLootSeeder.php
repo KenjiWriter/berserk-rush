@@ -154,6 +154,9 @@ class MonsterLootSeeder extends Seeder
                 // Zaktualizuj potwora o ID tabeli
                 $monster->update(['loot_table_id' => $lootTable->id]);
 
+                // Wyczyść stare wpisy w tabeli łupów dla zachowania świeżych referencji ULID
+                LootTableEntry::where('loot_table_id', $lootTable->id)->delete();
+
                 // Skompletuj wszystkie przedmioty, które mogą spaść
                 $possibleDrops = array_merge([], $mapConfig['general'], $specificDrops);
 

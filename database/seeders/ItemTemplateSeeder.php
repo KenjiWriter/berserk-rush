@@ -19,9 +19,7 @@ class ItemTemplateSeeder extends Seeder
             ['id' => Str::ulid(), 'name' => 'Wielka Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 5, 'base_stats' => ['heal_amount' => 150], 'description' => 'Potężna mikstura.', 'icon' => 'metna-woda.png', 'rarity_weights' => ['common' => 60, 'uncommon' => 30, 'rare' => 10]],
 
             // Materials
-            ['id' => Str::ulid(), 'name' => 'Wilcza Skóra', 'type' => 'material', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Gruba wilcza skóra.', 'icon' => 'wilcza-skora.png', 'rarity_weights' => ['common' => 80, 'uncommon' => 20, 'rare' => 0]],
-            ['id' => Str::ulid(), 'name' => 'Zioło Lecznika', 'type' => 'material', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Zioło lecznicze.', 'icon' => 'mroczne-ziolo.png', 'rarity_weights' => ['common' => 90, 'uncommon' => 10, 'rare' => 0]],
-            ['id' => Str::ulid(), 'name' => 'Odłamek Kości', 'type' => 'material', 'slot' => null, 'level_requirement' => 5, 'base_stats' => [], 'description' => 'Odłamek kości.', 'icon' => 'strzaskana-kosc.png', 'rarity_weights' => ['common' => 70, 'uncommon' => 30, 'rare' => 0]],
+
             
             // Keys & Tutorial Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],

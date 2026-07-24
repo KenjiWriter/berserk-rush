@@ -45,7 +45,7 @@
     }
 @endphp
 
-<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto" x-data="{ compare: false }" @click.stop>
+<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
     <!-- Górny pasek -->
     <div class="flex justify-between items-center mb-2">
         <div>
@@ -56,21 +56,26 @@
             <p class="text-xs text-gray-400">Slot: {{ ucfirst($template->slot ?? 'Brak') }} | Typ: {{ ucfirst($template->type ?? 'Nieznany') }} | Poz: {{ $template->level_requirement ?? 1 }}</p>
             @if(isset($roll_stats['mint']))
                 <p class="text-red-400 font-bold text-xs uppercase animate-pulse border-b border-red-500/50 pb-1 w-max">
-                    🔥 Nakład: {{ $roll_stats['mint'] }} / {{ $roll_stats['max_mint'] }}
+                    <i class="fa-solid fa-fire text-red-500 mr-1"></i> Nakład: {{ $roll_stats['mint'] }} / {{ $roll_stats['max_mint'] }}
                 </p>
             @endif
         </div>
         
         @if(method_exists($item, 'getCombatPower'))
-            <span class="text-indigo-300 font-bold ml-2">⚡ {{ $item->getCombatPower() }}</span>
+            <span class="text-indigo-300 font-bold ml-2 flex items-center gap-1"><i class="fa-solid fa-bolt text-indigo-400"></i> {{ $item->getCombatPower() }}</span>
         @endif
     </div>
     
     @if($canCompare)
-        <button @click="compare = !compare" class="mb-3 text-xs bg-slate-700 hover:bg-slate-600 text-amber-200 px-2 py-1.5 rounded w-full border border-slate-500 transition font-bold shadow">
-            <span x-show="!compare">⚖️ Porównaj z założonym</span>
-            <span x-show="compare">❌ Ukryj porównanie</span>
-        </button>
+        <div class="mb-3 flex items-center justify-between bg-slate-800/80 px-2.5 py-1.5 rounded border border-slate-600/50">
+            <span class="text-xs text-amber-300 font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-scale-balanced text-amber-400"></i> Porównanie z założonym
+            </span>
+            <button @click="compare = !compare" class="text-[11px] text-gray-400 hover:text-amber-200 underline font-semibold transition">
+                <span x-show="compare">Ukryj</span>
+                <span x-show="!compare">Pokaż</span>
+            </button>
+        </div>
     @endif
 
     <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[340px] md:min-w-[440px]' : 'w-full sm:min-w-[200px]'">
@@ -85,10 +90,10 @@
                             $diff = $val - $eq_val;
                         @endphp
                         <div class="flex justify-between items-center" x-show="compare || {{ $val }} > 0">
-                            <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                            <div class="flex gap-2">
-                                <span class="font-bold {{ $val > 0 ? '' : 'text-gray-600' }}">+{{ $val }}</span>
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-500' : ($diff < 0 ? 'text-red-500' : 'text-gray-500') }}">
+                            <span class="capitalize text-gray-200">{{ str_replace('_', ' ', $stat) }}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold {{ $val > 0 ? 'text-green-400' : 'text-gray-500' }}">+{{ $val }}</span>
+                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
                                     @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
                                 </span>
                             </div>
@@ -101,10 +106,10 @@
                             $diff = $val - $eq_val;
                         @endphp
                         <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
-                            <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
-                            <div class="flex gap-2">
-                                <span class="font-bold {{ $val > 0 ? '' : 'text-gray-600' }}">+{{ $val }}</span>
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-500' : ($diff < 0 ? 'text-red-500' : 'text-gray-500') }}">
+                            <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ str_replace('_', ' ', $stat) }}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $val }}</span>
+                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
                                     @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
                                 </span>
                             </div>
@@ -126,23 +131,23 @@
                     @foreach($all_base_keys as $stat)
                         @if(($equipped_base_stats[$stat] ?? 0) > 0)
                             <div class="flex justify-between">
-                                <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                <span class="font-bold">+{{ $equipped_base_stats[$stat] }}</span>
+                                <span class="capitalize text-gray-400">{{ str_replace('_', ' ', $stat) }}</span>
+                                <span class="font-bold text-gray-200">+{{ $equipped_base_stats[$stat] }}</span>
                             </div>
                         @endif
                     @endforeach
                     @foreach($all_enchant_keys as $stat)
                         @if(($equipped_enchants[$stat] ?? 0) > 0)
                             <div class="flex justify-between text-purple-400/80">
-                                <span class="capitalize">⭐ {{ str_replace('_', ' ', $stat) }}</span>
+                                <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ str_replace('_', ' ', $stat) }}</span>
                                 <span class="font-bold">+{{ $equipped_enchants[$stat] }}</span>
                             </div>
                         @endif
                     @endforeach
                 </div>
                 @if(method_exists($equippedItem, 'getCombatPower'))
-                    <div class="mt-2 pt-2 border-t border-slate-700 text-xs text-indigo-300">
-                        ⚡ CP: <span class="font-bold">{{ $equippedItem->getCombatPower() }}</span>
+                    <div class="mt-2 pt-2 border-t border-slate-700 text-xs text-indigo-300 flex items-center gap-1">
+                        <i class="fa-solid fa-bolt text-indigo-400"></i> CP: <span class="font-bold">{{ $equippedItem->getCombatPower() }}</span>
                     </div>
                 @endif
             @endif

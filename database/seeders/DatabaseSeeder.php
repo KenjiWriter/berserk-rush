@@ -13,9 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Test User',
+        User::firstOrCreate([
             'email' => 'test@example.com',
+        ], [
+            'name' => 'Test User',
+            'password' => bcrypt('password'),
         ]);
 
         $this->call([
@@ -27,6 +29,7 @@ class DatabaseSeeder extends Seeder
             LootTableSeeder::class,
             MonsterLootSeeder::class,
             PetSeeder::class,
+            PotionSeeder::class,
             RecipeSeeder::class,
             EquipmentRecipeSeeder::class,
             ShopEquipmentSeeder::class,

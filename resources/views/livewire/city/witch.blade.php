@@ -190,8 +190,13 @@
                                         <h5 class="text-xs text-emerald-400/70 uppercase tracking-widest font-bold mb-3">Wymagane Składniki:</h5>
                                         <div class="space-y-2">
                                             @foreach($recipe['ingredients'] as $ing)
-                                                <div class="flex items-center justify-between bg-black/20 p-2 rounded-lg border {{ $ing['ok'] ? 'border-emerald-500/30' : 'border-red-500/30' }}">
-                                                    <span class="text-sm font-medium {{ $ing['ok'] ? 'text-emerald-200' : 'text-red-300' }}">{{ $ing['name'] }}</span>
+                                                <div class="relative group cursor-help hover:z-[100] flex items-center justify-between bg-black/20 p-2 rounded-lg border {{ $ing['ok'] ? 'border-emerald-500/30' : 'border-red-500/30' }}">
+                                                    <div class="flex items-center gap-2">
+                                                        @if(isset($ing['icon']) && $ing['icon'])
+                                                            <img src="{{ route('assets.items', ['filename' => $ing['icon']]) }}" class="w-6 h-6 object-contain" alt="">
+                                                        @endif
+                                                        <span class="text-sm font-medium {{ $ing['ok'] ? 'text-emerald-200' : 'text-red-300' }}">{{ $ing['name'] }}</span>
+                                                    </div>
                                                     <div class="flex items-center gap-2">
                                                         <span class="text-xs font-mono {{ $ing['ok'] ? 'text-emerald-400' : 'text-red-400' }} bg-black/40 px-2 py-0.5 rounded">
                                                             {{ $ing['owned'] }} / {{ $ing['required'] }}
@@ -200,6 +205,20 @@
                                                             <span class="text-emerald-400">✓</span>
                                                         @else
                                                             <span class="text-red-400">✗</span>
+                                                        @endif
+                                                    </div>
+
+                                                    <!-- Tooltip -->
+                                                    <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-52 bg-black/95 border border-emerald-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-[9999] shadow-2xl backdrop-blur-sm pointer-events-none">
+                                                        <div class="font-bold text-emerald-400 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
+                                                        @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
+                                                            <div class="flex flex-wrap justify-center gap-1 mt-2">
+                                                                @foreach(array_unique($ing['dropped_by']) as $monsterName)
+                                                                    <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                                @endforeach
+                                                            </div>
+                                                        @else
+                                                            <div class="text-[10px] text-gray-500 text-center italic mt-2">Brak w znanych tabelach łupów.</div>
                                                         @endif
                                                     </div>
                                                 </div>
