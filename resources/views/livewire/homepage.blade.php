@@ -81,37 +81,104 @@
         /%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
 
     <div class="relative container mx-auto px-4 py-8">
-        {{-- Game title (Moved to top for mobile) --}}
+        {{-- Game title & Compact Online Counter Badge --}}
         <div class="text-center mb-6">
-            <h1 class="text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl animate-pulse">
+            <h1 class="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl animate-pulse">
                 Berserk Rush
             </h1>
-            <p class="text-xl text-amber-200 mt-2 font-semibold drop-shadow-lg">
+            <p class="text-lg sm:text-xl text-amber-200 mt-2 font-semibold drop-shadow-lg">
                 Średniowieczne RPG przeglądarowe
             </p>
+            
+            {{-- Compact Live Online Counter Badge --}}
+            <div class="mt-4 inline-flex items-center gap-2.5 px-4 py-1.5 bg-slate-900/85 border border-amber-500/40 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.6)] backdrop-blur-md text-xs sm:text-sm font-bold text-amber-200">
+                <span class="relative flex h-3 w-3">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <i class="fa-solid fa-users text-amber-400"></i>
+                <span><strong class="text-green-400 font-extrabold text-sm sm:text-base">{{ number_format($activePlayers) }}</strong> graczy online</span>
+            </div>
         </div>
 
         <livewire:auth.login-modal :hide-button="true" />
 
         <div class="flex flex-col lg:grid lg:grid-cols-6 lg:gap-6">
-            {{-- Left Sidebar --}}
-            <div class="contents lg:block lg:col-span-1 lg:space-y-6">
-                {{-- Gallery Section --}}
-                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
-                <div class="order-0 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    {{-- Decorative corners --}}
+            {{-- Left Sidebar (Desktop 1 col / Mobile order 2, 5 & 8) --}}
+            <div class="contents lg:block lg:col-span-1 lg:space-y-6 lg:order-1">
+                {{-- Top 10 Bohaterów --}}
+                <div class="order-5 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
                     <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
                     <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
                     <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
                     <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
 
                     <div class="relative">
-                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                            🖼️ Galeria Gry
+                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-trophy text-amber-600"></i> Top 10 Bohaterów
+                        </h3>
+                        <div class="space-y-2">
+                            @foreach ($topCharacters as $index => $character)
+                                <div class="flex items-center justify-between text-sm {{ $index < 3 ? 'text-yellow-700 font-bold' : 'text-amber-800' }}">
+                                    <div class="flex items-center">
+                                        <span class="w-5 text-amber-900 font-semibold">{{ $index + 1 }}.</span>
+                                        <span class="truncate max-w-[85px] sm:max-w-none">{{ $character['name'] }}</span>
+                                    </div>
+                                    <span class="font-bold text-amber-950 bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-500/40 text-xs">{{ $character['level'] }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Sklep Premium (Only shown for authenticated users) --}}
+                @auth
+                    <div class="order-2 lg:order-none mb-6 lg:mb-0 bg-gradient-to-r from-amber-100/95 via-yellow-100/95 to-amber-100/95 border-4 border-yellow-500 rounded-lg p-4 shadow-[0_0_20px_rgba(250,204,21,0.4)] backdrop-blur-sm relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(250,204,21,0.6)]">
+                        <div class="absolute top-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                        <div class="relative flex flex-col items-center text-center">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-600 to-amber-400 border-2 border-yellow-200 flex items-center justify-center text-yellow-950 shadow-md text-lg mb-2">
+                                <i class="fa-solid fa-gem"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-amber-950 medieval-font flex items-center gap-1.5 justify-center">
+                                Sklep Premium
+                            </h3>
+                            @if(Auth::user()->hasPremium())
+                                <p class="text-[11px] font-bold text-yellow-800 bg-yellow-400/30 rounded py-0.5 px-2 mt-1 inline-block border border-yellow-500/40">
+                                    <i class="fa-solid fa-crown text-yellow-600 mr-1"></i> Premium ({{ Auth::user()->premium_until->diffForHumans() }})
+                                </p>
+                            @else
+                                <p class="text-xs text-amber-800 font-semibold mt-1">
+                                    Zdobądź unikalne ulepszenia oraz Gemy!
+                                </p>
+                            @endif
+
+                            <a href="{{ route('itemshop') }}" wire:navigate
+                                class="w-full mt-3 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 px-3 rounded-lg transition-all duration-200 shadow-md text-center block medieval-font tracking-wider border border-yellow-300 text-xs transform hover:scale-105">
+                                <i class="fa-solid fa-crown mr-1.5 text-yellow-200"></i> PRZEJDŹ DO SKLEPU
+                            </a>
+                        </div>
+                    </div>
+                @endauth
+
+                {{-- Galeria Gry --}}
+                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
+                <div class="order-8 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                    <div class="relative">
+                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-images text-amber-700"></i> Galeria Gry
                         </h3>
                         <div class="grid grid-cols-2 gap-2">
                             @foreach($galleryImages->take(4) as $image)
-                                <div class="relative group cursor-pointer border-2 border-amber-600 rounded overflow-hidden aspect-video" @click="openGallerySlider({{ $loop->index }})">
+                                <div class="relative group cursor-pointer border-2 border-amber-600 rounded overflow-hidden aspect-video shadow-md" @click="openGallerySlider({{ $loop->index }})">
                                     <img src="{{ asset($image->image_path) }}" alt="{{ $image->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
                                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                         <span class="text-white text-xs font-bold drop-shadow-md">Powiększ</span>
@@ -121,112 +188,41 @@
                         </div>
                         
                         <div class="mt-4 text-center">
-                            <button @click="openGalleryGrid()" class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-2 px-4 rounded w-full border border-amber-500 shadow-md transition-all duration-300 transform hover:scale-[1.02]">
+                            <button @click="openGalleryGrid()" class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-2 px-3 rounded w-full border border-amber-500 shadow-md transition-all duration-300 transform hover:scale-[1.02] text-xs">
+                                <i class="fa-solid fa-images mr-1"></i>
                                 @if($galleryImages->count() > 4)
-                                    Pokaż całą galerię ({{ $galleryImages->count() }})
+                                    Cała galeria ({{ $galleryImages->count() }})
                                 @else
-                                    Otwórz galerię
+                                    Galeria
                                 @endif
                             </button>
                         </div>
                     </div>
                 </div>
                 @endif
-
-                {{-- Active players --}}
-                <div
-                    class="order-1 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    {{-- Decorative corners --}}
-                    <div
-                        class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                    </div>
-
-                    <div class="relative">
-                        <h3
-                            class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                            ⚔️ Aktywni Gracze
-                        </h3>
-                        <div class="text-center">
-                            <span class="text-3xl font-bold text-green-700">{{ number_format($activePlayers) }}</span>
-                            <p class="text-sm text-amber-800 font-semibold">online teraz</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Top Characters --}}
-                <div
-                    class="order-4 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    {{-- Decorative corners --}}
-                    <div
-                        class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                    </div>
-
-                    <div class="relative">
-                        <h3
-                            class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                            👑 Top 10 Bohaterów
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach ($topCharacters as $index => $character)
-                                <div
-                                    class="flex items-center justify-between text-sm {{ $index < 3 ? 'text-yellow-700 font-bold' : 'text-amber-800' }}">
-                                    <div class="flex items-center">
-                                        <span class="w-6">{{ $index + 1 }}.</span>
-                                        <span class="truncate">{{ $character['name'] }}</span>
-                                    </div>
-                                    <span class="font-bold">{{ $character['level'] }}</span>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
             </div>
 
-            {{-- Main content area --}}
-            <div class="contents lg:block lg:col-span-4 lg:order-2">
+            {{-- Main Center Area (Desktop 4 cols / Mobile order 1, 3, 4) --}}
+            <div class="contents lg:block lg:col-span-4 lg:order-2 lg:space-y-6">
                 @guest
-                    {{-- Hidden SVG ClipPath Definitions for S-Shaped Teardrop Hover Zones --}}
                     <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
                         <defs>
-                            {{-- Top-Left Sun Teardrop S-Clip --}}
                             <clipPath id="clip-yin-left" clipPathUnits="objectBoundingBox">
                                 <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,1 0.5,0 Z" />
                             </clipPath>
-                            {{-- Bottom-Right Shadow Teardrop S-Clip --}}
                             <clipPath id="clip-yin-right" clipPathUnits="objectBoundingBox">
                                 <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,0 0.5,0 Z" />
                             </clipPath>
                         </defs>
                     </svg>
 
-                    {{-- Central Yin-Yang Auth Medallion (Mounted over Ogłoszenia Królewskie) --}}
-                    <div class="flex flex-col items-center justify-center -mb-28 sm:-mb-36 relative z-30 pointer-events-none">
-                        {{-- Ambient glowing background aura --}}
-                        <div class="absolute w-[320px] h-[320px] sm:w-[400px] sm:h-[400px] rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-slate-900/40 blur-3xl animate-pulse"></div>
+                    {{-- Central Yin-Yang Auth Medallion --}}
+                    <div class="flex flex-col items-center justify-center my-6 lg:-mb-16 relative z-30">
+                        <div class="absolute w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-slate-900/40 blur-3xl animate-pulse"></div>
 
-                        <div class="relative w-72 h-72 sm:w-88 sm:h-88 sm:w-[350px] sm:h-[350px] rounded-full border-4 border-amber-500/90 shadow-[0_0_60px_rgba(245,158,11,0.7)] overflow-hidden bg-slate-950 transition-transform duration-500 hover:scale-[1.03] pointer-events-auto">
-                            {{-- Background Yin-Yang AI Image --}}
+                        <div class="relative w-72 h-72 sm:w-88 sm:h-88 sm:w-[340px] sm:h-[340px] rounded-full border-4 border-amber-500/90 shadow-[0_0_50px_rgba(245,158,11,0.6)] overflow-hidden bg-slate-950 transition-transform duration-500 hover:scale-[1.02] pointer-events-auto">
                             <img src="{{ asset('img/yin_yang_auth.png') }}" alt="Berserk Rush Portal" class="absolute inset-0 w-full h-full object-cover select-none">
 
-                            {{-- Golden S-curve dividing line SVG (Thinner, transparent & subtle) --}}
                             <svg class="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-35" viewBox="0 0 100 100">
                                 <path d="M 50,0 A 25,25 0 0,1 50,50 A 25,25 0 0,0 50,100" 
                                       fill="none" 
@@ -235,42 +231,79 @@
                                       class="drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
                             </svg>
 
-                            {{-- Top-Left Half (Stwórz Konto) with S-Curve Teardrop Clip & Glow --}}
+                            {{-- Top-Left Half (Stwórz Konto) --}}
                             <a href="{{ route('register') }}" 
-                               class="absolute inset-0 group/left transition-all duration-300 hover:bg-amber-500/25 z-20 flex flex-col items-start justify-start pt-9 sm:pt-12 pl-7 sm:pl-10 w-full h-full"
+                               class="absolute inset-0 group/left transition-all duration-300 hover:bg-amber-500/25 z-20 flex flex-col items-start justify-start pt-6 sm:pt-9 pl-5 sm:pl-8 w-full h-full"
                                style="clip-path: url(#clip-yin-left); -webkit-clip-path: url(#clip-yin-left);">
-                                <div class="transform transition-transform duration-300 group-hover/left:scale-110 flex flex-col items-center text-center max-w-[150px] sm:max-w-[180px]">
-                                    <span class="text-3xl sm:text-4xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">⚔️</span>
-                                    <span class="text-sm sm:text-base font-extrabold text-amber-200 medieval-font drop-shadow-[0_2px_10px_rgba(0,0,0,1)] tracking-widest mt-1 border-b-2 border-amber-400 pb-0.5 whitespace-nowrap">
+                                <div class="transform transition-transform duration-300 group-hover/left:scale-105 bg-slate-950/85 border border-amber-400/80 rounded-2xl px-3 py-2 shadow-[0_0_20px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col items-center text-center max-w-[130px] sm:max-w-[160px]">
+                                    <i class="fa-solid fa-user-plus text-amber-400 text-xl sm:text-2xl drop-shadow-md mb-0.5"></i>
+                                    <span class="text-[11px] sm:text-xs font-extrabold text-amber-200 medieval-font tracking-wider border-b border-amber-400/50 pb-0.5 whitespace-nowrap">
                                         STWÓRZ KONTO
                                     </span>
-                                    <span class="text-[10px] sm:text-xs text-amber-300 font-sans font-bold tracking-wider uppercase mt-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-amber-500/60 shadow-lg">
+                                    <span class="text-[9px] sm:text-[10px] text-amber-300 font-sans font-bold tracking-wider uppercase mt-0.5">
                                         Dołącz teraz
                                     </span>
                                 </div>
                             </a>
 
-                            {{-- Bottom-Right Half (Zaloguj się) with S-Curve Teardrop Clip & Glow --}}
+                            {{-- Bottom-Right Half (Zaloguj się) --}}
                             <div @click="$dispatch('open-login-modal')" 
-                                 class="absolute inset-0 group/right cursor-pointer transition-all duration-300 hover:bg-purple-900/35 z-20 flex flex-col items-end justify-end pb-9 sm:pb-12 pr-7 sm:pr-10 w-full h-full"
+                                 class="absolute inset-0 group/right cursor-pointer transition-all duration-300 hover:bg-purple-900/35 z-20 flex flex-col items-end justify-end pb-6 sm:pb-9 pr-5 sm:pr-8 w-full h-full"
                                  style="clip-path: url(#clip-yin-right); -webkit-clip-path: url(#clip-yin-right);">
-                                <div class="transform transition-transform duration-300 group-hover/right:scale-110 flex flex-col items-center text-center max-w-[150px] sm:max-w-[180px]">
-                                    <span class="text-3xl sm:text-4xl drop-shadow-[0_4px_8px_rgba(0,0,0,0.9)]">🗝️</span>
-                                    <span class="text-sm sm:text-base font-extrabold text-slate-100 medieval-font drop-shadow-[0_2px_10px_rgba(0,0,0,1)] tracking-widest mt-1 border-b-2 border-slate-300 pb-0.5 whitespace-nowrap">
+                                <div class="transform transition-transform duration-300 group-hover/right:scale-105 bg-slate-950/85 border border-purple-400/80 rounded-2xl px-3 py-2 shadow-[0_0_20px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col items-center text-center max-w-[130px] sm:max-w-[160px]">
+                                    <i class="fa-solid fa-key text-purple-300 text-xl sm:text-2xl drop-shadow-md mb-0.5"></i>
+                                    <span class="text-[11px] sm:text-xs font-extrabold text-purple-100 medieval-font tracking-wider border-b border-purple-400/50 pb-0.5 whitespace-nowrap">
                                         ZALOGUJ SIĘ
                                     </span>
-                                    <span class="text-[10px] sm:text-xs text-slate-200 font-sans font-bold tracking-wider uppercase mt-1 bg-black/75 px-2.5 py-0.5 rounded-full border border-slate-400/60 shadow-lg">
+                                    <span class="text-[9px] sm:text-[10px] text-purple-300 font-sans font-bold tracking-wider uppercase mt-0.5">
                                         Wróć do gry
                                     </span>
                                 </div>
                             </div>
                         </div>
+
+                        {{-- Mobile / Direct Auth Buttons for Instant Clarity --}}
+                        <div class="mt-4 flex items-center justify-center gap-3 w-full max-w-xs px-2">
+                            <a href="{{ route('register') }}" class="flex-1 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-yellow-400 shadow-[0_4px_15px_rgba(245,158,11,0.4)] text-center text-xs sm:text-sm medieval-font tracking-wider flex items-center justify-center gap-1.5 transition-transform active:scale-95">
+                                <i class="fa-solid fa-user-plus text-amber-200"></i> REJESTRACJA
+                            </a>
+                            <button @click="$dispatch('open-login-modal')" class="flex-1 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 hover:from-purple-800 hover:to-indigo-800 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-purple-400 shadow-[0_4px_15px_rgba(147,51,234,0.4)] text-center text-xs sm:text-sm medieval-font tracking-wider flex items-center justify-center gap-1.5 transition-transform active:scale-95">
+                                <i class="fa-solid fa-key text-purple-300"></i> LOGOWANIE
+                            </button>
+                        </div>
                     </div>
                 @endguest
+
                 @auth
-                    {{-- Horizontal Character Selection Bar (Above Ogłoszenia Królewskie) --}}
-                    <div class="order-5 lg:order-none mb-6 relative bg-gradient-to-br from-amber-50/95 via-amber-100/95 to-amber-50/95 border-4 border-amber-700 rounded-lg p-4 sm:p-5 shadow-2xl backdrop-blur-sm overflow-hidden">
-                        {{-- Decorative corners --}}
+                    {{-- 1. Moduł z wylogowaniem konta (Shown on Mobile as 1, in Center Grid on Desktop) --}}
+                    <div class="order-1 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 sm:p-5 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                        <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 text-center sm:text-left">
+                                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-700 to-amber-500 border-2 border-amber-300 flex items-center justify-center text-amber-100 shadow-md text-xl">
+                                    <i class="fa-solid fa-user-shield"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-900 medieval-font">
+                                        {{ Auth::user()->name }}
+                                    </h3>
+                                    <p class="text-xs sm:text-sm text-amber-800 font-semibold">
+                                        Witaj z powrotem, wojowniku!
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="w-full sm:w-auto">
+                                <livewire:auth.logout-modal />
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Wybieranie postaci (Twój Oddział Bohaterów) --}}
+                    <div class="order-3 lg:order-none mb-6 lg:mb-0 relative bg-gradient-to-br from-amber-50/95 via-amber-100/95 to-amber-50/95 border-4 border-amber-700 rounded-lg p-4 sm:p-5 shadow-2xl backdrop-blur-sm overflow-hidden">
                         <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
                         <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
                         <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
@@ -279,7 +312,7 @@
                         <div class="relative">
                             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 border-b-2 border-amber-700/60 pb-2.5 gap-2">
                                 <h3 class="text-xl font-bold text-amber-900 medieval-font flex items-center gap-2">
-                                    <span>🗡️</span> Twój Oddział Bohaterów
+                                    <i class="fa-solid fa-shield-halved text-amber-700"></i> Twój Oddział Bohaterów
                                 </h3>
                                 <span class="text-xs text-amber-900 font-semibold bg-amber-200/90 px-3 py-1 rounded-full border border-amber-600/40 shadow-sm">
                                     Wybierz postać, aby ruszyć na szlak
@@ -291,57 +324,53 @@
                                 $shouldHighlightPlayButton = Auth::check() && Auth::user()->game_stage == 3 && collect($myCharacters)->filter()->count() > 0;
                             @endphp
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                                 @foreach ($myCharacters as $index => $character)
-                                    <div class="bg-gradient-to-b from-amber-100/90 to-amber-200/90 border-2 border-amber-600/80 rounded-xl p-3.5 hover:bg-amber-200/95 transition-all duration-300 shadow-md hover:shadow-xl relative group {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : '' }}">
+                                    <div class="bg-gradient-to-b from-amber-100/90 to-amber-200/90 border-2 border-amber-600/80 rounded-xl p-2.5 hover:bg-amber-200/95 transition-all duration-300 shadow-md hover:shadow-xl relative group {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : '' }}">
                                         @if ($character)
                                             <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full">
-                                                <div class="flex items-center space-x-3 h-full">
-                                                    {{-- Avatar --}}
+                                                <div class="flex items-center space-x-2.5 h-full">
                                                     <div class="relative flex-shrink-0">
-                                                        <div class="w-12 h-12 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-400 shadow-md group-hover:scale-105 transition-transform">
+                                                        <div class="w-10 h-10 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-400 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
                                                             @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                                                                 <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
                                                             @else
-                                                                <div class="w-full h-full flex items-center justify-center text-xl text-amber-800">
-                                                                    ⚔️
-                                                                </div>
+                                                                <i class="fa-solid fa-user-ninja text-lg text-amber-800"></i>
                                                             @endif
                                                         </div>
-                                                        <span class="absolute -bottom-1 -right-1 bg-amber-800 text-amber-100 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-amber-400">
+                                                        <span class="absolute -bottom-1 -right-1 bg-amber-800 text-amber-100 text-[9px] font-bold px-1 py-0.2 rounded-full border border-amber-400">
                                                             {{ $character->level }} lvl
                                                         </span>
                                                     </div>
 
-                                                    {{-- Info --}}
                                                     <div class="flex-1 min-w-0">
-                                                        <div class="font-bold text-amber-950 text-sm truncate medieval-font group-hover:text-amber-700 transition-colors">
+                                                        <div class="font-bold text-amber-950 text-xs sm:text-sm truncate medieval-font group-hover:text-amber-700 transition-colors">
                                                             {{ $character->name }}
                                                         </div>
-                                                        <div class="text-[11px] text-amber-800/90 font-medium">
+                                                        <div class="text-[10px] sm:text-[11px] text-amber-800/90 font-medium truncate">
                                                             Poziom {{ $character->level }}
                                                             @if ($character->attributes)
                                                                 • {{ $character->getTotalAttributePoints() }} pkt
                                                             @endif
                                                         </div>
-                                                        <div class="mt-1 flex items-center gap-1 text-[11px] text-green-700 font-bold">
-                                                            <span>▶️ GRAJ teraz</span>
+                                                        <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-green-700 font-bold">
+                                                            <i class="fa-solid fa-play text-[8px]"></i> <span>GRAJ teraz</span>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </a>
                                         @else
                                             @if ($canCreateCharacter ?? true)
-                                                <a href="{{ route('characters.create') }}" class="block h-full min-h-[56px]">
-                                                    <div class="text-center text-amber-800 hover:text-amber-950 transition-colors flex flex-col items-center justify-center h-full border-2 border-dashed border-amber-600/60 rounded-lg p-2 hover:bg-amber-300/30">
-                                                        <div class="text-xl mb-0.5">➕</div>
-                                                        <div class="text-xs font-bold medieval-font">STWÓRZ POSTAĆ</div>
+                                                <a href="{{ route('characters.create') }}" class="block h-full min-h-[50px]">
+                                                    <div class="text-center text-amber-800 hover:text-amber-950 transition-colors flex flex-col items-center justify-center h-full border-2 border-dashed border-amber-600/60 rounded-lg p-1.5 hover:bg-amber-300/30">
+                                                        <i class="fa-solid fa-plus text-base mb-0.5 text-amber-700"></i>
+                                                        <div class="text-[11px] font-bold medieval-font">STWÓRZ POSTAĆ</div>
                                                     </div>
                                                 </a>
                                             @else
-                                                <div class="text-center text-amber-700/50 flex flex-col items-center justify-center h-full min-h-[56px] border-2 border-dashed border-amber-400/40 rounded-lg p-2">
-                                                    <div class="text-xl mb-0.5">🔒</div>
-                                                    <div class="text-xs font-bold medieval-font">SLOT ZABLOKOWANY</div>
+                                                <div class="text-center text-amber-700/50 flex flex-col items-center justify-center h-full min-h-[50px] border-2 border-dashed border-amber-400/40 rounded-lg p-1.5">
+                                                    <i class="fa-solid fa-lock text-base mb-0.5 text-amber-600/50"></i>
+                                                    <div class="text-[11px] font-bold medieval-font">SLOT ZABLOKOWANY</div>
                                                 </div>
                                             @endif
                                         @endif
@@ -352,36 +381,17 @@
                     </div>
                 @endauth
 
-                {{-- Admin messages parchment --}}
-                <div class="order-6 lg:order-none mb-6 lg:mb-0 relative">
-                    {{-- Parchment background --}}
-                    <div
-                        class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 rounded-lg border-4 border-amber-700 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 -translate-y-4">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 -translate-y-4">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 translate-y-4">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 translate-y-4">
-                        </div>
+                {{-- 4. Aktualności (Ogłoszenia Królewskie) --}}
+                <div class="order-4 lg:order-none mb-6 lg:mb-0 relative">
+                    <div class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 rounded-lg border-4 border-amber-700 shadow-2xl relative overflow-hidden backdrop-blur-sm">
+                        <div class="absolute top-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 -translate-y-4"></div>
+                        <div class="absolute top-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 -translate-y-4"></div>
+                        <div class="absolute bottom-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 translate-y-4"></div>
+                        <div class="absolute bottom-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 translate-y-4"></div>
 
-                        {{-- Parchment texture overlay --}}
-                        <div class="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml,%3Csvg width="100"
-                            height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter
-                            id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4"
-                            stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100" height="100"
-                            filter="url(%23noiseFilter)" opacity="0.3"/%3E%3C/svg%3E')]"></div>
-
-                        <div class="relative px-6 sm:px-8 pb-8 @guest pt-32 sm:pt-40 @else pt-8 @endguest">
-                            <h2
-                                class="text-3xl font-bold text-amber-900 mb-6 text-center medieval-font border-b-2 border-amber-700 pb-3">
-                                📜 Ogłoszenia Królewskie 📜
+                        <div class="relative px-6 sm:px-8 pb-8 @guest pt-16 lg:pt-20 @else pt-8 @endguest">
+                            <h2 class="text-2xl sm:text-3xl font-bold text-amber-900 mb-6 text-center medieval-font border-b-2 border-amber-700 pb-3 flex items-center justify-center gap-3">
+                                <i class="fa-solid fa-scroll text-amber-700"></i> Ogłoszenia Królewskie <i class="fa-solid fa-scroll text-amber-700"></i>
                             </h2>
 
                             <div class="space-y-6">
@@ -390,7 +400,8 @@
                                         <h3 class="text-xl font-bold text-amber-900 mb-2">{{ $message['title'] }}</h3>
                                         <p class="text-amber-800 leading-relaxed mb-2">{{ $message['content'] }}</p>
                                         <p class="text-sm text-amber-600 italic">
-                                            {{ date('j F Y', strtotime($message['date'])) }}</p>
+                                            {{ date('j F Y', strtotime($message['date'])) }}
+                                        </p>
                                     </div>
                                 @endforeach
                             </div>
@@ -399,149 +410,68 @@
                 </div>
             </div>
 
-            {{-- Right Sidebar --}}
+            {{-- Right Sidebar (Desktop 1 col / Mobile order 6 & 7) --}}
             <div class="contents lg:block lg:col-span-1 lg:space-y-6 lg:order-3">
-                @auth
-                    {{-- User Info Panel --}}
-                    <div
-                        class="order-2 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                        {{-- Decorative corners --}}
-                        <div
-                            class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                        </div>
-                        <div
-                            class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                        </div>
-
-                        <div class="relative">
-                            <h3
-                                class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                                👤 {{ Auth::user()->name }}
-                            </h3>
-                            <div class="space-y-2">
-                                <div class="text-center text-amber-800 text-sm">
-                                    Witaj z powrotem, wojowniku!
-                                </div>
-                                <livewire:auth.logout-modal />
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Premium Shop Panel --}}
-                    <div
-                        class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-yellow-100/90 to-amber-200/90 border-4 border-yellow-500 rounded-lg p-4 shadow-[0_0_20px_rgba(250,204,21,0.4)] backdrop-blur-sm relative overflow-hidden transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_30px_rgba(250,204,21,0.6)]">
-                        <div class="absolute top-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                        <div class="absolute top-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                        <div class="relative text-center">
-                            <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-yellow-600 pb-2 medieval-font flex items-center justify-center gap-2">
-                                <span class="relative">💎<span class="absolute -top-2 -right-2 text-xs animate-pulse">✨</span></span> Sklep Premium
-                            </h3>
-                            
-                            <a href="{{ route('itemshop') }}" wire:navigate
-                                class="w-full bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 shadow-lg text-center block medieval-font tracking-widest border border-yellow-400">
-                                👑 PRZEJDŹ DO SKLEPU
-                            </a>
-                            
-                            @if(Auth::user()->hasPremium())
-                                <div class="mt-3 text-xs font-bold text-yellow-700 bg-yellow-500/20 rounded py-1 px-2">
-                                    Premium aktywne ({{ Auth::user()->premium_until->diffForHumans() }})
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                @endauth
-
-                {{-- Quick game info (O Grze) --}}
-                <div
-                    class="order-3 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden @guest lg:mt-[165px] @endguest">
-                    {{-- Decorative corners --}}
-                    <div
-                        class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                    </div>
+                {{-- 6. Top 10 Gildii --}}
+                <div class="order-6 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
 
                     <div class="relative">
-                        <h3
-                            class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                            🎮 O Grze
-                        </h3>
-                        <div class="space-y-2 text-sm text-amber-800">
-                            <div class="flex items-center">
-                                <span class="text-amber-700 font-bold">•</span>
-                                <span class="ml-2 font-semibold">Walki turowe</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-amber-700 font-bold">•</span>
-                                <span class="ml-2 font-semibold">Ulepszanie przedmiotów</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-amber-700 font-bold">•</span>
-                                <span class="ml-2 font-semibold">System gildii</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-amber-700 font-bold">•</span>
-                                <span class="ml-2 font-semibold">Ekonomia graczy</span>
-                            </div>
-                            <div class="flex items-center">
-                                <span class="text-amber-700 font-bold">•</span>
-                                <span class="ml-2 font-semibold">Crafting</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Top 10 Gildii (Moved under O Grze) --}}
-                <div
-                    class="order-5 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    {{-- Decorative corners --}}
-                    <div
-                        class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3">
-                    </div>
-                    <div
-                        class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3">
-                    </div>
-
-                    <div class="relative">
-                        <h3
-                            class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font">
-                            🏰 Top 10 Gildii
+                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-shield-cat text-amber-700"></i> Top 10 Gildii
                         </h3>
                         <div class="space-y-2">
                             @foreach ($topGuilds as $index => $guild)
                                 <div class="text-sm {{ $index < 3 ? 'text-yellow-700 font-bold' : 'text-amber-800' }}">
                                     <div class="flex items-center justify-between">
                                         <div class="flex items-center">
-                                            <span class="w-6">{{ $index + 1 }}.</span>
-                                            <span class="truncate">{{ $guild['name'] }}</span>
+                                            <span class="w-5 text-amber-900 font-semibold">{{ $index + 1 }}.</span>
+                                            <span class="truncate max-w-[85px] sm:max-w-none">{{ $guild['name'] }}</span>
                                         </div>
-                                        <span class="font-bold">{{ $guild['avgLevel'] }}</span>
+                                        <span class="font-bold text-amber-950 bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-500/40 text-xs">{{ $guild['avgLevel'] }}</span>
                                     </div>
-                                    <div class="text-xs text-amber-700 ml-6">{{ $guild['members'] }} członków</div>
+                                    <div class="text-xs text-amber-700/90 ml-5 font-medium">{{ $guild['members'] }} członków</div>
                                 </div>
                             @endforeach
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 7. O Grze --}}
+                <div class="order-7 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
+                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
+                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
+                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+
+                    <div class="relative">
+                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-gamepad text-amber-700"></i> O Grze
+                        </h3>
+                        <div class="space-y-2 text-sm text-amber-800">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-dice-d20 text-amber-700 w-4 text-center"></i>
+                                <span class="font-semibold">Walki turowe</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-wand-magic-sparkles text-amber-700 w-4 text-center"></i>
+                                <span class="font-semibold">Ulepszanie przedmiotów</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-users-rays text-amber-700 w-4 text-center"></i>
+                                <span class="font-semibold">System gildii</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-coins text-amber-700 w-4 text-center"></i>
+                                <span class="font-semibold">Ekonomia graczy</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-hammer text-amber-700 w-4 text-center"></i>
+                                <span class="font-semibold">Crafting</span>
+                            </div>
                         </div>
                     </div>
                 </div>

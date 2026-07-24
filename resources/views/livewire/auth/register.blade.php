@@ -51,6 +51,9 @@
                 <div class="relative p-10 md:p-14">
                     {{-- Header --}}
                     <div class="text-center mb-10">
+                        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-tr from-amber-700 to-amber-500 border-2 border-amber-400 flex items-center justify-center text-amber-950 shadow-lg text-2xl">
+                            <i class="fa-solid fa-book-skull"></i>
+                        </div>
                         <h1 class="text-4xl md:text-5xl font-bold text-amber-500 medieval-font mb-4 drop-shadow-md">
                             Księga Rejestrów
                         </h1>
@@ -63,8 +66,8 @@
                     <form wire:submit="register" class="space-y-7">
                         {{-- Name field --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-500" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                            <label for="name" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3">
-                                Miano Wojownika
+                            <label for="name" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-user text-amber-500"></i> Miano Wojownika
                             </label>
                             <input type="text" id="name" wire:model.live="name"
                                 class="w-full px-5 py-4 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 text-lg"
@@ -76,8 +79,8 @@
 
                         {{-- Email field --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-600" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                            <label for="email" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3">
-                                Magiczny Zwój (Email)
+                            <label for="email" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-envelope text-amber-500"></i> Magiczny Zwój (Email)
                             </label>
                             <input type="email" id="email" wire:model.live="email"
                                 class="w-full px-5 py-4 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 text-lg"
@@ -89,8 +92,8 @@
 
                         {{-- Password field --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-700" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                            <label for="password" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3">
-                                Hasło
+                            <label for="password" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-lock text-amber-500"></i> Hasło
                             </label>
                             <input type="password" id="password" wire:model.live="password"
                                 class="w-full px-5 py-4 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 tracking-widest text-lg"
@@ -102,8 +105,8 @@
 
                         {{-- Password confirmation field --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-800" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
-                            <label for="password_confirmation" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3">
-                                Potwierdź Hasło
+                            <label for="password_confirmation" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved text-amber-500"></i> Potwierdź Hasło
                             </label>
                             <input type="password" id="password_confirmation" wire:model.live="password_confirmation"
                                 class="w-full px-5 py-4 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 tracking-widest text-lg"
@@ -120,7 +123,9 @@
                                 {{-- Button shine effect --}}
                                 <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent group-hover:animate-[shine_1.5s_ease-in-out_infinite]"></div>
 
-                                <span wire:loading.remove wire:target="register" class="relative z-10 drop-shadow-md">⚔️ Wykuj Swoje Przeznaczenie</span>
+                                <span wire:loading.remove wire:target="register" class="relative z-10 drop-shadow-md flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-user-plus text-amber-300"></i> Wykuj Swoje Przeznaczenie
+                                </span>
                                 
                                 <span wire:loading wire:target="register" class="relative z-10 flex items-center justify-center gap-2">
                                     <svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

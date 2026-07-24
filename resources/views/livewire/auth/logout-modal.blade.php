@@ -2,7 +2,7 @@
     {{-- Logout Button --}}
     <button wire:click="openModal"
         class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center border-2 border-red-500 medieval-font text-sm">
-        🚪 Wyloguj się
+        <i class="fa-solid fa-right-from-bracket mr-2"></i> Wyloguj się
     </button>
 
     {{-- Modal --}}
@@ -36,8 +36,8 @@
                         <div class="relative px-6 pt-5 pb-4 z-10">
                             {{-- Header --}}
                             <div class="flex items-center justify-between mb-4">
-                                <h3 class="text-xl font-bold text-amber-900 medieval-font" id="modal-title">
-                                    🚪 Wylogowanie
+                                <h3 class="text-xl font-bold text-amber-900 medieval-font flex items-center gap-2" id="modal-title">
+                                    <i class="fa-solid fa-right-from-bracket text-red-700"></i> Wylogowanie
                                 </h3>
                                 <button wire:click="closeModal"
                                     class="text-amber-700 hover:text-amber-900 transition-colors">
@@ -59,7 +59,7 @@
                             <div class="flex flex-col sm:flex-row gap-3">
                                 <button wire:click="logout"
                                     class="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font">
-                                    🚪 Tak, wyloguj
+                                    <i class="fa-solid fa-right-from-bracket mr-2"></i> Tak, wyloguj
                                 </button>
                                 <button wire:click="closeModal"
                                     class="flex-1 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg">

@@ -3,7 +3,7 @@
     @if(!($hideButton ?? false))
         <button wire:click="openModal"
             class="w-full bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-center border-2 border-amber-600 medieval-font">
-            🗝️ Zaloguj się
+            <i class="fa-solid fa-key text-amber-400 mr-2"></i> Zaloguj się
         </button>
     @endif
 
@@ -38,8 +38,8 @@
                         <div class="relative px-8 pt-6 pb-6 z-10">
                             {{-- Header --}}
                             <div class="flex items-center justify-between mb-6">
-                                <h3 class="text-2xl font-bold text-amber-900 medieval-font" id="modal-title">
-                                    🗝️ Zaloguj się do gry
+                                <h3 class="text-2xl font-bold text-amber-900 medieval-font flex items-center gap-2" id="modal-title">
+                                    <i class="fa-solid fa-key text-amber-700"></i> Zaloguj się do gry
                                 </h3>
                                 <button wire:click="closeModal"
                                     class="text-amber-700 hover:text-amber-900 transition-colors">
@@ -93,7 +93,9 @@
                                         class="flex-1 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg medieval-font relative disabled:opacity-70 disabled:cursor-not-allowed"
                                         wire:loading.attr="disabled"
                                         wire:target="login">
-                                        <span wire:loading.remove wire:target="login">⚔️ Wejdź do gry</span>
+                                        <span wire:loading.remove wire:target="login" class="flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-right-to-bracket"></i> Wejdź do gry
+                                        </span>
                                         <span wire:loading wire:target="login" class="flex items-center justify-center gap-2">
                                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
