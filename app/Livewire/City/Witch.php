@@ -113,6 +113,8 @@ class Witch extends Component
         if ($result['success']) {
             $this->showMessage($result['message'], 'success');
             $this->dispatch('play-audio', type: 'buy');
+            $this->character->refresh();
+            $this->dispatch('stats-updated', gold: $this->character->gold);
         } else {
             $this->showMessage($result['message'], 'error');
         }

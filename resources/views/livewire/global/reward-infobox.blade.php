@@ -1,6 +1,7 @@
 <div
     x-data="rewardInfobox()"
     @stats-updated.window="handleAnimation($event.detail)"
+    @toggle-reward-infobox.window="toggleBox()"
     style="font-family: 'Cinzel', serif;"
 >
     <!-- latające ikony kontener -->
@@ -103,18 +104,50 @@ document.addEventListener('alpine:init', () => {
             this.displayGems = this.stats.gems;
         },
 
+        async toggleBox() {
+            this.showBox = !this.showBox;
+            if (this.showBox) {
+                if (typeof $wire !== 'undefined' && $wire.loadCharacterStats) {
+                    try {
+                        let freshStats = await $wire.loadCharacterStats();
+                        if (freshStats) {
+                            this.stats = freshStats;
+                            this.displayGold = freshStats.gold;
+                            this.displayGems = freshStats.gems;
+                        }
+                    } catch (e) {}
+                }
+                this.resetHideTimeout();
+            }
+        },
+
         handleAnimation(eventDetail) {
             let data = Array.isArray(eventDetail) ? eventDetail[0] : eventDetail;
             if (!data) return;
 
+            if (data.gold !== undefined) {
+                this.stats.gold = Number(data.gold);
+                this.displayGold = Number(data.gold);
+            }
+            if (data.gems !== undefined) {
+                this.stats.gems = Number(data.gems);
+                this.displayGems = Number(data.gems);
+            }
+
             // Optymistyczna aktualizacja lokalnych wartości
             if (data.newStats) {
                 this.stats = data.newStats;
+                this.displayGold = this.stats.gold;
+                this.displayGems = this.stats.gems;
             } else {
                 if (data.goldAdded) this.stats.gold += Number(data.goldAdded);
+                if (data.goldDeducted) this.stats.gold -= Number(data.goldDeducted);
                 if (data.xpAdded) this.stats.experience += Number(data.xpAdded);
                 if (data.gemsAdded) this.stats.gems += Number(data.gemsAdded);
                 
+                this.displayGold = this.stats.gold;
+                this.displayGems = this.stats.gems;
+
                 // Prosty mechanizm levelowania na frontendzie
                 let leveledUpTo = null;
                 while (this.stats.experience >= this.stats.experience_required) {
@@ -133,6 +166,16 @@ document.addEventListener('alpine:init', () => {
             
             if (!this.stats.experience_required) {
                 this.stats = { ...this.stats, experience_required: 1, experience: 0 };
+            }
+
+            if (typeof $wire !== 'undefined' && $wire.loadCharacterStats) {
+                $wire.loadCharacterStats().then(freshStats => {
+                    if (freshStats) {
+                        this.stats = freshStats;
+                        this.displayGold = freshStats.gold;
+                        this.displayGems = freshStats.gems;
+                    }
+                }).catch(() => {});
             }
             
             this.showBox = true;

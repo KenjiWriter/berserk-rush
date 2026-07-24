@@ -82,6 +82,7 @@ class Wizard extends Component
                     $this->dispatch('play-audio', type: 'enchant-fail');
                 }
                 $this->character->refresh();
+                $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
             }
         } catch (\Exception $e) {
             $this->actionType = 'error';
@@ -118,6 +119,7 @@ class Wizard extends Component
                     $this->dispatch('play-audio', type: 'enchant-fail');
                 }
                 $this->character->refresh();
+                $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
             }
         } catch (\Exception $e) {
             $this->actionType = 'error';

@@ -77,6 +77,9 @@ class MarketComponent extends Component
         }
 
         $this->dispatch('notify', message: 'Przedmiot został pomyślnie kupiony!', type: 'success');
+        $this->dispatch('play-audio', type: 'buy');
+        $character->refresh();
+        $this->dispatch('stats-updated', gold: $character->gold, gems: auth()->user()->gems ?? 0);
         $this->dispatch('character-updated');
     }
 
@@ -98,6 +101,8 @@ class MarketComponent extends Component
         }
 
         $this->dispatch('notify', message: 'Oferta została anulowana. Przedmiot wrócił do ekwipunku.', type: 'success');
+        $character->refresh();
+        $this->dispatch('stats-updated', gold: $character->gold, gems: auth()->user()->gems ?? 0);
     }
     
     public function backToCity()

@@ -15,7 +15,7 @@
         <div class="flex justify-around items-center h-16 px-1">
             <a href="{{ route('city.hub', $charId) }}" wire:navigate 
                class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-               @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: '🏰' })">
+               @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway' })">
                 <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
                     <i class="fa-solid fa-archway text-amber-400 text-lg"></i>
                 </span>
@@ -24,7 +24,7 @@
 
             <a href="{{ route('city.profile', $charId) }}" wire:navigate 
                class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.profile') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-               @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: '👤' })">
+               @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield' })">
                 <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                     <i class="fa-solid fa-user-shield text-amber-400 text-lg"></i>
                     @if($profileBadgeCount > 0)
@@ -36,7 +36,7 @@
 
             <a href="{{ route('city.adventure', $charId) }}" wire:navigate 
                class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-               @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: '🗺️' })">
+               @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: 'fa-solid fa-map-location-dot' })">
                 <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                     <i class="fa-solid fa-map-location-dot text-amber-400 text-lg"></i>
                 </span>
@@ -45,7 +45,7 @@
 
             <a href="{{ route('city.arena', $charId) }}" wire:navigate 
                class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-               @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: '🏟️' })">
+               @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon' })">
                 <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
                     <i class="fa-solid fa-khanda text-amber-400 text-lg"></i>
                 </span>

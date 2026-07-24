@@ -55,6 +55,8 @@ class Armorsmith extends Component
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
             $this->dispatch('play-audio', type: 'buy');
+            $this->character->refresh();
+            $this->dispatch('stats-updated', gold: $this->character->gold);
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }

@@ -56,6 +56,28 @@
             from { width: 100%; }
             to { width: 0%; }
         }
+
+        /* ===== Custom Thin Dark Fantasy Scrollbar ===== */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #d97706 rgba(12, 10, 9, 0.6);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(12, 10, 9, 0.6);
+            border-radius: 9999px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #78350f, #d97706, #78350f);
+            border-radius: 9999px;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #b45309, #f59e0b, #b45309);
+        }
     </style>
     <script>
         document.addEventListener('pointerdown', function unlock() {
@@ -68,8 +90,8 @@
 
 <body class="font-sans antialiased">
     {{-- ===== Global Location Transition Overlay ===== --}}
-    <div x-data="{ leaving: false, text: 'Podróż...', icon: '🏰' }"
-         @location-leave.window="leaving = true; text = $event.detail?.text || 'Podróż...'; icon = $event.detail?.icon || '🏰'"
+    <div x-data="{ leaving: false, text: 'Podróż...', icon: 'fa-solid fa-archway' }"
+         @location-leave.window="leaving = true; text = $event.detail?.text || 'Podróż...'; icon = $event.detail?.icon || 'fa-solid fa-archway'"
          x-show="leaving"
          x-transition:enter="transition ease-in-out duration-500"
          x-transition:enter-start="opacity-0"
@@ -81,7 +103,14 @@
              <div class="absolute inset-0 rounded-full border-4 border-amber-900/30 border-t-amber-500 animate-spin"></div>
              <div class="absolute inset-2 rounded-full border-4 border-amber-800/20 border-t-amber-400 animate-spin" style="animation-direction: reverse; animation-duration: 1.5s;"></div>
              <div class="absolute inset-4 rounded-full border-4 border-amber-700/10 border-t-amber-300 animate-spin" style="animation-duration: 2s;"></div>
-             <div class="absolute inset-0 flex items-center justify-center text-3xl" x-text="icon"></div>
+             <div class="absolute inset-0 flex items-center justify-center text-3xl text-amber-400">
+                 <template x-if="icon && icon.includes('fa-')">
+                     <i :class="icon"></i>
+                 </template>
+                 <template x-if="!icon || !icon.includes('fa-')">
+                     <span x-text="icon || '🏰'"></span>
+                 </template>
+             </div>
          </div>
          
          <h2 class="text-3xl font-bold text-amber-500 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)] animate-pulse" style="font-family: 'Cinzel', serif;" x-text="text">

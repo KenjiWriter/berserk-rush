@@ -26,23 +26,26 @@ class RewardInfobox extends Component
 
     // Usunięto handleStatsUpdated. Aktualizacje są obsługiwane całkowicie lokalnie w Alpine.js.
 
-    private function loadCharacterStats()
+    #[On('stats-updated')]
+    public function loadCharacterStats()
     {
         $characterId = session('active_character');
         $character = $characterId ? \App\Infrastructure\Persistence\Character::find($characterId) : null;
 
         if ($character) {
             $this->characterStats = [
-                'avatar_image' => $character->avatar, // this stores just the basename usually
+                'avatar_image' => $character->avatar,
                 'title' => $character->activeTitle->name ?? 'Brak tytułu',
                 'nickname' => $character->name,
                 'level' => $character->level,
                 'experience' => $character->xp,
                 'experience_required' => app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level),
                 'gold' => $character->gold,
-                'gems' => $character->gems ?? 0, // Fallback if gems doesn't exist
+                'gems' => $character->gems ?? 0,
             ];
         }
+
+        return $this->characterStats;
     }
 
     public function render()

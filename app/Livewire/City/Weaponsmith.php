@@ -67,6 +67,8 @@ class Weaponsmith extends Component
                 $user->game_stage = 20;
                 $user->save();
             }
+            $this->character->refresh();
+            $this->dispatch('stats-updated', gold: $this->character->gold);
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }
