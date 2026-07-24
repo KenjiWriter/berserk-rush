@@ -25,8 +25,8 @@ class MatchmakingService
         $excludedIds = array_merge([$character->id], $alreadyChallengedIds);
 
         while ($tolerance <= $maxTolerance) {
-            $minElo = $baseElo * (1 - $tolerance);
-            $maxElo = $baseElo * (1 + $tolerance);
+            $minElo = (int) round($baseElo * (1 - $tolerance));
+            $maxElo = (int) round($baseElo * (1 + $tolerance));
             
             $query = Character::where('id', '!=', $character->id)
                 ->whereNotIn('id', $excludedIds)
