@@ -249,14 +249,15 @@ class Profile extends Component
 
         $this->character->attributes = $attributes;
         $this->character->character_points = $points - $totalRequested;
+        $this->character->clearStatsCache();
+        $this->character->save();
+        $this->character->refresh();
 
         $user = auth()->user();
         if ($user && $user->game_stage == 14) {
             $user->game_stage = 15;
             $user->save();
         }
-
-        $this->character->save();
 
         $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalRequested}.");
         $this->dispatch('play-audio', type: 'stat');
