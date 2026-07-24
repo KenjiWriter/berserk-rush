@@ -111,7 +111,7 @@ class PetSeeder extends Seeder
                 ['name' => 'Władca Lochów'],
                 [
                     'map_id' => Monster::first()->map_id ?? 1,
-                    'type' => 'nieumarły',
+                    'type' => 'undead',
                     'level' => 15,
                     'rank' => 'boss',
                     'stats' => ['hp' => 500, 'atk' => 30, 'def' => 15, 'crit' => 5],
