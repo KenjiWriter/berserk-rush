@@ -1,4 +1,11 @@
-<div id="adventure-map-component" class="min-h-screen relative overflow-hidden" x-data="{ travelingTo: null }">
+<div id="adventure-map-component" class="min-h-screen relative overflow-hidden" 
+     x-data="{ 
+         travelingTo: null,
+         isPaused: false,
+         speed: 1,
+         autoChain: {{ $autoChain ? 'true' : 'false' }}
+     }">
+
     {{-- Dynamic background per map --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ $background }}');">
     </div>
@@ -423,12 +430,8 @@
                     </div>
 
                     {{-- Battle Controls (100% Instant Client-Side Reactive Controls) --}}
-                    <footer class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md"
-                            x-data="{ 
-                                isPaused: false, 
-                                speed: @entangle('playbackSpeed'), 
-                                autoChain: {{ $autoChain ? 'true' : 'false' }} 
-                            }">
+                    <footer wire:key="battle-controls-footer" class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md">
+
                         <div class="flex flex-col gap-2.5">
                             {{-- Main Controls --}}
                             <div class="flex items-center justify-center gap-2.5">
@@ -1123,7 +1126,8 @@
         }
     </script>
     {{-- Session Tracker --}}
-    <div class="fixed bottom-3 right-28 z-40 bg-slate-950/90 text-amber-100 px-3 py-1.5 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md transition-all hover:bg-slate-900/90 flex items-center gap-3 text-xs font-mono select-none"
+    <div wire:key="session-tracker-widget" class="fixed bottom-3 right-28 z-40 bg-slate-950/90 text-amber-100 px-3 py-1.5 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md transition-all hover:bg-slate-900/90 flex items-center gap-3 text-xs font-mono select-none"
+
          x-data="{ 
             startTime: {{ $sessionStartTime }},
             elapsed: '00:00:00',
