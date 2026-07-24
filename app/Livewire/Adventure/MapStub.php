@@ -304,6 +304,8 @@ class MapStub extends Component
                 actor: $turn['actor'], 
                 type: $turn['type'], 
                 value: $turn['value'] ?? 0,
+                dotDamage: $turn['dotDamage'] ?? 0,
+                dotType: $turn['dotType'] ?? null,
                 crit: !empty($turn['crit']),
                 skillName: $turn['skill_name'] ?? null,
                 effectType: $turn['effect_type'] ?? null,

@@ -153,10 +153,32 @@
                         {{-- Active Buffs --}}
                         @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
                         @if($currentState && !empty($currentState['buffs']))
-                            <div class="flex flex-wrap gap-1.5 justify-center">
+                            <div class="flex flex-wrap gap-2 justify-center">
                                 @foreach($currentState['buffs'] as $key => $buff)
-                                    <div class="bg-blue-950/80 border border-blue-400/60 rounded-xl px-2 py-0.5 text-[10px] text-blue-200 flex items-center gap-1 shadow-md" title="Wzmocnienie">
-                                        <span class="font-bold font-mono">{{ $buff['duration'] }}T</span>
+                                    <div class="group relative bg-slate-900/90 border border-blue-400/70 hover:border-blue-300 rounded-xl px-2.5 py-1 text-xs text-blue-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                        @if(!empty($buff['icon']))
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $buff['name'] ?? 'Wzmocnienie' }}">
+                                        @else
+                                            <span class="text-xs">⚔️</span>
+                                        @endif
+                                        <span class="font-bold font-mono text-blue-300 text-xs">{{ $buff['duration'] }}T</span>
+
+                                        {{-- Interactive Hover Infobox --}}
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-blue-400/80 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                            <div class="flex items-center gap-2 mb-1.5 border-b border-blue-500/30 pb-1.5">
+                                                @if(!empty($buff['icon']))
+                                                    <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                @else
+                                                    <span class="text-sm">⚔️</span>
+                                                @endif
+                                                <span class="text-xs font-bold text-blue-200 medieval-font tracking-wide">{{ $buff['name'] ?? 'Wzmocnienie' }}</span>
+                                                <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/90 text-blue-200 border border-blue-400/50 font-mono">{{ $buff['duration'] }}T</span>
+                                            </div>
+                                            <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                <div class="text-blue-300/90 font-semibold">Status: Wzmocnienie</div>
+                                                <p class="text-slate-200">{{ $buff['description'] ?? 'Aktywne wzmocnienie postaci.' }}</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -289,6 +311,9 @@
                                             <span class="text-slate-300 italic font-semibold">
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
                                                 pudłuje atak!
+                                                @if (!empty($turn['dotDamage']))
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                @endif
                                             </span>
                                         @elseif ($turn['type'] == 'dot')
                                             <span class="text-purple-300 font-semibold italic">
@@ -297,7 +322,11 @@
                                         @elseif ($turn['type'] == 'skill')
                                             <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong> obrażeń
+                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                @if (!empty($turn['dotDamage']))
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                @endif
+                                                obrażeń
                                                 @if (!empty($turn['crit'])) <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span> @endif
                                             </span>
                                         @else
@@ -311,6 +340,9 @@
                                                     <strong class="text-amber-300 font-mono">{{ $turn['baseDamage'] }} (-{{ $turn['resistDamage'] }})</strong>
                                                 @else
                                                     <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                @endif
+                                                @if (!empty($turn['dotDamage']))
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                 @endif
                                                 obrażeń
                                                 @if ($turn['crit'])
@@ -517,8 +549,38 @@
                             @if(isset($currentState) && $currentState && !empty($currentState['dots']))
                                 <div class="flex flex-wrap gap-2 justify-center">
                                     @foreach($currentState['dots'] as $dot)
-                                        <div class="bg-purple-950/80 border border-purple-400/60 rounded-xl px-2.5 py-1 text-xs text-purple-200 flex items-center gap-1.5 shadow-md" title="Status: {{ $dot['type'] }}">
-                                            <span class="font-bold font-mono">{{ $dot['duration'] }}T</span>
+                                        <div class="group relative bg-slate-900/90 border border-purple-400/70 hover:border-purple-300 rounded-xl px-2.5 py-1 text-xs text-purple-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                            @if(!empty($dot['icon']))
+                                                <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $dot['name'] ?? 'Status' }}">
+                                            @elseif(($dot['type'] ?? '') === 'poison')
+                                                <span class="text-xs">🐍</span>
+                                            @elseif(($dot['type'] ?? '') === 'fire')
+                                                <span class="text-xs">🔥</span>
+                                            @else
+                                                <span class="text-xs">✨</span>
+                                            @endif
+                                            <span class="font-bold font-mono text-purple-300 text-xs">{{ $dot['duration'] }}T</span>
+
+                                            {{-- Interactive Hover Infobox --}}
+                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-purple-400/80 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                                <div class="flex items-center gap-2 mb-1.5 border-b border-purple-500/30 pb-1.5">
+                                                    @if(!empty($dot['icon']))
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                    @elseif(($dot['type'] ?? '') === 'poison')
+                                                        <span class="text-sm">🐍</span>
+                                                    @elseif(($dot['type'] ?? '') === 'fire')
+                                                        <span class="text-sm">🔥</span>
+                                                    @else
+                                                        <span class="text-sm">✨</span>
+                                                    @endif
+                                                    <span class="text-xs font-bold text-purple-200 medieval-font tracking-wide">{{ $dot['name'] ?? (($dot['type'] ?? '') === 'poison' ? 'Otrucie' : 'Ogień') }}</span>
+                                                    <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-900/90 text-purple-200 border border-purple-400/50 font-mono">{{ $dot['duration'] }}T</span>
+                                                </div>
+                                                <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                    <div class="text-purple-300/90 font-semibold">Status: Osłabienie / DoT</div>
+                                                    <p class="text-slate-200">{{ $dot['description'] ?? ((($dot['type'] ?? '') === 'poison') ? 'Zadaje obrażenia od otrucia co turę.' : 'Zadaje obrażenia od ognia co turę.') }}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -983,11 +1045,19 @@
                     if (waveEl.parentNode) waveEl.parentNode.removeChild(waveEl);
                 }, 220);
 
+                const dotDamage = data.dotDamage || 0;
+                const dotType = data.dotType || null;
+
                 // 5. AT IMPACT MOMENT (~170ms): Trigger Defender Hit Bounce, Audio, Particles & Floating Damage Text!
                 setTimeout(() => {
-                    if (type !== 'miss') {
+                    if (type !== 'miss' || dotDamage > 0) {
                         defenderPanel.classList.add('anim-hit-bounce');
-                        spawnImpactParticles(defenderPanel, isPoison ? 'poison' : (isFire ? 'fire' : (isCrit ? 'crit' : (type === 'skill' ? 'skill' : 'hit'))));
+                        if (dotDamage > 0) {
+                            spawnImpactParticles(defenderPanel, 'poison');
+                        }
+                        if (type !== 'miss') {
+                            spawnImpactParticles(defenderPanel, isPoison ? 'poison' : (isFire ? 'fire' : (isCrit ? 'crit' : (type === 'skill' ? 'skill' : 'hit'))));
+                        }
                     }
 
                     // Play Audio EXACTLY at impact!
@@ -999,16 +1069,24 @@
                     fct.style.left = `${endX}px`;
                     fct.style.top = `${endY - 20}px`;
 
+                    const dotBadge = dotDamage > 0 
+                        ? `<span class="text-emerald-300 font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)] font-sans ml-1.5">(+${dotDamage})</span>`
+                        : '';
+
                     if (type === 'miss') {
-                        fct.innerHTML = `<span class="text-blue-300 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">UNIK!</span>`;
+                        if (dotDamage > 0) {
+                            fct.innerHTML = `<span class="text-blue-300 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">UNIK</span> ${dotBadge}`;
+                        } else {
+                            fct.innerHTML = `<span class="text-blue-300 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">UNIK!</span>`;
+                        }
                     } else if (type === 'dot') {
-                        fct.innerHTML = `<span class="text-purple-400 font-black text-2xl">-${value}</span>`;
+                        fct.innerHTML = `<span class="text-emerald-400 font-black text-2xl">(+${value})</span>`;
                     } else if (isCrit) {
-                        fct.innerHTML = `<span class="text-amber-300 font-black text-3xl sm:text-4xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${value}</span>`;
+                        fct.innerHTML = `<span class="text-amber-300 font-black text-3xl sm:text-4xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${value}</span>${dotBadge}`;
                     } else if (skillName) {
-                        fct.innerHTML = `<span class="${isPoison ? 'text-emerald-300' : (isFire ? 'text-orange-300' : 'text-indigo-300')} font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(99,102,241,0.9)]">${skillName} -${value}</span>`;
+                        fct.innerHTML = `<span class="${isPoison ? 'text-emerald-300' : (isFire ? 'text-orange-300' : 'text-indigo-300')} font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(99,102,241,0.9)]">${skillName} -${value}</span>${dotBadge}`;
                     } else {
-                        fct.innerHTML = `<span class="text-red-400 font-black text-2xl sm:text-3xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${value}</span>`;
+                        fct.innerHTML = `<span class="text-red-400 font-black text-2xl sm:text-3xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${value}</span>${dotBadge}`;
                     }
 
                     fxOverlay.appendChild(fct);

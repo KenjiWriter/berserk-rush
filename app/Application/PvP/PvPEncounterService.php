@@ -182,29 +182,6 @@ class PvPEncounterService
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
-            // Process DoT for actor
-            if (!empty($state[$actorKey]['effects'])) {
-                foreach ($state[$actorKey]['effects'] as $id => &$eff) {
-                    if ($eff['duration'] > 0 && $eff['type'] === 'poison') {
-                        $dmg = (int)(($actorKey === 'attacker' ? $attacker['max_hp'] : $defender['max_hp']) * ($eff['value'] / 100));
-                        if ($actorKey === 'attacker') {
-                            $attackerHp = max(0, $attackerHp - $dmg);
-                        } else {
-                            $defenderHp = max(0, $defenderHp - $dmg);
-                        }
-                        $turns[] = [
-                            'actor' => $actorKey,
-                            'type' => 'dot',
-                            'value' => $dmg,
-                            'attackerHp' => $attackerHp,
-                            'defenderHp' => $defenderHp,
-                        ];
-                    }
-                }
-            }
-
-            if ($attackerHp <= 0 || $defenderHp <= 0) break;
-
             $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $actorKey, $state[$actorKey], $state[$targetKey]);
             
             $attackerHp = $turn['attackerHp'];
@@ -215,14 +192,6 @@ class PvPEncounterService
             foreach ($state[$actorKey]['cooldowns'] as &$cd) {
                 if ($cd > 0) $cd--;
             }
-
-            // Decrement effects duration
-            foreach ($state[$targetKey]['effects'] as $id => &$eff) {
-                if ($eff['duration'] > 0) $eff['duration']--;
-            }
-            
-            // Clean up expired effects
-            $state[$targetKey]['effects'] = array_filter($state[$targetKey]['effects'], fn($e) => $e['duration'] > 0);
 
             $turnCount++;
         }
@@ -268,10 +237,30 @@ class PvPEncounterService
             } elseif ($skillToUse['effect_type'] === 'poison') {
                 $targetState['effects'][$skillToUse['id']] = [
                     'type' => 'poison',
+                    'name' => $skillToUse['name'] ?? 'Otrucie',
+                    'icon' => $skillToUse['icon'] ?? null,
+                    'description' => $skillToUse['description'] ?? 'Zadaje obrażenia od otrucia co turę.',
                     'duration' => $skillToUse['base_duration'],
                     'value' => $bonus,
                 ];
             }
+        }
+
+        // Process DoT for target during this exchange
+        $dotDamage = 0;
+        $dotType = null;
+        if (!empty($targetState['effects'])) {
+            $targetMaxHp = $actor === 'attacker' ? $defenderSnapshot['max_hp'] : $attackerSnapshot['max_hp'];
+            foreach ($targetState['effects'] as $id => &$eff) {
+                if ($eff['duration'] > 0 && ($eff['type'] === 'poison' || $eff['type'] === 'fire')) {
+                    $dmg = max(1, (int)($targetMaxHp * ($eff['value'] / 100)));
+                    $dotDamage += $dmg;
+                    $dotType = $eff['type'];
+
+                    $eff['duration']--;
+                }
+            }
+            $targetState['effects'] = array_filter($targetState['effects'], fn($e) => $e['duration'] > 0);
         }
 
         // Defender's defense
@@ -289,14 +278,22 @@ class PvPEncounterService
         $isMiss = mt_rand(1, 100) <= 5;
 
         if ($isMiss) {
-            return [
+            $turn = [
                 'actor' => $actor,
                 'type' => 'miss',
                 'value' => 0,
+                'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+                'dotType' => $dotDamage > 0 ? $dotType : null,
                 'crit' => false,
-                'attackerHp' => $attackerHp,
-                'defenderHp' => $defenderHp,
             ];
+            if ($actor === 'attacker') {
+                $turn['attackerHp'] = $attackerHp;
+                $turn['defenderHp'] = max(0, $defenderHp - $dotDamage);
+            } else {
+                $turn['attackerHp'] = max(0, $attackerHp - $dotDamage);
+                $turn['defenderHp'] = $defenderHp;
+            }
+            return $turn;
         }
 
         if ($isCrit) {
@@ -307,6 +304,8 @@ class PvPEncounterService
             'actor' => $actor,
             'type' => $skillToUse ? 'skill' : 'hit',
             'value' => (int)$damage,
+            'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+            'dotType' => $dotDamage > 0 ? $dotType : null,
             'crit' => $isCrit,
         ];
         
@@ -316,11 +315,11 @@ class PvPEncounterService
         }
 
         if ($actor === 'attacker') {
-            $newDefenderHp = max(0, $defenderHp - (int)$damage);
+            $newDefenderHp = max(0, $defenderHp - (int)$damage - $dotDamage);
             $turn['attackerHp'] = $attackerHp;
             $turn['defenderHp'] = $newDefenderHp;
         } else {
-            $newAttackerHp = max(0, $attackerHp - (int)$damage);
+            $newAttackerHp = max(0, $attackerHp - (int)$damage - $dotDamage);
             $turn['attackerHp'] = $newAttackerHp;
             $turn['defenderHp'] = $defenderHp;
         }

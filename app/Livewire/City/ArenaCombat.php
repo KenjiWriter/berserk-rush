@@ -264,7 +264,19 @@ class ArenaCombat extends Component
             $this->visibleTurns[] = $turn;
             $this->currentTurnIndex++;
             
-            $this->dispatch('turn-played', actor: $turn['actor'], type: $turn['type'], value: $turn['value'] ?? 0);
+            $audioType = $turn['type'] === 'miss' ? 'dodge' : (!empty($turn['crit']) ? 'crit' : 'hit');
+
+            $this->dispatch('turn-played', 
+                actor: $turn['actor'], 
+                type: $turn['type'], 
+                value: $turn['value'] ?? 0,
+                dotDamage: $turn['dotDamage'] ?? 0,
+                dotType: $turn['dotType'] ?? null,
+                crit: !empty($turn['crit']),
+                skillName: $turn['skill_name'] ?? null,
+                effectType: $turn['effect_type'] ?? null,
+                audioType: $audioType
+            );
 
             if ($this->currentTurnIndex >= count($this->allTurns)) {
                 $this->completeBattle();

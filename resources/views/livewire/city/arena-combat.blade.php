@@ -116,11 +116,32 @@
                                 </div>
                             </div>
                             @if($currentState && !empty($currentState['buffs']))
-                                <div class="flex flex-wrap gap-1 mt-2">
+                                <div class="flex flex-wrap gap-2 justify-center mt-2">
                                     @foreach($currentState['buffs'] as $key => $buff)
-                                        <div class="bg-blue-900/80 border border-blue-400 rounded px-2 py-0.5 text-xs text-blue-100 flex items-center gap-1 shadow-sm" title="Wzmocnienie">
-                                            <span>⚔️</span>
-                                            <span class="font-bold">{{ $buff['duration'] }}T</span>
+                                        <div class="group relative bg-slate-900/90 border border-blue-400/70 hover:border-blue-300 rounded-xl px-2.5 py-1 text-xs text-blue-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                            @if(!empty($buff['icon']))
+                                                <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $buff['name'] ?? 'Wzmocnienie' }}">
+                                            @else
+                                                <span class="text-xs">⚔️</span>
+                                            @endif
+                                            <span class="font-bold font-mono text-blue-300 text-xs">{{ $buff['duration'] }}T</span>
+
+                                            {{-- Interactive Hover Infobox --}}
+                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-blue-400/80 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                                <div class="flex items-center gap-2 mb-1.5 border-b border-blue-500/30 pb-1.5">
+                                                    @if(!empty($buff['icon']))
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                    @else
+                                                        <span class="text-sm">⚔️</span>
+                                                    @endif
+                                                    <span class="text-xs font-bold text-blue-200 medieval-font tracking-wide">{{ $buff['name'] ?? 'Wzmocnienie' }}</span>
+                                                    <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/90 text-blue-200 border border-blue-400/50 font-mono">{{ $buff['duration'] }}T</span>
+                                                </div>
+                                                <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                    <div class="text-blue-300/90 font-semibold">Status: Wzmocnienie</div>
+                                                    <p class="text-slate-200">{{ $buff['description'] ?? 'Aktywne wzmocnienie postaci.' }}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -179,6 +200,9 @@
                                                 <span class="text-slate-700 italic font-semibold">
                                                     <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
                                                     pudłuje atak!
+                                                    @if (!empty($turn['dotDamage']))
+                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    @endif
                                                 </span>
                                             @elseif ($turn['type'] == 'dot')
                                                 <span class="text-purple-700 font-semibold italic">
@@ -187,18 +211,27 @@
                                             @elseif ($turn['type'] == 'skill')
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-blue-800' : 'text-red-800' }} font-semibold">
                                                     <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    używa <span class="text-indigo-600 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong> obrażeń
+                                                    używa <span class="text-indigo-600 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong>
+                                                    @if (!empty($turn['dotDamage']))
+                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    @endif
+                                                    obrażeń
                                                     @if ($turn['crit']) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
                                                 </span>
                                             @else
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-800' : 'text-red-800' }} font-semibold">
                                                     <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong> obrażeń
+                                                    zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong>
+                                                    @if (!empty($turn['dotDamage']))
+                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    @endif
+                                                    obrażeń
                                                     @if ($turn['crit']) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
                                                 </span>
                                             @endif
                                         </li>
                                     @endforeach
+                                @endif
 
                                     @if ($battleCompleted)
                                         <li class="text-center mt-6 p-4 rounded-xl {{ $result == 'win' ? 'bg-green-200/90 border-2 border-green-600 text-green-800' : 'bg-red-200/90 border-2 border-red-600 text-red-800' }} shadow-lg">
@@ -303,11 +336,40 @@
                                 </div>
                             </div>
                             @if(isset($currentState) && $currentState && !empty($currentState['dots']))
-                                <div class="flex flex-wrap gap-1 mt-2 justify-end">
+                                <div class="flex flex-wrap gap-2 justify-center mt-2">
                                     @foreach($currentState['dots'] as $dot)
-                                        <div class="bg-purple-900/80 border border-purple-400 rounded px-2 py-0.5 text-xs text-purple-100 flex items-center gap-1 shadow-sm" title="Status: {{ $dot['type'] }}">
-                                            <span>{{ $dot['type'] == 'poison' ? '🐍' : '🔥' }}</span>
-                                            <span class="font-bold">{{ $dot['duration'] }}T</span>
+                                        <div class="group relative bg-slate-900/90 border border-purple-400/70 hover:border-purple-300 rounded-xl px-2.5 py-1 text-xs text-purple-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                            @if(!empty($dot['icon']))
+                                                <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $dot['name'] ?? 'Status' }}">
+                                            @elseif(($dot['type'] ?? '') === 'poison')
+                                                <span class="text-xs">🐍</span>
+                                            @elseif(($dot['type'] ?? '') === 'fire')
+                                                <span class="text-xs">🔥</span>
+                                            @else
+                                                <span class="text-xs">✨</span>
+                                            @endif
+                                            <span class="font-bold font-mono text-purple-300 text-xs">{{ $dot['duration'] }}T</span>
+
+                                            {{-- Interactive Hover Infobox --}}
+                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-purple-400/80 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                                <div class="flex items-center gap-2 mb-1.5 border-b border-purple-500/30 pb-1.5">
+                                                    @if(!empty($dot['icon']))
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                    @elseif(($dot['type'] ?? '') === 'poison')
+                                                        <span class="text-sm">🐍</span>
+                                                    @elseif(($dot['type'] ?? '') === 'fire')
+                                                        <span class="text-sm">🔥</span>
+                                                    @else
+                                                        <span class="text-sm">✨</span>
+                                                    @endif
+                                                    <span class="text-xs font-bold text-purple-200 medieval-font tracking-wide">{{ $dot['name'] ?? (($dot['type'] ?? '') === 'poison' ? 'Otrucie' : 'Ogień') }}</span>
+                                                    <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-900/90 text-purple-200 border border-purple-400/50 font-mono">{{ $dot['duration'] }}T</span>
+                                                </div>
+                                                <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                    <div class="text-purple-300/90 font-semibold">Status: Osłabienie / DoT</div>
+                                                    <p class="text-slate-200">{{ $dot['description'] ?? ((($dot['type'] ?? '') === 'poison') ? 'Zadaje obrażenia od otrucia co turę.' : 'Zadaje obrażenia od ognia co turę.') }}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     @endforeach
                                 </div>
@@ -339,9 +401,11 @@
                 playNextTurn(speed);
             });
 
-            Livewire.on('turn-played', (data) => {
-                const actor = data.actor || (data[0] && data[0].actor);
-                const type = data.type || (data[0] && data[0].type);
+            Livewire.on('turn-played', (event) => {
+                const data = (event && event[0]) ? event[0] : event;
+                const actor = data.actor;
+                const type = data.type;
+                const dotDamage = data.dotDamage || 0;
                 const isPlayer = actor === 'player';
                 const playerPanel = document.getElementById('player-panel');
                 const enemyPanel = document.getElementById('enemy-panel');
@@ -350,7 +414,7 @@
                     playerPanel.classList.add('anim-attack-player');
                     setTimeout(() => playerPanel.classList.remove('anim-attack-player'), 300);
                     
-                    if (type === 'hit') {
+                    if (type !== 'miss' || dotDamage > 0) {
                         setTimeout(() => {
                             enemyPanel.classList.add('anim-damage');
                             setTimeout(() => enemyPanel.classList.remove('anim-damage'), 400);
@@ -360,7 +424,7 @@
                     enemyPanel.classList.add('anim-attack-enemy');
                     setTimeout(() => enemyPanel.classList.remove('anim-attack-enemy'), 300);
                     
-                    if (type === 'hit') {
+                    if (type !== 'miss' || dotDamage > 0) {
                         setTimeout(() => {
                             playerPanel.classList.add('anim-damage');
                             setTimeout(() => playerPanel.classList.remove('anim-damage'), 400);

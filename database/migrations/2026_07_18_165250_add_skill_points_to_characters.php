@@ -17,7 +17,7 @@ return new class extends Migration
         });
 
         // Wsteczne przypisanie punktów skilli postaciom (1 punkt za poziom, zaczynając od poziomu 2 - ewentualnie od 1. Przyjmijmy level - 1 punktów)
-        DB::statement('UPDATE characters SET skill_points = GREATEST(0, level - 1)');
+        DB::statement('UPDATE characters SET skill_points = CASE WHEN (level - 1) > 0 THEN (level - 1) ELSE 0 END');
     }
 
     /**
