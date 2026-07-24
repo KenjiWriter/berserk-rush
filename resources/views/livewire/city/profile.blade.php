@@ -4,7 +4,7 @@
     <div class="fixed inset-0 bg-gradient-to-b from-slate-950/60 via-slate-900/40 to-slate-950/70 pointer-events-none"></div>
     <div class="fixed inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-black/20 to-black/70 pointer-events-none"></div>
 
-    <div class="relative w-full px-2 xs:px-3 sm:px-6 md:px-10 lg:px-12 py-3 sm:py-6 md:py-8 pb-24 lg:pb-8 min-h-screen z-10">
+    <div class="relative w-full px-2 xs:px-3 sm:px-4 md:px-6 lg:px-6 xl:px-8 py-3 sm:py-5 md:py-6 pb-24 lg:pb-8 min-h-screen z-10">
         @php
             $gameStage = auth()->user()->game_stage;
         @endphp
@@ -32,14 +32,14 @@
             </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-start">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 items-start">
         
         <div class="bg-gradient-to-b from-slate-900/90 via-stone-900/85 to-slate-950/90 border-2 border-amber-500/70 rounded-2xl sm:rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-md p-3 xs:p-4 sm:p-6 flex flex-col h-full relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none"></div>
 
 
             <!-- Equipment Slots & Portrait -->
-            <div class="flex justify-center items-start gap-1.5 xs:gap-2.5 sm:gap-4 md:gap-6 lg:gap-8 mb-3 mt-1 sm:mt-2">
+            <div class="flex justify-center items-start gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 lg:gap-4 xl:gap-6 mb-3 mt-1 sm:mt-2">
                 <!-- Left Slots -->
                 <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     <!-- Pet Slot -->
@@ -64,7 +64,7 @@
                                  isDragOver = false;
                              }
                          "
-                         class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
+                         class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
                          :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver }"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
@@ -133,7 +133,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
@@ -178,8 +178,8 @@
                 </div>
 
                 <!-- Portrait & Info -->
-                <div class="flex flex-col items-center w-36 xs:w-44 sm:w-52 shrink-0" x-data="{ avatarModalOpen: false }">
-                    <div class="w-full h-[180px] xs:h-[220px] sm:h-[250px] md:h-[270px] bg-stone-950/90 border-2 sm:border-4 border-amber-600/80 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center mb-2 sm:mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
+                <div class="flex flex-col items-center w-36 xs:w-44 sm:w-48 lg:w-44 xl:w-52 shrink-0" x-data="{ avatarModalOpen: false }">
+                    <div class="w-full h-[180px] xs:h-[210px] sm:h-[240px] lg:h-[230px] xl:h-[260px] bg-stone-950/90 border-2 sm:border-4 border-amber-600/80 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center mb-2 sm:mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
@@ -346,7 +346,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid 
