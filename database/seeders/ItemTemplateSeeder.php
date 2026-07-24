@@ -25,8 +25,15 @@ class ItemTemplateSeeder extends Seeder
         ];
 
         foreach ($manualItems as $item) {
-            ItemTemplate::updateOrCreate(['name' => $item['name']], $item);
+            $existing = ItemTemplate::where('name', $item['name'])->first();
+            if ($existing) {
+                unset($item['id']);
+                $existing->update($item);
+            } else {
+                ItemTemplate::create($item);
+            }
         }
+
 
 
         $prototypes = [
