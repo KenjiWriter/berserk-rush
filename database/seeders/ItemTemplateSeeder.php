@@ -10,20 +10,12 @@ class ItemTemplateSeeder extends Seeder
 {
     public function run(): void
     {
-        \App\Infrastructure\Persistence\ItemRecipe::query()->delete();
-        \App\Infrastructure\Persistence\MerchantItem::query()->delete();
-        ItemTemplate::query()->delete();
-
-
         $manualItems = [
             // Consumables
             ['id' => Str::ulid(), 'name' => 'Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['heal_amount' => 25], 'description' => 'Czerwona mikstura.', 'icon' => 'bagienne-ziolo.png', 'rarity_weights' => ['common' => 80, 'uncommon' => 15, 'rare' => 5]],
             ['id' => Str::ulid(), 'name' => 'Eliksir Many', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 2, 'base_stats' => ['mana_amount' => 30], 'description' => 'Niebieska mikstura.', 'icon' => 'czysta-mana.png', 'rarity_weights' => ['common' => 75, 'uncommon' => 20, 'rare' => 5]],
             ['id' => Str::ulid(), 'name' => 'Wielka Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 5, 'base_stats' => ['heal_amount' => 150], 'description' => 'Potężna mikstura.', 'icon' => 'metna-woda.png', 'rarity_weights' => ['common' => 60, 'uncommon' => 30, 'rare' => 10]],
 
-            // Materials
-
-            
             // Keys & Tutorial / Starter Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
             ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
@@ -32,10 +24,10 @@ class ItemTemplateSeeder extends Seeder
             ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
 
-
         foreach ($manualItems as $item) {
-            ItemTemplate::create($item);
+            ItemTemplate::updateOrCreate(['name' => $item['name']], $item);
         }
+
 
         $prototypes = [
             'sword'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 2]],
@@ -201,23 +193,27 @@ class ItemTemplateSeeder extends Seeder
 
                 $name = $theme['names'][$protoKey] ?? ('Przedmiot ' . $protoKey);
 
-                ItemTemplate::create([
-                    'id' => Str::ulid(),
-                    'name' => $name,
-                    'type' => $proto['type'],
-                    'slot' => $proto['slot'],
-                    'level_requirement' => $theme['level'],
-                    'base_stats' => $scaledStats,
-                    'description' => "Potężny artefakt odpowiedni dla poziomu " . $theme['level'] . ".",
-                    'icon' => Str::slug($name),
-                    'rarity_weights' => [
-                        'common' => 50,
-                        'uncommon' => 30,
-                        'rare' => 15,
-                        'epic' => 4,
-                        'legendary' => 1
-                    ],
-                ]);
+                $existing = ItemTemplate::where('name', $name)->first();
+                if (!$existing) {
+                    ItemTemplate::create([
+                        'id' => Str::ulid(),
+                        'name' => $name,
+                        'type' => $proto['type'],
+                        'slot' => $proto['slot'],
+                        'level_requirement' => $theme['level'],
+                        'base_stats' => $scaledStats,
+                        'description' => "Potężny artefakt odpowiedni dla poziomu " . $theme['level'] . ".",
+                        'icon' => Str::slug($name),
+                        'rarity_weights' => [
+                            'common' => 50,
+                            'uncommon' => 30,
+                            'rare' => 15,
+                            'epic' => 4,
+                            'legendary' => 1
+                        ],
+                    ]);
+                }
+
                 $generatedCount++;
             }
         }
