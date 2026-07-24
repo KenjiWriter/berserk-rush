@@ -34,6 +34,7 @@ class Witch extends Component
     {
         $this->activeTab = $tab;
         $this->message = '';
+        $this->dispatch('play-audio', type: 'tab');
     }
 
     public function backToHub(): void
@@ -211,6 +212,8 @@ class Witch extends Component
             $preparedRecipes[] = [
                 'id' => $recipe->id,
                 'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
+                'result_icon' => $recipe->resultItemTemplate->icon ?? null,
+                'result_description' => $recipe->resultItemTemplate->description ?? null,
                 'gold_cost' => $recipe->gold_cost,
                 'ingredients' => $preparedIngredients,
                 'can_craft' => $canCraft,
