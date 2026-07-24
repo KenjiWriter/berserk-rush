@@ -33,7 +33,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.05,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'powerful-strike',
+                'icon' => 'powerful-strike.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -48,7 +48,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'cleave-axe',
+                'icon' => 'cleave-axe.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -63,7 +63,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.005,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'fireball',
+                'icon' => 'fireball.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -78,7 +78,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'light-beam',
+                'icon' => 'light-beam.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -93,7 +93,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.01,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'poison-arrow',
+                'icon' => 'poison-arrow.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -108,7 +108,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 10,
                 'unlock_cost' => 5,
-                'icon' => 'quick-stab',
+                'icon' => 'quick-stab.png',
             ],
 
             // ==========================================
@@ -127,7 +127,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.05,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'battle-cry',
+                'icon' => 'battle-cry.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -142,7 +142,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.20,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'whirlwind-sword',
+                'icon' => 'whirlwind-sword.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -157,7 +157,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.20,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'ice-bolt',
+                'icon' => 'ice-bolt.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -172,7 +172,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.05,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'shaman-blessing',
+                'icon' => 'shaman-blessing.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -187,7 +187,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.01,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'fire-arrow',
+                'icon' => 'fire-arrow.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -202,7 +202,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.01,
                 'required_level' => 25,
                 'unlock_cost' => 15,
-                'icon' => 'poison-dagger',
+                'icon' => 'poison-dagger.png',
             ],
 
             // ==========================================
@@ -221,7 +221,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.01,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'crushing-axe',
+                'icon' => 'crushing-axe.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -236,7 +236,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.25,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'knight-charge',
+                'icon' => 'knight-charge.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -251,7 +251,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.01,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'hellfire',
+                'icon' => 'hellfire.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -266,7 +266,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.25,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'destiny-bell',
+                'icon' => 'destiny-bell.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -281,7 +281,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.25,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'arrow-rain',
+                'icon' => 'arrow-rain.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -296,7 +296,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.30,
                 'required_level' => 45,
                 'unlock_cost' => 30,
-                'icon' => 'backstab',
+                'icon' => 'backstab.png',
             ],
 
             // ==========================================
@@ -315,7 +315,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.08,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'berserker-rage',
+                'icon' => 'berserker-rage.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -330,7 +330,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.30,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'dragon-slash',
+                'icon' => 'dragon-slash.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -345,7 +345,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.30,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'lightning-strike',
+                'icon' => 'lightning-strike.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -360,7 +360,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.08,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'holy-aura',
+                'icon' => 'holy-aura.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -375,7 +375,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.35,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'heart-shot',
+                'icon' => 'heart-shot.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -390,7 +390,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.10,
                 'required_level' => 60,
                 'unlock_cost' => 45,
-                'icon' => 'shadow-dance',
+                'icon' => 'shadow-dance.png',
             ],
 
             // ==========================================
@@ -409,7 +409,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.10,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'iron-bastion',
+                'icon' => 'iron-bastion.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -424,7 +424,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.015,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'infernal-slash',
+                'icon' => 'infernal-slash.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -439,7 +439,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.015,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'dark-meteor',
+                'icon' => 'dark-meteor.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -454,7 +454,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.40,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'beam-doom',
+                'icon' => 'beam-doom.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -469,7 +469,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.02,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'venom-rain',
+                'icon' => 'venom-rain.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -484,7 +484,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.45,
                 'required_level' => 80,
                 'unlock_cost' => 60,
-                'icon' => 'fatal-shadow',
+                'icon' => 'fatal-shadow.png',
             ],
 
             // ==========================================
@@ -503,7 +503,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.50,
                 'required_level' => 95,
                 'unlock_cost' => 80,
-                'icon' => 'world-render',
+                'icon' => 'world-render.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -518,7 +518,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 95,
                 'unlock_cost' => 80,
-                'icon' => 'divine-bastion',
+                'icon' => 'divine-bastion.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -533,7 +533,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.02,
                 'required_level' => 100,
                 'unlock_cost' => 100,
-                'icon' => 'elemental-apocalypse',
+                'icon' => 'elemental-apocalypse.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -548,7 +548,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.60,
                 'required_level' => 100,
                 'unlock_cost' => 100,
-                'icon' => 'divine-light',
+                'icon' => 'divine-light.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -563,7 +563,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.55,
                 'required_level' => 100,
                 'unlock_cost' => 100,
-                'icon' => 'god-shot',
+                'icon' => 'god-shot.png',
             ],
             [
                 'id' => Str::ulid(),
@@ -578,7 +578,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.025,
                 'required_level' => 100,
                 'unlock_cost' => 100,
-                'icon' => 'void-blade',
+                'icon' => 'void-blade.png',
             ],
         ];
 

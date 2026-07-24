@@ -34,7 +34,9 @@ class Warlock extends Component
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Odblokowano nową umiejętność!');
+            $this->dispatch('play-audio', type: 'upgrade-success');
             $this->character->refresh();
+            $this->dispatch('stats-updated');
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -47,7 +49,9 @@ class Warlock extends Component
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Umiejętność została rozwinięta!');
+            $this->dispatch('play-audio', type: 'upgrade-success');
             $this->character->refresh();
+            $this->dispatch('stats-updated');
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }

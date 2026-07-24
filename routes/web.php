@@ -126,16 +126,22 @@ Route::get('/assets/items/{filename}', function ($filename) {
 })->where('filename', '.*')->name('assets.items');
 
 Route::get('/assets/skills/icons/{filename}', function ($filename) {
-    $paths = [
-        storage_path('app/assets/skills/icons/' . $filename),
-        storage_path('app/public/skills/' . $filename),
-        public_path('img/skills/' . $filename),
-        public_path('assets/skills/icons/' . $filename),
+    $hasExt = pathinfo($filename, PATHINFO_EXTENSION) !== '';
+    $files = $hasExt ? [$filename] : [$filename, $filename . '.png'];
+
+    $directories = [
+        public_path('assets/skills/icons/'),
+        public_path('img/skills/'),
+        storage_path('app/assets/skills/icons/'),
+        storage_path('app/public/skills/'),
     ];
 
-    foreach ($paths as $path) {
-        if (file_exists($path) && !is_dir($path)) {
-            return response()->file($path);
+    foreach ($directories as $dir) {
+        foreach ($files as $file) {
+            $path = $dir . $file;
+            if (file_exists($path) && !is_dir($path)) {
+                return response()->file($path);
+            }
         }
     }
 
