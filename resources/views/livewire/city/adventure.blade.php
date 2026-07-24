@@ -126,7 +126,30 @@
                     $isFirstMapTutorial = $isAccessible && $gameStage == 10 && $map->level_min == 0;
                 @endphp
 
-                <div class="relative group h-full flex flex-col" x-data="{ showBestiaryModal: false, showBossModal: false, selectedMonster: '{{ $map->monsters->first()->id ?? '' }}' }">
+                <div class="relative group h-full flex flex-col" x-data="{ 
+                    showBestiaryModal: false, 
+                    showBossModal: false, 
+                    turningPage: false,
+                    turnDirection: 'next',
+                    monsterIds: [ @foreach($map->monsters as $m) '{{ $m->id }}', @endforeach ],
+                    selectedMonsterId: '{{ $map->monsters->first()->id ?? '' }}',
+                    selectMonster(id) {
+                        if (this.selectedMonsterId === id || this.turningPage) return;
+                        let currIdx = this.monsterIds.indexOf(this.selectedMonsterId);
+                        let targetIdx = this.monsterIds.indexOf(id);
+                        this.turnDirection = targetIdx >= currIdx ? 'next' : 'prev';
+
+                        this.turningPage = true;
+                        $dispatch('play-audio', { type: 'book_turn' });
+                        setTimeout(() => {
+                            this.selectedMonsterId = id;
+                        }, 220);
+                        setTimeout(() => {
+                            this.turningPage = false;
+                        }, 450);
+                    }
+                }">
+
                     <div class="bg-slate-900/90 border-2 {{ $isAccessible ? 'border-emerald-800/60 hover:border-emerald-400' : 'border-slate-800 opacity-60' }} rounded-2xl shadow-xl backdrop-blur-md transition-all duration-300 flex flex-col h-full overflow-hidden {{ $isAccessible ? 'hover:shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:-translate-y-1' : '' }} {{ $isFirstMapTutorial ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.6)] relative z-10' : '' }}">
 
                         {{-- Current Level Badge --}}
@@ -236,27 +259,6 @@
                                  x-transition:leave="transition ease-in duration-200"
                                  x-transition:leave-start="opacity-100 scale-100"
                                  x-transition:leave-end="opacity-0 scale-95"
-                                 x-data="{ 
-                                     turningPage: false,
-                                     turnDirection: 'next',
-                                     monsterIds: [ @foreach($map->monsters as $m) '{{ $m->id }}', @endforeach ],
-                                     selectedMonsterId: '{{ $map->monsters->first()->id ?? '' }}',
-                                     selectMonster(id) {
-                                         if (this.selectedMonsterId === id || this.turningPage) return;
-                                         let currIdx = this.monsterIds.indexOf(this.selectedMonsterId);
-                                         let targetIdx = this.monsterIds.indexOf(id);
-                                         this.turnDirection = targetIdx >= currIdx ? 'next' : 'prev';
-
-                                         this.turningPage = true;
-                                         $dispatch('play-audio', { type: 'book_turn' });
-                                         setTimeout(() => {
-                                             this.selectedMonsterId = id;
-                                         }, 220);
-                                         setTimeout(() => {
-                                             this.turningPage = false;
-                                         }, 450);
-                                     }
-                                 }"
                                  class="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
                                 
                                 <div @click.outside="showBestiaryModal = false" 
