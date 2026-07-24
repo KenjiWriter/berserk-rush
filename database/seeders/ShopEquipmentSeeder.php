@@ -133,26 +133,23 @@ class ShopEquipmentSeeder extends Seeder
                 $name = $theme['names'][$protoKey];
                 $iconName = Str::slug($name);
 
-                $templateId = ($name === 'Miecz Nowicjusza') ? 'miecz-nowicjusza' : Str::ulid();
-
-                // Sprawdzamy czy template istnieje z seedera ItemTemplate (Miecz nowicjusza był wpisany ręcznie z innym ID, usuniemy go wcześniej lub nadpiszemy/użyjemy firstOrCreate wg nazwy).
-                // Najlepiej usunąć dotychczasowego miecza nowicjusza żeby nie było duplikatów.
-                ItemTemplate::where('name', $name)->delete();
-                ItemTemplate::where('id', $templateId)->delete();
-
-                $template = ItemTemplate::create([
-                    'id' => $templateId,
-                    'name' => $name,
-                    'type' => $proto['type'],
-                    'slot' => $proto['slot'],
-                    'level_requirement' => $theme['level'],
-                    'base_stats' => $scaledStats,
-                    'description' => $merchantTarget === 'gladiator' ? "Artefakt z krwawej areny." : "Standardowe wyposażenie poziomu " . $theme['level'] . ".",
-                    'icon' => $iconName,
-                    'rarity_weights' => [
-                        'common' => 100 // Sklepowe są zawsze pospolite
-                    ],
-                ]);
+                $template = ItemTemplate::where('name', $name)->first();
+                if (!$template) {
+                    $templateId = ($name === 'Miecz Nowicjusza') ? '01k4jpx94j70x2vv10b835nov1' : (string) Str::ulid();
+                    $template = ItemTemplate::create([
+                        'id' => $templateId,
+                        'name' => $name,
+                        'type' => $proto['type'],
+                        'slot' => $proto['slot'],
+                        'level_requirement' => $theme['level'],
+                        'base_stats' => $scaledStats,
+                        'description' => $merchantTarget === 'gladiator' ? "Artefakt z krwawej areny." : "Standardowe wyposażenie poziomu " . $theme['level'] . ".",
+                        'icon' => $iconName,
+                        'rarity_weights' => [
+                            'common' => 100
+                        ],
+                    ]);
+                }
 
                 // Przypisanie do handlarza
                 if ($merchantTarget === 'gladiator') {
@@ -161,11 +158,16 @@ class ShopEquipmentSeeder extends Seeder
                     $merchantId = ($proto['type'] === 'weapon') ? 'weaponsmith' : 'armorsmith';
                 }
 
-                MerchantItem::create([
-                    'merchant_id' => $merchantId,
-                    'item_template_id' => $template->id,
-                    'required_level' => $theme['level'],
-                ]);
+                MerchantItem::updateOrCreate(
+                    [
+                        'merchant_id' => $merchantId,
+                        'item_template_id' => $template->id,
+                    ],
+                    [
+                        'required_level' => $theme['level'],
+                    ]
+                );
+
 
                 $generatedCount++;
             }

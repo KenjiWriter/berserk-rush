@@ -24,12 +24,14 @@ class ItemTemplateSeeder extends Seeder
             // Materials
 
             
-            // Keys & Tutorial Equipment
+            // Keys & Tutorial / Starter Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
             ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 6, 'str_bonus' => 2], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
             ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
             ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
+
 
         foreach ($manualItems as $item) {
             ItemTemplate::create($item);
