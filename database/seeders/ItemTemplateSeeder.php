@@ -10,7 +10,10 @@ class ItemTemplateSeeder extends Seeder
 {
     public function run(): void
     {
+        \App\Infrastructure\Persistence\ItemRecipe::query()->delete();
+        \App\Infrastructure\Persistence\MerchantItem::query()->delete();
         ItemTemplate::query()->delete();
+
 
         $manualItems = [
             // Consumables
