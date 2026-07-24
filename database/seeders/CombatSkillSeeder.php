@@ -11,10 +11,11 @@ class CombatSkillSeeder extends Seeder
     public function run(): void
     {
         // Truncate or delete existing combat skills to reseed cleanly
-        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         DB::table('character_combat_skills')->truncate();
         DB::table('combat_skills')->truncate();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+        \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
+
 
         $skills = [
             // ==========================================
