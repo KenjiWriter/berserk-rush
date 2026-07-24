@@ -69,7 +69,10 @@ class MapSeeder extends Seeder
         ];
 
         foreach ($maps as $mapData) {
-            Map::create($mapData);
+            Map::updateOrCreate(
+                ['name' => $mapData['name']],
+                $mapData
+            );
         }
     }
 }
