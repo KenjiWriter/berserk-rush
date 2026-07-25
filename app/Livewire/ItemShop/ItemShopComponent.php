@@ -76,6 +76,51 @@ class ItemShopComponent extends Component
         $this->dispatch('notify', message: 'Pomyślnie zakupiono avatar!', type: 'success');
     }
 
+    public function mount()
+    {
+        if (request()->has('success') && request()->has('session_id')) {
+            $sessionId = request('session_id');
+            $this->processSessionGems($sessionId);
+        }
+    }
+
+    protected function processSessionGems(string $sessionId)
+    {
+        Stripe::setApiKey(config('services.stripe.secret'));
+        try {
+            $session = Session::retrieve($sessionId);
+        } catch (\Exception $e) {
+            return;
+        }
+
+        if ($session->payment_status !== 'paid') {
+            return;
+        }
+
+        $userId = $session->metadata->user_id ?? $session->client_reference_id ?? null;
+        $gemAmount = (int) ($session->metadata->gem_amount ?? 0);
+
+        if (!$userId || $gemAmount <= 0) {
+            return;
+        }
+
+        $cacheKey = 'stripe_processed_session_' . $session->id;
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            return;
+        }
+
+        $user = \App\Models\User::find($userId);
+        if ($user) {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($user, $gemAmount, $cacheKey) {
+                $user->gems += $gemAmount;
+                $user->save();
+                \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addDays(30));
+            });
+
+            $this->dispatch('notify', message: "Dziękujemy! Przypisano $gemAmount Gemów do Twojego konta.", type: 'success');
+        }
+    }
+
     public function buyGems(string $packageId)
     {
         $user = Auth::user();
@@ -102,7 +147,7 @@ class ItemShopComponent extends Component
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => route('itemshop') . '?success=1',
+            'success_url' => route('itemshop') . '?success=1&session_id={CHECKOUT_SESSION_ID}',
             'cancel_url' => route('itemshop') . '?cancel=1',
             'client_reference_id' => $user->id,
             'metadata' => [

@@ -53,14 +53,19 @@ class StripeWebhookController extends Controller
         }
 
         $metadata = $session->metadata;
+        $userId = $metadata->user_id ?? $session->client_reference_id ?? null;
+        $gemAmount = (int) ($metadata->gem_amount ?? 0);
         
-        if (!isset($metadata->user_id) || !isset($metadata->gem_amount)) {
+        if (!$userId || $gemAmount <= 0) {
             Log::error('Stripe Webhook Error: Missing metadata in session', ['session_id' => $session->id]);
             return;
         }
 
-        $userId = $metadata->user_id;
-        $gemAmount = (int) $metadata->gem_amount;
+        $cacheKey = 'stripe_processed_session_' . $session->id;
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            Log::info('Stripe Webhook: Session already processed', ['session_id' => $session->id]);
+            return;
+        }
 
         $user = User::find($userId);
         if (!$user) {
@@ -68,9 +73,10 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        DB::transaction(function () use ($user, $gemAmount) {
+        DB::transaction(function () use ($user, $gemAmount, $cacheKey) {
             $user->gems += $gemAmount;
             $user->save();
+            \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addDays(30));
         });
 
         Log::info("Stripe Webhook: Successfully added $gemAmount gems to user {$user->id}");
