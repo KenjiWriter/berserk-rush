@@ -79,6 +79,7 @@ class GlobalChatComponent extends Component
             'sent_at'         => $event['sent_at'],
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
+            'is_admin'        => $event['is_admin'] ?? false,
             'received_at'     => now()->timestamp,
         ];
 
@@ -104,6 +105,7 @@ class GlobalChatComponent extends Component
             'channel'         => 'guild',
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
+            'is_admin'        => $event['is_admin'] ?? false,
             'received_at'     => now()->timestamp,
         ];
 
@@ -205,6 +207,8 @@ class GlobalChatComponent extends Component
             $titlePrefix = $character->activeTitle->prefix;
         }
 
+        $isAdmin = ($character->user->permission_level == 9);
+
         if ($this->currentChannel === 'guild' && $character->guild_id) {
             broadcast(new \App\Domain\Social\Events\GuildMessageSent(
                 characterName:  $character->name,
@@ -216,6 +220,7 @@ class GlobalChatComponent extends Component
                 guildId:        $character->guild_id,
                 titlePrefix:    $titlePrefix,
                 isPremium:      $character->user->hasPremium(),
+                isAdmin:        $isAdmin,
             ));
         } else {
             broadcast(new MessageSent(
@@ -227,6 +232,7 @@ class GlobalChatComponent extends Component
                 characterId:    $character->id,
                 titlePrefix:    $titlePrefix,
                 isPremium:      $character->user->hasPremium(),
+                isAdmin:        $isAdmin,
             ));
         }
 

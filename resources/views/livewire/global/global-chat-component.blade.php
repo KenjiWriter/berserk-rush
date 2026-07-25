@@ -226,6 +226,9 @@
                         @else
                             {{-- Nick + hover tooltip trigger --}}
                             <div class="relative ml-1">
+                                @if($msg['is_admin'] ?? false)
+                                    <span class="text-[10px] text-red-400 font-extrabold bg-red-950/80 px-1 py-0.5 rounded border border-red-600/60 mr-1 font-mono tracking-wider shadow-[0_0_8px_rgba(239,68,68,0.5)]">[A]</span>
+                                @endif
                                 @if(!empty($msg['title_prefix']))
                                     <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mr-1" title="Tytuł">{{ $msg['title_prefix'] }}</span>
                                 @endif
@@ -233,7 +236,7 @@
                                     wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
                                     wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"
                                     class="font-bold cursor-pointer lg:cursor-help transition-colors hover:underline decoration-dotted 
-                                    {{ ($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200' }}"
+                                    {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200') }}"
                                 >
                                     @if($msg['is_premium'] ?? false)
                                         <span class="inline-block relative">
@@ -328,6 +331,14 @@
     }
     .premium-glow {
         animation: premiumGlow 2s ease-in-out infinite;
+    }
+
+    @keyframes adminGlow {
+        0%, 100% { text-shadow: 0 0 4px rgba(239,68,68,0.6), 0 0 8px rgba(239,68,68,0.4); }
+        50% { text-shadow: 0 0 8px rgba(239,68,68,1), 0 0 16px rgba(239,68,68,0.7); }
+    }
+    .admin-glow {
+        animation: adminGlow 2s ease-in-out infinite;
     }
 </style>
 </div>

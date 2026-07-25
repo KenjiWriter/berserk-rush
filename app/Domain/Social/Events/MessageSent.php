@@ -21,6 +21,7 @@ class MessageSent implements ShouldBroadcastNow
         public readonly string $characterId,
         public readonly ?string $titlePrefix = null,
         public readonly bool $isPremium = false,
+        public readonly bool $isAdmin = false,
     ) {}
 
     public function broadcastOn(): array
@@ -29,8 +30,6 @@ class MessageSent implements ShouldBroadcastNow
             new Channel('global-chat'),
         ];
     }
-
-
 
     public function broadcastWith(): array
     {
@@ -43,6 +42,7 @@ class MessageSent implements ShouldBroadcastNow
             'sent_at'         => $this->sentAt,
             'title_prefix'    => $this->titlePrefix,
             'is_premium'      => $this->isPremium,
+            'is_admin'        => $this->isAdmin,
         ];
     }
 }
