@@ -717,7 +717,7 @@
                                                 <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
                                             @else
                                                 @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
-                                                    <button @click.stop="open = false; flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ $item->template->slot }}', () => $wire.equipItem('{{ $item->id }}'))" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                    <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="open = false; flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
                                                         Załóż sprzęt
                                                     </button>
                                                 @elseif($item->template->type === 'consumable')
