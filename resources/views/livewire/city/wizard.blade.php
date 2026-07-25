@@ -212,7 +212,7 @@
                                     </div>
                                 @endif
                                 @if($item->stack_size > 1)
-                                    <span class="absolute top-0 -left-1 text-white font-bold text-[9px] bg-black/80 px-1 py-0.5 rounded border border-gray-600 shadow">x{{ $item->stack_size }}</span>
+                                    <span class="absolute bottom-0 right-0 text-white font-bold text-[9px] bg-black/80 px-1 py-0.5 rounded border border-gray-600 shadow">x{{ $item->stack_size }}</span>
                                 @endif
                             </div>
 

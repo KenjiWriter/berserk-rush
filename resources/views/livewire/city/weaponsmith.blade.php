@@ -72,7 +72,7 @@
                                                         <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
                                                     @endif
                                                     @if(($item->stack_size ?? 1) > 1)
-                                                        <span class="absolute top-1 left-1 text-white font-bold text-xs bg-black/80 border border-slate-600 px-1.5 py-0.5 rounded shadow">x{{ $item->stack_size }}</span>
+                                                        <span class="absolute bottom-1 right-1 text-white font-bold text-xs bg-black/80 border border-slate-600 px-1.5 py-0.5 rounded shadow">x{{ $item->stack_size }}</span>
                                                     @endif
                                                 </div>
                                             @else
