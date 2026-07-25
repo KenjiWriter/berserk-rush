@@ -162,6 +162,28 @@ class Quests extends Component
         return "Wykonaj zadanie";
     }
 
+    public function getQuestProgress(CharacterQuest $cq): int
+    {
+        if ($cq->quest->type->value === 'gathering') {
+            return app(QuestService::class)->getGatheringItemCount($this->character, $cq->quest);
+        }
+        return $cq->progress;
+    }
+
+    public function isQuestReadyToClaim(CharacterQuest $cq): bool
+    {
+        if ($cq->status->value === \App\Domain\Quests\Enums\QuestStatus::COMPLETED->value) {
+            return true;
+        }
+
+        if ($cq->quest->type->value === 'gathering') {
+            $itemCount = app(QuestService::class)->getGatheringItemCount($this->character, $cq->quest);
+            return $itemCount >= $cq->quest->target_amount;
+        }
+
+        return false;
+    }
+
     public function render()
     {
         $questService = app(QuestService::class);

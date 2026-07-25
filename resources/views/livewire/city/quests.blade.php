@@ -171,19 +171,23 @@
                         </div>
                         
                         @forelse($activeQuests as $cq)
-                            @php $quest = $cq->quest; @endphp
+                            @php 
+                                $quest = $cq->quest; 
+                                $currentProgress = $this->getQuestProgress($cq);
+                                $isReadyToClaim = $this->isQuestReadyToClaim($cq);
+                            @endphp
                             <div class="relative bg-gradient-to-b from-[#101a26] to-[#0c131d] border-2 border-sky-700/60 hover:border-sky-400/80 rounded-xl p-5 mb-5 shadow-xl transition-all duration-300 hover:scale-[1.01] group overflow-hidden">
                                 <div class="flex justify-between items-start mb-3">
                                     <h3 class="text-xl font-bold text-sky-200 group-hover:text-sky-100 transition-colors medieval-font">
                                         {{ $quest->name }}
                                     </h3>
-                                    @if($cq->status->value === 'completed')
+                                    @if($isReadyToClaim)
                                         <span class="text-xs font-bold bg-emerald-900/90 text-emerald-200 border border-emerald-500/70 px-3 py-1 rounded-md shadow-md animate-pulse flex items-center gap-1">
-                                            <span>✓</span> Ukończone
+                                            <span>✓</span> {{ $quest->type->value === 'gathering' ? 'Gotowe do oddania' : 'Ukończone' }}
                                         </span>
                                     @else
                                         <span class="text-xs font-bold bg-sky-950 text-sky-300 border border-sky-700/60 px-2.5 py-1 rounded-md shadow-inner">
-                                            {{ $cq->progress }} / {{ $quest->target_amount }}
+                                            {{ $currentProgress }} / {{ $quest->target_amount }}
                                         </span>
                                     @endif
                                 </div>
@@ -217,20 +221,24 @@
                                     @endif
                                 </div>
                                 
-                                @if($cq->status->value === 'completed' || $quest->type->value === 'gathering')
+                                @if($isReadyToClaim)
                                     <button wire:click="claimReward('{{ $cq->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                                             class="w-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-4 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200 medieval-font flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider {{ $gameStage == 27 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
-                                        <span>🎁</span> Odbierz Nagrodę
+                                        @if($quest->type->value === 'gathering')
+                                            <span>📦</span> Oddaj przedmioty
+                                        @else
+                                            <span>🎁</span> Odbierz Nagrodę
+                                        @endif
                                     </button>
                                 @else
                                     {{-- Progress Bar --}}
                                     <div class="mt-3">
                                         <div class="flex justify-between text-xs text-sky-300/80 font-bold mb-1">
-                                            <span>Postęp misji</span>
-                                            <span>{{ round(($cq->progress / max(1, $quest->target_amount)) * 100) }}%</span>
+                                            <span>Postęp {{ $quest->type->value === 'gathering' ? 'zbierania' : 'misji' }}</span>
+                                            <span>{{ round(($currentProgress / max(1, $quest->target_amount)) * 100) }}%</span>
                                         </div>
                                         <div class="w-full bg-stone-950 rounded-full h-3 border border-sky-900/80 shadow-inner overflow-hidden">
-                                            <div class="bg-gradient-to-r from-sky-600 to-cyan-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(56,189,248,0.5)]" style="width: {{ min(100, ($cq->progress / max(1, $quest->target_amount)) * 100) }}%"></div>
+                                            <div class="bg-gradient-to-r from-sky-600 to-cyan-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(56,189,248,0.5)]" style="width: {{ min(100, ($currentProgress / max(1, $quest->target_amount)) * 100) }}%"></div>
                                         </div>
                                     </div>
                                 @endif

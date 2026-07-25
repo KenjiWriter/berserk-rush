@@ -192,17 +192,21 @@ class QuestService
         }
     }
 
-    private function hasRequiredGatheringItems(Character $character, Quest $quest): bool
+    public function getGatheringItemCount(Character $character, Quest $quest): int
     {
-        $templateId = $quest->target_id;
-        $requiredAmount = $quest->target_amount;
+        if ($quest->type !== QuestType::GATHERING) {
+            return 0;
+        }
 
-        $totalAmount = ItemInstance::where('owner_character_id', $character->id)
-            ->where('template_id', $templateId)
+        return (int) ItemInstance::where('owner_character_id', $character->id)
+            ->where('template_id', $quest->target_id)
             ->where('location', 'inventory')
             ->sum('stack_size');
+    }
 
-        return $totalAmount >= $requiredAmount;
+    private function hasRequiredGatheringItems(Character $character, Quest $quest): bool
+    {
+        return $this->getGatheringItemCount($character, $quest) >= $quest->target_amount;
     }
 
     private function takeGatheringItems(Character $character, Quest $quest): void

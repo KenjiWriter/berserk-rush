@@ -58,7 +58,7 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Twój Ekwipunek</h3>
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 @forelse($inventoryItems as $item)
-                                    <div class="relative" x-data="{ showInfo: false, timeout: null }" 
+                                    <div wire:key="inv-{{ $item->id }}" class="relative" x-data="{ showInfo: false, timeout: null }" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
                                          @mouseenter="clearTimeout(timeout); showInfo = true"
                                          @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
@@ -118,7 +118,7 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Asortyment</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 @forelse($shopItems as $item)
-                                    <div class="relative" x-data="{ showInfo: false, timeout: null }" 
+                                    <div wire:key="shop-{{ $item->id }}" class="relative" x-data="{ showInfo: false, timeout: null }" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
                                          @mouseenter="clearTimeout(timeout); showInfo = true"
                                          @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
@@ -323,7 +323,8 @@
                 @elseif($activeTab === 'crafting')
                     <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pt-6 pb-6 pr-2">
                         @forelse($recipes as $recipe)
-                            <div x-data="{ showInfo: false, timeout: null }" 
+                            <div wire:key="recipe-{{ $recipe['id'] }}"
+                                 x-data="{ showInfo: false, timeout: null }" 
                                  :class="{ 'z-[100]': showInfo, 'z-10': !showInfo }"
                                  class="bg-black/60 border border-amber-600/30 hover:border-amber-500/80 transition-all rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-xl backdrop-blur relative">
                                 

@@ -142,7 +142,8 @@
                     @if(count($listings) > 0)
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             @foreach($listings as $listing)
-                                <div class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_15px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all duration-200 relative group
+                                <div wire:key="listing-{{ $listing->id }}"
+                                     class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_15px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all duration-200 relative group
                                     @if($listing->item->rarity === 'common') border-stone-700
                                     @elseif($listing->item->rarity === 'uncommon') border-emerald-600/80 shadow-[0_0_10px_rgba(16,185,129,0.2)]
                                     @elseif($listing->item->rarity === 'rare') border-sky-500/80 shadow-[0_0_10px_rgba(56,189,248,0.2)]

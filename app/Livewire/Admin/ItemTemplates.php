@@ -46,15 +46,22 @@ class ItemTemplates extends Component
     public function loadAvailableIcons()
     {
         $this->availableIcons = [];
-        $path = storage_path('app/assets/items');
-        if (\Illuminate\Support\Facades\File::exists($path)) {
-            $files = \Illuminate\Support\Facades\File::files($path);
-            foreach ($files as $file) {
-                if (in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'])) {
-                    $this->availableIcons[] = $file->getFilename();
+        $paths = [
+            public_path('assets/items'),
+            storage_path('app/assets/items'),
+        ];
+
+        foreach ($paths as $path) {
+            if (\Illuminate\Support\Facades\File::exists($path)) {
+                $files = \Illuminate\Support\Facades\File::files($path);
+                foreach ($files as $file) {
+                    if (in_array(strtolower($file->getExtension()), ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'])) {
+                        $this->availableIcons[] = $file->getFilename();
+                    }
                 }
             }
         }
+        $this->availableIcons = array_values(array_unique($this->availableIcons));
     }
 
     public function updatedSearch()
