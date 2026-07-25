@@ -57,8 +57,31 @@ class GetMarketListingsQuery
 
         // Filter by item slot/type
         if (!empty($filters['slot'])) {
-            $query->whereHas('item.template', function ($q) use ($filters) {
-                $q->where('slot', $filters['slot']);
+            $slotFilter = $filters['slot'];
+            $query->whereHas('item.template', function ($q) use ($slotFilter) {
+                if (in_array($slotFilter, ['weapon', 'main_hand'])) {
+                    $q->where(function ($sub) {
+                        $sub->where('type', 'weapon')
+                            ->orWhere('slot', 'main_hand')
+                            ->orWhere('slot', 'weapon');
+                    });
+                } elseif (in_array($slotFilter, ['boots', 'feet'])) {
+                    $q->whereIn('slot', ['feet', 'boots']);
+                } elseif ($slotFilter === 'accessory') {
+                    $q->where(function ($sub) {
+                        $sub->where('type', 'accessory')
+                            ->orWhereIn('slot', ['ring', 'neck', 'accessory']);
+                    });
+                } elseif ($slotFilter === 'material') {
+                    $q->where('type', 'material');
+                } elseif ($slotFilter === 'consumable') {
+                    $q->where('type', 'consumable');
+                } else {
+                    $q->where(function ($sub) use ($slotFilter) {
+                        $sub->where('slot', $slotFilter)
+                            ->orWhere('type', $slotFilter);
+                    });
+                }
             });
         }
 

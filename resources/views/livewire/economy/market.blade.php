@@ -101,12 +101,15 @@
                             <div>
                                 <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Kategoria (Slot)</label>
                                 <select wire:model.live="slot" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
-                                    <option value="">Wszystkie Kategorię</option>
-                                    <option value="weapon">Broń</option>
+                                    <option value="">Wszystkie Kategorie</option>
+                                    <option value="main_hand">Broń</option>
                                     <option value="head">Głowa</option>
                                     <option value="chest">Zbroja</option>
-                                    <option value="legs">Nogi</option>
                                     <option value="boots">Buty</option>
+                                    <option value="ring">Pierścień</option>
+                                    <option value="neck">Naszyjnik</option>
+                                    <option value="material">Materiały</option>
+                                    <option value="consumable">Mikstury</option>
                                 </select>
                             </div>
 

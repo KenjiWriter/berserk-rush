@@ -69,6 +69,11 @@ class Character extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function getGemsAttribute(): int
+    {
+        return $this->user?->gems ?? \Illuminate\Support\Facades\Auth::user()?->gems ?? 0;
+    }
+
     public function guild(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Guild::class, 'guild_id');

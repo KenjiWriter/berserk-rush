@@ -33,6 +33,7 @@ class RewardInfobox extends Component
         $character = $characterId ? \App\Infrastructure\Persistence\Character::find($characterId) : null;
 
         if ($character) {
+            $user = $character->user ?? Auth::user();
             $this->characterStats = [
                 'avatar_image' => $character->avatar,
                 'title' => $character->activeTitle->name ?? 'Brak tytułu',
@@ -41,7 +42,7 @@ class RewardInfobox extends Component
                 'experience' => $character->xp,
                 'experience_required' => app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level),
                 'gold' => $character->gold,
-                'gems' => $character->gems ?? 0,
+                'gems' => $user ? $user->gems : 0,
             ];
         }
 
