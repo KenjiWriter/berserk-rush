@@ -179,7 +179,8 @@ class Characters extends Component
             });
         }
 
-        $characters = $query->orderByDesc('last_active_at')
+        $characters = $query->orderByRaw('CASE WHEN last_active_at IS NOT NULL AND last_active_at >= ? THEN 1 ELSE 0 END DESC', [now()->subMinutes(5)])
+            ->orderByRaw('last_active_at DESC NULLS LAST')
             ->orderByDesc('updated_at')
             ->paginate(15);
 
