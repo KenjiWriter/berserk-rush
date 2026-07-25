@@ -104,7 +104,7 @@ class ShopService
         return ['success' => true, 'message' => "Kupiono {$quantity}x {$template->name}."];
     }
 
-    public function sellItem(Character $character, ItemInstance $item): array
+    public function sellItem(Character $character, ItemInstance $item, int|string $quantity = 1): array
     {
         if ($item->owner_character_id !== $character->id) {
             return ['success' => false, 'message' => 'Nie jesteś właścicielem tego przedmiotu.'];
@@ -118,9 +118,17 @@ class ShopService
             return ['success' => false, 'message' => 'Nie możesz sprzedać tego przedmiotu.'];
         }
 
-        $price = $this->getSellPrice($item);
-        
-        $character->gold += $price;
+        $availableStack = max(1, (int)($item->stack_size ?? 1));
+        if ($quantity === 'all' || (is_numeric($quantity) && (int)$quantity >= $availableStack)) {
+            $toSell = $availableStack;
+        } else {
+            $toSell = max(1, min((int)$quantity, $availableStack));
+        }
+
+        $unitPrice = $this->getSellPrice($item);
+        $totalPrice = $unitPrice * $toSell;
+
+        $character->gold += $totalPrice;
         $character->save();
 
         ItemLedger::create([
@@ -129,18 +137,23 @@ class ShopService
             'item_instance_id' => $item->id,
             'action' => 'sell',
             'ref_type' => 'shop',
-            'quantity_change' => -1,
+            'quantity_change' => -$toSell,
             'idempotency_key' => Str::ulid(),
         ]);
 
-        // Handling stack
-        if ($item->stack_size > 1) {
-            $item->stack_size -= 1;
+        $itemName = $item->template->name ?? 'Przedmiot';
+
+        if ($item->stack_size > $toSell) {
+            $item->stack_size -= $toSell;
             $item->save();
         } else {
             $item->delete();
         }
 
-        return ['success' => true, 'message' => "Sprzedano {$item->template->name} za {$price} złota.", 'goldAdded' => $price];
+        return [
+            'success' => true, 
+            'message' => "Sprzedano {$toSell}x {$itemName} za {$totalPrice} złota.", 
+            'goldAdded' => $totalPrice
+        ];
     }
 }

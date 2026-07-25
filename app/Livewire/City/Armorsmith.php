@@ -63,14 +63,14 @@ class Armorsmith extends Component
         $this->character->refresh();
     }
 
-    public function sellItem(string $itemInstanceId, \App\Application\Items\ShopService $shop)
+    public function sellItem(string $itemInstanceId, \App\Application\Items\ShopService $shop, int|string $quantity = 1)
     {
         $item = \App\Infrastructure\Persistence\ItemInstance::find($itemInstanceId);
-        $result = $shop->sellItem($this->character, $item);
+        if (!$item) return;
+
+        $result = $shop->sellItem($this->character, $item, $quantity);
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
-            // Zamiast play-audio 'sell', będzie to robił globalny handler, ale można zostawić lub usunąć, usuniemy z play-audio na rzecz animacji.
-            // Dispatch the global stats update
             $this->dispatch('stats-updated', goldAdded: $result['goldAdded'] ?? 0);
         } else {
             $this->dispatch('notify', type: 'error', message: $result['message']);

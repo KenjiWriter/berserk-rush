@@ -71,6 +71,9 @@
                                                     @if($item->upgrade_level > 0)
                                                         <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
                                                     @endif
+                                                    @if(($item->stack_size ?? 1) > 1)
+                                                        <span class="absolute top-1 left-1 text-white font-bold text-xs bg-black/80 border border-slate-600 px-1.5 py-0.5 rounded shadow">x{{ $item->stack_size }}</span>
+                                                    @endif
                                                 </div>
                                             @else
                                                 <div class="text-xs text-center p-1 truncate w-full">{{ $item->template->name }}</div>
@@ -87,19 +90,52 @@
                                                 <x-slot:actions>
                                                     <div class="flex flex-col gap-3 w-full">
                                                         <div class="flex justify-between border-b border-slate-700 pb-2">
-                                                            <span class="text-gray-400 text-sm">Wartość:</span>
+                                                            <span class="text-gray-400 text-sm">Wartość (szt.):</span>
                                                             <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $sellPrices[$item->id] }}</span>
                                                         </div>
 
-                                                        <div class="flex gap-2">
+                                                        <div class="flex flex-col gap-2">
                                                             @if($item->location !== 'equipped')
-                                                                <button wire:click.stop="sellItem('{{ $item->id }}')" class="flex-1 bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition">Sprzedaj</button>
+                                                                @if(($item->stack_size ?? 1) > 1)
+                                                                    <div class="flex flex-col gap-1.5 w-full">
+                                                                        <span class="text-xs text-gray-400 font-semibold">Sprzedaj ilość (posiadasz: <span class="text-amber-400 font-bold">{{ $item->stack_size }}</span>):</span>
+                                                                        <div class="grid grid-cols-5 gap-1">
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 1)" 
+                                                                                class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center" 
+                                                                                title="Sprzedaj 1 szt. za {{ $sellPrices[$item->id] }} złota">
+                                                                                x1
+                                                                            </button>
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 5)" 
+                                                                                class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center {{ $item->stack_size < 5 ? 'opacity-50' : '' }}" 
+                                                                                title="Sprzedaj 5 szt. za {{ $sellPrices[$item->id] * min(5, $item->stack_size) }} złota">
+                                                                                x5
+                                                                            </button>
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 10)" 
+                                                                                class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center {{ $item->stack_size < 10 ? 'opacity-50' : '' }}" 
+                                                                                title="Sprzedaj 10 szt. za {{ $sellPrices[$item->id] * min(10, $item->stack_size) }} złota">
+                                                                                x10
+                                                                            </button>
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 50)" 
+                                                                                class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center {{ $item->stack_size < 50 ? 'opacity-50' : '' }}" 
+                                                                                title="Sprzedaj 50 szt. za {{ $sellPrices[$item->id] * min(50, $item->stack_size) }} złota">
+                                                                                x50
+                                                                            </button>
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 'all')" 
+                                                                                class="bg-red-900 hover:bg-red-700 text-amber-300 text-[10px] font-extrabold py-1.5 px-1 rounded transition text-center border border-red-600/50" 
+                                                                                title="Sprzedaj wszystkie {{ $item->stack_size }} szt. za {{ $sellPrices[$item->id] * $item->stack_size }} złota">
+                                                                                Wszystko
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                @else
+                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 1)" class="w-full bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition">Sprzedaj</button>
+                                                                @endif
                                                             @else
-                                                                <button disabled class="flex-1 bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
+                                                                <button disabled class="w-full bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
                                                             @endif
 
                                                             @if(in_array($item->template->type, ['armor', 'accessory']) && $item->upgrade_level < 9)
-                                                                <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="flex-1 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">Ulepsz</button>
+                                                                <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">Ulepsz</button>
                                                             @endif
                                                         </div>
                                                     </div>
