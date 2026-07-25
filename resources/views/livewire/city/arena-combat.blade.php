@@ -19,7 +19,14 @@
             <div class="absolute inset-0 bg-amber-900/60 rounded-2xl"></div>
             
             <div class="relative z-10 flex flex-col items-center">
-                <div class="text-6xl mb-4 animate-bounce" x-text="$data.travelingTo === 'Gildia' ? '🚩' : '⚔️'"></div>
+                <div class="text-5xl mb-4 text-amber-300 animate-bounce">
+                    <template x-if="$data.travelingTo === 'Gildia'">
+                        <i class="fa-solid fa-flag"></i>
+                    </template>
+                    <template x-if="$data.travelingTo !== 'Gildia'">
+                        <i class="fa-solid fa-chess-board"></i>
+                    </template>
+                </div>
                 <h2 class="text-3xl font-bold text-amber-100 medieval-font mb-4 drop-shadow-lg">
                     Powrót do...
                 </h2>
@@ -42,8 +49,8 @@
     <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen">
         {{-- Header with navigation --}}
         <div class="flex flex-col md:flex-row items-center md:justify-between mb-6 gap-4 text-center md:text-left">
-            <h1 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
-                ⚔️ Odtwarzacz Walki {{ $type === 'pvp' ? 'PvP' : 'GvG' }}
+            <h1 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-2">
+                <i class="fa-solid fa-hand-fist text-amber-400"></i> Odtwarzacz Walki {{ $type === 'pvp' ? 'PvP' : 'GvG' }}
             </h1>
 
             <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
@@ -58,8 +65,8 @@
                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                             class="absolute inset-0 w-full h-full object-cover rounded-lg">
                         <div class="absolute inset-0 bg-amber-900/20 rounded-lg"></div>
-                        <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                            🏟️ Powrót na Arenę
+                        <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center gap-1.5">
+                            <i class="fa-solid fa-chess-board text-amber-300"></i> Powrót na Arenę
                         </span>
                     </button>
                 @else
@@ -68,8 +75,8 @@
                         <img src="{{ asset('img/avatars/plate.png') }}" alt=""
                             class="absolute inset-0 w-full h-full object-cover rounded-lg">
                         <div class="absolute inset-0 bg-amber-900/20 rounded-lg"></div>
-                        <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                            🚩 Powrót do Gildii
+                        <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center gap-1.5">
+                            <i class="fa-solid fa-flag text-amber-300"></i> Powrót do Gildii
                         </span>
                     </button>
                 @endif

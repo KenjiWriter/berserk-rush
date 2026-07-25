@@ -6,7 +6,7 @@
             <div class="flex justify-between items-center mb-8 bg-stone-800/90 p-4 rounded-xl border-2 border-amber-700/50 shadow-2xl">
                 <div class="flex items-center gap-4">
                     <div class="w-16 h-16 bg-gradient-to-br from-amber-600 to-amber-900 rounded-full border-2 border-amber-400 flex items-center justify-center shadow-lg">
-                        <span class="text-3xl">🏛️</span>
+                        <i class="fa-solid fa-store text-2xl text-amber-300"></i>
                     </div>
                     <div>
                         <h1 class="text-3xl font-bold text-amber-500 medieval-font drop-shadow-md">Sklep Gladiatora</h1>
@@ -19,7 +19,7 @@
                         <div class="text-xs text-amber-400/80 uppercase font-bold tracking-wider mb-1">Twoje Żetony</div>
                         <div class="text-2xl font-bold text-amber-300 flex items-center gap-2">
                             {{ $character->arena_tokens }}
-                            <span class="text-xl">🎫</span>
+                            <i class="fa-solid fa-ticket text-amber-400 text-lg"></i>
                         </div>
                     </div>
                 </div>
@@ -27,7 +27,9 @@
                     class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
                     <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                     <div class="absolute inset-0 bg-amber-900/40 group-hover:bg-amber-800/40 transition-colors rounded-lg"></div>
-                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">⬅️ Powrót do Areny</span>
+                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-left text-amber-300"></i> Powrót do Areny
+                    </span>
                 </button>
             </div>
 
@@ -50,7 +52,7 @@
                                 <h4 class="font-bold text-sm text-blue-300 line-clamp-2 leading-tight">{{ $item->template->name }}</h4>
                                 <div class="mt-auto pt-2 text-yellow-400 text-sm font-bold flex items-center justify-center gap-1">
                                     <span>{{ $item->price }}</span>
-                                    <span class="text-xs">🎫</span>
+                                    <i class="fa-solid fa-ticket text-amber-400 text-xs"></i>
                                 </div>
                             </div>
 
@@ -62,7 +64,7 @@
                                         <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" 
                                             {{ $character->arena_tokens < $item->price ? 'disabled' : '' }}
                                             class="w-full bg-amber-700 hover:bg-amber-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2 {{ $character->arena_tokens < $item->price ? 'opacity-50 cursor-not-allowed' : '' }}">
-                                            <span>Kup za {{ $item->price }} 🎫</span>
+                                            <span>Kup za {{ $item->price }} <i class="fa-solid fa-ticket text-amber-300"></i></span>
                                         </button>
                                     </x-slot:actions>
                                 </x-item-tooltip>
