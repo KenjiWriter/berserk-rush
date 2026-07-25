@@ -91,7 +91,7 @@
             </p>
             
             {{-- Compact Live Online Counter Badge --}}
-            <div class="mt-4 inline-flex items-center gap-2.5 px-4 py-1.5 bg-slate-900/85 border border-amber-500/40 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.6)] backdrop-blur-md text-xs sm:text-sm font-bold text-amber-200">
+            <div wire:poll.30s class="mt-4 inline-flex items-center gap-2.5 px-4 py-1.5 bg-slate-900/85 border border-amber-500/40 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.6)] backdrop-blur-md text-xs sm:text-sm font-bold text-amber-200">
                 <span class="relative flex h-3 w-3">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>

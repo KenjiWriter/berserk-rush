@@ -6,6 +6,8 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
+use Illuminate\Support\Facades\DB;
+
 class Homepage extends Component
 {
     #[On('user-logged-in')]
@@ -17,7 +19,11 @@ class Homepage extends Component
 
     public function render()
     {
-        $activePlayers = \App\Infrastructure\Persistence\Character::where('updated_at', '>=', now()->subHour())->count();
+        $activePlayers = DB::table('sessions')
+            ->whereNotNull('user_id')
+            ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
+            ->distinct('user_id')
+            ->count('user_id');
 
         $topCharacters = \App\Infrastructure\Persistence\Character::with('guild')
             ->orderByDesc('level')
