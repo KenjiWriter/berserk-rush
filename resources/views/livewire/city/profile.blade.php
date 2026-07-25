@@ -609,7 +609,10 @@
 
             <!-- Inventory Grid -->
             <div id="inventory-grid" 
-                 x-data="{ isInventoryDragOver: false }"
+                 x-data="{ 
+                     isInventoryDragOver: false,
+                     activeItemId: null
+                 }"
                  @dragover.prevent="if (window.currentDragItem && (window.currentDragItem.source === 'equipped' || window.currentDragItem.source === 'equipped_pet')) isInventoryDragOver = true"
                  @dragleave="isInventoryDragOver = false"
                  @drop.prevent="
@@ -639,13 +642,35 @@
                         posClass: 'sm:bottom-full sm:mb-2',
                         checkPosition() { 
                             this.posClass = this.$el.getBoundingClientRect().top < window.innerHeight / 2 ? 'sm:top-full sm:mt-2' : 'sm:bottom-full sm:mb-2'; 
+                        },
+                        openTooltip() {
+                            if (activeItemId && activeItemId !== '{{ $item->id }}') return;
+                            clearTimeout(this.hoverTimeout);
+                            this.checkPosition();
+                            activeItemId = '{{ $item->id }}';
+                            this.open = true;
+                        },
+                        closeTooltip() {
+                            clearTimeout(this.hoverTimeout);
+                            this.hoverTimeout = setTimeout(() => { 
+                                this.open = false; 
+                                if (activeItemId === '{{ $item->id }}') {
+                                    activeItemId = null;
+                                }
+                            }, 250);
+                        },
+                        forceClose() {
+                            clearTimeout(this.hoverTimeout);
+                            this.open = false;
+                            if (activeItemId === '{{ $item->id }}') {
+                                activeItemId = null;
+                            }
                         }
-                    }" @click.outside="open = false" 
+                    }" @click.outside="forceClose()" 
                          wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                          draggable="true"
                          @dragstart="
-                             open = false; 
-                             clearTimeout(hoverTimeout);
+                             forceClose(); 
                              isDraggingThis = true;
                              window.currentDragItem = { 
                                  id: '{{ $item->id }}', 
@@ -659,8 +684,7 @@
                          "
                          @dragend="isDraggingThis = false; window.currentDragItem = null;"
                          @dblclick="
-                             open = false;
-                             clearTimeout(hoverTimeout);
+                             forceClose();
                              @if($character->level < ($item->template->level_requirement ?? 1))
                                  $dispatch('notify', { type: 'error', message: 'Zbyt niski poziom aby założyć ten przedmiot!' });
                              @else
@@ -679,9 +703,9 @@
                              'opacity-40 scale-95 border-amber-400': isDraggingThis,
                              'z-[99999] relative': open
                          }"
-                         @mouseenter="clearTimeout(hoverTimeout); checkPosition(); open = true" 
-                         @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
-                         @click="clearTimeout(hoverTimeout); checkPosition(); open = true">
+                         @mouseenter="openTooltip()" 
+                         @mouseleave="closeTooltip()" 
+                         @click="activeItemId = null; openTooltip()">
                         
                         @if($item->template->icon)
                             <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
@@ -709,12 +733,11 @@
                         @endif
 
                         <!-- Tooltip / Modal -->
-                        <!-- Tooltip / Modal -->
                         <div x-show="open" x-transition.opacity style="display: none;" 
                              :class="posClass"
-                             class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                             class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
                             <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                 <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                     <x-slot:actions>
                                         <div class="flex flex-col gap-2 w-full">
@@ -722,18 +745,18 @@
                                                 <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
                                             @else
                                                 @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
-                                                    <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="open = false; flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                    <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="forceClose(); flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
                                                         Załóż sprzęt
                                                     </button>
                                                 @elseif($item->template->type === 'consumable')
-                                                    <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="open = false" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                    <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors shadow">
                                                         Użyj przedmiotu
                                                     </button>
                                                 @endif
                                             @endif
                                             
                                             @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
-                                                <button wire:click.stop="openSellModal('{{ $item->id }}'); open = false;" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                                <button wire:click.stop="openSellModal('{{ $item->id }}'); forceClose();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
                                                     Wystaw na targowisko
                                                 </button>
                                             @endif
