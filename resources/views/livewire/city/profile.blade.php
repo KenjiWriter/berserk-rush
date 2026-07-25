@@ -19,7 +19,9 @@
         <div class="bg-gradient-to-r from-amber-950/90 via-stone-900/90 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-3 sm:p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left mb-4 sm:mb-8 relative overflow-hidden">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent pointer-events-none"></div>
             <div class="relative flex items-center gap-3">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-xl sm:text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0">👤</div>
+                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-xl sm:text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0">
+                    <i class="fa-solid fa-user text-amber-300"></i>
+                </div>
                 <div>
                     <h2 class="text-xl xs:text-2xl md:text-3xl font-bold text-amber-300 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">Profil: {{ $character->name }}</h2>
                     <p class="text-amber-200/80 text-xs sm:text-sm font-medium">Zarządzaj ekwipunkiem, atrybutami, statystykami i umiejętnościami bohatera</p>
@@ -27,8 +29,8 @@
             </div>
 
             <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                class="w-full sm:w-auto text-center bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
-                🏰 Powrót do miasta
+                class="w-full sm:w-auto text-center bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 flex items-center justify-center gap-1.5 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
+                <i class="fa-solid fa-archway text-stone-950"></i> Powrót do miasta
             </button>
         </div>
 
@@ -69,7 +71,7 @@
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
                             <div class="text-center text-xs text-white flex flex-col items-center justify-center p-0.5 sm:p-1">
-                                <span class="text-xl xs:text-2xl drop-shadow">🐾</span>
+                                <i class="fa-solid fa-paw text-amber-400 text-xl xs:text-2xl drop-shadow"></i>
                                 <span class="block truncate w-10 xs:w-12 sm:w-16 text-[9px] xs:text-[10px] sm:text-[11px] text-amber-300 font-semibold mt-0.5">{{ $activePet->name }}</span>
                             </div>
                             <!-- Modal -->
@@ -78,7 +80,7 @@
                                     <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
                                     <div class="flex justify-between items-center mb-2">
                                         <p class="font-bold text-amber-400 text-lg">{{ $activePet->name }}</p>
-                                        <span class="text-indigo-300 font-bold">⚡ {{ $activePet->getCombatPower() }}</span>
+                                        <span class="text-indigo-300 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> {{ $activePet->getCombatPower() }}</span>
                                     </div>
                                     <p class="text-gray-300 mb-2">Poziom: {{ $activePet->level }}</p>
                                     @if(count($activePet->stats ?? []) > 0)
@@ -98,7 +100,7 @@
                             </div>
                         @else
                             <div class="text-stone-500 flex flex-col items-center">
-                                <span class="text-lg xs:text-xl sm:text-2xl opacity-50 mb-0.5">🐾</span>
+                                <i class="fa-solid fa-paw text-stone-500 text-lg xs:text-xl sm:text-2xl opacity-50 mb-0.5"></i>
                                 <span class="text-[9px] xs:text-[10px] sm:text-[11px] font-semibold text-stone-400">Pet</span>
                             </div>
                         @endif
@@ -190,7 +192,7 @@
                         @endif
 
                         <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400 text-xs sm:text-sm">
-                            ✏️
+                            <i class="fa-solid fa-pen text-amber-100"></i>
                         </button>
                     </div>
 
@@ -210,7 +212,7 @@
                             </div>
 
                             @if(!empty(auth()->user()->unlocked_avatars))
-                                <h4 class="text-sm sm:text-lg font-bold text-yellow-400 mb-3 sm:mb-4 flex items-center gap-2"><span>💎</span> Avatary Premium</h4>
+                                <h4 class="text-sm sm:text-lg font-bold text-yellow-400 mb-3 sm:mb-4 flex items-center gap-2"><i class="fa-solid fa-gem text-cyan-400"></i> Avatary Premium</h4>
                                 <div class="grid grid-cols-4 sm:grid-cols-6 gap-3 sm:gap-4">
                                     @foreach(auth()->user()->unlocked_avatars as $premiumAvatar)
                                         <button @click="$wire.changeAvatar('{{ $premiumAvatar }}', true); avatarModalOpen = false" class="aspect-square border-2 border-yellow-600 hover:border-yellow-400 rounded-lg overflow-hidden {{ $character->avatar === 'premium/' . $premiumAvatar ? 'ring-4 ring-yellow-400 border-yellow-400 shadow-[0_0_15px_rgba(250,204,21,0.6)]' : '' }}">
@@ -229,8 +231,8 @@
                     @endif
                     <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
                     <p class="text-amber-200/70 font-semibold text-xs sm:text-sm">Poziom {{ $character->level }}</p>
-                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1 sm:my-1.5 medieval-font text-center truncate max-w-full">
-                        ⚡ Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
+                    <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1 sm:my-1.5 medieval-font text-center truncate max-w-full flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i> Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
                     </div>
                     
                     @php 
@@ -261,7 +263,7 @@
                                         @if($equippedSkill->skill->icon)
                                             <img src="{{ route('assets.skills.icons', ['filename' => $equippedSkill->skill->icon]) }}" class="w-7 h-7 xs:w-8 xs:h-8 sm:w-9 sm:h-9 md:w-11 md:h-11 object-contain drop-shadow-md p-0.5 sm:p-1" alt="{{ $equippedSkill->skill->name }}">
                                         @else
-                                            <div class="text-base sm:text-xl">✨</div>
+                                            <i class="fa-solid fa-star text-sky-300 text-base sm:text-xl"></i>
                                         @endif
                                         <div class="absolute -bottom-1 -right-1 bg-stone-950 border border-amber-500/70 text-amber-300 text-[8px] sm:text-[10px] font-extrabold px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded-md shadow-lg leading-none">
                                             L{{ $equippedSkill->level }}
@@ -307,7 +309,7 @@
                                             <div class="hidden sm:block absolute left-1/2 -bottom-2 -translate-x-1/2 w-4 h-4 bg-stone-900 border-b-2 border-r-2 border-amber-500 transform rotate-45 z-10"></div>
                                         </div>
                                     @else
-                                        <div class="text-stone-600 text-xs sm:text-sm">✨</div>
+                                        <i class="fa-solid fa-star text-stone-600 text-xs sm:text-sm"></i>
                                     @endif
                                 </div>
                             @endfor
@@ -567,16 +569,16 @@
 
             <div class="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-2 mb-3 border-b border-amber-900/40 pb-2.5 relative z-10">
                 <div class="flex items-center gap-2">
-                    <span class="text-amber-400 text-lg sm:text-xl">🎒</span>
+                    <i class="fa-solid fa-box-archive text-amber-400 text-lg sm:text-xl"></i>
                     <h2 class="text-xl sm:text-2xl font-bold text-amber-300 medieval-font drop-shadow-md">Ekwipunek</h2>
                 </div>
                 <div class="text-amber-300 font-bold flex gap-2 sm:gap-3 text-xs sm:text-sm">
                     <div class="bg-stone-950/90 border border-amber-800/60 px-2 sm:px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5">
-                        <span class="text-yellow-400 drop-shadow">🪙</span>
+                        <i class="fa-solid fa-coins text-yellow-400 drop-shadow"></i>
                         <span>{{ number_format($character->gold) }}</span>
                     </div>
                     <div class="bg-stone-950/90 border border-cyan-800/60 px-2 sm:px-3 py-1 rounded-xl shadow-inner flex items-center gap-1.5 text-cyan-300">
-                        <span class="text-cyan-400 drop-shadow">💎</span>
+                        <i class="fa-solid fa-gem text-cyan-400 drop-shadow"></i>
                         <span>{{ number_format(auth()->user()->gems) }}</span>
                     </div>
                 </div>
@@ -769,13 +771,13 @@
                 
                 @if($sellItem)
                     <div class="flex items-center space-x-3 mb-6 bg-gray-800 p-3 rounded border border-gray-700">
-                        <div class="text-3xl">
-                            @if($sellItem->template->slot === 'weapon') ⚔️
-                            @elseif($sellItem->template->slot === 'head') 🪖
-                            @elseif($sellItem->template->slot === 'chest') 🛡️
-                            @elseif($sellItem->template->slot === 'legs') 👖
-                            @elseif($sellItem->template->slot === 'boots') 👢
-                            @else 📦
+                        <div class="text-3xl flex items-center justify-center w-10 h-10">
+                            @if($sellItem->template->slot === 'weapon') <i class="fa-solid fa-khanda text-amber-400"></i>
+                            @elseif($sellItem->template->slot === 'head') <i class="fa-solid fa-user-shield text-amber-400"></i>
+                            @elseif($sellItem->template->slot === 'chest') <i class="fa-solid fa-shield-halved text-amber-400"></i>
+                            @elseif($sellItem->template->slot === 'legs') <i class="fa-solid fa-vest text-amber-400"></i>
+                            @elseif($sellItem->template->slot === 'boots') <i class="fa-solid fa-shoe-prints text-amber-400"></i>
+                            @else <i class="fa-solid fa-box text-amber-400"></i>
                             @endif
                         </div>
                         <div>
@@ -794,8 +796,8 @@
                     <div>
                         <label class="block text-sm font-bold text-gray-300 mb-1">Waluta</label>
                         <select wire:model="sellCurrency" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white">
-                            <option value="gold">Złoto 💰</option>
-                            <option value="gems">Klejnoty 💎</option>
+                            <option value="gold">Złoto</option>
+                            <option value="gems">Klejnoty</option>
                         </select>
                     </div>
                     

@@ -7,13 +7,13 @@
             {{-- Incubator section --}}
             <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5">
                 <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
-                    <span class="text-lg mr-2">🥚</span> Inkubator
+                    <i class="fa-solid fa-egg text-amber-400 text-lg mr-2"></i> Inkubator
                 </h3>
 
                 @if($incubator && !$incubator->is_hatched && $incubator->egg_item_instance_id)
                     {{-- Egg is incubating --}}
                     <div class="text-center">
-                        <div class="text-5xl mb-3 animate-pulse">🥚</div>
+                        <div class="text-4xl text-amber-400 mb-3 animate-pulse"><i class="fa-solid fa-egg"></i></div>
                         <p class="text-amber-300 font-bold mb-1" style="font-family: 'Cinzel', serif;">Inkubacja w toku</p>
                         <p class="text-sm text-gray-400 mb-3">
                             Rzadkość:
@@ -47,18 +47,18 @@
 
                         <p class="text-xs text-gray-500 mb-4">
                             @if($isReady)
-                                ✅ Gotowe do wyklucia!
+                                <i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i> Gotowe do wyklucia!
                             @else
-                                ⏳ {{ $timeRemaining }}
+                                <i class="fa-solid fa-hourglass-half text-amber-400 mr-1.5"></i> {{ $timeRemaining }}
                             @endif
                         </p>
 
                         @if($isReady)
                             <button wire:click="hatchEgg"
-                                class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-green-900/30"
+                                class="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-green-900/30 flex items-center justify-center gap-2"
                                 style="font-family: 'Cinzel', serif;"
                                 wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
-                                <span wire:loading.remove wire:target="hatchEgg">🐣 Wykluj!</span>
+                                <span wire:loading.remove wire:target="hatchEgg" class="flex items-center gap-1.5"><i class="fa-solid fa-egg text-amber-300"></i> Wykluj!</span>
                                 <span wire:loading wire:target="hatchEgg">
                                     Wyklucie...
                                 </span>
@@ -68,7 +68,7 @@
                 @else
                     {{-- Incubator is empty --}}
                     <div class="text-center">
-                        <div class="text-5xl mb-3 opacity-30">🥚</div>
+                        <div class="text-4xl text-amber-400/30 mb-3"><i class="fa-solid fa-egg"></i></div>
                         <p class="text-gray-500 mb-4">Inkubator jest pusty</p>
 
                         @if($eggs->count() > 0)
@@ -80,7 +80,7 @@
                                             @if($egg->template->icon)
                                                 <img src="{{ route('assets.items', ['filename' => $egg->template->icon]) }}" class="w-8 h-8 object-contain drop-shadow-md" alt="{{ $egg->template->name }}">
                                             @else
-                                                <span class="text-lg">🥚</span>
+                                                <i class="fa-solid fa-egg text-amber-400 text-lg"></i>
                                             @endif
                                             <div class="text-left">
                                                 <p class="text-sm font-semibold text-gray-200">{{ $egg->template->name }}</p>
@@ -124,7 +124,7 @@
         <div class="lg:col-span-2">
             <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-5">
                 <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4 flex items-center">
-                    <span class="text-lg mr-2">🐾</span> Twoje zwierzaki
+                    <i class="fa-solid fa-paw text-amber-400 text-lg mr-2"></i> Twoje zwierzaki
                     <span class="ml-2 bg-gray-700 text-gray-300 text-xs font-bold px-2 py-0.5 rounded-full">{{ $pets->count() }}</span>
                 </h3>
 
@@ -151,8 +151,8 @@
                             <div class="flex items-center justify-between bg-gray-900/50 rounded-lg p-4 border {{ $pet->is_equipped ? 'border-amber-500 bg-amber-950/20' : 'border-gray-700/50' }} transition-all duration-200">
                                 <div class="flex items-center space-x-4">
                                     {{-- Pet icon --}}
-                                    <div class="w-12 h-12 rounded-full border-2 border-{{ $rarityColor }}-500/50 bg-gray-800 flex items-center justify-center text-2xl {{ $pet->is_equipped ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-900' : '' }}">
-                                        🐾
+                                    <div class="w-12 h-12 rounded-full border-2 border-{{ $rarityColor }}-500/50 bg-gray-800 flex items-center justify-center text-xl text-amber-400 {{ $pet->is_equipped ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-gray-900' : '' }}">
+                                        <i class="fa-solid fa-paw"></i>
                                     </div>
 
                                     <div>
@@ -189,10 +189,14 @@
                                     class="{{ $pet->is_equipped
                                         ? 'bg-red-800/80 hover:bg-red-700 text-red-200 border border-red-700/50'
                                         : 'bg-green-800/80 hover:bg-green-700 text-green-200 border border-green-700/50' }}
-                                        font-bold py-2 px-4 rounded-lg transition-colors text-sm"
+                                        font-bold py-2 px-4 rounded-lg transition-colors text-sm flex items-center gap-1.5"
                                     wire:loading.attr="disabled" wire:target="toggleEquipPet({{ $pet->id }})">
-                                    <span wire:loading.remove wire:target="toggleEquipPet({{ $pet->id }})">
-                                        {{ $pet->is_equipped ? '❌ Zdejmij' : '✅ Załóż' }}
+                                    <span wire:loading.remove wire:target="toggleEquipPet({{ $pet->id }})" class="flex items-center gap-1.5">
+                                        @if($pet->is_equipped)
+                                            <i class="fa-solid fa-xmark"></i> Zdejmij
+                                        @else
+                                            <i class="fa-solid fa-check"></i> Załóż
+                                        @endif
                                     </span>
                                     <span wire:loading wire:target="toggleEquipPet({{ $pet->id }})">
                                         ...
@@ -203,7 +207,7 @@
                     </div>
                 @else
                     <div class="text-center py-8">
-                        <div class="text-5xl mb-3 opacity-30">🐾</div>
+                        <div class="text-4xl text-amber-400/30 mb-3"><i class="fa-solid fa-paw"></i></div>
                         <p class="text-gray-500 text-lg mb-1">Nie posiadasz żadnych zwierzaków</p>
                         <p class="text-gray-600 text-sm">Umieść jajko w inkubatorze, aby wykluć swojego pierwszego peta!</p>
                     </div>

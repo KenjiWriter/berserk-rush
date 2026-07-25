@@ -2,7 +2,7 @@
     <!-- Active Title Section -->
     <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 shadow-sm">
         <h3 class="text-xl font-bold text-amber-500 mb-4 flex items-center gap-2">
-            <span>👑</span> Aktywny Tytuł
+            <i class="fa-solid fa-crown text-purple-400"></i> Aktywny Tytuł
         </h3>
         <div class="flex flex-col gap-2">
             <select wire:change="selectTitle($event.target.value)" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-amber-500 focus:border-amber-500 block w-full p-2.5">
