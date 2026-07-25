@@ -97,15 +97,22 @@ class Quests extends Component
     public function getQuestHint($quest)
     {
         if ($quest->type->value === 'hunting') {
-            $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
-            if ($map) {
-                return "Szukaj na mapie: " . $map->name;
-            }
-            
-            $monster = \App\Infrastructure\Persistence\Monster::find($quest->target_id);
-            if ($monster) {
-                $mapName = $monster->map->name ?? 'Nieznane miejsce';
-                return "Występuje: " . $mapName;
+            if ($quest->target_type === 'map') {
+                $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
+                if ($map) {
+                    return "Szukaj na mapie: " . $map->name;
+                }
+            } else {
+                $monster = \App\Infrastructure\Persistence\Monster::find($quest->target_id);
+                if ($monster) {
+                    $mapName = $monster->map->name ?? 'Nieznane miejsce';
+                    return "Występuje: " . $mapName;
+                }
+
+                $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
+                if ($map) {
+                    return "Szukaj na mapie: " . $map->name;
+                }
             }
         } elseif ($quest->type->value === 'gathering') {
             $item = \App\Infrastructure\Persistence\ItemTemplate::find($quest->target_id);
@@ -136,15 +143,21 @@ class Quests extends Component
         if ($quest->type->value === 'hunting') {
             $amount = $quest->target_amount;
             
-            // Check if target is map or monster
-            $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
-            if ($map) {
-                return "Pokonaj potwory ($amount szt.) na mapie: " . $map->name;
-            }
-            
-            $monster = \App\Infrastructure\Persistence\Monster::find($quest->target_id);
-            if ($monster) {
-                return "Pokonaj potwora: " . $monster->name . " ($amount szt.)";
+            if ($quest->target_type === 'map') {
+                $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
+                if ($map) {
+                    return "Pokonaj potwory ($amount szt.) na mapie: " . $map->name;
+                }
+            } else {
+                $monster = \App\Infrastructure\Persistence\Monster::find($quest->target_id);
+                if ($monster) {
+                    return "Pokonaj potwora: " . $monster->name . " ($amount szt.)";
+                }
+
+                $map = \App\Infrastructure\Persistence\Map::find($quest->target_id);
+                if ($map) {
+                    return "Pokonaj potwory ($amount szt.) na mapie: " . $map->name;
+                }
             }
             
             return "Pokonaj przeciwników ($amount szt.)";

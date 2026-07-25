@@ -202,7 +202,7 @@
                                     
                                     {{-- Item stats preview --}}
                                     <div class="text-[11px] text-stone-300 bg-stone-950/80 p-2 rounded-lg border border-stone-800 mb-3 grid grid-cols-2 gap-1 font-sans">
-                                        @foreach($listing->item->template->base_stats as $stat => $val)
+                                        @foreach(($listing->item->template->base_stats ?? []) as $stat => $val)
                                             @if($val > 0)
                                                 <div class="flex justify-between">
                                                     <span class="text-stone-400 capitalize">{{ str_replace('_', ' ', $stat) }}</span>

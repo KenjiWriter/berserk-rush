@@ -63,7 +63,19 @@ class QuestSeeder extends Seeder
                 'reward_exp' => 800,
             ],
 
-            // AKT II: STARE RUINY (Lvl 14 - 24)
+            // AKT II: STARE RUINY (Lvl 13 - 24)
+            [
+                'name' => 'Oczyszczenie Starych Ruin',
+                'description' => 'Mroczne siły opanowały Stare Ruiny. Pokonaj wrogów nawiedzających ten starożytny obszar i przywróć względny spokój.',
+                'type' => QuestType::HUNTING->value,
+                'required_level' => 13,
+                'max_level' => 25,
+                'target_type' => 'map',
+                'target_name' => 'Stare Ruiny',
+                'target_amount' => 25,
+                'reward_gold' => 500,
+                'reward_exp' => 1000,
+            ],
             [
                 'name' => 'Krzyk Martwych',
                 'description' => 'Stare Ruiny dawnej katedry ożyły pod wpływem nekromancji. Oczyść dziedziniec ze szkieletów wojowników.',
@@ -419,6 +431,14 @@ class QuestSeeder extends Seeder
                     $targetId = (string)$item->id;
                 } else {
                     $this->command->warn("Nie znaleziono przedmiotu: {$q['target_name']}");
+                    continue;
+                }
+            } elseif ($q['target_type'] === 'map') {
+                $map = \App\Infrastructure\Persistence\Map::where('name', $q['target_name'])->first();
+                if ($map) {
+                    $targetId = (string)$map->id;
+                } else {
+                    $this->command->warn("Nie znaleziono mapy: {$q['target_name']}");
                     continue;
                 }
             }

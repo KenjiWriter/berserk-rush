@@ -113,8 +113,8 @@ class MarketComponent extends Component
     public function render(GetMarketListingsQuery $query)
     {
         $character = $this->character;
-        $listings = null;
-        $myListings = null;
+        $listings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+        $myListings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
 
         if ($this->activeTab === 'buy') {
             $filters = [
