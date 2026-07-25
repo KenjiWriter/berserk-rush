@@ -82,6 +82,11 @@
                 <h2 class="text-xl font-bold mb-2">⚔️ Umiejętności Walki</h2>
                 <p class="text-gray-400">Zarządzanie umiejętnościami, ich siłą i wymaganą bronią.</p>
             </a>
+
+            <a href="{{ route('admin.characters') }}" class="bg-gradient-to-br from-amber-900/50 to-red-900/50 p-6 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.15)] border border-amber-600/60 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all">
+                <h2 class="text-xl font-bold mb-2 text-amber-400">🧙‍♂️ Postacie / Gracze</h2>
+                <p class="text-gray-300">Podgląd lokalizacji, statusu online/offline, VIP, gemów i wyciszeń (mute).</p>
+            </a>
         </div>
 
         <div class="mt-8">

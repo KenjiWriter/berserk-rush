@@ -94,6 +94,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');
     Route::get('/achievements', \App\Livewire\Admin\Achievements::class)->name('achievements');
     Route::get('/gallery', \App\Livewire\Admin\Gallery::class)->name('gallery');
+    Route::get('/characters', \App\Livewire\Admin\Characters::class)->name('characters');
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {

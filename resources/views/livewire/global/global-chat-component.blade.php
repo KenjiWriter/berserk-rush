@@ -261,49 +261,89 @@
 
         {{-- ---- Input area ---- --}}
         @if (Auth::check() && session('active_character'))
-            <div class="relative border-t border-amber-800/40 px-2 py-2">
-                {{-- Autocomplete dropup --}}
-                <div x-show="showCommands" style="display: none;" class="absolute bottom-full left-0 w-full bg-stone-900 border border-amber-800/60 rounded-t-lg shadow-xl overflow-hidden z-[70] mb-1">
-                    <template x-for="cmd in filteredCommands" :key="cmd.cmd">
-                        <div @click="selectCommand(cmd.cmd)" class="px-3 py-2 border-b border-amber-900/30 hover:bg-amber-900/40 cursor-pointer flex justify-between items-center transition-colors">
-                            <span class="text-amber-400 font-bold text-xs font-mono" x-text="cmd.cmd"></span>
-                            <span class="text-stone-400 text-[10px]" x-text="cmd.desc"></span>
-                        </div>
-                    </template>
+            @if (Auth::user()->isMuted())
+                @php
+                    $muteSeconds = Auth::user()->getMuteRemainingSeconds();
+                @endphp
+                <div
+                    x-data="{
+                        secondsLeft: {{ $muteSeconds }},
+                        timer: null,
+                        formatTime(sec) {
+                            if (sec <= 0) return '0s';
+                            let d = Math.floor(sec / 86400);
+                            let h = Math.floor((sec % 86400) / 3600);
+                            let m = Math.floor((sec % 3600) / 60);
+                            let s = sec % 60;
+                            let res = '';
+                            if (d > 0) res += d + 'd ';
+                            if (h > 0 || d > 0) res += h + 'h ';
+                            if (m > 0 || h > 0 || d > 0) res += m + 'm ';
+                            res += s + 's';
+                            return res.trim();
+                        },
+                        init() {
+                            this.timer = setInterval(() => {
+                                if (this.secondsLeft > 0) {
+                                    this.secondsLeft--;
+                                } else {
+                                    clearInterval(this.timer);
+                                }
+                            }, 1000);
+                        }
+                    }"
+                    class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner"
+                >
+                    <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-red-300">
+                        <span class="text-sm animate-pulse">🔇</span>
+                        <span>Zablokowano: <span x-text="formatTime(secondsLeft)" class="font-mono text-red-100 font-bold ml-1"></span></span>
+                    </div>
                 </div>
+            @else
+                <div class="relative border-t border-amber-800/40 px-2 py-2">
+                    {{-- Autocomplete dropup --}}
+                    <div x-show="showCommands" style="display: none;" class="absolute bottom-full left-0 w-full bg-stone-900 border border-amber-800/60 rounded-t-lg shadow-xl overflow-hidden z-[70] mb-1">
+                        <template x-for="cmd in filteredCommands" :key="cmd.cmd">
+                            <div @click="selectCommand(cmd.cmd)" class="px-3 py-2 border-b border-amber-900/30 hover:bg-amber-900/40 cursor-pointer flex justify-between items-center transition-colors">
+                                <span class="text-amber-400 font-bold text-xs font-mono" x-text="cmd.cmd"></span>
+                                <span class="text-stone-400 text-[10px]" x-text="cmd.desc"></span>
+                            </div>
+                        </template>
+                    </div>
 
-                @error('newMessage')
-                    <p class="text-red-400 text-xs mb-1 px-1">{{ $message }}</p>
-                @enderror
-                <form @submit.prevent="sendMsg()" class="flex gap-1">
-                    <input
-                        x-ref="chatInput"
-                        wire:model="newMessage"
-                        @keydown.tab.prevent="if(showCommands && filteredCommands.length > 0) selectCommand(filteredCommands[0].cmd)"
-                        type="text"
-                        maxlength="200"
-                        placeholder="Napisz wiadomość…"
-                        autocomplete="off"
-                        :disabled="isSending"
-                        class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors disabled:opacity-50"
-                    >
-                    <button
-                        type="submit"
-                        :disabled="isSending"
-                        class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
-                    >
-                        {{-- Normal state --}}
-                        <span x-show="!isSending" class="flex items-center">▶</span>
-                        {{-- Sending state --}}
-                        <span x-show="isSending" class="flex items-center">
-                            <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                            </svg>
-                        </span>
-                    </button>
-                </form>
-            </div>
+                    @error('newMessage')
+                        <p class="text-red-400 text-xs mb-1 px-1">{{ $message }}</p>
+                    @enderror
+                    <form @submit.prevent="sendMsg()" class="flex gap-1">
+                        <input
+                            x-ref="chatInput"
+                            wire:model="newMessage"
+                            @keydown.tab.prevent="if(showCommands && filteredCommands.length > 0) selectCommand(filteredCommands[0].cmd)"
+                            type="text"
+                            maxlength="200"
+                            placeholder="Napisz wiadomość…"
+                            autocomplete="off"
+                            :disabled="isSending"
+                            class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors disabled:opacity-50"
+                        >
+                        <button
+                            type="submit"
+                            :disabled="isSending"
+                            class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                        >
+                            {{-- Normal state --}}
+                            <span x-show="!isSending" class="flex items-center">▶</span>
+                            {{-- Sending state --}}
+                            <span x-show="isSending" class="flex items-center">
+                                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                    </form>
+                </div>
+            @endif
         @endif
     </div>
     @endif

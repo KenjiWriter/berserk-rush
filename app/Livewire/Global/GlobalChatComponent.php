@@ -131,6 +131,13 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if ($user->isMuted()) {
+            $remainingSeconds = $user->getMuteRemainingSeconds();
+            $mins = ceil($remainingSeconds / 60);
+            $this->addError('newMessage', "Konto wyciszone. Zablokowano (pozostało ~{$mins} min).");
+            return;
+        }
+
         $characterId = session('active_character');
         if (! $characterId) {
             return;

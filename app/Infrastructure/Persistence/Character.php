@@ -34,6 +34,8 @@ class Character extends Model
         'pvp_refreshes_reset_at',
         'active_title_id',
         'achievement_points',
+        'current_location',
+        'last_active_at',
     ];
 
     protected $casts = [
@@ -47,7 +49,13 @@ class Character extends Model
         'arena_tokens' => 'integer',
         'pvp_refreshes_used' => 'integer',
         'pvp_refreshes_reset_at' => 'datetime',
+        'last_active_at' => 'datetime',
     ];
+
+    public function isOnline(): bool
+    {
+        return $this->last_active_at && $this->last_active_at->diffInMinutes(now()) < 5;
+    }
 
     protected static function booted()
     {

@@ -37,6 +37,8 @@ class User extends Authenticatable
         'hometown',
         'profile_url',
         'is_social_setup_pending',
+        'muted_until',
+        'last_active_at',
     ];
 
     /**
@@ -60,6 +62,8 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'premium_until' => 'datetime',
+            'muted_until' => 'datetime',
+            'last_active_at' => 'datetime',
             'unlocked_avatars' => 'array',
             'is_social_setup_pending' => 'boolean',
             'birthday' => 'date',
@@ -96,5 +100,19 @@ class User extends Authenticatable
     public function hasPremium(): bool
     {
         return $this->premium_until && $this->premium_until->isFuture();
+    }
+
+    public function isMuted(): bool
+    {
+        return $this->muted_until && $this->muted_until->isFuture();
+    }
+
+    public function getMuteRemainingSeconds(): int
+    {
+        if (!$this->isMuted()) {
+            return 0;
+        }
+
+        return max(0, now()->diffInSeconds($this->muted_until, false));
     }
 }
