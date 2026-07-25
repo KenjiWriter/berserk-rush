@@ -55,6 +55,11 @@ Projekt stosuje koncepcje Domain-Driven Design (DDD) i CQRS-lite. Każdy moduł 
 7. **Aktualizacja Dokumentacji:**
    - W przypadku dodania nowej mechaniki (np. System Rzemiosła), odnotuj to, dodając nowy plik dokumentacji do katalogu `docs/modules/`. Sprawdź również plik `roadmap.md` by zaznaczyć ewentualny postęp.
 
+8. **Standard Ikonek w Interfejsie (FontAwesome & Custom Assets):**
+   - **Kategoryczny zakaz używania domyślnych emotikon Unicode (emoji)** w szablonach Blade i interfejsie użytkownika (np. 📜, 🏆, 🎯, 💰, ⚔️, 📍).
+   - **Stosuj wyłącznie ikony FontAwesome 6** (`<i class="fa-solid fa-...">`) lub zakodowane customowe pliki graficzne/SVGi z katalogu `public/img/` lub assetów.
+   - Dbaj o nadawanie ikonom spójnych klas stylizujących z palety gry (np. `text-amber-400`, `text-emerald-400`, `text-sky-400`, `text-yellow-400`).
+
 ## 3. Podsumowanie Typowego Cyklu Pracy Agenta
 1. **Analiza Zamiaru:** Upewnij się, z jakim modułem (np. `Loot`, `Combat`) masz do czynienia. Sprawdź ewentualne instrukcje specyficzne dla modułu w `docs/modules/`.
 2. **Warstwa Danych:** W razie potrzeby utwórz migrację i zaktualizuj odpowiedni Model Eloquent.

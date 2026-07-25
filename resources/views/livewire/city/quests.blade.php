@@ -1,4 +1,4 @@
-<div x-data="{ mouseX: 0, mouseY: 0 }"
+<div x-data="{ mouseX: 0, mouseY: 0, showTutorialModal: false, activeModalTab: 'stage' }"
      @mousemove="if(window.innerWidth >= 1024) { mouseX = $event.clientX; mouseY = $event.clientY; }"
      @reward-claimed.window="let a = new Audio('/storage/sound/An_uplifting,_ascend_%232-1783933793835.mp3'); a.volume = 0.5; a.play().catch(e => console.log(e))"
      class="min-h-screen bg-stone-950 text-amber-100 relative py-8 px-3 sm:px-6 font-sans overflow-x-hidden selection:bg-amber-800 selection:text-amber-100">
@@ -28,8 +28,8 @@
 
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4 relative z-10">
                 <div class="flex items-center gap-3.5 text-center sm:text-left">
-                    <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-700 via-amber-900 to-stone-950 border-2 border-amber-500/60 flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(245,158,11,0.4)] shrink-0">
-                        📜
+                    <div class="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-amber-700 via-amber-900 to-stone-950 border-2 border-amber-500/60 flex items-center justify-center text-2xl shadow-[0_0_20px_rgba(245,158,11,0.4)] shrink-0">
+                        <i class="fa-solid fa-scroll text-amber-400"></i>
                     </div>
                     <div>
                         <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-b from-amber-100 via-amber-300 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
@@ -41,23 +41,33 @@
                     </div>
                 </div>
 
-                <button wire:click="backToHub" @click="$dispatch('location-leave')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                        class="w-full sm:w-auto bg-gradient-to-r from-stone-900 to-amber-950/80 hover:from-amber-900/80 hover:to-amber-900 text-amber-200 border border-amber-700/60 hover:border-amber-400/90 px-5 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm hover:scale-105 active:scale-95 group">
-                    <span class="transform group-hover:-translate-x-1 transition-transform">🏰</span> Powrót do miasta
-                </button>
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full sm:w-auto">
+                    <button @click="showTutorialModal = true" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                            class="w-full sm:w-auto bg-gradient-to-r from-amber-900/90 via-amber-800 to-amber-950/90 hover:from-amber-800 hover:to-amber-900 text-amber-200 border border-amber-500/70 hover:border-amber-400 px-4 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm hover:scale-105 active:scale-95 relative group {{ $gameStage < 34 ? 'ring-2 ring-amber-400/80 animate-pulse' : '' }}">
+                        <i class="fa-solid fa-scroll text-amber-300"></i> Fabuła & Samouczek
+                        @if($gameStage < 34)
+                            <span class="text-[10px] bg-amber-500 text-stone-950 px-2 py-0.5 rounded-full font-black uppercase tracking-wider ml-1">Etap {{ $gameStage }}</span>
+                        @endif
+                    </button>
+
+                    <button wire:click="backToHub" @click="$dispatch('location-leave')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                            class="w-full sm:w-auto bg-gradient-to-r from-stone-900 to-amber-950/80 hover:from-amber-900/80 hover:to-amber-900 text-amber-200 border border-amber-700/60 hover:border-amber-400/90 px-5 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm hover:scale-105 active:scale-95 group">
+                        <i class="fa-solid fa-archway text-amber-400 transform group-hover:-translate-x-1 transition-transform"></i> Powrót do miasta
+                    </button>
+                </div>
             </div>
         </div>
 
         {{-- Flash Messages --}}
         @if(session()->has('message'))
             <div class="bg-gradient-to-r from-emerald-950/90 to-green-900/90 border-2 border-emerald-500/70 text-emerald-100 px-5 py-3.5 rounded-xl mb-6 backdrop-blur-md shadow-lg flex items-center gap-3 animate-fade-in">
-                <span class="text-xl">✅</span>
+                <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>
                 <div class="font-semibold text-sm sm:text-base">{{ session('message') }}</div>
             </div>
         @endif
         @if(session()->has('error'))
             <div class="bg-gradient-to-r from-red-950/90 to-rose-900/90 border-2 border-red-500/70 text-red-100 px-5 py-3.5 rounded-xl mb-6 backdrop-blur-md shadow-lg flex items-center gap-3 animate-fade-in">
-                <span class="text-xl">⚠️</span>
+                <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl"></i>
                 <div class="font-semibold text-sm sm:text-base">{{ session('error') }}</div>
             </div>
         @endif
@@ -66,7 +76,7 @@
         <div class="flex flex-wrap gap-3 mb-8">
             <button wire:click="setTab('quests')" @click="$dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                     class="relative px-6 py-3 rounded-xl font-bold text-sm sm:text-base border transition-all duration-300 flex items-center gap-2.5 medieval-font {{ $activeTab === 'quests' ? 'bg-gradient-to-b from-amber-800 to-amber-950 text-amber-100 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.35)] scale-105 z-10' : 'bg-stone-900/80 text-stone-400 border-stone-800 hover:bg-stone-800/90 hover:text-amber-200 hover:border-amber-700/60' }}">
-                <span>📍</span> Misje w Gildii
+                <i class="fa-solid fa-location-dot text-amber-400"></i> Misje w Gildii
                 @if($activeQuests->contains(fn($cq) => $cq->status->value === 'completed'))
                     <span class="flex h-3 w-3 relative">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -77,7 +87,7 @@
 
             <button wire:click="setTab('achievements')" @click="$dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                     class="relative px-6 py-3 rounded-xl font-bold text-sm sm:text-base border transition-all duration-300 flex items-center gap-2.5 medieval-font {{ $activeTab === 'achievements' ? 'bg-gradient-to-b from-amber-800 to-amber-950 text-amber-100 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.35)] scale-105 z-10' : 'bg-stone-900/80 text-stone-400 border-stone-800 hover:bg-stone-800/90 hover:text-amber-200 hover:border-amber-700/60' }} {{ $gameStage == 29 ? 'ring-4 ring-amber-500 animate-pulse z-20' : '' }}">
-                <span>🏆</span> Osiągnięcia Bohatera
+                <i class="fa-solid fa-trophy text-amber-400"></i> Osiągnięcia Bohatera
             </button>
         </div>
 
@@ -89,7 +99,7 @@
                 <div class="bg-gradient-to-b from-stone-900/95 via-amber-950/40 to-stone-900/95 border-2 border-amber-800/60 rounded-2xl p-5 sm:p-6 shadow-2xl backdrop-blur-md relative">
                     <div class="flex items-center justify-between mb-6 border-b border-amber-800/50 pb-3">
                         <h2 class="text-2xl font-bold text-amber-300 medieval-font flex items-center gap-2">
-                            <span>📌</span> Dostępne Wyzwania
+                            <i class="fa-solid fa-thumbtack text-amber-400"></i> Dostępne Wyzwania
                         </h2>
                         <span class="text-xs bg-amber-950/80 text-amber-300 border border-amber-700/60 px-2.5 py-1 rounded-lg font-bold">
                             {{ count($availableQuests) }} wolnych zleceń
@@ -117,14 +127,14 @@
                             
                             {{-- Requirement Box --}}
                             <div class="text-sm text-amber-100 bg-stone-950/80 p-3 rounded-lg mb-3 border border-amber-900/60 font-semibold flex items-center gap-2 shadow-inner">
-                                <span class="text-amber-400 text-lg">🎯</span>
+                                <i class="fa-solid fa-bullseye text-amber-400 text-base"></i>
                                 <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
                             </div>
 
                             {{-- Hint Box --}}
                             @if($hint = $this->getQuestHint($quest))
                                 <div class="text-xs text-amber-300/90 bg-amber-950/50 p-2.5 rounded-lg mb-3 border border-amber-800/40 flex items-center gap-2">
-                                    <span>💡</span>
+                                    <i class="fa-solid fa-lightbulb text-amber-300"></i>
                                     <span>{{ $hint }}</span>
                                 </div>
                             @endif
@@ -133,24 +143,24 @@
                             <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
                                 @if($quest->reward_gold > 0)
                                     <span class="bg-amber-950/80 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-600/50 flex items-center gap-1 shadow">
-                                        💰 {{ number_format($quest->reward_gold) }} złota
+                                        <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
                                     </span>
                                 @endif
                                 @if($quest->reward_exp > 0)
                                     <span class="bg-blue-950/80 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-600/50 flex items-center gap-1 shadow">
-                                        ✨ {{ number_format($quest->reward_exp) }} XP
+                                        <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
                                     </span>
                                 @endif
                             </div>
 
                             <button wire:click="acceptQuest('{{ $quest->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                                     class="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-600 hover:from-amber-600 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all duration-200 medieval-font flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] border border-amber-400/40 {{ $gameStage == 24 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
-                                <span>📜</span> Przyjmij Wyzwanie
+                                <i class="fa-solid fa-scroll text-amber-200"></i> Przyjmij Wyzwanie
                             </button>
                         </div>
                     @empty
                         <div class="text-center py-12 px-4 bg-stone-950/40 rounded-xl border border-amber-900/30">
-                            <div class="text-4xl mb-3">🕯️</div>
+                            <div class="text-3xl text-amber-500/80 mb-3"><i class="fa-solid fa-fire-flame-curved"></i></div>
                             <p class="text-amber-400/80 italic font-medium">Brak nowych zleceń na Twoim poziomie. Wróć tu po zdobyciu kolejnych poziomów!</p>
                         </div>
                     @endforelse
@@ -163,7 +173,7 @@
                     <div class="bg-gradient-to-b from-stone-900/95 via-stone-900/90 to-stone-950/95 border-2 border-sky-800/60 rounded-2xl p-5 sm:p-6 shadow-2xl backdrop-blur-md relative">
                         <div class="flex items-center justify-between mb-6 border-b border-sky-800/50 pb-3">
                             <h2 class="text-2xl font-bold text-sky-300 medieval-font flex items-center gap-2">
-                                <span>⚔️</span> Trwające Misje
+                                <i class="fa-solid fa-khanda text-sky-400"></i> Trwające Misje
                             </h2>
                             <span class="text-xs bg-sky-950/80 text-sky-300 border border-sky-700/60 px-2.5 py-1 rounded-lg font-bold">
                                 {{ count($activeQuests) }} w trakcie
@@ -182,8 +192,8 @@
                                         {{ $quest->name }}
                                     </h3>
                                     @if($isReadyToClaim)
-                                        <span class="text-xs font-bold bg-emerald-900/90 text-emerald-200 border border-emerald-500/70 px-3 py-1 rounded-md shadow-md animate-pulse flex items-center gap-1">
-                                            <span>✓</span> {{ $quest->type->value === 'gathering' ? 'Gotowe do oddania' : 'Ukończone' }}
+                                        <span class="text-xs font-bold bg-emerald-900/90 text-emerald-200 border border-emerald-500/70 px-3 py-1 rounded-md shadow-md animate-pulse flex items-center gap-1.5">
+                                            <i class="fa-solid fa-check text-emerald-400"></i> {{ $quest->type->value === 'gathering' ? 'Gotowe do oddania' : 'Ukończone' }}
                                         </span>
                                     @else
                                         <span class="text-xs font-bold bg-sky-950 text-sky-300 border border-sky-700/60 px-2.5 py-1 rounded-md shadow-inner">
@@ -197,13 +207,13 @@
                                 </p>
                                 
                                 <div class="text-sm text-white bg-stone-950/80 p-3 rounded-lg mb-3 border border-sky-900/60 font-semibold flex items-center gap-2 shadow-inner">
-                                    <span class="text-sky-400 text-lg">🎯</span>
+                                    <i class="fa-solid fa-bullseye text-sky-400 text-base"></i>
                                     <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
                                 </div>
 
                                 @if($hint = $this->getQuestHint($quest))
                                     <div class="text-xs text-sky-300/90 bg-sky-950/50 p-2.5 rounded-lg mb-3 border border-sky-800/40 flex items-center gap-2">
-                                        <span>💡</span>
+                                        <i class="fa-solid fa-lightbulb text-sky-300"></i>
                                         <span>{{ $hint }}</span>
                                     </div>
                                 @endif
@@ -211,12 +221,12 @@
                                 <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
                                     @if($quest->reward_gold > 0)
                                         <span class="bg-amber-950/80 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-600/50 flex items-center gap-1 shadow">
-                                            💰 {{ number_format($quest->reward_gold) }} złota
+                                            <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
                                         </span>
                                     @endif
                                     @if($quest->reward_exp > 0)
                                         <span class="bg-blue-950/80 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-600/50 flex items-center gap-1 shadow">
-                                            ✨ {{ number_format($quest->reward_exp) }} XP
+                                            <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
                                         </span>
                                     @endif
                                 </div>
@@ -225,9 +235,9 @@
                                     <button wire:click="claimReward('{{ $cq->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                                             class="w-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-4 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200 medieval-font flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider {{ $gameStage == 27 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
                                         @if($quest->type->value === 'gathering')
-                                            <span>📦</span> Oddaj przedmioty
+                                            <i class="fa-solid fa-box text-stone-950"></i> Oddaj przedmioty
                                         @else
-                                            <span>🎁</span> Odbierz Nagrodę
+                                            <i class="fa-solid fa-gift text-stone-950"></i> Odbierz Nagrodę
                                         @endif
                                     </button>
                                 @else
@@ -253,13 +263,13 @@
                     {{-- Completed Quests History Ledger --}}
                     <div class="bg-gradient-to-b from-stone-900/95 to-stone-950/95 border-2 border-stone-800/80 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-md">
                         <h2 class="text-xl font-bold text-stone-300 medieval-font mb-4 flex items-center gap-2 border-b border-stone-800 pb-2">
-                            <span>📜</span> Kronika Odebranych Wyzwań
+                            <i class="fa-solid fa-scroll text-amber-400"></i> Kronika Odebranych Wyzwań
                         </h2>
                         <div class="max-h-56 overflow-y-auto pr-2 space-y-2.5 custom-scrollbar">
                             @forelse($completedQuests as $cq)
                                 <div class="bg-stone-950/70 border border-stone-800/70 rounded-xl p-3 flex justify-between items-center transition-colors hover:border-amber-900/50">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="text-emerald-400 text-sm">✓</span>
+                                        <i class="fa-solid fa-check text-emerald-400 text-sm"></i>
                                         <span class="text-stone-300 font-bold text-sm medieval-font">{{ $cq->quest->name }}</span>
                                     </div>
                                     <span class="text-stone-500 text-xs font-semibold px-2 py-0.5 bg-stone-900 rounded border border-stone-800">Ukończono</span>
@@ -277,20 +287,20 @@
             <div class="bg-gradient-to-b from-stone-900/95 via-amber-950/30 to-stone-950/95 border-2 border-amber-800/70 rounded-2xl p-5 sm:p-6 shadow-2xl backdrop-blur-md">
                 <div class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 border-b border-amber-800/50 pb-4">
                     <div class="flex items-center gap-3 text-center sm:text-left">
-                        <span class="text-3xl">🏆</span>
+                        <i class="fa-solid fa-trophy text-amber-400 text-3xl"></i>
                         <div>
                             <h2 class="text-2xl font-bold text-amber-300 medieval-font">Księga Osiągnięć Bohatera</h2>
                             <p class="text-xs text-amber-300/70">Wypełniaj legendarne kamienie milowe i zdobywaj unikalne tytuły oraz statystyki</p>
                         </div>
                     </div>
                     <div class="text-sm font-extrabold bg-gradient-to-r from-amber-950 to-stone-900 text-amber-300 px-5 py-2.5 rounded-xl border border-amber-600/60 shadow-inner flex items-center gap-2">
-                        <span>⭐</span> Punkty Osiągnięć: <span class="text-amber-100 text-lg">{{ number_format($character->achievement_points ?? 0) }}</span>
+                        <i class="fa-solid fa-star text-amber-400"></i> Punkty Osiągnięć: <span class="text-amber-100 text-lg">{{ number_format($character->achievement_points ?? 0) }}</span>
                     </div>
                 </div>
 
                 @if(empty($achievements) || $achievements->isEmpty())
                     <div class="text-center py-12 px-4 bg-stone-950/40 rounded-xl border border-amber-900/30">
-                        <div class="text-4xl mb-3">🛡️</div>
+                        <div class="text-3xl text-amber-500/80 mb-3"><i class="fa-solid fa-shield-halved"></i></div>
                         <p class="text-amber-400/80 italic font-medium">Brak dostępnych osiągnięć w tej kategrii.</p>
                     </div>
                 @else
@@ -311,7 +321,7 @@
                                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-3">
                                     <div class="flex-1">
                                         <h4 class="font-bold text-white text-lg flex items-center gap-2 medieval-font">
-                                            <span>{{ $isCompleted ? '🏅' : '📜' }}</span>
+                                            <i class="fa-solid {{ $isCompleted ? 'fa-award text-amber-400' : 'fa-scroll text-stone-400' }}"></i>
                                             <span class="{{ $isCompleted ? 'text-amber-200' : 'text-stone-300' }}">{{ $achievement->name }}</span>
                                             @if($isCompleted && $rewarded) 
                                                 <span class="text-amber-400 text-xs px-2.5 py-0.5 rounded border border-amber-500/60 bg-amber-950/80 uppercase font-bold tracking-wider">Mistrz</span> 
@@ -323,22 +333,22 @@
                                     {{-- Rewards Chips --}}
                                     <div class="flex flex-wrap items-center gap-2">
                                         @if($achievement->reward_points > 0)
-                                            <div class="text-xs font-bold text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-700/60 shadow">🏆 {{ $achievement->reward_points }} Pkt</div>
+                                            <div class="text-xs font-bold text-amber-300 bg-amber-950/80 px-2.5 py-1 rounded-lg border border-amber-700/60 shadow flex items-center gap-1"><i class="fa-solid fa-trophy text-amber-400"></i> {{ $achievement->reward_points }} Pkt</div>
                                         @endif
                                         @if($achievement->reward_exp > 0)
-                                            <div class="text-xs font-bold text-sky-300 bg-sky-950/80 px-2.5 py-1 rounded-lg border border-sky-700/60 shadow">✨ {{ number_format($achievement->reward_exp) }} XP</div>
+                                            <div class="text-xs font-bold text-sky-300 bg-sky-950/80 px-2.5 py-1 rounded-lg border border-sky-700/60 shadow flex items-center gap-1"><i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($achievement->reward_exp) }} XP</div>
                                         @endif
                                         @if($achievement->reward_gold > 0)
-                                            <div class="text-xs font-bold text-yellow-300 bg-yellow-950/80 px-2.5 py-1 rounded-lg border border-yellow-700/60 shadow">💰 {{ number_format($achievement->reward_gold) }} Gold</div>
+                                            <div class="text-xs font-bold text-yellow-300 bg-yellow-950/80 px-2.5 py-1 rounded-lg border border-yellow-700/60 shadow flex items-center gap-1"><i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($achievement->reward_gold) }} Gold</div>
                                         @endif
                                         @if($achievement->reward_title_id)
-                                            <div class="text-xs font-bold text-purple-300 bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-700/60 shadow" title="{{ $achievement->title?->name }}">👑 Tytuł</div>
+                                            <div class="text-xs font-bold text-purple-300 bg-purple-950/80 px-2.5 py-1 rounded-lg border border-purple-700/60 shadow flex items-center gap-1" title="{{ $achievement->title?->name }}"><i class="fa-solid fa-crown text-purple-400"></i> Tytuł</div>
                                         @endif
                                         @if($achievement->reward_item_template_id)
-                                            <div class="text-xs font-bold text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-700/60 shadow" title="{{ $achievement->itemTemplate?->name }}">📦 Przedmiot</div>
+                                            <div class="text-xs font-bold text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-700/60 shadow flex items-center gap-1" title="{{ $achievement->itemTemplate?->name }}"><i class="fa-solid fa-box text-emerald-400"></i> Przedmiot</div>
                                         @endif
                                         @if($achievement->stats_bonus)
-                                            <div class="text-xs font-bold text-rose-300 bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-700/60 shadow" title="Bonusowe statystyki z tego osiągnięcia">📈 Statystyki</div>
+                                            <div class="text-xs font-bold text-rose-300 bg-rose-950/80 px-2.5 py-1 rounded-lg border border-rose-700/60 shadow flex items-center gap-1" title="Bonusowe statystyki z tego osiągnięcia"><i class="fa-solid fa-chart-line text-rose-400"></i> Statystyki</div>
                                         @endif
                                     </div>
                                 </div>
@@ -355,12 +365,12 @@
                                     <div class="w-full sm:w-auto min-w-[130px]">
                                         @if($canClaim)
                                             <button wire:click="claimAchievement('{{ $ca->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                                                    class="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all duration-200 transform hover:scale-105 active:scale-95 medieval-font uppercase tracking-wider">
-                                                🎁 Odbierz Nagrodę
+                                                    class="w-full px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-500 hover:to-green-400 text-white text-xs sm:text-sm font-extrabold rounded-xl shadow-[0_0_15px_rgba(34,197,94,0.4)] transition-all duration-200 transform hover:scale-105 active:scale-95 medieval-font uppercase tracking-wider flex items-center justify-center gap-1.5">
+                                                <i class="fa-solid fa-gift"></i> Odbierz Nagrodę
                                             </button>
                                         @elseif($rewarded)
-                                            <div class="w-full text-center py-1.5 text-xs text-amber-400/80 font-bold uppercase tracking-widest border border-amber-900/50 rounded-xl bg-amber-950/40">
-                                                ✓ Odebrano
+                                            <div class="w-full text-center py-1.5 text-xs text-amber-400/80 font-bold uppercase tracking-widest border border-amber-900/50 rounded-xl bg-amber-950/40 flex items-center justify-center gap-1">
+                                                <i class="fa-solid fa-check text-amber-400"></i> Odebrano
                                             </div>
                                         @else
                                             <div class="w-full text-center py-1.5 text-xs text-stone-500 font-bold uppercase tracking-widest border border-stone-800 rounded-xl bg-stone-950/40">
@@ -375,11 +385,239 @@
                 @endif
             </div>
         @endif
-    </div>
-
     @php
+        $stageInfo = [
+            0 => ['title' => 'Stworzenie Postaci', 'desc' => 'Musisz stworzyć swoją pierwszą postać.', 'action' => 'Przejdź do ekranu tworzenia postaci i wpisz jej nazwę.', 'location' => 'Ekran Tworzenia Postaci'],
+            1 => ['title' => 'Rozdanie Punktów Początkowych', 'desc' => 'Określ predyspozycje swojej postaci.', 'action' => 'Rozdziel punkty atrybutów według swojego stylu gry i zatwierdź.', 'location' => 'Ekran Tworzenia Postaci'],
+            2 => ['title' => 'Wejście do Obozu', 'desc' => 'Wybierz bohatera, aby wejść do Głównego Obozu.', 'action' => 'Kliknij na stworzoną postać na liście, aby wejść do gry.', 'location' => 'Wybór Postaci'],
+            3 => ['title' => 'Spotkanie z Kapitana', 'desc' => 'Kapitan wręcza Ci Twój pierwszy ekwipunek.', 'action' => 'Kliknij "Tak jest, Kapitanie!" na dole ekranu w Głównym Obozie.', 'location' => 'Główny Obóz (Hub)'],
+            4 => ['title' => 'Przejście do Profilu', 'desc' => 'Czas obejrzeć i założyć nową broń.', 'action' => 'Kliknij przycisk "Profil" w menu miejsca w Głównym Obozie.', 'location' => 'Główny Obóz (Hub)'],
+            5 => ['title' => 'Wyposażenie Zardzewiałego Miecza', 'desc' => 'Musisz założyć Zardzewiały Miecz z plecaka.', 'action' => 'W widoku Profilu najedź na Zardzewiały Miecz w plecaku i kliknij go, by wyposażyć.', 'location' => 'Profil Postaci'],
+            6 => ['title' => 'Odbiór Doświadczenia', 'desc' => 'Założyłeś miecz! Kapitan nagradza Cię punktami XP.', 'action' => 'Kliknij przycisk Kapitana na dole widoku Profilu.', 'location' => 'Profil Postaci'],
+            7 => ['title' => 'Powrót do Obozu', 'desc' => 'Wróć do obozu z bronią w ręku.', 'action' => 'Kliknij przycisk "Powrót do miasta".', 'location' => 'Profil Postaci'],
+            8 => ['title' => 'Wyprawa poza Mury', 'desc' => 'Kapitan wysyła Cię na pierwszą walkę.', 'action' => 'W Głównym Obozie wybierz zakładkę "Przygoda".', 'location' => 'Główny Obóz (Hub)'],
+            9 => ['title' => 'Wybór Pierwszej Mapy', 'desc' => 'Wybierz pierwszą dostępną mapę (poziomy 0-15).', 'action' => 'Kliknij pierwszą mapę na liście (Mroczny Las).', 'location' => 'Centrum Przygód'],
+            10 => ['title' => 'Wejście na Mapę', 'desc' => 'Przygotowanie do walki z potworem.', 'action' => 'Kliknij pierwszego przeciwnika na mapie.', 'location' => 'Mapa Wypraw'],
+            11 => ['title' => 'Pierwsza Walka', 'desc' => 'Stocz walkę bez trybu automatycznego.', 'action' => 'Kliknij przycisk "Rozpocznij Walkę".', 'location' => 'Ekran Walki'],
+            12 => ['title' => 'Wygrana i Odbiór Hełmu', 'desc' => 'Pokonałeś pierwszego potwora!', 'action' => 'Kliknij przycisk u Kapitana na dole ekranu walki, by odebrać Hełm.', 'location' => 'Ekran Walki'],
+            13 => ['title' => 'Powrót do Miasta i Profilu', 'desc' => 'Zdobyłeś poziom! Czas rozdać punkty.', 'action' => 'Wróć do Miasta, przejdź do Profilu i rozdaj punkty atrybutów.', 'location' => 'Główny Obóz / Profil'],
+            14 => ['title' => 'Rozdanie Punktów Atrybutów', 'desc' => 'Rozdziel przydzielone punkty po awansie.', 'action' => 'Kliknij plusy przy atrybutach w Profilu i zapisz.', 'location' => 'Profil Postaci'],
+            15 => ['title' => 'Odbiór Nagrody 150 Golda', 'desc' => 'Kapitan przyznaje Ci złoto za postępy.', 'action' => 'Kliknij dymek Kapitana w Profilu, by odebrać 150 sztuk złota.', 'location' => 'Profil Postaci'],
+            16 => ['title' => 'Wizyta u Brońmistrza', 'desc' => 'Pora odwiedzić kowala/brońmistrza.', 'action' => 'Wróć do Głównego Obozu i kliknij kafel "Brońmistrz".', 'location' => 'Główny Obóz (Hub)'],
+            17 => ['title' => 'Instrukcja u Brońmistrza', 'desc' => 'Brońmistrz objaśnia kupno i ulepszanie broni.', 'action' => 'Zapoznaj się z dymkiem Kapitana u Brońmistrza i kliknij dalej.', 'location' => 'Sklep Brońmistrza'],
+            18 => ['title' => 'Zakup Miecza Nowicjusza', 'desc' => 'Musisz kupić nową broń u Brońmistrza.', 'action' => 'Znajdź "Miecz Nowicjusza" w sklepie i kliknij "Kup".', 'location' => 'Sklep Brońmistrza'],
+            19 => ['title' => 'Potwierdzenie Zakupu', 'desc' => 'Kupiłeś nową broń!', 'action' => 'Potwierdź dymek Kapitana u Brońmistrza.', 'location' => 'Sklep Brońmistrza'],
+            20 => ['title' => 'Odbiór Skórzanej Zbroi', 'desc' => 'Finał pierwszego etapu samouczka.', 'action' => 'Wróć do Głównego Obozu i odbierz Skórzaną Zbroję od Kapitana.', 'location' => 'Główny Obóz (Hub)'],
+            21 => ['title' => 'Swobodny Rozwój (Do 5 Poziomu)', 'desc' => 'Eksploruj świat i zdobywaj doświadczenie.', 'action' => 'Zdobądź 5 poziom postaci, aby odblokować Tablicę Wyzwań.', 'location' => 'Przygoda / Mapa'],
+            22 => ['title' => 'Odblokowana Tablica Wyzwań', 'desc' => 'Kapitan informuje o nowej Tablicy Wyzwań.', 'action' => 'Przejdź z Głównego Obozu na Tablicę Wyzwań (/quests).', 'location' => 'Główny Obóz (Hub)'],
+            23 => ['title' => 'Wejście na Tablicę Wyzwań', 'desc' => 'Jesteś na Tablicy Wyzwań.', 'action' => 'Przeczytaj wskazówki Kapitana na dole ekranu Tablicy Wyzwań.', 'location' => 'Tablica Wyzwań (/quests)'],
+            24 => ['title' => 'Przyjęcie Pierwszej Misji', 'desc' => 'Musisz podjąć pierwsze wyzwanie.', 'action' => 'Kliknij przycisk "Przyjmij Wyzwanie" przy dowolnym wolnym zleceniu po lewej stronie.', 'location' => 'Tablica Wyzwań (/quests)'],
+            25 => ['title' => 'Realizacja Zadania', 'desc' => 'Wykonaj cel podjętej misji.', 'action' => 'Pokonaj wymagane potwory w Przygodzie lub zbierz przedmioty, a następnie wróć tutaj.', 'location' => 'Przygoda / Mapa'],
+            26 => ['title' => 'Oddanie Misji i Odbiór Nagrody', 'desc' => 'Misja ukończona!', 'action' => 'Kliknij "Odbierz Nagrodę" lub "Oddaj przedmioty" przy aktywnej misji po prawej stronie.', 'location' => 'Tablica Wyzwań (/quests)'],
+            27 => ['title' => 'Przejście do Osiągnięć', 'desc' => 'Kapitan zachęca do zobaczenia Osiągnięć.', 'action' => 'Kliknij zakładkę "Osiągnięcia Bohatera" na górze Tablicy Wyzwań.', 'location' => 'Tablica Wyzwań (/quests)'],
+            28 => ['title' => 'Przegląd Osiągnięć', 'desc' => 'Jesteś w zakładce Osiągnięć.', 'action' => 'Zapoznaj się z osiągnięciami i kliknij przycisk Kapitana.', 'location' => 'Tablica Wyzwań (/quests)'],
+            29 => ['title' => 'Koniec Etapu Wyzwań', 'desc' => 'Ukończono samouczek misji.', 'action' => 'Wróć do Głównego Obozu.', 'location' => 'Główny Obóz (Hub)'],
+            30 => ['title' => 'Czarodziej w Obozie', 'desc' => 'W obozie pojawił się Czarodziej.', 'action' => 'Kliknij kafel "Czarodziej" w Głównym Obozie.', 'location' => 'Główny Obóz (Hub)'],
+            31 => ['title' => 'Wizyta u Czarodzieja', 'desc' => 'Kapitan przedstawia tajniki zaklinania.', 'action' => 'Zapoznaj się z dymkiem Kapitana u Czarodzieja.', 'location' => 'Chata Czarodzieja'],
+            32 => ['title' => 'Zaklęcie Przedmiotu', 'desc' => 'Wykonaj pomyślne zaklinanie.', 'action' => 'Wybierz przedmiot i kliknij "Zaklnij przedmiot".', 'location' => 'Chata Czarodzieja'],
+            33 => ['title' => 'Odbiór Finałowej Nagrody', 'desc' => 'Przedmiot zaklęty z sukcesem!', 'action' => 'Kliknij przycisk Kapitana, by odebrać 200 EXP i 250 Golda.', 'location' => 'Chata Czarodzieja'],
+            34 => ['title' => 'Samouczek Ukończony!', 'desc' => 'Osiągnąłeś pełne przeszkolenie w Berserk Rush!', 'action' => 'Jesteś wolnym bohaterem. Ruszaj podbijać świat!', 'location' => 'Wszędzie']
+        ];
+        $currentStageData = $stageInfo[$gameStage] ?? [
+            'title' => 'Samouczek Ukończony',
+            'desc' => 'Ukończyłeś cały samouczek!',
+            'action' => 'Możesz swobodnie eksplorować świat, wykonywać misje i walczyć z World Bossami.',
+            'location' => 'Cała Kraina'
+        ];
         $hasCompletedQuest = $activeQuests->contains(fn($cq) => $cq->status->value === 'completed');
     @endphp
+
+    {{-- Story & Tutorial Recovery Modal --}}
+    <div x-show="showTutorialModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0 scale-95"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-95"
+         class="fixed inset-0 z-[150] flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md overflow-y-auto"
+         style="display: none;"
+         @keydown.escape.window="showTutorialModal = false">
+        
+        <div class="relative bg-gradient-to-b from-[#1e1711] via-[#150f0a] to-[#0d0805] border-2 border-amber-600/80 rounded-2xl sm:rounded-3xl p-5 sm:p-8 max-w-4xl w-full shadow-[0_20px_70px_rgba(0,0,0,0.95),0_0_40px_rgba(245,158,11,0.25)] text-amber-100 my-auto max-h-[90vh] flex flex-col justify-between overflow-hidden">
+            
+            {{-- Parchment texture pattern overlay --}}
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/wood-pattern.png')] opacity-15 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(245,158,11,0.15),transparent_70%)] pointer-events-none"></div>
+
+            {{-- Metallic Corner Rivets --}}
+            <div class="absolute top-3 left-3 w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-stone-900 border border-amber-950 shadow"></div>
+            <div class="absolute top-3 right-3 w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-stone-900 border border-amber-950 shadow"></div>
+            <div class="absolute bottom-3 left-3 w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-stone-900 border border-amber-950 shadow"></div>
+            <div class="absolute bottom-3 right-3 w-3 h-3 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-stone-900 border border-amber-950 shadow"></div>
+
+            {{-- Modal Header --}}
+            <div class="flex items-center justify-between border-b border-amber-800/60 pb-4 mb-5 relative z-10">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-600 to-amber-900 border border-amber-400 flex items-center justify-center text-xl shadow-lg shrink-0">
+                        <i class="fa-solid fa-scroll text-amber-300"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-amber-100 via-amber-300 to-amber-500 bg-clip-text text-transparent medieval-font">
+                            Fabuła Krainy & Przewodnik Samouczka
+                        </h2>
+                        <p class="text-xs text-amber-300/70 font-medium">
+                            Księga wiedzy, historia Obozu oraz pomoc dla zagubionych bohaterów
+                        </p>
+                    </div>
+                </div>
+
+                <button @click="showTutorialModal = false" class="w-9 h-9 rounded-xl bg-stone-900/80 border border-amber-700/60 text-amber-300 hover:text-white hover:bg-amber-900/60 hover:border-amber-400 transition-all flex items-center justify-center font-bold text-lg">
+                    ✕
+                </button>
+            </div>
+
+            {{-- Modal Navigation Tabs --}}
+            <div class="flex flex-wrap gap-2 mb-5 relative z-10 border-b border-amber-900/40 pb-3">
+                <button @click="activeModalTab = 'stage'"
+                        :class="activeModalTab === 'stage' ? 'bg-amber-800 text-amber-100 border-amber-400 shadow-md' : 'bg-stone-950/60 text-amber-400/70 border-stone-800 hover:text-amber-200'"
+                        class="px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold medieval-font transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-bullseye text-amber-400"></i> Twój Obecny Etap (GameStage {{ $gameStage }})
+                </button>
+                <button @click="activeModalTab = 'story'"
+                        :class="activeModalTab === 'story' ? 'bg-amber-800 text-amber-100 border-amber-400 shadow-md' : 'bg-stone-950/60 text-amber-400/70 border-stone-800 hover:text-amber-200'"
+                        class="px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold medieval-font transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-book-open text-amber-400"></i> Fabuła Berserk Rush
+                </button>
+                <button @click="activeModalTab = 'help'"
+                        :class="activeModalTab === 'help' ? 'bg-amber-800 text-amber-100 border-amber-400 shadow-md' : 'bg-stone-950/60 text-amber-400/70 border-stone-800 hover:text-amber-200'"
+                        class="px-4 py-2 rounded-xl border text-xs sm:text-sm font-bold medieval-font transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-circle-question text-amber-400"></i> Zgubiłeś się? (Pełny Przewodnik)
+                </button>
+            </div>
+
+            {{-- Modal Body Content --}}
+            <div class="overflow-y-auto pr-2 custom-scrollbar flex-1 space-y-5 relative z-10 max-h-[55vh]">
+                
+                {{-- TAB 1: Current Stage --}}
+                <div x-show="activeModalTab === 'stage'" class="space-y-4">
+                    {{-- Progress Banner --}}
+                    <div class="bg-gradient-to-r from-stone-900 via-amber-950/60 to-stone-900 border border-amber-700/60 rounded-xl p-4 shadow-inner flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-amber-400/80 font-mono">Stan Samouczka</span>
+                            <h3 class="text-lg font-bold text-amber-200 medieval-font flex items-center gap-2">
+                                @if($gameStage >= 34)
+                                    <i class="fa-solid fa-award text-amber-400"></i> Samouczek Ukończony (Etap 34/34)
+                                @else
+                                    W Trakcie Treningu — Etap {{ $gameStage }} z 34
+                                @endif
+                            </h3>
+                        </div>
+                        <div class="w-full sm:w-48 bg-stone-950 rounded-full h-4 border border-amber-800 shadow-inner overflow-hidden">
+                            <div class="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
+                                 style="width: {{ min(100, round(($gameStage / 34) * 100)) }}%"></div>
+                        </div>
+                    </div>
+
+                    {{-- Current Step Action Box --}}
+                    <div class="bg-gradient-to-b from-[#251b14] to-[#18110b] border-2 border-amber-500/70 rounded-xl p-5 shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 bg-amber-600 text-stone-950 text-[10px] font-black uppercase px-3 py-1 rounded-bl-xl medieval-font">
+                            Krok {{ $gameStage }}
+                        </div>
+
+                        <div class="flex items-start gap-3.5 mb-3">
+                            <i class="fa-solid fa-hand-point-right text-amber-400 text-2xl mt-1 shrink-0"></i>
+                            <div>
+                                <h4 class="text-xl font-bold text-amber-200 medieval-font">{{ $currentStageData['title'] }}</h4>
+                                <p class="text-sm text-amber-300/80 italic font-serif">{{ $currentStageData['desc'] }}</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 mt-4 text-sm bg-stone-950/80 p-4 rounded-lg border border-amber-900/60">
+                            <div class="flex items-center gap-2 text-amber-300">
+                                <span><i class="fa-solid fa-location-dot text-amber-400 mr-1"></i><strong>Lokalizacja:</strong></span>
+                                <span class="text-amber-100 font-semibold bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-800/60">{{ $currentStageData['location'] }}</span>
+                            </div>
+                            <div class="flex items-start gap-2 text-amber-200 mt-2">
+                                <i class="fa-solid fa-bullseye text-amber-400 text-base shrink-0 mt-0.5"></i>
+                                <div>
+                                    <strong>Co należy zrobić:</strong>
+                                    <p class="text-amber-100 mt-0.5 font-medium leading-relaxed">{{ $currentStageData['action'] }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- TAB 2: Story / Fabuła --}}
+                <div x-show="activeModalTab === 'story'" class="space-y-4" style="display: none;">
+                    <div class="bg-stone-950/70 border border-amber-800/60 rounded-xl p-5 space-y-4 text-amber-100/90 leading-relaxed font-serif text-sm sm:text-base">
+                        <div class="flex items-center gap-3 border-b border-amber-800/40 pb-3">
+                            <i class="fa-solid fa-khanda text-amber-400 text-xl"></i>
+                            <h3 class="text-lg font-bold text-amber-300 medieval-font">Księga Cieni i Męstwa</h3>
+                        </div>
+
+                        <p>
+                            Witaj w brutalnym świecie <strong>Berserk Rush</strong>. Niegdyś kwitnące królestwo zostało obrócone w pył przez starożytną plagę potworów, która przebudziła się w najgłębszych ostępach Mrocznego Lasu. Ocalałe niedobitki ludzkości wycofały się pod osłonę starego <strong>Kapitana Obozu</strong>, tworząc ostatni bastion nadziei.
+                        </p>
+
+                        <p>
+                            Jako jeden z nielicznych rekrutów obdarzonych wolą walki, przyjmujesz wyzwanie. W naszym obozie nie ma ustalonych przeznaczeń — to Ty decydujesz, czy opanujesz sztukę ciężkiego oręża, szybkich pchnięć, czy zaklinania magiczną energią u miejscowego Czarodzieja.
+                        </p>
+
+                        <div class="bg-amber-950/40 border-l-4 border-amber-500 p-3.5 rounded-r-xl italic text-amber-200/90 text-xs sm:text-sm">
+                            "Mieszczanie i gildie pozostawiają zlecenia na Tablicy Wyzwań. Ruszaj poza bezpieczne mury obozu, pokonuj stwory, zdobywaj złoto i legendarne przedmioty, by stawić czoła potężnym World Bossom!"
+                        </div>
+                    </div>
+                </div>
+
+                {{-- TAB 3: Full Help Guide for Lost Players --}}
+                <div x-show="activeModalTab === 'help'" class="space-y-4" style="display: none;">
+                    <div class="bg-amber-950/30 border border-amber-800/60 rounded-xl p-4 text-xs sm:text-sm text-amber-200">
+                        <span class="font-bold text-amber-300"><i class="fa-solid fa-lightbulb text-amber-300 mr-1.5"></i>Jak działa system samouczka?</span>
+                        <p class="mt-1 leading-relaxed text-amber-200/80">
+                            Samouczek prowadzi Cię krok po kroku przez kluczowe meandry gry. Kapitan wyświetla dymki dialogowe na dole ekranu w odpowiednich widokach. Jeśli zamkniesz okienko lub zapomnisz, co zrobić, skorzystaj z poniższego wykazu etapów:
+                        </p>
+                    </div>
+
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">1. Początek & Profil (Etapy 0 – 8)</h4>
+                            <p class="text-amber-200/80">Stwórz postać → Wejdź do Głównego Obozu → Odbierz Zardzewiały Miecz od Kapitana → Przejdź do Profilu → Wyposaż Miecz z plecaka → Odbierz doświadczenie od Kapitana.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">2. Dziewicza Wyprawa & Walka (Etapy 9 – 13)</h4>
+                            <p class="text-amber-200/80">Przejdź do zakładki Przygoda → Wybierz mapę (0-15) → Rozpocznij pierwszą walkę → Pokonaj potwora → Odbierz Hełm od Kapitana po walce.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">3. Rozwój & Brońmistrz (Etapy 14 – 21)</h4>
+                            <p class="text-amber-200/80">Wróć do Miasta i Profilu → Rozdziel punkty atrybutów → Odbierz 150 sztuk złota → Przejdź do Brońmistrza → Kup Miecz Nowicjusza → Odbierz Skórzaną Zbroję w Obozie.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">4. Tablica Wyzwań & Osiągnięcia (Etapy 22 – 30)</h4>
+                            <p class="text-amber-200/80">Wbij 5 poziom postaci → Odwiedź Tablicę Wyzwań (/quests) → Przyjmij pierwszą misję → Wykonaj ją w Przygodzie → Oddaj misję i odebrnij nagrodę → Przejdź do Osiągnięć Bohatera.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">5. Tajemnice Czarodzieja & Zaklinanie (Etapy 31 – 34)</h4>
+                            <p class="text-amber-200/80">Przejdź z Obozu do Czarodzieja → Zaklnij pomyślnie dowolny przedmiot ze swojego ekwipunku → Odbierz nagrodę 200 XP oraz 250 Golda od Kapitana.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="flex justify-end border-t border-amber-900/60 pt-4 mt-4 relative z-10">
+                <button @click="showTutorialModal = false" class="bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-600 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-6 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:scale-105 active:scale-95 transition-all duration-200 border border-amber-300 medieval-font text-xs sm:text-sm uppercase tracking-wider flex items-center gap-1.5">
+                    Rozumiem, wracam do gry <i class="fa-solid fa-khanda"></i>
+                </button>
+            </div>
+        </div>
+    </div>
 
     @if($gameStage == 23 && $activeTab === 'quests')
         <livewire:global.tutorial-overlay :step="24" />
