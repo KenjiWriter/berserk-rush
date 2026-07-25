@@ -35,21 +35,23 @@ class GrantPermissionCommand extends Command
         $user = null;
 
         if ($identifier) {
-            // 1. Szukanie Usera po ID
-            $user = User::find($identifier);
-
-            // 2. Szukanie Usera po Emailu
-            if (!$user) {
-                $user = User::where('email', $identifier)->first();
+            // 1. Jeśli numeryczne - szukanie Usera po ID (bigint)
+            if (is_numeric($identifier)) {
+                $user = User::find((int) $identifier);
             }
 
-            // 3. Szukanie Postaci po ULID / ID i pobranie jej usera
+            // 2. Szukanie Postaci po ULID / ID (string) i pobranie jej usera
             if (!$user) {
                 $character = Character::find($identifier);
                 if ($character) {
                     $user = $character->user;
                     $this->info("Znaleziono postać: {$character->name} (ULID: {$character->id}). Owner User ID: {$user->id}");
                 }
+            }
+
+            // 3. Szukanie Usera po Emailu
+            if (!$user) {
+                $user = User::where('email', $identifier)->first();
             }
 
             // 4. Szukanie Postaci po Nazwie i pobranie jej usera
