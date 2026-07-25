@@ -163,7 +163,7 @@
                         </h3>
                     </header>
 
-                    <div class="relative flex-1 overflow-y-auto p-4" @if($isCalculating) wire:poll.500ms="checkCombatStatus" @endif>
+                    <div class="relative flex-1 overflow-y-auto p-4" wire:poll.500ms="checkCombatStatus">
                         @if($isCalculating)
                             <div class="h-full flex flex-col items-center justify-center text-center">
                                 <div class="relative w-32 h-32 mb-6">
@@ -261,7 +261,6 @@
                                             @endif
                                         </li>
                                     @endif
-                                @endif
                             </ul>
                         @endif
                     </div>

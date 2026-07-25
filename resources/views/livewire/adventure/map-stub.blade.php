@@ -269,7 +269,7 @@
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
-                    <div class="relative flex-1 overflow-y-auto p-3 lg:p-4" @if($isCalculating) wire:poll.500ms="checkCombatStatus" @endif>
+                    <div class="relative flex-1 overflow-y-auto p-3 lg:p-4" wire:poll.500ms="checkCombatStatus">
                         {{-- Loading Overlay during startBattle --}}
                         <div wire:loading.flex wire:target="startBattle" class="absolute inset-0 z-20 flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md text-center">
                             <div class="relative w-20 h-20 mb-3">
