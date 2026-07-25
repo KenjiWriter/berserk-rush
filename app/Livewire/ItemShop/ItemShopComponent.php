@@ -87,7 +87,7 @@ class ItemShopComponent extends Component
             return;
         }
 
-        Stripe::setApiKey(env('STRIPE_SECRET'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         $checkout_session = Session::create([
             'payment_method_types' => ['card', 'blik'], // BLIK is popular in PL

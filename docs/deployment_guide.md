@@ -121,6 +121,11 @@ VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
 VITE_REVERB_HOST="${REVERB_HOST}"
 VITE_REVERB_PORT="${REVERB_PORT}"
 VITE_REVERB_SCHEME="${REVERB_SCHEME}"
+
+# Stripe Payment Gateway
+STRIPE_KEY=pk_test_...
+STRIPE_SECRET=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 Wygeneruj unikalny klucz aplikacji:
@@ -128,6 +133,23 @@ Wygeneruj unikalny klucz aplikacji:
 ```bash
 php artisan key:generate
 ```
+
+---
+
+### 💳 Krok 3.1: Konfiguracja Webhooków Stripe na Serwerze Produkcyjnym
+
+W środowisku deweloperskim używano konsoli i CLI `stripe listen`. Na serwerze produkcyjnym **nie trzeba uruchamiać żadnego konsolowego procesu ani CLI**! Stripe sam wysyła żądania HTTP POST z powiadomieniami o płatnościach bezpośrednio na Twój publiczny serwer.
+
+1. Zaloguj się do **Stripe Dashboard** (https://dashboard.stripe.com).
+2. Przejdź do zakładki **Developers** -> **Webhooks**.
+3. Kliknij **Add endpoint**.
+4. Wpisz produkcyjny URL Webhooka:
+   `https://twoja-domena-beta.pl/webhooks/stripe`
+5. W sekcji **Select events to listen to** zaznacz zdarzenie:
+   `checkout.session.completed`
+6. Zapisz endpoint.
+7. Skopiuj wygenerowany **Signing secret** (zaczynający się od `whsec_...`) i wklej go do pliku `.env` w parametrze `STRIPE_WEBHOOK_SECRET`.
+
 
 ---
 
