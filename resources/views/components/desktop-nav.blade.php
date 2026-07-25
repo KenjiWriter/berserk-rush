@@ -442,8 +442,8 @@
                 </div>
             </div>
 
-            {{-- Sekcja: Premium --}}
-            <div class="pt-2">
+            {{-- Sekcja: Premium & Feedback --}}
+            <div class="pt-2 space-y-1.5">
                 <a href="{{ route('itemshop') }}" wire:navigate
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                    @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Sklepu Gemów...', icon: 'fa-solid fa-gem' })"
@@ -462,6 +462,23 @@
                           x-transition:leave-end="opacity-0"
                           class="truncate">SKLEP GEMÓW</span>
                 </a>
+
+                <button @click="$dispatch('open-suggestion-modal'); $dispatch('play-audio', { type: 'hover' })"
+                        :title="collapsed ? 'Zgłoś sugestię' : ''"
+                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
+                        class="w-full flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 bg-gradient-to-b from-indigo-950 via-stone-900 to-indigo-950 border-indigo-600/60 text-indigo-300 hover:border-indigo-400 hover:text-indigo-100 hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8)] cursor-pointer">
+                    <span :class="collapsed ? 'w-full text-indigo-400' : 'w-5 text-indigo-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-comment-dots"></i>
+                    </span>
+                    <span x-show="!collapsed"
+                          x-transition:enter="transition-opacity ease-out duration-200 delay-100"
+                          x-transition:enter-start="opacity-0"
+                          x-transition:enter-end="opacity-100"
+                          x-transition:leave="transition-opacity ease-in duration-75"
+                          x-transition:leave-start="opacity-100"
+                          x-transition:leave-end="opacity-0"
+                          class="truncate">ZGŁOŚ SUGESTIĘ</span>
+                </button>
             </div>
 
             {{-- Sekcja: Powrót do Lobby --}}

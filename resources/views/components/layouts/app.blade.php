@@ -347,6 +347,7 @@
             @livewire('global.reward-infobox')
             @livewire('global.level-up-modal')
             @livewire('global.global-chat-component')
+            @livewire('global.suggestion-modal')
             <x-mobile-nav />
         @endif
     @endauth

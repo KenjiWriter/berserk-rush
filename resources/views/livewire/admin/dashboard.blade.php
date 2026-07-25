@@ -87,6 +87,21 @@
                 <h2 class="text-xl font-bold mb-2 text-amber-400">🧙‍♂️ Postacie / Gracze</h2>
                 <p class="text-gray-300">Podgląd lokalizacji, statusu online/offline, VIP, gemów i wyciszeń (mute).</p>
             </a>
+
+            @php
+                $newSuggestionsCount = \App\Infrastructure\Persistence\Suggestion::where('status', 'new')->count();
+            @endphp
+            <a href="{{ route('admin.suggestions') }}" class="bg-gradient-to-br from-indigo-950/60 to-purple-950/60 p-6 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.15)] border border-indigo-600/60 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] transition-all relative">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xl font-bold text-indigo-300">💡 Sugestie i Uwagi</h2>
+                    @if($newSuggestionsCount > 0)
+                        <span class="px-2.5 py-0.5 bg-amber-500 text-stone-950 font-extrabold text-xs rounded-full animate-pulse shadow">
+                            {{ $newSuggestionsCount }} nowych
+                        </span>
+                    @endif
+                </div>
+                <p class="text-gray-300">Lista uwag, błędów i propozycji zmian zgłoszonych przez graczy.</p>
+            </a>
         </div>
 
         <div class="mt-8">

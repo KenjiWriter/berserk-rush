@@ -189,6 +189,12 @@
                         <span>SKLEP GEMÓW</span>
                     </a>
 
+                    <button @click="mobileMenuOpen = false; $dispatch('open-suggestion-modal')"
+                            class="w-full flex items-center justify-center gap-2 p-2.5 rounded-lg bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-indigo-200 font-bold border border-indigo-600/60 hover:border-indigo-400 transition-all cursor-pointer">
+                        <i class="fa-solid fa-comment-dots text-indigo-400 text-sm"></i>
+                        <span>ZGŁOŚ SUGESTIĘ</span>
+                    </button>
+
                     <a href="{{ route('characters.leave') }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: 'fa-solid fa-right-from-bracket' })"
                        class="flex items-center justify-center gap-2 p-2.5 rounded-lg bg-gradient-to-r from-stone-900 via-red-950 to-stone-950 text-red-200 border border-red-700/60 hover:border-red-500 transition-all">
                         <i class="fa-solid fa-right-from-bracket text-red-400 text-sm"></i>
