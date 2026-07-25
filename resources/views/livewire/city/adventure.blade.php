@@ -53,8 +53,9 @@
 
         {{-- Section Title & Subtitle --}}
         <div class="text-center mb-8">
-            <h1 class="text-4xl sm:text-5xl font-black bg-gradient-to-r from-amber-200 via-emerald-300 to-amber-300 bg-clip-text text-transparent medieval-font drop-shadow-lg tracking-wider mb-2">
-                🗺️ Wybierz Przygodę
+            <h1 class="text-4xl sm:text-5xl font-black bg-gradient-to-r from-amber-200 via-emerald-300 to-amber-300 bg-clip-text text-transparent medieval-font drop-shadow-lg tracking-wider mb-2 flex items-center justify-center gap-3">
+                <i class="fa-solid fa-map-location-dot text-amber-400"></i>
+                <span>Wybierz Przygodę</span>
             </h1>
             <p class="text-sm sm:text-base text-slate-300 max-w-xl mx-auto">
                 Twój poziom: <span class="text-emerald-400 font-bold">{{ $character->level }}</span> • Wybierz odpowiednią mapę lub loch, by zdobywać doświadczenie i cenny łup.
@@ -64,12 +65,14 @@
             <div class="inline-flex bg-slate-900/90 rounded-xl p-1.5 border border-slate-800 mt-6 shadow-inner">
                 <button wire:click="setTab('maps')" 
                     class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'maps' ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white shadow-lg border border-emerald-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
-                    <span>🌲 Mapy</span>
+                    <i class="fa-solid fa-tree text-emerald-400"></i>
+                    <span>Mapy</span>
                     <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'maps' ? 'bg-emerald-950 text-emerald-200' : 'bg-slate-800 text-slate-400' }}">{{ $maps->count() }}</span>
                 </button>
                 <button wire:click="setTab('dungeons')" 
                     class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'dungeons' ? 'bg-gradient-to-r from-amber-700 to-amber-600 text-white shadow-lg border border-amber-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
-                    <span>🏰 Lochy</span>
+                    <i class="fa-solid fa-dungeon text-amber-400"></i>
+                    <span>Lochy</span>
                     <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'dungeons' ? 'bg-amber-950 text-amber-200' : 'bg-slate-800 text-slate-400' }}">{{ count($dungeons) }}</span>
                 </button>
             </div>
@@ -79,7 +82,7 @@
         @error('map_access')
             <div class="mb-6 p-4 bg-red-950/80 border-2 border-red-600 rounded-xl backdrop-blur-md max-w-2xl mx-auto shadow-2xl">
                 <p class="text-red-200 font-semibold text-center flex items-center justify-center gap-2">
-                    ⚠️ {{ $message }}
+                    <i class="fa-solid fa-triangle-exclamation text-red-400"></i> {{ $message }}
                 </p>
             </div>
         @enderror
@@ -154,8 +157,8 @@
 
                         {{-- Current Level Badge --}}
                         @if ($isCurrentLevel)
-                            <div class="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-3 py-1 rounded-full text-xs font-black shadow-lg border border-yellow-300 z-20 flex items-center gap-1 animate-pulse">
-                                🌟 REKOMENDOWANA
+                            <div class="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-3 py-1 rounded-full text-xs font-black shadow-lg border border-yellow-300 z-20 flex items-center gap-1.5 animate-pulse">
+                                <i class="fa-solid fa-star text-slate-950"></i> REKOMENDOWANA
                             </div>
                         @endif
 
@@ -169,7 +172,7 @@
                                 
                                 @if (!$isAccessible)
                                     <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center">
-                                        <div class="text-4xl text-slate-400 mb-2">🔒</div>
+                                        <div class="text-4xl text-amber-500/80 mb-2"><i class="fa-solid fa-lock"></i></div>
                                         <div class="text-xs font-bold text-slate-300">
                                             @if ($character->level < $map->level_min)
                                                 Wymagany poziom: {{ $map->level_min }}
@@ -182,7 +185,7 @@
                             @else
                                 <div class="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 flex items-center justify-center">
                                     <div class="text-6xl text-emerald-500/40 group-hover:scale-110 transition-transform">
-                                        🌲
+                                        <i class="fa-solid fa-tree"></i>
                                     </div>
                                 </div>
                                 <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
@@ -211,20 +214,20 @@
                                 <div class="bg-gradient-to-r from-purple-950/90 to-purple-900/90 border border-purple-600/80 rounded-xl p-3 shadow-lg shadow-purple-950/40 relative overflow-hidden">
                                     <div class="flex items-center justify-between mb-1.5">
                                         <span class="text-xs font-black text-purple-300 tracking-wider uppercase flex items-center gap-1">
-                                            👑 World Boss
+                                            <i class="fa-solid fa-crown text-amber-400"></i> World Boss
                                         </span>
                                         <span class="text-xs font-bold text-red-400 animate-pulse">Aktywny!</span>
                                     </div>
                                     <div class="text-sm font-bold text-amber-100 mb-2">
                                         {{ $activeWorldBosses[$map->id]->monster->name }}
                                     </div>
-                                    <button @click="showBossModal = true" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-colors medieval-font border border-purple-400 shadow-md">
-                                        🗡️ Sprawdź & Dołącz do Walce
+                                    <button @click="showBossModal = true" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-colors medieval-font border border-purple-400 shadow-md flex items-center justify-center gap-1.5">
+                                        <i class="fa-solid fa-khanda text-purple-300"></i> Sprawdź & Dołącz do Walki
                                     </button>
                                 </div>
                             @elseif(isset($defeatedWorldBosses[$map->id]))
                                 <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-center">
-                                    <p class="text-slate-400 font-semibold text-xs">👑 Boss odnowi się o: <span class="text-amber-400 font-bold">{{ now()->addHour()->startOfHour()->format('H:i') }}</span></p>
+                                    <p class="text-slate-400 font-semibold text-xs"><i class="fa-solid fa-crown text-amber-500 mr-1"></i> Boss odnowi się o: <span class="text-amber-400 font-bold">{{ now()->addHour()->startOfHour()->format('H:i') }}</span></p>
                                 </div>
                             @endif
 
@@ -233,17 +236,18 @@
                                 @if ($isAccessible)
                                     <button @click="travelingTo = '{{ addslashes($map->name) }}'; $dispatch('play-audio', { type: 'combat' }); setTimeout(() => $wire.enterMap('{{ $map->id }}'), 400)"
                                         class="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold py-3 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-lg shadow-emerald-950/50 border border-emerald-400/50 medieval-font flex items-center justify-center gap-2">
-                                        <span>⚔️ WEJDŹ NA MAPĘ</span>
+                                        <i class="fa-solid fa-khanda text-white"></i>
+                                        <span>WEJDŹ NA MAPĘ</span>
                                     </button>
                                     
                                     <button @click="showBestiaryModal = true" 
                                         class="w-full bg-slate-800/90 hover:bg-slate-700/90 text-amber-200 font-bold py-2.5 px-4 rounded-xl transition-all duration-200 text-xs sm:text-sm border border-amber-600/40 hover:border-amber-400/80 shadow-md medieval-font flex items-center justify-center gap-2 group/btn">
-                                        <span class="group-hover/btn:rotate-12 transition-transform">📖</span> KSIĘGA BESTII
+                                        <span class="group-hover/btn:rotate-12 transition-transform inline-block"><i class="fa-solid fa-book-bookmark text-amber-400"></i></span> KSIĘGA BESTII
                                     </button>
                                 @else
                                     <button disabled
-                                        class="w-full bg-slate-800/60 text-slate-500 font-bold py-3 px-4 rounded-xl cursor-not-allowed border border-slate-800 medieval-font text-center">
-                                        🔒 Niedostępne
+                                        class="w-full bg-slate-800/60 text-slate-500 font-bold py-3 px-4 rounded-xl cursor-not-allowed border border-slate-800 medieval-font text-center flex items-center justify-center gap-2">
+                                        <i class="fa-solid fa-lock text-slate-500"></i> Niedostępne
                                     </button>
                                 @endif
                             </div>
@@ -282,8 +286,9 @@
                                             <span class="text-xs text-amber-400/80 font-bold uppercase tracking-widest">Księga Bestii</span>
                                             <h4 class="text-sm font-bold text-amber-200 medieval-font">{{ $map->name }}</h4>
                                         </div>
-                                        <h2 class="text-2xl sm:text-3xl font-black text-amber-200 medieval-font tracking-wide drop-shadow-md mx-auto">
-                                            📜 Kodeks Bestii: {{ $map->name }}
+                                        <h2 class="text-2xl sm:text-3xl font-black text-amber-200 medieval-font tracking-wide drop-shadow-md mx-auto flex items-center gap-2">
+                                            <i class="fa-solid fa-scroll text-amber-400"></i>
+                                            <span>Kodeks Bestii: {{ $map->name }}</span>
                                         </h2>
                                         <div class="text-right hidden sm:block w-24"></div>
                                     </div>
@@ -299,11 +304,11 @@
                                                 <button @click="selectMonster('{{ $monster->id }}')" 
                                                     :class="selectedMonsterId == '{{ $monster->id }}' ? 'bg-[#f4e4bc] text-amber-950 border-amber-700 shadow-lg -translate-y-1 font-black' : 'bg-amber-900/80 text-amber-200 hover:bg-amber-800 hover:-translate-y-0.5 font-bold'"
                                                     class="px-3 py-1.5 rounded-t-xl text-xs sm:text-sm border-t-2 border-x-2 border-amber-800/60 whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 medieval-font">
-                                                    @if($monster->type && $monster->type->value === 'undead') 💀
-                                                    @elseif($monster->type && $monster->type->value === 'demon') 👹
-                                                    @elseif($monster->type && $monster->type->value === 'beast') 🐺
-                                                    @elseif($monster->type && $monster->type->value === 'orc') 🧌
-                                                    @else 👹 @endif
+                                                    @if($monster->type && $monster->type->value === 'undead') <i class="fa-solid fa-skull text-stone-900"></i>
+                                                    @elseif($monster->type && $monster->type->value === 'demon') <i class="fa-solid fa-dragon text-purple-900"></i>
+                                                    @elseif($monster->type && $monster->type->value === 'beast') <i class="fa-solid fa-paw text-amber-900"></i>
+                                                    @elseif($monster->type && $monster->type->value === 'orc') <i class="fa-solid fa-ghost text-emerald-900"></i>
+                                                    @else <i class="fa-solid fa-skull text-stone-900"></i> @endif
                                                     <span>{{ $monster->name }}</span>
                                                     <span class="text-[10px] opacity-75">(Lvl {{ $monster->level }})</span>
                                                 </button>
@@ -328,9 +333,9 @@
                                                         <div class="absolute inset-0 bg-gradient-to-r from-amber-950/30 via-amber-900/5 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden;">
                                                             <div class="w-full border-b border-amber-900/20 pb-2 flex justify-between items-center opacity-40">
                                                                 <span class="text-xs font-bold medieval-font text-amber-950">Grimoire Codex</span>
-                                                                <span class="text-xs font-bold medieval-font text-amber-950">📜</span>
+                                                                <i class="fa-solid fa-scroll text-amber-950 text-xs"></i>
                                                             </div>
-                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto">📜</div>
+                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto"><i class="fa-solid fa-scroll"></i></div>
                                                             <div class="w-full border-t border-amber-900/20 pt-2 text-right opacity-40">
                                                                 <span class="text-[10px] font-bold medieval-font text-amber-950">Berserk Rush</span>
                                                             </div>
@@ -338,10 +343,10 @@
                                                         {{-- Back face of turning page --}}
                                                         <div class="absolute inset-0 bg-gradient-to-l from-amber-950/40 via-amber-900/10 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden; transform: rotateY(180deg);">
                                                             <div class="w-full border-b border-amber-900/20 pb-2 flex justify-between items-center opacity-40">
-                                                                <span class="text-xs font-bold medieval-font text-amber-950">📜</span>
+                                                                <i class="fa-solid fa-scroll text-amber-950 text-xs"></i>
                                                                 <span class="text-xs font-bold medieval-font text-amber-950">Grimoire Codex</span>
                                                             </div>
-                                                            <div class="text-center text-5xl opacity-20 text-amber-950 my-auto">📖</div>
+                                                            <div class="text-center text-5xl opacity-20 text-amber-950 my-auto"><i class="fa-solid fa-book-open"></i></div>
                                                             <div class="w-full border-t border-amber-900/20 pt-2 text-left opacity-40">
                                                                 <span class="text-[10px] font-bold medieval-font text-amber-950">Berserk Rush</span>
                                                             </div>
@@ -354,10 +359,10 @@
                                                     <div class="hidden md:block absolute top-0 bottom-0 left-0 w-1/2 origin-right animate-page-flip-prev rounded-l-xl border-r-2 border-amber-900/40 bg-[#ebd7a7] shadow-[0_15px_35px_rgba(0,0,0,0.5)]">
                                                         <div class="absolute inset-0 bg-gradient-to-l from-amber-950/30 via-amber-900/5 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden;">
                                                             <div class="w-full border-b border-amber-900/20 pb-2 flex justify-between items-center opacity-40">
-                                                                <span class="text-xs font-bold medieval-font text-amber-950">📜</span>
+                                                                <i class="fa-solid fa-scroll text-amber-950 text-xs"></i>
                                                                 <span class="text-xs font-bold medieval-font text-amber-950">Grimoire Codex</span>
                                                             </div>
-                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto">📜</div>
+                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto"><i class="fa-solid fa-scroll"></i></div>
                                                             <div class="w-full border-t border-amber-900/20 pt-2 text-left opacity-40">
                                                                 <span class="text-[10px] font-bold medieval-font text-amber-950">Berserk Rush</span>
                                                             </div>
@@ -365,9 +370,9 @@
                                                         <div class="absolute inset-0 bg-gradient-to-r from-amber-950/40 via-amber-900/10 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden; transform: rotateY(180deg);">
                                                             <div class="w-full border-b border-amber-900/20 pb-2 flex justify-between items-center opacity-40">
                                                                 <span class="text-xs font-bold medieval-font text-amber-950">Grimoire Codex</span>
-                                                                <span class="text-xs font-bold medieval-font text-amber-950">📜</span>
+                                                                <i class="fa-solid fa-scroll text-amber-950 text-xs"></i>
                                                             </div>
-                                                            <div class="text-center text-5xl opacity-20 text-amber-950 my-auto">📖</div>
+                                                            <div class="text-center text-5xl opacity-20 text-amber-950 my-auto"><i class="fa-solid fa-book-open"></i></div>
                                                             <div class="w-full border-t border-amber-900/20 pt-2 text-right opacity-40">
                                                                 <span class="text-[10px] font-bold medieval-font text-amber-950">Berserk Rush</span>
                                                             </div>
@@ -378,7 +383,7 @@
                                                 {{-- Fallback Mobile 3D Fade & Fold --}}
                                                 <div class="md:hidden absolute inset-0 bg-[#e8d5a7] z-30 animate-book-shadow-pulse border-2 border-amber-900/30 rounded-xl flex items-center justify-center">
                                                     <div class="text-amber-950 font-bold medieval-font text-3xl animate-bounce">
-                                                        📜
+                                                        <i class="fa-solid fa-scroll"></i>
                                                     </div>
                                                 </div>
 
@@ -423,24 +428,24 @@
                                                         {{-- Monster Combat Attributes Box --}}
                                                         <div class="w-full bg-amber-100/70 rounded-xl p-4 border border-amber-900/40 shadow-sm mt-auto">
                                                             <h4 class="font-bold text-amber-950 mb-3 border-b border-amber-900/30 pb-1 flex items-center justify-between text-sm">
-                                                                <span>⚡ Atrybuty Bojowe</span>
+                                                                <span><i class="fa-solid fa-bolt text-amber-600 mr-1"></i> Atrybuty Bojowe</span>
                                                                 <span class="text-xs text-amber-800">Przeciwnik</span>
                                                             </h4>
                                                             <div class="grid grid-cols-2 gap-2.5 text-xs font-semibold">
                                                                 <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
-                                                                    <span class="text-amber-900 font-bold">❤️ Punkty Życia</span>
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-heart text-red-600 mr-1"></i> Punkty Życia</span>
                                                                     <span class="text-red-700 font-bold text-sm">{{ number_format($monster->stats['hp'] ?? $monster->level * 20) }}</span>
                                                                 </div>
                                                                 <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
-                                                                    <span class="text-amber-900 font-bold">🗡️ Atak</span>
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-khanda text-amber-700 mr-1"></i> Atak</span>
                                                                     <span class="text-amber-950 font-bold text-sm">{{ $monster->stats['atk'] ?? '?' }}</span>
                                                                 </div>
                                                                 <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
-                                                                    <span class="text-amber-900 font-bold">🛡️ Obrona</span>
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-shield-halved text-slate-700 mr-1"></i> Obrona</span>
                                                                     <span class="text-slate-800 font-bold text-sm">{{ $monster->stats['def'] ?? '?' }}</span>
                                                                 </div>
                                                                 <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
-                                                                    <span class="text-amber-900 font-bold">🍃 Zręczność</span>
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-wind text-emerald-700 mr-1"></i> Zręczność</span>
                                                                     <span class="text-emerald-800 font-bold text-sm">{{ $monster->stats['agi'] ?? '?' }}</span>
                                                                 </div>
                                                             </div>
@@ -450,7 +455,7 @@
                                                     {{-- RIGHT PAGE: LOOT TABLE & DROPS CODEX --}}
                                                     <div class="w-full md:w-1/2 flex flex-col">
                                                         <h4 class="text-xl font-black text-amber-950 medieval-font mb-4 border-b-2 border-amber-900/30 pb-2 flex items-center justify-between">
-                                                            <span>🎁 Tabela Zdobyczy</span>
+                                                            <span><i class="fa-solid fa-gift text-amber-600 mr-1"></i> Tabela Zdobyczy</span>
                                                             <span class="text-xs font-bold text-amber-800">Szansa na łup</span>
                                                         </h4>
                                                         
@@ -479,8 +484,8 @@
                                                                         <div class="relative z-10 flex items-center justify-between gap-3">
                                                                             <div class="flex items-center gap-3">
                                                                                 <div class="w-10 h-10 rounded-lg bg-amber-900/10 border border-amber-900/30 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
-                                                                                    @if($entry->reward_type === 'gold') 💰
-                                                                                    @elseif($entry->reward_type === 'xp') ✨
+                                                                                    @if($entry->reward_type === 'gold') <i class="fa-solid fa-coins text-yellow-600"></i>
+                                                                                    @elseif($entry->reward_type === 'xp') <i class="fa-solid fa-sparkles text-amber-600"></i>
                                                                                     @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
                                                                                         <img src="{{ route('assets.items', ['filename' => $entry->itemTemplate->icon]) }}" 
                                                                                             onerror="this.src='{{ route('assets.items', ['filename' => 'default.png']) }}'" 
@@ -513,7 +518,7 @@
                                                                 @endforeach
                                                             @else
                                                                 <div class="text-center py-10">
-                                                                    <div class="text-4xl mb-2 opacity-50">🕸️</div>
+                                                                    <div class="text-4xl mb-2 text-amber-900/60"><i class="fa-solid fa-spider"></i></div>
                                                                     <p class="text-amber-900 italic font-bold text-sm">Przeciwnik nie posiada znanych łupów...</p>
                                                                 </div>
                                                             @endif
@@ -561,8 +566,9 @@
                                     <div @click.outside="showBossModal = false" class="bg-gradient-to-br from-slate-900 to-purple-950 border-2 border-purple-500 rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative text-left my-auto">
                                         <button @click="showBossModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white text-3xl font-bold">&times;</button>
                                         
-                                        <h2 class="text-3xl font-bold text-center text-purple-300 medieval-font mb-6 border-b border-purple-700/50 pb-4">
-                                            👑 Najeźdźca: {{ $boss->monster->name }}
+                                        <h2 class="text-3xl font-bold text-center text-purple-300 medieval-font mb-6 border-b border-purple-700/50 pb-4 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-crown text-amber-400"></i>
+                                            <span>Najeźdźca: {{ $boss->monster->name }}</span>
                                         </h2>
                                         
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -624,8 +630,10 @@
                                             @else
                                                 <a href="{{ route('adventure.map', ['character' => $character, 'map' => $map, 'world_boss' => $boss->monster_id]) }}" 
                                                     wire:navigate 
-                                                    class="block w-full text-center bg-gradient-to-r from-red-700 via-purple-600 to-red-700 hover:from-red-600 hover:via-purple-500 hover:to-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-950/60 border border-red-500 transition-all transform hover:scale-[1.01] text-xl medieval-font">
-                                                    ⚔️ DOŁĄCZ DO WALKI! ⚔️
+                                                    class="block w-full text-center bg-gradient-to-r from-red-700 via-purple-600 to-red-700 hover:from-red-600 hover:via-purple-500 hover:to-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-950/60 border border-red-500 transition-all transform hover:scale-[1.01] text-xl medieval-font flex items-center justify-center gap-3">
+                                                    <i class="fa-solid fa-khanda"></i>
+                                                    <span>DOŁĄCZ DO WALKI!</span>
+                                                    <i class="fa-solid fa-khanda"></i>
                                                 </a>
                                             @endif
                                         </div>
@@ -647,15 +655,16 @@
                 <div class="bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl max-w-4xl mx-auto backdrop-blur-md">
                     <div>
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-xl">🏃</span>
+                            <i class="fa-solid fa-person-running text-amber-400 text-xl"></i>
                             <h3 class="text-2xl font-bold text-amber-200 medieval-font">Trwająca Ekspedycja</h3>
                         </div>
                         <p class="text-slate-300 text-sm">Jesteś w trakcie pokonywania lochu. Kontynuuj swoją przygodę!</p>
                         <p class="text-xs text-amber-400 mt-1 font-bold">Obecny etap: {{ $activeRun->current_stage }}</p>
                     </div>
                     <button wire:click="enterDungeon({{ $activeRun->dungeon_id }})" 
-                        class="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg border border-amber-400 medieval-font whitespace-nowrap">
-                        ➡️ Kontynuuj Ekspedycję
+                        class="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg border border-amber-400 medieval-font whitespace-nowrap flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        <span>Kontynuuj Ekspedycję</span>
                     </button>
                 </div>
             @endif
@@ -690,7 +699,7 @@
                                     <div class="flex justify-between items-center border-t border-slate-800/80 pt-2 mt-2">
                                         <span class="text-slate-400">Klucz wstępu:</span>
                                         <span class="font-bold {{ $hasKey ? 'text-emerald-400' : 'text-red-400' }} flex items-center gap-1">
-                                            @if($hasKey) ✓ @else ✗ @endif 
+                                            @if($hasKey) <i class="fa-solid fa-check text-emerald-400"></i> @else <i class="fa-solid fa-xmark text-red-400"></i> @endif 
                                             {{ $dungeon->entryItemTemplate->name }}
                                         </span>
                                     </div>
@@ -699,7 +708,7 @@
 
                             <button @click="showMonsters = !showMonsters" 
                                 class="w-full mb-4 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-3 rounded-xl transition-colors text-xs border border-slate-700 flex items-center justify-center gap-2">
-                                <span>👁️</span>
+                                <i class="fa-solid fa-eye text-slate-300"></i>
                                 <span x-text="showMonsters ? 'Ukryj listę przeciwników' : 'Pokaż listę przeciwników'"></span>
                             </button>
                             
@@ -752,7 +761,7 @@
             
             @if($dungeons && $dungeons->isEmpty())
                 <div class="text-center py-16 bg-slate-900/60 rounded-2xl border border-slate-800 max-w-xl mx-auto">
-                    <div class="text-6xl mb-3 opacity-40">🏰</div>
+                    <div class="text-6xl mb-3 text-slate-600/50"><i class="fa-solid fa-dungeon"></i></div>
                     <h3 class="text-2xl font-bold text-slate-400 medieval-font mb-2">Brak dostępnych lochów</h3>
                     <p class="text-sm text-slate-500">Wróć później, gdy pojawią się nowe wyzwania w krainie.</p>
                 </div>
