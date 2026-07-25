@@ -296,7 +296,8 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="w-full sm:w-auto">
+                            <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
+                                <livewire:auth.profile-management-modal />
                                 <livewire:auth.logout-modal />
                             </div>
                         </div>

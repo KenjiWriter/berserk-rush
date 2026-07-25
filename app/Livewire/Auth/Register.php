@@ -14,6 +14,8 @@ class Register extends Component
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public bool $terms = false;
+    public bool $privacy = false;
 
     protected function rules()
     {
@@ -21,6 +23,8 @@ class Register extends Component
             'name' => 'required|string|max:255|min:3',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::defaults()],
+            'terms' => 'accepted',
+            'privacy' => 'accepted',
         ];
     }
 
@@ -33,6 +37,8 @@ class Register extends Component
         'email.unique' => 'Ten email jest już zarejestrowany',
         'password.required' => 'Podaj hasło',
         'password.confirmed' => 'Hasła muszą być identyczne',
+        'terms.accepted' => 'Musisz zaakceptować regulamin gry',
+        'privacy.accepted' => 'Musisz zaakceptować politykę prywatności',
     ];
 
     public function mount()

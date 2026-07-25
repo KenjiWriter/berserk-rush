@@ -113,6 +113,31 @@
                                 placeholder="••••••••" autocomplete="new-password">
                         </div>
 
+                        {{-- Terms of Service and Privacy Policy checkboxes --}}
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-850" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-3 pt-2">
+                            <label class="flex items-start gap-3 cursor-pointer text-slate-300 group">
+                                <input type="checkbox" wire:model.live="terms"
+                                    class="mt-1 rounded bg-slate-950/50 border-slate-700 text-amber-600 focus:ring-amber-500 focus:ring-offset-slate-900 w-5 h-5 transition-colors">
+                                <span class="text-sm">
+                                    Oświadczam, że znam i akceptuję <a href="{{ route('terms') }}" target="_blank" class="text-amber-400 hover:text-amber-300 font-semibold underline decoration-amber-500/50 hover:decoration-amber-400">Regulamin Gry Berserk Rush</a>.
+                                </span>
+                            </label>
+                            @error('terms')
+                                <p class="text-xs text-red-500 font-semibold pl-8">{{ $message }}</p>
+                            @enderror
+
+                            <label class="flex items-start gap-3 cursor-pointer text-slate-300 group">
+                                <input type="checkbox" wire:model.live="privacy"
+                                    class="mt-1 rounded bg-slate-950/50 border-slate-700 text-amber-600 focus:ring-amber-500 focus:ring-offset-slate-900 w-5 h-5 transition-colors">
+                                <span class="text-sm">
+                                    Akceptuję postanowienia <a href="{{ route('privacy') }}" target="_blank" class="text-amber-400 hover:text-amber-300 font-semibold underline decoration-amber-500/50 hover:decoration-amber-400">Polityki Prywatności</a>.
+                                </span>
+                            </label>
+                            @error('privacy')
+                                <p class="text-xs text-red-500 font-semibold pl-8">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Submit button --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-900" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="pt-4">
                             <button type="submit"
