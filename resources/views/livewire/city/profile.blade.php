@@ -67,7 +67,7 @@
                              }
                          "
                          class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
-                         :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver, 'z-[99999] relative': open }"
+                         :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver, '!z-[99999] relative': open }"
                          @if($activePet) @click="open = true" @endif>
                         @if($activePet)
                             <div class="text-center text-xs text-white flex flex-col items-center justify-center p-0.5 sm:p-1">
@@ -139,7 +139,7 @@
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
-                                 'z-[99999] relative': open
+                                 '!z-[99999] relative': open
                              }"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
@@ -159,7 +159,7 @@
                                     </div>
                                 @endif
                                 <!-- Tooltip / Modal -->
-                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <template x-if="open">
                                         <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
@@ -355,7 +355,7 @@
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
-                                 'z-[99999] relative': open
+                                 '!z-[99999] relative': open
                              }"
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
@@ -375,7 +375,7 @@
                                     </div>
                                 @endif
                                 <!-- Tooltip / Modal -->
-                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
+                                <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <template x-if="open">
                                         <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
@@ -758,7 +758,7 @@
                              :class="{ 
                                  'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
                                  'opacity-40 scale-95 border-amber-400': isDraggingThis,
-                                 'z-[99999] relative': open
+                                 '!z-[99999] relative': open
                              }"
                              @mouseenter="openTooltip()" 
                              @mouseleave="closeTooltip()" 
@@ -876,7 +876,7 @@
                              wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="withdrawFromStash('{{ $item->id }}')"
                              @dblclick="forceClose(); $wire.withdrawFromStash('{{ $item->id }}')"
                              class="aspect-square bg-stone-800 border-2 border-cyan-700/60 rounded flex items-center justify-center cursor-pointer hover:border-cyan-400 relative transition-all duration-300 shadow"
-                             :class="{ 'z-[99999] relative': open }"
+                             :class="{ '!z-[99999] relative': open }"
                              @mouseenter="openTooltip()" 
                              @mouseleave="closeTooltip()" 
                              @click="activeItemId = null; openTooltip()">
@@ -1016,7 +1016,6 @@
         .enchanted-border {
             animation: borderGlow 2s infinite alternate;
             border-width: 2px;
-            z-index: 10;
         }
     </style>
     <script>

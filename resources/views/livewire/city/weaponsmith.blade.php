@@ -564,7 +564,6 @@
         .enchanted-border {
             animation: borderGlow 2s infinite alternate;
             border-width: 2px;
-            z-index: 10;
         }
 
         
