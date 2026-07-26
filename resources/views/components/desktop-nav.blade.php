@@ -36,30 +36,100 @@
             </button>
 
             @if($character)
-                <div @click="$dispatch('toggle-reward-infobox'); $dispatch('play-audio', { type: 'hover' })"
-                     x-data="{ navLevel: {{ $character->level }} }"
-                     @stats-updated.window="
-                        let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
-                        if (data && data.level !== undefined) navLevel = Number(data.level);
-                        if (data && data.newStats && data.newStats.level !== undefined) navLevel = Number(data.newStats.level);
-                     "
+                @php
+                    $initialXpReq = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
+                @endphp
+                <div x-data="{
+                        navLevel: {{ $character->level }},
+                        navXp: {{ $character->xp }},
+                        navXpReq: {{ $initialXpReq }},
+                        navGold: {{ $character->gold }},
+                        navGems: {{ $character->gems }},
+
+                        handleStatsUpdate(detail) {
+                            let data = Array.isArray(detail) ? detail[0] : detail;
+                            if (!data) return;
+
+                            if (data.newStats) {
+                                if (data.newStats.level !== undefined) this.navLevel = Number(data.newStats.level);
+                                if (data.newStats.experience !== undefined) this.navXp = Number(data.newStats.experience);
+                                if (data.newStats.xp !== undefined) this.navXp = Number(data.newStats.xp);
+                                if (data.newStats.experience_required !== undefined) this.navXpReq = Number(data.newStats.experience_required);
+                                if (data.newStats.gold !== undefined) this.navGold = Number(data.newStats.gold);
+                                if (data.newStats.gems !== undefined) this.navGems = Number(data.newStats.gems);
+                            } else {
+                                if (data.level !== undefined) this.navLevel = Number(data.level);
+                                if (data.xp !== undefined) this.navXp = Number(data.xp);
+                                if (data.experience !== undefined) this.navXp = Number(data.experience);
+                                if (data.gold !== undefined) this.navGold = Number(data.gold);
+                                if (data.gems !== undefined) this.navGems = Number(data.gems);
+
+                                if (data.goldAdded) this.navGold += Number(data.goldAdded);
+                                if (data.goldDeducted) this.navGold -= Number(data.goldDeducted);
+                                if (data.xpAdded) this.navXp += Number(data.xpAdded);
+                                if (data.gemsAdded) this.navGems += Number(data.gemsAdded);
+                                if (data.gemsDeducted) this.navGems -= Number(data.gemsDeducted);
+
+                                let req = 15 * Math.pow(this.navLevel, 2) + 50 * this.navLevel + 0.15 * Math.pow(this.navLevel, 4.1);
+                                if (this.navLevel > 85) req += 0.025 * Math.pow(this.navLevel - 85, 5.5);
+                                this.navXpReq = Math.round(req);
+                            }
+                        }
+                     }"
+                     @stats-updated.window="handleStatsUpdate($event.detail)"
                      @open-level-up-modal.window="
                         let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
-                        if (data && data.level !== undefined) navLevel = Number(data.level);
-                        else if (typeof data === 'number') navLevel = data;
-                        else if (data && typeof data === 'object' && data.detail && data.detail.level) navLevel = Number(data.detail.level);
+                        let lvl = typeof data === 'number' ? data : (data && data.level ? Number(data.level) : null);
+                        if (lvl) {
+                            navLevel = lvl;
+                            let req = 15 * Math.pow(lvl, 2) + 50 * lvl + 0.15 * Math.pow(lvl, 4.1);
+                            if (lvl > 85) req += 0.025 * Math.pow(lvl - 85, 5.5);
+                            navXpReq = Math.round(req);
+                        }
                      "
-                     :class="collapsed ? 'p-1.5 justify-center' : 'p-2 pr-6'"
-                     class="flex items-center gap-3 rounded-xl bg-stone-950 border-2 border-amber-700/60 hover:border-amber-400 hover:bg-amber-950/40 transition-all duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_4px_10px_rgba(0,0,0,0.5)] group cursor-pointer"
-                     title="Kliknij, aby zobaczyć profil i skarbiec">
-                    <div :class="collapsed ? 'w-10 h-10' : 'w-11 h-11'" class="rounded-lg bg-stone-900 border-2 border-amber-500/80 overflow-hidden shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-all duration-300 relative">
-                        @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
-                            <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
-                        @endif
-                    </div>
+                     :class="collapsed ? 'p-1.5 text-center' : 'p-2.5'"
+                     class="rounded-xl bg-stone-950 border-2 border-amber-700/60 transition-all duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_4px_10px_rgba(0,0,0,0.5)]">
 
+                    {{-- Top Player Row --}}
+                    <a href="{{ route('city.profile', $charId) }}" wire:navigate
+                       @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                       :class="collapsed ? 'justify-center' : 'pr-5 mb-2.5'"
+                       class="flex items-center gap-3 group cursor-pointer">
+                        <div :class="collapsed ? 'w-10 h-10 mx-auto' : 'w-11 h-11'" class="rounded-lg bg-stone-900 border-2 border-amber-500/80 overflow-hidden shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-all duration-300 relative">
+                            @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="w-full h-full object-cover">
+                            @else
+                                <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
+                            @endif
+                            <div x-show="collapsed" class="absolute bottom-0 inset-x-0 bg-stone-950/90 text-amber-400 text-[8px] font-bold text-center leading-tight">
+                                Lvl <span x-text="navLevel">{{ $character->level }}</span>
+                            </div>
+                        </div>
+
+                        <div x-show="!collapsed"
+                             x-transition:enter="transition-opacity ease-out duration-200 delay-100"
+                             x-transition:enter-start="opacity-0"
+                             x-transition:enter-end="opacity-100"
+                             x-transition:leave="transition-opacity ease-in duration-75"
+                             x-transition:leave-start="opacity-100"
+                             x-transition:leave-end="opacity-0"
+                             class="min-w-0 flex-1">
+                            @if($character->activeTitle)
+                                <p class="text-[9px] text-amber-400 font-bold uppercase tracking-wider truncate leading-tight drop-shadow">
+                                    {{ $character->activeTitle->prefix }}
+                                </p>
+                            @endif
+                            <h3 class="text-xs font-extrabold text-amber-100 group-hover:text-amber-300 truncate leading-snug tracking-wide">
+                                {{ $character->name }}
+                            </h3>
+                            <div class="flex items-center justify-between text-[10px] text-amber-300/80 font-bold mt-0.5">
+                                <span>Lvl <span x-text="navLevel">{{ $character->level }}</span></span>
+                                <span class="text-yellow-400 font-bold">⚡ {{ number_format($character->getTotalCombatPower()) }}</span>
+                            </div>
+                        </div>
+                    </a>
+
+                    {{-- Dynamic Stats Section (EXP Bar, Gold, Gems) when not collapsed --}}
                     <div x-show="!collapsed"
                          x-transition:enter="transition-opacity ease-out duration-200 delay-100"
                          x-transition:enter-start="opacity-0"
@@ -67,18 +137,39 @@
                          x-transition:leave="transition-opacity ease-in duration-75"
                          x-transition:leave-start="opacity-100"
                          x-transition:leave-end="opacity-0"
-                         class="min-w-0 flex-1">
-                        @if($character->activeTitle)
-                            <p class="text-[9px] text-amber-400 font-bold uppercase tracking-wider truncate leading-tight drop-shadow">
-                                {{ $character->activeTitle->prefix }}
-                            </p>
-                        @endif
-                        <h3 class="text-xs font-extrabold text-amber-100 group-hover:text-amber-300 truncate leading-snug tracking-wide">
-                            {{ $character->name }}
-                        </h3>
-                        <div class="flex items-center justify-between text-[10px] text-amber-300/80 font-bold mt-0.5">
-                            <span>Lvl <span x-text="navLevel">{{ $character->level }}</span></span>
-                            <span class="text-yellow-400 font-bold">⚡ {{ number_format($character->getTotalCombatPower()) }}</span>
+                         class="space-y-2 pt-1 border-t border-amber-900/40">
+
+                        {{-- EXP Progress Bar --}}
+                        <div>
+                            <div class="flex justify-between text-[9px] font-bold text-stone-400 mb-1 font-sans">
+                                <span class="text-amber-500/90 tracking-wider">EXP</span>
+                                <span><span x-text="Number(navXp).toLocaleString()"></span> / <span x-text="Number(navXpReq).toLocaleString()"></span></span>
+                            </div>
+                            <div class="w-full h-2 bg-stone-900 rounded-full overflow-hidden border border-stone-800 shadow-inner">
+                                <div class="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 transition-all duration-700 relative rounded-full"
+                                     :style="`width: ${Math.min(100, Math.max(0, (navXp / Math.max(1, navXpReq)) * 100))}%`">
+                                    <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Currencies: Gold & Diamonds --}}
+                        <div class="grid grid-cols-2 gap-1.5 text-xs font-sans">
+                            {{-- Gold --}}
+                            <div class="bg-stone-900/90 border border-amber-900/60 rounded-lg p-1.5 flex items-center justify-between shadow-inner"
+                                 title="Złoto">
+                                <span class="text-xs">🪙</span>
+                                <span class="font-bold text-yellow-400 text-[11px] truncate ml-1 drop-shadow"
+                                      x-text="Number(navGold).toLocaleString()"></span>
+                            </div>
+
+                            {{-- Diamonds / Gems --}}
+                            <div class="bg-stone-900/90 border border-purple-900/60 rounded-lg p-1.5 flex items-center justify-between shadow-inner"
+                                 title="Gemy / Diamenty">
+                                <span class="text-xs">💎</span>
+                                <span class="font-bold text-purple-400 text-[11px] truncate ml-1 drop-shadow"
+                                      x-text="Number(navGems).toLocaleString()"></span>
+                            </div>
                         </div>
                     </div>
                 </div>
