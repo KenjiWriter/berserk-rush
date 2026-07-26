@@ -201,6 +201,12 @@
                         <span>SKLEP GEMÓW</span>
                     </a>
 
+                    <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer" @click="mobileMenuOpen = false"
+                       class="w-full flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-indigo-200 font-bold border border-indigo-600/60 hover:border-indigo-400 transition-all cursor-pointer">
+                        <i class="fa-brands fa-discord text-indigo-400 text-sm"></i>
+                        <span>DISCORD</span>
+                    </a>
+
                     <button @click="mobileMenuOpen = false; $dispatch('open-suggestion-modal')"
                             class="w-full flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-indigo-200 font-bold border border-indigo-600/60 hover:border-indigo-400 transition-all cursor-pointer">
                         <i class="fa-solid fa-comment-dots text-indigo-400 text-sm"></i>
