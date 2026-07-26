@@ -581,4 +581,22 @@ class Character extends Model
 
         return 'sword';
     }
+
+    public function getAttributeAttackBonus(?string $weaponType = null): int
+    {
+        $attributes = $this->getTotalAttributes();
+        $weaponType = $weaponType ?? $this->getEquippedWeaponType();
+
+        $str = $attributes['str'] ?? 0;
+        $int = $attributes['int'] ?? 0;
+        $agi = $attributes['agi'] ?? 0;
+
+        return match ($weaponType) {
+            'bow', 'sword', 'dagger' => $str + $agi,
+            'bell' => $str + $int,
+            'wand' => $int * 2,
+            'axe' => $str * 2,
+            default => $str * 2,
+        };
+    }
 }

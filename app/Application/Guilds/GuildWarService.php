@@ -319,10 +319,26 @@ class GuildWarService
         $actingSnap = $actor === 'attacker' ? $atkSnap : $defSnap;
         $targetSnap = $actor === 'attacker' ? $defSnap : $atkSnap;
 
-        $str = $actingSnap['attributes']['str'] ?? 1;
+        $weaponType = $actingSnap['weapon_type'] ?? 'barehands';
+        $attrs = $actingSnap['attributes'] ?? [];
+        $str = $attrs['str'] ?? 0;
+        $int = $attrs['int'] ?? 0;
+        $agi = $attrs['agi'] ?? 0;
+
+        $statBonus = match ($weaponType) {
+            'bow', 'sword', 'dagger' => $str + $agi,
+            'bell' => $str + $int,
+            'wand' => $int * 2,
+            'axe' => $str * 2,
+            default => $str * 2,
+        };
+
         $eq = $actingSnap['equipment_stats'] ?? [];
-        $dmgMin = 10 + ($str * 2) + ($actingSnap['level'] * 1) + ($eq['attack_min'] ?? 0);
-        $dmgMax = 10 + ($str * 2) + ($actingSnap['level'] * 1) + ($eq['attack_max'] ?? 0);
+        $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+
+        $dmgMin = 10 + $statBonus + ($actingSnap['level'] * 1) + $weaponAtkMin;
+        $dmgMax = 10 + $statBonus + ($actingSnap['level'] * 1) + $weaponAtkMax;
         if ($dmgMax < $dmgMin) $dmgMax = $dmgMin;
         $damage = mt_rand($dmgMin, $dmgMax);
 

@@ -399,13 +399,17 @@ class Profile extends Component
         
         $eqStats = $this->character->getEquipmentStats();
         
-        $baseDmg = 10 + ($str * 2) + ($level * 1);
+        $statBonus = $this->character->getAttributeAttackBonus();
+        $baseDmg = 10 + $statBonus + ($level * 1);
         $magicDmg = ($int * 2) + ($level * 1);
+
+        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
         $derivedStats = [
             'max_hp' => 100 + ($vit * 10) + ($level * 5) + $eqStats['hp_bonus'],
-            'base_damage_min' => $baseDmg + $eqStats['attack_min'],
-            'base_damage_max' => $baseDmg + $eqStats['attack_max'],
+            'base_damage_min' => $baseDmg + $weaponAtkMin,
+            'base_damage_max' => $baseDmg + $weaponAtkMax,
             'magic_damage_min' => $magicDmg + $eqStats['magic_attack_min'],
             'magic_damage_max' => $magicDmg + $eqStats['magic_attack_max'],
             'crit_chance' => min(50, 5 + ($agi * 0.5) + $eqStats['crit_chance']),

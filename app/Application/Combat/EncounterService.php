@@ -730,11 +730,15 @@ class EncounterService
 
     private function calculateDamage(Character $character, Monster $monster): array
     {
-        $strength = $character->getTotalAttributes()['str'] ?? 1;
+        $weaponType = $character->getEquippedWeaponType();
+        $statBonus = $character->getAttributeAttackBonus($weaponType);
         $eq = $character->getEquipmentStats();
-        
-        $baseDamageMin = 10 + ($strength * 2) + ($character->level * 1) + ($eq['attack_min'] ?? 0);
-        $baseDamageMax = 10 + ($strength * 2) + ($character->level * 1) + ($eq['attack_max'] ?? 0);
+
+        $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+
+        $baseDamageMin = 10 + $statBonus + ($character->level * 1) + $weaponAtkMin;
+        $baseDamageMax = 10 + $statBonus + ($character->level * 1) + $weaponAtkMax;
         
         // Ensure max is at least min
         if ($baseDamageMax < $baseDamageMin) {

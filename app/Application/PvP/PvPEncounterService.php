@@ -248,12 +248,26 @@ class PvPEncounterService
             }
         }
 
-        // Calculate damage using snapshot equipment stats
-        $strength = $actingSnapshot['attributes']['str'] ?? 1;
+        // Calculate damage using snapshot equipment stats and weapon type
+        $attrs = $actingSnapshot['attributes'] ?? [];
+        $str = $attrs['str'] ?? 0;
+        $int = $attrs['int'] ?? 0;
+        $agi = $attrs['agi'] ?? 0;
+
+        $statBonus = match ($weaponType) {
+            'bow', 'sword', 'dagger' => $str + $agi,
+            'bell' => $str + $int,
+            'wand' => $int * 2,
+            'axe' => $str * 2,
+            default => $str * 2,
+        };
+
         $eqStats = $actingSnapshot['equipment_stats'] ?? [];
-        
-        $baseDmgMin = 10 + ($strength * 2) + ($actingSnapshot['level'] * 1) + ($eqStats['attack_min'] ?? 0);
-        $baseDmgMax = 10 + ($strength * 2) + ($actingSnapshot['level'] * 1) + ($eqStats['attack_max'] ?? 0);
+        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+
+        $baseDmgMin = 10 + $statBonus + ($actingSnapshot['level'] * 1) + $weaponAtkMin;
+        $baseDmgMax = 10 + $statBonus + ($actingSnapshot['level'] * 1) + $weaponAtkMax;
         if ($baseDmgMax < $baseDmgMin) $baseDmgMax = $baseDmgMin;
         
         $damage = mt_rand($baseDmgMin, $baseDmgMax);

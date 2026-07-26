@@ -494,7 +494,7 @@
 
                         <!-- STR -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Siła: Zwiększa obrażenia bazowe broni.">Strength (STR):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Siła: Zwiększa obrażenia broni typu Topór (x2), Miecz, Łuk i Dzwon.">Strength (STR):</span>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str + pending.str"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -506,7 +506,7 @@
                         
                         <!-- INT -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Inteligencja: Wpływa na obronę magiczną.">Intelligence (INT):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Inteligencja: Zwiększa obrażenia broni typu Różdżka (x2) i Dzwon.">Intelligence (INT):</span>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int + pending.int"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -518,7 +518,7 @@
                         
                         <!-- VIT -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP).">Vitality (VIT):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP) oraz redukcję obrażeń.">Vitality (VIT):</span>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit + pending.vit"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -530,7 +530,7 @@
                         
                         <!-- AGI -->
                         <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Zręczność: Decyduje o kolejności ataku w walce oraz o szansie na uniki.">Agility (AGI):</span>
+                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Zręczność: Zwiększa obrażenia broni typu Łuk, Miecz i Sztylet. Decyduje też o kolejności ataku i unikach.">Agility (AGI):</span>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi + pending.agi"></span>
                                 <div class="flex gap-1" x-show="points > 0">
