@@ -59,6 +59,7 @@ class MapStub extends Component
     public bool $battleCompleted = false;
     public int $damageDealt = 0;
     public bool $isWorldBoss = false;
+    public ?int $worldBossMonsterId = null;
     public array $pendingNotifications = [];
 
     #[On('tutorial-completed')]
@@ -98,7 +99,6 @@ class MapStub extends Component
         }
 
         if (request()->has('world_boss')) {
-            $this->isWorldBoss = true;
             $worldBossId = (int)request()->query('world_boss');
             
             // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss
@@ -114,14 +114,16 @@ class MapStub extends Component
 
                 if ($hasParticipated) {
                     $this->isWorldBoss = false;
+                    $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Już brałeś udział w walce z tym World Bossem!');
                 } else {
-                    $this->startBattle($worldBossId);
+                    $this->isWorldBoss = true;
+                    $this->worldBossMonsterId = $worldBossId;
                 }
             } else {
                 $this->isWorldBoss = false;
+                $this->worldBossMonsterId = null;
                 session()->flash('warning', 'Ten World Boss nie jest obecnie aktywny na tej mapie.');
-                $this->startBattle();
             }
         }
     }
@@ -134,7 +136,9 @@ class MapStub extends Component
         $encounterService = app(EncounterService::class);
         
         // Zabezpieczenie: tylko przy aktywnym statusie World Boss pozwalamy na wymuszone ID potwora
-        if (!$this->isWorldBoss) {
+        if ($this->isWorldBoss) {
+            $monsterId = $monsterId ?? $this->worldBossMonsterId;
+        } else {
             $monsterId = null;
         }
         
@@ -146,6 +150,11 @@ class MapStub extends Component
             $this->isCalculating = false;
             $this->enemy = [];
             return;
+        }
+
+        if ($this->isWorldBoss) {
+            $this->isWorldBoss = false;
+            $this->worldBossMonsterId = null;
         }
 
         $encounter = $startResult->getPayload();

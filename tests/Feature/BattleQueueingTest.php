@@ -177,4 +177,48 @@ class BattleQueueingTest extends TestCase
             ->test(MapStub::class, ['character' => $character, 'map' => $highLevelMap])
             ->assertRedirect(route('city.adventure', $character));
     }
+
+    public function test_world_boss_can_be_challenged_via_map_stub_without_double_encounter_error(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'BossHunter',
+            'level' => 1,
+            'gold' => 100,
+            'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
+        ]);
+
+        $map = Map::create([
+            'name' => 'Boss Map',
+            'level_min' => 1,
+            'level_max' => 5,
+        ]);
+
+        $bossMonster = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Smoczy Król',
+            'level' => 5,
+            'rank' => 'worldboss',
+            'stats' => ['hp' => 1000, 'atk' => 10, 'def' => 5, 'agi' => 2],
+        ]);
+
+        \App\Infrastructure\Persistence\WorldBossInstance::create([
+            'monster_id' => $bossMonster->id,
+            'map_id' => $map->id,
+            'total_hp' => 1000,
+            'current_hp' => 1000,
+            'is_defeated' => false,
+        ]);
+
+        // When user opens map with ?world_boss={id}, mount() should NOT trigger startBattle() immediately.
+        // Then startBattle() call on click should succeed without COMBAT_IN_PROGRESS error!
+        Livewire::withQueryParams(['world_boss' => $bossMonster->id])
+            ->actingAs($user)
+            ->test(MapStub::class, ['character' => $character, 'map' => $map])
+            ->assertSet('isWorldBoss', true)
+            ->assertSet('worldBossMonsterId', $bossMonster->id)
+            ->call('startBattle')
+            ->assertHasNoErrors();
+    }
 }

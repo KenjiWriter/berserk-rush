@@ -335,6 +335,10 @@ php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
+# Ustawienie uprawnień dla procesu PHP-FPM / Nginx (www-data)
+sudo chown -R www-data:www-data /var/www/berserk-rush/storage /var/www/berserk-rush/bootstrap/cache
+sudo chmod -R 775 /var/www/berserk-rush/storage /var/www/berserk-rush/bootstrap/cache
+
 # Restart workerów i daemona WebSockets
 sudo supervisorctl restart all
 
@@ -352,3 +356,22 @@ chmod +x deploy.sh
 
 Wdrożenie nowej wersji sprowadza się teraz do uruchomienia:
 `./deploy.sh`
+
+---
+
+## 🛠️ Rozwiązywanie Problemów (Troubleshooting)
+
+### Błąd `Permission denied` przy `storage/framework/views/...`
+Jeśli w przeglądarce pojawi się błąd:
+`file_put_contents(/var/www/berserk-rush/storage/framework/views/...): Failed to open stream: Permission denied`
+
+Wynika to z faktu, że komendy konsolowe (np. `git pull` lub `php artisan`) zostały uruchomione z konta użytkownika `root` lub innego użytkownika Linuxa, który przejął uprawnienia do podkatalogów w `storage/`.
+
+**Szybka naprawa na serwerze VPS:**
+Wykonaj w konsoli serwera poniższą komendę, aby przywrócić uprawnienia dla procesu Nginx / PHP-FPM (`www-data`):
+
+```bash
+sudo chown -R www-data:www-data /var/www/berserk-rush/storage /var/www/berserk-rush/bootstrap/cache
+sudo chmod -R 775 /var/www/berserk-rush/storage /var/www/berserk-rush/bootstrap/cache
+sudo php artisan view:clear
+```
