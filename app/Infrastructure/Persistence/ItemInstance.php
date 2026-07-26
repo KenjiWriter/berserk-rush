@@ -178,16 +178,9 @@ class ItemInstance extends Model
         $bonus = [];
 
         foreach ($base as $stat => $val) {
-            if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
-                $bonus[$stat] = $level * 2;
-            } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
-                $bonus[$stat] = $level * 3;
-            } elseif ($stat === 'defense') {
-                $bonus[$stat] = $level * 2;
-            } elseif ($stat === 'hp_bonus') {
-                $bonus[$stat] = $level * 10;
-            } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
-                $bonus[$stat] = (int) floor($level / 2);
+            if (is_numeric($val) && $val > 0) {
+                $calc = (int) round($val * 0.10 * $level);
+                $bonus[$stat] = max(1, $calc);
             }
         }
 

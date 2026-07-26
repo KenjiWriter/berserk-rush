@@ -22,16 +22,9 @@
         $upgrade_bonus = $item->getUpgradeBonusStats($upgrade_level);
     } elseif ($upgrade_level > 0) {
         foreach ($base_stats as $stat => $val) {
-            if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
-                $upgrade_bonus[$stat] = $upgrade_level * 2;
-            } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
-                $upgrade_bonus[$stat] = $upgrade_level * 3;
-            } elseif ($stat === 'defense') {
-                $upgrade_bonus[$stat] = $upgrade_level * 2;
-            } elseif ($stat === 'hp_bonus') {
-                $upgrade_bonus[$stat] = $upgrade_level * 10;
-            } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
-                $upgrade_bonus[$stat] = (int) floor($upgrade_level / 2);
+            if (is_numeric($val) && $val > 0) {
+                $calc = (int) round($val * 0.10 * $upgrade_level);
+                $upgrade_bonus[$stat] = max(1, $calc);
             }
         }
     }
@@ -56,16 +49,9 @@
             $equipped_upgrade_bonus = $equippedItem->getUpgradeBonusStats($eq_upgrade_level);
         } elseif ($eq_upgrade_level > 0) {
             foreach ($equipped_base_stats as $stat => $val) {
-                if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
-                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 2;
-                } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
-                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 3;
-                } elseif ($stat === 'defense') {
-                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 2;
-                } elseif ($stat === 'hp_bonus') {
-                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 10;
-                } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
-                    $equipped_upgrade_bonus[$stat] = (int) floor($eq_upgrade_level / 2);
+                if (is_numeric($val) && $val > 0) {
+                    $calc = (int) round($val * 0.10 * $eq_upgrade_level);
+                    $equipped_upgrade_bonus[$stat] = max(1, $calc);
                 }
             }
         }

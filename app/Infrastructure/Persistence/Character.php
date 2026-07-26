@@ -282,6 +282,7 @@ class Character extends Model
             foreach ($this->equippedItems as $item) {
                 $templateStats = $item->template->base_stats ?? [];
                 $rollStats = $item->roll_stats ?? [];
+                $upgradeStats = $item->getUpgradeBonusStats();
 
                 // Add template stats
                 foreach (['str', 'int', 'vit', 'agi'] as $stat) {
@@ -290,8 +291,10 @@ class Character extends Model
                         $total[$stat] += $templateStats[$bonusKey];
                     }
                     if (isset($rollStats[$bonusKey])) {
-                        // In a real app we might scale roll_stats by upgrade_level
                         $total[$stat] += $rollStats[$bonusKey];
+                    }
+                    if (isset($upgradeStats[$bonusKey])) {
+                        $total[$stat] += $upgradeStats[$bonusKey];
                     }
                 }
             }

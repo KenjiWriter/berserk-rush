@@ -29,6 +29,6 @@ Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni, 
 - **Koszt:** Ulepszanie pochłania Złoto (`gold`) oraz zdefiniowane materiały rzemieślnicze z dedykowanego schowka na materiały (`material_stash`).
 
 ### 3. Skutki i Porażki
-- **Sukces:** Poziom przedmiotu rośnie o +1 (zapisywane w `ItemInstance->upgrade_level`). Przedmiot otrzymuje dodatkowe statystyki kalkulowane w czasie rzeczywistym i dopisywane do statystyk z szablonu. Widoczne jako `( +X )` przy nazwie przedmiotu.
+- **Sukces:** Poziom przedmiotu rośnie o +1 (zapisywane w `ItemInstance->upgrade_level`). Przedmiot otrzymuje dodatkowe statystyki kalkulowane w czasie rzeczywistym (10% bazowych statystyk przedmiotu na każdy poziom ulepszenia, min. +1 dla statystyk dodatnich) i dopisywane do statystyk z szablonu. Widoczne jako `( +X )` przy nazwie przedmiotu.
 - **Porażka:** W obecnej iteracji systemu gracz traci jedynie zużyte zasoby. W odróżnieniu od gier z gatunku hardcore (np. klasycznego Metin2), system nie niszczy broni i nie redukuje poziomu ulepszenia w przypadku niepowodzenia. 
 - Przebieg i zasady są wyraźnie określone na ekranie w interfejsie Kuźni. O sukcesie bądz porażce informuje modal z graficznym komunikatem (ikona ✨ przy sukcesie lub 💥 przy failu).
