@@ -15,12 +15,12 @@ class ShopEquipmentSeeder extends Seeder
         MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'gladiator'])->delete();
 
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 1]],
-            'axe'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 7, 'str_bonus' => 1]],
-            'bow'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'agi_bonus' => 1]],
-            'wand'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 1]],
-            'dagger'  => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 1, 'crit_chance' => 3]],
-            'bell'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2, 'magic_attack_max' => 5, 'int_bonus' => 1]],
+            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 1]],
+            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 7, 'str_bonus' => 1]],
+            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'agi_bonus' => 1]],
+            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 1]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 1, 'crit_chance' => 3]],
+            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2, 'magic_attack_max' => 5, 'int_bonus' => 1]],
 
             'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1]],
             'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1]],
@@ -140,6 +140,7 @@ class ShopEquipmentSeeder extends Seeder
                         'id' => $templateId,
                         'name' => $name,
                         'type' => $proto['type'],
+                        'sub_type' => $proto['sub_type'] ?? null,
                         'slot' => $proto['slot'],
                         'level_requirement' => $theme['level'],
                         'base_stats' => $scaledStats,
@@ -149,6 +150,8 @@ class ShopEquipmentSeeder extends Seeder
                             'common' => 100
                         ],
                     ]);
+                } else {
+                    $template->update(['sub_type' => $proto['sub_type'] ?? null]);
                 }
 
                 // Przypisanie do handlarza

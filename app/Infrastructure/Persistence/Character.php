@@ -529,6 +529,10 @@ class Character extends Model
             return 'barehands';
         }
 
+        if (!empty($weapon->template->sub_type)) {
+            return $weapon->template->sub_type;
+        }
+
         $name = mb_strtolower($weapon->template->name, 'UTF-8');
 
         if (str_contains($name, 'miecz') || str_contains($name, 'ostrze') || str_contains($name, 'pałasz') || str_contains($name, 'sabaty') || str_contains($name, 'sword')) {

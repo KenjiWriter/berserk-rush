@@ -14,6 +14,7 @@ class ItemTemplate extends Model
         'id',
         'name',
         'type',
+        'sub_type',
         'slot',
         'level_requirement',
         'base_stats',

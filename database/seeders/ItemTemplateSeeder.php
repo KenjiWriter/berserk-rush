@@ -17,11 +17,11 @@ class ItemTemplateSeeder extends Seeder
             ['id' => Str::ulid(), 'name' => 'Wielka Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 5, 'base_stats' => ['heal_amount' => 150], 'description' => 'Potężna mikstura.', 'icon' => 'metna-woda.png', 'rarity_weights' => ['common' => 60, 'uncommon' => 30, 'rare' => 10]],
 
             // Keys & Tutorial / Starter Equipment
-            ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
-            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 6, 'str_bonus' => 2], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'sub_type' => null, 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
+            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 6, 'str_bonus' => 2], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
 
         foreach ($manualItems as $item) {
@@ -37,12 +37,12 @@ class ItemTemplateSeeder extends Seeder
 
 
         $prototypes = [
-            'sword'    => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 2]],
-            'axe'      => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 8, 'str_bonus' => 3]],
-            'bow'      => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'agi_bonus' => 2]],
-            'bell'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 2, 'mana_bonus' => 10]],
-            'wand'     => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 8, 'int_bonus' => 3]],
-            'dagger'   => ['type' => 'weapon', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 2, 'crit_chance' => 5]],
+            'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 2]],
+            'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 8, 'str_bonus' => 3]],
+            'bow'      => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'agi_bonus' => 2]],
+            'bell'     => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 2, 'mana_bonus' => 10]],
+            'wand'     => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 8, 'int_bonus' => 3]],
+            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 2, 'crit_chance' => 5]],
             
             'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 10, 'vit_bonus' => 1, 'str_bonus' => 1]],
             'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 5, 'hp_bonus' => 20, 'vit_bonus' => 2, 'str_bonus' => 1]],
@@ -206,6 +206,7 @@ class ItemTemplateSeeder extends Seeder
                         'id' => Str::ulid(),
                         'name' => $name,
                         'type' => $proto['type'],
+                        'sub_type' => $proto['sub_type'] ?? null,
                         'slot' => $proto['slot'],
                         'level_requirement' => $theme['level'],
                         'base_stats' => $scaledStats,
@@ -219,6 +220,8 @@ class ItemTemplateSeeder extends Seeder
                             'legendary' => 1
                         ],
                     ]);
+                } else {
+                    $existing->update(['sub_type' => $proto['sub_type'] ?? null]);
                 }
 
                 $generatedCount++;
