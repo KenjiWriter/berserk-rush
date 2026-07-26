@@ -133,20 +133,19 @@ class Armorsmith extends Component
 
 
         // Sell all types of items (inventory + equipped)
-        $inventoryItems = $this->character->inventoryItems()->with('template')->get()->merge(
-            $this->character->equippedItems()->with('template')->get()
-        );
+        $inventoryItems = $this->character->inventoryItems()->take(64)->get();
+
         $sellPrices = [];
         foreach($inventoryItems as $item) {
             $sellPrices[$item->id] = $shopService->getSellPrice($item);
         }
 
-        // Upgrade only armor/accessory
+        // Upgrade only armors
         $upgradableItems = $this->character->inventoryItems()->whereHas('template', function($q) {
-            $q->whereIn('type', ['armor', 'accessory']);
-        })->get()->merge(
+            $q->where('type', 'armor');
+        })->take(64)->get()->merge(
             $this->character->equippedItems()->whereHas('template', function($q) {
-                $q->whereIn('type', ['armor', 'accessory']);
+                $q->where('type', 'armor');
             })->get()
         );
         
@@ -163,6 +162,34 @@ class Armorsmith extends Component
             $q->where('type', 'armor');
         })->get();
 
+        // Batch fetch monster drops to eliminate N+1 queries
+        $allMatIds = [];
+        foreach ($recipes as $recipe) {
+            foreach ($recipe->ingredients as $ing) {
+                if (!empty($ing['template_id'])) {
+                    $allMatIds[] = $ing['template_id'];
+                }
+            }
+        }
+        $allMatIds = array_unique($allMatIds);
+
+        $monsterDropsMap = [];
+        if (!empty($allMatIds)) {
+            $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $allMatIds)
+                ->whereHas('lootTable.monster')
+                ->with('lootTable.monster')
+                ->get();
+            foreach ($entries as $entry) {
+                $mName = $entry->lootTable->monster->name ?? null;
+                if ($mName) {
+                    $monsterDropsMap[$entry->ref_ulid][] = $mName;
+                }
+            }
+            foreach ($monsterDropsMap as $ulid => $mList) {
+                $monsterDropsMap[$ulid] = array_values(array_unique($mList));
+            }
+        }
+
         $preparedRecipes = [];
         foreach ($recipes as $recipe) {
             $preparedIngredients = [];
@@ -175,12 +202,7 @@ class Armorsmith extends Component
                 
                 if ($owned < $req) $canCraft = false;
 
-                $dropMonsters = [];
-                if ($mat) {
-                    $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($mat) {
-                        $q->where('ref_ulid', $mat->id);
-                    })->pluck('name')->toArray();
-                }
+                $dropMonsters = $mat ? ($monsterDropsMap[$mat->id] ?? []) : [];
 
                 $preparedIngredients[] = [
                     'name' => $mat ? $mat->name : 'Nieznany',
