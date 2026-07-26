@@ -133,4 +133,43 @@ class CombatSkillPointsTest extends TestCase
         $this->assertEquals('MAX_LEVEL_REACHED', $result->getErrorCode());
         $this->assertEquals(5, $charSkill->fresh()->level);
     }
+
+    public function test_skills_reset_all_command()
+    {
+        $user = \App\Models\User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'ResetTarget',
+            'level' => 40,
+            'skill_points' => 0,
+        ]);
+
+        $skill = CombatSkill::create([
+            'id' => (string) Str::ulid(),
+            'name' => 'Mocny Cios',
+            'description' => 'Test',
+            'type' => 'active',
+            'required_weapon_type' => 'sword',
+            'effect_type' => 'buff_phys_dmg',
+            'base_cooldown' => 5,
+            'base_duration' => 3,
+            'base_value' => 0.20,
+            'scaling_value' => 0.05,
+            'required_level' => 10,
+            'unlock_cost' => 5,
+        ]);
+
+        CharacterCombatSkill::create([
+            'character_id' => $character->id,
+            'combat_skill_id' => $skill->id,
+            'level' => 4,
+            'is_equipped' => true,
+        ]);
+
+        $this->artisan('skills:reset-all')
+            ->assertExitCode(0);
+
+        $this->assertEquals(0, CharacterCombatSkill::count());
+        $this->assertEquals(39, $character->fresh()->skill_points);
+    }
 }
