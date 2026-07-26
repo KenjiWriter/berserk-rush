@@ -24,6 +24,13 @@ class GuildComponent extends Component
     public int $newGuildMinLevel = 1;
     public bool $newGuildIsPublic = false;
 
+    // Edit form
+    public string $editGuildName = '';
+    public string $editGuildTitle = '';
+    public string $editGuildDescription = '';
+    public int $editGuildMinLevel = 1;
+    public bool $editGuildIsPublic = false;
+
     // List search
     public string $searchQuery = '';
 
@@ -45,9 +52,25 @@ class GuildComponent extends Component
         $this->character->refresh();
         if ($this->character->guild_id) {
             $this->viewMode = 'panel';
+            if ($this->panelTab === 'settings') {
+                $this->initEditGuild();
+            }
         } else {
             $this->viewMode = 'list';
         }
+    }
+
+    public function initEditGuild(): void
+    {
+        if (!$this->character->guild_id) return;
+        $guild = Guild::find($this->character->guild_id);
+        if (!$guild) return;
+
+        $this->editGuildName = $guild->name;
+        $this->editGuildTitle = $guild->title ?? '';
+        $this->editGuildDescription = $guild->description ?? '';
+        $this->editGuildMinLevel = $guild->min_level;
+        $this->editGuildIsPublic = (bool)$guild->is_public;
     }
 
     public function goTo(string $route): void
@@ -72,6 +95,58 @@ class GuildComponent extends Component
     public function setPanelTab(string $tab): void
     {
         $this->panelTab = $tab;
+        if ($tab === 'settings') {
+            $this->initEditGuild();
+        }
+    }
+
+    public function updateGuildSettings(): void
+    {
+        if (!$this->character->guild_id) return;
+        $guild = Guild::find($this->character->guild_id);
+        if (!$guild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->addError('settings', 'Tylko lider może edytować dane gildii.');
+            return;
+        }
+
+        $this->validate([
+            'editGuildName' => 'required|string|min:3|max:30|unique:guilds,name,' . $guild->id,
+            'editGuildTitle' => 'nullable|string|max:50',
+            'editGuildDescription' => 'nullable|string|max:1000',
+            'editGuildMinLevel' => 'required|integer|min:1|max:100',
+            'editGuildIsPublic' => 'required|boolean',
+        ], [
+            'editGuildName.required' => 'Nazwa jest wymagana.',
+            'editGuildName.min' => 'Nazwa musi mieć min 3 znaki.',
+            'editGuildName.max' => 'Nazwa może mieć max 30 znaków.',
+            'editGuildName.unique' => 'Ta nazwa jest już zajęta.',
+            'editGuildTitle.max' => 'Tytuł może mieć max 50 znaków.',
+            'editGuildDescription.max' => 'Opis może mieć max 1000 znaków.',
+            'editGuildMinLevel.min' => 'Minimalny poziom to 1.',
+        ]);
+
+        DB::transaction(function () use ($guild) {
+            $guild->update([
+                'name' => $this->editGuildName,
+                'title' => $this->editGuildTitle,
+                'description' => $this->editGuildDescription,
+                'min_level' => $this->editGuildMinLevel,
+                'is_public' => $this->editGuildIsPublic,
+            ]);
+
+            \App\Models\GuildLog::create([
+                'guild_id' => $guild->id,
+                'character_id' => $this->character->id,
+                'action' => 'update_settings',
+                'amount' => 0,
+            ]);
+        });
+
+        $this->dispatch('notify', type: 'success', message: 'Dane gildii zostały pomyślnie zaktualizowane!');
+        $this->refreshState();
     }
 
     public function getLogsProperty()

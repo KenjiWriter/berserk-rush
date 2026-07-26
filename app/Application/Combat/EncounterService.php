@@ -460,7 +460,7 @@ class EncounterService
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
 
-                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp);
+                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss);
                 $monsterHp = $turn['enemyHp'];
             } else {
                 $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp);
@@ -480,7 +480,7 @@ class EncounterService
         return $turns;
     }
 
-    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp): array
+    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp, bool $isWorldBoss = false): array
     {
         $equippedWeaponType = $character->getEquippedWeaponType();
 
@@ -531,14 +531,26 @@ class EncounterService
         // Process active DoTs on monster during this exchange
         $dotDamage = 0;
         $dotType = null;
+        $baseHpForDot = $monster->stats['hp'] ?? 10000;
+
         foreach ($this->activeDots as $k => $dot) {
             if ($dot['type'] === 'poison') {
-                $dmg = (int)($monsterHp * $dot['value']);
+                $targetHp = $isWorldBoss ? $baseHpForDot : $monsterHp;
+                $dmg = (int)($targetHp * $dot['value']);
             } else if ($dot['type'] === 'fire') {
-                $dmg = (int)($monsterMaxHp * $dot['value']);
+                $targetHp = $isWorldBoss ? $baseHpForDot : $monsterMaxHp;
+                $dmg = (int)($targetHp * $dot['value']);
             } else {
                 $dmg = 0;
             }
+
+            if ($isWorldBoss) {
+                // Cap DoT damage per tick on World Boss to prevent scaling exploit
+                $playerDmgData = $this->calculateDamage($character, $monster);
+                $maxDotCap = max(100, (int)($playerDmgData['total'] * 5));
+                $dmg = min($dmg, $maxDotCap);
+            }
+
             $dmg = max(1, $dmg);
             $dotDamage += $dmg;
             $dotType = $dot['type'];

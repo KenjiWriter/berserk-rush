@@ -16,6 +16,7 @@ class Guild extends Model
     protected $fillable = [
         'name',
         'title',
+        'description',
         'min_level',
         'is_public',
         'level',

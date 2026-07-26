@@ -290,7 +290,10 @@
 
         @elseif($viewMode === 'panel')
             {{-- GUILD PANEL VIEW --}}
-            @php $guild = $character->guild; @endphp
+            @php 
+                $guild = $character->guild; 
+                $myMember = $guild ? $guild->members->where('character_id', $character->id)->first() : null; 
+            @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {{-- Left Column: Guild Stats & Info --}}
                 <div class="md:col-span-1 space-y-6">
@@ -300,7 +303,14 @@
                                 <i class="fa-solid fa-flag"></i>
                             </div>
                             <div>
-                                <h2 class="text-2xl font-bold text-amber-300 medieval-font drop-shadow">{{ $guild->name }}</h2>
+                                <div class="flex items-center gap-2">
+                                    <h2 class="text-2xl font-bold text-amber-300 medieval-font drop-shadow">{{ $guild->name }}</h2>
+                                    @if($myMember && $myMember->role === 'leader')
+                                        <button wire:click="setPanelTab('settings')" class="text-amber-400 hover:text-amber-200 text-xs p-1 transition" title="Edytuj dane gildii">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    @endif
+                                </div>
                                 <p class="text-xs text-amber-400/60 italic">{{ $guild->title ?? 'Brak tytułu Zakonu' }}</p>
                             </div>
                         </div>
@@ -345,6 +355,15 @@
                             </div>
                             <div class="mt-1.5 text-[10px] text-amber-200/70 font-mono">{{ number_format($guild->xp) }} / {{ $req ? number_format($req) : 'MAX' }}</div>
                         </div>
+
+                        @if($guild->description)
+                            <div class="mt-4 p-3 bg-stone-950/70 border border-amber-800/40 rounded-xl">
+                                <h4 class="text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-1 medieval-font flex items-center gap-1.5">
+                                    <i class="fa-solid fa-scroll text-amber-400"></i> Opis Gildii
+                                </h4>
+                                <p class="text-xs text-amber-200/90 whitespace-pre-line leading-relaxed">{{ $guild->description }}</p>
+                            </div>
+                        @endif
                     </div>
 
                     @error('leave')
@@ -387,6 +406,10 @@
                                 <i class="fa-solid fa-khanda text-amber-400"></i> Wojny Gildii
                             </button>
                             @if($myMember && $myMember->role === 'leader')
+                                <button wire:click="setPanelTab('settings')" @click="$dispatch('play-audio', { type: 'tab' })"
+                                        class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'settings' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
+                                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Edycja Gildii
+                                </button>
                                 <button wire:click="setPanelTab('logs')" @click="$dispatch('play-audio', { type: 'tab' })"
                                         class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'logs' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
                                     <i class="fa-solid fa-scroll text-amber-400"></i> Logi Gildii
@@ -558,6 +581,91 @@
                                 @empty
                                     <div class="text-center py-8 text-stone-500 italic text-xs">Twoja gildia nie brała jeszcze udziału w wojnach gildii.</div>
                                 @endforelse
+                            </div>
+                        @elseif($panelTab === 'settings' && $myMember && $myMember->role === 'leader')
+                            <div class="space-y-5 animate-[fade-in_0.3s_ease-out]">
+                                <div class="flex items-center justify-between border-b border-amber-800/40 pb-2 mb-4">
+                                    <h4 class="text-base font-bold text-amber-200 medieval-font flex items-center gap-2">
+                                        <i class="fa-solid fa-pen-to-square text-amber-400"></i> Edycja Danych Gildii
+                                    </h4>
+                                    <span class="text-xs text-amber-400/80 font-bold bg-amber-950/80 border border-amber-800/60 px-3 py-1 rounded-xl">
+                                        Tylko dla Lidera
+                                    </span>
+                                </div>
+
+                                @error('settings')
+                                    <div class="bg-red-950/80 border border-red-500 text-red-200 px-4 py-2 rounded-xl text-xs">{{ $message }}</div>
+                                @enderror
+
+                                {{-- Guild Name --}}
+                                <div>
+                                    <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
+                                        Nazwa Gildii / Zakonu *
+                                    </label>
+                                    <input type="text" wire:model="editGuildName"
+                                           placeholder="np. Nocne Jastrzębie"
+                                           class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder-amber-600/50 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
+                                    @error('editGuildName') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- Guild Title / Dewiza --}}
+                                <div>
+                                    <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
+                                        Dewiza / Krótki Tytuł Gildii
+                                    </label>
+                                    <input type="text" wire:model="editGuildTitle"
+                                           placeholder="np. Mieczem i Tarczą chronimy słabszych"
+                                           class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder-amber-600/50 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
+                                    @error('editGuildTitle') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- Guild Description --}}
+                                <div>
+                                    <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
+                                        Opis Gildii / Regulamin Zakonu
+                                    </label>
+                                    <textarea wire:model="editGuildDescription" rows="4"
+                                              placeholder="Wpisz szczegółowy opis gildii, zasady rekrutacji lub historię zakonu..."
+                                              class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 placeholder-amber-600/50 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition resize-y"></textarea>
+                                    @error('editGuildDescription') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+
+                                {{-- Level & Public --}}
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
+                                            Wymagany Poziom
+                                        </label>
+                                        <input type="number" wire:model="editGuildMinLevel" min="1" max="100"
+                                               class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
+                                        @error('editGuildMinLevel') <span class="text-red-400 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
+                                            Tryb Rekrutacji
+                                        </label>
+                                        <select wire:model="editGuildIsPublic"
+                                                class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
+                                            <option value="1">Publiczna (Każdy dołącza)</option>
+                                            <option value="0">Zamknięta (Na zaproszenie)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="pt-3 flex justify-end">
+                                    <button wire:click="updateGuildSettings"
+                                            wire:loading.attr="disabled" wire:target="updateGuildSettings"
+                                            class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-950 font-extrabold text-sm px-6 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2 medieval-font cursor-pointer">
+                                        <span wire:loading.remove wire:target="updateGuildSettings" class="flex items-center gap-2">
+                                            <i class="fa-solid fa-floppy-disk"></i> Zapisz Zmiany
+                                        </span>
+                                        <span wire:loading wire:target="updateGuildSettings" class="flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4 text-stone-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                            Zapisywanie...
+                                        </span>
+                                    </button>
+                                </div>
                             </div>
                         @elseif($panelTab === 'stash')
                             <div>
