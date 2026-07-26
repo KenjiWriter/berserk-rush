@@ -28,31 +28,41 @@ class WorldBossService
             Log::info("WorldBossTick executed successfully.");
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error("WorldBossTick failed: " . $e->getMessage());
-            dd("WorldBossTick failed: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            Log::error("WorldBossTick failed: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+        }
+    }
+
+    public function ensureBossesSpawned(): void
+    {
+        $worldBosses = Monster::where('rank', 'worldboss')->get();
+
+        foreach ($worldBosses as $boss) {
+            $exists = WorldBossInstance::where('monster_id', $boss->id)
+                ->where('is_defeated', false)
+                ->exists();
+
+            if (!$exists) {
+                WorldBossInstance::create([
+                    'monster_id' => $boss->id,
+                    'map_id' => $boss->map_id,
+                    'total_hp' => $boss->stats['hp'] ?? 10000,
+                    'current_hp' => $boss->stats['hp'] ?? 10000,
+                    'is_defeated' => false,
+                ]);
+            }
         }
     }
 
     private function distributeRewards(): void
     {
-        // Get all active instances
-        $instances = WorldBossInstance::where('is_defeated', false)->get();
-        // Or wait, even if it was defeated, we distribute rewards at the end of the hour?
-        // Actually, the requirement said: "po zbiciu wsyztskich obrazen boss powinien miec status (pokonany) i job powinien co godine rsetowac tkaiego bossa, jesli nie został pokany nagrody i tak powinny ostac rozdane".
-        // This implies rewards are distributed every hour, regardless if it's defeated or not, then a new boss is spawned.
-        // Wait, if we distribute rewards and spawn a new one, we should process all current instances that are not yet processed.
-        
-        // Let's assume all instances currently in the DB that haven't had rewards distributed yet.
-        // We can just process ALL instances in the DB because we will delete them after or we should mark them as rewarded.
-        // Let's just process all active ones, or ones defeated within the last hour.
-        
-        // To be simple: process all instances that exist right now, reward top 10, then DELETE them all, and spawn new ones.
-        
         $allInstances = WorldBossInstance::all();
 
-        // 01k4jpx94j70x2vv10b835key1 is the rusty key ID
+        // 01k4jpx94j70x2vv10b835key1 is the rusty key ID, with fallback to type='key'
         $keyTemplateId = '01k4jpx94j70x2vv10b835key1';
-        $keyTemplate = ItemTemplate::find($keyTemplateId);
+        $keyTemplate = ItemTemplate::find($keyTemplateId) ?? ItemTemplate::where('type', 'key')->first();
 
         if (!$keyTemplate) {
             Log::warning("Key template not found for World Boss rewards.");

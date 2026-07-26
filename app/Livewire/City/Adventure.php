@@ -100,6 +100,9 @@ class Adventure extends Component
                 ->first();
         }
 
+        // Ensure world bosses are spawned for maps if missing
+        app(\App\Application\Combat\WorldBossService::class)->ensureBossesSpawned();
+
         // Get active world bosses for maps
         $activeWorldBosses = WorldBossInstance::where('is_defeated', false)
             ->with(['monster', 'map'])

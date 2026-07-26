@@ -187,7 +187,7 @@ php artisan event:cache
 
 ---
 
-### Krok 7: Konfiguracja Supervisor (Kolejki i Reverb WebSockets)
+### Krok 7: Konfiguracja Supervisor (Kolejki, Harmonogram World Bossów i Reverb WebSockets)
 
 Utwórz plik konfiguracyjny supervisora dla roboczych kolejek gry: `/etc/supervisor/conf.d/berserk-worker.conf`:
 
@@ -205,6 +205,20 @@ redirect_stderr=true
 stdout_logfile=/var/www/berserk-rush/storage/logs/worker.log
 stopwaitsecs=3600
 ```
+
+Utwórz plik konfiguracyjny supervisora dla Harmonogramu Zadań (obsługa World Bossów, aukcji i wygasania poczty): `/etc/supervisor/conf.d/berserk-scheduler.conf`:
+
+```ini
+[program:berserk-scheduler]
+command=php /var/www/berserk-rush/artisan schedule:work
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/berserk-rush/storage/logs/scheduler.log
+```
+
+*(Alternatywnie można dodać wpis do crontab serwera: `* * * * * cd /var/www/berserk-rush && php artisan schedule:run >> /dev/null 2>&1`)*
 
 Utwórz plik konfiguracyjny supervisora dla daemona WebSockets Reverb: `/etc/supervisor/conf.d/berserk-reverb.conf`:
 
