@@ -100,8 +100,8 @@ class BattleQueueingTest extends TestCase
         // Rewards are not applied yet (rewards_applied == false)
         $this->assertFalse($encounter->fresh()->rewards_applied);
 
-        // Sleep 1.5s past 1300ms rate-limit threshold to start next encounter
-        usleep(1500000);
+        // Sleep 1.8s past 1300ms rate-limit threshold to start next encounter
+        usleep(1800000);
 
         // Starting another encounter after simulation automatically auto-claims rewards and succeeds!
         $res3 = $service->start($character, $map);

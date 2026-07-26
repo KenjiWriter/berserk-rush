@@ -1170,41 +1170,51 @@
     </script>
     {{-- Session Tracker --}}
     <div wire:key="session-tracker-widget" class="fixed bottom-3 right-28 z-40 bg-slate-950/90 text-amber-100 px-3 py-1.5 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md transition-all hover:bg-slate-900/90 flex items-center gap-3 text-xs font-mono select-none"
-
          x-data="{ 
             startTime: {{ $sessionStartTime }},
             elapsed: '00:00:00',
             goldPerMin: 0,
+            timer: null,
             updateTime() {
-                let now = Math.floor(Date.now() / 1000);
-                let diff = now - this.startTime;
-                let h = Math.floor(diff / 3600).toString().padStart(2, '0');
-                let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-                let s = Math.floor(diff % 60).toString().padStart(2, '0');
-                this.elapsed = `${h}:${m}:${s}`;
+                try {
+                    let now = Math.floor(Date.now() / 1000);
+                    let diff = Math.max(0, now - this.startTime);
+                    let h = Math.floor(diff / 3600).toString().padStart(2, '0');
+                    let m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+                    let s = Math.floor(diff % 60).toString().padStart(2, '0');
+                    this.elapsed = `${h}:${m}:${s}`;
 
-                let totalGold = $wire.sessionGoldEarned || 0;
-                if (diff > 0) {
-                    this.goldPerMin = Math.round((totalGold / diff) * 60);
-                } else {
-                    this.goldPerMin = 0;
+                    let totalGold = 0;
+                    if (typeof $wire !== 'undefined' && $wire && typeof $wire.sessionGoldEarned !== 'undefined') {
+                        totalGold = $wire.sessionGoldEarned || 0;
+                    }
+                    if (diff > 0) {
+                        this.goldPerMin = Math.round((totalGold / diff) * 60);
+                    } else {
+                        this.goldPerMin = 0;
+                    }
+                } catch (e) {
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
                 }
             }
          }"
-         x-init="updateTime(); setInterval(() => updateTime(), 1000)">
+         x-init="updateTime(); timer = setInterval(() => updateTime(), 1000); $cleanup(() => { if (timer) clearInterval(timer); })">
         <div class="flex items-center gap-1.5" title="Pokonani potwory">
-            <span class="text-amber-400 font-sans">⚔️</span>
+            <span class="text-amber-400 font-sans"><i class="fa-solid fa-swords"></i></span>
             <span class="font-bold text-white">{{ $sessionMonstersDefeated }}</span>
         </div>
         <div class="h-3 w-px bg-amber-500/30"></div>
         <div class="flex items-center gap-1.5" title="Złoto na minutę">
-            <span class="text-yellow-400 font-sans">🪙</span>
-            <span class="font-bold text-yellow-300" x-text="goldPerMin + '/m'"></span>
+            <span class="text-yellow-400 font-sans"><i class="fa-solid fa-coins"></i></span>
+            <span class="font-bold text-yellow-300" x-text="(goldPerMin || 0) + '/m'"></span>
         </div>
         <div class="h-3 w-px bg-amber-500/30"></div>
         <div class="flex items-center gap-1.5" title="Czas sesji">
-            <span class="text-indigo-300 font-sans">⏱️</span>
-            <span class="font-bold text-slate-200" x-text="elapsed"></span>
+            <span class="text-indigo-300 font-sans"><i class="fa-solid fa-stopwatch"></i></span>
+            <span class="font-bold text-slate-200" x-text="elapsed || '00:00:00'"></span>
         </div>
     </div>
 </div>
