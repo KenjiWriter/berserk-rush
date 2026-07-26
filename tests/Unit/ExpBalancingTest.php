@@ -17,23 +17,23 @@ class ExpBalancingTest extends TestCase
     {
         $service = new LevelUpService();
 
-        // Level 1: 25 * 1^2 + 25 * 1 = 50
-        $this->assertEquals(50, $service->xpToNext(1));
+        // Level 1: 100
+        $this->assertEquals(100, $service->xpToNext(1));
 
-        // Level 2: 25 * 2^2 + 25 * 2 = 150
-        $this->assertEquals(150, $service->xpToNext(2));
+        // Level 3: 482
+        $this->assertEquals(482, $service->xpToNext(3));
 
-        // Level 3: 25 * 3^2 + 25 * 3 = 300
-        $this->assertEquals(300, $service->xpToNext(3));
+        // Level 10: 7656
+        $this->assertEquals(7656, $service->xpToNext(10));
 
-        // Level 5: 25 * 5^2 + 25 * 5 = 750
-        $this->assertEquals(750, $service->xpToNext(5));
+        // Level 50: 3301032 (5-8 min)
+        $this->assertEquals(3301032, $service->xpToNext(50));
 
-        // Level 10: 25 * 10^2 + 25 * 10 = 2750
-        $this->assertEquals(2750, $service->xpToNext(10));
+        // Level 70: 12979729 (30 min)
+        $this->assertEquals(12979729, $service->xpToNext(70));
 
-        // Level 50: 25 * 50^2 + 25 * 50 = 63750
-        $this->assertEquals(63750, $service->xpToNext(50));
+        // Level 80: 22385639 (1h)
+        $this->assertEquals(22385639, $service->xpToNext(80));
     }
 
     public function test_monster_xp_reward_scales_progressively(): void
@@ -47,8 +47,8 @@ class ExpBalancingTest extends TestCase
 
         $monsterLvl1 = new Monster(['level' => 1]);
         $reward1 = $method->invoke($encounterService, $monsterLvl1, $char);
-        // 12 * 1^1.15 + 15 = 27
-        $this->assertEquals(27, $reward1['base']);
+        // 15 * 1^1.2 + 20 = 35
+        $this->assertEquals(35, $reward1['base']);
 
         $monsterLvl3 = new Monster(['level' => 3]);
         $reward3 = $method->invoke($encounterService, $monsterLvl3, $char);

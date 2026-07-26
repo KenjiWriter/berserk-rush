@@ -75,6 +75,10 @@ class LevelUpService
 
     public function xpToNext(int $level): int
     {
-        return (int) round(25 * pow($level, 2) + 25 * $level);
+        $base = 25 * pow($level, 2) + 75 * $level + 0.35 * pow($level, 4.1);
+        if ($level > 85) {
+            $base += 0.05 * pow($level - 85, 5.5);
+        }
+        return (int) round($base);
     }
 }

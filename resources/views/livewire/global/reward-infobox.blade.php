@@ -156,7 +156,11 @@ document.addEventListener('alpine:init', () => {
                 while (this.stats.experience >= this.stats.experience_required) {
                     this.stats.experience -= this.stats.experience_required;
                     this.stats.level++;
-                    this.stats.experience_required = Math.round(25 * Math.pow(this.stats.level, 2) + 25 * this.stats.level);
+                    let req = 25 * Math.pow(this.stats.level, 2) + 75 * this.stats.level + 0.35 * Math.pow(this.stats.level, 4.1);
+                    if (this.stats.level > 85) {
+                        req += 0.05 * Math.pow(this.stats.level - 85, 5.5);
+                    }
+                    this.stats.experience_required = Math.round(req);
                     leveledUpTo = this.stats.level;
                 }
                 
