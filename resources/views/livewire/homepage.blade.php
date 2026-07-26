@@ -354,9 +354,22 @@
                                                                 • {{ $character->getTotalAttributePoints() }} pkt
                                                             @endif
                                                         </div>
-                                                        <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-green-700 font-bold">
-                                                            <i class="fa-solid fa-play text-[8px]"></i> <span>GRAJ teraz</span>
-                                                        </div>
+                                                        @php
+                                                            $activeCharId = session('active_character');
+                                                        @endphp
+                                                        @if ($activeCharId && $activeCharId === $character->id)
+                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-900 font-bold">
+                                                                <i class="fa-solid fa-circle-play text-amber-700 text-[9px]"></i> <span>AKTYWNA (Wróć)</span>
+                                                            </div>
+                                                        @elseif ($activeCharId)
+                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-stone-600 font-bold">
+                                                                <i class="fa-solid fa-lock text-[8px] text-amber-800"></i> <span>ZABLOKOWANA</span>
+                                                            </div>
+                                                        @else
+                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-green-700 font-bold">
+                                                                <i class="fa-solid fa-play text-[8px]"></i> <span>GRAJ teraz</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </a>

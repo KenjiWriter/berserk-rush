@@ -238,7 +238,7 @@ class EncounterService
                     
                     // Skalowanie nagród używając spłaszczonej krzywej (np. pierwiastek) by zapobiec nieskończonemu wzrostowi
                     $baseGold = max(10, (int)ceil(pow($damageDealt, 0.7)));
-                    $baseXp = max(20, (int)ceil(pow($damageDealt, 0.75)));
+                    $baseXp = max(80, (int)ceil(pow($damageDealt, 0.75) * 4));
 
                     $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
                     $goldMult = $multiplierService->getGoldMultiplier($character);
@@ -843,7 +843,7 @@ class EncounterService
     private function calculateXpReward(Monster $monster, Character $character): array
     {
         $levelDiff = $monster->level - $character->level;
-        $baseXp = 45 + ($monster->level * 8);
+        $baseXp = (45 + ($monster->level * 8)) * 4;
 
         if ($levelDiff > 0) {
             $baseXp *= (1 + ($levelDiff * 0.1));

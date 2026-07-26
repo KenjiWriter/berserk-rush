@@ -319,7 +319,7 @@ class DungeonService
         $multiplierService = app(RewardMultiplierService::class);
         
         $baseGold = $monster->stats['gold'] ?? $monster->level * 10;
-        $baseXp = $monster->stats['xp'] ?? $monster->level * 25;
+        $baseXp = ($monster->stats['xp'] ?? $monster->level * 25) * 4;
 
         // Apply variance
         $baseGold = (int)($baseGold * mt_rand(90, 110) / 100);

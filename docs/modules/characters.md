@@ -19,6 +19,9 @@ Główne Atrybuty:
 
 Każdy z atrybutów podczas początkowego losowania nie może spaść poniżej 0 oraz nie może przekroczyć 10. Stan początkowy zostaje zapisany w kolumnie `attributes` (JSONB).
 
+Podczas tworzenia nowej postaci, każda postać (zarówno pierwsza, jak i kolejne postacie tworzone na koncie) automatycznie otrzymuje do plecaka broń startową: **Zardzewiały Miecz**.
+
+
 ### 2. Poziomy i XP (`LevelUpService`)
 Gracz awansuje na wyższe poziomy poprzez zdobywanie doświadczenia (XP). Wymagane doświadczenie na kolejny poziom obliczane jest w sposób wykładniczy za pomocą wzoru:
 `Wymagane_XP = 50 * (1.25 ^ (Obecny_Poziom - 1))`
@@ -30,3 +33,10 @@ Kiedy postać zbierze wymaganą ilość XP:
 
 ### 3. Nagrody z Walki (`RewardService`)
 Mechanizm dodający wygrane z walk z powrotem do ekwipunku postaci (złoto i XP). Akcja używa `idempotency_key` w powiązaniu z `CurrencyLedger`, by upewnić się, że jedna wygrana nie przydzieli nagród dwukrotnie. Loguje wszelkie zyski w księdze walut dla celów audytowych.
+
+### 4. Blokada Jednoczesnej Gry Wieloma Postaciami (`EnsureActiveCharacter`)
+Aby zapobiec konfliktom sesji, desynchronizacji plecaka i akcji przy otwarciu gry w wielu kartach/oknach przeglądarki:
+- Middleware `EnsureActiveCharacter` pilnuje, aby zalogowany gracz miał w sesji aktywną tylko jedną postać (`session('active_character')`).
+- Próba uruchomienia lub bezpośredniego przejścia na drugą postać w nowej karcie/oknie blokuje dostęp i przekierowuje na stronę główną z komunikatem informującym o konieczności opuszczenia aktualnej postaci (`/characters/leave`).
+- Przeglądarka korzysta z technologii `localStorage` + zdarzeń `storage` w JS, aby natychmiast synchronizować stan aktywnej postaci pomiędzy kartami.
+

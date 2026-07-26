@@ -3,6 +3,8 @@
 namespace App\Application\Characters;
 
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\ItemInstance;
+use App\Infrastructure\Persistence\ItemTemplate;
 use App\Models\User;
 use App\Application\Shared\Result;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +70,23 @@ class CreateCharacter
                     'avatar' => $avatar,
                     'version' => 1,
                 ]);
+
+                // Grant starter weapon (Zardzewiały Miecz) to every created character
+                $starterWeapon = ItemTemplate::where('name', 'Zardzewiały Miecz')->first()
+                    ?? ItemTemplate::find('01k4jpx94j70x2vv10b835prm4');
+
+                if ($starterWeapon) {
+                    ItemInstance::create([
+                        'template_id' => $starterWeapon->id,
+                        'owner_character_id' => $character->id,
+                        'location' => 'inventory',
+                        'stack_size' => 1,
+                        'rarity' => 'common',
+                        'roll_stats' => [],
+                        'upgrade_level' => 0,
+                        'bound_to_character' => true,
+                    ]);
+                }
 
                 return Result::ok($character);
             });

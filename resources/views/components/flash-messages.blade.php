@@ -1,17 +1,27 @@
 @if (session('success'))
-    <div class="fixed top-4 right-4 z-50 bg-green-100 border-2 border-green-600 rounded-lg p-4 shadow-lg">
-        <div class="flex items-center">
-            <div class="text-green-600 mr-3">✅</div>
-            <div class="font-semibold text-green-800">{{ session('success') }}</div>
+    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 6000)" class="fixed top-4 right-4 z-[9999] bg-stone-900 border-2 border-emerald-500 text-emerald-200 rounded-xl p-4 shadow-2xl max-w-md backdrop-blur-md transition-all duration-500">
+        <div class="flex items-start gap-3">
+            <div class="text-emerald-400 text-xl flex-shrink-0">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="flex-1 font-semibold text-sm leading-relaxed">{{ session('success') }}</div>
+            <button @click="show = false" class="text-emerald-400 hover:text-emerald-200 text-xs p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
     </div>
 @endif
 
 @if (session('error'))
-    <div class="fixed top-4 right-4 z-50 bg-red-100 border-2 border-red-600 rounded-lg p-4 shadow-lg">
-        <div class="flex items-center">
-            <div class="text-red-600 mr-3">❌</div>
-            <div class="font-semibold text-red-800">{{ session('error') }}</div>
+    <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)" class="fixed top-4 right-4 z-[9999] bg-stone-900 border-2 border-red-500 text-red-200 rounded-xl p-4 shadow-2xl max-w-md backdrop-blur-md transition-all duration-500">
+        <div class="flex items-start gap-3">
+            <div class="text-red-400 text-xl flex-shrink-0">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="flex-1 font-semibold text-sm leading-relaxed">{{ session('error') }}</div>
+            <button @click="show = false" class="text-red-400 hover:text-red-200 text-xs p-1">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
     </div>
 @endif

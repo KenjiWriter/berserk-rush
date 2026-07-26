@@ -336,6 +336,7 @@
     </div>
 
     <div class="min-h-screen bg-slate-950 text-amber-100 pb-16 lg:pb-0">
+        <x-flash-messages />
         @auth
             @if (session('active_character'))
                 <div class="lg:flex lg:flex-row min-h-screen w-full">
@@ -402,6 +403,23 @@
             @livewire('global.suggestion-modal')
             <x-mobile-nav />
         @endif
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const activeCharId = "{{ session('active_character') ?? '' }}";
+                if (activeCharId) {
+                    localStorage.setItem('berserk_active_char', activeCharId);
+                }
+
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'berserk_active_char') {
+                        if (activeCharId && e.newValue && e.newValue !== activeCharId) {
+                            window.location.href = "{{ route('homepage') }}";
+                        }
+                    }
+                });
+            });
+        </script>
     @endauth
 </body>
 

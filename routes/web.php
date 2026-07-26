@@ -44,12 +44,19 @@ Route::middleware('auth')->group(function () {
             abort(403);
         }
 
+        $activeCharId = session('active_character');
+        if ($activeCharId && $activeCharId !== $character->id) {
+            $activeChar = Character::find($activeCharId);
+            $activeName = $activeChar ? $activeChar->name : 'inną postać';
+            return redirect()->route('homepage')->with('error', "Masz już aktywną postać \"{$activeName}\" w innym oknie/karcie. Najpierw opuść grę tą postacią, aby grać inną.");
+        }
+
         session(['active_character' => $character->id]);
         return redirect()->route('city.hub', $character);
     })->name('characters.play');
 
     // City Hub and Buildings
-    Route::prefix('play/{character}')->name('city.')->group(function () {
+    Route::prefix('play/{character}')->name('city.')->middleware(\App\Http\Middleware\EnsureActiveCharacter::class)->group(function () {
         Route::get('/', Hub::class)->name('hub');
         Route::get('/profile', \App\Livewire\City\Profile::class)->name('profile');
         Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
@@ -71,7 +78,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Adventure map routes
-    Route::prefix('play/{character}/adventure')->name('adventure.')->group(function () {
+    Route::prefix('play/{character}/adventure')->name('adventure.')->middleware(\App\Http\Middleware\EnsureActiveCharacter::class)->group(function () {
         Route::get('/{map}', MapStub::class)->name('map');
     });
 });

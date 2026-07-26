@@ -46,7 +46,7 @@
     @endphp
 
     @if($gameStage == 3)
-        <livewire:global.tutorial-overlay :step="4" :rewardItemTemplateId="'01k4jpx94j70x2vv10b835prm4'" />
+        <livewire:global.tutorial-overlay :step="4" />
     @elseif($gameStage == 4)
         <livewire:global.tutorial-overlay :step="5" />
     @elseif($gameStage == 8)

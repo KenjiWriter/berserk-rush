@@ -27,7 +27,7 @@ Postęp samouczka jest śledzony poprzez pole `game_stage` w modelu `User` (a ni
 Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 
 - **Tworzenie i Profil (game_stage 0-3)**: Gracz poznaje swojego przewodnika, zapoznaje się z panelem postaci, dostaje pierwsze punkty statystyk i uczy się ich rozdawania.
-- **Ekwipunek (game_stage 4-7)**: Otrzymanie zardzewiałego miecza, instrukcja przejścia do plecaka i zakładania przedmiotu. Za poprawne wyposażenie miecza przyznawane jest nagrodowe doświadczenie i gracz awansuje na wyższy poziom.
+- **Ekwipunek (game_stage 4-7)**: Zardzewiały miecz przydzielany jest do plecaka od razu przy utworzeniu postaci. Kapitan kieruje gracza do plecaka i objaśnia zakładanie przedmiotu. Za poprawne wyposażenie miecza przyznawane jest nagrodowe doświadczenie i gracz awansuje na wyższy poziom.
 - **Walka (game_stage 8-13)**: Przejście do mapy wypraw (Przygoda). Opis World Bossa, list przeciwników. Kapitan każe wyruszyć w pierwszy bój (poziomy 0-15). Podczas pierwszej walki wyłączony jest system `auto-battle`, a `EncounterService` gwarantuje wlosowanie **Wilka Leśnego** oraz dostosowanie jego statystyk (HP: 35, ATK: 6, DEF: 2), zapewniając pewną wygraną dla nowej postaci. Po wygranej gracz dostaje łup z potwora oraz bonusowy Hełm od Kapitana.
 - **Rozwój Po Walce (game_stage 13-16)**: Powrót do miasta i rozdanie punktów statystyk z awansu poziomu po walce. Za wykonanie tego zadania gracz dostaje 150 złota.
 - **Brońmistrz i Ulepszenia (game_stage 17-20)**: Kapitan zabiera gracza do Brońmistrza, objaśnia mechaniki kupna, sprzedaży oraz Kuźni Ulepszeń (+0 do +9). Gracz dostaje zadanie kupienia "Miecza Nowicjusza". 
