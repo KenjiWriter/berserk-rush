@@ -221,12 +221,26 @@ class Character extends Model
         }
 
         $expectedSkillPoints = max(0, $this->level - 1);
-        $unlockedSkillsCount = \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $this->id)->count();
-        $spentSkillPoints = max(0, $unlockedSkillsCount - 1);
-        $minSkillPoints = max(0, $expectedSkillPoints - $spentSkillPoints);
+        $unlockedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+            ->where('character_id', $this->id)
+            ->get();
 
-        if (($this->skill_points ?? 0) < $minSkillPoints) {
-            $this->skill_points = $minSkillPoints;
+        $spentSkillPoints = 0;
+        foreach ($unlockedSkills as $cs) {
+            // Capping skill level at max 5
+            if ($cs->level > 5) {
+                $cs->level = 5;
+                $cs->save();
+            }
+            $unlockCost = $cs->skill->unlock_cost ?? 1;
+            $upgrades = max(0, $cs->level - 1);
+            $spentSkillPoints += ($unlockCost + $upgrades);
+        }
+
+        $correctSkillPoints = max(0, $expectedSkillPoints - $spentSkillPoints);
+
+        if ($this->skill_points !== $correctSkillPoints) {
+            $this->skill_points = $correctSkillPoints;
             $this->save();
         }
     }
@@ -470,14 +484,8 @@ class Character extends Model
             ];
         })->toArray();
 
-        // Check weapon type
-        $weaponType = 'barehands';
-        $weapon = $this->equippedItems()->whereHas('template', function($q) {
-            $q->where('slot', 'main_hand');
-        })->first();
-        if ($weapon) {
-            $weaponType = $weapon->template->weapon_type ?? 'sword'; // Assuming sword if not specified
-        }
+        // Check weapon type accurately
+        $weaponType = $this->getEquippedWeaponType();
 
         return [
             'character_id' => $this->id,
@@ -509,5 +517,39 @@ class Character extends Model
         }
 
         return 'platinum';
+    }
+
+    public function getEquippedWeaponType(): string
+    {
+        $weapon = $this->equippedItems()->whereHas('template', function($q) {
+            $q->where('slot', 'main_hand');
+        })->first();
+
+        if (!$weapon || !$weapon->template) {
+            return 'barehands';
+        }
+
+        $name = mb_strtolower($weapon->template->name, 'UTF-8');
+
+        if (str_contains($name, 'miecz') || str_contains($name, 'ostrze') || str_contains($name, 'pałasz') || str_contains($name, 'sabaty') || str_contains($name, 'sword')) {
+            return 'sword';
+        }
+        if (str_contains($name, 'topór') || str_contains($name, 'rozłupywacz') || str_contains($name, 'maczuga') || str_contains($name, 'axe')) {
+            return 'axe';
+        }
+        if (str_contains($name, 'łuk') || str_contains($name, 'kusza') || str_contains($name, 'bow')) {
+            return 'bow';
+        }
+        if (str_contains($name, 'różdżka') || str_contains($name, 'kostur') || str_contains($name, 'laska') || str_contains($name, 'wand')) {
+            return 'wand';
+        }
+        if (str_contains($name, 'dzwon') || str_contains($name, 'gong') || str_contains($name, 'bell')) {
+            return 'bell';
+        }
+        if (str_contains($name, 'sztylet') || str_contains($name, 'sztylety') || str_contains($name, 'nóż') || str_contains($name, 'dagger')) {
+            return 'dagger';
+        }
+
+        return 'sword';
     }
 }

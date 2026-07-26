@@ -35,6 +35,22 @@ class SkillsTab extends Component
             return;
         }
 
+        // Weryfikacja typu broni
+        if (!$characterSkill->is_equipped) {
+            $reqWep = $characterSkill->skill->required_weapon_type;
+            $equippedWep = $this->character->getEquippedWeaponType();
+
+            if ($reqWep !== 'all' && $reqWep !== $equippedWep) {
+                $weaponLabels = [
+                    'sword' => 'Miecz', 'axe' => 'Topór', 'bow' => 'Łuk',
+                    'wand' => 'Różdżka', 'bell' => 'Dzwon', 'dagger' => 'Sztylet'
+                ];
+                $label = $weaponLabels[$reqWep] ?? $reqWep;
+                $this->dispatch('notify', message: "Nie możesz wyposażyć tej umiejętności. Wymaga założonej broni typu: {$label}.", type: 'error');
+                return;
+            }
+        }
+
         $characterSkill->is_equipped = !$characterSkill->is_equipped;
         $characterSkill->save();
         

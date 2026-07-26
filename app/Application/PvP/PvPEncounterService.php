@@ -260,18 +260,47 @@ class PvPEncounterService
         
         if ($skillToUse) {
             $actorState['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
-            $bonus = $skillToUse['base_value'] + ($skillToUse['level'] * $skillToUse['scaling_value']);
-            if ($skillToUse['effect_type'] === 'damage') {
-                $damage = (int)($damage * (1 + ($bonus / 100)));
-            } elseif ($skillToUse['effect_type'] === 'poison') {
+            $effLevel = max(1, $skillToUse['level'] ?? 1);
+            $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
+            
+            $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
+
+            if (in_array($effectType, ['direct_dmg', 'direct', 'damage'])) {
+                $damage = (int)($damage * $bonus);
+            } elseif (in_array($effectType, ['buff_phys_dmg', 'buff_damage'])) {
+                $actorState['effects']['buff_phys_dmg'] = [
+                    'type' => 'buff_phys_dmg',
+                    'duration' => $skillToUse['base_duration'],
+                    'value' => $bonus,
+                ];
+            } elseif (in_array($effectType, ['poison', 'dot_poison'])) {
                 $targetState['effects'][$skillToUse['id']] = [
                     'type' => 'poison',
                     'name' => $skillToUse['name'] ?? 'Otrucie',
                     'icon' => $skillToUse['icon'] ?? null,
-                    'description' => $skillToUse['description'] ?? 'Zadaje obrażenia od otrucia co turę.',
                     'duration' => $skillToUse['base_duration'],
                     'value' => $bonus,
                 ];
+            } elseif (in_array($effectType, ['fire', 'dot_fire'])) {
+                $targetState['effects'][$skillToUse['id']] = [
+                    'type' => 'fire',
+                    'name' => $skillToUse['name'] ?? 'Podpalenie',
+                    'icon' => $skillToUse['icon'] ?? null,
+                    'duration' => $skillToUse['base_duration'],
+                    'value' => $bonus,
+                ];
+            }
+        }
+
+        // Apply active physical damage buff if present
+        if (isset($actorState['effects']['buff_phys_dmg'])) {
+            $buff = &$actorState['effects']['buff_phys_dmg'];
+            if ($buff['duration'] > 0) {
+                $damage = (int)($damage * (1 + $buff['value']));
+                $buff['duration']--;
+                if ($buff['duration'] <= 0) {
+                    unset($actorState['effects']['buff_phys_dmg']);
+                }
             }
         }
 
@@ -281,15 +310,17 @@ class PvPEncounterService
         if (!empty($targetState['effects'])) {
             $targetMaxHp = $actor === 'attacker' ? $defenderSnapshot['max_hp'] : $attackerSnapshot['max_hp'];
             foreach ($targetState['effects'] as $id => &$eff) {
-                if ($eff['duration'] > 0 && ($eff['type'] === 'poison' || $eff['type'] === 'fire')) {
-                    $dmg = max(1, (int)($targetMaxHp * ($eff['value'] / 100)));
+                if (($eff['type'] ?? '') === 'buff_phys_dmg') continue;
+
+                if (($eff['duration'] ?? 0) > 0 && in_array($eff['type'] ?? '', ['poison', 'dot_poison', 'fire', 'dot_fire'])) {
+                    $dmg = max(1, (int)($targetMaxHp * $eff['value']));
                     $dotDamage += $dmg;
                     $dotType = $eff['type'];
 
                     $eff['duration']--;
                 }
             }
-            $targetState['effects'] = array_filter($targetState['effects'], fn($e) => $e['duration'] > 0);
+            $targetState['effects'] = array_filter($targetState['effects'], fn($e) => ($e['duration'] ?? 0) > 0);
         }
 
         // Defender's defense
@@ -341,6 +372,7 @@ class PvPEncounterService
         if ($skillToUse) {
             $turn['skill_id'] = $skillToUse['id'];
             $turn['skill_name'] = $skillToUse['name'];
+            $turn['effect_type'] = $skillToUse['effect_type'] ?? null;
         }
 
         if ($actor === 'attacker') {

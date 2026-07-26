@@ -482,13 +482,7 @@ class EncounterService
 
     private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp): array
     {
-        $weaponName = '';
-        foreach ($character->equippedItems as $item) {
-            if ($item->template->type === 'weapon') {
-                $weaponName = mb_strtolower($item->template->name, 'UTF-8');
-                break;
-            }
-        }
+        $equippedWeaponType = $character->getEquippedWeaponType();
 
         $usedSkill = null;
 
@@ -497,10 +491,8 @@ class EncounterService
             if ($cs->skill->type === 'active' && ($this->activeCooldowns[$cs->id] ?? 0) <= 0) {
                 // Check weapon requirement
                 $reqWep = $cs->skill->required_weapon_type;
-                if (!empty($reqWep)) {
-                    if ($reqWep === 'bow' && strpos($weaponName, 'łuk') === false && strpos($weaponName, 'bow') === false) continue;
-                    if ($reqWep === 'sword' && strpos($weaponName, 'miecz') === false && strpos($weaponName, 'ostrze') === false) continue;
-                    if ($reqWep === 'axe' && strpos($weaponName, 'topór') === false && strpos($weaponName, 'rozłupywacz') === false && strpos($weaponName, 'maczuga') === false) continue;
+                if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
+                    continue;
                 }
 
                 // Use skill

@@ -71,8 +71,9 @@
                         $isUnlocked = $mySkill !== null;
                         $level = $isUnlocked ? $mySkill->level : 1;
                         
+                        $isMaxLevel = $isUnlocked && $mySkill->level >= 5;
                         $canUnlock = !$isUnlocked && $character->level >= $skill->required_level && $character->skill_points >= $skill->unlock_cost;
-                        $canUpgrade = $isUnlocked && $character->skill_points >= 1;
+                        $canUpgrade = $isUnlocked && !$isMaxLevel && $character->skill_points >= 1;
 
                         // Calculation of current values & scaling
                         $currentValue = $skill->base_value + ($skill->scaling_value * ($level - 1));
@@ -214,10 +215,15 @@
                                 </span>
                             </div>
 
-                            @if($isUnlocked)
+                            @if($isUnlocked && !$isMaxLevel)
                                 <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
                                     <span>Kolejny Poziom (Lv. {{ $mySkill->level + 1 }}):</span>
                                     <span class="text-emerald-300 font-bold">{{ $effectNextText }}</span>
+                                </div>
+                            @elseif($isMaxLevel)
+                                <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
+                                    <span>Status Poziomu:</span>
+                                    <span class="text-amber-400 font-bold">Maksymalny Poziom (Lv. 5)</span>
                                 </div>
                             @else
                                 <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
@@ -325,17 +331,24 @@
                             @else
                                 <div class="text-xs font-sans text-stone-400 flex items-center gap-1">
                                     <i class="fa-solid fa-sparkles text-emerald-400"></i>
-                                    <span>Koszt: <strong class="text-emerald-300">1 PKT</strong></span>
+                                    <span>Koszt: <strong class="text-emerald-300">{{ $isMaxLevel ? '-' : '1 PKT' }}</strong></span>
                                 </div>
 
-                                <button wire:click="upgradeSkill('{{ $mySkill->id }}')" 
-                                        wire:loading.attr="disabled"
-                                        class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer flex items-center gap-2
-                                        {{ $canUpgrade ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-sky-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
-                                        @if(!$canUpgrade) disabled @endif>
-                                    <i class="fa-solid fa-circle-arrow-up"></i>
-                                    <span>Ulepsz do Lv. {{ $mySkill->level + 1 }}</span>
-                                </button>
+                                @if($isMaxLevel)
+                                    <button disabled class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-amber-950/40 text-amber-400 border border-amber-800/60 cursor-not-allowed opacity-80 flex items-center gap-2">
+                                        <i class="fa-solid fa-crown text-amber-400"></i>
+                                        <span>MAX (Lv. 5)</span>
+                                    </button>
+                                @else
+                                    <button wire:click="upgradeSkill('{{ $mySkill->id }}')" 
+                                            wire:loading.attr="disabled"
+                                            class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer flex items-center gap-2
+                                            {{ $canUpgrade ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-sky-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
+                                            @if(!$canUpgrade) disabled @endif>
+                                        <i class="fa-solid fa-circle-arrow-up"></i>
+                                        <span>Ulepsz do Lv. {{ $mySkill->level + 1 }}</span>
+                                    </button>
+                                @endif
                             @endif
                         </div>
 

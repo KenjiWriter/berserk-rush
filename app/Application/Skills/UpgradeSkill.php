@@ -17,9 +17,10 @@ class UpgradeSkill
                     return Result::error('UNAUTHORIZED', 'Nie posiadasz tej umiejętności.');
                 }
 
-                // Koszt upgrade'u: np. 1 punkt za każdy poziom (lub bazowy koszt)
-                // Ustalmy że upgrade kosztuje zawsze 1 punkt, albo rośnie z levelem.
-                // Propozycja: koszt = level + 1, albo stałe 2 punkty? Zróbmy stałe 1 punkt dla prostoty.
+                if ($charSkill->level >= 5) {
+                    return Result::error('MAX_LEVEL_REACHED', 'Osiągnięto maksymalny poziom tej umiejętności (Lv. 5).');
+                }
+
                 $cost = 1;
 
                 if ($character->skill_points < $cost) {

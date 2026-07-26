@@ -118,8 +118,12 @@
                                     <span class="bg-emerald-950 text-emerald-300 border border-emerald-600/80 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
                                         Poziom {{ $level }}
                                     </span>
-                                    <span class="bg-stone-900 border border-amber-900/60 text-amber-300 px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
-                                        <i class="{{ $weaponIcon }}"></i> {{ $weaponName }}
+                                    @php
+                                        $equippedWeaponType = $character->getEquippedWeaponType();
+                                        $isWeaponMatched = ($skill->required_weapon_type === 'all' || $skill->required_weapon_type === $equippedWeaponType);
+                                    @endphp
+                                    <span class="bg-stone-900 border {{ $isWeaponMatched ? 'border-amber-900/60 text-amber-300' : 'border-red-800 text-red-400' }} px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1">
+                                        <i class="{{ $weaponIcon }}"></i> {{ $weaponName }} @if(!$isWeaponMatched) (Wymaga zmiany broni) @endif
                                     </span>
                                 </div>
 

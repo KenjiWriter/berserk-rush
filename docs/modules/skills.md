@@ -17,18 +17,20 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 ## Mechaniki
 
 ### 1. Punkty Umiejętności (Skill Points)
-- Postać otrzymuje **1 Punkt Umiejętności** za każdy zdobyty poziom.
-- Punkty wykorzystuje się u Czarnoksiężnika do odblokowywania nowych skilli oraz podnoszenia ich poziomu.
+- Postać otrzymuje **1 Punkt Umiejętności** za każdy zdobyty poziom (łącza pula punktów = `poziom_postaci - 1`).
+- Punkty wykorzystuje się u Czarnoksiężnika do odblokowywania nowych skilli (koszt odblokowania zależy od skilla) oraz podnoszenia ich poziomu (1 punkt za poziom).
+- **Maksymalny poziom umiejętności wynosi 5 (Max Lv. 5).**
+- Synchronizacja punktów (`syncMissingPoints`) automatycznie wylicza pozostałe nieprzydzielone punkty na podstawie zdobytych punktów minus koszty odblokowanych i ulepszonych skilli.
 - Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest w Sklepie (ItemShop).
 
 ### 2. Deck Umiejętności i Wyposażanie
 - Postać może posiadać **maksymalnie 3 aktywne skille** wyposażone jednocześnie w swoim Decku.
 - Wyposażone skille są widoczne w profilu postaci pod portretem oraz w infoboxie czatu.
-- Kliknięcie wyposażonego skille pod portretem otwiera dedykowany infobox z informacjami o odnowieniu, czasie trwania, statystykach oraz przyciskiem do zdjęcia skilla.
+- Kliknięcie wyposażonego skilla pod portretem otwiera dedykowany infobox z informacjami o odnowieniu, czasie trwania, statystykach oraz przyciskiem do zdjęcia skilla.
 
 ### 3. Wymagania Broni (Weapon Restrictions)
-- Niektóre umiejętności (np. *Trująca Strzała*) wymagają określonego typu broni (np. łuk). 
-- Jeśli gracz nie posiada wyposażonej broni wymaganego typu, skill nie zostanie użyty podczas walki.
+- Każda umiejętność posiada wymagany typ broni (`required_weapon_type`: `sword`, `axe`, `bow`, `wand`, `bell`, `dagger` lub `all`). 
+- Jeśli gracz nie posiada wyposażonej broni wymaganego typu w ręce głównej (main hand), skill jest oznaczany jako nieaktywny dla obecnego ekwipunku i nie zostanie użyty podczas walki (PvE oraz PvP).
 
 ### 4. Działanie Skilli w Walce (PvE / PvP)
 - Skille zastępują atak podstawowy.
