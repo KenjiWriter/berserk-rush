@@ -43,4 +43,23 @@ class WeaponAttackScalingTest extends TestCase
         // Default / Barehands: STR * 2 = 10 * 2 = 20
         $this->assertEquals(20, $character->getAttributeAttackBonus('barehands'));
     }
+
+    public function test_profile_renders_highlighted_scaling_stats(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'HeroTest',
+            'level' => 1,
+            'attributes' => ['str' => 10, 'int' => 10, 'vit' => 10, 'agi' => 10],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $this->actingAs($user);
+
+        \Livewire\Livewire::test(\App\Livewire\City\Profile::class, ['character' => $character])
+            ->assertViewHas('activeScalingStats')
+            ->assertSee('Atrybuty wpływające na atak są podświetlone');
+    }
 }

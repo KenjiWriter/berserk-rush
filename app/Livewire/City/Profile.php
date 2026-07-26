@@ -461,6 +461,14 @@ class Profile extends Component
 
         $materialStashItems = $this->character->materialStashItems->take(100);
 
+        $activeWeaponType = $this->character->getEquippedWeaponType();
+        $activeScalingStats = match ($activeWeaponType) {
+            'bow', 'sword', 'dagger' => ['str', 'agi'],
+            'bell' => ['str', 'int'],
+            'wand' => ['int'],
+            default => ['str'],
+        };
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
@@ -473,6 +481,8 @@ class Profile extends Component
             'backpackCapacity' => $this->character->getBackpackCapacity(),
             'totalAttributes' => $totalAttributes,
             'derivedStats' => $derivedStats,
+            'activeWeaponType' => $activeWeaponType,
+            'activeScalingStats' => $activeScalingStats,
             'pets' => $pets,
             'incubator' => $incubator,
             'eggs' => $eggs,

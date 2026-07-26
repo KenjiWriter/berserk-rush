@@ -483,6 +483,16 @@
                     @endif
                 </div>
                 @if($activeTab === 'attributes')
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-2 text-xs bg-amber-950/50 border border-amber-600/50 rounded-xl px-3 py-2 shadow-inner">
+                        <div class="flex items-center gap-2 text-amber-300">
+                            <i class="fa-solid fa-crosshairs text-amber-400 text-sm"></i>
+                            <span>Typ broni: <strong class="text-amber-100 uppercase font-bold">{{ $activeWeaponType }}</strong></span>
+                        </div>
+                        <span class="text-amber-400/90 text-[11px] font-medium flex items-center gap-1 bg-amber-900/40 px-2 py-0.5 rounded border border-amber-700/50">
+                            <i class="fa-solid fa-bolt text-yellow-400"></i> Atrybuty wpływające na atak są podświetlone
+                        </span>
+                    </div>
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative">
                     
                         <style>
@@ -493,8 +503,15 @@
                         </style>
 
                         <!-- STR -->
-                        <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Siła: Zwiększa obrażenia broni typu Topór (x2), Miecz, Łuk i Dzwon.">Strength (STR):</span>
+                        <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('str', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium cursor-help border-b border-dashed border-stone-600 {{ in_array('str', $activeScalingStats) ? 'text-amber-200 font-bold' : 'text-stone-300' }}" title="Siła: Zwiększa obrażenia broni typu Topór (x2), Miecz, Łuk i Dzwon.">Strength (STR):</span>
+                                @if(in_array('str', $activeScalingStats))
+                                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/60 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-[10px]"></i> Atak
+                                    </span>
+                                @endif
+                            </div>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str + pending.str"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -505,8 +522,15 @@
                         </div>
                         
                         <!-- INT -->
-                        <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Inteligencja: Zwiększa obrażenia broni typu Różdżka (x2) i Dzwon.">Intelligence (INT):</span>
+                        <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('int', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium cursor-help border-b border-dashed border-stone-600 {{ in_array('int', $activeScalingStats) ? 'text-amber-200 font-bold' : 'text-stone-300' }}" title="Inteligencja: Zwiększa obrażenia broni typu Różdżka (x2) i Dzwon.">Intelligence (INT):</span>
+                                @if(in_array('int', $activeScalingStats))
+                                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/60 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-[10px]"></i> Atak
+                                    </span>
+                                @endif
+                            </div>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int + pending.int"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -517,8 +541,15 @@
                         </div>
                         
                         <!-- VIT -->
-                        <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP) oraz redukcję obrażeń.">Vitality (VIT):</span>
+                        <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('vit', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium cursor-help border-b border-dashed border-stone-600 {{ in_array('vit', $activeScalingStats) ? 'text-amber-200 font-bold' : 'text-stone-300' }}" title="Witalność: Zwiększa maksymalną ilość Punktów Życia (HP) oraz redukcję obrażeń.">Vitality (VIT):</span>
+                                @if(in_array('vit', $activeScalingStats))
+                                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/60 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-[10px]"></i> Atak
+                                    </span>
+                                @endif
+                            </div>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit + pending.vit"></span>
                                 <div class="flex gap-1" x-show="points > 0">
@@ -529,8 +560,15 @@
                         </div>
                         
                         <!-- AGI -->
-                        <div class="flex justify-between items-center group">
-                            <span class="text-stone-300 font-medium cursor-help border-b border-dashed border-stone-600" title="Zręczność: Zwiększa obrażenia broni typu Łuk, Miecz i Sztylet. Decyduje też o kolejności ataku i unikach.">Agility (AGI):</span>
+                        <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('agi', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium cursor-help border-b border-dashed border-stone-600 {{ in_array('agi', $activeScalingStats) ? 'text-amber-200 font-bold' : 'text-stone-300' }}" title="Zręczność: Zwiększa obrażenia broni typu Łuk, Miecz i Sztylet. Decyduje też o kolejności ataku i unikach.">Agility (AGI):</span>
+                                @if(in_array('agi', $activeScalingStats))
+                                    <span class="bg-amber-500/20 text-amber-300 border border-amber-500/60 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-[0_0_8px_rgba(245,158,11,0.3)]">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-[10px]"></i> Atak
+                                    </span>
+                                @endif
+                            </div>
                             <div class="flex items-center gap-2">
                                 <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi + pending.agi"></span>
                                 <div class="flex gap-1" x-show="points > 0">
