@@ -165,7 +165,7 @@
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
-                                                    <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                                    <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
                                                         Zdejmij przedmiot
                                                     </button>
                                                 </x-slot:actions>
@@ -381,7 +381,7 @@
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
-                                                    <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                                    <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
                                                         Zdejmij przedmiot
                                                     </button>
                                                 </x-slot:actions>
@@ -661,6 +661,7 @@
                             open: false, 
                             hoverTimeout: null,
                             isDraggingThis: false,
+                            posClass: 'sm:bottom-full sm:mb-2',
                             tooltipStyle: {},
                             checkPosition() { 
                                 if (window.innerWidth < 640) return;
@@ -688,11 +689,13 @@
                                         style.bottom = 'auto';
                                         style.marginTop = '8px';
                                         style.marginBottom = '0';
+                                        this.posClass = 'sm:top-full sm:mt-2';
                                     } else {
                                         style.bottom = '100%';
                                         style.top = 'auto';
                                         style.marginBottom = '8px';
                                         style.marginTop = '0';
+                                        this.posClass = 'sm:bottom-full sm:mb-2';
                                     }
                                     this.tooltipStyle = style;
                                 });

@@ -8,7 +8,7 @@
     $upgrade_level = $item->upgrade_level ?? 0;
     
     // Safety fallback for arrays (in case it's a model without json cast loaded properly)
-    $base_stats = is_array($template->base_stats) ? $template->base_stats : (json_decode($template->base_stats, true) ?? []);
+    $base_stats = is_array($template->base_stats ?? null) ? $template->base_stats : (json_decode($template->base_stats ?? '[]', true) ?? []);
     
     $roll_stats = [];
     if (isset($item->roll_stats)) {
@@ -16,19 +16,59 @@
     }
     $enchants = $roll_stats['enchants'] ?? [];
     
+    // Calculate upgrade bonus for this item
+    $upgrade_bonus = [];
+    if (is_object($item) && method_exists($item, 'getUpgradeBonusStats')) {
+        $upgrade_bonus = $item->getUpgradeBonusStats($upgrade_level);
+    } elseif ($upgrade_level > 0) {
+        foreach ($base_stats as $stat => $val) {
+            if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
+                $upgrade_bonus[$stat] = $upgrade_level * 2;
+            } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
+                $upgrade_bonus[$stat] = $upgrade_level * 3;
+            } elseif ($stat === 'defense') {
+                $upgrade_bonus[$stat] = $upgrade_level * 2;
+            } elseif ($stat === 'hp_bonus') {
+                $upgrade_bonus[$stat] = $upgrade_level * 10;
+            } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
+                $upgrade_bonus[$stat] = (int) floor($upgrade_level / 2);
+            }
+        }
+    }
+
     // For comparison:
     $equipped_base_stats = [];
     $equipped_enchants = [];
+    $equipped_upgrade_bonus = [];
     
     if ($equippedItem) {
         $eq_template = $equippedItem->template ?? $equippedItem;
-        $equipped_base_stats = is_array($eq_template->base_stats) ? $eq_template->base_stats : (json_decode($eq_template->base_stats, true) ?? []);
+        $equipped_base_stats = is_array($eq_template->base_stats ?? null) ? $eq_template->base_stats : (json_decode($eq_template->base_stats ?? '[]', true) ?? []);
         
         $eq_roll_stats = [];
         if (isset($equippedItem->roll_stats)) {
             $eq_roll_stats = is_array($equippedItem->roll_stats) ? $equippedItem->roll_stats : (json_decode($equippedItem->roll_stats, true) ?? []);
         }
         $equipped_enchants = $eq_roll_stats['enchants'] ?? [];
+
+        $eq_upgrade_level = $equippedItem->upgrade_level ?? 0;
+        if (is_object($equippedItem) && method_exists($equippedItem, 'getUpgradeBonusStats')) {
+            $equipped_upgrade_bonus = $equippedItem->getUpgradeBonusStats($eq_upgrade_level);
+        } elseif ($eq_upgrade_level > 0) {
+            foreach ($equipped_base_stats as $stat => $val) {
+                if (in_array($stat, ['attack_min', 'magic_attack_min'])) {
+                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 2;
+                } elseif (in_array($stat, ['attack_max', 'magic_attack_max'])) {
+                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 3;
+                } elseif ($stat === 'defense') {
+                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 2;
+                } elseif ($stat === 'hp_bonus') {
+                    $equipped_upgrade_bonus[$stat] = $eq_upgrade_level * 10;
+                } elseif (str_ends_with($stat, '_bonus') && $stat !== 'hp_bonus' && $stat !== 'mana_bonus') {
+                    $equipped_upgrade_bonus[$stat] = (int) floor($eq_upgrade_level / 2);
+                }
+            }
+        }
     }
 
     $all_base_keys = array_unique(array_merge(array_keys($base_stats), array_keys($equipped_base_stats)));
@@ -38,7 +78,7 @@
     
     // Check if slot matches to allow compare
     $canCompare = false;
-    if ($equippedItem && $equippedItem->id !== ($item->id ?? null)) {
+    if ($equippedItem && ($equippedItem->id ?? null) !== ($item->id ?? null)) {
         if (($template->slot ?? null) === ($equippedItem->template->slot ?? null)) {
             $canCompare = true;
         }
@@ -61,7 +101,7 @@
             @endif
         </div>
         
-        @if(method_exists($item, 'getCombatPower'))
+        @if(is_object($item) && method_exists($item, 'getCombatPower'))
             <span class="text-indigo-300 font-bold ml-2 flex items-center gap-1"><i class="fa-solid fa-bolt text-indigo-400"></i> {{ $item->getCombatPower() }}</span>
         @endif
     </div>
@@ -86,14 +126,23 @@
                     @foreach($all_base_keys as $stat)
                         @php
                             $val = $base_stats[$stat] ?? 0;
+                            $up_val = $upgrade_bonus[$stat] ?? 0;
+                            $total_val = $val + $up_val;
+
                             $eq_val = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
-                            $diff = $val - $eq_val;
+                            $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
+                            $eq_total_val = $eq_val + $eq_up_val;
+
+                            $diff = $total_val - $eq_total_val;
                         @endphp
-                        <div class="flex justify-between items-center" x-show="compare || {{ $val }} > 0">
+                        <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
                             <span class="capitalize text-gray-200">{{ str_replace('_', ' ', $stat) }}</span>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1">
                                 <span class="font-bold {{ $val > 0 ? 'text-green-400' : 'text-gray-500' }}">+{{ $val }}</span>
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                @if($up_val > 0)
+                                    <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }})</span>
+                                @endif
+                                <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
                                     @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
                                 </span>
                             </div>
@@ -107,9 +156,9 @@
                         @endphp
                         <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
                             <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ str_replace('_', ' ', $stat) }}</span>
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-1">
                                 <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $val }}</span>
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
                                     @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
                                 </span>
                             </div>
@@ -125,14 +174,23 @@
                 <h5 class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Obecnie założone ({{ $equippedItem->template->slot }}):</h5>
                 <p class="font-bold text-sm text-yellow-400 mb-2">
                     {{ $equippedItem->template->name }} 
-                    @if($equippedItem->upgrade_level > 0)<span class="text-amber-500">+{{ $equippedItem->upgrade_level }}</span>@endif
+                    @if(($equippedItem->upgrade_level ?? 0) > 0)<span class="text-amber-500">+{{ $equippedItem->upgrade_level }}</span>@endif
                 </p>
                 <div class="text-sm text-gray-300 space-y-1">
                     @foreach($all_base_keys as $stat)
-                        @if(($equipped_base_stats[$stat] ?? 0) > 0)
+                        @php
+                            $eq_val = $equipped_base_stats[$stat] ?? 0;
+                            $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
+                        @endphp
+                        @if($eq_val > 0 || $eq_up_val > 0)
                             <div class="flex justify-between">
                                 <span class="capitalize text-gray-400">{{ str_replace('_', ' ', $stat) }}</span>
-                                <span class="font-bold text-gray-200">+{{ $equipped_base_stats[$stat] }}</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="font-bold text-gray-200">+{{ $eq_val }}</span>
+                                    @if($eq_up_val > 0)
+                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $eq_up_val }})</span>
+                                    @endif
+                                </div>
                             </div>
                         @endif
                     @endforeach
@@ -145,7 +203,7 @@
                         @endif
                     @endforeach
                 </div>
-                @if(method_exists($equippedItem, 'getCombatPower'))
+                @if(is_object($equippedItem) && method_exists($equippedItem, 'getCombatPower'))
                     <div class="mt-2 pt-2 border-t border-slate-700 text-xs text-indigo-300 flex items-center gap-1">
                         <i class="fa-solid fa-bolt text-indigo-400"></i> CP: <span class="font-bold">{{ $equippedItem->getCombatPower() }}</span>
                     </div>
