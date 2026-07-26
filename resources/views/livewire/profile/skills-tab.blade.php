@@ -49,6 +49,7 @@
                     elseif ($skill->required_weapon_type === 'wand') { $weaponName = 'Różdżka'; $weaponIcon = 'fa-solid fa-wand-magic-sparkles'; }
                     elseif ($skill->required_weapon_type === 'bell') { $weaponName = 'Dzwon'; $weaponIcon = 'fa-solid fa-bell'; }
                     elseif ($skill->required_weapon_type === 'bow') { $weaponName = 'Łuk'; $weaponIcon = 'fa-solid fa-bow-arrow'; }
+                    elseif ($skill->required_weapon_type === 'dagger') { $weaponName = 'Sztylet'; $weaponIcon = 'fa-solid fa-scissors'; }
 
                     // Effect formatting
                     $effectTitle = 'Obrażenia';

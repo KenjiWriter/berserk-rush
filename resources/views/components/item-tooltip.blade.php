@@ -76,6 +76,34 @@
     
     $hasAnyStats = count($all_base_keys) > 0 || count($all_enchant_keys) > 0;
     
+    // Determine weapon subtype label
+    $subTypeLabel = null;
+    if (($template->type ?? '') === 'weapon') {
+        $subTypeKey = $template->sub_type ?? null;
+        if (!$subTypeKey) {
+            $name = mb_strtolower($template->name ?? '', 'UTF-8');
+            if (str_contains($name, 'miecz') || str_contains($name, 'ostrze') || str_contains($name, 'pałasz') || str_contains($name, 'sword')) $subTypeKey = 'sword';
+            elseif (str_contains($name, 'topór') || str_contains($name, 'rozłupywacz') || str_contains($name, 'maczuga') || str_contains($name, 'axe')) $subTypeKey = 'axe';
+            elseif (str_contains($name, 'łuk') || str_contains($name, 'kusza') || str_contains($name, 'bow')) $subTypeKey = 'bow';
+            elseif (str_contains($name, 'różdżka') || str_contains($name, 'kostur') || str_contains($name, 'laska') || str_contains($name, 'wand')) $subTypeKey = 'wand';
+            elseif (str_contains($name, 'dzwon') || str_contains($name, 'gong') || str_contains($name, 'bell')) $subTypeKey = 'bell';
+            elseif (str_contains($name, 'sztylet') || str_contains($name, 'sztylety') || str_contains($name, 'nóż') || str_contains($name, 'dagger')) $subTypeKey = 'dagger';
+        }
+
+        $subTypeNames = [
+            'sword' => 'Miecz',
+            'axe' => 'Topór',
+            'bow' => 'Łuk',
+            'wand' => 'Różdżka',
+            'bell' => 'Dzwon',
+            'dagger' => 'Sztylet',
+        ];
+
+        if ($subTypeKey && isset($subTypeNames[$subTypeKey])) {
+            $subTypeLabel = $subTypeNames[$subTypeKey];
+        }
+    }
+
     // Check if slot matches to allow compare
     $canCompare = false;
     if ($equippedItem && ($equippedItem->id ?? null) !== ($item->id ?? null)) {
@@ -93,7 +121,7 @@
                 {{ $template->name }} 
                 @if($upgrade_level > 0)<span class="text-amber-500 text-sm ml-1">+{{ $upgrade_level }}</span>@endif
             </h4>
-            <p class="text-xs text-gray-400">Slot: {{ ucfirst($template->slot ?? 'Brak') }} | Typ: {{ ucfirst($template->type ?? 'Nieznany') }} | Poz: {{ $template->level_requirement ?? 1 }}</p>
+            <p class="text-xs text-gray-400">Slot: {{ ucfirst($template->slot ?? 'Brak') }} | Typ: {{ ucfirst($template->type ?? 'Nieznany') }}@if($subTypeLabel) ({{ $subTypeLabel }})@endif | Poz: {{ $template->level_requirement ?? 1 }}</p>
             @if(isset($roll_stats['mint']))
                 <p class="text-red-400 font-bold text-xs uppercase animate-pulse border-b border-red-500/50 pb-1 w-max">
                     <i class="fa-solid fa-fire text-red-500 mr-1"></i> Nakład: {{ $roll_stats['mint'] }} / {{ $roll_stats['max_mint'] }}
