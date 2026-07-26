@@ -29,5 +29,6 @@ Rozbudowano system zrzeszania się do walk grupowych:
 
 ## Realizacja Techniczna
 - `PvPEncounterService` / `GuildWarService`: Główne klasy realizujące symulację mechanik i rzucania kośćmi.
-- Baza Danych (Migrations): Nowe tabele `pvp_encounters`, `guild_wars`, `guild_war_fights`. 
-- Logi Walki: Skrypt JS `arena-combat.blade.php` odtwarza asynchronicznie wygenerowane po stronie serwera JSON-owe tury w klasycznym widoku walki.
+- Zabezpieczenie Kolejkowania: `PvPEncounterService` oraz `EncounterService` weryfikują stan postaci przed rozpoczęciem pojedynku (blokada symultanicznych walk w trakcie trwania innej potyczki oraz 5-sekundowy cooldown między wyzwaniami Areny).
+- Baza Danych (Migrations): Tabele `pvp_encounters`, `guild_wars`, `guild_war_fights`. 
+- Logi Walki: Skrypt JS `arena-combat.blade.php` odtwarza wygenerowane po stronie serwera JSON-owe tury w klasycznym widoku walki.

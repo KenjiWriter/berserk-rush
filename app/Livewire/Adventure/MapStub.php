@@ -480,36 +480,25 @@ class MapStub extends Component
             return;
         }
 
-        // Apply gold and XP rewards to character
-        $this->character->update([
-            'gold' => $this->character->gold + $this->goldGained,
-            'xp' => $this->character->xp + $this->xpGained,
-        ]);
-        $this->sessionGoldEarned += $this->goldGained;
+        $oldLevel = $this->character->level;
 
-        $this->character = $this->character->fresh();
+        $encounterService = app(EncounterService::class);
+        $res = $encounterService->applyRewards($encounter);
 
-        $levelUpService = app(\App\Application\Characters\LevelUpService::class);
-        $result = $levelUpService->checkAndApply($this->character);
-        
-        if ($result->isOk() && $result->getPayload()->hadLevelUp) {
-            $this->dispatch('play-audio', type: 'levelup');
-            foreach ($result->getPayload()->levelUps as $levelUp) {
-                 $this->levelUps[] = [
-                     'from' => $levelUp['from'],
-                     'to' => $levelUp['to'],
-                     'attribute_points' => 3,
-                 ];
-            }
+        if ($res->isOk()) {
+            $this->sessionGoldEarned += $this->goldGained;
             $this->character = $this->character->fresh();
-            
-            // Pokaż okno awansu dla najwyższego zdobytego poziomu
-            $highestLevel = end($this->levelUps)['to'];
-            $this->dispatch('open-level-up-modal', level: $highestLevel);
-        }
 
-        // Mark encounter rewards as applied
-        $encounter->markRewardsApplied();
+            if ($this->character->level > $oldLevel) {
+                $this->dispatch('play-audio', type: 'levelup');
+                $this->levelUps[] = [
+                    'from' => $oldLevel,
+                    'to' => $this->character->level,
+                    'attribute_points' => ($this->character->level - $oldLevel) * 3,
+                ];
+                $this->dispatch('open-level-up-modal', level: $this->character->level);
+            }
+        }
     }
 
     #[On('level-up-modal-closed')]

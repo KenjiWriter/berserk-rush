@@ -4,6 +4,7 @@ namespace App\Application\PvP;
 
 use App\Application\Shared\Result;
 use App\Infrastructure\Persistence\PvpEncounter;
+use App\Infrastructure\Persistence\Encounter;
 use App\Infrastructure\Persistence\Character;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,6 +16,34 @@ class PvPEncounterService
      */
     public function startEncounter(Character $attacker, Character $defender): Result
     {
+        // Clean up stale pending/calculating PvP encounters older than 2 minutes
+        PvpEncounter::where('attacker_character_id', $attacker->id)
+            ->whereIn('state', ['pending', 'calculating'])
+            ->where('created_at', '<', now()->subMinutes(2))
+            ->update(['state' => 'error']);
+
+        // Check active or very recent PvP encounter (cooldown 5s to prevent multi-challenge spamming)
+        $recentPvP = PvpEncounter::where('attacker_character_id', $attacker->id)
+            ->where(function ($query) {
+                $query->whereIn('state', ['pending', 'calculating'])
+                      ->orWhere('created_at', '>=', now()->subSeconds(5));
+            })
+            ->exists();
+
+        if ($recentPvP) {
+            return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie walki lub musisz odczekać chwilę przed kolejnym wyzwaniem.');
+        }
+
+        // Check active PvE encounter
+        $activePvE = Encounter::where('character_id', $attacker->id)
+            ->where('state', 'ongoing')
+            ->where('started_at', '>=', now()->subMinutes(2))
+            ->exists();
+
+        if ($activePvE) {
+            return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater bierze obecnie udział w walce PvE.');
+        }
+
         try {
             return DB::transaction(function () use ($attacker, $defender) {
                 $pvpEncounter = PvpEncounter::create([

@@ -21,121 +21,159 @@ class DropService
         private \App\Domain\Wizard\EnchantmentStrategy $enchantmentStrategy
     ) {}
 
-    public function rollAndApplyRewards(Encounter $encounter): Result
+    public function rollLoot(Encounter $encounter): Result
+    {
+        try {
+            $monster = $encounter->monster;
+            if (!$monster || !$monster->loot_table_id) {
+                return Result::ok(new DropResult(0, 0, [], [], false));
+            }
+
+            $lootTable = $monster->lootTable;
+            if (!$lootTable) {
+                return Result::ok(new DropResult(0, 0, [], [], false));
+            }
+
+            $activeQuestIds = $encounter->character->activeQuests()->pluck('quest_id')->toArray();
+            $entriesCollection = $lootTable->entries()->with('itemTemplate')->get();
+            
+            $filteredEntries = $entriesCollection->filter(function($entry) use ($activeQuestIds) {
+                if (in_array($entry->reward_type, ['item', 'material'])) {
+                    $template = $entry->itemTemplate;
+                    if ($template && $template->type === 'quest_item') {
+                        if (!$template->quest_id || !in_array($template->quest_id, $activeQuestIds)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
+
+            $entries = array_values($filteredEntries->toArray());
+            if (empty($entries)) {
+                return Result::ok(new DropResult(0, 0, [], [], false));
+            }
+
+            $selectedEntry = $this->picker->pick($entries);
+
+            $gold = 0;
+            $gems = 0;
+            $items = [];
+            $materials = [];
+
+            if ($selectedEntry) {
+                $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+                $templateUlid = $selectedEntry['ref_ulid'] ?? null;
+                $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
+                $itemName = $template ? $template->name : "Przedmiot";
+
+                switch ($selectedEntry['reward_type']) {
+                    case 'gold':
+                        $gold = $quantity;
+                        break;
+
+                    case 'gems':
+                        $gems = $quantity;
+                        break;
+
+                    case 'item':
+                        $items[] = [
+                            'template_id' => $templateUlid,
+                            'name' => $itemName,
+                            'rarity' => 'common',
+                            'quantity' => $quantity,
+                        ];
+                        break;
+
+                    case 'material':
+                        $materials[] = [
+                            'template_id' => $templateUlid,
+                            'name' => $itemName,
+                            'rarity' => 'common',
+                            'quantity' => $quantity,
+                        ];
+                        break;
+                }
+            }
+
+            $dropResult = new DropResult($gold, $gems, $items, $materials, true);
+            $this->updateEncounterResult($encounter, $dropResult);
+
+            return Result::ok($dropResult);
+        } catch (\Exception $e) {
+            Log::error('Failed to roll loot', [
+                'encounter_id' => $encounter->id,
+                'error' => $e->getMessage()
+            ]);
+            return Result::error('DROP_FAILED', 'Nie udało się wylosować łupu');
+        }
+    }
+
+    public function applyLoot(Encounter $encounter): Result
     {
         $idempotencyKey = "encounter:{$encounter->id}:drop";
 
         try {
             return DB::transaction(function () use ($encounter, $idempotencyKey) {
-                // Check idempotency - don't apply drops twice
-                if (CurrencyLedger::where('idempotency_key', $idempotencyKey)->exists()) {
+                if (CurrencyLedger::where('idempotency_key', $idempotencyKey . ":gold")->exists() ||
+                    ItemLedger::where('idempotency_key', $idempotencyKey . ":item:0")->exists()) {
                     Log::info('Drops already applied for encounter', ['encounter_id' => $encounter->id]);
                     return Result::ok(new DropResult(0, 0, [], [], false));
                 }
 
-                $monster = $encounter->monster;
-                if (!$monster || !$monster->loot_table_id) {
-                    Log::info('No loot table for monster', [
-                        'monster_id' => $monster?->id,
-                        'encounter_id' => $encounter->id
-                    ]);
+                $drops = $encounter->result['drops'] ?? null;
+                if (!$drops) {
                     return Result::ok(new DropResult(0, 0, [], [], false));
                 }
 
-                $lootTable = $monster->lootTable;
-                if (!$lootTable) {
-                    return Result::ok(new DropResult(0, 0, [], [], false));
+                $gold = $drops['gold'] ?? 0;
+                $gems = $drops['gems'] ?? 0;
+                $items = $drops['items'] ?? [];
+                $materials = $drops['materials'] ?? [];
+
+                if ($gold > 0) {
+                    $this->applyCurrencyReward($encounter, 'gold', $gold, "{$idempotencyKey}:gold");
                 }
 
-                $activeQuestIds = $encounter->character->activeQuests()->pluck('quest_id')->toArray();
+                if ($gems > 0) {
+                    $this->applyCurrencyReward($encounter, 'gems', $gems, "{$idempotencyKey}:gems");
+                }
 
-                $entriesCollection = $lootTable->entries()->with('itemTemplate')->get();
-                
-                $filteredEntries = $entriesCollection->filter(function($entry) use ($activeQuestIds) {
-                    if (in_array($entry->reward_type, ['item', 'material'])) {
-                        $template = $entry->itemTemplate;
-                        if ($template && $template->type === 'quest_item') {
-                            if (!$template->quest_id || !in_array($template->quest_id, $activeQuestIds)) {
-                                return false; // Ukryj, jeśli nie ma tego questa aktywnego
-                            }
-                        }
+                $appliedItems = [];
+                $appliedMaterials = [];
+
+                foreach ($items as $item) {
+                    if (!empty($item['template_id'])) {
+                        $res = $this->applyItemReward($encounter, $item['template_id'], $item['quantity'] ?? 1, $idempotencyKey);
+                        $appliedItems = array_merge($appliedItems, $res);
                     }
-                    return true;
-                });
-
-                $entries = array_values($filteredEntries->toArray());
-                if (empty($entries)) {
-                    return Result::ok(new DropResult(0, 0, [], [], false));
                 }
 
-                // Roll one loot entry
-                $selectedEntry = $this->picker->pick($entries);
-
-                $gold = 0;
-                $gems = 0;
-                $items = [];
-                $materials = [];
-
-                if ($selectedEntry) {
-                    $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
-
-                    switch ($selectedEntry['reward_type']) {
-                        case 'gold':
-                            $gold = $quantity;
-                            $this->applyCurrencyReward($encounter, 'gold', $gold, "{$idempotencyKey}:gold");
-                            break;
-
-                        case 'gems':
-                            $gems = $quantity;
-                            $this->applyCurrencyReward($encounter, 'gems', $gems, "{$idempotencyKey}:gems");
-                            break;
-
-                        case 'item':
-                        case 'material':
-                            $itemResult = $this->applyItemReward(
-                                $encounter,
-                                $selectedEntry['ref_ulid'],
-                                $quantity,
-                                $idempotencyKey
-                            );
-
-                            if ($selectedEntry['reward_type'] === 'item') {
-                                $items = $itemResult;
-                            } else {
-                                $materials = $itemResult;
-                            }
-                            break;
+                foreach ($materials as $mat) {
+                    if (!empty($mat['template_id'])) {
+                        $res = $this->applyItemReward($encounter, $mat['template_id'], $mat['quantity'] ?? 1, $idempotencyKey);
+                        $appliedMaterials = array_merge($appliedMaterials, $res);
                     }
-
-                    Log::info('Loot rolled and applied', [
-                        'encounter_id' => $encounter->id,
-                        'reward_type' => $selectedEntry['reward_type'],
-                        'quantity' => $quantity,
-                        'gold' => $gold,
-                        'gems' => $gems,
-                        'items_count' => count($items),
-                        'materials_count' => count($materials)
-                    ]);
                 }
 
-                $dropResult = new DropResult($gold, $gems, $items, $materials, true);
-
-                // Update encounter result with drop summary
-                $this->updateEncounterResult($encounter, $dropResult);
-
+                $dropResult = new DropResult($gold, $gems, $appliedItems, $appliedMaterials, true);
                 return Result::ok($dropResult);
             });
         } catch (\Exception $e) {
             Log::error('Failed to apply loot drops', [
                 'encounter_id' => $encounter->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'error' => $e->getMessage()
             ]);
-
-            return Result::error('DROP_FAILED', 'Nie udało się zastosować łupu', [
-                'exception' => $e->getMessage()
-            ]);
+            return Result::error('DROP_FAILED', 'Nie udało się zastosować łupu');
         }
+    }
+
+    public function rollAndApplyRewards(Encounter $encounter): Result
+    {
+        $rollRes = $this->rollLoot($encounter);
+        if ($rollRes->isError()) return $rollRes;
+
+        return $this->applyLoot($encounter);
     }
 
     private function applyCurrencyReward(Encounter $encounter, string $currencyType, int $amount, string $idempotencyKey): void

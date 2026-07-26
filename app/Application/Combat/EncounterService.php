@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Monster;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
+use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\WorldBossInstance;
 use App\Infrastructure\Persistence\WorldBossDamageLog;
 
@@ -32,7 +33,44 @@ class EncounterService
 
         try {
             return DB::transaction(function () use ($character, $map, $forcedMonster) {
-                Log::info('Starting transaction for encounter');
+                // Lock character row to serialize concurrent battle requests
+                $char = Character::where('id', $character->id)->lockForUpdate()->first();
+                if (!$char) {
+                    return Result::error('CHARACTER_NOT_FOUND', 'Nie znaleziono postaci.');
+                }
+
+                // Auto-claim any stale unapplied encounters older than 30s
+                $staleEncounters = Encounter::where('character_id', $char->id)
+                    ->where('rewards_applied', false)
+                    ->whereIn('state', ['win', 'finished', 'lose'])
+                    ->where('started_at', '<', now()->subSeconds(30))
+                    ->get();
+
+                foreach ($staleEncounters as $staleEnc) {
+                    $this->applyRewards($staleEnc);
+                }
+
+                // Check for active unapplied encounter (< 30s ago and rewards_applied == false)
+                $activeUnapplied = Encounter::where('character_id', $char->id)
+                    ->where('rewards_applied', false)
+                    ->where('started_at', '>=', now()->subSeconds(30))
+                    ->exists();
+
+                if ($activeUnapplied) {
+                    return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki! Zakończ animację poprzedniego starcia.');
+                }
+
+                // Check for active/recent PvP encounter (< 5s ago or pending/calculating)
+                $recentPvP = PvpEncounter::where('attacker_character_id', $char->id)
+                    ->where(function ($query) {
+                        $query->whereIn('state', ['pending', 'calculating'])
+                              ->orWhere('created_at', '>=', now()->subSeconds(5));
+                    })
+                    ->exists();
+
+                if ($recentPvP) {
+                    return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater bierze obecnie udział w pojedynku PvP.');
+                }
 
                 $monster = $forcedMonster;
 
@@ -235,7 +273,7 @@ class EncounterService
                 if ($winner === 'player') {
                     $encounter->markAsWon();
                     $dropService = app(DropService::class);
-                    $dropResult = $dropService->rollAndApplyRewards($encounter);
+                    $dropResult = $dropService->rollLoot($encounter);
 
                     // Update hunting quests
                     $questService = app(\App\Application\Quests\QuestService::class);
@@ -328,6 +366,49 @@ class EncounterService
             ]);
 
             return Result::error('SIMULATION_FAILED', 'Symulacja walki nie powiodła się');
+        }
+    }
+
+    public function applyRewards(Encounter $encounter): Result
+    {
+        try {
+            return DB::transaction(function () use ($encounter) {
+                $enc = Encounter::where('id', $encounter->id)->lockForUpdate()->first();
+                if (!$enc) {
+                    return Result::error('NOT_FOUND', 'Spotkanie nie istnieje');
+                }
+
+                if ($enc->rewards_applied) {
+                    Log::info('Rewards already applied for encounter', ['encounter_id' => $enc->id]);
+                    return Result::ok($enc);
+                }
+
+                if (in_array($enc->state, ['win', 'finished'])) {
+                    $character = $enc->character;
+                    if ($character) {
+                        if ($enc->gold_reward > 0) {
+                            $character->increment('gold', $enc->gold_reward);
+                        }
+                        if ($enc->xp_reward > 0) {
+                            $character->increment('xp', $enc->xp_reward);
+                        }
+
+                        app(\App\Application\Characters\LevelUpService::class)->checkAndApply($character);
+
+                        $dropService = app(DropService::class);
+                        $dropService->applyLoot($enc);
+                    }
+                }
+
+                $enc->markRewardsApplied();
+                return Result::ok($enc->fresh());
+            });
+        } catch (\Exception $e) {
+            Log::error('EncounterService::applyRewards failed', [
+                'encounter_id' => $encounter->id,
+                'error' => $e->getMessage(),
+            ]);
+            return Result::error('APPLY_REWARDS_FAILED', 'Nie udało się przyznać nagród z walki.');
         }
     }
 
