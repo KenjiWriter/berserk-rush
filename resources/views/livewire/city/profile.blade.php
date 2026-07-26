@@ -400,7 +400,66 @@
             </div>
 
             <!-- Stats -->
-            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10">
+            <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
+                 @if($activeTab === 'attributes')
+                     x-data="{
+                         points: {{ $character->character_points }},
+                         added: { str: 0, int: 0, vit: 0, agi: 0 },
+                         pending: { str: 0, int: 0, vit: 0, agi: 0 },
+                         saveTimeout: null,
+                         
+                         updatePointsFromEvent(detail) {
+                             let data = Array.isArray(detail) ? detail[0] : detail;
+                             if (data && typeof data.points !== 'undefined' && data.points !== null) {
+                                 let unsavedTotal = (this.added.str + this.added.int + this.added.vit + this.added.agi) +
+                                                    (this.pending.str + this.pending.int + this.pending.vit + this.pending.agi);
+                                 this.points = Math.max(0, data.points - unsavedTotal);
+                             }
+                         },
+
+                         add(stat, amount) {
+                             let actual = Math.min(amount, this.points);
+                             if (actual > 0) {
+                                 this.added[stat] += actual;
+                                 this.points -= actual;
+                                 
+                                 // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
+                                 window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
+
+                                 let el = document.getElementById('stat-flash-' + stat);
+                                 if (el) {
+                                     el.style.animation = 'none';
+                                     el.offsetHeight; // trigger reflow
+                                     el.style.animation = 'flashText 0.15s ease-out forwards';
+                                 }
+                                 
+                                 // Krótki, płynny auto-zapis (350ms)
+                                 clearTimeout(this.saveTimeout);
+                                 this.saveTimeout = setTimeout(async () => {
+                                     let toSave = { ...this.added };
+                                     if (toSave.str === 0 && toSave.int === 0 && toSave.vit === 0 && toSave.agi === 0) return;
+
+                                     this.added = { str: 0, int: 0, vit: 0, agi: 0 };
+                                     this.pending.str += toSave.str;
+                                     this.pending.int += toSave.int;
+                                     this.pending.vit += toSave.vit;
+                                     this.pending.agi += toSave.agi;
+                                     
+                                     try {
+                                         await $wire.saveAttributes(toSave);
+                                     } finally {
+                                         this.pending.str -= toSave.str;
+                                         this.pending.int -= toSave.int;
+                                         this.pending.vit -= toSave.vit;
+                                         this.pending.agi -= toSave.agi;
+                                     }
+                                 }, 350);
+                             }
+                         }
+                     }"
+                     @stats-saved.window="updatePointsFromEvent($event.detail)"
+                 @endif
+            >
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
                         <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
@@ -420,56 +479,11 @@
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
-                        <span x-data="{ points: {{ $character->character_points }} }" @stats-saved.window="points = $event.detail.points" x-show="points > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="points"></span></span>
+                        <span x-show="points > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="points"></span></span>
                     @endif
                 </div>
                 @if($activeTab === 'attributes')
-                    <div x-data="{
-                        points: {{ $character->character_points }},
-                        added: { str: 0, int: 0, vit: 0, agi: 0 },
-                        pending: { str: 0, int: 0, vit: 0, agi: 0 },
-                        saveTimeout: null,
-                        
-                        add(stat, amount) {
-                            let actual = Math.min(amount, this.points);
-                            if (actual > 0) {
-                                this.added[stat] += actual;
-                                this.points -= actual;
-                                
-                                // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
-                                window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
-
-                                let el = document.getElementById('stat-flash-' + stat);
-                                if (el) {
-                                    el.style.animation = 'none';
-                                    el.offsetHeight; // trigger reflow
-                                    el.style.animation = 'flashText 0.15s ease-out forwards';
-                                }
-                                
-                                // Krótki, płynny auto-zapis (350ms)
-                                clearTimeout(this.saveTimeout);
-                                this.saveTimeout = setTimeout(async () => {
-                                    let toSave = { ...this.added };
-                                    if (toSave.str === 0 && toSave.int === 0 && toSave.vit === 0 && toSave.agi === 0) return;
-
-                                    this.added = { str: 0, int: 0, vit: 0, agi: 0 };
-                                    this.pending.str += toSave.str;
-                                    this.pending.int += toSave.int;
-                                    this.pending.vit += toSave.vit;
-                                    this.pending.agi += toSave.agi;
-                                    
-                                    try {
-                                        await $wire.saveAttributes(toSave);
-                                    } finally {
-                                        this.pending.str -= toSave.str;
-                                        this.pending.int -= toSave.int;
-                                        this.pending.vit -= toSave.vit;
-                                        this.pending.agi -= toSave.agi;
-                                    }
-                                }, 350);
-                            }
-                        }
-                    }" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative" @stats-saved.window="points = $event.detail.points">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative">
                     
                         <style>
                             @keyframes flashText {

@@ -225,6 +225,7 @@ class Profile extends Component
 
     public function saveAttributes(array $addedStats)
     {
+        $this->character->refresh();
         $validAttributes = ['str', 'int', 'vit', 'agi'];
         $totalRequested = 0;
         
