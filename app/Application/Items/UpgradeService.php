@@ -13,22 +13,28 @@ class UpgradeService
     {
         $level = $item->upgrade_level;
         
+        // Priority 1: Specific template rule
         $rule = \App\Infrastructure\Persistence\UpgradeRule::where('from_level', $level)
-            ->where(function($q) use ($item) {
-                $q->where(function($q2) use ($item) {
-                    $q2->where('applies_to', 'type')->where('applies_value', $item->template->type);
-                })
-                ->orWhere(function($q2) use ($item) {
-                    $q2->where('applies_to', 'slot')->where('applies_value', $item->template->slot);
-                })
-                ->orWhere(function($q2) use ($item) {
-                    $q2->where('applies_to', 'template')->where('applies_value', $item->template->id);
-                })
-                ->orWhere(function($q2) use ($item) {
-                    $q2->where('applies_to', 'rarity')->where('applies_value', $item->rarity);
-                });
-            })
+            ->where('applies_to', 'template')
+            ->where('applies_value', $item->template->id)
             ->first();
+
+        // Priority 2: Fallback rule (slot, type, or rarity)
+        if (!$rule) {
+            $rule = \App\Infrastructure\Persistence\UpgradeRule::where('from_level', $level)
+                ->where(function($q) use ($item) {
+                    $q->where(function($q2) use ($item) {
+                        $q2->where('applies_to', 'slot')->where('applies_value', $item->template->slot);
+                    })
+                    ->orWhere(function($q2) use ($item) {
+                        $q2->where('applies_to', 'type')->where('applies_value', $item->template->type);
+                    })
+                    ->orWhere(function($q2) use ($item) {
+                        $q2->where('applies_to', 'rarity')->where('applies_value', $item->rarity);
+                    });
+                })
+                ->first();
+        }
 
         if (!$rule) {
             return null; // No rule found
