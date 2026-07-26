@@ -88,11 +88,14 @@ class UpgradeService
             return ['success' => false, 'message' => 'Nie masz wystarczająco złota na ulepszenie.'];
         }
 
-        // Check materials
-        $inventoryMaterials = $character->inventoryItems()->whereIn('template_id', array_column($cost['materials'], 'template_id'))->get();
+        // Check materials from material_stash or inventory
+        $availableMaterials = $character->items()
+            ->whereIn('location', ['material_stash', 'inventory'])
+            ->whereIn('template_id', array_column($cost['materials'], 'template_id'))
+            ->get();
         
         foreach ($cost['materials'] as $reqMat) {
-            $owned = $inventoryMaterials->where('template_id', $reqMat['template_id'])->sum('stack_size');
+            $owned = $availableMaterials->where('template_id', $reqMat['template_id'])->sum('stack_size');
             if ($owned < $reqMat['quantity']) {
                 return ['success' => false, 'message' => "Brakuje materiałów: {$reqMat['name']} (Posiadasz {$owned}/{$reqMat['quantity']})"];
             }
@@ -104,7 +107,7 @@ class UpgradeService
         // Deduct materials
         foreach ($cost['materials'] as $reqMat) {
             $toDeduct = $reqMat['quantity'];
-            $instances = $inventoryMaterials->where('template_id', $reqMat['template_id']);
+            $instances = $availableMaterials->where('template_id', $reqMat['template_id'])->sortBy('stack_size');
             foreach ($instances as $matInstance) {
                 if ($toDeduct <= 0) break;
                 

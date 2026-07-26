@@ -261,7 +261,11 @@ class Weaponsmith extends Component
             $upgradeCosts[$item->id] = $upgradeService->getUpgradeCost($item);
         }
         
-        $inventoryMaterials = $this->character->materialStashItems()->get();
+        $inventoryMaterials = $this->character->items()
+            ->whereIn('location', ['material_stash', 'inventory'])
+            ->whereHas('template', function($q) {
+                $q->where('type', 'material');
+            })->get();
 
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
             $q->where('type', 'weapon');

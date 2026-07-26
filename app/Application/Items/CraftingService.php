@@ -20,7 +20,9 @@ class CraftingService
             }
 
             // Check ingredients (materials can be in material_stash or inventory)
-            $availableMaterials = $character->materialStashItems()->get()->merge($character->inventoryItems()->get());
+            $availableMaterials = $character->items()
+                ->whereIn('location', ['material_stash', 'inventory'])
+                ->get();
             foreach ($recipe->ingredients as $ingredient) {
                 $templateId = $ingredient['template_id'];
                 $requiredQuantity = $ingredient['quantity'];

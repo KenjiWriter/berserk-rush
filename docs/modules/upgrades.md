@@ -4,8 +4,8 @@ Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni, 
 
 ## Implementacja
 - Pliki logiki i akcji: 
-  - `app/Application/Items/UpgradeItem.php`
-  - `app/Domain/Items/UpgradeStrategy.php`
+  - `app/Application/Items/UpgradeService.php`
+  - `app/Infrastructure/Persistence/UpgradeRule.php`
 - Komponenty Livewire: 
   - `app/Livewire/City/Weaponsmith.php`
   - `app/Livewire/City/Armorsmith.php`
@@ -26,7 +26,7 @@ Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni, 
 - Każdy proces podnoszenia poziomu obarczony jest szansą na powodzenie. Szansa ta systematycznie spada im wyższy jest aktualny poziom ulepszenia:
   - `+0 -> +1` to zazwyczaj 95%
   - W okolicach `+5` i wyżej szansa drastycznie maleje, stanowiąc mechanikę "gold sink" dla graczy we wczesnej fazie.
-- **Koszt:** Ulepszanie zawsze pochłania Złoto (`gold`). Z czasem do systemu mogą zostać wpięte konkretne materiały ulepszeniowe w postaci innych unikalnych przedmiotów z plecaka.
+- **Koszt:** Ulepszanie pochłania Złoto (`gold`) oraz zdefiniowane materiały rzemieślnicze z dedykowanego schowka na materiały (`material_stash`).
 
 ### 3. Skutki i Porażki
 - **Sukces:** Poziom przedmiotu rośnie o +1 (zapisywane w `ItemInstance->upgrade_level`). Przedmiot otrzymuje dodatkowe statystyki kalkulowane w czasie rzeczywistym i dopisywane do statystyk z szablonu. Widoczne jako `( +X )` przy nazwie przedmiotu.
