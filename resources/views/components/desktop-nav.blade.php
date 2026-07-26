@@ -38,6 +38,7 @@
             @if($character)
                 @php
                     $initialXpReq = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
+                    $initialXpPct = $initialXpReq > 0 ? number_format(min(100, max(0, ($character->xp / $initialXpReq) * 100)), 1) : '0.0';
                 @endphp
                 <div x-data="{
                         navLevel: {{ $character->level }},
@@ -45,6 +46,9 @@
                         navXpReq: {{ $initialXpReq }},
                         navGold: {{ $character->gold }},
                         navGems: {{ $character->gems }},
+                        get navXpPct() {
+                            return (Math.min(100, Math.max(0, (this.navXp / Math.max(1, this.navXpReq)) * 100))).toFixed(1);
+                        },
 
                         handleStatsUpdate(detail) {
                             let data = Array.isArray(detail) ? detail[0] : detail;
@@ -142,8 +146,8 @@
                         {{-- EXP Progress Bar --}}
                         <div>
                             <div class="flex justify-between text-[9px] font-bold text-stone-400 mb-1 font-sans">
-                                <span class="text-amber-500/90 tracking-wider">EXP</span>
-                                <span><span x-text="Number(navXp).toLocaleString()"></span> / <span x-text="Number(navXpReq).toLocaleString()"></span></span>
+                                <span class="text-amber-500/90 tracking-wider">EXP <span class="text-amber-300/90 font-semibold ml-0.5">(<span x-text="navXpPct + '%'">{{ $initialXpPct }}%</span>)</span></span>
+                                <span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($initialXpReq) }}</span></span>
                             </div>
                             <div class="w-full h-2 bg-stone-900 rounded-full overflow-hidden border border-stone-800 shadow-inner">
                                 <div class="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 transition-all duration-700 relative rounded-full"
