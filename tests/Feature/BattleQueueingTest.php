@@ -170,12 +170,47 @@ class BattleQueueingTest extends TestCase
         $service = app(EncounterService::class);
         $startResult = $service->start($character, $highLevelMap);
         $this->assertTrue($startResult->isError());
-        $this->assertEquals('LEVEL_TOO_LOW', $startResult->getErrorCode());
+        $this->assertEquals('LEVEL_OUT_OF_RANGE', $startResult->getErrorCode());
 
         // Livewire MapStub mount should redirect back to adventure
         Livewire::actingAs($user)
             ->test(MapStub::class, ['character' => $character, 'map' => $highLevelMap])
             ->assertRedirect(route('city.adventure', $character));
+    }
+
+    public function test_character_above_max_level_cannot_access_map_or_world_boss(): void
+    {
+        $user = User::factory()->create();
+        $highLevelCharacter = Character::create([
+            'user_id' => $user->id,
+            'name' => 'HighLevelHero',
+            'level' => 30,
+            'gold' => 100,
+            'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
+        ]);
+
+        $lowLevelMap = Map::create([
+            'name' => 'Mroczny Las',
+            'level_min' => 0,
+            'level_max' => 15,
+        ]);
+
+        $bossMonster = Monster::create([
+            'map_id' => $lowLevelMap->id,
+            'name' => 'Król Lasu',
+            'level' => 10,
+            'rank' => 'worldboss',
+            'stats' => ['hp' => 1000, 'atk' => 10, 'def' => 5, 'agi' => 2],
+        ]);
+
+        // Level 30 character is outside level 0-15 range -> isAccessibleBy must return false
+        $this->assertFalse($lowLevelMap->isAccessibleBy($highLevelCharacter));
+
+        // EncounterService start must be rejected
+        $service = app(EncounterService::class);
+        $startResult = $service->start($highLevelCharacter, $lowLevelMap, $bossMonster);
+        $this->assertTrue($startResult->isError());
+        $this->assertEquals('LEVEL_OUT_OF_RANGE', $startResult->getErrorCode());
     }
 
     public function test_world_boss_can_be_challenged_via_map_stub_without_double_encounter_error(): void

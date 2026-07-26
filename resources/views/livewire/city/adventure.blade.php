@@ -623,7 +623,12 @@
                                         
                                         {{-- Action CTA --}}
                                         <div class="mt-6 pt-4 border-t border-purple-800/50">
-                                            @if($hasParticipated)
+                                            @if(!$isAccessible)
+                                                <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-sm medieval-font flex items-center justify-center gap-2">
+                                                    <i class="fa-solid fa-lock text-amber-500"></i>
+                                                    <span>Wymagany poziom: {{ $map->level_range }}</span>
+                                                </button>
+                                            @elseif($hasParticipated)
                                                 <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-base medieval-font">
                                                     Już brałeś udział w tym starciu
                                                 </button>

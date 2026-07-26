@@ -82,7 +82,7 @@ class MapStub extends Component
 
         // Hard block level requirement
         if (!$map->isAccessibleBy($character)) {
-            session()->flash('error', "Twój poziom ({$character->level}) jest zbyt niski, aby wejść na tę mapę (wymagany poziom: {$map->level_min}).");
+            session()->flash('error', "Twój poziom ({$character->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
             $this->redirect(route('city.adventure', $character), navigate: true);
             return;
         }

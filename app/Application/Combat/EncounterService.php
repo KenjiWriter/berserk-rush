@@ -74,7 +74,7 @@ class EncounterService
 
                 // Check map level requirement
                 if (!$map->isAccessibleBy($char)) {
-                    return Result::error('LEVEL_TOO_LOW', "Twój poziom ({$char->level}) jest zbyt niski dla tej mapy (wymagany poziom: {$map->level_min}).");
+                    return Result::error('LEVEL_OUT_OF_RANGE', "Twój poziom ({$char->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
                 }
 
                 $monster = $forcedMonster;
