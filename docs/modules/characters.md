@@ -23,8 +23,8 @@ Podczas tworzenia nowej postaci, każda postać (zarówno pierwsza, jak i kolejn
 
 
 ### 2. Poziomy i XP (`LevelUpService`)
-Gracz awansuje na wyższe poziomy poprzez zdobywanie doświadczenia (XP). Wymagane doświadczenie na kolejny poziom obliczane jest w oparciu o progresywną krzywą wydłużającą czas gry na wyższych poziomach:
-`Wymagane_XP = 25 * Poziom^2 + 75 * Poziom + 0.35 * Poziom^4.1 + (Poziom > 85 ? 0.05 * (Poziom - 85)^5.5 : 0)`
+Gracz awansuje na wyższe poziomy poprzez zdobywanie doświadczenia (XP). Wymagane doświadczenie na kolejny poziom obliczane jest w oparciu o zbalansowaną krzywą wygładzającą progi EXP:
+`Wymagane_XP = 15 * Poziom^2 + 50 * Poziom + 0.15 * Poziom^4.1 + (Poziom > 85 ? 0.025 * (Poziom - 85)^5.5 : 0)`
 
 Kiedy postać zbierze wymaganą ilość XP:
 - Zwiększa się jej poziom (`level`).

@@ -843,7 +843,7 @@ class EncounterService
     private function calculateXpReward(Monster $monster, Character $character): array
     {
         $levelDiff = $monster->level - $character->level;
-        $baseXp = 15 * pow($monster->level, 1.2) + 20;
+        $baseXp = 25 * pow($monster->level, 1.2) + 30;
 
         if ($levelDiff > 0) {
             $baseXp *= (1 + ($levelDiff * 0.1));
