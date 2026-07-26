@@ -75,6 +75,6 @@ class LevelUpService
 
     public function xpToNext(int $level): int
     {
-        return (int) round(50 * pow(1.25, $level - 1));
+        return (int) round(25 * pow($level, 2) + 25 * $level);
     }
 }

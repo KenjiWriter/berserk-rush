@@ -843,7 +843,7 @@ class EncounterService
     private function calculateXpReward(Monster $monster, Character $character): array
     {
         $levelDiff = $monster->level - $character->level;
-        $baseXp = (45 + ($monster->level * 8)) * 4;
+        $baseXp = 12 * pow($monster->level, 1.15) + 15;
 
         if ($levelDiff > 0) {
             $baseXp *= (1 + ($levelDiff * 0.1));
@@ -851,7 +851,7 @@ class EncounterService
             $baseXp *= max(0.1, 1 + ($levelDiff * 0.05));
         }
         
-        $baseXp = (int)$baseXp;
+        $baseXp = (int) round($baseXp);
 
         $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
         $multiplier = $multiplierService->getExpMultiplier($character);
