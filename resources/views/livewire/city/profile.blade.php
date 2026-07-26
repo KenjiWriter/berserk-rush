@@ -590,13 +590,16 @@
                 </div>
             </div>
 
-            {{-- Plecak vs Magazyn Sub-Tabs --}}
-            <div class="flex border-b border-amber-900/50 mb-2 relative z-10 text-xs sm:text-sm font-bold">
-                <button wire:click="setInventoryTab('backpack')" class="py-1.5 px-4 font-bold rounded-t-lg transition-all medieval-font flex items-center gap-2 {{ $inventoryTab === 'backpack' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/20 shadow' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+            {{-- Plecak vs Magazyn vs Materiały Sub-Tabs --}}
+            <div class="flex border-b border-amber-900/50 mb-2 relative z-10 text-xs sm:text-sm font-bold flex-wrap">
+                <button wire:click="setInventoryTab('backpack')" class="py-1.5 px-3 font-bold rounded-t-lg transition-all medieval-font flex items-center gap-1.5 {{ $inventoryTab === 'backpack' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/20 shadow' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                     <i class="fa-solid fa-bag-shopping"></i> Plecak ({{ $backpackCount }}/{{ $backpackCapacity }}{{ auth()->user()->hasPremium() ? ' VIP' : '' }})
                 </button>
-                <button wire:click="setInventoryTab('stash')" class="py-1.5 px-4 font-bold rounded-t-lg transition-all medieval-font flex items-center gap-2 {{ $inventoryTab === 'stash' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/20 shadow' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                <button wire:click="setInventoryTab('stash')" class="py-1.5 px-3 font-bold rounded-t-lg transition-all medieval-font flex items-center gap-1.5 {{ $inventoryTab === 'stash' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/20 shadow' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                     <i class="fa-solid fa-vault"></i> Magazyn ({{ count($playerStashItems) }}/{{ $stashCapacity }})
+                </button>
+                <button wire:click="setInventoryTab('materials')" class="py-1.5 px-3 font-bold rounded-t-lg transition-all medieval-font flex items-center gap-1.5 {{ $inventoryTab === 'materials' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/20 shadow' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                    <i class="fa-solid fa-cubes"></i> Materiały ({{ $materialStashCount }}/{{ $materialStashCapacity }})
                 </button>
             </div>
 
@@ -618,6 +621,12 @@
                         <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
                             <i class="fa-solid fa-layer-group"></i>
                             Połącz przedmioty
+                        </button>
+                    @elseif($inventoryTab === 'materials')
+                        <span class="text-stone-400 text-xs font-medium">Magazyn Materiałów: <strong class="text-amber-300">{{ $materialStashCount }} / {{ $materialStashCapacity }} slotów</strong></span>
+                        <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz stosy materiałów">
+                            <i class="fa-solid fa-layer-group"></i>
+                            Połącz stosy
                         </button>
                     @else
                         <span class="text-stone-400 text-xs font-medium">Magazyn Gracza: <strong class="text-amber-300">{{ count($playerStashItems) }} / {{ $stashCapacity }} slotów</strong></span>
@@ -838,6 +847,64 @@
                     @php $emptySlots = max(0, $backpackCapacity - count($inventory)) @endphp
                     @for($i = 0; $i < $emptySlots; $i++)
                         <div class="empty-slot aspect-square bg-gray-800 border border-gray-700 rounded"></div>
+                    @endfor
+                @elseif($inventoryTab === 'materials')
+                    {{-- Material Stash View --}}
+                    @foreach($materialStashItems as $item)
+                        <div id="material-item-{{ $item->id }}" x-data="smartTooltip()"
+                             :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                             @mouseenter="openTooltip()"
+                             @mouseleave="closeTooltip()"
+                             @click="toggleTooltip()"
+                             @resize.window.debounce.100ms="updatePosition()"
+                             @tooltip-updated.window="updatePosition()"
+                             class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
+                            
+                            <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
+                                @if($item->template->icon)
+                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
+                                @else
+                                    <span class="block truncate w-14 text-[10px]">{{ $item->template->name }}</span>
+                                @endif
+                                <span class="absolute bottom-0.5 right-0.5 text-amber-200 font-extrabold text-[10px] bg-black/80 border border-amber-600/60 px-1 py-0.2 rounded shadow">x{{ $item->stack_size }}</span>
+                            </div>
+
+                            <!-- Infobox Materiału -->
+                            <div x-ref="tooltipContainer"
+                                 data-tooltip-container="true"
+                                 x-show="showInfo" 
+                                 x-transition.opacity 
+                                 style="display: none;" 
+                                 :style="tooltipStyle"
+                                 :class="posClass"
+                                 class="fixed inset-0 sm:absolute sm:inset-auto z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" 
+                                 @click.stop="closeTooltip()">
+                                <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" @click.stop>
+                                    <button @click="closeTooltip()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                    <x-item-tooltip :item="$item">
+                                        <x-slot:actions>
+                                            <div class="flex flex-col gap-2 w-full">
+                                                @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
+                                                    <button wire:click.stop="openSellModal('{{ $item->id }}'); closeTooltip();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-1.5 rounded font-bold shadow transition-colors text-xs">
+                                                        Wystaw na targowisko
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </x-slot:actions>
+                                    </x-item-tooltip>
+                                    <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
+                                         :class="posClass.includes('sm:top-full') ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <!-- Material Stash Empty Slots Filler -->
+                    @php $emptyMatSlots = max(0, min(25, $materialStashCapacity - count($materialStashItems))) @endphp
+                    @for($i = 0; $i < $emptyMatSlots; $i++)
+                        <div class="empty-slot aspect-square bg-stone-900/40 border border-amber-900/20 rounded flex items-center justify-center text-stone-700 text-xs">
+                            <i class="fa-solid fa-cubes text-[10px] opacity-20"></i>
+                        </div>
                     @endfor
                 @else
                     {{-- Stash View --}}

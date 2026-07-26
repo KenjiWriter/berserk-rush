@@ -55,12 +55,24 @@
                         
                         <!-- Lewa: Ekwipunek gracza -->
                         <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-4 flex flex-col">
-                            <div class="flex items-center justify-between border-b border-gray-700/50 pb-2 mb-3">
-                                <h3 class="text-xl font-bold text-amber-400 medieval-font">Twój Ekwipunek</h3>
-                                <button wire:click="toggleBulkSellMode" class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 {{ $bulkSellMode ? 'bg-amber-600 hover:bg-amber-500 text-white shadow' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40' }}">
-                                    <i class="fa-solid {{ $bulkSellMode ? 'fa-square-check' : 'fa-list-check' }}"></i>
-                                    <span>{{ $bulkSellMode ? 'Wyłącz masową sprzedaż' : 'Masowa sprzedaż' }}</span>
-                                </button>
+                            <div class="flex flex-col gap-2 border-b border-gray-700/50 pb-2 mb-3">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-xl font-bold text-amber-400 medieval-font">
+                                        {{ $playerItemFilter === 'materials' ? 'Magazyn Materiałów (' . $character->getMaterialStashCount() . '/100)' : 'Twój Plecak (' . $character->getBackpackCount() . '/' . $character->getBackpackCapacity() . ')' }}
+                                    </h3>
+                                    <button wire:click="toggleBulkSellMode" class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 {{ $bulkSellMode ? 'bg-amber-600 hover:bg-amber-500 text-white shadow' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40' }}">
+                                        <i class="fa-solid {{ $bulkSellMode ? 'fa-square-check' : 'fa-list-check' }}"></i>
+                                        <span>{{ $bulkSellMode ? 'Wyłącz masową sprzedaż' : 'Masowa sprzedaż' }}</span>
+                                    </button>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button wire:click="setPlayerItemFilter('items')" class="px-3 py-1 text-xs font-bold rounded transition flex items-center gap-1.5 {{ $playerItemFilter === 'items' ? 'bg-amber-500 text-black shadow-md font-extrabold' : 'bg-slate-800 text-amber-300 hover:bg-slate-700 border border-amber-500/30' }}">
+                                        <i class="fa-solid fa-toolbox"></i> Przedmioty
+                                    </button>
+                                    <button wire:click="setPlayerItemFilter('materials')" class="px-3 py-1 text-xs font-bold rounded transition flex items-center gap-1.5 {{ $playerItemFilter === 'materials' ? 'bg-amber-500 text-black shadow-md font-extrabold' : 'bg-slate-800 text-amber-300 hover:bg-slate-700 border border-amber-500/30' }}">
+                                        <i class="fa-solid fa-cubes"></i> Materiały
+                                    </button>
+                                </div>
                             </div>
 
                             @if($bulkSellMode)

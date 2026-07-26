@@ -17,7 +17,7 @@ class Profile extends Component
 {
     public Character $character;
     public string $activeTab = 'attributes';
-    public string $inventoryTab = 'backpack'; // 'backpack' or 'stash'
+    public string $inventoryTab = 'backpack'; // 'backpack', 'stash', or 'materials'
     public string $inventoryFilter = 'all';
 
     // Market Selling
@@ -59,14 +59,15 @@ class Profile extends Component
     public function stackItems()
     {
         $character = $this->character;
-        $inventory = $character->inventoryItems()->get();
+        $allItems = $character->inventoryItems()->get()->merge($character->materialStashItems()->get());
         
-        $groups = $inventory->groupBy('template_id');
+        $groups = $allItems->groupBy(function($item) {
+            return $item->template_id . '_' . $item->location;
+        });
         
-        foreach ($groups as $templateId => $items) {
+        foreach ($groups as $groupKey => $items) {
             $template = $items->first()->template;
-            // Only stack specific types
-            if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+            if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
                 if ($items->count() > 1) {
                     $firstItem = $items->first();
                     $totalStack = $items->sum('stack_size');
@@ -74,7 +75,6 @@ class Profile extends Component
                     $firstItem->stack_size = $totalStack;
                     $firstItem->save();
                     
-                    // delete other items
                     foreach ($items->skip(1) as $item) {
                         $item->delete();
                     }
@@ -82,7 +82,7 @@ class Profile extends Component
             }
         }
         
-        $this->dispatch('notify', type: 'success', message: 'Ekwipunek został uporządkowany.');
+        $this->dispatch('notify', type: 'success', message: 'Ekwipunek i magazyn materiałów zostały uporządkowane.');
         $this->character->refresh();
         $this->character->load('equippedSkills.skill');
     }
@@ -454,10 +454,15 @@ class Profile extends Component
             }
         }
 
+        $materialStashItems = $this->character->materialStashItems->take(100);
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
             'playerStashItems' => $playerStashItems,
+            'materialStashItems' => $materialStashItems,
+            'materialStashCount' => $this->character->getMaterialStashCount(),
+            'materialStashCapacity' => $this->character->getMaterialStashCapacity(),
             'stashCapacity' => $user?->getStashCapacity() ?? 2,
             'backpackCount' => $this->character->getBackpackCount(),
             'backpackCapacity' => $this->character->getBackpackCapacity(),

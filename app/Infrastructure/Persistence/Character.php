@@ -157,7 +157,14 @@ class Character extends Model
 
     public function inventoryItems()
     {
-        return $this->items()->where('location', 'inventory')->with('template');
+        return $this->items()->where('location', 'inventory')->whereHas('template', function($q) {
+            $q->where('type', '!=', 'material');
+        })->with('template');
+    }
+
+    public function materialStashItems()
+    {
+        return $this->items()->where('location', 'material_stash')->with('template');
     }
 
     public function getBackpackCapacity(): int
@@ -167,12 +174,27 @@ class Character extends Model
 
     public function getBackpackCount(): int
     {
-        return $this->items()->where('location', 'inventory')->count();
+        return $this->inventoryItems()->count();
     }
 
     public function isBackpackFull(): bool
     {
         return $this->getBackpackCount() >= $this->getBackpackCapacity();
+    }
+
+    public function getMaterialStashCapacity(): int
+    {
+        return 100;
+    }
+
+    public function getMaterialStashCount(): int
+    {
+        return $this->items()->where('location', 'material_stash')->count();
+    }
+
+    public function isMaterialStashFull(): bool
+    {
+        return $this->getMaterialStashCount() >= $this->getMaterialStashCapacity();
     }
 
     public function combatSkills(): HasMany

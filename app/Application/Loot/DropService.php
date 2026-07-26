@@ -96,10 +96,10 @@ class DropService
                     case 'material':
                         $hasExisting = ItemInstance::where('owner_character_id', $encounter->character_id)
                             ->where('template_id', $templateUlid)
-                            ->where('location', 'inventory')
+                            ->where('location', 'material_stash')
                             ->exists();
 
-                        if ($hasExisting || !$encounter->character->isBackpackFull()) {
+                        if ($hasExisting || !$encounter->character->isMaterialStashFull()) {
                             $materials[] = [
                                 'template_id' => $templateUlid,
                                 'name' => $itemName,
@@ -234,9 +234,11 @@ class DropService
         
         // Stackable items logic
         if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+            $location = ($template->type === 'material') ? 'material_stash' : 'inventory';
+
             $existingItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $templateUlid)
-                ->where('location', 'inventory')
+                ->where('location', $location)
                 ->first();
 
             if ($existingItem) {
@@ -263,9 +265,11 @@ class DropService
                 ];
                 return $items;
             } else {
-                if ($character->isBackpackFull()) {
-                    Log::info("Backpack full for character {$character->id}, cannot drop new item stack.", [
-                        'template_id' => $templateUlid
+                $isFull = ($location === 'material_stash') ? $character->isMaterialStashFull() : $character->isBackpackFull();
+                if ($isFull) {
+                    Log::info("Storage full for character {$character->id}, cannot drop new item stack.", [
+                        'template_id' => $templateUlid,
+                        'location' => $location
                     ]);
                     return [];
                 }
@@ -274,7 +278,7 @@ class DropService
                     'id' => Str::ulid(),
                     'template_id' => $templateUlid,
                     'owner_character_id' => $character->id,
-                    'location' => 'inventory',
+                    'location' => $location,
                     'stack_size' => $quantity,
                     'rarity' => 'common',
                     'roll_stats' => [],

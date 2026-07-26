@@ -47,10 +47,13 @@ class ShopService
         $character->save();
 
         // Stack logic
+        // Location & Stack logic
+        $targetLocation = ($template->type === 'material') ? 'material_stash' : 'inventory';
+
         if (in_array($template->type, ['material', 'consumable', 'currency'])) {
             $existingItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $template->id)
-                ->where('location', 'inventory')
+                ->where('location', $targetLocation)
                 ->first();
 
             if ($existingItem) {
@@ -69,6 +72,16 @@ class ShopService
 
                 return ['success' => true, 'message' => "Kupiono {$quantity}x {$template->name}."];
             }
+
+            // If not existing, check capacity
+            $isFull = ($targetLocation === 'material_stash') ? $character->isMaterialStashFull() : $character->isBackpackFull();
+            if ($isFull) {
+                return ['success' => false, 'message' => ($targetLocation === 'material_stash') ? 'Magazyn materiałów jest pełny (100/100).' : 'Plecak jest pełny.'];
+            }
+        } else {
+            if ($character->isBackpackFull()) {
+                return ['success' => false, 'message' => 'Plecak jest pełny.'];
+            }
         }
 
         for ($i = 0; $i < $quantity; $i++) {
@@ -84,7 +97,7 @@ class ShopService
                 'id' => Str::ulid(),
                 'template_id' => $template->id,
                 'owner_character_id' => $character->id,
-                'location' => 'inventory',
+                'location' => $targetLocation,
                 'stack_size' => 1,
                 'rarity' => 'common',
                 'upgrade_level' => 0,
@@ -115,7 +128,7 @@ class ShopService
             return ['success' => false, 'message' => 'Musisz zdjąć ten przedmiot przed sprzedażą.'];
         }
 
-        if ($item->location !== 'inventory') {
+        if (!in_array($item->location, ['inventory', 'material_stash'])) {
             return ['success' => false, 'message' => 'Nie możesz sprzedać tego przedmiotu.'];
         }
 
@@ -167,7 +180,7 @@ class ShopService
         return DB::transaction(function () use ($character, $itemInstanceIds) {
             $items = ItemInstance::whereIn('id', $itemInstanceIds)
                 ->where('owner_character_id', $character->id)
-                ->where('location', 'inventory')
+                ->whereIn('location', ['inventory', 'material_stash'])
                 ->with('template')
                 ->get();
 

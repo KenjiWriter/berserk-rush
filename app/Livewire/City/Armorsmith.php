@@ -18,6 +18,13 @@ class Armorsmith extends Component
 
     public array $selectedItemIds = [];
     public bool $bulkSellMode = false;
+    public string $playerItemFilter = 'items'; // 'items', 'materials'
+
+    public function setPlayerItemFilter(string $filter)
+    {
+        $this->playerItemFilter = $filter;
+        $this->selectedItemIds = [];
+    }
 
     public function toggleBulkSellMode()
     {
@@ -38,7 +45,11 @@ class Armorsmith extends Component
 
     public function selectByRarity(string $rarity)
     {
-        $matchingItemIds = $this->character->inventoryItems()
+        $query = ($this->playerItemFilter === 'materials') 
+            ? $this->character->materialStashItems() 
+            : $this->character->inventoryItems();
+
+        $matchingItemIds = $query
             ->where('rarity', $rarity)
             ->pluck('id')
             ->toArray();
@@ -62,7 +73,11 @@ class Armorsmith extends Component
 
     public function selectAllInventory()
     {
-        $allIds = $this->character->inventoryItems()->pluck('id')->toArray();
+        $query = ($this->playerItemFilter === 'materials') 
+            ? $this->character->materialStashItems() 
+            : $this->character->inventoryItems();
+
+        $allIds = $query->pluck('id')->toArray();
         if (count($this->selectedItemIds) === count($allIds)) {
             $this->selectedItemIds = [];
         } else {
@@ -210,8 +225,10 @@ class Armorsmith extends Component
         }
 
 
-        // Sell all types of items (inventory + equipped)
-        $inventoryItems = $this->character->inventoryItems()->take(64)->get();
+        // Sell items based on playerItemFilter
+        $inventoryItems = ($this->playerItemFilter === 'materials') 
+            ? $this->character->materialStashItems()->take(100)->get()
+            : $this->character->inventoryItems()->take(64)->get();
 
         $sellPrices = [];
         foreach($inventoryItems as $item) {
@@ -232,9 +249,7 @@ class Armorsmith extends Component
             $upgradeCosts[$item->id] = $upgradeService->getUpgradeCost($item);
         }
         
-        $inventoryMaterials = $this->character->inventoryItems()->whereHas('template', function($q) {
-            $q->where('type', 'material');
-        })->get();
+        $inventoryMaterials = $this->character->materialStashItems()->get();
 
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
             $q->where('type', 'armor');

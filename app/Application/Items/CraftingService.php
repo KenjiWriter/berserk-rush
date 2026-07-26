@@ -19,13 +19,13 @@ class CraftingService
                 return ['success' => false, 'message' => 'Nie masz wystarczająco złota, by to wytworzyć.'];
             }
 
-            // Check ingredients
-            $inventory = $character->inventoryItems()->get();
+            // Check ingredients (materials can be in material_stash or inventory)
+            $availableMaterials = $character->materialStashItems()->get()->merge($character->inventoryItems()->get());
             foreach ($recipe->ingredients as $ingredient) {
                 $templateId = $ingredient['template_id'];
                 $requiredQuantity = $ingredient['quantity'];
 
-                $ownedQuantity = $inventory->where('template_id', $templateId)->sum('stack_size');
+                $ownedQuantity = $availableMaterials->where('template_id', $templateId)->sum('stack_size');
                 if ($ownedQuantity < $requiredQuantity) {
                     return ['success' => false, 'message' => 'Brakuje materiałów do wytworzenia tego przedmiotu.'];
                 }
@@ -41,7 +41,7 @@ class CraftingService
                 $templateId = $ingredient['template_id'];
                 $requiredQuantity = $ingredient['quantity'];
                 
-                $items = $inventory->where('template_id', $templateId)->sortBy('stack_size'); // Consume smaller stacks first
+                $items = $availableMaterials->where('template_id', $templateId)->sortBy('stack_size'); // Consume smaller stacks first
                 $remainingToTake = $requiredQuantity;
 
                 foreach ($items as $item) {

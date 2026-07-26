@@ -47,22 +47,26 @@ class GladiatorShop extends Component
             return;
         }
 
-        if ($this->character->isBackpackFull()) {
-            session()->flash('error', 'Twój plecak jest pełny!');
-            $this->dispatch('notify', type: 'error', message: 'Twój plecak jest pełny!');
+        $template = $item->template;
+        $targetLocation = ($template && $template->type === 'material') ? 'material_stash' : 'inventory';
+
+        $isFull = ($targetLocation === 'material_stash') ? $this->character->isMaterialStashFull() : $this->character->isBackpackFull();
+        if ($isFull) {
+            $msg = ($targetLocation === 'material_stash') ? 'Magazyn materiałów jest pełny!' : 'Twój plecak jest pełny!';
+            session()->flash('error', $msg);
+            $this->dispatch('notify', type: 'error', message: $msg);
             return;
         }
 
-        DB::transaction(function () use ($item) {
+        DB::transaction(function () use ($item, $template, $targetLocation) {
             // Deduct tokens
             $this->character->decrement('arena_tokens', $item->price);
 
             // Give item
-            $template = $item->template;
             if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
                 $existingItem = ItemInstance::where('owner_character_id', $this->character->id)
                     ->where('template_id', $template->id)
-                    ->where('location', 'inventory')
+                    ->where('location', $targetLocation)
                     ->first();
 
                 if ($existingItem) {
@@ -71,7 +75,7 @@ class GladiatorShop extends Component
                     ItemInstance::create([
                         'template_id' => $item->item_template_id,
                         'owner_character_id' => $this->character->id,
-                        'location' => 'inventory',
+                        'location' => $targetLocation,
                         'stack_size' => 1,
                         'rarity' => 'common',
                         'upgrade_level' => 0,
@@ -81,7 +85,7 @@ class GladiatorShop extends Component
                 ItemInstance::create([
                     'template_id' => $item->item_template_id,
                     'owner_character_id' => $this->character->id,
-                    'location' => 'inventory',
+                    'location' => $targetLocation,
                     'stack_size' => 1,
                     'rarity' => 'common',
                     'upgrade_level' => 0,

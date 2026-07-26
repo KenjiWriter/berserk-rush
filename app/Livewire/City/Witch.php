@@ -181,7 +181,7 @@ class Witch extends Component
             $q->where('type', 'consumable');
         })->get();
 
-        $inventory = $this->character->inventoryItems()->get();
+        $inventory = $this->character->materialStashItems()->get()->merge($this->character->inventoryItems()->get());
         
         $preparedRecipes = [];
         foreach ($recipes as $recipe) {
