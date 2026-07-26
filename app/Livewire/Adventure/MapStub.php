@@ -39,6 +39,10 @@ class MapStub extends Component
     public int $currentTurnIndex = 0;
     public bool $isCalculating = false;
 
+    // Multi-tab anti-cheat session token
+    public string $tabSessionToken = '';
+    public bool $isInactiveTab = false;
+
     #[Computed]
     public function equippedSkills()
     {
@@ -69,6 +73,26 @@ class MapStub extends Component
         $this->character->refresh();
     }
 
+    public function isActiveTab(): bool
+    {
+        if (empty($this->tabSessionToken)) {
+            return true;
+        }
+        $activeToken = \Illuminate\Support\Facades\Cache::get("adventure_active_tab:{$this->character->id}");
+        return $activeToken === null || $activeToken === $this->tabSessionToken;
+    }
+
+    public function claimActiveTab(): void
+    {
+        if (empty($this->tabSessionToken)) {
+            $this->tabSessionToken = \Illuminate\Support\Str::uuid()->toString();
+        }
+        \Illuminate\Support\Facades\Cache::put("adventure_active_tab:{$this->character->id}", $this->tabSessionToken, now()->addMinutes(10));
+        $this->isInactiveTab = false;
+        $this->resetErrorBag('battle');
+        $this->autoChain = session('combat_auto_chain', true);
+    }
+
     public function mount(Character $character, Map $map): void
     {
         $this->sessionStartTime = time();
@@ -92,6 +116,7 @@ class MapStub extends Component
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
         $this->initPlayerData($character);
+        $this->claimActiveTab();
 
         if (Auth::user()->game_stage <= 12) {
             $this->autoChain = false;
@@ -130,6 +155,17 @@ class MapStub extends Component
 
     public function startBattle(?int $monsterId = null): void
     {
+        if (!$this->isActiveTab()) {
+            $this->isInactiveTab = true;
+            $this->autoChain = false;
+            $this->addError('battle', 'Przygoda została aktywowana w innej karcie przeglądarki.');
+            $this->isCalculating = false;
+            $this->isPlaying = false;
+            return;
+        }
+
+        \Illuminate\Support\Facades\Cache::put("adventure_active_tab:{$this->character->id}", $this->tabSessionToken, now()->addMinutes(10));
+
         $this->resetBattleState();
 
         // Start new encounter

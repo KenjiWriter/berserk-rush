@@ -49,14 +49,25 @@
         </div>
     @endif
 
-    {{-- Battle error message --}}
-    @error('battle')
-        <div class="absolute top-16 left-1/2 transform -translate-x-1/2 z-50">
-            <div class="bg-red-100 border-2 border-red-600 rounded-lg px-4 py-2 shadow-lg">
-                <p class="text-red-800 font-semibold text-sm">{{ $message }}</p>
+    {{-- Battle error message / Inactive Tab banner --}}
+    @if ($isInactiveTab || $errors->has('battle'))
+        <div class="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4">
+            <div class="bg-slate-900/95 border-2 border-amber-500/80 rounded-xl p-4 shadow-2xl backdrop-blur-md text-center">
+                <div class="flex items-center justify-center space-x-2 text-amber-400 font-bold mb-1 medieval-font">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <span>Uwaga</span>
+                </div>
+                <p class="text-amber-100 text-sm mb-3">
+                    {{ $errors->first('battle') ?? 'Przygoda została aktywowana w innej karcie przeglądarki.' }}
+                </p>
+                @if ($isInactiveTab)
+                    <button wire:click="claimActiveTab" class="bg-amber-600 hover:bg-amber-500 text-amber-950 font-bold px-4 py-1.5 rounded-lg text-xs medieval-font transition-all shadow-md">
+                        <i class="fa-solid fa-play mr-1"></i> Przejmij przygodę w tej karcie
+                    </button>
+                @endif
             </div>
         </div>
-    @enderror
+    @endif
 
     <div class="relative z-10 container mx-auto px-4 py-2 lg:py-3 min-h-screen">
         @php
@@ -1149,7 +1160,7 @@
                     if (isPaused) return;
                     const component = getComponent();
                     if (component) component.call('startBattle');
-                }, 600); // 600ms fast chain between battles!
+                }, 700); // 700ms fast chain between battles!
             });
 
             Livewire.on('encounter-finished', () => {

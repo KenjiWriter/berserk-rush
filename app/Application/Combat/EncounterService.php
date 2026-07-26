@@ -65,6 +65,15 @@ class EncounterService
                     return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki!');
                 }
 
+                // Anti-cheat: Check if an encounter was started very recently (< 1.3s ago) for this character
+                $recentEncounter = Encounter::where('character_id', $char->id)
+                    ->where('started_at', '>=', now()->subMilliseconds(1300))
+                    ->exists();
+
+                if ($recentEncounter) {
+                    return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater prowadzi już inną walkę. Odczekaj chwilę.');
+                }
+
                 // Check for active/recent PvP encounter (< 5s ago or pending/calculating)
                 $recentPvP = PvpEncounter::where('attacker_character_id', $char->id)
                     ->where(function ($query) {

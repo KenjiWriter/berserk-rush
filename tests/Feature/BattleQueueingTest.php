@@ -100,6 +100,9 @@ class BattleQueueingTest extends TestCase
         // Rewards are not applied yet (rewards_applied == false)
         $this->assertFalse($encounter->fresh()->rewards_applied);
 
+        // Sleep 1.5s past 1300ms rate-limit threshold to start next encounter
+        usleep(1500000);
+
         // Starting another encounter after simulation automatically auto-claims rewards and succeeds!
         $res3 = $service->start($character, $map);
         $this->assertTrue($res3->isOk());
@@ -256,5 +259,52 @@ class BattleQueueingTest extends TestCase
         $this->assertDatabaseHas('world_boss_damage_logs', [
             'character_id' => $character->id,
         ]);
+    }
+
+    public function test_map_stub_tab_session_lock_deactivates_older_tabs(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'TabHero',
+            'level' => 1,
+            'gold' => 100,
+            'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
+        ]);
+
+        $map = Map::create([
+            'name' => 'Tab Map',
+            'level_min' => 1,
+            'level_max' => 5,
+        ]);
+
+        Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Slime',
+            'level' => 1,
+            'stats' => ['hp' => 20, 'atk' => 5, 'def' => 1, 'agi' => 1],
+        ]);
+
+        // Tab 1 mounts
+        $tab1 = Livewire::actingAs($user)->test(MapStub::class, ['character' => $character, 'map' => $map]);
+        $this->assertTrue($tab1->get('isInactiveTab') === false);
+
+        // Tab 2 mounts (simulating opening second browser tab for same character)
+        $tab2 = Livewire::actingAs($user)->test(MapStub::class, ['character' => $character, 'map' => $map]);
+        $this->assertTrue($tab2->get('isInactiveTab') === false);
+
+        // Tab 1 now tries to start battle, but should be rejected because Tab 2 took active status
+        $tab1->call('startBattle')
+            ->assertSet('isInactiveTab', true)
+            ->assertSet('autoChain', false)
+            ->assertHasErrors(['battle']);
+
+        // Tab 1 claims active status back
+        $tab1->call('claimActiveTab')
+            ->assertSet('isInactiveTab', false);
+
+        // Now Tab 2 is inactive when starting battle
+        $tab2->call('startBattle')
+            ->assertSet('isInactiveTab', true);
     }
 }
