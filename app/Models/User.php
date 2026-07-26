@@ -25,6 +25,7 @@ class User extends Authenticatable
         'password',
         'permission_level',
         'gems',
+        'stash_slots',
         'game_stage',
         'premium_until',
         'unlocked_avatars',
@@ -105,6 +106,17 @@ class User extends Authenticatable
     public function isMuted(): bool
     {
         return $this->muted_until && $this->muted_until->isFuture();
+    }
+
+    public function playerStashItems(): HasMany
+    {
+        return $this->hasMany(\App\Infrastructure\Persistence\ItemInstance::class, 'user_id')
+            ->where('location', 'player_stash');
+    }
+
+    public function getStashCapacity(): int
+    {
+        return $this->stash_slots ?? 2;
     }
 
     public function getMuteRemainingSeconds(): int

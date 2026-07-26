@@ -51,6 +51,17 @@ class Guild extends Model
         return $this->hasMany(Character::class, 'guild_id');
     }
 
+    public function guildStashItems(): HasMany
+    {
+        return $this->hasMany(\App\Infrastructure\Persistence\ItemInstance::class, 'guild_id')
+            ->where('location', 'guild_stash');
+    }
+
+    public function getStashCapacity(): int
+    {
+        return 20;
+    }
+
     public function getMaxMembers(): int
     {
         return 15 + (int) floor($this->level * 0.35); // level 0 = 15, level 100 = 50

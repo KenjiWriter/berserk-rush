@@ -106,6 +106,52 @@ class GuildComponent extends Component
             ->get();
     }
 
+    public function getGuildStashItemsProperty()
+    {
+        if ($this->viewMode !== 'panel' || !$this->character->guild_id) {
+            return collect();
+        }
+
+        return \App\Infrastructure\Persistence\ItemInstance::with('template')
+            ->where('guild_id', $this->character->guild_id)
+            ->where('location', 'guild_stash')
+            ->get();
+    }
+
+    public function depositToGuildStash(string $itemUlid, \App\Application\Storage\GuildStashService $service): void
+    {
+        $item = \App\Infrastructure\Persistence\ItemInstance::find($itemUlid);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
+            return;
+        }
+
+        $result = $service->deposit($this->character, $item);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przedmiot zdeponowany w magazynie gildii!');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function withdrawFromGuildStash(string $itemUlid, \App\Application\Storage\GuildStashService $service): void
+    {
+        $item = \App\Infrastructure\Persistence\ItemInstance::find($itemUlid);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
+            return;
+        }
+
+        $result = $service->withdraw($this->character, $item);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przedmiot wyciągnięty z magazynu gildii!');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
     public function createGuild(): void
     {
         if ($this->character->guild_id) {

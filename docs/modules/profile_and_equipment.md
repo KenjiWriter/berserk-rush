@@ -23,7 +23,18 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
   - **Przeciągnij i Upuść (Drag & Drop):** Gracz może przeciągnąć przedmiot z plecaka bezpośrednio na odpowiadający mu slot na postaci (np. broń na slot `main_hand`, pancerz na `chest`). Poprawne sloty są podświetlane na zielono z powiększeniem, a sloty niedozwolone (np. zbyt niski poziom) na czerwono. Przeciągnięcie założonego przedmiotu lub peta z powrotem na siatkę plecaka automatycznie go zdejmuje.
   - **Podwójne Kliknięcie (Double-Click):** Dwukrotne kliknięcie myszką na przedmiot w plecaku zakłada go automatycznie na odpowiedni slot (lub używa w przypadku mikstur / umieszcza jajko w inkubatorze). Dwukrotne kliknięcie na założony przedmiot zdejmuje go do plecaka.
 
-### 3. Rozwój Atrybutów
+### 3. Limity Plecaka oraz Magazyn Gracza (Player Stash)
+- **Limity Pojemności Plecaka:**
+  - Zwykły gracz: **32 sloty** w plecaku.
+  - Gracz ze statusem VIP (`hasPremium()`): **64 sloty** w plecaku.
+  - Przedmioty zdejmujące, odbierane z poczty, kupowane lub wyciągane z magazynu wymagają wolnego miejsca w plecaku.
+- **Magazyn Gracza (Konto):**
+  - Magazyn kontowy przypisany do konta użytkownika (`User`), wspólny dla wszystkich posiadanych postaci.
+  - Domyślnie posiada **2 sloty**.
+  - Możliwość powiększenia magazynu w profilu: koszt **50 gemów** za każdy dodatkowy slot (`stash_slots`).
+  - Akcje `PlayerStashService`: `deposit()` (przeniesienie przedmiotu z plecaka do magazynu gracza) oraz `withdraw()` (wyciągnięcie przedmiotu z magazynu do plecaka).
+
+### 4. Rozwój Atrybutów
 Postać zdobywa punkty postaci (`character_points`) za każdy zdobyty poziom (np. +3 punkty za każdy awans).
 Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swoich głównych statystyk (STR, INT, VIT, AGI):
 - Mechanika pozwala na szybkie dodawanie punktów pojedynczo (`+1`) lub po pięć sztuk naraz (`+5`).

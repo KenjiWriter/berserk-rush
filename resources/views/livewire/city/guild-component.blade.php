@@ -378,6 +378,10 @@
                                     class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'members' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
                                 <i class="fa-solid fa-users text-amber-400"></i> Członkowie Gildii
                             </button>
+                            <button wire:click="setPanelTab('stash')" @click="$dispatch('play-audio', { type: 'tab' })"
+                                    class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'stash' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
+                                <i class="fa-solid fa-vault text-amber-400"></i> Magazyn Gildii
+                            </button>
                             <button wire:click="setPanelTab('wars')" @click="$dispatch('play-audio', { type: 'tab' })"
                                     class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'wars' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
                                 <i class="fa-solid fa-khanda text-amber-400"></i> Wojny Gildii
@@ -554,6 +558,70 @@
                                 @empty
                                     <div class="text-center py-8 text-stone-500 italic text-xs">Twoja gildia nie brała jeszcze udziału w wojnach gildii.</div>
                                 @endforelse
+                            </div>
+                        @elseif($panelTab === 'stash')
+                            <div>
+                                <div class="flex items-center justify-between border-b border-amber-800/40 pb-2 mb-4">
+                                    <h4 class="text-base font-bold text-amber-200 medieval-font flex items-center gap-2">
+                                        <i class="fa-solid fa-vault text-amber-400"></i> Zawartość Magazynu Gildii
+                                    </h4>
+                                    <span class="text-xs text-amber-400/80 font-bold bg-amber-950/80 border border-amber-800/60 px-3 py-1 rounded-xl">
+                                        Pojemność: {{ count($this->guildStashItems) }} / {{ $guild->getStashCapacity() }}
+                                    </span>
+                                </div>
+
+                                @if($this->guildStashItems->isEmpty())
+                                    <div class="text-center py-8 text-stone-400 text-xs italic bg-stone-950/60 rounded-xl border border-stone-800 mb-6">
+                                        Magazyn gildii jest pusty. Zdeponuj przedmioty ze swojego plecaka poniżej!
+                                    </div>
+                                @else
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-stone-950/80 p-3 rounded-xl border border-amber-900/40 mb-6">
+                                        @foreach($this->guildStashItems as $item)
+                                            <div class="bg-stone-900 border border-amber-600/60 rounded-xl p-2.5 flex flex-col items-center justify-between relative group hover:border-amber-400 transition-all shadow">
+                                                @if($item->template->icon)
+                                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-10 h-10 object-contain drop-shadow" alt="{{ $item->template->name }}">
+                                                @endif
+                                                <span class="text-xs font-semibold text-amber-200 truncate w-full text-center mt-1">{{ $item->template->name }}</span>
+                                                @if($item->upgrade_level > 0)
+                                                    <span class="text-[10px] text-yellow-400 font-bold">+{{ $item->upgrade_level }}</span>
+                                                @endif
+
+                                                <button wire:click="withdrawFromGuildStash('{{ $item->id }}')" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-1.5 rounded-lg mt-2 transition-colors shadow flex items-center justify-center gap-1.5">
+                                                    <i class="fa-solid fa-hand-holding"></i> Wyciągnij
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+
+                                {{-- Deposit Item Section --}}
+                                <div class="bg-stone-950/90 border border-amber-800/50 rounded-xl p-4">
+                                    <h5 class="text-xs font-bold text-amber-300 uppercase medieval-font mb-3 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-box-open text-amber-400"></i> Zdeponuj przedmiot z plecaka
+                                    </h5>
+                                    @php $backpackItems = $character->inventoryItems; @endphp
+                                    @if($backpackItems->isEmpty())
+                                        <div class="text-xs text-stone-500 italic">Twój plecak jest pusty.</div>
+                                    @else
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                                            @foreach($backpackItems as $bItem)
+                                                @if(!($bItem->bound_to_character ?? false))
+                                                    <div class="flex items-center justify-between bg-stone-900/80 p-2 rounded-lg border border-stone-800 hover:border-amber-700/60 transition">
+                                                        <div class="flex items-center gap-2 truncate">
+                                                            @if($bItem->template->icon)
+                                                                <img src="{{ route('assets.items', ['filename' => $bItem->template->icon]) }}" class="w-6 h-6 object-contain">
+                                                            @endif
+                                                            <span class="text-xs text-amber-200 truncate">{{ $bItem->template->name }}</span>
+                                                        </div>
+                                                        <button wire:click="depositToGuildStash('{{ $bItem->id }}')" class="bg-amber-600 hover:bg-amber-500 text-stone-950 font-bold text-xs px-2.5 py-1 rounded-lg transition shrink-0 ml-1">
+                                                            Zdeponuj
+                                                        </button>
+                                                    </div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         @endif
                     </div>

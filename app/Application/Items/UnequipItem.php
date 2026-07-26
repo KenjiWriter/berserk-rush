@@ -20,10 +20,14 @@ class UnequipItem
             return Result::error('NOT_EQUIPPED', 'Przedmiot nie jest założony.');
         }
 
+        if ($character->isBackpackFull()) {
+            $count = $character->getBackpackCount();
+            $max = $character->getBackpackCapacity();
+            return Result::error('INVENTORY_FULL', "Twój plecak jest pełny ({$count}/{$max}). Zwolnij miejsce przed zdjęciem przedmiotu.");
+        }
+
         try {
             return DB::transaction(function () use ($character, $item) {
-                // Future expansion: check if inventory is full (e.g. limit of 25 items)
-                // For now, infinite inventory
 
                 $item->update([
                     'location' => 'inventory',

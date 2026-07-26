@@ -160,6 +160,21 @@ class Character extends Model
         return $this->items()->where('location', 'inventory')->with('template');
     }
 
+    public function getBackpackCapacity(): int
+    {
+        return $this->user?->hasPremium() ? 64 : 32;
+    }
+
+    public function getBackpackCount(): int
+    {
+        return $this->items()->where('location', 'inventory')->count();
+    }
+
+    public function isBackpackFull(): bool
+    {
+        return $this->getBackpackCount() >= $this->getBackpackCapacity();
+    }
+
     public function combatSkills(): HasMany
     {
         return $this->hasMany(CharacterCombatSkill::class, 'character_id');

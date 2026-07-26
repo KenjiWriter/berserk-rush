@@ -17,7 +17,7 @@ System gildii pozwala graczom łączyć się w grupy, współpracować, zbierać
   - `member` (Członek) - standardowa rola, możliwość korzystania z chatu gildii i wpłacania dotacji.
   - `novice` (Nowicjusz) - nowo dołączeni członkowie.
 
-### Skarbiec i Dotacje
+### Skarbiec i Magazyn Gildyjny
 Gildie posiadają własny skarbiec na:
 - **EXP Gildii** (determinuje poziom gildii)
 - **Złoto** (limit zależny od poziomu skarbca)
@@ -28,7 +28,12 @@ Gracze mogą przekazywać swoje zasoby na rzecz gildii za pomocą specjalnych ko
 - `/donate gold <ilość>` - wpłaca złoto do skarbca
 - `/donate gems <ilość>` - wpłaca klejnoty do skarbca
 
-Wszystkie operacje skarbca są logowane w historii gildii (`GuildLogs`). Złoto i klejnoty mają określony limit (cap), po przekroczeniu którego dotacje są blokowane, dopóki skarbiec nie zostanie rozbudowany.
+Ponadto gildia posiada **Magazyn Gildyjny (Guild Stash)** z pojemnością 20 slotów:
+- Członkowie gildii mogą deponować nieprzypisane przedmioty z plecaka do magazynu gildii za pomocą serwisu `GuildStashService::deposit()`.
+- Każdy członek gildii może wyciągać przedmioty z magazynu gildii do swojego plecaka (`GuildStashService::withdraw()`), o ile posiada wolne miejsce.
+- Wszystkie operacje deponowania i wyciągania przedmiotów są automatycznie zapisywane w dzienniku zdarzeń gildii (`GuildLog`).
+
+Złoto i klejnoty mają określony limit (cap), po przekroczeniu którego dotacje są blokowane, dopóki skarbiec nie zostanie rozbudowany.
 
 ### Czat Gildii
 - Każda gildia posiada **prywatny kanał komunikacji** (Real-time za pomocą Laravel Reverb).

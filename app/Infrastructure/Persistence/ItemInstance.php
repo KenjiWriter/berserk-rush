@@ -14,6 +14,8 @@ class ItemInstance extends Model
     protected $fillable = [
         'template_id',
         'owner_character_id',
+        'user_id',
+        'guild_id',
         'location',
         'stack_size',
         'rarity',
@@ -59,6 +61,16 @@ class ItemInstance extends Model
         return $this->belongsTo(Character::class, 'owner_character_id');
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'user_id');
+    }
+
+    public function guild(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Guild::class, 'guild_id');
+    }
+
     public function ledgerEntries(): HasMany
     {
         return $this->hasMany(ItemLedger::class);
@@ -72,6 +84,16 @@ class ItemInstance extends Model
     public function scopeEquipped($query)
     {
         return $query->where('location', 'equipped');
+    }
+
+    public function scopeInPlayerStash($query, $userId)
+    {
+        return $query->where('location', 'player_stash')->where('user_id', $userId);
+    }
+
+    public function scopeInGuildStash($query, string $guildId)
+    {
+        return $query->where('location', 'guild_stash')->where('guild_id', $guildId);
     }
 
     public function scopeForCharacter($query, string $characterId)
@@ -96,7 +118,7 @@ class ItemInstance extends Model
 
     public function isBound(): bool
     {
-        return $this->bound_to_character;
+        return (bool) ($this->bound_to_character ?? false);
     }
 
     public function canBeUpgraded(): bool

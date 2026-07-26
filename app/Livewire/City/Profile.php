@@ -17,6 +17,7 @@ class Profile extends Component
 {
     public Character $character;
     public string $activeTab = 'attributes';
+    public string $inventoryTab = 'backpack'; // 'backpack' or 'stash'
     public string $inventoryFilter = 'all';
 
     // Market Selling
@@ -321,6 +322,59 @@ class Profile extends Component
         $this->dispatch('notify', type: 'success', message: 'Avatar zmieniony pomyślnie!');
     }
 
+    public function setInventoryTab(string $tab): void
+    {
+        $this->inventoryTab = $tab;
+    }
+
+    public function moveToStash(string $itemUlid, \App\Application\Storage\PlayerStashService $stashService): void
+    {
+        $item = ItemInstance::find($itemUlid);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
+            return;
+        }
+
+        $result = $stashService->deposit($this->character, $item);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przedmiot przeniesiony do magazynu gracza!');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function withdrawFromStash(string $itemUlid, \App\Application\Storage\PlayerStashService $stashService): void
+    {
+        $item = ItemInstance::find($itemUlid);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
+            return;
+        }
+
+        $result = $stashService->withdraw($this->character, $item);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przedmiot przeniesiony do plecaka!');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function expandStash(\App\Application\Storage\PlayerStashService $stashService): void
+    {
+        $user = auth()->user();
+        if (!$user) return;
+
+        $result = $stashService->expandStash($user);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: "Magazyn powiększony! Nowa pojemność: {$user->stash_slots} sloty.");
+            $this->dispatch('play-audio', type: 'stat');
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
     public function render()
     {
         $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template', 'equippedSkills.skill']);
@@ -365,6 +419,14 @@ class Profile extends Component
             });
         }
 
+        $user = auth()->user();
+        $playerStashItems = $user ? $user->playerStashItems()->with('template')->get() : collect();
+        if ($this->inventoryFilter !== 'all' && $playerStashItems->isNotEmpty()) {
+            $playerStashItems = $playerStashItems->filter(function ($item) {
+                return $item->template->type === $this->inventoryFilter;
+            });
+        }
+
         $pets = Pet::where('character_id', $this->character->id)
             ->orderByDesc('is_equipped')
             ->orderByDesc('rarity')
@@ -391,6 +453,10 @@ class Profile extends Component
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
+            'playerStashItems' => $playerStashItems,
+            'stashCapacity' => $user?->getStashCapacity() ?? 2,
+            'backpackCount' => $this->character->getBackpackCount(),
+            'backpackCapacity' => $this->character->getBackpackCapacity(),
             'totalAttributes' => $totalAttributes,
             'derivedStats' => $derivedStats,
             'pets' => $pets,
