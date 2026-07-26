@@ -166,7 +166,7 @@
                         <h2 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font flex items-center justify-center md:justify-start gap-2">
                             <i class="fa-solid fa-crown text-yellow-400"></i> Ranking Chwały
                         </h2>
-                        <p class="text-amber-300/80 text-xs md:text-sm mt-1">Zestawienie najpotężniejszych gladiatów królestwa uszeregowanych według oceny ELO.</p>
+                        <p class="text-amber-300/80 text-xs md:text-sm mt-1">Zestawienie najpotężniejszych gladiatorów królestwa uszeregowanych według oceny ELO.</p>
                     </div>
 
                     @if($ranking && $ranking->count() > 0)
@@ -195,7 +195,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap">
                                                 @if($rankNumber === 1)
                                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-yellow-500/20 text-yellow-300 border border-yellow-500/50 shadow-[0_0_10px_rgba(234,179,8,0.3)]">
-                                                        <i class="fa-solid fa-crown text-yellow-400 mr-1.5 text-sm"></i> #1 Top Gladiatot
+                                                        <i class="fa-solid fa-crown text-yellow-400 mr-1.5 text-sm"></i> #1 Top Gladiator
                                                     </span>
                                                 @elseif($rankNumber === 2)
                                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-300/20 text-slate-200 border border-slate-400/50">

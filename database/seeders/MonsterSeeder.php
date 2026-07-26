@@ -542,7 +542,9 @@ class MonsterSeeder extends Seeder
             ]
         ];
 
+        $mapCount = 0;
         foreach ($monstersByMap as $mapName => $monsters) {
+            $mapCount++;
             $map = Map::where('name', $mapName)->first();
 
             if (!$map) {
@@ -551,6 +553,17 @@ class MonsterSeeder extends Seeder
             }
 
             foreach ($monsters as $monsterData) {
+                $stats = $monsterData['stats'];
+                if ($mapCount >= 3 || ($map->tier && $map->tier >= 3)) {
+                    foreach ($stats as $key => $val) {
+                        if (in_array($key, ['hp', 'atk', 'def', 'agi', 'int'])) {
+                            $stats[$key] = (int)round($val * 1.35);
+                        } elseif (in_array($key, ['crit', 'dodge'])) {
+                            $stats[$key] = round($val * 1.35, 2);
+                        }
+                    }
+                }
+
                 Monster::updateOrCreate(
                     [
                         'map_id' => $map->id,
@@ -560,7 +573,7 @@ class MonsterSeeder extends Seeder
                         'type' => $monsterData['type'],
                         'level' => $monsterData['level'],
                         'rank' => $monsterData['rank'],
-                        'stats' => $monsterData['stats'],
+                        'stats' => $stats,
                         'abilities' => $monsterData['abilities'],
                         'avatar' => Str::slug($monsterData['name']) . '.png',
                     ]
