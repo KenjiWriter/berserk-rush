@@ -79,9 +79,11 @@ class MapStub extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
-        // Level range warning
+        // Hard block level requirement
         if (!$map->isAccessibleBy($character)) {
-            session()->flash('warning', "Ostrzeżenie: Twój poziom ({$character->level}) może nie być odpowiedni dla tej mapy (poziom {$map->level_range}).");
+            session()->flash('error', "Twój poziom ({$character->level}) jest zbyt niski, aby wejść na tę mapę (wymagany poziom: {$map->level_min}).");
+            $this->redirect(route('city.adventure', $character), navigate: true);
+            return;
         }
 
         $this->character = $character;

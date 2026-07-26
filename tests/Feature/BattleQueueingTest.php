@@ -8,6 +8,8 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Monster;
 use App\Application\PvP\PvPEncounterService;
 use App\Application\Combat\EncounterService;
+use App\Livewire\Adventure\MapStub;
+use Livewire\Livewire;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -145,5 +147,34 @@ class BattleQueueingTest extends TestCase
 
         $this->assertEquals(1, $okCount);
         $this->assertEquals(9, $errorCount);
+    }
+
+    public function test_character_cannot_access_high_level_map_via_url_or_service(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'Level1Hero',
+            'level' => 1,
+            'gold' => 100,
+            'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
+        ]);
+
+        $highLevelMap = Map::create([
+            'name' => 'Bagna Grozy',
+            'level_min' => 50,
+            'level_max' => 70,
+        ]);
+
+        // Service should reject starting battle on high level map
+        $service = app(EncounterService::class);
+        $startResult = $service->start($character, $highLevelMap);
+        $this->assertTrue($startResult->isError());
+        $this->assertEquals('LEVEL_TOO_LOW', $startResult->getErrorCode());
+
+        // Livewire MapStub mount should redirect back to adventure
+        Livewire::actingAs($user)
+            ->test(MapStub::class, ['character' => $character, 'map' => $highLevelMap])
+            ->assertRedirect(route('city.adventure', $character));
     }
 }

@@ -72,6 +72,11 @@ class EncounterService
                     return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater bierze obecnie udział w pojedynku PvP.');
                 }
 
+                // Check map level requirement
+                if (!$map->isAccessibleBy($char)) {
+                    return Result::error('LEVEL_TOO_LOW', "Twój poziom ({$char->level}) jest zbyt niski dla tej mapy (wymagany poziom: {$map->level_min}).");
+                }
+
                 $monster = $forcedMonster;
 
                 if (!$monster) {
