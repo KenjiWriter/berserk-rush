@@ -10,7 +10,7 @@ document.addEventListener('click', (e) => {
     };
 });
 
-window.smartTooltip = function() {
+function createSmartTooltip() {
     return {
         showInfo: false,
         timeout: null,
@@ -95,5 +95,17 @@ window.smartTooltip = function() {
             }
         }
     };
-};
+}
+
+window.smartTooltip = createSmartTooltip;
+
+if (window.Alpine) {
+    window.Alpine.data('smartTooltip', createSmartTooltip);
+}
+
+document.addEventListener('alpine:init', () => {
+    if (window.Alpine) {
+        window.Alpine.data('smartTooltip', createSmartTooltip);
+    }
+});
 

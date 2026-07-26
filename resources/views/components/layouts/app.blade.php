@@ -24,6 +24,58 @@
     <!-- Scripts -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+    <script>
+        if (typeof window.smartTooltip === 'undefined') {
+            window.smartTooltip = function() {
+                return {
+                    showInfo: false,
+                    timeout: null,
+                    tooltipStyle: {},
+                    init() {
+                        this.$watch('showInfo', (value) => {
+                            if (value) { this.updatePosition(); }
+                        });
+                    },
+                    updatePosition() {
+                        if (!this.showInfo) return;
+                        this.$nextTick(() => {
+                            const triggerEl = this.$el;
+                            const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                            if (!triggerEl || !tooltipEl) return;
+                            const triggerRect = triggerEl.getBoundingClientRect();
+                            const tooltipRect = tooltipEl.getBoundingClientRect();
+                            if (!triggerRect.width || !tooltipRect.width) return;
+                            if (window.innerWidth < 640) { this.tooltipStyle = {}; return; }
+                            const style = {};
+                            const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                            const halfWidth = tooltipRect.width / 2;
+                            const minMargin = 12;
+                            if (triggerCenter - halfWidth < minMargin) {
+                                style.left = (minMargin - triggerRect.left) + 'px';
+                                style.transform = 'none';
+                            } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
+                                style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
+                                style.transform = 'none';
+                            } else {
+                                style.left = '50%';
+                                style.transform = 'translateX(-50%)';
+                            }
+                            if (triggerRect.top < tooltipRect.height + 16) {
+                                style.top = '100%'; style.bottom = 'auto'; style.marginTop = '8px'; style.marginBottom = '0';
+                            } else {
+                                style.bottom = '100%'; style.top = 'auto'; style.marginBottom = '8px'; style.marginTop = '0';
+                            }
+                            this.tooltipStyle = style;
+                        });
+                    },
+                    openTooltip() { clearTimeout(this.timeout); this.showInfo = true; this.updatePosition(); },
+                    closeTooltip() { clearTimeout(this.timeout); this.timeout = setTimeout(() => { this.showInfo = false; }, 250); },
+                    toggleTooltip() { clearTimeout(this.timeout); this.showInfo = !this.showInfo; if (this.showInfo) { this.updatePosition(); } }
+                };
+            };
+        }
+    </script>
+
     <style>
         /* ===== Toast Animations ===== */
         .toast-enter {
