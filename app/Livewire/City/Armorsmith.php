@@ -16,6 +16,84 @@ class Armorsmith extends Component
     public string $activeTab = 'shop'; // 'shop', 'forge', 'craft'
     public ?string $selectedUpgradeItemId = null;
 
+    public array $selectedItemIds = [];
+    public bool $bulkSellMode = false;
+
+    public function toggleBulkSellMode()
+    {
+        $this->bulkSellMode = !$this->bulkSellMode;
+        if (!$this->bulkSellMode) {
+            $this->selectedItemIds = [];
+        }
+    }
+
+    public function toggleSelectItem(string $itemInstanceId)
+    {
+        if (in_array($itemInstanceId, $this->selectedItemIds)) {
+            $this->selectedItemIds = array_values(array_filter($this->selectedItemIds, fn($id) => $id !== $itemInstanceId));
+        } else {
+            $this->selectedItemIds[] = $itemInstanceId;
+        }
+    }
+
+    public function selectByRarity(string $rarity)
+    {
+        $matchingItemIds = $this->character->inventoryItems()
+            ->where('rarity', $rarity)
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($matchingItemIds)) return;
+
+        $allSelected = true;
+        foreach ($matchingItemIds as $id) {
+            if (!in_array($id, $this->selectedItemIds)) {
+                $allSelected = false;
+                break;
+            }
+        }
+
+        if ($allSelected) {
+            $this->selectedItemIds = array_values(array_diff($this->selectedItemIds, $matchingItemIds));
+        } else {
+            $this->selectedItemIds = array_values(array_unique(array_merge($this->selectedItemIds, $matchingItemIds)));
+        }
+    }
+
+    public function selectAllInventory()
+    {
+        $allIds = $this->character->inventoryItems()->pluck('id')->toArray();
+        if (count($this->selectedItemIds) === count($allIds)) {
+            $this->selectedItemIds = [];
+        } else {
+            $this->selectedItemIds = $allIds;
+        }
+    }
+
+    public function clearSelection()
+    {
+        $this->selectedItemIds = [];
+    }
+
+    public function sellSelectedItems(\App\Application\Items\ShopService $shop)
+    {
+        if (empty($this->selectedItemIds)) {
+            $this->dispatch('notify', type: 'error', message: 'Wybierz przedmioty do sprzedaży.');
+            return;
+        }
+
+        $result = $shop->sellMultipleItems($this->character, $this->selectedItemIds);
+        if ($result['success']) {
+            $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('stats-updated', goldAdded: $result['goldAdded'] ?? 0);
+            $this->dispatch('play-audio', type: 'sell');
+            $this->selectedItemIds = [];
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result['message']);
+        }
+        $this->character->refresh();
+    }
+
     public function selectItemForUpgrade($itemId)
     {
         $this->selectedUpgradeItemId = $itemId;

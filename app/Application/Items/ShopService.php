@@ -7,6 +7,7 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemTemplate;
 use Illuminate\Support\Str;
 use App\Infrastructure\Persistence\ItemLedger;
+use Illuminate\Support\Facades\DB;
 
 class ShopService
 {
@@ -155,5 +156,58 @@ class ShopService
             'message' => "Sprzedano {$toSell}x {$itemName} za {$totalPrice} złota.", 
             'goldAdded' => $totalPrice
         ];
+    }
+
+    public function sellMultipleItems(Character $character, array $itemInstanceIds): array
+    {
+        if (empty($itemInstanceIds)) {
+            return ['success' => false, 'message' => 'Nie wybrano żadnych przedmiotów do sprzedaży.'];
+        }
+
+        return DB::transaction(function () use ($character, $itemInstanceIds) {
+            $items = ItemInstance::whereIn('id', $itemInstanceIds)
+                ->where('owner_character_id', $character->id)
+                ->where('location', 'inventory')
+                ->with('template')
+                ->get();
+
+            if ($items->isEmpty()) {
+                return ['success' => false, 'message' => 'Nie znaleziono odpowiednich przedmiotów w ekwipunku.'];
+            }
+
+            $totalPrice = 0;
+            $totalCount = 0;
+
+            foreach ($items as $item) {
+                $availableStack = max(1, (int)($item->stack_size ?? 1));
+                $unitPrice = $this->getSellPrice($item);
+                $itemTotalPrice = $unitPrice * $availableStack;
+
+                $totalPrice += $itemTotalPrice;
+                $totalCount += $availableStack;
+
+                ItemLedger::create([
+                    'id' => Str::ulid(),
+                    'character_id' => $character->id,
+                    'item_instance_id' => $item->id,
+                    'action' => 'sell',
+                    'ref_type' => 'shop',
+                    'quantity_change' => -$availableStack,
+                    'idempotency_key' => Str::ulid(),
+                ]);
+
+                $item->delete();
+            }
+
+            $character->gold += $totalPrice;
+            $character->save();
+
+            return [
+                'success' => true,
+                'message' => "Sprzedano masowo {$totalCount} szt. przedmiotów za {$totalPrice} złota.",
+                'goldAdded' => $totalPrice,
+                'soldCount' => $totalCount,
+            ];
+        });
     }
 }

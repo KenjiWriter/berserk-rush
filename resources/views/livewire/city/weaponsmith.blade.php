@@ -55,7 +55,58 @@
                         
                         <!-- Lewa: Ekwipunek gracza -->
                         <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-4 flex flex-col">
-                            <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Twój Ekwipunek</h3>
+                            <div class="flex items-center justify-between border-b border-gray-700/50 pb-2 mb-3">
+                                <h3 class="text-xl font-bold text-amber-400 medieval-font">Twój Ekwipunek</h3>
+                                <button wire:click="toggleBulkSellMode" class="px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1.5 {{ $bulkSellMode ? 'bg-amber-600 hover:bg-amber-500 text-white shadow' : 'bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40' }}">
+                                    <i class="fa-solid {{ $bulkSellMode ? 'fa-square-check' : 'fa-list-check' }}"></i>
+                                    <span>{{ $bulkSellMode ? 'Wyłącz masową sprzedaż' : 'Masowa sprzedaż' }}</span>
+                                </button>
+                            </div>
+
+                            @if($bulkSellMode)
+                                <div class="mb-3 bg-slate-950/80 p-2.5 rounded-lg border border-amber-500/30 flex flex-col gap-2 animate-[fade-in_0.2s_ease-out]">
+                                    <div class="flex items-center justify-between flex-wrap gap-1.5">
+                                        <span class="text-[11px] font-semibold text-gray-400">Szybkie zaznaczanie:</span>
+                                        <div class="flex items-center gap-1 flex-wrap">
+                                            <button wire:click="selectByRarity('common')" class="px-2 py-0.5 bg-slate-800 hover:bg-slate-700 text-gray-300 text-[11px] font-semibold rounded border border-gray-600 transition" title="Zaznacz/odznacz zwykłe przedmioty">
+                                                + Zwykłe
+                                            </button>
+                                            <button wire:click="selectByRarity('uncommon')" class="px-2 py-0.5 bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 text-[11px] font-semibold rounded border border-emerald-700 transition" title="Zaznacz/odznacz niepospolite przedmioty">
+                                                + Niepospolite
+                                            </button>
+                                            <button wire:click="selectAllInventory" class="px-2 py-0.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 text-[11px] font-semibold rounded border border-amber-700 transition">
+                                                Wszystkie
+                                            </button>
+                                            @if(count($selectedItemIds) > 0)
+                                                <button wire:click="clearSelection" class="px-2 py-0.5 bg-red-950/80 hover:bg-red-900 text-red-300 text-[11px] font-semibold rounded border border-red-700 transition">
+                                                    Wyczyść
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    @if(count($selectedItemIds) > 0)
+                                        @php
+                                            $bulkTotalValue = 0;
+                                            foreach($inventoryItems as $invItem) {
+                                                if(in_array($invItem->id, $selectedItemIds)) {
+                                                    $bulkTotalValue += ($sellPrices[$invItem->id] ?? 0) * max(1, $invItem->stack_size ?? 1);
+                                                }
+                                            }
+                                        @endphp
+                                        <div class="p-2 bg-amber-950/60 border border-amber-500/50 rounded flex items-center justify-between gap-2">
+                                            <div class="text-xs text-amber-200">
+                                                Wybrano: <span class="font-bold text-white">{{ count($selectedItemIds) }}</span> szt. | Razem: <span class="font-extrabold text-yellow-400"><i class="fa-solid fa-coins text-yellow-400 mr-0.5"></i>{{ number_format($bulkTotalValue, 0, ',', ' ') }}</span>
+                                            </div>
+                                            <button wire:click="sellSelectedItems" class="px-3 py-1 bg-gradient-to-r from-red-700 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-extrabold text-xs rounded shadow transition flex items-center gap-1">
+                                                <i class="fa-solid fa-coins"></i>
+                                                Sprzedaj
+                                            </button>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 @forelse($inventoryItems as $item)
                                     <div wire:key="inv-{{ $item->id }}" class="relative" x-data="smartTooltip()" 
@@ -82,6 +133,17 @@
                                             @endif
                                             @if($item->location === 'equipped')
                                                 <div class="absolute -top-1 -right-1 bg-blue-600 border border-blue-400 text-white text-[9px] font-bold px-1 py-0.5 rounded shadow">E</div>
+                                            @endif
+
+                                            @if($bulkSellMode && $item->location !== 'equipped')
+                                                <div wire:click.stop="toggleSelectItem('{{ $item->id }}')" 
+                                                     class="absolute inset-0 z-30 rounded-lg cursor-pointer flex items-start justify-end p-1 transition-all {{ in_array($item->id, $selectedItemIds) ? 'bg-amber-500/30 border-2 border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'bg-black/40 hover:bg-amber-500/10 border-2 border-transparent' }}">
+                                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedItemIds) ? 'bg-amber-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                                        @if(in_array($item->id, $selectedItemIds))
+                                                            <i class="fa-solid fa-check"></i>
+                                                        @endif
+                                                    </div>
+                                                </div>
                                             @endif
                                         </div>
 
