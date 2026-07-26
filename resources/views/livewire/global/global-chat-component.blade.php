@@ -10,6 +10,8 @@
             {!! (Auth::check() && Auth::user()->permission_level == 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/give pet Leśny Wilk', desc: 'Dodaj chowańca: Leśny Wilk', channel: 'all' }, { cmd: '/give pet Skalny Golem', desc: 'Dodaj chowańca: Skalny Golem', channel: 'all' }, { cmd: '/give pet Magiczna Wróżka', desc: 'Dodaj chowańca: Magiczna Wróżka', channel: 'all' }, { cmd: '/give pet Mroczny Smok', desc: 'Dodaj chowańca: Mroczny Smok', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }, { cmd: '/set level <poziom>', desc: 'Ustaw poziom postaci', channel: 'all' }, { cmd: '/set sp <ilość>', desc: 'Dodaj punkty atrybutów (SP)', channel: 'all' }" : "" !!}
         ],
         filteredCommands: [],
+        lastScrollTop: 0,
+        lastMsgCount: 0,
         checkCommands() {
             if ((this.message || '').startsWith('/')) {
                 let search = (this.message || '').toLowerCase().split(' ')[0];
@@ -29,14 +31,37 @@
             if (this.$refs.chatInput) this.$refs.chatInput.focus();
         },
         scrollToBottom() {
+            this.$nextTick(() => {
+                const el = this.$refs.chatBox;
+                if (el) {
+                    el.scrollTop = el.scrollHeight;
+                    this.lastScrollTop = el.scrollTop;
+                }
+            });
+        },
+        handleScroll() {
             const el = this.$refs.chatBox;
-            if (el) el.scrollTop = el.scrollHeight;
+            if (el) {
+                this.lastScrollTop = el.scrollTop;
+            }
+        },
+        updateScrollPosition() {
+            const el = this.$refs.chatBox;
+            if (!el) return;
+            const currentMsgs = el.querySelectorAll('.chat-msg-appear').length;
+            if (currentMsgs > this.lastMsgCount || currentMsgs < this.lastMsgCount) {
+                this.scrollToBottom();
+            } else {
+                el.scrollTop = this.lastScrollTop;
+            }
+            this.lastMsgCount = currentMsgs;
         },
         async sendMsg() {
             if (!this.message || this.message.trim() === '' || this.isSending) return;
             this.isSending = true;
             try {
                 await this.$wire.sendMessage();
+                this.scrollToBottom();
             } finally {
                 this.isSending = false;
                 this.$nextTick(() => {
@@ -45,10 +70,34 @@
             }
         },
         init() {
-            this.$nextTick(() => this.scrollToBottom());
-            this.$watch('$wire.messages', () => this.$nextTick(() => this.scrollToBottom()));
+            this.$nextTick(() => {
+                const el = this.$refs.chatBox;
+                if (el) {
+                    this.lastMsgCount = el.querySelectorAll('.chat-msg-appear').length;
+                    this.scrollToBottom();
+
+                    const observer = new MutationObserver(() => {
+                        this.$nextTick(() => this.updateScrollPosition());
+                    });
+                    observer.observe(el, { childList: true, subtree: true });
+                }
+            });
+
+            this.$watch('$wire.messages', () => {
+                this.$nextTick(() => this.updateScrollPosition());
+            });
             this.$watch('message', () => this.checkCommands());
-            this.$watch('$wire.currentChannel', () => this.checkCommands());
+            this.$watch('$wire.currentChannel', () => {
+                this.lastMsgCount = 0;
+                this.$nextTick(() => this.scrollToBottom());
+                this.checkCommands();
+            });
+            this.$watch('$wire.isOpen', (val) => {
+                if (val) {
+                    this.lastMsgCount = 0;
+                    this.$nextTick(() => this.scrollToBottom());
+                }
+            });
         }
     }"
     class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none flex items-end gap-2"
@@ -204,6 +253,8 @@
             {{-- ---- Messages Box ---- --}}
             <div
                 x-ref="chatBox"
+                @scroll="handleScroll()"
+                wire:ignore.self
                 class="flex flex-col gap-1 overflow-y-auto px-3 py-2 scrollbar-thin"
                 style="height: 260px; scrollbar-color: rgba(180,120,30,0.4) transparent;"
             >
