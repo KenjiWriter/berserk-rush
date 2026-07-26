@@ -176,19 +176,23 @@ class Armorsmith extends Component
         $monsterDropsMap = [];
         if (!empty($allMatIds)) {
             $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $allMatIds)
-                ->whereHas('lootTable.monster')
-                ->with('lootTable.monster')
+                ->whereHas('lootTable.monsters')
+                ->with('lootTable.monsters')
                 ->get();
             foreach ($entries as $entry) {
-                $mName = $entry->lootTable->monster->name ?? null;
-                if ($mName) {
-                    $monsterDropsMap[$entry->ref_ulid][] = $mName;
+                if ($entry->lootTable && $entry->lootTable->monsters) {
+                    foreach ($entry->lootTable->monsters as $m) {
+                        if ($m->name) {
+                            $monsterDropsMap[$entry->ref_ulid][] = $m->name;
+                        }
+                    }
                 }
             }
             foreach ($monsterDropsMap as $ulid => $mList) {
                 $monsterDropsMap[$ulid] = array_values(array_unique($mList));
             }
         }
+
 
         $preparedRecipes = [];
         foreach ($recipes as $recipe) {
