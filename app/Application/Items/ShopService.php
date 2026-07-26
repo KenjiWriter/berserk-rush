@@ -78,6 +78,28 @@ class ShopService
             if ($isFull) {
                 return ['success' => false, 'message' => ($targetLocation === 'material_stash') ? 'Magazyn materiałów jest pełny (100/100).' : 'Plecak jest pełny.'];
             }
+
+            $itemInstance = ItemInstance::create([
+                'id' => Str::ulid(),
+                'template_id' => $template->id,
+                'owner_character_id' => $character->id,
+                'location' => $targetLocation,
+                'stack_size' => $quantity,
+                'rarity' => 'common',
+                'upgrade_level' => 0,
+            ]);
+
+            ItemLedger::create([
+                'id' => Str::ulid(),
+                'character_id' => $character->id,
+                'item_instance_id' => $itemInstance->id,
+                'action' => 'buy',
+                'ref_type' => 'shop',
+                'quantity_change' => $quantity,
+                'idempotency_key' => Str::ulid(),
+            ]);
+
+            return ['success' => true, 'message' => "Kupiono {$quantity}x {$template->name}."];
         } else {
             if ($character->isBackpackFull()) {
                 return ['success' => false, 'message' => 'Plecak jest pełny.'];
