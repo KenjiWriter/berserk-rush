@@ -297,14 +297,16 @@ class DungeonService
         }
 
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
-        $defense = $monster->stats['def'] ?? $monster->level;
+        $scaledStats = $monster->getScaledStats($character->level);
+        $defense = $scaledStats['def'];
 
         return max(1, $damage - ($defense / 2));
     }
 
     private function calculateMonsterDamage($monster, Character $character): int
     {
-        $baseDamage = $monster->stats['atk'] ?? $monster->level * 2;
+        $scaledStats = $monster->getScaledStats($character->level);
+        $baseDamage = $scaledStats['atk'];
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $eq = $character->getEquipmentStats();
         $defense = $vitality + ($character->level / 2) + $eq['defense'];
@@ -317,7 +319,7 @@ class DungeonService
         $multiplierService = app(RewardMultiplierService::class);
         
         $baseGold = $monster->stats['gold'] ?? $monster->level * 10;
-        $baseXp = $monster->stats['xp'] ?? $monster->level * 15;
+        $baseXp = $monster->stats['xp'] ?? $monster->level * 25;
 
         // Apply variance
         $baseGold = (int)($baseGold * mt_rand(90, 110) / 100);

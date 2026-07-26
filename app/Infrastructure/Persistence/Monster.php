@@ -72,4 +72,40 @@ class Monster extends Model
     {
         return $this->stats['dodge'] ?? 0.02;
     }
+
+    public function getScaledStats(int $playerLevel, bool $isTutorial = false): array
+    {
+        if ($isTutorial) {
+            return [
+                'hp' => 35,
+                'atk' => 6,
+                'def' => 2,
+                'agi' => 3,
+                'int' => 1,
+                'crit' => 0.05,
+                'dodge' => 0.02,
+            ];
+        }
+
+        $baseHp = $this->stats['hp'] ?? ($this->level * 20);
+        $baseAtk = $this->stats['atk'] ?? ($this->level * 2);
+        $baseDef = $this->stats['def'] ?? $this->level;
+        $baseAgi = $this->stats['agi'] ?? $this->level;
+        $baseInt = $this->stats['int'] ?? 1;
+        $baseCrit = $this->stats['crit'] ?? 0.05;
+        $baseDodge = $this->stats['dodge'] ?? 0.02;
+
+        $levelDiff = max(0, $playerLevel - $this->level);
+        $multiplier = 1.0 + ($levelDiff * 0.10);
+
+        return [
+            'hp' => (int)round($baseHp * $multiplier),
+            'atk' => (int)round($baseAtk * $multiplier),
+            'def' => (int)round($baseDef * $multiplier),
+            'agi' => (int)round($baseAgi * $multiplier),
+            'int' => (int)round($baseInt * $multiplier),
+            'crit' => $baseCrit,
+            'dodge' => $baseDodge,
+        ];
+    }
 }

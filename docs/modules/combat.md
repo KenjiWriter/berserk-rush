@@ -22,9 +22,10 @@ Wewnątrz tury występują 3 stany ataku:
 - **Trafienie Krytyczne (`crit`):** Obrażenia x 1.5. Szansa obliczana jest na bazie atrybutu `AGI`. Maksymalnie może wynosić 30% (gracz) i 20% (potwór).
 - **Unik / Chybienie (`miss`):** Szansa na całkowity brak obrażeń (sztywno ustawione na 5%).
 
-**Kalkulacja Obrażeń (Damage):**
-- Obrażenia zadawane przez gracza to suma: `10 + (STR * 2) + Poziom`. Zmniejszane są one następnie o `Obrona / 2` przeciwnika.
-- HP u gracza zależy głównie od `VIT`: `100 + (VIT * 10) + (Poziom * 5)`. HP u potworów skaluje się z ich poziomem.
+**Kalkulacja Obrażeń i Skalowanie Statystyk Potworów:**
+- **Progresywne Skalowanie Potworów (`getScaledStats`):** Statystyki bazowe potworów (`hp`, `atk`, `def`, `agi`) skalują się z poziomem gracza, jeśli poziom gracza jest wyższy niż poziom bazowy potwora. Za każdy poziom różnicy statystyki potwora wzrastają o 10% (`multiplier = 1 + (player_level - monster_level) * 0.10`).
+- Obrażenia zadawane przez gracza to suma: `10 + (STR * 2) + Poziom`. Zmniejszane są one następnie o `Przeskalowana Obrona / 2` przeciwnika.
+- HP u gracza zależy głównie od `VIT`: `100 + (VIT * 10) + (Poziom * 5)`. HP u potworów skaluje się z ich poziomem oraz poziomem gracza.
 
 ### 3. Wynik Walki i Nagrody
 Na sam koniec symulacji:

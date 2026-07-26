@@ -82,21 +82,29 @@ class EncounterService
                     return Result::error('LEVEL_OUT_OF_RANGE', "Twój poziom ({$char->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
                 }
 
+                $isTutorial = ($char->user && $char->user->game_stage <= 12);
                 $monster = $forcedMonster;
 
                 if (!$monster) {
-                    // Get monsters for this map
-                    $monsters = $map->monsters->whereNotIn('rank', [
-                        \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
-                        \App\Domain\Combat\Enums\MonsterRank::BOSS
-                    ]);
+                    if ($isTutorial) {
+                        // W samouczku zawsze losuj Wilka Leśnego
+                        $monster = $map->monsters->first(function ($m) {
+                            return str_contains(mb_strtolower($m->name), 'wilk');
+                        }) ?? $map->monsters->sortBy('level')->first();
+                    } else {
+                        // Get monsters for this map
+                        $monsters = $map->monsters->whereNotIn('rank', [
+                            \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
+                            \App\Domain\Combat\Enums\MonsterRank::BOSS
+                        ]);
 
-                    if ($monsters->isEmpty()) {
-                        return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
+                        if ($monsters->isEmpty()) {
+                            return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
+                        }
+
+                        // Get random monster
+                        $monster = $monsters->random();
                     }
-
-                    // Get random monster
-                    $monster = $monsters->random();
                 }
 
                 Log::info('Selected monster for encounter', [
@@ -121,10 +129,11 @@ class EncounterService
                     }
                 }
 
-                // Determine turn order
+                // Determine turn order using scaled stats
                 $totalAttributes = $character->getTotalAttributes();
                 $playerAgi = $totalAttributes['agi'] ?? 0;
-                $monsterAgi = $monster->stats['agi'] ?? $monster->level;
+                $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+                $monsterAgi = $scaledMonsterStats['agi'];
                 $playerFirst = $playerAgi >= $monsterAgi;
 
                 // Create encounter - używając ended_at zamiast finished_at
@@ -192,9 +201,12 @@ class EncounterService
                     'monster_level' => $monster->level,
                 ]);
 
+                $isTutorial = ($character->user && $character->user->game_stage <= 12);
+                $scaledStats = $monster->getScaledStats($character->level, $isTutorial);
+
                 // Initialize HP
                 $playerHp = $character->getMaxHp();
-                $monsterHp = $monster->stats['hp'] ?? $monster->level * 20;
+                $monsterHp = $scaledStats['hp'];
                 $playerMaxHp = $playerHp;
                 $monsterMaxHp = $monsterHp;
 
@@ -349,10 +361,10 @@ class EncounterService
                         'hp' => $monsterMaxHp,
                         'maxHp' => $monsterMaxHp,
                         'stats' => [
-                            'atk' => $monster->stats['atk'] ?? $monster->level * 2,
-                            'def' => $monster->stats['def'] ?? $monster->level,
-                            'agi' => $monster->stats['agi'] ?? $monster->level,
-                            'hp' => $monster->stats['hp'] ?? $monster->level * 20,
+                            'atk' => $scaledStats['atk'],
+                            'def' => $scaledStats['def'],
+                            'agi' => $scaledStats['agi'],
+                            'hp' => $scaledStats['hp'],
                         ]
                     ],
                     'turns' => $turns,
@@ -441,8 +453,11 @@ class EncounterService
             }
         }
 
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+
         $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
-        $monsterAgi = $monster->stats['agi'] ?? $monster->level;
+        $monsterAgi = $scaledMonsterStats['agi'];
         $playerFirst = $playerAgi >= $monsterAgi;
 
         $turns = [];
@@ -672,7 +687,7 @@ class EncounterService
         $baseDamage = $damageData['base'];
         $resistDamage = $damageData['resist'];
 
-        $isCrit = $this->rollMonsterCritical($monster);
+        $isCrit = $this->rollMonsterCritical($monster, $character);
         $isMiss = $this->rollMiss();
 
         if ($isMiss) {
@@ -727,7 +742,9 @@ class EncounterService
         }
         
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
-        $defense = $monster->stats['def'] ?? $monster->level;
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+        $defense = $scaledMonsterStats['def'];
 
         $baseDamage = max(1, $damage - ($defense / 2));
         $bonusDamage = 0;
@@ -753,7 +770,9 @@ class EncounterService
 
     private function calculateMonsterDamage(Monster $monster, Character $character): array
     {
-        $baseDamage = $monster->stats['atk'] ?? $monster->level * 2;
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+        $baseDamage = $scaledMonsterStats['atk'];
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $eq = $character->getEquipmentStats();
         $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
@@ -787,9 +806,11 @@ class EncounterService
         return mt_rand(1, 100) <= ($critChance * 100);
     }
 
-    private function rollMonsterCritical(Monster $monster): bool
+    private function rollMonsterCritical(Monster $monster, ?Character $character = null): bool
     {
-        $agility = $monster->stats['agi'] ?? $monster->level;
+        $isTutorial = ($character && $character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character ? $character->level : $monster->level, $isTutorial);
+        $agility = $scaledMonsterStats['agi'];
         $critChance = min(0.2, 0.03 + ($agility * 0.008));
         return mt_rand(1, 100) <= ($critChance * 100);
     }
@@ -822,7 +843,7 @@ class EncounterService
     private function calculateXpReward(Monster $monster, Character $character): array
     {
         $levelDiff = $monster->level - $character->level;
-        $baseXp = 20 + ($monster->level * 3);
+        $baseXp = 45 + ($monster->level * 8);
 
         if ($levelDiff > 0) {
             $baseXp *= (1 + ($levelDiff * 0.1));
