@@ -22,12 +22,12 @@
             {{-- Back to homepage link --}}
             <div class="text-center mb-6">
                 <a href="{{ route('homepage') }}"
-                    class="inline-flex items-center text-amber-300 hover:text-amber-100 transition-colors font-semibold">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-900/80 border border-amber-700/60 rounded-xl text-amber-300 font-bold hover:bg-slate-800 hover:border-amber-400 hover:text-white transition-all shadow-md">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    Powrót do gry
+                    <span>Powrót do gry</span>
                 </a>
             </div>
 

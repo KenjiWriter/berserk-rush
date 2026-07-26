@@ -39,8 +39,8 @@
                 </div>
 
                 {{-- Back Button --}}
-                <button wire:click="backToCity" @click="$dispatch('location-leave', { text: 'Powrót do Miasta...', icon: 'fa-solid fa-archway' }); $dispatch('play-audio', { type: 'tab' })"
-                    class="px-4 py-2.5 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-amber-200 font-extrabold text-xs uppercase tracking-widest border-2 border-slate-700 hover:border-amber-500 hover:text-yellow-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-200 flex items-center gap-2 group cursor-pointer">
+                <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Powrót do Miasta...', icon: 'fa-solid fa-archway' }); $dispatch('play-audio', { type: 'tab' })"
+                    class="px-4 py-2.5 min-h-[44px] rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-amber-200 font-extrabold text-xs uppercase tracking-widest border-2 border-slate-700 hover:border-amber-500 hover:text-yellow-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-200 flex items-center justify-center gap-2 group cursor-pointer w-full sm:w-auto">
                     <i class="fa-solid fa-archway text-amber-400 group-hover:scale-110 transition-transform"></i>
                     <span>Powrót do Miasta</span>
                 </button>
@@ -51,14 +51,14 @@
         <div class="flex space-x-3 border-b-2 border-amber-900/60 mb-6">
             <button wire:click="switchTab('buy')" 
                     @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                    class="px-6 py-3 font-extrabold text-xs tracking-widest uppercase rounded-t-xl transition-all duration-200 border-t-2 border-x-2 flex items-center gap-2.5 cursor-pointer {{ $activeTab === 'buy' ? 'bg-gradient-to-b from-amber-900/90 via-stone-900 to-stone-950 text-yellow-300 border-amber-500 shadow-[0_-5px_15px_rgba(245,158,11,0.2)]' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200 hover:bg-stone-900' }}">
+                    class="px-5 sm:px-6 py-3 min-h-[44px] font-extrabold text-xs tracking-widest uppercase rounded-t-xl transition-all duration-200 border-t-2 border-x-2 flex items-center justify-center gap-2.5 cursor-pointer {{ $activeTab === 'buy' ? 'bg-gradient-to-b from-amber-900/90 via-stone-900 to-stone-950 text-yellow-300 border-amber-500 shadow-[0_-5px_15px_rgba(245,158,11,0.2)]' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200 hover:bg-stone-900' }}">
                 <i class="fa-solid fa-cart-shopping {{ $activeTab === 'buy' ? 'text-amber-400' : 'text-stone-500' }}"></i>
                 <span>Rynek Ofert</span>
             </button>
             
             <button wire:click="switchTab('my_listings')" 
                     @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                    class="px-6 py-3 font-extrabold text-xs tracking-widest uppercase rounded-t-xl transition-all duration-200 border-t-2 border-x-2 flex items-center gap-2.5 cursor-pointer {{ $activeTab === 'my_listings' ? 'bg-gradient-to-b from-amber-900/90 via-stone-900 to-stone-950 text-yellow-300 border-amber-500 shadow-[0_-5px_15px_rgba(245,158,11,0.2)]' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200 hover:bg-stone-900' }}">
+                    class="px-5 sm:px-6 py-3 min-h-[44px] font-extrabold text-xs tracking-widest uppercase rounded-t-xl transition-all duration-200 border-t-2 border-x-2 flex items-center justify-center gap-2.5 cursor-pointer {{ $activeTab === 'my_listings' ? 'bg-gradient-to-b from-amber-900/90 via-stone-900 to-stone-950 text-yellow-300 border-amber-500 shadow-[0_-5px_15px_rgba(245,158,11,0.2)]' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200 hover:bg-stone-900' }}">
                 <i class="fa-solid fa-box-open {{ $activeTab === 'my_listings' ? 'text-amber-400' : 'text-stone-500' }}"></i>
                 <span>Moje Oferty</span>
             </button>

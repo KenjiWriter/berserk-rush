@@ -24,16 +24,17 @@
         
         {{-- Back Button --}}
         <div class="mb-6">
-            <a href="{{ route('homepage') }}" wire:navigate class="text-amber-500 hover:text-amber-300 transition-colors font-bold flex items-center gap-2 w-max">
-                <span class="text-xl">🔙</span> Wróć do ekranu głównego
+            <a href="{{ route('homepage') }}" wire:navigate class="inline-flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-stone-900/80 border border-amber-800/60 text-amber-300 font-bold hover:bg-stone-800 hover:border-amber-500 hover:text-amber-100 transition-all shadow-md">
+                <i class="fa-solid fa-arrow-left text-amber-400"></i>
+                <span>Wróć do ekranu głównego</span>
             </a>
         </div>
         {{-- Header --}}
         <div class="text-center mb-10">
-            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 drop-shadow-lg mb-4">
+            <h1 class="text-3xl sm:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-600 drop-shadow-lg mb-4">
                 Sklep Premium
             </h1>
-            <p class="text-amber-600/80 text-lg">Zdobądź przewagę w świecie Berserk Rush</p>
+            <p class="text-amber-600/80 text-sm sm:text-lg">Zdobądź przewagę w świecie Berserk Rush</p>
         </div>
 
         {{-- Status Bar --}}
@@ -67,10 +68,10 @@
         </div>
 
         {{-- Tabs --}}
-        <div class="flex justify-center mb-10 border-b border-amber-900/50 pb-px gap-8">
+        <div class="flex justify-start sm:justify-center overflow-x-auto mb-10 border-b border-amber-900/50 pb-px gap-2 sm:gap-8 custom-scrollbar">
             <button 
                 wire:click="setTab('gems')" 
-                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'gems' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'gems' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
             >
                 Kup Gemy
                 @if($activeTab === 'gems')
@@ -79,7 +80,7 @@
             </button>
             <button 
                 wire:click="setTab('premium')" 
-                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'premium' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'premium' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
             >
                 Konto VIP
                 @if($activeTab === 'premium')
@@ -88,7 +89,7 @@
             </button>
             <button 
                 wire:click="setTab('avatars')" 
-                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'avatars' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'avatars' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
             >
                 Avatary
                 @if($activeTab === 'avatars')
@@ -97,7 +98,7 @@
             </button>
             <button 
                 wire:click="setTab('skills')" 
-                class="px-6 py-3 font-bold text-lg uppercase tracking-wider transition-all duration-300 relative {{ $activeTab === 'skills' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'skills' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
             >
                 Umiejętności
                 @if($activeTab === 'skills')

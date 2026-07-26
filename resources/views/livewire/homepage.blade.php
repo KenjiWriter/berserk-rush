@@ -327,9 +327,9 @@
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
                                 @foreach ($myCharacters as $index => $character)
-                                    <div class="bg-gradient-to-b from-amber-100/90 to-amber-200/90 border-2 border-amber-600/80 rounded-xl p-2.5 hover:bg-amber-200/95 transition-all duration-300 shadow-md hover:shadow-xl relative group {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : '' }}">
+                                    <div class="bg-gradient-to-b from-amber-100/90 to-amber-200/90 border-2 border-amber-600/80 rounded-xl hover:bg-amber-200/95 transition-all duration-300 shadow-md hover:shadow-xl relative group {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : '' }}">
                                         @if ($character)
-                                            <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full">
+                                            <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full p-2.5 sm:p-3">
                                                 <div class="flex items-center space-x-2.5 h-full">
                                                     <div class="relative flex-shrink-0">
                                                         <div class="w-10 h-10 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-400 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
@@ -362,14 +362,14 @@
                                             </a>
                                         @else
                                             @if ($canCreateCharacter ?? true)
-                                                <a href="{{ route('characters.create') }}" class="block h-full min-h-[50px]">
+                                                <a href="{{ route('characters.create') }}" class="block h-full min-h-[50px] p-2.5">
                                                     <div class="text-center text-amber-800 hover:text-amber-950 transition-colors flex flex-col items-center justify-center h-full border-2 border-dashed border-amber-600/60 rounded-lg p-1.5 hover:bg-amber-300/30">
                                                         <i class="fa-solid fa-plus text-base mb-0.5 text-amber-700"></i>
                                                         <div class="text-[11px] font-bold medieval-font">STWÓRZ POSTAĆ</div>
                                                     </div>
                                                 </a>
                                             @else
-                                                <div class="text-center text-amber-700/50 flex flex-col items-center justify-center h-full min-h-[50px] border-2 border-dashed border-amber-400/40 rounded-lg p-1.5">
+                                                <div class="text-center text-amber-700/50 flex flex-col items-center justify-center h-full min-h-[50px] border-2 border-dashed border-amber-400/40 rounded-lg p-2.5">
                                                     <i class="fa-solid fa-lock text-base mb-0.5 text-amber-600/50"></i>
                                                     <div class="text-[11px] font-bold medieval-font">SLOT ZABLOKOWANY</div>
                                                 </div>

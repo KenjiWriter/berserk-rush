@@ -46,25 +46,25 @@
             <h1 class="text-2xl md:text-4xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-3 justify-center md:justify-start">
                 <i class="fa-solid fa-chess-board text-amber-400 text-3xl md:text-4xl"></i> Arena Gladiatorów
             </h1>
-            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
                 <div class="text-amber-100 text-sm medieval-font text-center sm:text-right">
                     <div class="font-bold text-lg">{{ $character->name }}</div>
                     <div class="text-amber-300">Ranking: {{ $character->elo }} ({{ ucfirst($currentLeague) }})</div>
                     <div class="text-yellow-400">Żetony: {{ $character->arena_tokens }}</div>
                 </div>
                 <button wire:click="goTo('gladiator')" @click="travelingTo = 'Gladiator'" 
-                    class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
+                    class="w-full sm:w-auto min-h-[44px] relative rounded-lg px-6 py-2.5 shadow-lg overflow-hidden group flex items-center justify-center">
                     <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                     <div class="absolute inset-0 bg-amber-900/40 group-hover:bg-amber-800/40 transition-colors rounded-lg"></div>
-                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
+                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2">
                         <i class="fa-solid fa-store text-amber-300"></i> Sklep Gladiatora
                     </span>
                 </button>
                 <button wire:click="backToHub" @click="travelingTo = 'Miasto'; $dispatch('play-audio', { type: 'tab' })" 
-                    class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
+                    class="w-full sm:w-auto min-h-[44px] relative rounded-lg px-6 py-2.5 shadow-lg overflow-hidden group flex items-center justify-center">
                     <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                     <div class="absolute inset-0 bg-amber-900/40 group-hover:bg-amber-800/40 transition-colors rounded-lg"></div>
-                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center gap-2">
+                    <span class="relative text-amber-100 font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] flex items-center justify-center gap-2">
                         <i class="fa-solid fa-castle text-amber-300"></i> Powrót
                     </span>
                 </button>
@@ -79,11 +79,11 @@
                 {{-- Tabs navigation --}}
                 <div class="flex border-b border-amber-800/60 mb-6 gap-2">
                     <button wire:click="switchTab('opponents')" 
-                        class="px-5 py-3 font-bold medieval-font text-sm md:text-base transition-all rounded-t-xl flex items-center gap-2 {{ $activeTab === 'opponents' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
+                        class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'opponents' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-shield-halved text-amber-400"></i> Dostępni Przeciwnicy
                     </button>
                     <button wire:click="switchTab('ranking')" 
-                        class="px-5 py-3 font-bold medieval-font text-sm md:text-base transition-all rounded-t-xl flex items-center gap-2 {{ $activeTab === 'ranking' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
+                        class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'ranking' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-trophy text-amber-400"></i> Ranking Chwały
                     </button>
                 </div>

@@ -25,11 +25,11 @@
                  x-show="show" x-transition:enter="transition ease-out duration-700 delay-100" 
                  x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0">
                 <a href="{{ route('homepage') }}"
-                    class="inline-flex items-center text-slate-400 hover:text-amber-500 transition-colors font-semibold group text-lg">
-                    <svg class="w-6 h-6 mr-2 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[44px] bg-slate-900/80 border border-slate-700 rounded-xl text-slate-300 font-bold hover:border-amber-500 hover:text-amber-300 transition-all shadow-md group">
+                    <svg class="w-5 h-5 text-amber-400 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                     </svg>
-                    Opuść Karczmę (Powrót)
+                    <span>Opuść Karczmę (Powrót)</span>
                 </a>
             </div>
 

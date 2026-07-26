@@ -15,19 +15,19 @@
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-8 min-h-screen flex flex-col">
         {{-- Header --}}
-        <div class="flex items-center justify-between mb-8">
-            <div class="bg-black/60 border border-amber-700/50 rounded-lg p-4 shadow-2xl backdrop-blur-md">
-                <h2 class="text-2xl font-bold text-amber-500 medieval-font flex items-center gap-2 tracking-wider">
-                    <i class="fa-solid fa-khanda text-amber-500 text-2xl mr-1"></i> Brońmistrz
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div class="bg-black/60 border border-amber-700/50 rounded-lg p-3 sm:p-4 shadow-2xl backdrop-blur-md">
+                <h2 class="text-xl sm:text-2xl font-bold text-amber-500 medieval-font flex items-center gap-2 tracking-wider">
+                    <i class="fa-solid fa-khanda text-amber-500 text-xl sm:text-2xl mr-1"></i> Brońmistrz
                 </h2>
             </div>
 
-            <div class="flex items-center gap-4">
-                <div class="bg-black/80 border border-yellow-600/50 rounded px-4 py-2 font-bold text-yellow-400 backdrop-blur-sm shadow-inner">
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                <div class="bg-black/80 border border-yellow-600/50 rounded px-4 py-2 min-h-[44px] flex items-center font-bold text-yellow-400 backdrop-blur-sm shadow-inner">
                     <i class="fa-solid fa-coins text-yellow-400 mr-1.5"></i> {{ number_format($character->gold) }}
                 </div>
                 <button wire:click="backToHub" @click="$dispatch('location-leave')"
-                    class="bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 border border-slate-500 text-amber-200 font-bold py-2 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_15px_rgba(0,0,0,0.5)] medieval-font {{ $gameStage == 20 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}">
+                    class="min-h-[44px] bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 border border-slate-500 text-amber-200 font-bold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_15px_rgba(0,0,0,0.5)] medieval-font flex items-center justify-center {{ $gameStage == 20 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.6)]' : '' }}">
                     <i class="fa-solid fa-archway mr-2 text-amber-400"></i> Powrót
                 </button>
             </div>
@@ -37,13 +37,13 @@
             
             {{-- Tabs --}}
             <div class="flex border-b border-amber-900/50 bg-black/40">
-                <button wire:click="setTab('shop')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'shop' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                <button wire:click="setTab('shop')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'shop' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
                     <i class="fa-solid fa-store text-amber-400/80"></i> Sklep i Ekwipunek
                 </button>
-                <button wire:click="setTab('forge')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                <button wire:click="setTab('forge')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
                     <i class="fa-solid fa-fire-flame-curved text-amber-400/80"></i> Kuźnia Ulepszeń
                 </button>
-                <button wire:click="setTab('crafting')" class="flex-1 py-4 font-bold text-lg transition-all flex items-center justify-center gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                <button wire:click="setTab('crafting')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
                     <i class="fa-solid fa-anvil text-amber-400/80"></i> Rzemiosło
                 </button>
             </div>
