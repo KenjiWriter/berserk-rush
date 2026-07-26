@@ -160,18 +160,20 @@
                                 @endif
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
-                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                        <x-item-tooltip :item="$equipped[$slot]">
-                                            <x-slot:actions>
-                                                <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
-                                                    Zdejmij przedmiot
-                                                </button>
-                                            </x-slot:actions>
-                                        </x-item-tooltip>
-                                        <!-- Arrow (Desktop only) -->
-                                        <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-slate-600 transform rotate-45 z-[-1]"></div>
-                                    </div>
+                                    <template x-if="open">
+                                        <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
+                                            <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                            <x-item-tooltip :item="$equipped[$slot]">
+                                                <x-slot:actions>
+                                                    <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                                        Zdejmij przedmiot
+                                                    </button>
+                                                </x-slot:actions>
+                                            </x-item-tooltip>
+                                            <!-- Arrow (Desktop only) -->
+                                            <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-slate-600 transform rotate-45 z-[-1]"></div>
+                                        </div>
+                                    </template>
                                 </div>
                             @else
                                 <span class="text-stone-400 text-[9px] xs:text-[10px] sm:text-xs font-semibold capitalize px-0.5 text-center truncate">{{ ucfirst($slot) }}</span>
@@ -374,18 +376,20 @@
                                 @endif
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[200] sm:z-50 flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
-                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                        <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                        <x-item-tooltip :item="$equipped[$slot]">
-                                            <x-slot:actions>
-                                                <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
-                                                    Zdejmij przedmiot
-                                                </button>
-                                            </x-slot:actions>
-                                        </x-item-tooltip>
-                                        <!-- Arrow (Desktop only) -->
-                                        <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-slate-600 transform rotate-45 z-[-1]"></div>
-                                    </div>
+                                    <template x-if="open">
+                                        <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
+                                            <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                            <x-item-tooltip :item="$equipped[$slot]">
+                                                <x-slot:actions>
+                                                    <button @click="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid', () => $wire.unequipItem('{{ $equipped[$slot]->id }}'))" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
+                                                        Zdejmij przedmiot
+                                                    </button>
+                                                </x-slot:actions>
+                                            </x-item-tooltip>
+                                            <!-- Arrow (Desktop only) -->
+                                            <div class="hidden sm:block absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 border-t border-l border-slate-600 transform rotate-45 z-[-1]"></div>
+                                        </div>
+                                    </template>
                                 </div>
                             @else
                                 <span class="text-stone-400 text-[9px] xs:text-[10px] sm:text-xs font-semibold capitalize px-0.5 text-center truncate">{{ ucfirst($slot) }}</span>
@@ -754,41 +758,43 @@
                             <div x-show="open" x-transition.opacity style="display: none;" 
                                  :class="posClass"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
-                                <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                    <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                        <x-slot:actions>
-                                            <div class="flex flex-col gap-2 w-full">
-                                                @if($character->level < $item->template->level_requirement)
-                                                    <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
-                                                @else
-                                                    @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
-                                                        <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="forceClose(); flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
-                                                            Załóż sprzęt
-                                                        </button>
-                                                    @elseif($item->template->type === 'consumable')
-                                                        <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors shadow">
-                                                            Użyj przedmiotu
+                                <template x-if="open">
+                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
+                                        <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                        <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                            <x-slot:actions>
+                                                <div class="flex flex-col gap-2 w-full">
+                                                    @if($character->level < $item->template->level_requirement)
+                                                        <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
+                                                    @else
+                                                        @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
+                                                            <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="forceClose(); flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                                Załóż sprzęt
+                                                            </button>
+                                                        @elseif($item->template->type === 'consumable')
+                                                            <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                                Użyj przedmiotu
+                                                            </button>
+                                                        @endif
+                                                    @endif
+
+                                                    <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5">
+                                                        <i class="fa-solid fa-vault"></i> Przenieś do magazynu
+                                                    </button>
+                                                    
+                                                    @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
+                                                        <button wire:click.stop="openSellModal('{{ $item->id }}'); forceClose();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                                            Wystaw na targowisko
                                                         </button>
                                                     @endif
-                                                @endif
-
-                                                <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5">
-                                                    <i class="fa-solid fa-vault"></i> Przenieś do magazynu
-                                                </button>
-                                                
-                                                @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
-                                                    <button wire:click.stop="openSellModal('{{ $item->id }}'); forceClose();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
-                                                        Wystaw na targowisko
-                                                    </button>
-                                                @endif
-                                            </div>
-                                        </x-slot:actions>
-                                    </x-item-tooltip>
-                                    <!-- Arrow (Desktop only) -->
-                                    <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
-                                         :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
-                                </div>
+                                                </div>
+                                            </x-slot:actions>
+                                        </x-item-tooltip>
+                                        <!-- Arrow (Desktop only) -->
+                                        <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
+                                             :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     @endforeach
@@ -865,21 +871,23 @@
                             <div x-show="open" x-transition.opacity style="display: none;" 
                                  :class="posClass"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
-                                <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                    <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                    <x-item-tooltip :item="$item">
-                                        <x-slot:actions>
-                                            <div class="flex flex-col gap-2 w-full">
-                                                <button wire:click.stop="withdrawFromStash('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5">
-                                                    <i class="fa-solid fa-bag-shopping"></i> Wyciągnij do plecaka
-                                                </button>
-                                            </div>
-                                        </x-slot:actions>
-                                    </x-item-tooltip>
-                                    <!-- Arrow (Desktop only) -->
-                                    <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
-                                         :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
-                                </div>
+                                <template x-if="open">
+                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
+                                        <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                        <x-item-tooltip :item="$item">
+                                            <x-slot:actions>
+                                                <div class="flex flex-col gap-2 w-full">
+                                                    <button wire:click.stop="withdrawFromStash('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5">
+                                                        <i class="fa-solid fa-bag-shopping"></i> Wyciągnij do plecaka
+                                                    </button>
+                                                </div>
+                                            </x-slot:actions>
+                                        </x-item-tooltip>
+                                        <!-- Arrow (Desktop only) -->
+                                        <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
+                                             :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
+                                    </div>
+                                </template>
                             </div>
                         </div>
                     @endforeach
