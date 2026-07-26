@@ -35,6 +35,24 @@ class WorldBossService
         }
     }
 
+    public function resetBosses(): void
+    {
+        DB::beginTransaction();
+        try {
+            WorldBossDamageLog::query()->delete();
+            WorldBossInstance::query()->delete();
+
+            $this->spawnWorldBosses();
+
+            DB::commit();
+            Log::info("WorldBosses reset successfully.");
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("WorldBosses reset failed: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     public function ensureBossesSpawned(): void
     {
         $worldBosses = Monster::where('rank', 'worldboss')->get();
