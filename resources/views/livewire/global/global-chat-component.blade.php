@@ -49,10 +49,8 @@
             const el = this.$refs.chatBox;
             if (!el) return;
             const currentMsgs = el.querySelectorAll('.chat-msg-appear').length;
-            if (currentMsgs > this.lastMsgCount || currentMsgs < this.lastMsgCount) {
+            if (currentMsgs > this.lastMsgCount) {
                 this.scrollToBottom();
-            } else {
-                el.scrollTop = this.lastScrollTop;
             }
             this.lastMsgCount = currentMsgs;
         },
@@ -79,7 +77,7 @@
                     const observer = new MutationObserver(() => {
                         this.$nextTick(() => this.updateScrollPosition());
                     });
-                    observer.observe(el, { childList: true, subtree: true });
+                    observer.observe(el, { childList: true });
                 }
             });
 
@@ -104,31 +102,44 @@
     style="font-family: 'Cinzel', serif;"
     wire:mouseleave="closeTooltip"
 >
-    {{-- ========== GLOBAL TOOLTIP ========== --}}
+    {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
     @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
         @php $td = $tooltipData[$activeTooltipId]; @endphp
         
-        {{-- Tooltip Container: Modal on mobile, static flex item on desktop --}}
+        {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
         <div 
-            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:static lg:inset-auto lg:bg-transparent lg:backdrop-blur-none lg:z-auto lg:block lg:mb-12 p-4 lg:p-0"
+            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:absolute lg:inset-auto lg:right-full lg:bottom-0 lg:mr-3 lg:bg-transparent lg:backdrop-blur-none p-4 lg:p-0 pointer-events-auto"
             wire:click.self="closeTooltip"
         >
             <div
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left pointer-events-auto flex flex-col"
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
-                {{-- Close button for mobile --}}
-                <button wire:click="closeTooltip" class="absolute top-2 right-3 text-amber-500 hover:text-amber-300 lg:hidden font-bold text-xl leading-none cursor-pointer">&times;</button>
+                {{-- Close button --}}
+                <button wire:click="closeTooltip" class="absolute top-2.5 right-3 text-amber-500 hover:text-amber-300 font-bold text-xl leading-none cursor-pointer z-10">&times;</button>
 
-                {{-- Arrow pointing right (hidden on mobile) --}}
-                <div class="hidden lg:block absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900/80 border-t border-r border-amber-700/60"></div>
+                {{-- Arrow pointing right (desktop only) --}}
+                <div class="hidden lg:block absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900 border-t border-r border-amber-700/60"></div>
 
                 {{-- Character header --}}
-                <div class="mb-2 border-b border-amber-800/50 pb-2 pr-4">
-                    <p class="text-amber-300 font-bold text-base">{{ $td['name'] }}</p>
-                    <div class="flex gap-3 text-xs mt-1">
-                        <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
-                        <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
+                <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
+                    @if(!empty($td['avatar']))
+                        <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
+                            <img src="{{ asset('img/avatars/' . $td['avatar']) }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
+                        </div>
+                    @endif
+                    <div class="min-w-0 flex-1">
+                        @if(!empty($td['title']))
+                            <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block truncate">[{{ $td['title'] }}]</span>
+                        @endif
+                        <p class="text-amber-300 font-bold text-sm truncate medieval-font">{{ $td['name'] }}</p>
+                        @if(!empty($td['guild']))
+                            <p class="text-amber-500/80 text-[11px] font-semibold truncate"><i class="fa-solid fa-shield-halved mr-1 text-amber-600"></i>{{ $td['guild'] }}</p>
+                        @endif
+                        <div class="flex gap-3 text-xs mt-0.5">
+                            <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
+                            <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
+                        </div>
                     </div>
                 </div>
 
@@ -137,7 +148,7 @@
                 @if (count($td['equipped_items']) === 0)
                     <p class="text-amber-700/60 text-xs italic mb-3">Brak założonego ekwipunku</p>
                 @else
-                    <div class="space-y-1 mb-3">
+                    <div class="space-y-1 mb-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
                         @foreach ($td['equipped_items'] as $ei)
                             @php
                                 $rarityColor = match($ei['rarity'] ?? 'common') {
@@ -148,19 +159,19 @@
                                     default     => 'text-stone-300',
                                 };
                             @endphp
-                            <div class="flex items-center justify-between text-xs">
-                                <span class="{{ $rarityColor }} flex items-center gap-1.5">
+                            <div class="flex items-center justify-between text-xs py-0.5">
+                                <span class="{{ $rarityColor }} flex items-center gap-1.5 min-w-0 truncate">
                                     @if(!empty($ei['icon']))
-                                        <img src="{{ route('assets.items', ['filename' => $ei['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                        <img src="{{ route('assets.items', ['filename' => $ei['icon']]) }}" class="w-4 h-4 object-contain shrink-0" alt="">
                                     @endif
-                                    <span>
+                                    <span class="truncate">
                                         {{ $ei['name'] }}
                                         @if(in_array($ei['type'] ?? '', ['weapon', 'armor', 'accessory']))
                                             <span class="text-emerald-400">+{{ $ei['upgrade_level'] ?? 0 }}</span>
                                         @endif
                                     </span>
                                 </span>
-                                <span class="text-amber-700 text-[10px] ml-1">{{ number_format($ei['combat_power']) }} CP</span>
+                                <span class="text-amber-700 text-[10px] ml-1 shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
                             </div>
                         @endforeach
                     </div>
@@ -168,7 +179,7 @@
 
                 {{-- Equipped Pet --}}
                 @if(isset($td['pet']) && $td['pet'])
-                    <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2 mt-2">Chowaniec</p>
+                    <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-1 mt-1">Chowaniec</p>
                     @php
                         $petRarityColor = match($td['pet']['rarity'] ?? 'common') {
                             'uncommon'  => 'text-green-400',
@@ -179,20 +190,20 @@
                         };
                     @endphp
                     <div class="flex items-center justify-between text-xs mb-3">
-                        <span class="{{ $petRarityColor }} truncate max-w-[130px]">
-                            🐾 {{ $td['pet']['name'] }}
+                        <span class="{{ $petRarityColor }} truncate max-w-[150px]">
+                            <i class="fa-solid fa-paw mr-1"></i>{{ $td['pet']['name'] }}
                             <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
                         </span>
                         <span class="text-amber-700 text-[10px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
                     </div>
                 @endif
 
-                {{-- Invite to Guild Button Placeholder --}}
+                {{-- Invite to Guild Button --}}
                 <button
                     wire:click="inviteToGuild('{{ $activeTooltipId }}')"
-                    class="mt-auto w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer"
+                    class="mt-2 w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
-                    ➕ Wyślij zaproszenie do gildii
+                    <i class="fa-solid fa-user-plus"></i> Wyślij zaproszenie do gildii
                 </button>
             </div>
         </div>
@@ -207,7 +218,7 @@
                 class="ml-auto flex items-center gap-2 bg-gradient-to-r from-amber-900/95 to-stone-900/95 border border-amber-700/60 rounded-full px-4 py-2 shadow-2xl hover:from-amber-800/95 transition-all duration-200 text-amber-200 font-bold text-sm cursor-pointer backdrop-blur-md"
             >
                 <div class="relative flex items-center">
-                    <span class="text-base">💬</span>
+                    <span class="text-base"><i class="fa-solid fa-comments"></i></span>
                 </div>
                 <span>Czat</span>
                 @if ($unreadGlobalCount > 0 || $unreadGuildCount > 0)
@@ -265,28 +276,28 @@
                 @foreach ($messages as $idx => $msg)
                     @if(($msg['channel'] ?? 'global') === $currentChannel)
                     <div
-                        class="group flex gap-1 text-xs leading-relaxed chat-msg-appear"
+                        class="chat-msg-appear text-xs leading-relaxed break-words py-1 border-b border-amber-900/10"
                         wire:key="chat-msg-{{ $idx }}-{{ $msg['character_id'] }}"
                     >
                         {{-- Timestamp --}}
-                        <span class="text-amber-700/50 shrink-0 mt-0.5">{{ substr($msg['sent_at'], 0, 5) }}</span>
+                        <span class="text-amber-700/60 font-mono text-[10px] mr-1.5 select-none shrink-0">{{ substr($msg['sent_at'], 0, 5) }}</span>
 
                         @if($msg['character_id'] === 'system')
-                            <span class="text-yellow-500 font-bold ml-1">[{{ $msg['character_name'] }}]</span>
-                            <span class="text-yellow-200 break-words min-w-0 ml-1 italic">{{ $msg['message'] }}</span>
+                            <span class="text-yellow-500 font-bold">[{{ $msg['character_name'] }}]</span>
+                            <span class="text-yellow-200 italic ml-1">{{ $msg['message'] }}</span>
                         @else
-                            {{-- Nick + hover tooltip trigger --}}
-                            <div class="relative ml-1">
+                            {{-- Nick + title + level inline wrapper --}}
+                            <span class="inline space-x-0.5">
                                 @if($msg['is_admin'] ?? false)
-                                    <span class="text-[10px] text-red-400 font-extrabold bg-red-950/80 px-1 py-0.5 rounded border border-red-600/60 mr-1 font-mono tracking-wider shadow-[0_0_8px_rgba(239,68,68,0.5)]">[A]</span>
+                                    <span class="text-[9px] text-red-400 font-extrabold bg-red-950/80 px-1 py-0.5 rounded border border-red-600/60 font-mono tracking-wider shadow-[0_0_8px_rgba(239,68,68,0.5)]">[A]</span>
                                 @endif
                                 @if(!empty($msg['title_prefix']))
-                                    <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mr-1" title="Tytuł">{{ $msg['title_prefix'] }}</span>
+                                    <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider" title="Tytuł">[{{ $msg['title_prefix'] }}]</span>
                                 @endif
                                 <span
                                     wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
                                     wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"
-                                    class="font-bold cursor-pointer lg:cursor-help transition-colors hover:underline decoration-dotted 
+                                    class="font-bold cursor-pointer transition-colors hover:underline decoration-dotted 
                                     {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200') }}"
                                 >
                                     @if($msg['is_premium'] ?? false)
@@ -298,12 +309,9 @@
                                         {{ $msg['character_name'] }}
                                     @endif
                                 </span>
-
-                                <span class="text-amber-600/70">[{{ $msg['character_level'] }}]</span>
-                            </div>
-
-                            {{-- Message text --}}
-                            <span class="text-stone-300 break-words min-w-0">: {{ $msg['message'] }}</span>
+                                <span class="text-amber-600/70 text-[11px] font-semibold">[{{ $msg['character_level'] }}]</span>
+                            </span>
+                            <span class="text-stone-300 font-normal">: {{ $msg['message'] }}</span>
                         @endif
                     </div>
                     @endif
@@ -346,7 +354,7 @@
                     class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner"
                 >
                     <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-red-300">
-                        <span class="text-sm animate-pulse">🔇</span>
+                        <i class="fa-solid fa-microphone-slash text-sm animate-pulse mr-1"></i>
                         <span>Zablokowano: <span x-text="formatTime(secondsLeft)" class="font-mono text-red-100 font-bold ml-1"></span></span>
                     </div>
                 </div>
