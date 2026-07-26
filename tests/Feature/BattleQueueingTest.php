@@ -89,24 +89,21 @@ class BattleQueueingTest extends TestCase
         $res1 = $service->start($character, $map);
         $this->assertTrue($res1->isOk());
 
+        // Second encounter attempt while first is state == 'ongoing' should fail with COMBAT_IN_PROGRESS
+        $res2 = $service->start($character, $map);
+        $this->assertTrue($res2->isError());
+        $this->assertEquals('COMBAT_IN_PROGRESS', $res2->getErrorCode());
+
         $encounter = $res1->getPayload();
         $service->simulate($encounter);
 
         // Rewards are not applied yet (rewards_applied == false)
         $this->assertFalse($encounter->fresh()->rewards_applied);
 
-        // Second encounter attempt BEFORE rewards_applied should fail with COMBAT_IN_PROGRESS
-        $res2 = $service->start($character, $map);
-        $this->assertTrue($res2->isError());
-        $this->assertEquals('COMBAT_IN_PROGRESS', $res2->getErrorCode());
-
-        // Now apply rewards for the first encounter
-        $service->applyRewards($encounter);
-        $this->assertTrue($encounter->fresh()->rewards_applied);
-
-        // After rewards applied, starting another encounter should succeed!
+        // Starting another encounter after simulation automatically auto-claims rewards and succeeds!
         $res3 = $service->start($character, $map);
         $this->assertTrue($res3->isOk());
+        $this->assertTrue($encounter->fresh()->rewards_applied);
     }
 
     public function test_multi_tab_rapid_requests_are_all_rejected_except_first(): void

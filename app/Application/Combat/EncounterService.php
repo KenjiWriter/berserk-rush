@@ -39,25 +39,30 @@ class EncounterService
                     return Result::error('CHARACTER_NOT_FOUND', 'Nie znaleziono postaci.');
                 }
 
-                // Auto-claim any stale unapplied encounters older than 30s
-                $staleEncounters = Encounter::where('character_id', $char->id)
+                // Auto-claim rewards for any completed encounters that haven't been applied yet
+                $unappliedEncounters = Encounter::where('character_id', $char->id)
                     ->where('rewards_applied', false)
                     ->whereIn('state', ['win', 'finished', 'lose'])
-                    ->where('started_at', '<', now()->subSeconds(30))
                     ->get();
 
-                foreach ($staleEncounters as $staleEnc) {
-                    $this->applyRewards($staleEnc);
+                foreach ($unappliedEncounters as $unappliedEnc) {
+                    $this->applyRewards($unappliedEnc);
                 }
 
-                // Check for active unapplied encounter (< 30s ago and rewards_applied == false)
-                $activeUnapplied = Encounter::where('character_id', $char->id)
-                    ->where('rewards_applied', false)
-                    ->where('started_at', '>=', now()->subSeconds(30))
+                // Clean up stale 'ongoing' encounters older than 10 seconds
+                Encounter::where('character_id', $char->id)
+                    ->where('state', 'ongoing')
+                    ->where('started_at', '<', now()->subSeconds(10))
+                    ->update(['state' => 'cancelled']);
+
+                // Check for active ongoing encounter (state == 'ongoing' within last 10s)
+                $activeOngoing = Encounter::where('character_id', $char->id)
+                    ->where('state', 'ongoing')
+                    ->where('started_at', '>=', now()->subSeconds(10))
                     ->exists();
 
-                if ($activeUnapplied) {
-                    return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki! Zakończ animację poprzedniego starcia.');
+                if ($activeOngoing) {
+                    return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki!');
                 }
 
                 // Check for active/recent PvP encounter (< 5s ago or pending/calculating)
