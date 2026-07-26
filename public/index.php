@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 // Increase memory limit for heavy Blade/Livewire renders
-ini_set('memory_limit', '256M');
+ini_set('memory_limit', '512M');
+
 
 
 // Determine if the application is in maintenance mode...
