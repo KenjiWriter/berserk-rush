@@ -3,7 +3,7 @@
          travelingTo: null,
          isPaused: false,
          speed: 1,
-         autoChain: {{ $autoChain ? 'true' : 'false' }}
+         autoChain: @entangle('autoChain')
      }">
 
     {{-- Dynamic background per map --}}
@@ -269,7 +269,7 @@
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
-                    <div class="relative flex-1 overflow-y-auto p-3 lg:p-4" wire:poll.500ms="checkCombatStatus">
+                    <div id="combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
                         {{-- Loading Overlay during startBattle --}}
                         <div wire:loading.flex wire:target="startBattle" class="absolute inset-0 z-20 flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md text-center">
                             <div class="relative w-20 h-20 mb-3">
@@ -741,6 +741,30 @@
             let isPaused = false;
             let currentSpeed = 1;
 
+            function scrollCombatLogToBottom(force = false) {
+                const container = document.getElementById('combat-log-container');
+                if (!container) return;
+
+                const isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
+                if (force || isNearBottom) {
+                    container.scrollTo({
+                        top: container.scrollHeight,
+                        behavior: force ? 'auto' : 'smooth'
+                    });
+                }
+            }
+
+            const logContainer = document.getElementById('combat-log-container');
+            if (logContainer) {
+                if (window._combatLogObserver) {
+                    window._combatLogObserver.disconnect();
+                }
+                window._combatLogObserver = new MutationObserver(() => {
+                    scrollCombatLogToBottom();
+                });
+                window._combatLogObserver.observe(logContainer, { childList: true, subtree: true });
+            }
+
             function cleanUp() {
                 if (turnTimer) clearTimeout(turnTimer);
                 if (autoChainTimeout) clearTimeout(autoChainTimeout);
@@ -800,7 +824,7 @@
 
             window.toggleCombatAuto = function(active) {
                 const component = getComponent();
-                if (component) component.call('toggleAutoChain');
+                if (component) component.call('toggleAutoChain', active);
             };
 
             Livewire.on('start-playback', (event) => {
@@ -810,6 +834,7 @@
                 if (evtSpeed) {
                     currentSpeed = evtSpeed;
                 }
+                setTimeout(() => scrollCombatLogToBottom(true), 50);
                 scheduleNextTurn(currentSpeed === 2 ? 100 : 200);
             });
 

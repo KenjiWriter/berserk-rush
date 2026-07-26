@@ -170,7 +170,7 @@
                         </h3>
                     </header>
 
-                    <div class="relative flex-1 overflow-y-auto p-4" wire:poll.500ms="checkCombatStatus">
+                    <div id="arena-combat-log-container" class="relative flex-1 overflow-y-auto p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
                         @if($isCalculating)
                             <div class="h-full flex flex-col items-center justify-center text-center">
                                 <div class="relative w-32 h-32 mb-6">
@@ -391,9 +391,30 @@
         document.addEventListener('livewire:initialized', () => {
             let playbackTimeout;
 
+            function scrollArenaLogToBottom(force = false) {
+                const container = document.getElementById('arena-combat-log-container');
+                if (!container) return;
+                const isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
+                if (force || isNearBottom) {
+                    container.scrollTo({
+                        top: container.scrollHeight,
+                        behavior: force ? 'auto' : 'smooth'
+                    });
+                }
+            }
+
+            const arenaLogContainer = document.getElementById('arena-combat-log-container');
+            if (arenaLogContainer) {
+                const observer = new MutationObserver(() => {
+                    scrollArenaLogToBottom();
+                });
+                observer.observe(arenaLogContainer, { childList: true, subtree: true });
+            }
+
             Livewire.on('start-playback', (data) => {
                 clearTimeout(playbackTimeout);
                 const speed = data.speed || (data[0] && data[0].speed) || 1;
+                setTimeout(() => scrollArenaLogToBottom(true), 50);
                 playNextTurn(speed);
             });
 
@@ -408,6 +429,7 @@
             });
 
             Livewire.on('turn-played', (event) => {
+                scrollArenaLogToBottom();
                 const data = (event && event[0]) ? event[0] : event;
                 const actor = data.actor;
                 const type = data.type;

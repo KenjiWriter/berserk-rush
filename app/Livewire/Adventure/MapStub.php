@@ -72,6 +72,7 @@ class MapStub extends Component
     {
         $this->sessionStartTime = time();
         $this->playbackSpeed = session('combat_playback_speed', 1);
+        $this->autoChain = session('combat_auto_chain', true);
 
         // Authorization check
         if (Auth::user()->id !== $character->user_id) {
@@ -91,6 +92,7 @@ class MapStub extends Component
 
         if (Auth::user()->game_stage <= 12) {
             $this->autoChain = false;
+            session(['combat_auto_chain' => false]);
         }
 
         if (request()->has('world_boss')) {
@@ -272,17 +274,27 @@ class MapStub extends Component
         }
     }
 
-    public function toggleAutoChain(): void
+    public function toggleAutoChain(?bool $status = null): void
     {
         if (Auth::user()->game_stage <= 12) {
+            $this->autoChain = false;
+            session(['combat_auto_chain' => false]);
             return;
         }
-        $this->autoChain = !$this->autoChain;
+
+        if ($status !== null) {
+            $this->autoChain = (bool)$status;
+        } else {
+            $this->autoChain = !$this->autoChain;
+        }
+
+        session(['combat_auto_chain' => $this->autoChain]);
     }
 
     public function stopAuto(): void
     {
         $this->autoChain = false;
+        session(['combat_auto_chain' => false]);
         $this->pause();
     }
 
@@ -454,6 +466,7 @@ class MapStub extends Component
         } else {
             if (!empty($this->levelUps)) {
                 $this->autoChain = false; // Zatrzymaj automat na stałe
+                session(['combat_auto_chain' => false]);
             }
             $this->dispatch('encounter-finished', result: $this->result);
         }
