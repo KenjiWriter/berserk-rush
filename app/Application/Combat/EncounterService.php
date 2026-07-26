@@ -199,7 +199,8 @@ class EncounterService
                 ]);
 
                 // Simulate combat
-                $isWorldBoss = ($monster->rank?->value === 'worldboss');
+                $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
+                $isWorldBoss = ($rankVal === 'worldboss');
                 if ($isWorldBoss) {
                     $monsterMaxHp = 999999999;
                     $monsterHp = $monsterMaxHp;

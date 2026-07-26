@@ -220,5 +220,9 @@ class BattleQueueingTest extends TestCase
             ->assertSet('worldBossMonsterId', $bossMonster->id)
             ->call('startBattle')
             ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('world_boss_damage_logs', [
+            'character_id' => $character->id,
+        ]);
     }
 }
