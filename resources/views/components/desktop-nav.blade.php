@@ -37,6 +37,18 @@
 
             @if($character)
                 <div @click="$dispatch('toggle-reward-infobox'); $dispatch('play-audio', { type: 'hover' })"
+                     x-data="{ navLevel: {{ $character->level }} }"
+                     @stats-updated.window="
+                        let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
+                        if (data && data.level !== undefined) navLevel = Number(data.level);
+                        if (data && data.newStats && data.newStats.level !== undefined) navLevel = Number(data.newStats.level);
+                     "
+                     @open-level-up-modal.window="
+                        let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
+                        if (data && data.level !== undefined) navLevel = Number(data.level);
+                        else if (typeof data === 'number') navLevel = data;
+                        else if (data && typeof data === 'object' && data.detail && data.detail.level) navLevel = Number(data.detail.level);
+                     "
                      :class="collapsed ? 'p-1.5 justify-center' : 'p-2 pr-6'"
                      class="flex items-center gap-3 rounded-xl bg-stone-950 border-2 border-amber-700/60 hover:border-amber-400 hover:bg-amber-950/40 transition-all duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_4px_10px_rgba(0,0,0,0.5)] group cursor-pointer"
                      title="Kliknij, aby zobaczyć profil i skarbiec">
@@ -65,7 +77,7 @@
                             {{ $character->name }}
                         </h3>
                         <div class="flex items-center justify-between text-[10px] text-amber-300/80 font-bold mt-0.5">
-                            <span>Lvl {{ $character->level }}</span>
+                            <span>Lvl <span x-text="navLevel">{{ $character->level }}</span></span>
                             <span class="text-yellow-400 font-bold">⚡ {{ number_format($character->getTotalCombatPower()) }}</span>
                         </div>
                     </div>

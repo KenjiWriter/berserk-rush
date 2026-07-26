@@ -125,6 +125,9 @@ document.addEventListener('alpine:init', () => {
             let data = Array.isArray(eventDetail) ? eventDetail[0] : eventDetail;
             if (!data) return;
 
+            if (data.level !== undefined) {
+                this.stats.level = Number(data.level);
+            }
             if (data.gold !== undefined) {
                 this.stats.gold = Number(data.gold);
                 this.displayGold = Number(data.gold);

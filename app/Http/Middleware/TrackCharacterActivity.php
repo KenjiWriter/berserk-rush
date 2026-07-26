@@ -24,6 +24,18 @@ class TrackCharacterActivity
             }
 
             $activeCharId = session('active_character');
+            if (!$activeCharId) {
+                $charParam = $request->route('character');
+                if ($charParam) {
+                    $activeCharId = $charParam instanceof Character ? $charParam->id : $charParam;
+                } elseif ($user->characters()->exists()) {
+                    $activeCharId = $user->characters()->first()->id;
+                }
+                if ($activeCharId) {
+                    session(['active_character' => $activeCharId]);
+                }
+            }
+
             if ($activeCharId) {
                 $character = Character::find($activeCharId);
                 if ($character) {

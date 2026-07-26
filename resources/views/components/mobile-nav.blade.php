@@ -52,9 +52,21 @@
                                 <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
                             @endif
                         </div>
-                        <div class="min-w-0">
+                        <div class="min-w-0"
+                             x-data="{ navLevel: {{ $character->level }} }"
+                             @stats-updated.window="
+                                let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
+                                if (data && data.level !== undefined) navLevel = Number(data.level);
+                                if (data && data.newStats && data.newStats.level !== undefined) navLevel = Number(data.newStats.level);
+                             "
+                             @open-level-up-modal.window="
+                                let data = Array.isArray($event.detail) ? $event.detail[0] : $event.detail;
+                                if (data && data.level !== undefined) navLevel = Number(data.level);
+                                else if (typeof data === 'number') navLevel = data;
+                                else if (data && typeof data === 'object' && data.detail && data.detail.level) navLevel = Number(data.detail.level);
+                             ">
                             <h3 class="text-xs font-extrabold text-amber-100 truncate">{{ $character->name }}</h3>
-                            <p class="text-[10px] text-amber-400">Lvl {{ $character->level }} | ⚡ {{ number_format($character->getTotalCombatPower()) }}</p>
+                            <p class="text-[10px] text-amber-400">Lvl <span x-text="navLevel">{{ $character->level }}</span> | ⚡ {{ number_format($character->getTotalCombatPower()) }}</p>
                         </div>
                     @endif
                 </div>

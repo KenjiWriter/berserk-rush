@@ -508,6 +508,9 @@ class MapStub extends Component
                     'attribute_points' => ($this->character->level - $oldLevel) * 3,
                 ];
                 $this->dispatch('open-level-up-modal', level: $this->character->level);
+                $this->dispatch('stats-updated', level: $this->character->level, xp: $this->character->xp, gold: $this->character->gold);
+            } else {
+                $this->dispatch('stats-updated', level: $this->character->level, xp: $this->character->xp, gold: $this->character->gold);
             }
         }
     }

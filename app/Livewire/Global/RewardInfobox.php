@@ -32,6 +32,13 @@ class RewardInfobox extends Component
         $characterId = session('active_character');
         $character = $characterId ? \App\Infrastructure\Persistence\Character::find($characterId) : null;
 
+        if (!$character && Auth::check()) {
+            $character = Auth::user()->characters()->first();
+            if ($character) {
+                session(['active_character' => $character->id]);
+            }
+        }
+
         if ($character) {
             $user = $character->user ?? Auth::user();
             $this->characterStats = [
