@@ -77,21 +77,36 @@ class DropService
                         break;
 
                     case 'item':
-                        $items[] = [
-                            'template_id' => $templateUlid,
-                            'name' => $itemName,
-                            'rarity' => 'common',
-                            'quantity' => $quantity,
-                        ];
+                        $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency']);
+                        $hasExisting = $isStackable && ItemInstance::where('owner_character_id', $encounter->character_id)
+                            ->where('template_id', $templateUlid)
+                            ->where('location', 'inventory')
+                            ->exists();
+
+                        if ($hasExisting || !$encounter->character->isBackpackFull()) {
+                            $items[] = [
+                                'template_id' => $templateUlid,
+                                'name' => $itemName,
+                                'rarity' => 'common',
+                                'quantity' => $quantity,
+                            ];
+                        }
                         break;
 
                     case 'material':
-                        $materials[] = [
-                            'template_id' => $templateUlid,
-                            'name' => $itemName,
-                            'rarity' => 'common',
-                            'quantity' => $quantity,
-                        ];
+                        $hasExisting = ItemInstance::where('owner_character_id', $encounter->character_id)
+                            ->where('template_id', $templateUlid)
+                            ->where('location', 'inventory')
+                            ->exists();
+
+                        if ($hasExisting || !$encounter->character->isBackpackFull()) {
+                            $materials[] = [
+                                'template_id' => $templateUlid,
+                                'name' => $itemName,
+                                'rarity' => 'common',
+                                'quantity' => $quantity,
+                            ];
+                        }
                         break;
                 }
             }
@@ -248,6 +263,13 @@ class DropService
                 ];
                 return $items;
             } else {
+                if ($character->isBackpackFull()) {
+                    Log::info("Backpack full for character {$character->id}, cannot drop new item stack.", [
+                        'template_id' => $templateUlid
+                    ]);
+                    return [];
+                }
+
                 $itemInstance = ItemInstance::create([
                     'id' => Str::ulid(),
                     'template_id' => $templateUlid,
@@ -279,6 +301,13 @@ class DropService
                 ];
                 return $items;
             }
+        }
+
+        if ($character->isBackpackFull()) {
+            Log::info("Backpack full for character {$character->id}, cannot drop new unstackable item.", [
+                'template_id' => $templateUlid
+            ]);
+            return [];
         }
 
         for ($i = 0; $i < $quantity; $i++) {

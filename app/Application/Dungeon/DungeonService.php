@@ -450,6 +450,9 @@ class DungeonService
                                 'idempotency_key' => "{$idempotencyKey}:item:{$index}"
                             ]);
                         } else {
+                            if ($character->isBackpackFull()) {
+                                continue;
+                            }
                             $instance = ItemInstance::create([
                                 'id' => Str::ulid(),
                                 'template_id' => $templateUlid,
@@ -473,6 +476,9 @@ class DungeonService
                             ]);
                         }
                     } else {
+                        if ($character->isBackpackFull()) {
+                            continue;
+                        }
                         // Unstackable items
                         for ($i = 0; $i < $quantity; $i++) {
                             $instance = ItemInstance::create([

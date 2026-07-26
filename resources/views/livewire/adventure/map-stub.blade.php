@@ -414,6 +414,13 @@
                                                                 <span class="text-emerald-300">{{ $material['name'] }} ({{ $material['quantity'] }}x)</span>
                                                             </div>
                                                         @endforeach
+
+                                                        @if ($character->isBackpackFull())
+                                                            <div class="text-[10px] sm:text-xs text-amber-400 font-semibold mt-2 flex items-center gap-1.5 bg-amber-950/60 p-1.5 rounded border border-amber-500/40">
+                                                                <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                                                                <span>Plecak jest pełny ({{ $character->getBackpackCount() }}/{{ $character->getBackpackCapacity() }}) - nowe przedmioty nie są zbierane!</span>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             @endif
