@@ -1176,6 +1176,13 @@
             goldPerMin: 0,
             timer: null,
             updateTime() {
+                if (!this.$el || !this.$el.isConnected) {
+                    if (this.timer) {
+                        clearInterval(this.timer);
+                        this.timer = null;
+                    }
+                    return;
+                }
                 try {
                     let now = Math.floor(Date.now() / 1000);
                     let diff = Math.max(0, now - this.startTime);
@@ -1201,7 +1208,7 @@
                 }
             }
          }"
-         x-init="updateTime(); timer = setInterval(() => updateTime(), 1000); $cleanup(() => { if (timer) clearInterval(timer); })">
+         x-init="updateTime(); timer = setInterval(() => updateTime(), 1000)">
         <div class="flex items-center gap-1.5" title="Pokonani potwory">
             <span class="text-amber-400 font-sans"><i class="fa-solid fa-swords"></i></span>
             <span class="font-bold text-white">{{ $sessionMonstersDefeated }}</span>
