@@ -418,6 +418,8 @@ class Profile extends Component
                 return $item->template->type === $this->inventoryFilter;
             });
         }
+        // Safety cap to prevent memory exhaustion if a character has an excessive number of items in DB
+        $inventory = $inventory->take(64);
 
         $user = auth()->user();
         $playerStashItems = $user ? $user->playerStashItems()->with('template')->get() : collect();
@@ -426,6 +428,8 @@ class Profile extends Component
                 return $item->template->type === $this->inventoryFilter;
             });
         }
+        $playerStashItems = $playerStashItems->take(64);
+
 
         $pets = Pet::where('character_id', $this->character->id)
             ->orderByDesc('is_equipped')
