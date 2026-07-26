@@ -153,13 +153,16 @@
                                     @elseif($listing->item->rarity === 'epic') border-purple-500/80 shadow-[0_0_12px_rgba(168,85,247,0.3)]
                                     @elseif($listing->item->rarity === 'legendary') border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]
                                     @endif"
-                                     x-data="{ showInfo: false, timeout: null }" 
-                                     @mouseenter="clearTimeout(timeout); showInfo = true" 
-                                     @mouseleave="timeout = setTimeout(() => showInfo = false, 300)" 
-                                     @click="clearTimeout(timeout); showInfo = !showInfo">
+                                      x-data="smartTooltip()" 
+                                      @mouseenter="openTooltip()" 
+                                      @mouseleave="closeTooltip()" 
+                                      @click="toggleTooltip()"
+                                      @resize.window.debounce.100ms="updatePosition()"
+                                      @tooltip-updated.window="updatePosition()">
                                      
                                     {{-- Item Tooltip --}}
-                                    <div x-show="showInfo" x-transition.opacity 
+                                    <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                         :style="tooltipStyle"
                                          class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-none">
                                         <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
                                     </div>

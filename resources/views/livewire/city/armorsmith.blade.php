@@ -58,11 +58,13 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Twój Ekwipunek</h3>
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 @forelse($inventoryItems as $item)
-                                    <div wire:key="inv-{{ $item->id }}" class="relative" x-data="{ showInfo: false, timeout: null }" 
+                                    <div wire:key="inv-{{ $item->id }}" class="relative" x-data="smartTooltip()" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                         @mouseenter="clearTimeout(timeout); showInfo = true"
-                                         @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
-                                         @click="clearTimeout(timeout); showInfo = !showInfo">
+                                         @mouseenter="openTooltip()"
+                                         @mouseleave="closeTooltip()"
+                                         @click="toggleTooltip()"
+                                         @resize.window.debounce.100ms="updatePosition()"
+                                         @tooltip-updated.window="updatePosition()">
                                         
                                         <div class="aspect-square bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}">
                                             @if($item->template->icon)
@@ -84,7 +86,8 @@
                                         </div>
 
                                         <!-- Infobox Ekwipunku -->
-                                        <div x-show="showInfo" x-transition.opacity 
+                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                             :style="tooltipStyle"
                                              class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
                                             <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                                 <x-slot:actions>
@@ -154,11 +157,13 @@
                             <h3 class="text-xl font-bold text-amber-400 mb-4 border-b border-gray-700/50 pb-2 text-center medieval-font">Asortyment</h3>
                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                 @forelse($shopItems as $item)
-                                    <div wire:key="shop-{{ $item->id }}" class="relative" x-data="{ showInfo: false, timeout: null }" 
+                                    <div wire:key="shop-{{ $item->id }}" class="relative" x-data="smartTooltip()" 
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                         @mouseenter="clearTimeout(timeout); showInfo = true"
-                                         @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
-                                         @click="clearTimeout(timeout); showInfo = !showInfo">
+                                         @mouseenter="openTooltip()"
+                                         @mouseleave="closeTooltip()"
+                                         @click="toggleTooltip()"
+                                         @resize.window.debounce.100ms="updatePosition()"
+                                         @tooltip-updated.window="updatePosition()">
                                          
                                         <div class="bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg p-3 flex flex-col items-center text-center cursor-pointer transition-all h-full {{ $gameStage == 19 && $item->template->id === 'miecz-nowicjusza' ? 'animate-pulse ring-2 ring-amber-500' : '' }}">
                                             @if($item->template->icon)
@@ -171,7 +176,8 @@
                                         </div>
 
                                         <!-- Infobox Sklepu -->
-                                        <div x-show="showInfo" x-transition.opacity 
+                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                             :style="tooltipStyle"
                                              class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
                                             <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                                 <x-slot:actions>

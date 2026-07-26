@@ -661,16 +661,48 @@
                             open: false, 
                             hoverTimeout: null,
                             isDraggingThis: false,
-                            posClass: 'sm:bottom-full sm:mb-2',
+                            tooltipStyle: {},
                             checkPosition() { 
-                                this.posClass = this.$el.getBoundingClientRect().top < window.innerHeight / 2 ? 'sm:top-full sm:mt-2' : 'sm:bottom-full sm:mb-2'; 
+                                if (window.innerWidth < 640) return;
+                                this.$nextTick(() => {
+                                    const triggerRect = this.$el.getBoundingClientRect();
+                                    const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                                    if (!triggerRect.width || !tooltipEl) return;
+                                    const tooltipRect = tooltipEl.getBoundingClientRect();
+                                    const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                                    const halfWidth = tooltipRect.width / 2;
+                                    const minMargin = 12;
+                                    let style = {};
+                                    if (triggerCenter - halfWidth < minMargin) {
+                                        style.left = (minMargin - triggerRect.left) + 'px';
+                                        style.transform = 'none';
+                                    } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
+                                        style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
+                                        style.transform = 'none';
+                                    } else {
+                                        style.left = '50%';
+                                        style.transform = 'translateX(-50%)';
+                                    }
+                                    if (triggerRect.top < tooltipRect.height + 16) {
+                                        style.top = '100%';
+                                        style.bottom = 'auto';
+                                        style.marginTop = '8px';
+                                        style.marginBottom = '0';
+                                    } else {
+                                        style.bottom = '100%';
+                                        style.top = 'auto';
+                                        style.marginBottom = '8px';
+                                        style.marginTop = '0';
+                                    }
+                                    this.tooltipStyle = style;
+                                });
                             },
                             openTooltip() {
                                 if (activeItemId && activeItemId !== '{{ $item->id }}') return;
                                 clearTimeout(this.hoverTimeout);
-                                this.checkPosition();
                                 activeItemId = '{{ $item->id }}';
                                 this.open = true;
+                                this.checkPosition();
                             },
                             closeTooltip() {
                                 clearTimeout(this.hoverTimeout);
@@ -756,10 +788,10 @@
 
                             <!-- Tooltip / Modal -->
                             <div x-show="open" x-transition.opacity style="display: none;" 
-                                 :class="posClass"
+                                 :style="window.innerWidth >= 640 ? tooltipStyle : {}"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
                                 <template x-if="open">
-                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
+                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
                                         <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                         <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                             <x-slot:actions>

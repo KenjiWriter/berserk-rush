@@ -37,11 +37,13 @@
             <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-6 flex flex-col mt-4">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
                     @foreach($merchantItems as $item)
-                        <div class="relative" x-data="{ showInfo: false, timeout: null }" 
+                        <div class="relative" x-data="smartTooltip()" 
                              :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                             @mouseenter="clearTimeout(timeout); showInfo = true"
-                             @mouseleave="timeout = setTimeout(() => showInfo = false, 300)"
-                             @click="clearTimeout(timeout); showInfo = !showInfo">
+                             @mouseenter="openTooltip()"
+                             @mouseleave="closeTooltip()"
+                             @click="toggleTooltip()"
+                             @resize.window.debounce.100ms="updatePosition()"
+                             @tooltip-updated.window="updatePosition()">
                              
                             <div class="bg-black/80 border border-gray-600 hover:border-amber-400 rounded-lg p-3 flex flex-col items-center text-center cursor-pointer transition-all h-full">
                                 @if($item->template->icon)
@@ -57,7 +59,8 @@
                             </div>
 
                             <!-- Infobox Sklepu -->
-                            <div x-show="showInfo" x-transition.opacity 
+                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                 :style="tooltipStyle"
                                  class="absolute z-[100] top-full left-1/2 -translate-x-1/2 mt-2 w-auto pointer-events-auto">
                                 <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                     <x-slot:actions>

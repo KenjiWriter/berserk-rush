@@ -45,7 +45,7 @@
     }
 @endphp
 
-<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
+<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
     <!-- Górny pasek -->
     <div class="flex justify-between items-center mb-2">
         <div>
@@ -71,7 +71,7 @@
             <span class="text-xs text-amber-300 font-bold flex items-center gap-1.5">
                 <i class="fa-solid fa-scale-balanced text-amber-400"></i> Porównanie z założonym
             </span>
-            <button @click="compare = !compare" class="text-[11px] text-gray-400 hover:text-amber-200 underline font-semibold transition">
+            <button @click="compare = !compare; $dispatch('tooltip-updated')" class="text-[11px] text-gray-400 hover:text-amber-200 underline font-semibold transition">
                 <span x-show="compare">Ukryj</span>
                 <span x-show="!compare">Pokaż</span>
             </button>
