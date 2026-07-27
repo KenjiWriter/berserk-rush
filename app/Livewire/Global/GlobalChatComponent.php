@@ -249,11 +249,16 @@ class GlobalChatComponent extends Component
     }
 
     /**
-     * Load tooltip data for a character on hover (called from Alpine via Livewire action).
+     * Load tooltip data for a character on click (called from Alpine/Blade via Livewire action).
      */
     public function loadTooltip(string $characterId): void
     {
         try {
+            if ($this->activeTooltipId === $characterId) {
+                $this->activeTooltipId = null;
+                return;
+            }
+
             if (isset($this->tooltipData[$characterId])) {
                 $this->activeTooltipId = $characterId;
                 return;

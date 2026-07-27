@@ -10,8 +10,9 @@
             {!! (Auth::check() && Auth::user()->permission_level == 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/give pet Leśny Wilk', desc: 'Dodaj chowańca: Leśny Wilk', channel: 'all' }, { cmd: '/give pet Skalny Golem', desc: 'Dodaj chowańca: Skalny Golem', channel: 'all' }, { cmd: '/give pet Magiczna Wróżka', desc: 'Dodaj chowańca: Magiczna Wróżka', channel: 'all' }, { cmd: '/give pet Mroczny Smok', desc: 'Dodaj chowańca: Mroczny Smok', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }, { cmd: '/set level <poziom>', desc: 'Ustaw poziom postaci', channel: 'all' }, { cmd: '/set sp <ilość>', desc: 'Dodaj punkty atrybutów (SP)', channel: 'all' }" : "" !!}
         ],
         filteredCommands: [],
-        lastScrollTop: 0,
+        savedScrollTop: 0,
         lastMsgCount: 0,
+        wasAtBottom: true,
         checkCommands() {
             if ((this.message || '').startsWith('/')) {
                 let search = (this.message || '').toLowerCase().split(' ')[0];
@@ -35,22 +36,37 @@
                 const el = this.$refs.chatBox;
                 if (el) {
                     el.scrollTop = el.scrollHeight;
-                    this.lastScrollTop = el.scrollTop;
+                    this.savedScrollTop = el.scrollTop;
+                    this.wasAtBottom = true;
                 }
             });
         },
         handleScroll() {
             const el = this.$refs.chatBox;
-            if (el) {
-                this.lastScrollTop = el.scrollTop;
+            if (!el) return;
+            if (el.scrollTop === 0 && el.scrollHeight > el.clientHeight + 10 && this.savedScrollTop > 0) {
+                return;
             }
+            this.savedScrollTop = el.scrollTop;
+            const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+            this.wasAtBottom = distanceToBottom < 30;
         },
         updateScrollPosition() {
             const el = this.$refs.chatBox;
             if (!el) return;
             const currentMsgs = el.querySelectorAll('.chat-msg-appear').length;
             if (currentMsgs > this.lastMsgCount) {
-                this.scrollToBottom();
+                if (this.wasAtBottom || this.lastMsgCount === 0) {
+                    this.scrollToBottom();
+                } else {
+                    el.scrollTop = this.savedScrollTop;
+                }
+            } else {
+                if (this.wasAtBottom) {
+                    el.scrollTop = el.scrollHeight;
+                } else {
+                    el.scrollTop = this.savedScrollTop;
+                }
             }
             this.lastMsgCount = currentMsgs;
         },
@@ -96,11 +112,13 @@
                     this.$nextTick(() => this.scrollToBottom());
                 }
             });
+            this.$watch('$wire.activeTooltipId', () => {
+                this.$nextTick(() => this.updateScrollPosition());
+            });
         }
     }"
     class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none flex items-end gap-2"
     style="font-family: 'Cinzel', serif;"
-    wire:mouseleave="closeTooltip"
 >
     {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
     @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
@@ -112,6 +130,7 @@
             wire:click.self="closeTooltip"
         >
             <div
+                @click.outside="if ($wire.activeTooltipId) $wire.closeTooltip()"
                 class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
@@ -296,7 +315,6 @@
                                 @endif
                                 <span
                                     wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
-                                    wire:mouseenter="loadTooltip('{{ $msg['character_id'] }}')"
                                     class="font-bold cursor-pointer transition-colors hover:underline decoration-dotted 
                                     {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200') }}"
                                 >
