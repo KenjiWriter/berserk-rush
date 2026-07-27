@@ -176,7 +176,7 @@
 <body class="font-sans antialiased">
     {{-- ===== Global Location Transition Overlay ===== --}}
     <div x-data="{ leaving: false, text: 'Podróż...', icon: 'fa-solid fa-archway' }"
-         @location-leave.window="
+         x-on:location-leave.window="
              let targetUrl = $event.detail?.url || $event.detail?.targetUrl;
              if (targetUrl && window.isLocationCached && window.isLocationCached(targetUrl)) {
                  leaving = false;
@@ -186,7 +186,7 @@
                  icon = $event.detail?.icon || 'fa-solid fa-archway';
              }
          "
-         @livewire:navigated.window="leaving = false"
+         x-on:livewire:navigated.window="leaving = false"
          x-show="leaving"
          x-transition:enter="transition ease-in-out duration-500"
          x-transition:enter-start="opacity-0"
