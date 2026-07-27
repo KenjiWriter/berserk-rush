@@ -263,9 +263,9 @@
             >
                 {{-- Icon --}}
                 <div class="text-xl shrink-0 mt-0.5">
-                    <span x-show="toast.type === 'success'">✅</span>
-                    <span x-show="toast.type === 'error'">❌</span>
-                    <span x-show="toast.type !== 'success' && toast.type !== 'error'">ℹ️</span>
+                    <span x-show="toast.type === 'success'"><i class="fa-solid fa-circle-check text-green-400"></i></span>
+                    <span x-show="toast.type === 'error'"><i class="fa-solid fa-circle-xmark text-red-400"></i></span>
+                    <span x-show="toast.type !== 'success' && toast.type !== 'error'"><i class="fa-solid fa-circle-info text-blue-400"></i></span>
                 </div>
 
                 {{-- Message --}}
@@ -285,7 +285,7 @@
                 <button
                     @click.stop="removeToast(toast.id)"
                     class="shrink-0 text-white/40 hover:text-white/80 transition-colors text-xs leading-none mt-0.5"
-                >✕</button>
+                ><i class="fa-solid fa-xmark"></i></button>
 
                 {{-- Progress bar --}}
                 <div
@@ -320,7 +320,7 @@
               x-transition:leave-start="opacity-100 scale-100"
               x-transition:leave-end="opacity-0 scale-90">
               
-             <div class="text-6xl mb-4 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">💎</div>
+             <div class="text-5xl mb-4 text-purple-400 drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]"><i class="fa-solid fa-gem"></i></div>
              <h2 class="text-2xl font-bold text-amber-300 mb-2">Brak Gemów</h2>
              <p class="text-amber-100/80 mb-8">Nie masz wystarczającej ilości Gemów, aby wykonać tę akcję. Czy chcesz doładować swoje konto w Sklepie Premium?</p>
              

@@ -46,7 +46,7 @@
                     <div class="min-w-0">
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded border {{ $activeEvent['badge_bg'] }}">
-                                ⚡ Event Weekendowy
+                                <i class="fa-solid fa-bolt text-amber-400 mr-1"></i> Event Weekendowy
                             </span>
                             <h4 class="text-xs sm:text-sm font-extrabold text-amber-100 truncate tracking-wide">
                                 {{ $activeEvent['name'] }}
