@@ -144,9 +144,15 @@ class Wizard extends Component
             })->get()
         );
 
+        $equipped = [];
+        foreach($this->character->equippedItems()->with('template')->get() as $eq) {
+            $equipped[$eq->template->slot] = $eq;
+        }
+
         return view('livewire.city.wizard', [
             'enchantableItems' => $enchantableItems,
             'activeItem' => $this->activeItemId ? $enchantableItems->firstWhere('id', $this->activeItemId) : null,
+            'equipped' => $equipped,
         ]);
     }
 }

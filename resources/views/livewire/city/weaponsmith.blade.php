@@ -272,7 +272,7 @@
                 @elseif($activeTab === 'forge')
                     <div class="h-full flex flex-col gap-6 relative" x-data="{ hammering: false }">
                         @php
-                            $upgradeItem = $selectedUpgradeItemId ? $inventoryItems->firstWhere('id', $selectedUpgradeItemId) : null;
+                            $upgradeItem = $selectedUpgradeItemId ? $upgradableItems->firstWhere('id', $selectedUpgradeItemId) : null;
                             $cost = $selectedUpgradeItemId ? ($upgradeCosts[$selectedUpgradeItemId] ?? null) : null;
                         @endphp
 
@@ -280,9 +280,18 @@
                         <div class="w-full flex flex-col md:flex-row items-stretch justify-between gap-8">
                             
                             <!-- Lewo: Obecny Przedmiot -->
-                            <div class="flex-1 bg-black/60 border border-slate-600 rounded-xl p-6 flex flex-col items-center text-center shadow-xl backdrop-blur">
+                            <div class="flex-1 bg-black/60 border border-slate-600 rounded-xl p-6 flex flex-col items-center text-center shadow-xl backdrop-blur relative"
+                                 @if($selectedUpgradeItemId && $upgradeItem)
+                                     x-data="smartTooltip()" 
+                                     :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                     @mouseenter="openTooltip()"
+                                     @mouseleave="closeTooltip()"
+                                     @click="toggleTooltip()"
+                                     @resize.window.debounce.100ms="updatePosition()"
+                                     @tooltip-updated.window="updatePosition()"
+                                 @endif>
                                 <h3 class="text-xl font-bold text-gray-400 mb-4 medieval-font">Obecny Stan</h3>
-                                <div class="w-24 h-24 bg-slate-800/80 rounded-lg border-2 border-slate-500 p-2 mb-4 flex items-center justify-center">
+                                <div class="w-24 h-24 bg-slate-800/80 rounded-lg border-2 border-slate-500 p-2 mb-4 flex items-center justify-center cursor-pointer">
                                     @if($selectedUpgradeItemId && $upgradeItem)
                                         @if($upgradeItem->template->icon)
                                             <img src="{{ route('assets.items', ['filename' => $upgradeItem->template->icon]) }}" class="w-full h-full object-contain" alt="">
@@ -293,6 +302,13 @@
                                 </div>
                                 @if($selectedUpgradeItemId && $upgradeItem)
                                     <h4 class="text-2xl font-bold text-blue-300">{{ $upgradeItem->template->name }} <span class="text-yellow-400">+{{ $upgradeItem->upgrade_level }}</span></h4>
+                                    
+                                    <!-- Infobox Obecnego Stanu -->
+                                    <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                         :style="tooltipStyle"
+                                         class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                        <x-item-tooltip :item="$upgradeItem" :equippedItem="$equipped[$upgradeItem->template->slot ?? ''] ?? null" />
+                                    </div>
                                 @else
                                     <h4 class="text-lg font-bold text-gray-500">Brak przedmiotu</h4>
                                 @endif
@@ -413,21 +429,42 @@
                             <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
                                 @forelse($upgradableItems as $item)
                                     @if($item->upgrade_level < 9)
-                                        <div wire:click="selectItemForUpgrade('{{ $item->id }}')" 
-                                             class="aspect-square bg-black/80 border {{ $selectedUpgradeItemId === $item->id ? 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'border-gray-600 hover:border-amber-400' }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative">
-                                            @if($item->template->icon)
-                                                <div class="w-full h-full p-2 relative flex items-center justify-center">
-                                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
-                                                    @if($item->upgrade_level > 0)
-                                                        <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
-                                                    @endif
-                                                </div>
-                                            @else
-                                                <div class="text-[10px] text-center p-1 truncate w-full">{{ $item->template->name }}</div>
-                                            @endif
-                                            @if($item->location === 'equipped')
-                                                <div class="absolute -top-1 -right-1 bg-blue-600 border border-blue-400 text-white text-[9px] font-bold px-1 py-0.5 rounded shadow">E</div>
-                                            @endif
+                                        <div wire:key="forge-item-{{ $item->id }}" class="relative" x-data="smartTooltip()" 
+                                             :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                             @mouseenter="openTooltip()"
+                                             @mouseleave="closeTooltip()"
+                                             @click="toggleTooltip(); $wire.selectItemForUpgrade('{{ $item->id }}')"
+                                             @resize.window.debounce.100ms="updatePosition()"
+                                             @tooltip-updated.window="updatePosition()">
+
+                                            <div class="aspect-square bg-black/80 border {{ $selectedUpgradeItemId === $item->id ? 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'border-gray-600 hover:border-amber-400' }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative">
+                                                @if($item->template->icon)
+                                                    <div class="w-full h-full p-2 relative flex items-center justify-center">
+                                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
+                                                        @if($item->upgrade_level > 0)
+                                                            <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
+                                                        @endif
+                                                    </div>
+                                                @else
+                                                    <div class="text-[10px] text-center p-1 truncate w-full">{{ $item->template->name }}</div>
+                                                @endif
+                                                @if($item->location === 'equipped')
+                                                    <div class="absolute -top-1 -right-1 bg-blue-600 border border-blue-400 text-white text-[9px] font-bold px-1 py-0.5 rounded shadow">E</div>
+                                                @endif
+                                            </div>
+
+                                            <!-- Infobox Przedmiotu w Kuźni -->
+                                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                 :style="tooltipStyle"
+                                                 class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                    <x-slot:actions>
+                                                        <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">
+                                                            Wybierz do ulepszenia
+                                                        </button>
+                                                    </x-slot:actions>
+                                                </x-item-tooltip>
+                                            </div>
                                         </div>
                                     @endif
                                 @empty

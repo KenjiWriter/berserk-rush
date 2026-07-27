@@ -188,47 +188,68 @@
                             $enchantsCount = count($item->roll_stats['enchants'] ?? []);
                             $isActive = $activeItemId === $item->id;
                         @endphp
-                        <div wire:click="selectItemToEnchant('{{ $item->id }}')" 
-                             class="relative flex items-center p-3 rounded-xl border transition-all cursor-pointer overflow-hidden group
-                                    {{ $isActive ? 'bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-gray-900/60 border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80' }}">
-                            
-                            @if($isActive)
-                                <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-transparent"></div>
-                            @endif
+                        <div wire:key="wizard-item-{{ $item->id }}" class="relative" x-data="smartTooltip()" 
+                             :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                             @mouseenter="openTooltip()"
+                             @mouseleave="closeTooltip()"
+                             @click="toggleTooltip(); $wire.selectItemToEnchant('{{ $item->id }}')"
+                             @resize.window.debounce.100ms="updatePosition()"
+                             @tooltip-updated.window="updatePosition()">
 
-                            @if($item->location === 'equipped')
-                                <div class="absolute top-0 right-0 bg-blue-900/80 text-blue-200 text-[9px] font-bold px-1.5 py-0.5 rounded-bl-lg">
-                                    Założone
-                                </div>
-                            @endif
-                            
-                            <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border border-gray-700 mr-3 relative">
-                                @if($item->template->icon)
-                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain" alt="">
+                            <div class="relative flex items-center p-3 rounded-xl border transition-all cursor-pointer overflow-hidden group
+                                        {{ $isActive ? 'bg-purple-900/40 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)]' : 'bg-gray-900/60 border-gray-700 hover:border-purple-500/50 hover:bg-gray-800/80' }}">
+                                
+                                @if($isActive)
+                                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-transparent"></div>
                                 @endif
-                                @if($enchantsCount > 0)
-                                    <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-600 border border-purple-300 flex items-center justify-center text-[9px] font-bold text-white shadow-[0_0_5px_rgba(168,85,247,1)]">
-                                        {{ $enchantsCount }}
+
+                                @if($item->location === 'equipped')
+                                    <div class="absolute top-0 right-0 bg-blue-900/80 text-blue-200 text-[9px] font-bold px-1.5 py-0.5 rounded-bl-lg">
+                                        Założone
                                     </div>
                                 @endif
-                                @if($item->stack_size > 1)
-                                    <span class="absolute bottom-0 right-0 text-white font-bold text-[9px] bg-black/80 px-1 py-0.5 rounded border border-gray-600 shadow">x{{ $item->stack_size }}</span>
+                                
+                                <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border border-gray-700 mr-3 relative">
+                                    @if($item->template->icon)
+                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain" alt="">
+                                    @endif
+                                    @if($enchantsCount > 0)
+                                        <div class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-600 border border-purple-300 flex items-center justify-center text-[9px] font-bold text-white shadow-[0_0_5px_rgba(168,85,247,1)]">
+                                            {{ $enchantsCount }}
+                                        </div>
+                                    @endif
+                                    @if($item->stack_size > 1)
+                                        <span class="absolute bottom-0 right-0 text-white font-bold text-[9px] bg-black/80 px-1 py-0.5 rounded border border-gray-600 shadow">x{{ $item->stack_size }}</span>
+                                    @endif
+                                </div>
+
+                                <div class="flex-1 min-w-0 z-10">
+                                    <div class="font-bold text-sm text-gray-200 truncate group-hover:text-purple-300 transition-colors">
+                                        {{ $item->template->name }}
+                                        @if($item->upgrade_level > 0)<span class="text-yellow-500">+{{ $item->upgrade_level }}</span>@endif
+                                    </div>
+                                    <div class="text-xs text-gray-500 capitalize">{{ $item->template->type }}</div>
+                                </div>
+
+                                @if($isActive)
+                                    <div class="ml-2 text-purple-400 animate-pulse">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    </div>
                                 @endif
                             </div>
 
-                            <div class="flex-1 min-w-0 z-10">
-                                <div class="font-bold text-sm text-gray-200 truncate group-hover:text-purple-300 transition-colors">
-                                    {{ $item->template->name }}
-                                    @if($item->upgrade_level > 0)<span class="text-yellow-500">+{{ $item->upgrade_level }}</span>@endif
-                                </div>
-                                <div class="text-xs text-gray-500 capitalize">{{ $item->template->type }}</div>
+                            <!-- Infobox Przedmiotu -->
+                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                 :style="tooltipStyle"
+                                 class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                    <x-slot:actions>
+                                        <button wire:click.stop="selectItemToEnchant('{{ $item->id }}'); showInfo = false;" class="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold py-1.5 rounded transition">
+                                            Wybierz na Stół Zaklęć
+                                        </button>
+                                    </x-slot:actions>
+                                </x-item-tooltip>
                             </div>
-
-                            @if($isActive)
-                                <div class="ml-2 text-purple-400 animate-pulse">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                </div>
-                            @endif
                         </div>
                     @empty
                         <div class="text-center py-8 text-gray-500">
