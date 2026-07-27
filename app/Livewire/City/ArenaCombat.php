@@ -208,13 +208,19 @@ class ArenaCombat extends Component
         $baseDmgMin = 10 + $statBonus + ($level * 1) + $weaponAtkMin;
         $baseDmgMax = 10 + $statBonus + ($level * 1) + $weaponAtkMax;
 
-        $critChance = min(50, 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0));
-        $dodgeChance = min(50, 2 + ($agi * 0.3));
+        $baseCrit = 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0);
+        $critPenalty = $oppAgi * 0.15;
+        $effectiveCrit = max(0, min(50, $baseCrit - $critPenalty));
+
+        $baseDodge = 2 + ($agi * 0.3);
+        $dodgePenalty = $oppAgi * 0.10;
+        $effectiveDodge = max(0, min(50, $baseDodge - $dodgePenalty));
+
         $defense = $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0);
 
         return [
-            'crit_chance' => round($critChance, 1),
-            'dodge_chance' => round($dodgeChance, 1),
+            'crit_chance' => round($effectiveCrit, 1),
+            'dodge_chance' => round($effectiveDodge, 1),
             'atk_min' => $baseDmgMin,
             'atk_max' => max($baseDmgMin, $baseDmgMax),
             'defense' => $defense,

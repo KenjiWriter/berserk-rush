@@ -666,6 +666,7 @@ class MapStub extends Component
         $agi = $playerAttributes['agi'] ?? 0;
         $vit = $playerAttributes['vit'] ?? 0;
 
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $enemyAgi = $this->enemy['stats']['agi'] ?? 0;
 
         $statBonus = $character->getAttributeAttackBonus();
@@ -673,12 +674,17 @@ class MapStub extends Component
         $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
         $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
-        $critChance = min(50, 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0));
-        $dodgeChance = min(50, 2 + ($agi * 0.3));
+        $baseCrit = 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0);
+        $critPenalty = $enemyAgi * 0.15;
+        $effectiveCrit = max(0, $baseCrit - $critPenalty);
+
+        $baseDodge = 2 + ($agi * 0.3);
+        $dodgePenalty = $enemyAgi * 0.10;
+        $effectiveDodge = max(0, $baseDodge - $dodgePenalty);
 
         return [
-            'crit_chance' => round($critChance, 1),
-            'dodge_chance' => round($dodgeChance, 1),
+            'crit_chance' => round($effectiveCrit, 1),
+            'dodge_chance' => round($effectiveDodge, 1),
             'atk_min' => $baseDmg + $weaponAtkMin,
             'atk_max' => $baseDmg + $weaponAtkMax,
             'defense' => $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0),
@@ -691,13 +697,19 @@ class MapStub extends Component
 
         $enemyStats = $this->enemy['stats'] ?? [];
         $enemyAgi = $enemyStats['agi'] ?? 0;
+        $playerAgi = $this->player['stats']['agi'] ?? 0;
 
-        $critChance = min(30, 3 + ($enemyAgi * 0.4));
-        $dodgeChance = min(30, 2 + ($enemyAgi * 0.3));
+        $baseCrit = 3 + ($enemyAgi * 0.4);
+        $critPenalty = $playerAgi * 0.15;
+        $effectiveCrit = max(0, min(30, $baseCrit - $critPenalty));
+
+        $baseDodge = 2 + ($enemyAgi * 0.3);
+        $dodgePenalty = $playerAgi * 0.10;
+        $effectiveDodge = max(0, min(30, $baseDodge - $dodgePenalty));
 
         return [
-            'crit_chance' => round($critChance, 1),
-            'dodge_chance' => round($dodgeChance, 1),
+            'crit_chance' => round($effectiveCrit, 1),
+            'dodge_chance' => round($effectiveDodge, 1),
             'atk' => $enemyStats['atk'] ?? 0,
             'def' => $enemyStats['def'] ?? 0,
         ];
