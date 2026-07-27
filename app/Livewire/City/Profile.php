@@ -124,7 +124,9 @@ class Profile extends Component
                 $user->save();
             }
 
+            $this->character->clearStatsCache();
             $this->character->refresh();
+            $this->character->load(['equippedItems.template', 'inventoryItems.template']);
             $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
@@ -150,7 +152,9 @@ class Profile extends Component
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot zdjęty pomyślnie.');
             $this->dispatch('play-audio', type: 'unequip');
+            $this->character->clearStatsCache();
             $this->character->refresh();
+            $this->character->load(['equippedItems.template', 'inventoryItems.template']);
             $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());

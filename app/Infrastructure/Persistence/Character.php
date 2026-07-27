@@ -252,6 +252,8 @@ class Character extends Model
         Cache::forget($this->getCacheKey('equipment_stats'));
         Cache::forget($this->getCacheKey('max_hp'));
         Cache::forget($this->getCacheKey('combat_power'));
+        $this->unsetRelation('equippedItems');
+        $this->unsetRelation('inventoryItems');
     }
 
     public function syncMissingPoints(): void
