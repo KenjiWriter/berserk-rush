@@ -678,7 +678,7 @@
                 @foreach($dungeons as $dungeon)
                     @php
                         $canEnter = $dungeon->canCharacterEnter($character);
-                        $hasKey = $dungeon->entry_item_template_id ? $character->inventoryItems()->where('template_id', $dungeon->entry_item_template_id)->exists() : true;
+                        $hasKey = $dungeon->entry_item_template_id ? $character->items()->whereIn('location', ['inventory', 'material_stash'])->where('template_id', $dungeon->entry_item_template_id)->where('stack_size', '>=', 1)->exists() : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
                     @endphp
                     <div x-data="{ showMonsters: false }" 

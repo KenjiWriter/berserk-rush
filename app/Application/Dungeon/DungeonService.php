@@ -44,7 +44,7 @@ class DungeonService
         if ($dungeon->entry_item_template_id) {
             $keyItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $dungeon->entry_item_template_id)
-                ->where('location', 'inventory')
+                ->whereIn('location', ['inventory', 'material_stash'])
                 ->where('stack_size', '>=', 1)
                 ->first();
 
