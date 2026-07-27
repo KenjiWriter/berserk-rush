@@ -258,11 +258,10 @@ class Character extends Model
 
     public function syncMissingPoints(): void
     {
-        $expectedAttrPoints = max(0, ($this->level - 1) * 3);
+        $totalAttrPoints = 10 + max(0, ($this->level - 1) * 3);
         $attrs = $this->getAttribute('attributes') ?? [];
         $spentAttrPoints = ($attrs['str'] ?? 0) + ($attrs['int'] ?? 0) + ($attrs['vit'] ?? 0) + ($attrs['agi'] ?? 0);
-        $spentFromLevelUp = max(0, $spentAttrPoints - 10);
-        $correctCharacterPoints = max(0, $expectedAttrPoints - $spentFromLevelUp);
+        $correctCharacterPoints = max(0, $totalAttrPoints - $spentAttrPoints);
 
         if (($this->character_points ?? 0) !== $correctCharacterPoints) {
             $this->character_points = $correctCharacterPoints;

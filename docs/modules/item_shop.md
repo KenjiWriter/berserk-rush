@@ -20,14 +20,14 @@ Players can spend Gems to activate or extend their **Premium Account**. Premium 
 - The `StripeWebhookController` listens for the `checkout.session.completed` event.
 - Secure processing ensures players only receive Gems after the payment is fully authorized.
 
-### 4. Premium Avatars
-- Players can purchase exclusive Premium Avatars from the Item Shop using Gems.
-- Each Premium Avatar costs a fixed amount of Gems.
-- Purchased avatars are permanently unlocked on the player's account (`unlocked_avatars` JSON field) and can be set at any time via the Character Profile.
+### 5. Resety Atrybutów i Umiejętności
+- **Reset Umiejętności (50 Gemów):** Pozwala zresetować umiejętności bojowe dla wszystkich postaci gracza i zwrócić zainwestowane punkty umiejętności (`skill_points`).
+- **Reset Atrybutów (50 Gemów):** Pozwala zresetować przydzielone punkty atrybutów (STR, INT, VIT, AGI) do 0 dla wszystkich postaci przypisanych do konta i zwraca całą pulę punktów postaci (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdania.
 
 ## Technical Implementation
-- **Livewire Components**: Managed via `ItemShopComponent` for the user interface, and `Admin\ItemShopPackages` for backend management.
+- **Livewire Components**: Managed via `ItemShopComponent` for the user interface (obsługuje zakupy Gemów, VIP, avatarów oraz operacje `resetSkills()` i `resetAttributes()`), and `Admin\ItemShopPackages` for backend management.
 - **Database Models**: 
   - `ItemShopPackage` tracks available packages (price, gems, name).
   - `User` model tracks `gems` balance and `premium_until` datetime.
+  - `Character` model updates `attributes` array and recalculates `character_points` during attribute reset.
 - **Combat Integration**: `RewardMultiplierService` checks `$user->hasPremium()` and applies the 1.2x multipliers to base rewards.

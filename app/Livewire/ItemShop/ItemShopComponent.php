@@ -197,6 +197,39 @@ class ItemShopComponent extends Component
         $this->dispatch('notify', message: 'Zresetowano umiejętności wszystkich postaci pomyślnie!', type: 'success');
     }
 
+    public function resetAttributes()
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        $cost = 50;
+
+        if ($user->gems < $cost) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost) {
+            $user->gems -= $cost;
+            $user->save();
+
+            $characters = $user->characters;
+            foreach ($characters as $character) {
+                $character->attributes = [
+                    'str' => 0,
+                    'int' => 0,
+                    'vit' => 0,
+                    'agi' => 0,
+                ];
+                $character->character_points = 10 + max(0, ($character->level - 1) * 3);
+                $character->clearStatsCache();
+                $character->save();
+            }
+        });
+
+        $this->dispatch('notify', message: 'Zresetowano atrybuty wszystkich postaci pomyślnie!', type: 'success');
+    }
+
     public function render()
     {
         $packages = ItemShopPackage::where('is_active', true)->orderBy('price_in_cents', 'asc')->get();
