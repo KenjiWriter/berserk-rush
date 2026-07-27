@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Application\Mail\Actions\SendMailAction;
 use App\Infrastructure\Persistence\Suggestion;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -46,7 +47,36 @@ class Suggestions extends Component
 
         $suggestion = Suggestion::find($suggestionId);
         if ($suggestion) {
+            $oldStatus = $suggestion->status;
             $suggestion->update(['status' => $newStatus]);
+
+            if ($oldStatus !== $newStatus) {
+                $targetCharacterId = $suggestion->character_id ?? $suggestion->user?->characters()->first()?->id;
+
+                if ($targetCharacterId) {
+                    $statusLabels = [
+                        'new'         => 'Nowa',
+                        'in_progress' => 'W trakcie',
+                        'resolved'    => 'Rozpatrzona',
+                        'rejected'    => 'Odrzucona',
+                    ];
+                    $statusName = $statusLabels[$newStatus] ?? $newStatus;
+
+                    $subject = 'Aktualizacja statusu zgłoszenia';
+                    $body = "Twoje zgłoszenie:\n\n" . $suggestion->content . "\n\nzostało zaktualizowane na status: " . $statusName;
+
+                    if (!empty($suggestion->admin_notes)) {
+                        $body .= "\n\nNotatka administratora:\n" . $suggestion->admin_notes;
+                    }
+
+                    app(SendMailAction::class)->execute(
+                        $targetCharacterId,
+                        $subject,
+                        $body
+                    );
+                }
+            }
+
             $this->dispatch('notify', type: 'success', message: 'Status sugestii został zaktualizowany.');
         }
     }
