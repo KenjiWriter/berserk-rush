@@ -200,7 +200,7 @@ class QuestService
 
         return (int) ItemInstance::where('owner_character_id', $character->id)
             ->where('template_id', $quest->target_id)
-            ->where('location', 'inventory')
+            ->whereIn('location', ['material_stash', 'inventory'])
             ->sum('stack_size');
     }
 
@@ -217,7 +217,7 @@ class QuestService
 
         $items = ItemInstance::where('owner_character_id', $character->id)
             ->where('template_id', $templateId)
-            ->where('location', 'inventory')
+            ->whereIn('location', ['material_stash', 'inventory'])
             ->orderBy('stack_size', 'asc') // zużywamy mniejsze stacki najpierw
             ->get();
 
@@ -264,10 +264,12 @@ class QuestService
         $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateId);
         if (!$template) return;
 
+        $location = ($template->type === 'material') ? 'material_stash' : 'inventory';
+
         if (in_array($template->type, ['material', 'consumable', 'currency'])) {
             $existingItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $templateId)
-                ->where('location', 'inventory')
+                ->where('location', $location)
                 ->first();
 
             if ($existingItem) {
@@ -286,6 +288,31 @@ class QuestService
                 ]);
                 return;
             }
+        }
+
+        if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+            $itemInstance = ItemInstance::create([
+                'id' => Str::ulid(),
+                'template_id' => $templateId,
+                'owner_character_id' => $character->id,
+                'location' => $location,
+                'stack_size' => $amount,
+                'rarity' => 'common',
+                'roll_stats' => [],
+                'upgrade_level' => 0
+            ]);
+
+            ItemLedger::create([
+                'id' => Str::ulid(),
+                'character_id' => $character->id,
+                'item_instance_id' => $itemInstance->id,
+                'action' => 'quest_reward',
+                'ref_type' => 'quest',
+                'ref_id' => $questId,
+                'quantity_change' => $amount,
+                'idempotency_key' => "quest_reward:{$questId}:item:{$itemInstance->id}:" . time()
+            ]);
+            return;
         }
 
         for ($i = 0; $i < $amount; $i++) {
