@@ -180,7 +180,7 @@ class ArenaCombat extends Component
         }
     }
 
-    public function getCombatStats(array $participant, array $opponent): array
+    public function getCombatStats(array $participant, array $opponent = []): array
     {
         if (empty($participant)) return [];
 
@@ -193,6 +193,9 @@ class ArenaCombat extends Component
         $int = $attrs['int'] ?? 0;
         $vit = $attrs['vit'] ?? 0;
         $agi = $attrs['agi'] ?? 0;
+
+        $oppAttrs = $opponent['stats'] ?? [];
+        $oppAgi = $oppAttrs['agi'] ?? 0;
 
         $statBonus = match ($weaponType) {
             'bow', 'sword', 'dagger' => $str + $agi,
