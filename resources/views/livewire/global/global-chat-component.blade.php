@@ -14,6 +14,7 @@
         userWasAtBottom: true,
         isUpdating: false,
         lastMsgCount: 0,
+        justOpened: false,
         captureScrollState() {
             const el = this.$refs.chatBox;
             if (el) {
@@ -25,13 +26,16 @@
         async openTooltip(id) {
             this.captureScrollState();
             this.isUpdating = true;
+            this.justOpened = true;
             try {
                 await this.$wire.loadTooltip(id);
             } finally {
                 this.preserveScroll();
+                setTimeout(() => { this.justOpened = false; }, 250);
             }
         },
         async closeTooltip() {
+            if (this.justOpened) return;
             this.captureScrollState();
             this.isUpdating = true;
             try {
@@ -208,8 +212,8 @@
                 @click.self="closeTooltip()"
             >
                 <div
-                    @click.outside="if ($wire.activeTooltipId) closeTooltip()"
-                    class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0"
+                    @click.outside="if ($wire.activeTooltipId && !justOpened) closeTooltip()"
+                    class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto overflow-x-hidden shrink-0"
                     style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
                 >
                     {{-- Close button --}}
@@ -304,8 +308,8 @@
 
             {{-- Desktop Absolute Popover --}}
             <div
-                @click.outside="if ($wire.activeTooltipId) closeTooltip()"
-                class="hidden lg:flex flex-col absolute right-full bottom-0 mr-3 w-80 max-h-[480px] h-auto overflow-y-auto rounded-xl border border-amber-700/60 shadow-2xl p-4 text-left z-[10000] pointer-events-auto shrink-0"
+                @click.outside="if ($wire.activeTooltipId && !justOpened) closeTooltip()"
+                class="hidden lg:flex flex-col absolute right-full bottom-0 mr-3 w-80 max-h-[480px] h-auto overflow-y-auto overflow-x-hidden rounded-xl border border-amber-700/60 shadow-2xl p-4 text-left z-[10000] pointer-events-auto shrink-0"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
