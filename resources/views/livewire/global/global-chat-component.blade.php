@@ -186,35 +186,133 @@
             });
         }
     }"
-    class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none flex items-end gap-2"
+    class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none"
     style="font-family: 'Cinzel', serif;"
 >
-    {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
-    @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
-        @php
-            $td = $tooltipData[$activeTooltipId];
-            $avatarName = $td['avatar'] ?? 'plate.png';
-            if (!str_contains($avatarName, '.')) {
-                $avatarName .= '.png';
-            }
-            $avatarUrl = asset('img/avatars/' . ltrim($avatarName, '/'));
-        @endphp
-        
-        {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
-        <div 
-            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:static lg:bg-transparent lg:backdrop-blur-none pointer-events-auto"
-            @click.self="closeTooltip()"
-        >
+    {{-- ========== CHAT WRAPPER ========== --}}
+    <div class="relative flex flex-col w-80">
+        {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
+        @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
+            @php
+                $td = $tooltipData[$activeTooltipId];
+                $avatarName = $td['avatar'] ?? 'plate.png';
+                if (!str_contains($avatarName, '.')) {
+                    $avatarName .= '.png';
+                }
+                $avatarUrl = asset('img/avatars/' . ltrim($avatarName, '/'));
+            @endphp
+            
+            {{-- Mobile Centered Modal Backdrop --}}
+            <div 
+                class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:hidden p-4 pointer-events-auto"
+                @click.self="closeTooltip()"
+            >
+                <div
+                    @click.outside="if ($wire.activeTooltipId) closeTooltip()"
+                    class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0"
+                    style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
+                >
+                    {{-- Close button --}}
+                    <button @click="closeTooltip()" class="absolute top-2.5 right-3 text-amber-500 hover:text-amber-300 font-bold text-xl leading-none cursor-pointer z-10">&times;</button>
+
+                    {{-- Character header --}}
+                    <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
+                        @if(!empty($td['avatar']))
+                            <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
+                                <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
+                            </div>
+                        @endif
+                        <div class="min-w-0 flex-1">
+                            @if(!empty($td['title']))
+                                <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider block truncate">[{{ $td['title'] }}]</span>
+                            @endif
+                            <p class="text-amber-300 font-bold text-sm truncate medieval-font">{{ $td['name'] }}</p>
+                            @if(!empty($td['guild']))
+                                <p class="text-amber-500/80 text-[11px] font-semibold truncate"><i class="fa-solid fa-shield-halved mr-1 text-amber-600"></i>{{ $td['guild'] }}</p>
+                            @endif
+                            <div class="flex gap-3 text-xs mt-0.5">
+                                <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
+                                <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Equipped items --}}
+                    <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-2">Ekwipunek</p>
+                    @if (count($td['equipped_items']) === 0)
+                        <p class="text-amber-700/60 text-xs italic mb-3">Brak założonego ekwipunku</p>
+                    @else
+                        <div class="space-y-1 mb-3">
+                            @foreach ($td['equipped_items'] as $ei)
+                                @php
+                                    $rarityColor = match($ei['rarity'] ?? 'common') {
+                                        'uncommon'  => 'text-green-400',
+                                        'rare'      => 'text-blue-400',
+                                        'epic'      => 'text-purple-400',
+                                        'legendary' => 'text-amber-400',
+                                        default     => 'text-stone-300',
+                                    };
+                                @endphp
+                                <div class="flex items-center justify-between text-xs py-0.5">
+                                    <span class="{{ $rarityColor }} flex items-center gap-1.5 min-w-0 truncate">
+                                        @if(!empty($ei['icon']))
+                                            <img src="{{ route('assets.items', ['filename' => $ei['icon']]) }}" class="w-4 h-4 object-contain shrink-0" alt="">
+                                        @endif
+                                        <span class="truncate">
+                                            {{ $ei['name'] }}
+                                            @if(in_array($ei['type'] ?? '', ['weapon', 'armor', 'accessory']))
+                                                <span class="text-emerald-400">+{{ $ei['upgrade_level'] ?? 0 }}</span>
+                                            @endif
+                                        </span>
+                                    </span>
+                                    <span class="text-amber-700 text-[10px] ml-1 shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    {{-- Equipped Pet --}}
+                    @if(isset($td['pet']) && $td['pet'])
+                        <p class="text-amber-600/80 text-xs font-semibold uppercase tracking-wider mb-1 mt-1">Chowaniec</p>
+                        @php
+                            $petRarityColor = match($td['pet']['rarity'] ?? 'common') {
+                                'uncommon'  => 'text-green-400',
+                                'rare'      => 'text-blue-400',
+                                'epic'      => 'text-purple-400',
+                                'legendary' => 'text-amber-400',
+                                default     => 'text-stone-300',
+                            };
+                        @endphp
+                        <div class="flex items-center justify-between text-xs mb-3">
+                            <span class="{{ $petRarityColor }} truncate max-w-[150px]">
+                                <i class="fa-solid fa-paw mr-1"></i>{{ $td['pet']['name'] }}
+                                <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
+                            </span>
+                            <span class="text-amber-700 text-[10px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
+                        </div>
+                    @endif
+
+                    {{-- Invite to Guild Button --}}
+                    <button
+                        @click="inviteToGuild('{{ $activeTooltipId }}')"
+                        class="mt-2 w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                        <i class="fa-solid fa-user-plus"></i> Wyślij zaproszenie do gildii
+                    </button>
+                </div>
+            </div>
+
+            {{-- Desktop Absolute Popover --}}
             <div
                 @click.outside="if ($wire.activeTooltipId) closeTooltip()"
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0 lg:absolute lg:right-full lg:bottom-0 lg:mr-3 lg:max-h-[500px]"
+                class="hidden lg:flex flex-col absolute right-full bottom-0 mr-3 w-80 max-h-[480px] h-auto overflow-y-auto rounded-xl border border-amber-700/60 shadow-2xl p-4 text-left z-[10000] pointer-events-auto shrink-0"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
                 <button @click="closeTooltip()" class="absolute top-2.5 right-3 text-amber-500 hover:text-amber-300 font-bold text-xl leading-none cursor-pointer z-10">&times;</button>
 
                 {{-- Arrow pointing right (desktop only) --}}
-                <div class="hidden lg:block absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900 border-t border-r border-amber-700/60"></div>
+                <div class="absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900 border-t border-r border-amber-700/60"></div>
 
                 {{-- Character header --}}
                 <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
@@ -301,8 +399,7 @@
                     <i class="fa-solid fa-user-plus"></i> Wyślij zaproszenie do gildii
                 </button>
             </div>
-        </div>
-    @endif
+        @endif
 
     {{-- ========== CHAT WRAPPER ========== --}}
     <div class="flex flex-col w-80">
@@ -534,4 +631,3 @@
         animation: adminGlow 2s ease-in-out infinite;
     }
 </style>
-</div>
