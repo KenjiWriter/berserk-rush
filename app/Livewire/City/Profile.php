@@ -223,47 +223,30 @@ class Profile extends Component
     }
     // -----------------------------
 
-    public function saveAttributes(array $addedStats)
+    public function saveAttributes(array $addedStats, \App\Application\Characters\AllocateAttributesAction $action)
     {
-        $this->character->refresh();
-        $validAttributes = ['str', 'int', 'vit', 'agi'];
-        $totalRequested = 0;
-        
-        foreach ($validAttributes as $stat) {
-            $val = (int)($addedStats[$stat] ?? 0);
-            if ($val < 0) return; // invalid
-            $totalRequested += $val;
+        $result = $action->execute($this->character, $addedStats);
+
+        if ($result->isOk()) {
+            /** @var Character $updatedCharacter */
+            $updatedCharacter = $result->getPayload();
+            $this->character = $updatedCharacter;
+
+            $user = auth()->user();
+            if ($user && $user->game_stage == 14) {
+                $user->game_stage = 15;
+                $user->save();
+            }
+
+            $totalAllocated = array_sum(array_map('intval', $addedStats));
+            $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalAllocated}.");
+            $this->dispatch('play-audio', type: 'stat');
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->attributes);
+        } else {
+            $this->character->refresh();
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->attributes);
         }
-
-        $points = $this->character->character_points ?? 0;
-        
-        if ($totalRequested > $points || $totalRequested <= 0) {
-            $this->dispatch('stats-saved', points: $points);
-            return;
-        }
-
-        $attributes = $this->character->getAttribute('attributes') ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
-        
-        foreach ($validAttributes as $stat) {
-            $val = (int)($addedStats[$stat] ?? 0);
-            $attributes[$stat] = ($attributes[$stat] ?? 0) + $val;
-        }
-
-        $this->character->attributes = $attributes;
-        $this->character->character_points = $points - $totalRequested;
-        $this->character->clearStatsCache();
-        $this->character->save();
-        $this->character->refresh();
-
-        $user = auth()->user();
-        if ($user && $user->game_stage == 14) {
-            $user->game_stage = 15;
-            $user->save();
-        }
-
-        $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalRequested}.");
-        $this->dispatch('play-audio', type: 'stat');
-        $this->dispatch('stats-saved', points: $this->character->character_points);
     }
 
     public function openSellModal(string $itemUlid)

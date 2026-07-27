@@ -401,27 +401,37 @@
 
             <!-- Stats -->
             <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
+                 wire:ignore.self
                  @if($activeTab === 'attributes')
                      x-data="{
-                         points: {{ $character->character_points }},
-                         added: { str: 0, int: 0, vit: 0, agi: 0 },
-                         pending: { str: 0, int: 0, vit: 0, agi: 0 },
-                         saveTimeout: null,
+                         availablePoints: {{ $character->character_points }},
+                         buffered: { str: 0, int: 0, vit: 0, agi: 0 },
+                         baseAttributes: {
+                             str: {{ $totalAttributes['str'] ?? 0 }},
+                             int: {{ $totalAttributes['int'] ?? 0 }},
+                             vit: {{ $totalAttributes['vit'] ?? 0 }},
+                             agi: {{ $totalAttributes['agi'] ?? 0 }}
+                         },
+                         isSaving: false,
+                         hasQueuedSave: false,
+                         bufferTimer: null,
                          
                          updatePointsFromEvent(detail) {
                              let data = Array.isArray(detail) ? detail[0] : detail;
                              if (data && typeof data.points !== 'undefined' && data.points !== null) {
-                                 let unsavedTotal = (this.added.str + this.added.int + this.added.vit + this.added.agi) +
-                                                    (this.pending.str + this.pending.int + this.pending.vit + this.pending.agi);
-                                 this.points = Math.max(0, data.points - unsavedTotal);
+                                 let pendingTotal = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
+                                 this.availablePoints = Math.max(0, data.points - pendingTotal);
+                                 if (data.attributes) {
+                                     this.baseAttributes = { ...data.attributes };
+                                 }
                              }
                          },
 
                          add(stat, amount) {
-                             let actual = Math.min(amount, this.points);
+                             let actual = Math.min(amount, this.availablePoints);
                              if (actual > 0) {
-                                 this.added[stat] += actual;
-                                 this.points -= actual;
+                                 this.buffered[stat] += actual;
+                                 this.availablePoints -= actual;
                                  
                                  // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
                                  window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
@@ -433,27 +443,34 @@
                                      el.style.animation = 'flashText 0.15s ease-out forwards';
                                  }
                                  
-                                 // Krótki, płynny auto-zapis (350ms)
-                                 clearTimeout(this.saveTimeout);
-                                 this.saveTimeout = setTimeout(async () => {
-                                     let toSave = { ...this.added };
-                                     if (toSave.str === 0 && toSave.int === 0 && toSave.vit === 0 && toSave.agi === 0) return;
+                                 // 1-sekundowy bufor (1000ms)
+                                 clearTimeout(this.bufferTimer);
+                                 this.bufferTimer = setTimeout(() => this.flushBuffer(), 1000);
+                             }
+                         },
 
-                                     this.added = { str: 0, int: 0, vit: 0, agi: 0 };
-                                     this.pending.str += toSave.str;
-                                     this.pending.int += toSave.int;
-                                     this.pending.vit += toSave.vit;
-                                     this.pending.agi += toSave.agi;
-                                     
-                                     try {
-                                         await $wire.saveAttributes(toSave);
-                                     } finally {
-                                         this.pending.str -= toSave.str;
-                                         this.pending.int -= toSave.int;
-                                         this.pending.vit -= toSave.vit;
-                                         this.pending.agi -= toSave.agi;
-                                     }
-                                 }, 350);
+                         async flushBuffer() {
+                             let totalBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
+                             if (totalBuffered === 0) return;
+
+                             if (this.isSaving) {
+                                 this.hasQueuedSave = true;
+                                 return;
+                             }
+
+                             let toSave = { ...this.buffered };
+                             this.buffered = { str: 0, int: 0, vit: 0, agi: 0 };
+                             this.isSaving = true;
+                             this.hasQueuedSave = false;
+                             
+                             try {
+                                 await $wire.saveAttributes(toSave);
+                             } finally {
+                                 this.isSaving = false;
+                                 let currentBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
+                                 if (this.hasQueuedSave || currentBuffered > 0) {
+                                     this.flushBuffer();
+                                 }
                              }
                          }
                      }"
@@ -479,7 +496,7 @@
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
-                        <span x-show="points > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="points"></span></span>
+                        <span x-show="availablePoints > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="availablePoints"></span></span>
                     @endif
                 </div>
                 @if($activeTab === 'attributes')
@@ -513,10 +530,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['str'] ?? 0 }} + added.str + pending.str"></span>
-                                <div class="flex gap-1" x-show="points > 0">
+                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.str + buffered.str"></span>
+                                <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('str', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
+                                    <button x-show="availablePoints >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
@@ -532,10 +549,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['int'] ?? 0 }} + added.int + pending.int"></span>
-                                <div class="flex gap-1" x-show="points > 0">
+                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.int + buffered.int"></span>
+                                <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('int', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
+                                    <button x-show="availablePoints >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
@@ -551,10 +568,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['vit'] ?? 0 }} + added.vit + pending.vit"></span>
-                                <div class="flex gap-1" x-show="points > 0">
+                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.vit + buffered.vit"></span>
+                                <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('vit', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
+                                    <button x-show="availablePoints >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
@@ -570,10 +587,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="{{ $totalAttributes['agi'] ?? 0 }} + added.agi + pending.agi"></span>
-                                <div class="flex gap-1" x-show="points > 0">
+                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.agi + buffered.agi"></span>
+                                <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('agi', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="points >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
+                                    <button x-show="availablePoints >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
                                 </div>
                             </div>
                         </div>
