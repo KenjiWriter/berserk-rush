@@ -597,40 +597,36 @@
                 </div>
             @endif
         @endif
-    </div>
-    @endif
-</div>
-</div>
-
-<style>
-    /* Chat message appear animation */
-    @keyframes chatMsgAppear {
-        from {
-            opacity: 0;
-            transform: translateY(8px);
+    <style>
+        /* Chat message appear animation */
+        @keyframes chatMsgAppear {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-        to {
-            opacity: 1;
-            transform: translateY(0);
+        .chat-msg-appear {
+            animation: chatMsgAppear 0.25s ease-out forwards;
         }
-    }
-    .chat-msg-appear {
-        animation: chatMsgAppear 0.25s ease-out forwards;
-    }
-    
-    @keyframes premiumGlow {
-        0%, 100% { text-shadow: 0 0 4px rgba(250,204,21,0.5), 0 0 8px rgba(250,204,21,0.3); }
-        50% { text-shadow: 0 0 8px rgba(250,204,21,0.9), 0 0 16px rgba(250,204,21,0.6); }
-    }
-    .premium-glow {
-        animation: premiumGlow 2s ease-in-out infinite;
-    }
+        
+        @keyframes premiumGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(250,204,21,0.5), 0 0 8px rgba(250,204,21,0.3); }
+            50% { text-shadow: 0 0 8px rgba(250,204,21,0.9), 0 0 16px rgba(250,204,21,0.6); }
+        }
+        .premium-glow {
+            animation: premiumGlow 2s ease-in-out infinite;
+        }
 
-    @keyframes adminGlow {
-        0%, 100% { text-shadow: 0 0 4px rgba(239,68,68,0.6), 0 0 8px rgba(239,68,68,0.4); }
-        50% { text-shadow: 0 0 8px rgba(239,68,68,1), 0 0 16px rgba(239,68,68,0.7); }
-    }
-    .admin-glow {
-        animation: adminGlow 2s ease-in-out infinite;
-    }
-</style>
+        @keyframes adminGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(239,68,68,0.6), 0 0 8px rgba(239,68,68,0.4); }
+            50% { text-shadow: 0 0 8px rgba(239,68,68,1), 0 0 16px rgba(239,68,68,0.7); }
+        }
+        .admin-glow {
+            animation: adminGlow 2s ease-in-out infinite;
+        }
+    </style>
+</div>
