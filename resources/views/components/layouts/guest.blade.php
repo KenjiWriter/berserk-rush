@@ -26,5 +26,20 @@
                 {{ $slot }}
             </div>
         </div>
+
+        <script>
+            document.addEventListener('livewire:init', () => {
+                if (window.Livewire) {
+                    window.Livewire.hook('request', ({ fail }) => {
+                        fail(({ status, preventDefault }) => {
+                            if (status === 503) {
+                                preventDefault();
+                                window.location.reload();
+                            }
+                        });
+                    });
+                }
+            });
+        </script>
     </body>
 </html>

@@ -117,6 +117,7 @@
         }
     </style>
 </head>
+<body class="bg-[#060608] text-slate-200 font-sans">
 <div class="min-h-screen relative flex flex-col items-center justify-between p-4 sm:p-6 md:p-8 overflow-hidden select-none glow-radial">
     
     <!-- Background Embers Canvas Container -->
@@ -131,7 +132,7 @@
     </header>
 
     <!-- Main Content Card -->
-    <main class="z-10 my-auto w-full max-w-2xl text-center">
+    <div class="z-10 my-auto w-full max-w-2xl text-center">
         <div class="relative bg-gradient-to-b from-[#16161e]/90 via-[#101017]/95 to-[#0b0b10]/95 border border-amber-500/30 rounded-2xl p-6 sm:p-10 backdrop-blur-xl amber-glow-box overflow-hidden">
             
             <!-- Top Decorative Sword Accent Lines -->
@@ -197,7 +198,7 @@
                 Strona odświeży się automatycznie za <span id="countdown" class="font-bold text-amber-400">60</span>s
             </div>
         </div>
-    </main>
+    </div>
 
     <!-- Footer -->
     <footer class="z-10 pb-4 text-center text-xs text-slate-400">
@@ -248,4 +249,5 @@
         }, 1000);
     </script>
 </div>
+</body>
 </html>
