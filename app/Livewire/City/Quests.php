@@ -20,6 +20,11 @@ class Quests extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
+        if (auth()->user()->game_stage < 22) {
+            session()->flash('error', 'Tablica Wyzwań jest zablokowana do momentu odblokowania jej przez Kapitana!');
+            return redirect()->route('city.hub', $character);
+        }
+
         $this->character = $character;
     }
 

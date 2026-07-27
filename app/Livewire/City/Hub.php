@@ -32,6 +32,11 @@ class Hub extends Component
 
     public function goTo(string $building): void
     {
+        if ($building === 'quests' && auth()->user()->game_stage < 22) {
+            $this->dispatch('notify', type: 'error', message: 'Tablica Wyzwań jest zablokowana! Wbij 5 poziom postaci i wyczekuj rozkazów Kapitana.');
+            return;
+        }
+
         $route = match ($building) {
             'profile' => route('city.profile', $this->character),
             'armorsmith' => route('city.armorsmith', $this->character),

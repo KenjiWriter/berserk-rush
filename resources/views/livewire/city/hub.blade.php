@@ -203,12 +203,17 @@
             </div>
 
             {{-- QUESTS (6 cols, 1 row) --}}
-            <div class="col-span-6 row-span-1 relative group rounded-3xl overflow-hidden border border-teal-900/50 shadow-lg transition-all duration-300 hover:border-teal-500/80 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
+            <div class="col-span-6 row-span-1 relative group rounded-3xl overflow-hidden border border-teal-900/50 shadow-lg transition-all duration-300 hover:border-teal-500/80 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] {{ $gameStage < 22 ? 'opacity-60 grayscale' : ($gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '') }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-start p-6 relative">
+                <button wire:click="goTo('quests')" @click="{{ $gameStage >= 22 ? "travelingTo = 'Tablica Wyzwań'; \$dispatch('play-audio', { type: 'tab' })" : "" }}" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-start p-6 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/quest-board-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30"></div>
-                    @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                    @if($gameStage < 22)
+                        <div class="absolute top-3 right-3 z-20 bg-stone-950/90 border border-amber-600/50 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+                            <i class="fa-solid fa-lock text-amber-500 text-xs"></i>
+                            <span class="text-[11px] text-amber-300 font-bold uppercase tracking-wider">Zablokowane (Poz. 5)</span>
+                        </div>
+                    @elseif(isset($completedQuestsCount) && $completedQuestsCount > 0)
                         <div class="absolute top-4 right-4 z-20 w-7 h-7 bg-amber-500 rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(245,158,11,0.8)] animate-bounce">
                             <svg class="w-4 h-4 text-slate-950 fill-current -mt-0.5" viewBox="0 0 24 24">
                                 <path d="M10.5 3h3v8.5h-3zm0 11h3v3h-3z"/>
@@ -303,11 +308,16 @@
                     <div class="relative z-10 font-bold text-blue-300 medieval-font text-center text-xl">Postać</div>
                 </button>
 
-                <button wire:click="goTo('quests')" @click="travelingTo = 'Tablica Wyzwań'; $dispatch('play-audio', { type: 'tab' })"
-                    class="relative overflow-hidden rounded-2xl border border-teal-800/80 shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px] {{ $gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                <button wire:click="goTo('quests')" @click="{{ $gameStage >= 22 ? "travelingTo = 'Tablica Wyzwań'; \$dispatch('play-audio', { type: 'tab' })" : "" }}"
+                    class="relative overflow-hidden rounded-2xl border border-teal-800/80 shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px] {{ $gameStage < 22 ? 'opacity-60 grayscale' : ($gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '') }}" wire:loading.attr="disabled">
                     <div class="absolute inset-0 bg-cover bg-center opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/quest-board-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
-                    @if(isset($completedQuestsCount) && $completedQuestsCount > 0)
+                    @if($gameStage < 22)
+                        <div class="absolute top-2 right-2 z-20 bg-stone-950/90 border border-amber-600/50 px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                            <i class="fa-solid fa-lock text-amber-500 text-[10px]"></i>
+                            <span class="text-[9px] text-amber-300 font-bold">Poz. 5</span>
+                        </div>
+                    @elseif(isset($completedQuestsCount) && $completedQuestsCount > 0)
                         <div class="absolute top-2 right-4 w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center text-slate-900 text-sm font-bold shadow-lg animate-bounce z-20">!</div>
                     @endif
                     <div class="relative z-10 font-bold text-teal-300 medieval-font text-center text-xl">Wyzwania</div>

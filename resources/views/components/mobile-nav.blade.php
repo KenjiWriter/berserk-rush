@@ -13,6 +13,7 @@
 
         $skillPointsCount = $character ? ($character->skill_points ?? 0) : 0;
         $unreadMailCount = $character ? \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count() : 0;
+        $isQuestsLocked = auth()->check() && (auth()->user()->game_stage < 22);
 
         $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount;
     @endphp
@@ -187,14 +188,23 @@
                             <span class="truncate text-[11px] sm:text-xs">Wyprawy</span>
                         </a>
 
-                        <a href="{{ route('city.quests', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-beer-mug-empty' })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
-                            <i class="fa-solid fa-beer-mug-empty text-amber-400 text-sm shrink-0"></i>
-                            <span class="truncate text-[11px] sm:text-xs">Wyzwania</span>
-                            @if($questBadgeCount > 0)
-                                <span class="ml-auto shrink-0 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[9px] text-slate-950 font-black shadow">!</span>
-                            @endif
-                        </a>
+                        @if($isQuestsLocked)
+                            <a href="javascript:void(0)" @click="$dispatch('notify', { type: 'error', message: 'Tablica Wyzwań jest zablokowana! Wbij 5 poziom postaci i wyczekuj rozkazów Kapitana.' })"
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-stone-800 bg-stone-950/80 text-stone-500 opacity-60 grayscale cursor-not-allowed relative min-w-0">
+                                <i class="fa-solid fa-beer-mug-empty text-amber-500/40 text-sm shrink-0"></i>
+                                <span class="truncate text-[11px] sm:text-xs">Wyzwania</span>
+                                <i class="fa-solid fa-lock text-amber-500 text-xs ml-auto shrink-0"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('city.quests', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-beer-mug-empty' })"
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
+                                <i class="fa-solid fa-beer-mug-empty text-amber-400 text-sm shrink-0"></i>
+                                <span class="truncate text-[11px] sm:text-xs">Wyzwania</span>
+                                @if($questBadgeCount > 0)
+                                    <span class="ml-auto shrink-0 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[9px] text-slate-950 font-black shadow">!</span>
+                                @endif
+                            </a>
+                        @endif
                     </div>
                 </div>
 
