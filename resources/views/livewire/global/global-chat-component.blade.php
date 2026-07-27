@@ -405,8 +405,6 @@
             </div>
         @endif
 
-    {{-- ========== CHAT WRAPPER ========== --}}
-    <div class="flex flex-col w-80">
         {{-- ========== MINIMIZED BUBBLE ========== --}}
         @if (!$isOpen)
             <button
