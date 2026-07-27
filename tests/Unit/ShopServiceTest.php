@@ -177,3 +177,42 @@ test('ShopService sellMultipleItems returns error on empty or invalid selection'
     expect($resultInvalid['success'])->toBeFalse()
         ->and($resultInvalid['message'])->toContain('Nie znaleziono');
 });
+
+test('ShopService sells equipped item successfully', function () {
+    $user = User::factory()->create();
+    $character = Character::create([
+        'user_id' => $user->id,
+        'name' => 'TestHeroEquipped',
+        'class' => 'warrior',
+        'level' => 1,
+        'experience' => 0,
+        'gold' => 0,
+    ]);
+
+    $template = ItemTemplate::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Żelazny Miecz',
+        'type' => 'weapon',
+        'slot' => 'main_hand',
+        'level_requirement' => 1,
+        'base_stats' => ['attack_min' => 10, 'attack_max' => 15],
+    ]);
+
+    $item = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $template->id,
+        'owner_character_id' => $character->id,
+        'location' => 'equipped',
+        'stack_size' => 1,
+    ]);
+
+    $shopService = new ShopService();
+    $sellPrice = $shopService->getSellPrice($item);
+
+    $result = $shopService->sellItem($character, $item);
+
+    expect($result['success'])->toBeTrue()
+        ->and($character->fresh()->gold)->toBe($sellPrice);
+
+    expect(ItemInstance::find($item->id))->toBeNull();
+});

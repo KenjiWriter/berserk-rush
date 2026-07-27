@@ -165,9 +165,16 @@
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
-                                                    <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
-                                                        Zdejmij przedmiot
-                                                    </button>
+                                                    <div class="flex flex-col gap-2 w-full">
+                                                        <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow">
+                                                            Zdejmij przedmiot
+                                                        </button>
+                                                        @if(!($equipped[$slot]->bound_to_character ?? false) && ($equipped[$slot]->template->is_tradeable ?? true))
+                                                            <button wire:click.stop="openSellModal('{{ $equipped[$slot]->id }}'); open = false;" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                                                Wystaw na targowisko
+                                                            </button>
+                                                        @endif
+                                                    </div>
                                                 </x-slot:actions>
                                             </x-item-tooltip>
                                             <!-- Arrow (Desktop only) -->
@@ -381,9 +388,16 @@
                                             <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
-                                                    <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
-                                                        Zdejmij przedmiot
-                                                    </button>
+                                                    <div class="flex flex-col gap-2 w-full">
+                                                        <button wire:click.stop="unequipItem('{{ $equipped[$slot]->id }}')" @click.stop="open = false; flyItem('equip-slot-{{ $slot }}', 'inventory-grid')" class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded shadow">
+                                                            Zdejmij przedmiot
+                                                        </button>
+                                                        @if(!($equipped[$slot]->bound_to_character ?? false) && ($equipped[$slot]->template->is_tradeable ?? true))
+                                                            <button wire:click.stop="openSellModal('{{ $equipped[$slot]->id }}'); open = false;" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                                                Wystaw na targowisko
+                                                            </button>
+                                                        @endif
+                                                    </div>
                                                 </x-slot:actions>
                                             </x-item-tooltip>
                                             <!-- Arrow (Desktop only) -->

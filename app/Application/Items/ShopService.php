@@ -146,13 +146,11 @@ class ShopService
             return ['success' => false, 'message' => 'Nie jesteś właścicielem tego przedmiotu.'];
         }
 
-        if ($item->location === 'equipped') {
-            return ['success' => false, 'message' => 'Musisz zdjąć ten przedmiot przed sprzedażą.'];
-        }
-
-        if (!in_array($item->location, ['inventory', 'material_stash'])) {
+        if (!in_array($item->location, ['inventory', 'material_stash', 'equipped'])) {
             return ['success' => false, 'message' => 'Nie możesz sprzedać tego przedmiotu.'];
         }
+
+        $wasEquipped = $item->location === 'equipped';
 
         $availableStack = max(1, (int)($item->stack_size ?? 1));
         if ($quantity === 'all' || (is_numeric($quantity) && (int)$quantity >= $availableStack)) {
@@ -186,6 +184,10 @@ class ShopService
             $item->delete();
         }
 
+        if ($wasEquipped) {
+            $character->clearStatsCache();
+        }
+
         return [
             'success' => true, 
             'message' => "Sprzedano {$toSell}x {$itemName} za {$totalPrice} złota.", 
@@ -202,7 +204,7 @@ class ShopService
         return DB::transaction(function () use ($character, $itemInstanceIds) {
             $items = ItemInstance::whereIn('id', $itemInstanceIds)
                 ->where('owner_character_id', $character->id)
-                ->whereIn('location', ['inventory', 'material_stash'])
+                ->whereIn('location', ['inventory', 'material_stash', 'equipped'])
                 ->with('template')
                 ->get();
 
@@ -212,8 +214,13 @@ class ShopService
 
             $totalPrice = 0;
             $totalCount = 0;
+            $hasEquipped = false;
 
             foreach ($items as $item) {
+                if ($item->location === 'equipped') {
+                    $hasEquipped = true;
+                }
+
                 $availableStack = max(1, (int)($item->stack_size ?? 1));
                 $unitPrice = $this->getSellPrice($item);
                 $itemTotalPrice = $unitPrice * $availableStack;
@@ -236,6 +243,10 @@ class ShopService
 
             $character->gold += $totalPrice;
             $character->save();
+
+            if ($hasEquipped) {
+                $character->clearStatsCache();
+            }
 
             return [
                 'success' => true,

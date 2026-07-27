@@ -27,8 +27,8 @@ class CreateMarketListingAction
             return Result::error('NOT_OWNER', 'Ten przedmiot nie należy do Ciebie.');
         }
 
-        if ($item->location !== 'inventory') {
-            return Result::error('NOT_IN_INVENTORY', 'Przedmiot musi znajdować się w plecaku, aby go wystawić.');
+        if (!in_array($item->location, ['inventory', 'equipped'])) {
+            return Result::error('NOT_IN_INVENTORY', 'Przedmiot musi znajdować się w plecaku lub być ubrany, aby go wystawić.');
         }
 
         if ($item->bound_to_character) {
@@ -60,6 +60,7 @@ class CreateMarketListingAction
         try {
             return DB::transaction(function () use ($character, $item, $price, $currency, $durationHours, $listingFee) {
                 $idempotencyKey = 'market_list:' . $item->id . ':' . Str::ulid();
+                $wasEquipped = $item->location === 'equipped';
 
                 // Deduct listing fee
                 $character->gold -= $listingFee;
@@ -83,6 +84,10 @@ class CreateMarketListingAction
                     'location' => 'market',
                     'owner_character_id' => null,
                 ]);
+
+                if ($wasEquipped) {
+                    $character->clearStatsCache();
+                }
 
                 ItemLedger::create([
                     'id' => Str::ulid(),

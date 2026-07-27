@@ -188,7 +188,7 @@
                                         <div class="min-w-0 flex-1">
                                             <h4 class="font-extrabold text-amber-100 text-xs sm:text-sm truncate leading-snug">
                                                 {{ $listing->item->template->name }}
-                                                @if($listing->item->level > 1) <span class="text-amber-400 font-bold ml-0.5">+{{ $listing->item->level - 1 }}</span> @endif
+                                                @if(($listing->item->upgrade_level ?? 0) > 0) <span class="text-amber-400 font-bold ml-0.5">+{{ $listing->item->upgrade_level }}</span> @endif
                                             </h4>
                                             <div class="text-[10px] text-amber-400/80 font-bold uppercase tracking-wider mt-0.5 flex items-center gap-2">
                                                 <span>Lvl {{ $listing->item->template->level_requirement }}</span>
@@ -207,12 +207,19 @@
                                     </div>
                                     
                                     {{-- Item stats preview --}}
+                                    @php
+                                        $previewStats = $listing->item->getTotalStats();
+                                        $upStats = $listing->item->getUpgradeBonusStats();
+                                        foreach ($upStats as $s => $v) {
+                                            $previewStats[$s] = ($previewStats[$s] ?? 0) + $v;
+                                        }
+                                    @endphp
                                     <div class="text-[11px] text-stone-300 bg-stone-950/80 p-2 rounded-lg border border-stone-800 mb-3 grid grid-cols-2 gap-1 font-sans">
-                                        @foreach(($listing->item->template->base_stats ?? []) as $stat => $val)
-                                            @if($val > 0)
+                                        @foreach($previewStats as $stat => $val)
+                                            @if($val > 0 && !in_array($stat, ['mint', 'max_mint']))
                                                 <div class="flex justify-between">
-                                                    <span class="text-stone-400 capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                                    <span class="text-emerald-400 font-bold">+{{ $listing->item->getTotalStats()[$stat] ?? $val }}</span>
+                                                    <span class="text-stone-400 capitalize truncate mr-1">{{ str_replace('_', ' ', $stat) }}</span>
+                                                    <span class="text-emerald-400 font-bold">+{{ $val }}</span>
                                                 </div>
                                             @endif
                                         @endforeach
@@ -320,7 +327,7 @@
                                                         @elseif($listing->item->rarity === 'legendary') text-amber-300
                                                         @endif">
                                                         {{ $listing->item->template->name }}
-                                                        @if($listing->item->level > 1) <span class="text-amber-400 font-bold ml-0.5">+{{ $listing->item->level - 1 }}</span> @endif
+                                                        @if(($listing->item->upgrade_level ?? 0) > 0) <span class="text-amber-400 font-bold ml-0.5">+{{ $listing->item->upgrade_level }}</span> @endif
                                                     </div>
                                                     <div class="text-[10px] text-amber-500/80 font-bold uppercase">Lvl {{ $listing->item->template->level_requirement }}</div>
                                                 </div>
