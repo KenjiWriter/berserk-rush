@@ -10,9 +10,10 @@
             {!! (Auth::check() && Auth::user()->permission_level == 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/give pet Leśny Wilk', desc: 'Dodaj chowańca: Leśny Wilk', channel: 'all' }, { cmd: '/give pet Skalny Golem', desc: 'Dodaj chowańca: Skalny Golem', channel: 'all' }, { cmd: '/give pet Magiczna Wróżka', desc: 'Dodaj chowańca: Magiczna Wróżka', channel: 'all' }, { cmd: '/give pet Mroczny Smok', desc: 'Dodaj chowańca: Mroczny Smok', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }, { cmd: '/set level <poziom>', desc: 'Ustaw poziom postaci', channel: 'all' }, { cmd: '/set sp <ilość>', desc: 'Dodaj punkty atrybutów (SP)', channel: 'all' }" : "" !!}
         ],
         filteredCommands: [],
-        savedScrollTop: 0,
+        userScrollPos: 0,
+        userWasAtBottom: true,
+        isUpdating: false,
         lastMsgCount: 0,
-        wasAtBottom: true,
         checkCommands() {
             if ((this.message || '').startsWith('/')) {
                 let search = (this.message || '').toLowerCase().split(' ')[0];
@@ -36,37 +37,60 @@
                 const el = this.$refs.chatBox;
                 if (el) {
                     el.scrollTop = el.scrollHeight;
-                    this.savedScrollTop = el.scrollTop;
-                    this.wasAtBottom = true;
+                    this.userScrollPos = el.scrollTop;
+                    this.userWasAtBottom = true;
                 }
             });
         },
-        handleScroll() {
+        preserveScroll() {
             const el = this.$refs.chatBox;
             if (!el) return;
-            if (el.scrollTop === 0 && this.savedScrollTop > 30) {
+
+            const wasBottom = this.userWasAtBottom;
+            const targetPos = this.userScrollPos;
+            this.isUpdating = true;
+
+            this.$nextTick(() => {
+                if (el) {
+                    if (wasBottom) {
+                        el.scrollTop = el.scrollHeight;
+                        this.userScrollPos = el.scrollTop;
+                    } else {
+                        el.scrollTop = targetPos;
+                    }
+                }
+                setTimeout(() => {
+                    this.isUpdating = false;
+                }, 100);
+            });
+        },
+        handleScroll() {
+            if (this.isUpdating) return;
+            const el = this.$refs.chatBox;
+            if (!el) return;
+            if (el.scrollHeight <= el.clientHeight) return;
+
+            // Ignore transient zero-scroll events during DOM manipulations when user was scrolled down
+            if (el.scrollTop === 0 && this.userScrollPos > 20) {
                 return;
             }
-            this.savedScrollTop = el.scrollTop;
+
             const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
-            this.wasAtBottom = distanceToBottom < 30;
+            this.userScrollPos = el.scrollTop;
+            this.userWasAtBottom = distanceToBottom < 30;
         },
         updateScrollPosition() {
             const el = this.$refs.chatBox;
             if (!el) return;
             const currentMsgs = el.querySelectorAll('.chat-msg-appear').length;
             if (currentMsgs > this.lastMsgCount) {
-                if (this.wasAtBottom || this.lastMsgCount === 0) {
+                if (this.userWasAtBottom || this.lastMsgCount === 0) {
                     this.scrollToBottom();
                 } else {
-                    el.scrollTop = this.savedScrollTop;
+                    el.scrollTop = this.userScrollPos;
                 }
             } else {
-                if (this.wasAtBottom) {
-                    el.scrollTop = el.scrollHeight;
-                } else if (this.savedScrollTop > 0) {
-                    el.scrollTop = this.savedScrollTop;
-                }
+                this.preserveScroll();
             }
             this.lastMsgCount = currentMsgs;
         },
@@ -98,31 +122,24 @@
             });
 
             this.$watch('$wire.messages', () => {
-                this.$nextTick(() => this.updateScrollPosition());
+                this.preserveScroll();
             });
             this.$watch('message', () => this.checkCommands());
             this.$watch('$wire.currentChannel', () => {
                 this.lastMsgCount = 0;
-                this.$nextTick(() => this.scrollToBottom());
+                this.userWasAtBottom = true;
+                this.scrollToBottom();
                 this.checkCommands();
             });
             this.$watch('$wire.isOpen', (val) => {
                 if (val) {
                     this.lastMsgCount = 0;
-                    this.$nextTick(() => this.scrollToBottom());
+                    this.userWasAtBottom = true;
+                    this.scrollToBottom();
                 }
             });
             this.$watch('$wire.activeTooltipId', () => {
-                const el = this.$refs.chatBox;
-                this.$nextTick(() => {
-                    if (el) {
-                        if (this.wasAtBottom) {
-                            el.scrollTop = el.scrollHeight;
-                        } else if (this.savedScrollTop > 0) {
-                            el.scrollTop = this.savedScrollTop;
-                        }
-                    }
-                });
+                this.preserveScroll();
             });
         }
     }"
