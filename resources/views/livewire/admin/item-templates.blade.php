@@ -28,18 +28,25 @@
                     ⚔️
                 </div>
                 
-                <div class="flex items-center justify-between border-b border-gray-700 pb-4 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-700 pb-4 mb-6 gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
-                            ⚡ Masowa Zmiana Statystyk Przedmiotów
+                            ⚡ Masowa Zmiana Statystyk Przedmiotów (Wzmocnienie / Osłabienie)
                         </h2>
                         <p class="text-xs text-gray-400 mt-1">
-                            Podaj mnożnik dla podstawowych statystyk przedmiotów (np. <code class="bg-gray-900 px-1 rounded text-amber-300">1.5</code> podnosi statystykę o 50%). Wartość <code class="bg-gray-900 px-1 rounded text-gray-300">1.0</code> oznacza brak zmian.
+                            • <strong>Wzmocnienie (Buff)</strong>: np. <code class="bg-gray-900 px-1.5 py-0.5 rounded text-green-400 font-bold">1.5</code> (+50%), <code class="bg-gray-900 px-1.5 py-0.5 rounded text-green-400 font-bold">2.0</code> (x2)<br>
+                            • <strong>Osłabienie (Nerf)</strong>: np. <code class="bg-gray-900 px-1.5 py-0.5 rounded text-red-400 font-bold">0.8</code> (-20%), <code class="bg-gray-900 px-1.5 py-0.5 rounded text-red-400 font-bold">0.5</code> (-50%)<br>
+                            • Wartość <code class="bg-gray-900 px-1.5 py-0.5 rounded text-gray-300">1.0</code> oznacza brak zmian.
                         </p>
                     </div>
-                    <button type="button" wire:click="resetBulkMultipliers" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 py-1.5 px-3 rounded transition">
-                        Resetuj Mnożniki (1.0)
-                    </button>
+                    <div class="flex flex-wrap gap-1.5 items-center">
+                        <span class="text-xs text-gray-400 font-bold w-full sm:w-auto">Presety:</span>
+                        <button type="button" wire:click="setBulkPreset(0.5)" class="text-xs bg-red-950/80 hover:bg-red-900 text-red-300 border border-red-700 py-1 px-2.5 rounded transition font-bold" title="Osłabienie o 50%">-50% (x0.5)</button>
+                        <button type="button" wire:click="setBulkPreset(0.8)" class="text-xs bg-orange-950/80 hover:bg-orange-900 text-orange-300 border border-orange-700 py-1 px-2.5 rounded transition font-bold" title="Osłabienie o 20%">-20% (x0.8)</button>
+                        <button type="button" wire:click="resetBulkMultipliers" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-200 py-1 px-2.5 rounded transition font-bold">Reset (x1.0)</button>
+                        <button type="button" wire:click="setBulkPreset(1.2)" class="text-xs bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 py-1 px-2.5 rounded transition font-bold" title="Wzmocnienie o 20%">+20% (x1.2)</button>
+                        <button type="button" wire:click="setBulkPreset(1.5)" class="text-xs bg-green-950/80 hover:bg-green-900 text-green-300 border border-green-700 py-1 px-2.5 rounded transition font-bold" title="Wzmocnienie o 50%">+50% (x1.5)</button>
+                    </div>
                 </div>
 
                 <!-- Filtry Docelowe -->
@@ -76,35 +83,35 @@
                     <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-orange-400 mb-1">Atak *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkAtkMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkAtkMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-blue-400 mb-1">Obrona *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkDefMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkDefMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-red-400 mb-1">HP Bonus *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkHpMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkHpMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-cyan-400 mb-1">Mana Bonus *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkManaMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkManaMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-yellow-400 mb-1">Siła (STR) *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkStrMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkStrMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-green-400 mb-1">Zręczność (AGI) *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkAgiMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkAgiMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-pink-400 mb-1">Witalność (VIT) *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkVitMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkVitMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                         <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
                             <label class="block text-xs font-bold text-purple-400 mb-1">Inteligencja (INT) *</label>
-                            <input type="number" step="0.1" min="0" wire:model="bulkIntMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                            <input type="number" step="0.01" min="0" wire:model="bulkIntMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
                         </div>
                     </div>
                 </div>

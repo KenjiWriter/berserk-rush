@@ -226,13 +226,19 @@ class Monsters extends Component
 
     public function resetBulkMultipliers()
     {
-        $this->bulkHpMult = 1.0;
-        $this->bulkAtkMult = 1.0;
-        $this->bulkDefMult = 1.0;
-        $this->bulkAgiMult = 1.0;
-        $this->bulkIntMult = 1.0;
-        $this->bulkCritMult = 1.0;
-        $this->bulkDodgeMult = 1.0;
+        $this->setBulkPreset(1.0);
+    }
+
+    public function setBulkPreset($multiplier)
+    {
+        $mult = (float) $multiplier;
+        $this->bulkHpMult = $mult;
+        $this->bulkAtkMult = $mult;
+        $this->bulkDefMult = $mult;
+        $this->bulkAgiMult = $mult;
+        $this->bulkIntMult = $mult;
+        $this->bulkCritMult = $mult;
+        $this->bulkDodgeMult = $mult;
     }
 
     public function applyBulkStatChanges()

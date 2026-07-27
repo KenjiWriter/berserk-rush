@@ -55,14 +55,20 @@ class ItemTemplates extends Component
 
     public function resetBulkMultipliers()
     {
-        $this->bulkAtkMult = 1.0;
-        $this->bulkDefMult = 1.0;
-        $this->bulkHpMult = 1.0;
-        $this->bulkManaMult = 1.0;
-        $this->bulkStrMult = 1.0;
-        $this->bulkAgiMult = 1.0;
-        $this->bulkVitMult = 1.0;
-        $this->bulkIntMult = 1.0;
+        $this->setBulkPreset(1.0);
+    }
+
+    public function setBulkPreset($multiplier)
+    {
+        $mult = (float) $multiplier;
+        $this->bulkAtkMult = $mult;
+        $this->bulkDefMult = $mult;
+        $this->bulkHpMult = $mult;
+        $this->bulkManaMult = $mult;
+        $this->bulkStrMult = $mult;
+        $this->bulkAgiMult = $mult;
+        $this->bulkVitMult = $mult;
+        $this->bulkIntMult = $mult;
     }
 
     public function applyBulkStatChanges()
