@@ -17,7 +17,7 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 ## Mechaniki
 
 ### 1. Punkty Umiejętności (Skill Points)
-- Postać otrzymuje **1 Punkt Umiejętności** za każdy zdobyty poziom (łącza pula punktów = `poziom_postaci - 1`).
+- Postać otrzymuje **3 Punkty Umiejętności** za każdy zdobyty poziom (łączna pula punktów = `(poziom_postaci - 1) * 3`).
 - Punkty wykorzystuje się u Czarnoksiężnika do odblokowywania nowych skilli (koszt odblokowania zależy od skilla) oraz podnoszenia ich poziomu (1 punkt za poziom).
 - **Maksymalny poziom umiejętności wynosi 5 (Max Lv. 5).**
 - Synchronizacja punktów (`syncMissingPoints`) automatycznie wylicza pozostałe nieprzydzielone punkty na podstawie zdobytych punktów minus koszty odblokowanych i ulepszonych skilli.

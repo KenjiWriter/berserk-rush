@@ -21,7 +21,7 @@ class ResetAllSkillsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Resetuje wszystkie odblokowane umiejętności u wszystkich postaci i przyznaje należne Punkty Umiejętności równe (poziom - 1).';
+    protected $description = 'Resetuje wszystkie odblokowane umiejętności u wszystkich postaci i przyznaje należne Punkty Umiejętności równe (poziom - 1) * 3.';
 
     /**
      * Execute the console command.
@@ -34,12 +34,12 @@ class ResetAllSkillsCommand extends Command
             // Delete all character combat skills
             CharacterCombatSkill::query()->delete();
 
-            // Set skill_points = max(0, level - 1) for all characters
+            // Set skill_points = max(0, (level - 1) * 3) for all characters
             $characters = Character::all();
             $count = 0;
 
             foreach ($characters as $character) {
-                $expectedPoints = max(0, $character->level - 1);
+                $expectedPoints = max(0, ($character->level - 1) * 3);
                 $character->update([
                     'skill_points' => $expectedPoints,
                 ]);

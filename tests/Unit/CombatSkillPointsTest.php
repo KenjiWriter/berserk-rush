@@ -46,12 +46,12 @@ class CombatSkillPointsTest extends TestCase
             'is_equipped' => true,
         ]);
 
-        // Level 22 -> Total earned skill points = 21.
+        // Level 22 -> Total earned skill points = 21 * 3 = 63.
         // Spent: unlock_cost (5) + (level 3 - 1 = 2) = 7 points.
-        // Unspent remaining = 21 - 7 = 14.
+        // Unspent remaining = 63 - 7 = 56.
         $character->syncMissingPoints();
 
-        $this->assertEquals(14, $character->fresh()->skill_points);
+        $this->assertEquals(56, $character->fresh()->skill_points);
     }
 
     public function test_sync_missing_points_caps_skills_over_level_5()
@@ -90,8 +90,8 @@ class CombatSkillPointsTest extends TestCase
 
         // Level should be capped to 5
         $this->assertEquals(5, $charSkill->fresh()->level);
-        // Level 30 -> 29 earned points. Spent: 5 + (5-1=4) = 9 points. Remaining: 20 points.
-        $this->assertEquals(20, $character->fresh()->skill_points);
+        // Level 30 -> 29 * 3 = 87 earned points. Spent: 5 + (5-1=4) = 9 points. Remaining: 78 points.
+        $this->assertEquals(78, $character->fresh()->skill_points);
     }
 
     public function test_upgrade_skill_blocks_upgrade_above_level_5()
@@ -170,6 +170,6 @@ class CombatSkillPointsTest extends TestCase
             ->assertExitCode(0);
 
         $this->assertEquals(0, CharacterCombatSkill::count());
-        $this->assertEquals(39, $character->fresh()->skill_points);
+        $this->assertEquals(117, $character->fresh()->skill_points);
     }
 }

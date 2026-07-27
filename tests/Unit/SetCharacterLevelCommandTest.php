@@ -34,7 +34,7 @@ class SetCharacterLevelCommandTest extends TestCase
         $this->assertEquals(10, $character->level);
         $this->assertEquals(0, $character->xp);
         $this->assertEquals(27, $character->character_points); // (10-1)*3 = 27
-        $this->assertEquals(9, $character->skill_points); // 10-1 = 9
+        $this->assertEquals(27, $character->skill_points); // (10-1)*3 = 27
     }
 
     public function test_can_set_character_level_by_name(): void

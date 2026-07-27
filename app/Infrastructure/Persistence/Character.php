@@ -243,7 +243,7 @@ class Character extends Model
             $this->save();
         }
 
-        $expectedSkillPoints = max(0, $this->level - 1);
+        $expectedSkillPoints = max(0, ($this->level - 1) * 3);
         $unlockedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
             ->where('character_id', $this->id)
             ->get();

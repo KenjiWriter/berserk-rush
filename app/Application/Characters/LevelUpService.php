@@ -36,7 +36,7 @@ class LevelUpService
                     $character->update([
                         'level' => $currentLevel,
                         'character_points' => ($character->character_points ?? 0) + $pointsGained,
-                        'skill_points' => ($character->skill_points ?? 0) + count($levelUps),
+                        'skill_points' => ($character->skill_points ?? 0) + (count($levelUps) * 3),
                         'xp' => $currentXp,
                     ]);
 
