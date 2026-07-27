@@ -820,9 +820,9 @@ class EncounterService
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
-        $baseCrit = 0.05 + ($agility * 0.005) + (($eq['crit_chance'] ?? 0) / 100);
-        $agiPenalty = max(0, ($monsterAgi - $agility) * 0.003);
-        $critChance = max(0.01, min(0.50, $baseCrit - $agiPenalty));
+        $baseCrit = 0.05 + ($agility * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
+        $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
+        $critChance = max(0.03, min(0.50, $baseCrit - $agiCritPenalty));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
@@ -834,18 +834,17 @@ class EncounterService
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
         $playerAgi = $character ? ($character->getTotalAttributes()['agi'] ?? 0) : 0;
 
-        $baseCrit = 0.03 + ($monsterAgi * 0.004);
-        $agiPenalty = max(0, ($playerAgi - $monsterAgi) * 0.003);
-        $critChance = max(0.01, min(0.30, $baseCrit - $agiPenalty));
+        $baseCrit = 0.03 + ($monsterAgi * 0.003);
+        $agiCritPenalty = max(0, ($playerAgi - $monsterAgi) * 0.0008);
+        $critChance = max(0.02, min(0.30, $baseCrit - $agiCritPenalty));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
     private function rollDodge(int $defenderAgi, int $attackerAgi): bool
     {
-        $baseDodge = 0.02 + ($defenderAgi * 0.003);
-        $agiPenalty = max(0, ($attackerAgi - $defenderAgi) * 0.002);
-        $dodgeChance = max(0.01, min(0.50, $baseDodge - $agiPenalty));
+        $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
+        $dodgeChance = min(0.18, 0.03 + ($agiDodgeAdvantage * 0.0015));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

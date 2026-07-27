@@ -354,14 +354,13 @@ class PvPEncounterService
         $actingAgi = $actingSnapshot['attributes']['agi'] ?? 1;
         $targetAgi = $targetSnapshot['attributes']['agi'] ?? 1;
 
-        $baseCrit = 0.05 + ($actingAgi * 0.005) + (($eqStats['crit_chance'] ?? 0) / 100);
-        $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.003);
-        $critChance = max(0.01, min(0.50, $baseCrit - $agiCritPenalty));
+        $baseCrit = 0.05 + ($actingAgi * 0.004) + (($eqStats['crit_chance'] ?? 0) / 100);
+        $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.0008);
+        $critChance = max(0.03, min(0.50, $baseCrit - $agiCritPenalty));
         $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
 
-        $baseDodge = 0.02 + ($targetAgi * 0.003);
-        $agiDodgePenalty = max(0, ($actingAgi - $targetAgi) * 0.002);
-        $dodgeChance = max(0.01, min(0.50, $baseDodge - $agiDodgePenalty));
+        $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
+        $dodgeChance = min(0.18, 0.03 + ($agiDodgeAdvantage * 0.0015));
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

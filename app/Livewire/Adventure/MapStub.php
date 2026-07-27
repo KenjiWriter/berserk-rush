@@ -666,7 +666,6 @@ class MapStub extends Component
         $agi = $playerAttributes['agi'] ?? 0;
         $vit = $playerAttributes['vit'] ?? 0;
 
-        $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $enemyAgi = $this->enemy['stats']['agi'] ?? 0;
 
         $statBonus = $character->getAttributeAttackBonus();
@@ -674,13 +673,14 @@ class MapStub extends Component
         $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
         $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
-        $baseCrit = 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0);
-        $critPenalty = $enemyAgi * 0.15;
-        $effectiveCrit = max(0, $baseCrit - $critPenalty);
+        // Balanced Crit: Minimum 3% floor, gentle AGI difference penalty
+        $baseCrit = 5 + ($agi * 0.4) + ($eqStats['crit_chance'] ?? 0);
+        $agiCritPenalty = max(0, ($enemyAgi - $agi) * 0.08);
+        $effectiveCrit = max(3.0, min(50, $baseCrit - $agiCritPenalty));
 
-        $baseDodge = 2 + ($agi * 0.3);
-        $dodgePenalty = $enemyAgi * 0.10;
-        $effectiveDodge = max(0, $baseDodge - $dodgePenalty);
+        // Balanced Dodge: Base 3%, scales only with AGI superiority up to max 18%
+        $agiDodgeAdvantage = max(0, $agi - $enemyAgi);
+        $effectiveDodge = min(18.0, 3.0 + ($agiDodgeAdvantage * 0.15));
 
         return [
             'crit_chance' => round($effectiveCrit, 1),
@@ -699,13 +699,12 @@ class MapStub extends Component
         $enemyAgi = $enemyStats['agi'] ?? 0;
         $playerAgi = $this->player['stats']['agi'] ?? 0;
 
-        $baseCrit = 3 + ($enemyAgi * 0.4);
-        $critPenalty = $playerAgi * 0.15;
-        $effectiveCrit = max(0, min(30, $baseCrit - $critPenalty));
+        $baseCrit = 3 + ($enemyAgi * 0.3);
+        $agiCritPenalty = max(0, ($playerAgi - $enemyAgi) * 0.08);
+        $effectiveCrit = max(2.0, min(30, $baseCrit - $agiCritPenalty));
 
-        $baseDodge = 2 + ($enemyAgi * 0.3);
-        $dodgePenalty = $playerAgi * 0.10;
-        $effectiveDodge = max(0, min(30, $baseDodge - $dodgePenalty));
+        $agiDodgeAdvantage = max(0, $enemyAgi - $playerAgi);
+        $effectiveDodge = min(18.0, 3.0 + ($agiDodgeAdvantage * 0.15));
 
         return [
             'crit_chance' => round($effectiveCrit, 1),
