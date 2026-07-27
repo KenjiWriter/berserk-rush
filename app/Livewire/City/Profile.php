@@ -241,11 +241,11 @@ class Profile extends Component
             $totalAllocated = array_sum(array_map('intval', $addedStats));
             $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalAllocated}.");
             $this->dispatch('play-audio', type: 'stat');
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->attributes);
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         } else {
             $this->character->refresh();
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->attributes);
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         }
     }
 
