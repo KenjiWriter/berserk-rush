@@ -217,6 +217,17 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        $lowerMsg = strtolower($message);
+        if (str_starts_with($lowerMsg, '/addap ') || str_starts_with($lowerMsg, '/giveap ') || str_starts_with($lowerMsg, '/addstat ') || str_starts_with($lowerMsg, '/addstats ') || str_starts_with($lowerMsg, '/givestat ')) {
+            if ($character->user->permission_level >= 8) {
+                $this->handleAddApCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
         $cp = $character->getTotalCombatPower();
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
@@ -724,12 +735,17 @@ class GlobalChatComponent extends Component
             $character->level = $value;
             $character->save();
             $this->dispatch('notify', message: "Zmieniono poziom na {$value}.", type: 'success');
-        } elseif ($type === 'sp') {
+        } elseif ($type === 'sp' || $type === 'skill') {
             $character->skill_points += $value;
             $character->save();
-            $this->dispatch('notify', message: "Dodano {$value} punktów SP.", type: 'success');
+            $this->dispatch('notify', message: "Dodano {$value} punktów umiejętności (SP).", type: 'success');
+        } elseif ($type === 'ap' || $type === 'stat' || $type === 'stats' || $type === 'attr' || $type === 'atrybuty') {
+            $character->character_points += $value;
+            $character->save();
+            $this->dispatch('notify', message: "Dodano {$value} punktów atrybutów (AP).", type: 'success');
+            $this->dispatch('stats-saved', points: $character->character_points, baseAttributes: $character->getBaseAttributes(), bonusAttributes: $character->getBonusAttributes());
         } else {
-            $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp).');
+            $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp, ap, stat).');
         }
     }
 
@@ -756,7 +772,7 @@ class GlobalChatComponent extends Component
                 }
             }
             if (!$target) {
-                $target = Character::where('name', $identifier)->first();
+                $target = Character::whereRaw('LOWER(name) = ?', [strtolower($identifier)])->first();
             }
             if (!$target) {
                 $user = \App\Models\User::where('email', $identifier)->first();
@@ -784,5 +800,59 @@ class GlobalChatComponent extends Component
         }
 
         $this->dispatch('notify', message: "Dodano {$amount} punktów umiejętności (SP) dla postaci {$target->name}.", type: 'success');
+    }
+
+    private function handleAddApCommand(string $command, Character $senderCharacter): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 2) {
+            $this->addError('newMessage', 'Użycie: /addap <ilość> LUB /addap <uid|nazwa> <ilość>');
+            return;
+        }
+
+        if (count($parts) === 2) {
+            $target = $senderCharacter;
+            $amount = (int) $parts[1];
+        } else {
+            $identifier = $parts[1];
+            $amount = (int) $parts[2];
+
+            $target = Character::find($identifier);
+            if (!$target && is_numeric($identifier)) {
+                $user = \App\Models\User::find((int) $identifier);
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+            if (!$target) {
+                $target = Character::whereRaw('LOWER(name) = ?', [strtolower($identifier)])->first();
+            }
+            if (!$target) {
+                $user = \App\Models\User::where('email', $identifier)->first();
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+        }
+
+        if (!$target) {
+            $this->addError('newMessage', 'Nie znaleziono postaci ani użytkownika.');
+            return;
+        }
+
+        if ($amount <= 0) {
+            $this->addError('newMessage', 'Ilość punktów musi być większa niż 0.');
+            return;
+        }
+
+        $target->character_points = max(0, ($target->character_points ?? 0) + $amount);
+        $target->save();
+
+        if (method_exists($target, 'clearStatsCache')) {
+            $target->clearStatsCache();
+        }
+
+        $this->dispatch('notify', message: "Dodano {$amount} punktów atrybutów (AP/Statystyk) dla postaci {$target->name}.", type: 'success');
+        $this->dispatch('stats-saved', points: $target->character_points, baseAttributes: $target->getBaseAttributes(), bonusAttributes: $target->getBonusAttributes());
     }
 }

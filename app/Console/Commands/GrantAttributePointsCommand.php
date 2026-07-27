@@ -6,16 +6,16 @@ use Illuminate\Console\Command;
 use App\Models\User;
 use App\Infrastructure\Persistence\Character;
 
-class GrantSkillPointsCommand extends Command
+class GrantAttributePointsCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'character:grant-sp
+    protected $signature = 'character:grant-ap
                             {character : ID (ULID) postaci, ID (UID) użytkownika, nazwa postaci lub email}
-                            {points : Ilość punktów umiejętności (Skill Points) do dodania}';
+                            {points : Ilość punktów atrybutów (Stat Points / AP) do dodania}';
 
     /**
      * The console command aliases.
@@ -23,8 +23,9 @@ class GrantSkillPointsCommand extends Command
      * @var array<int, string>
      */
     protected $aliases = [
-        'character:add-sp',
-        'character:add-skill-points',
+        'character:add-ap',
+        'character:grant-stats',
+        'character:add-stats',
     ];
 
     /**
@@ -32,7 +33,7 @@ class GrantSkillPointsCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Przyznaje punkty umiejętności (Skill Points) dla postaci na podstawie jej ID (ULID), UID użytkownika, nazwy lub emaila.';
+    protected $description = 'Przyznaje punkty atrybutów (Stat/Attribute Points - STR, INT, VIT, AGI) dla postaci na podstawie jej ID (ULID), UID użytkownika, nazwy lub emaila.';
 
     /**
      * Execute the console command.
@@ -48,7 +49,7 @@ class GrantSkillPointsCommand extends Command
         }
 
         if ($points === 0) {
-            $this->warn('Ilość punktów umiejętności do dodania wynosi 0. Brak zmian.');
+            $this->warn('Ilość punktów atrybutów do dodania wynosi 0. Brak zmian.');
             return Command::SUCCESS;
         }
 
@@ -89,11 +90,11 @@ class GrantSkillPointsCommand extends Command
             return Command::FAILURE;
         }
 
-        $oldSkillPoints = (int) ($character->skill_points ?? 0);
-        $newSkillPoints = max(0, $oldSkillPoints + $points);
+        $oldPoints = (int) ($character->character_points ?? 0);
+        $newPoints = max(0, $oldPoints + $points);
 
         $character->update([
-            'skill_points' => $newSkillPoints,
+            'character_points' => $newPoints,
         ]);
 
         if (method_exists($character, 'clearStatsCache')) {
@@ -101,12 +102,12 @@ class GrantSkillPointsCommand extends Command
         }
 
         $this->newLine();
-        $this->info("SUKCES: Zaktualizowano punkty umiejętności (Skill Points) dla postaci '{$character->name}'");
+        $this->info("SUKCES: Zaktualizowano punkty atrybutów (Attribute/Stat Points) dla postaci '{$character->name}'");
         $this->line(" - Postać ID (ULID): <comment>{$character->id}</comment>");
         $this->line(" - Użytkownik (UID / Email): <comment>" . ($character->user ? "{$character->user->id} ({$character->user->email})" : 'Brak') . "</comment>");
-        $this->line(" - Poprzednia liczba SP: <comment>{$oldSkillPoints}</comment>");
-        $this->line(" - Zmiana SP: " . ($points > 0 ? "<fg=green;options=bold>+{$points}</>" : "<fg=red;options=bold>{$points}</>"));
-        $this->line(" - Nowa liczba SP: <fg=green;options=bold>{$newSkillPoints}</>");
+        $this->line(" - Poprzednia liczba AP (Atrybutów): <comment>{$oldPoints}</comment>");
+        $this->line(" - Zmiana AP: " . ($points > 0 ? "<fg=green;options=bold>+{$points}</>" : "<fg=red;options=bold>{$points}</>"));
+        $this->line(" - Nowa liczba AP (Atrybutów): <fg=green;options=bold>{$newPoints}</>");
 
         return Command::SUCCESS;
     }
