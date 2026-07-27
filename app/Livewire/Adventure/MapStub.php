@@ -657,6 +657,52 @@ class MapStub extends Component
         ];
     }
 
+    public function getPlayerCombatStats(): array
+    {
+        $character = $this->character;
+        $playerAttributes = $this->player['stats'] ?? $character->getTotalAttributes();
+        $eqStats = $character->getEquipmentStats();
+        $level = $character->level;
+        $agi = $playerAttributes['agi'] ?? 0;
+        $vit = $playerAttributes['vit'] ?? 0;
+
+        $enemyAgi = $this->enemy['stats']['agi'] ?? 0;
+
+        $statBonus = $character->getAttributeAttackBonus();
+        $baseDmg = 10 + $statBonus + ($level * 1);
+        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+
+        $critChance = min(50, 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0));
+        $dodgeChance = min(50, 2 + ($agi * 0.3));
+
+        return [
+            'crit_chance' => round($critChance, 1),
+            'dodge_chance' => round($dodgeChance, 1),
+            'atk_min' => $baseDmg + $weaponAtkMin,
+            'atk_max' => $baseDmg + $weaponAtkMax,
+            'defense' => $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0),
+        ];
+    }
+
+    public function getEnemyCombatStats(): array
+    {
+        if (empty($this->enemy)) return [];
+
+        $enemyStats = $this->enemy['stats'] ?? [];
+        $enemyAgi = $enemyStats['agi'] ?? 0;
+
+        $critChance = min(30, 3 + ($enemyAgi * 0.4));
+        $dodgeChance = min(30, 2 + ($enemyAgi * 0.3));
+
+        return [
+            'crit_chance' => round($critChance, 1),
+            'dodge_chance' => round($dodgeChance, 1),
+            'atk' => $enemyStats['atk'] ?? 0,
+            'def' => $enemyStats['def'] ?? 0,
+        ];
+    }
+
     public function render()
     {
         return view('livewire.adventure.map-stub');

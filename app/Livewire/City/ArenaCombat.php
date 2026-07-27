@@ -87,6 +87,8 @@ class ArenaCombat extends Component
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
             'stats' => $mySnap['attributes'],
+            'equipment_stats' => $mySnap['equipment_stats'] ?? [],
+            'weapon_type' => $mySnap['weapon_type'] ?? 'barehands',
             'skills' => $mySnap['skills'] ?? []
         ];
 
@@ -101,6 +103,8 @@ class ArenaCombat extends Component
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
             'stats' => $enemySnap['attributes'],
+            'equipment_stats' => $enemySnap['equipment_stats'] ?? [],
+            'weapon_type' => $enemySnap['weapon_type'] ?? 'barehands',
             'skills' => $enemySnap['skills'] ?? []
         ];
 
@@ -144,6 +148,8 @@ class ArenaCombat extends Component
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
             'stats' => $mySnap['attributes'],
+            'equipment_stats' => $mySnap['equipment_stats'] ?? [],
+            'weapon_type' => $mySnap['weapon_type'] ?? 'barehands',
             'skills' => $mySnap['skills'] ?? []
         ];
 
@@ -154,10 +160,13 @@ class ArenaCombat extends Component
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
             'stats' => $enemySnap['attributes'],
+            'equipment_stats' => $enemySnap['equipment_stats'] ?? [],
+            'weapon_type' => $enemySnap['weapon_type'] ?? 'barehands',
             'skills' => $enemySnap['skills'] ?? []
         ];
 
         $this->isCalculating = false;
+
         if ($fight->turns) {
             $this->allTurns = $this->transformTurnsToPerspective($fight->turns, $isAttacker);
             $this->playerFirst = $fight->combat_data['attacker_first'] ?? true;
@@ -169,6 +178,47 @@ class ArenaCombat extends Component
             // Auto start playback for GvG - triggered via wire:init
             $this->isPlaying = true;
         }
+    }
+
+    public function getCombatStats(array $participant, array $opponent): array
+    {
+        if (empty($participant)) return [];
+
+        $attrs = $participant['stats'] ?? [];
+        $eqStats = $participant['equipment_stats'] ?? [];
+        $weaponType = $participant['weapon_type'] ?? 'barehands';
+        $level = $participant['level'] ?? 1;
+
+        $str = $attrs['str'] ?? 0;
+        $int = $attrs['int'] ?? 0;
+        $vit = $attrs['vit'] ?? 0;
+        $agi = $attrs['agi'] ?? 0;
+
+        $statBonus = match ($weaponType) {
+            'bow', 'sword', 'dagger' => $str + $agi,
+            'bell' => $str + $int,
+            'wand' => $int * 2,
+            'axe' => $str * 2,
+            default => $str * 2,
+        };
+
+        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
+        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+
+        $baseDmgMin = 10 + $statBonus + ($level * 1) + $weaponAtkMin;
+        $baseDmgMax = 10 + $statBonus + ($level * 1) + $weaponAtkMax;
+
+        $critChance = min(50, 5 + ($agi * 0.5) + ($eqStats['crit_chance'] ?? 0));
+        $dodgeChance = min(50, 2 + ($agi * 0.3));
+        $defense = $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0);
+
+        return [
+            'crit_chance' => round($critChance, 1),
+            'dodge_chance' => round($dodgeChance, 1),
+            'atk_min' => $baseDmgMin,
+            'atk_max' => max($baseDmgMin, $baseDmgMax),
+            'defense' => $defense,
+        ];
     }
 
     public function checkCombatStatus(): void

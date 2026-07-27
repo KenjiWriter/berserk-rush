@@ -633,13 +633,17 @@
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Redukuje nadchodzące obrażenia w walce.">Damage Reduction:</span>
                             <span class="text-blue-400 font-bold text-base">{{ $derivedStats['damage_reduction'] }}</span>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
-                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na zadanie ataku krytycznego (1.5x obrażeń).">Crit Chance:</span>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50 group relative">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na zadanie ataku krytycznego (1.5x obrażeń). Zależy od Zręczności (AGI) oraz założonych przedmiotów. Pamiętaj: im więcej AGI ma przeciwnik, tym Twoja szansa na kryt i unik maleje.">Crit Chance:</span>
                             <span class="text-yellow-500 font-bold text-base">{{ $derivedStats['crit_chance'] }}%</span>
                         </div>
-                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
-                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na całkowite uniknięcie ciosu przeciwnika.">Dodge Chance:</span>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50 group relative">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na całkowite uniknięcie ciosu przeciwnika. Zależy od Zręczności (AGI) oraz wyposażenia. Pamiętaj: im więcej AGI posiada przeciwnik, tym Twoja efektywna szansa na unik w walce się zmniejsza.">Dodge Chance:</span>
                             <span class="text-emerald-400 font-bold text-base">{{ $derivedStats['dodge_chance'] }}%</span>
+                        </div>
+                        <div class="col-span-1 md:col-span-2 mt-2 p-2.5 bg-amber-950/40 border border-amber-800/40 rounded-xl text-xs text-amber-200/90 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-info text-amber-400 text-sm shrink-0"></i>
+                            <span>Szansa na <strong>trafienie krytyczne</strong> oraz <strong>unik</strong> zależy od Twojej Zręczności (AGI) oraz bonifikaty z wyposażenia. W walce z przeciwnikiem wyższa Zręczność przeciwnika redukuje Twoje efektywne szanse na unik oraz krytyka.</span>
                         </div>
                     </div>
                 @elseif($activeTab === 'pets')
