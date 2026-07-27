@@ -36,13 +36,12 @@ class RewardMultiplierService
             $multiplier += 0.20; // +20% za premium
         }
 
-        // 4. Globalny Event (Placeholder na przyszłość)
-        /*
-        if (config('game.events.global_exp_multiplier') > 1.0) {
-            // Mnożnik eventowy może mnożyć całość
-            $multiplier *= config('game.events.global_exp_multiplier');
+        // 4. Globalny Event Weekendowy
+        $eventService = app(\App\Application\Events\WeekendEventService::class);
+        $eventExpMult = $eventService->getExpMultiplier();
+        if ($eventExpMult > 1.0) {
+            $multiplier *= $eventExpMult;
         }
-        */
 
         return $multiplier;
     }
@@ -76,12 +75,12 @@ class RewardMultiplierService
             $multiplier += 0.20; // +20% złota za premium
         }
 
-        // 4. Globalny Event
-        /*
-        if (config('game.events.global_gold_multiplier') > 1.0) {
-            $multiplier *= config('game.events.global_gold_multiplier');
+        // 4. Globalny Event Weekendowy
+        $eventService = app(\App\Application\Events\WeekendEventService::class);
+        $eventGoldMult = $eventService->getGoldMultiplier();
+        if ($eventGoldMult > 1.0) {
+            $multiplier *= $eventGoldMult;
         }
-        */
 
         return $multiplier;
     }

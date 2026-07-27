@@ -60,9 +60,13 @@ class UpgradeService
             }
         }
 
+        $eventService = app(\App\Application\Events\WeekendEventService::class);
+        $eventBonusChance = $eventService->getUpgradeBonusChance() * 100; // e.g. 15%
+        $totalChance = min(100, ($rule->success_chance * 100) + $eventBonusChance);
+
         return [
             'gold' => $rule->cost['gold'] ?? 0,
-            'chance' => $rule->success_chance * 100,
+            'chance' => $totalChance,
             'materials' => $materials,
             'on_fail' => $rule->on_fail,
             'rule_id' => $rule->id,

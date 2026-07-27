@@ -67,16 +67,21 @@ class DropService
                 $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
                 $itemName = $template ? $template->name : "Przedmiot";
 
+                $eventService = app(\App\Application\Events\WeekendEventService::class);
+                $gemsMult = $eventService->getGemsMultiplier();
+                $dropMult = $eventService->getDropMultiplier();
+
                 switch ($selectedEntry['reward_type']) {
                     case 'gold':
                         $gold = $quantity;
                         break;
 
                     case 'gems':
-                        $gems = $quantity;
+                        $gems = (int) round($quantity * $gemsMult);
                         break;
 
                     case 'item':
+                        $finalQty = (int) round($quantity * $dropMult);
                         $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency']);
                         $hasExisting = $isStackable && ItemInstance::where('owner_character_id', $encounter->character_id)
                             ->where('template_id', $templateUlid)
@@ -88,12 +93,13 @@ class DropService
                                 'template_id' => $templateUlid,
                                 'name' => $itemName,
                                 'rarity' => 'common',
-                                'quantity' => $quantity,
+                                'quantity' => $finalQty,
                             ];
                         }
                         break;
 
                     case 'material':
+                        $finalQty = (int) round($quantity * $dropMult);
                         $hasExisting = ItemInstance::where('owner_character_id', $encounter->character_id)
                             ->where('template_id', $templateUlid)
                             ->where('location', 'material_stash')
@@ -104,7 +110,7 @@ class DropService
                                 'template_id' => $templateUlid,
                                 'name' => $itemName,
                                 'rarity' => 'common',
-                                'quantity' => $quantity,
+                                'quantity' => $finalQty,
                             ];
                         }
                         break;

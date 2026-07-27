@@ -342,6 +342,7 @@
                 <div class="lg:flex lg:flex-row min-h-screen w-full">
                     <x-desktop-nav />
                     <div class="flex-1 min-w-0 flex flex-col min-h-screen">
+                        @livewire('global.weekend-event-banner')
                         @livewire('global.active-buffs')
 
                         <!-- Page Heading -->

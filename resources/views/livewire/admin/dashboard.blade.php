@@ -90,6 +90,7 @@
 
             @php
                 $newSuggestionsCount = \App\Infrastructure\Persistence\Suggestion::where('status', 'new')->count();
+                $activeEvent = app(\App\Application\Events\WeekendEventService::class)->getActiveEvent();
             @endphp
             <a href="{{ route('admin.suggestions') }}" class="bg-gradient-to-br from-indigo-950/60 to-purple-950/60 p-6 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.15)] border border-indigo-600/60 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] transition-all relative">
                 <div class="flex items-center justify-between mb-2">
@@ -101,6 +102,20 @@
                     @endif
                 </div>
                 <p class="text-gray-300">Lista uwag, błędów i propozycji zmian zgłoszonych przez graczy.</p>
+            </a>
+
+            <a href="{{ route('admin.events') }}" class="bg-gradient-to-br from-yellow-950/60 via-amber-950/50 to-stone-900/90 p-6 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.2)] border border-amber-600/60 hover:border-amber-400 hover:shadow-[0_0_25px_rgba(245,158,11,0.4)] transition-all relative group">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xl font-bold text-amber-400 flex items-center gap-2">
+                        <i class="fa-solid fa-calendar-star"></i> Eventy Weekendowe
+                    </h2>
+                    @if($activeEvent)
+                        <span class="px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 font-extrabold text-xs rounded-full border border-emerald-500/40 animate-pulse">
+                            AKTYWNY
+                        </span>
+                    @endif
+                </div>
+                <p class="text-gray-300">Zarządzanie eventami (2x Gold, 2x EXP, 2x Drop, 2x Gems, Ulepszenia). Auto-losowanie co weekend.</p>
             </a>
         </div>
 

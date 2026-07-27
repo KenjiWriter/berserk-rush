@@ -103,6 +103,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/gallery', \App\Livewire\Admin\Gallery::class)->name('gallery');
     Route::get('/characters', \App\Livewire\Admin\Characters::class)->name('characters');
     Route::get('/suggestions', \App\Livewire\Admin\Suggestions::class)->name('suggestions');
+    Route::get('/events', \App\Livewire\Admin\Events::class)->name('events');
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {
