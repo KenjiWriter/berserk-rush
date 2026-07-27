@@ -114,7 +114,7 @@
                             @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
                             <div class="space-y-1 lg:space-y-2">
                                 <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                    <span>❤️ Życie</span>
+                                    <span><i class="fa-solid fa-heart text-red-500"></i> Życie</span>
                                     <span>{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] }}</span>
                                 </div>
                                 <div class="h-4 w-full rounded-full bg-black/40 ring-2 ring-amber-800/60 shadow-inner">
@@ -159,23 +159,31 @@
                             @endphp
                             <div class="mt-3 pt-2.5 border-t border-amber-800/40">
                                 <div class="text-xs font-bold text-amber-200 mb-1.5 medieval-font flex items-center justify-between">
-                                    <span>⚔️ Statystyki w Walce</span>
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-swords text-amber-400"></i> Statystyki w Walce</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-1.5 text-center">
                                     <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-yellow-300 font-semibold">⚡ Krytyk</div>
+                                        <div class="text-[10px] text-yellow-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-bolt text-yellow-400"></i> Krytyk
+                                        </div>
                                         <div class="text-xs font-bold text-yellow-200 font-mono">{{ $playerCombatStats['crit_chance'] ?? 0 }}%</div>
                                     </div>
                                     <div class="bg-black/50 border border-emerald-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-emerald-300 font-semibold">🛡️ Unik</div>
+                                        <div class="text-[10px] text-emerald-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Unik
+                                        </div>
                                         <div class="text-xs font-bold text-emerald-200 font-mono">{{ $playerCombatStats['dodge_chance'] ?? 0 }}%</div>
                                     </div>
                                     <div class="bg-black/50 border border-red-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-red-300 font-semibold">⚔️ Atak</div>
+                                        <div class="text-[10px] text-red-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-crosshairs text-red-400"></i> Atak
+                                        </div>
                                         <div class="text-xs font-bold text-red-200 font-mono">{{ $playerCombatStats['atk_min'] ?? 0 }} - {{ $playerCombatStats['atk_max'] ?? 0 }}</div>
                                     </div>
                                     <div class="bg-black/50 border border-blue-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-blue-300 font-semibold">🛡️ Obrona</div>
+                                        <div class="text-[10px] text-blue-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield text-blue-400"></i> Obrona
+                                        </div>
                                         <div class="text-xs font-bold text-blue-200 font-mono">{{ $playerCombatStats['defense'] ?? 0 }}</div>
                                     </div>
                                 </div>
@@ -360,7 +368,7 @@
                         @if (!empty($enemy))
                             <div class="space-y-1 lg:space-y-2">
                                 <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                    <span>❤️ Życie</span>
+                                    <span><i class="fa-solid fa-heart text-red-500"></i> Życie</span>
                                     <span>{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] }}</span>
                                 </div>
                                 <div class="h-4 w-full rounded-full bg-black/40 ring-2 ring-red-800/60 shadow-inner">
@@ -413,23 +421,31 @@
                             @endphp
                             <div class="mt-3 pt-2.5 border-t border-red-800/40">
                                 <div class="text-xs font-bold text-red-200 mb-1.5 medieval-font flex items-center justify-between">
-                                    <span>⚔️ Statystyki Przeciwnika</span>
+                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-swords text-red-400"></i> Statystyki Przeciwnika</span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-1.5 text-center">
                                     <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-yellow-300 font-semibold">⚡ Krytyk</div>
+                                        <div class="text-[10px] text-yellow-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-bolt text-yellow-400"></i> Krytyk
+                                        </div>
                                         <div class="text-xs font-bold text-yellow-200 font-mono">{{ $enemyCombatStats['crit_chance'] ?? 0 }}%</div>
                                     </div>
                                     <div class="bg-black/50 border border-emerald-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-emerald-300 font-semibold">🛡️ Unik</div>
+                                        <div class="text-[10px] text-emerald-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Unik
+                                        </div>
                                         <div class="text-xs font-bold text-emerald-200 font-mono">{{ $enemyCombatStats['dodge_chance'] ?? 0 }}%</div>
                                     </div>
                                     <div class="bg-black/50 border border-red-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-red-300 font-semibold">⚔️ Atak</div>
+                                        <div class="text-[10px] text-red-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-crosshairs text-red-400"></i> Atak
+                                        </div>
                                         <div class="text-xs font-bold text-red-200 font-mono">{{ $enemyCombatStats['atk_min'] ?? 0 }} - {{ $enemyCombatStats['atk_max'] ?? 0 }}</div>
                                     </div>
                                     <div class="bg-black/50 border border-blue-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-blue-300 font-semibold">🛡️ Obrona</div>
+                                        <div class="text-[10px] text-blue-300 font-semibold flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield text-blue-400"></i> Obrona
+                                        </div>
                                         <div class="text-xs font-bold text-blue-200 font-mono">{{ $enemyCombatStats['defense'] ?? 0 }}</div>
                                     </div>
                                 </div>

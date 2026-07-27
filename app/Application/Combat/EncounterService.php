@@ -599,7 +599,7 @@ class EncounterService
                 $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
             }
 
-            $isCrit = $this->rollCritical($character);
+            $isCrit = $this->rollCritical($character, $monster);
             if ($isCrit) {
                 $damage = (int)($damage * 1.5);
                 $baseDamage = (int)($baseDamage * 1.5);
@@ -636,8 +636,13 @@ class EncounterService
             $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
         }
 
-        $isCrit = $this->rollCritical($character);
-        $isMiss = $this->rollMiss();
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
+
+        $isCrit = $this->rollCritical($character, $monster);
+        $isMiss = $this->rollDodge($monsterAgi, $playerAgi);
 
         if ($isMiss) {
             $newMonsterHp = max(0, $monsterHp - $dotDamage);
@@ -687,8 +692,13 @@ class EncounterService
         $baseDamage = $damageData['base'];
         $resistDamage = $damageData['resist'];
 
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
+
         $isCrit = $this->rollMonsterCritical($monster, $character);
-        $isMiss = $this->rollMiss();
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi);
 
         if ($isMiss) {
             return [
@@ -802,26 +812,42 @@ class EncounterService
         ];
     }
 
-    private function rollCritical(Character $character): bool
+    private function rollCritical(Character $character, Monster $monster): bool
     {
         $agility = $character->getTotalAttributes()['agi'] ?? 1;
         $eq = $character->getEquipmentStats();
-        $critChance = min(0.3, 0.05 + ($agility * 0.01) + ($eq['crit_chance'] / 100));
-        return mt_rand(1, 100) <= ($critChance * 100);
+        $isTutorial = ($character->user && $character->user->game_stage <= 12);
+        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
+
+        $baseCrit = 0.05 + ($agility * 0.005) + (($eq['crit_chance'] ?? 0) / 100);
+        $agiPenalty = max(0, ($monsterAgi - $agility) * 0.003);
+        $critChance = max(0.01, min(0.50, $baseCrit - $agiPenalty));
+
+        return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
     private function rollMonsterCritical(Monster $monster, ?Character $character = null): bool
     {
         $isTutorial = ($character && $character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character ? $character->level : $monster->level, $isTutorial);
-        $agility = $scaledMonsterStats['agi'];
-        $critChance = min(0.2, 0.03 + ($agility * 0.008));
-        return mt_rand(1, 100) <= ($critChance * 100);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
+        $playerAgi = $character ? ($character->getTotalAttributes()['agi'] ?? 0) : 0;
+
+        $baseCrit = 0.03 + ($monsterAgi * 0.004);
+        $agiPenalty = max(0, ($playerAgi - $monsterAgi) * 0.003);
+        $critChance = max(0.01, min(0.30, $baseCrit - $agiPenalty));
+
+        return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollMiss(): bool
+    private function rollDodge(int $defenderAgi, int $attackerAgi): bool
     {
-        return mt_rand(1, 100) <= 5; // 5% miss chance
+        $baseDodge = 0.02 + ($defenderAgi * 0.003);
+        $agiPenalty = max(0, ($attackerAgi - $defenderAgi) * 0.002);
+        $dodgeChance = max(0.01, min(0.50, $baseDodge - $agiPenalty));
+
+        return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }
 
     private function calculateGoldReward(Monster $monster, Character $character): array

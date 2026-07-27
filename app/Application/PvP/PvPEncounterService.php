@@ -350,13 +350,19 @@ class PvPEncounterService
         $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
-        // Crit check
-        $agi = $actingSnapshot['attributes']['agi'] ?? 1;
-        $critChance = min(0.3, 0.05 + ($agi * 0.01) + (($eqStats['crit_chance'] ?? 0) / 100));
-        $isCrit = mt_rand(1, 100) <= ($critChance * 100);
+        // Crit & Dodge checks with opponent AGI reduction
+        $actingAgi = $actingSnapshot['attributes']['agi'] ?? 1;
+        $targetAgi = $targetSnapshot['attributes']['agi'] ?? 1;
 
-        // Miss check
-        $isMiss = mt_rand(1, 100) <= 5;
+        $baseCrit = 0.05 + ($actingAgi * 0.005) + (($eqStats['crit_chance'] ?? 0) / 100);
+        $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.003);
+        $critChance = max(0.01, min(0.50, $baseCrit - $agiCritPenalty));
+        $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
+
+        $baseDodge = 0.02 + ($targetAgi * 0.003);
+        $agiDodgePenalty = max(0, ($actingAgi - $targetAgi) * 0.002);
+        $dodgeChance = max(0.01, min(0.50, $baseDodge - $agiDodgePenalty));
+        $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {
             $turn = [
