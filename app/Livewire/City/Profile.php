@@ -125,6 +125,7 @@ class Profile extends Component
             }
 
             $this->character->refresh();
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -150,6 +151,7 @@ class Profile extends Component
             $this->dispatch('notify', type: 'success', message: 'Przedmiot zdjęty pomyślnie.');
             $this->dispatch('play-audio', type: 'unequip');
             $this->character->refresh();
+            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }

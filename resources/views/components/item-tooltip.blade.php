@@ -97,6 +97,47 @@
             $canCompare = true;
         }
     }
+
+    $formatStatName = function(string $statKey): string {
+        $map = [
+            'attack_min' => 'Attack Min',
+            'attack_max' => 'Attack Max',
+            'magic_attack_min' => 'Magic Attack Min',
+            'magic_attack_max' => 'Magic Attack Max',
+            'str_bonus' => 'STR Bonus',
+            'int_bonus' => 'INT Bonus',
+            'vit_bonus' => 'VIT Bonus',
+            'agi_bonus' => 'AGI Bonus',
+            'crit_chance' => 'Crit Chance',
+            'dodge_chance' => 'Dodge Chance',
+            'hp_bonus' => 'HP Bonus',
+            'defense' => 'Defense',
+            'exp_bonus' => 'EXP Bonus',
+            'gold_bonus' => 'Gold Bonus',
+            'strong_vs_demons' => 'Silny vs Demony',
+            'strong_vs_undead' => 'Silny vs Nieumarli',
+            'strong_vs_animals' => 'Silny vs Zwierzęta',
+            'strong_vs_orcs' => 'Silny vs Orki',
+            'resist_demons' => 'Odporność na Demony',
+            'resist_undead' => 'Odporność na Nieumarłe',
+            'resist_animals' => 'Odporność na Zwierzęta',
+            'resist_orcs' => 'Odporność na Orki',
+        ];
+        if (isset($map[$statKey])) {
+            return $map[$statKey];
+        }
+        return ucwords(str_replace('_', ' ', $statKey));
+    };
+
+    $isPercentStat = function(string $statKey): bool {
+        if (str_contains($statKey, 'chance') || str_contains($statKey, 'strong_vs') || str_contains($statKey, 'resist') || str_contains($statKey, 'percent') || str_contains($statKey, 'rate')) {
+            return true;
+        }
+        if (in_array($statKey, ['exp_bonus', 'gold_bonus', 'crit_damage', 'life_steal', 'mana_steal'])) {
+            return true;
+        }
+        return false;
+    };
 @endphp
 
 <div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
@@ -148,16 +189,17 @@
                             $eq_total_val = $eq_val + $eq_up_val;
 
                             $diff = $total_val - $eq_total_val;
+                            $suffix = $isPercentStat($stat) ? '%' : '';
                         @endphp
                         <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
-                            <span class="capitalize text-gray-200">{{ str_replace('_', ' ', $stat) }}</span>
+                            <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
                             <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-green-400' : 'text-gray-500' }}">+{{ $val }}</span>
+                                <span class="font-bold {{ $val > 0 ? 'text-green-400' : 'text-gray-500' }}">+{{ $val }}{{ $suffix }}</span>
                                 @if($up_val > 0)
-                                    <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }})</span>
+                                    <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }}{{ $suffix }})</span>
                                 @endif
                                 <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                    @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
+                                    @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
                                 </span>
                             </div>
                         </div>
@@ -167,13 +209,14 @@
                             $val = $enchants[$stat] ?? 0;
                             $eq_val = $canCompare ? ($equipped_enchants[$stat] ?? 0) : 0;
                             $diff = $val - $eq_val;
+                            $suffix = $isPercentStat($stat) ? '%' : '';
                         @endphp
                         <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
-                            <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ str_replace('_', ' ', $stat) }}</span>
+                            <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
                             <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $val }}</span>
+                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $val }}{{ $suffix }}</span>
                                 <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                    @if($diff > 0)(+{{ $diff }})@elseif($diff < 0)({{ $diff }})@else(- )@endif
+                                    @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
                                 </span>
                             </div>
                         </div>
@@ -195,24 +238,26 @@
                         @php
                             $eq_val = $equipped_base_stats[$stat] ?? 0;
                             $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
+                            $suffix = $isPercentStat($stat) ? '%' : '';
                         @endphp
                         @if($eq_val > 0 || $eq_up_val > 0)
                             <div class="flex justify-between">
-                                <span class="capitalize text-gray-400">{{ str_replace('_', ' ', $stat) }}</span>
+                                <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="font-bold text-gray-200">+{{ $eq_val }}</span>
+                                    <span class="font-bold text-gray-200">+{{ $eq_val }}{{ $suffix }}</span>
                                     @if($eq_up_val > 0)
-                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $eq_up_val }})</span>
+                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $eq_up_val }}{{ $suffix }})</span>
                                     @endif
                                 </div>
                             </div>
                         @endif
                     @endforeach
                     @foreach($all_enchant_keys as $stat)
+                        @php $suffix = $isPercentStat($stat) ? '%' : ''; @endphp
                         @if(($equipped_enchants[$stat] ?? 0) > 0)
                             <div class="flex justify-between text-purple-400/80">
-                                <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ str_replace('_', ' ', $stat) }}</span>
-                                <span class="font-bold">+{{ $equipped_enchants[$stat] }}</span>
+                                <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
+                                <span class="font-bold">+{{ $equipped_enchants[$stat] }}{{ $suffix }}</span>
                             </div>
                         @endif
                     @endforeach
