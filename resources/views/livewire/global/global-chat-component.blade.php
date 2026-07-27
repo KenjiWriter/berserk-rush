@@ -44,7 +44,7 @@
         handleScroll() {
             const el = this.$refs.chatBox;
             if (!el) return;
-            if (el.scrollTop === 0 && el.scrollHeight > el.clientHeight + 10 && this.savedScrollTop > 0) {
+            if (el.scrollTop === 0 && this.savedScrollTop > 30) {
                 return;
             }
             this.savedScrollTop = el.scrollTop;
@@ -64,7 +64,7 @@
             } else {
                 if (this.wasAtBottom) {
                     el.scrollTop = el.scrollHeight;
-                } else {
+                } else if (this.savedScrollTop > 0) {
                     el.scrollTop = this.savedScrollTop;
                 }
             }
@@ -113,7 +113,16 @@
                 }
             });
             this.$watch('$wire.activeTooltipId', () => {
-                this.$nextTick(() => this.updateScrollPosition());
+                const el = this.$refs.chatBox;
+                this.$nextTick(() => {
+                    if (el) {
+                        if (this.wasAtBottom) {
+                            el.scrollTop = el.scrollHeight;
+                        } else if (this.savedScrollTop > 0) {
+                            el.scrollTop = this.savedScrollTop;
+                        }
+                    }
+                });
             });
         }
     }"
@@ -122,7 +131,13 @@
 >
     {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
     @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
-        @php $td = $tooltipData[$activeTooltipId]; @endphp
+        @php
+            $td = $tooltipData[$activeTooltipId];
+            $avatarName = $td['avatar'] ?? 'plate.png';
+            $avatarUrl = (str_contains($avatarName, '/') || str_contains($avatarName, '.'))
+                ? asset('img/avatars/' . ltrim($avatarName, '/'))
+                : asset('img/avatars/' . $avatarName . '.png');
+        @endphp
         
         {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
         <div 
@@ -131,7 +146,7 @@
         >
             <div
                 @click.outside="if ($wire.activeTooltipId) $wire.closeTooltip()"
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col"
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col max-h-[420px] shrink-0"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
@@ -144,7 +159,7 @@
                 <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
                     @if(!empty($td['avatar']))
                         <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
-                            <img src="{{ asset('img/avatars/' . $td['avatar']) }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
+                            <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
                         </div>
                     @endif
                     <div class="min-w-0 flex-1">
