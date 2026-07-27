@@ -597,6 +597,10 @@
                 </div>
             @endif
         @endif
+    </div>
+    @endif
+</div>
+
     <style>
         /* Chat message appear animation */
         @keyframes chatMsgAppear {
