@@ -31,7 +31,7 @@ class LootTableSeeder extends Seeder
         LootTableEntry::create([
             'loot_table_id' => $forestLoot->id,
             'reward_type' => 'gold',
-            'weight' => 50,
+            'weight' => 200,
             'min_qty' => 5,
             'max_qty' => 20
         ]);
@@ -41,7 +41,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $forestLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $fang->id,
-                'weight' => 25,
+                'weight' => 6,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
@@ -52,7 +52,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $forestLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $herb->id,
-                'weight' => 15,
+                'weight' => 4,
                 'min_qty' => 1,
                 'max_qty' => 3
             ]);
@@ -63,7 +63,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $forestLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $rustySword->id,
-                'weight' => 10,
+                'weight' => 2,
                 'min_qty' => 1,
                 'max_qty' => 1
             ]);
@@ -76,7 +76,7 @@ class LootTableSeeder extends Seeder
         LootTableEntry::create([
             'loot_table_id' => $ruinsLoot->id,
             'reward_type' => 'gold',
-            'weight' => 45,
+            'weight' => 180,
             'min_qty' => 8,
             'max_qty' => 25
         ]);
@@ -86,7 +86,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $ruinsLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $bone->id,
-                'weight' => 30,
+                'weight' => 7,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
@@ -97,7 +97,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $ruinsLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $leatherArmor->id,
-                'weight' => 10,
+                'weight' => 2,
                 'min_qty' => 1,
                 'max_qty' => 1
             ]);
@@ -110,7 +110,7 @@ class LootTableSeeder extends Seeder
         LootTableEntry::create([
             'loot_table_id' => $desertLoot->id,
             'reward_type' => 'gold',
-            'weight' => 40,
+            'weight' => 160,
             'min_qty' => 12,
             'max_qty' => 30
         ]);
@@ -120,7 +120,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $desertLoot->id,
                 'reward_type' => 'item',
                 'ref_ulid' => $crystal->id,
-                'weight' => 25,
+                'weight' => 6,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);

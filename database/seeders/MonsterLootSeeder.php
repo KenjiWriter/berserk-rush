@@ -170,7 +170,7 @@ class MonsterLootSeeder extends Seeder
                     'loot_table_id' => $lootTable->id,
                     'reward_type' => 'gold',
                 ], [
-                    'weight' => 50,
+                    'weight' => 200,
                     'min_qty' => $monster->level * 2,
                     'max_qty' => max($monster->level * 5, 10)
                 ]);
@@ -190,7 +190,7 @@ class MonsterLootSeeder extends Seeder
                         'reward_type' => 'material',
                         'ref_ulid' => $template->id,
                     ], [
-                        'weight' => in_array($dropName, $specificDrops) ? 20 : (in_array($dropName, $mapConfig['boss_general'] ?? []) ? 5 : 10),
+                        'weight' => in_array($dropName, $specificDrops) ? 5 : (in_array($dropName, $mapConfig['boss_general'] ?? []) ? 1 : 2),
                         'min_qty' => 1,
                         'max_qty' => in_array($monsterRank, ['boss', 'worldboss']) ? 3 : 1
                     ]);
@@ -206,7 +206,7 @@ class MonsterLootSeeder extends Seeder
                             'reward_type' => 'item',
                             'ref_ulid' => $equip->id,
                         ], [
-                            'weight' => in_array($monsterRank, ['boss', 'worldboss']) ? 3 : 1,
+                            'weight' => in_array($monsterRank, ['boss', 'worldboss']) ? 1 : 1,
                             'min_qty' => 1,
                             'max_qty' => 1
                         ]);
@@ -221,7 +221,7 @@ class MonsterLootSeeder extends Seeder
                         'reward_type' => 'item',
                         'ref_ulid' => $cons->id,
                     ], [
-                        'weight' => 5,
+                        'weight' => 1,
                         'min_qty' => 1,
                         'max_qty' => 2
                     ]);
