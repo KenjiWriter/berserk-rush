@@ -125,7 +125,8 @@
                                 $oppLvl = is_array($opponent) ? $opponent['level'] : $opponent->level;
                                 $oppElo = is_array($opponent) ? $opponent['elo'] : $opponent->elo;
                                 $oppAvatar = is_array($opponent) ? ($opponent['avatar'] ?? 'default.png') : ($opponent->avatar ?? 'default.png');
-                                $avatarSrc = str_contains($oppAvatar, '/') || str_contains($oppAvatar, '.') ? asset('img/avatars/' . ltrim($oppAvatar, '/')) : asset('img/avatars/' . $oppAvatar . '.png');
+                                if (!str_contains($oppAvatar, '.')) { $oppAvatar .= '.png'; }
+                                $avatarSrc = asset('img/avatars/' . ltrim($oppAvatar, '/'));
                             @endphp
                             <div class="relative rounded-xl overflow-hidden shadow-lg border border-amber-800/30 group hover:border-amber-500/50 transition-colors">
                                 <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover">
@@ -204,7 +205,8 @@
                                             $rankNumber = ($ranking->currentPage() - 1) * $ranking->perPage() + $loop->iteration;
                                             $isCurrentCharacter = $rowChar->id === $character->id;
                                             $avatar = $rowChar->avatar ?? 'default.png';
-                                            $avatarSrc = str_contains($avatar, '/') || str_contains($avatar, '.') ? asset('img/avatars/' . ltrim($avatar, '/')) : asset('img/avatars/' . $avatar . '.png');
+                                            if (!str_contains($avatar, '.')) { $avatar .= '.png'; }
+                                            $avatarSrc = asset('img/avatars/' . ltrim($avatar, '/'));
                                         @endphp
                                         <tr class="transition-colors hover:bg-amber-900/30 {{ $isCurrentCharacter ? 'bg-amber-900/40 border-l-4 border-l-amber-400' : '' }}">
                                             {{-- Miejsce --}}

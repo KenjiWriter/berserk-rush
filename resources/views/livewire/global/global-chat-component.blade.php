@@ -151,9 +151,10 @@
         @php
             $td = $tooltipData[$activeTooltipId];
             $avatarName = $td['avatar'] ?? 'plate.png';
-            $avatarUrl = (str_contains($avatarName, '/') || str_contains($avatarName, '.'))
-                ? asset('img/avatars/' . ltrim($avatarName, '/'))
-                : asset('img/avatars/' . $avatarName . '.png');
+            if (!str_contains($avatarName, '.')) {
+                $avatarName .= '.png';
+            }
+            $avatarUrl = asset('img/avatars/' . ltrim($avatarName, '/'));
         @endphp
         
         {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
@@ -163,7 +164,7 @@
         >
             <div
                 @click.outside="if ($wire.activeTooltipId) $wire.closeTooltip()"
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col max-h-[420px] shrink-0"
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
@@ -199,7 +200,7 @@
                 @if (count($td['equipped_items']) === 0)
                     <p class="text-amber-700/60 text-xs italic mb-3">Brak założonego ekwipunku</p>
                 @else
-                    <div class="space-y-1 mb-3 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                    <div class="space-y-1 mb-3">
                         @foreach ($td['equipped_items'] as $ei)
                             @php
                                 $rarityColor = match($ei['rarity'] ?? 'common') {
