@@ -14,6 +14,41 @@
         userWasAtBottom: true,
         isUpdating: false,
         lastMsgCount: 0,
+        captureScrollState() {
+            const el = this.$refs.chatBox;
+            if (el) {
+                const distanceToBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+                this.userWasAtBottom = distanceToBottom < 30;
+                this.userScrollPos = el.scrollTop;
+            }
+        },
+        async openTooltip(id) {
+            this.captureScrollState();
+            this.isUpdating = true;
+            try {
+                await this.$wire.loadTooltip(id);
+            } finally {
+                this.preserveScroll();
+            }
+        },
+        async closeTooltip() {
+            this.captureScrollState();
+            this.isUpdating = true;
+            try {
+                await this.$wire.closeTooltip();
+            } finally {
+                this.preserveScroll();
+            }
+        },
+        async inviteToGuild(id) {
+            this.captureScrollState();
+            this.isUpdating = true;
+            try {
+                await this.$wire.inviteToGuild(id);
+            } finally {
+                this.preserveScroll();
+            }
+        },
         checkCommands() {
             if ((this.message || '').startsWith('/')) {
                 let search = (this.message || '').toLowerCase().split(' ')[0];
@@ -160,15 +195,15 @@
         {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
         <div 
             class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:absolute lg:inset-auto lg:right-full lg:bottom-0 lg:mr-3 lg:bg-transparent lg:backdrop-blur-none p-4 lg:p-0 pointer-events-auto"
-            wire:click.self="closeTooltip"
+            @click.self="closeTooltip()"
         >
             <div
-                @click.outside="if ($wire.activeTooltipId) $wire.closeTooltip()"
+                @click.outside="if ($wire.activeTooltipId) closeTooltip()"
                 class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
-                <button wire:click="closeTooltip" class="absolute top-2.5 right-3 text-amber-500 hover:text-amber-300 font-bold text-xl leading-none cursor-pointer z-10">&times;</button>
+                <button @click="closeTooltip()" class="absolute top-2.5 right-3 text-amber-500 hover:text-amber-300 font-bold text-xl leading-none cursor-pointer z-10">&times;</button>
 
                 {{-- Arrow pointing right (desktop only) --}}
                 <div class="hidden lg:block absolute bottom-6 -right-1.5 w-3 h-3 rotate-45 bg-amber-900 border-t border-r border-amber-700/60"></div>
@@ -252,7 +287,7 @@
 
                 {{-- Invite to Guild Button --}}
                 <button
-                    wire:click="inviteToGuild('{{ $activeTooltipId }}')"
+                    @click="inviteToGuild('{{ $activeTooltipId }}')"
                     class="mt-2 w-full py-1.5 rounded bg-gradient-to-r from-amber-800 to-amber-900 border border-amber-700/50 hover:from-amber-700 hover:to-amber-800 text-amber-200 text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                 >
                     <i class="fa-solid fa-user-plus"></i> Wyślij zaproszenie do gildii
@@ -347,7 +382,7 @@
                                     <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider" title="Tytuł">[{{ $msg['title_prefix'] }}]</span>
                                 @endif
                                 <span
-                                    wire:click.prevent="loadTooltip('{{ $msg['character_id'] }}')"
+                                    @click.prevent="openTooltip('{{ $msg['character_id'] }}')"
                                     class="font-bold cursor-pointer transition-colors hover:underline decoration-dotted 
                                     {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200') }}"
                                 >
