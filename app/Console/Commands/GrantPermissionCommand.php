@@ -15,14 +15,14 @@ class GrantPermissionCommand extends Command
      */
     protected $signature = 'user:grant-admin 
                             {identifier? : ID/Email użytkownika lub ID/Nazwa postaci}
-                            {--level=9 : Poziom uprawnień do nadania (domyślnie 9 - Admin)}';
+                            {--level=9 : Poziom uprawnień do nadania (9 = Moderator, 10 = Admin)}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Nadaje uprawnienia administratora (permission_level=9) użytkownikowi po ID, e-mailu lub po ID/nazwie jego postaci.';
+    protected $description = 'Nadaje uprawnienia użytkownikowi po ID, e-mailu lub po ID/nazwie jego postaci (permission_level: 9 = Moderator, 10 = Admin).';
 
     /**
      * Execute the console command.

@@ -22,6 +22,7 @@ class MessageSent implements ShouldBroadcastNow
         public readonly ?string $titlePrefix = null,
         public readonly bool $isPremium = false,
         public readonly bool $isAdmin = false,
+        public readonly bool $isModerator = false,
     ) {}
 
     public function broadcastOn(): array
@@ -43,6 +44,7 @@ class MessageSent implements ShouldBroadcastNow
             'title_prefix'    => $this->titlePrefix,
             'is_premium'      => $this->isPremium,
             'is_admin'        => $this->isAdmin,
+            'is_moderator'    => $this->isModerator,
         ];
     }
 }

@@ -7,7 +7,7 @@
             { cmd: '/donate exp <ilość>', desc: 'Przekaż EXP do gildii', channel: 'guild' },
             { cmd: '/donate gold <ilość>', desc: 'Przekaż złoto do gildii', channel: 'guild' },
             { cmd: '/donate gems <ilość>', desc: 'Przekaż klejnoty do gildii', channel: 'guild' }
-            {!! (Auth::check() && Auth::user()->permission_level == 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/give pet Leśny Wilk', desc: 'Dodaj chowańca: Leśny Wilk', channel: 'all' }, { cmd: '/give pet Skalny Golem', desc: 'Dodaj chowańca: Skalny Golem', channel: 'all' }, { cmd: '/give pet Magiczna Wróżka', desc: 'Dodaj chowańca: Magiczna Wróżka', channel: 'all' }, { cmd: '/give pet Mroczny Smok', desc: 'Dodaj chowańca: Mroczny Smok', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }, { cmd: '/set level <poziom>', desc: 'Ustaw poziom postaci', channel: 'all' }, { cmd: '/set sp <ilość>', desc: 'Dodaj punkty atrybutów (SP)', channel: 'all' }" : "" !!}
+            {!! (Auth::check() && Auth::user()->permission_level >= 9) ? ", { cmd: '/give <item_id> <ilość>', desc: 'Dodaj przedmiot postaci', channel: 'all' }, { cmd: '/give gold <ilość>', desc: 'Dodaj złoto postaci', channel: 'all' }, { cmd: '/give gems <ilość>', desc: 'Dodaj diamenty na konto', channel: 'all' }, { cmd: '/give pet Leśny Wilk', desc: 'Dodaj chowańca: Leśny Wilk', channel: 'all' }, { cmd: '/give pet Skalny Golem', desc: 'Dodaj chowańca: Skalny Golem', channel: 'all' }, { cmd: '/give pet Magiczna Wróżka', desc: 'Dodaj chowańca: Magiczna Wróżka', channel: 'all' }, { cmd: '/give pet Mroczny Smok', desc: 'Dodaj chowańca: Mroczny Smok', channel: 'all' }, { cmd: '/exp <ilość>', desc: 'Dodaj doświadczenie postaci', channel: 'all' }, { cmd: '/set level <poziom>', desc: 'Ustaw poziom postaci', channel: 'all' }, { cmd: '/set sp <ilość>', desc: 'Dodaj punkty atrybutów (SP)', channel: 'all' }" : "" !!}
         ],
         filteredCommands: [],
         userScrollPos: 0,
@@ -484,6 +484,8 @@
                             <span class="inline space-x-0.5">
                                 @if($msg['is_admin'] ?? false)
                                     <span class="text-[9px] text-red-400 font-extrabold bg-red-950/80 px-1 py-0.5 rounded border border-red-600/60 font-mono tracking-wider shadow-[0_0_8px_rgba(239,68,68,0.5)]">[A]</span>
+                                @elseif($msg['is_moderator'] ?? false)
+                                    <span class="text-[9px] text-emerald-400 font-extrabold bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-600/60 font-mono tracking-wider shadow-[0_0_8px_rgba(16,185,129,0.5)]">[M]</span>
                                 @endif
                                 @if(!empty($msg['title_prefix']))
                                     <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider" title="Tytuł">[{{ $msg['title_prefix'] }}]</span>
@@ -491,7 +493,7 @@
                                 <span
                                     @click.prevent="openTooltip('{{ $msg['character_id'] }}')"
                                     class="font-bold cursor-pointer transition-colors hover:underline decoration-dotted 
-                                    {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200') }}"
+                                    {{ ($msg['is_admin'] ?? false) ? 'text-red-500 font-extrabold hover:text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)] admin-glow' : (($msg['is_moderator'] ?? false) ? 'text-emerald-400 font-extrabold hover:text-emerald-300 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)] mod-glow' : (($msg['is_premium'] ?? false) ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] premium-glow' : 'text-amber-400 hover:text-amber-200')) }}"
                                 >
                                     @if($msg['is_premium'] ?? false)
                                         <span class="inline-block relative">
@@ -623,6 +625,14 @@
         }
         .premium-glow {
             animation: premiumGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes modGlow {
+            0%, 100% { text-shadow: 0 0 4px rgba(16,185,129,0.6), 0 0 8px rgba(16,185,129,0.4); }
+            50% { text-shadow: 0 0 8px rgba(16,185,129,1), 0 0 16px rgba(16,185,129,0.7); }
+        }
+        .mod-glow {
+            animation: modGlow 2s ease-in-out infinite;
         }
 
         @keyframes adminGlow {

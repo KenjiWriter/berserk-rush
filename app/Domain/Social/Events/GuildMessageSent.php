@@ -22,7 +22,8 @@ class GuildMessageSent implements ShouldBroadcastNow
         public string $guildId,
         public ?string $titlePrefix = null,
         public bool $isPremium = false,
-        public bool $isAdmin = false
+        public bool $isAdmin = false,
+        public bool $isModerator = false
     ) {}
 
     public function broadcastOn(): array
@@ -45,6 +46,7 @@ class GuildMessageSent implements ShouldBroadcastNow
             'title_prefix'    => $this->titlePrefix,
             'is_premium'      => $this->isPremium,
             'is_admin'        => $this->isAdmin,
+            'is_moderator'    => $this->isModerator,
         ];
     }
 }

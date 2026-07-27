@@ -98,6 +98,21 @@ class User extends Authenticatable
         return $this->characters()->count() >= 4;
     }
 
+    public function isModerator(): bool
+    {
+        return $this->permission_level === 9;
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->permission_level >= 10;
+    }
+
+    public function hasAdminAccess(): bool
+    {
+        return $this->permission_level >= 9;
+    }
+
     public function hasPremium(): bool
     {
         return $this->premium_until && $this->premium_until->isFuture();

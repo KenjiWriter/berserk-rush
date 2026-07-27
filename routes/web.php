@@ -85,11 +85,9 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', \App\Livewire\Admin\Dashboard::class)->name('dashboard');
-    Route::get('/news', \App\Livewire\Admin\NewsList::class)->name('news');
     Route::get('/maps', \App\Livewire\Admin\Maps::class)->name('maps');
     Route::get('/monsters', \App\Livewire\Admin\Monsters::class)->name('monsters');
     Route::get('/item-templates', \App\Livewire\Admin\ItemTemplates::class)->name('item-templates');
-    Route::get('/item-shop-packages', \App\Livewire\Admin\ItemShopPackages::class)->name('item-shop-packages');
     Route::get('/merchant-items', \App\Livewire\Admin\MerchantItems::class)->name('merchant-items');
     Route::get('/loot-tables', \App\Livewire\Admin\LootTables::class)->name('loot-tables');
     Route::get('/item-recipes', \App\Livewire\Admin\ItemRecipes::class)->name('item-recipes');
@@ -100,10 +98,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');
     Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');
     Route::get('/achievements', \App\Livewire\Admin\Achievements::class)->name('achievements');
-    Route::get('/gallery', \App\Livewire\Admin\Gallery::class)->name('gallery');
-    Route::get('/characters', \App\Livewire\Admin\Characters::class)->name('characters');
-    Route::get('/suggestions', \App\Livewire\Admin\Suggestions::class)->name('suggestions');
-    Route::get('/events', \App\Livewire\Admin\Events::class)->name('events');
+
+    // Super-Admin only routes (permission_level >= 10)
+    Route::middleware('admin.full')->group(function () {
+        Route::get('/news', \App\Livewire\Admin\NewsList::class)->name('news');
+        Route::get('/item-shop-packages', \App\Livewire\Admin\ItemShopPackages::class)->name('item-shop-packages');
+        Route::get('/gallery', \App\Livewire\Admin\Gallery::class)->name('gallery');
+        Route::get('/characters', \App\Livewire\Admin\Characters::class)->name('characters');
+        Route::get('/suggestions', \App\Livewire\Admin\Suggestions::class)->name('suggestions');
+        Route::get('/events', \App\Livewire\Admin\Events::class)->name('events');
+    });
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {

@@ -10,7 +10,7 @@
                 <h1 class="text-3xl font-extrabold text-amber-500 tracking-tight flex items-center gap-2">
                     <span>🧙‍♂️</span> Lista Postaci i Graczy
                 </h1>
-                <p class="text-gray-400 text-sm mt-1">Podgląd lokalizacji, statusu online/offline, zarządzanie VIP, gemami oraz mute na czacie.</p>
+                <p class="text-gray-400 text-sm mt-1">Podgląd lokalizacji, statusu online/offline, zarządzanie Moderatorem, VIP, gemami oraz mute na czacie.</p>
             </div>
         </div>
 
@@ -54,6 +54,12 @@
                 >
                     🔇 Wyciszeni
                 </button>
+                <button
+                    wire:click="$set('filter', 'moderators')"
+                    class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 {{ $filter === 'moderators' ? 'bg-emerald-600 text-white shadow-md' : 'bg-gray-700 text-gray-300 hover:bg-gray-600' }}"
+                >
+                    🛡️ Moderatorzy
+                </button>
             </div>
         </div>
 
@@ -66,6 +72,7 @@
                             <th class="py-3.5 px-4">Postać / Konto</th>
                             <th class="py-3.5 px-4">Lokalizacja</th>
                             <th class="py-3.5 px-4">Status Online</th>
+                            <th class="py-3.5 px-4">Rola / Uprawnienia</th>
                             <th class="py-3.5 px-4">VIP</th>
                             <th class="py-3.5 px-4">Gemy</th>
                             <th class="py-3.5 px-4">Status Czat (Mute)</th>
@@ -129,6 +136,21 @@
                                     @endif
                                 </td>
 
+                                {{-- Rola / Uprawnienia --}}
+                                <td class="py-3 px-4">
+                                    @if ($user?->permission_level >= 10)
+                                        <span class="inline-flex items-center gap-1 bg-red-950/90 border border-red-500/60 text-red-300 text-xs px-2.5 py-1 rounded-md font-extrabold shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+                                            👑 Admin
+                                        </span>
+                                    @elseif ($user?->permission_level === 9)
+                                        <span class="inline-flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 text-xs px-2.5 py-1 rounded-md font-extrabold shadow-[0_0_8px_rgba(16,185,129,0.3)]">
+                                            🛡️ Moderator
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-gray-500 italic">Gracz</span>
+                                    @endif
+                                </td>
+
                                 {{-- VIP --}}
                                 <td class="py-3 px-4">
                                     @if ($hasVip)
@@ -170,6 +192,27 @@
                                 {{-- Akcje --}}
                                 <td class="py-3 px-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
+                                        {{-- Grant / Revoke Moderator Button --}}
+                                        @if ($user?->permission_level === 9)
+                                            <button
+                                                wire:click="revokeModerator('{{ $user?->id }}')"
+                                                onclick="confirm('Czy na pewno chcesz odebrać uprawnienia Moderatora graczowi {{ $char->name }}?') || event.stopImmediatePropagation()"
+                                                class="bg-emerald-950/90 hover:bg-red-900/80 border border-emerald-500/60 hover:border-red-600/60 text-emerald-300 hover:text-red-200 px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                                title="Odebranie roli Moderatora"
+                                            >
+                                                🛡️ Zabierz Mod
+                                            </button>
+                                        @elseif (($user?->permission_level ?? 0) < 9)
+                                            <button
+                                                wire:click="grantModerator('{{ $user?->id }}')"
+                                                onclick="confirm('Czy na pewno chcesz nadać uprawnienia Moderatora graczowi {{ $char->name }}?') || event.stopImmediatePropagation()"
+                                                class="bg-emerald-900/60 hover:bg-emerald-700/80 border border-emerald-600/60 text-emerald-200 px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                                                title="Nadaj rolę Moderatora"
+                                            >
+                                                🛡️ Nadaj Mod
+                                            </button>
+                                        @endif
+
                                         {{-- Grant VIP Button --}}
                                         <button
                                             wire:click="openVipModal('{{ $user?->id }}', '{{ $char->name }}')"
@@ -211,7 +254,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="py-8 text-center text-gray-500 italic">
+                                <td colspan="8" class="py-8 text-center text-gray-500 italic">
                                     Nie znaleziono żadnych postaci spełniających kryteria.
                                 </td>
                             </tr>

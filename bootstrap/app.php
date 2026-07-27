@@ -18,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdminRole::class,
+            'admin.full' => \App\Http\Middleware\EnsureFullAdminRole::class,
         ]);
         
         $middleware->validateCsrfTokens(except: [

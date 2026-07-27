@@ -171,6 +171,29 @@ class Characters extends Component
         }
     }
 
+    // --- Moderator Actions ---
+    public function grantModerator(string $userId): void
+    {
+        $user = User::find($userId);
+        if ($user) {
+            $user->permission_level = 9;
+            $user->save();
+
+            $this->dispatch('notify', message: "Przyznano rolę Moderatora dla konta gracza {$user->name}!", type: 'success');
+        }
+    }
+
+    public function revokeModerator(string $userId): void
+    {
+        $user = User::find($userId);
+        if ($user && $user->permission_level === 9) {
+            $user->permission_level = 0;
+            $user->save();
+
+            $this->dispatch('notify', message: "Odebrano rolę Moderatora dla konta gracza {$user->name}!", type: 'success');
+        }
+    }
+
     public function render()
     {
         $query = Character::with(['user', 'guild']);
@@ -194,6 +217,10 @@ class Characters extends Component
         } elseif ($this->filter === 'muted') {
             $query->whereHas('user', function ($u) {
                 $u->where('muted_until', '>', now());
+            });
+        } elseif ($this->filter === 'moderators') {
+            $query->whereHas('user', function ($u) {
+                $u->where('permission_level', 9);
             });
         }
 

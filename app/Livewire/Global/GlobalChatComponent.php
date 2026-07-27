@@ -80,6 +80,7 @@ class GlobalChatComponent extends Component
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
             'is_admin'        => $event['is_admin'] ?? false,
+            'is_moderator'    => $event['is_moderator'] ?? false,
             'received_at'     => now()->timestamp,
         ];
 
@@ -106,6 +107,7 @@ class GlobalChatComponent extends Component
             'title_prefix'    => $event['title_prefix'] ?? null,
             'is_premium'      => $event['is_premium'] ?? false,
             'is_admin'        => $event['is_admin'] ?? false,
+            'is_moderator'    => $event['is_moderator'] ?? false,
             'received_at'     => now()->timestamp,
         ];
 
@@ -171,7 +173,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/give ')) {
-            if ($character->user->permission_level == 9) {
+            if ($character->user->permission_level >= 9) {
                 $this->handleGiveCommand($message, $character);
             } else {
                 $lowerMsg = strtolower($message);
@@ -186,7 +188,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/exp ')) {
-            if ($character->user->permission_level == 9) {
+            if ($character->user->permission_level >= 9) {
                 $this->handleExpCommand($message, $character);
             } else {
                 $this->addError('newMessage', 'Brak uprawnień.');
@@ -196,7 +198,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/set ')) {
-            if ($character->user->permission_level == 9) {
+            if ($character->user->permission_level >= 9) {
                 $this->handleSetCommand($message, $character);
             } else {
                 $this->addError('newMessage', 'Brak uprawnień.');
@@ -214,7 +216,8 @@ class GlobalChatComponent extends Component
             $titlePrefix = $character->activeTitle->prefix;
         }
 
-        $isAdmin = ($character->user->permission_level == 9);
+        $isModerator = ($character->user->permission_level == 9);
+        $isAdmin = ($character->user->permission_level >= 10);
 
         if ($this->currentChannel === 'guild' && $character->guild_id) {
             broadcast(new \App\Domain\Social\Events\GuildMessageSent(
@@ -228,6 +231,7 @@ class GlobalChatComponent extends Component
                 titlePrefix:    $titlePrefix,
                 isPremium:      $character->user->hasPremium(),
                 isAdmin:        $isAdmin,
+                isModerator:    $isModerator,
             ));
         } else {
             broadcast(new MessageSent(
@@ -240,6 +244,7 @@ class GlobalChatComponent extends Component
                 titlePrefix:    $titlePrefix,
                 isPremium:      $character->user->hasPremium(),
                 isAdmin:        $isAdmin,
+                isModerator:    $isModerator,
             ));
         }
 
