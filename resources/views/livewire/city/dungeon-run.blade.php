@@ -418,21 +418,54 @@
     @script
     <script>
         let playbackInterval = null;
+        let userHasScrolledUp = false;
+
+        function scrollDungeonLogToBottom(force = false) {
+            const container = document.getElementById('dungeon-battle-log-container');
+            if (!container) return;
+
+            if (force) {
+                userHasScrolledUp = false;
+            }
+
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            if (force || !userHasScrolledUp || distanceFromBottom < 150) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        const dungeonLogContainer = document.getElementById('dungeon-battle-log-container');
+        if (dungeonLogContainer) {
+            if (window._dungeonLogObserver) {
+                window._dungeonLogObserver.disconnect();
+            }
+            window._dungeonLogObserver = new MutationObserver(() => {
+                scrollDungeonLogToBottom();
+            });
+            window._dungeonLogObserver.observe(dungeonLogContainer, { childList: true, subtree: true });
+
+            dungeonLogContainer.addEventListener('scroll', () => {
+                const distanceFromBottom = dungeonLogContainer.scrollHeight - dungeonLogContainer.scrollTop - dungeonLogContainer.clientHeight;
+                if (distanceFromBottom > 150) {
+                    userHasScrolledUp = true;
+                } else {
+                    userHasScrolledUp = false;
+                }
+            }, { passive: true });
+        }
 
         $wire.on('start-playback', (e) => {
             let speedMultiplier = e.speed || 1;
             let intervalTime = 600 / speedMultiplier; // base speed 600ms per turn
+            userHasScrolledUp = false;
             
             if (playbackInterval) clearInterval(playbackInterval);
             
+            scrollDungeonLogToBottom(true);
+
             playbackInterval = setInterval(() => {
                 $wire.dispatch('resume-playback');
-                
-                // Auto scroll to bottom
-                let container = document.getElementById('dungeon-battle-log-container');
-                if (container) {
-                    container.scrollTop = container.scrollHeight;
-                }
+                scrollDungeonLogToBottom();
             }, intervalTime);
         });
 
@@ -444,6 +477,7 @@
         });
 
         $wire.on('turn-played', (event) => {
+            scrollDungeonLogToBottom();
             const data = (event && event[0]) ? event[0] : event;
             const actor = data.actor;
             const type = data.type;
