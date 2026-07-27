@@ -76,6 +76,24 @@ class Characters extends Component
         $this->closeVipModal();
     }
 
+    public function revokeVip(?string $userId = null): void
+    {
+        $targetId = $userId ?? $this->selectedUserId;
+        if (!$targetId) {
+            return;
+        }
+
+        $user = User::find($targetId);
+        if ($user) {
+            $user->premium_until = null;
+            $user->save();
+
+            $this->dispatch('notify', message: "Zabrano status VIP dla konta gracza {$user->name}!", type: 'success');
+        }
+
+        $this->closeVipModal();
+    }
+
     // --- Gems Actions ---
     public function openGemsModal(string $userId, string $charName): void
     {

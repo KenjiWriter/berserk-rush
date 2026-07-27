@@ -132,11 +132,14 @@
                                 {{-- VIP --}}
                                 <td class="py-3 px-4">
                                     @if ($hasVip)
-                                        <div class="flex flex-col">
+                                        <div class="flex flex-col gap-1 items-start">
                                             <span class="inline-flex items-center gap-1 bg-yellow-950/90 border border-yellow-500/60 text-yellow-300 text-xs px-2.5 py-1 rounded-md font-bold shadow-[0_0_10px_rgba(234,179,8,0.3)] w-max">
                                                 ✨ VIP Aktywny
                                             </span>
-                                            <span class="text-[10px] text-yellow-500/80 mt-0.5">do {{ $user->premium_until->format('Y-m-d H:i') }}</span>
+                                            <span class="text-[10px] text-yellow-500/80">do {{ $user->premium_until->format('Y-m-d H:i') }}</span>
+                                            <button wire:click="revokeVip('{{ $user?->id }}')" onclick="confirm('Czy na pewno chcesz odebrać VIP graczowi {{ $char->name }}?') || event.stopImmediatePropagation()" class="text-[10px] text-red-400 hover:text-red-300 hover:underline font-semibold flex items-center gap-1 cursor-pointer">
+                                                🚫 Zabierz VIP
+                                            </button>
                                         </div>
                                     @else
                                         <span class="text-xs text-gray-500 italic">Brak</span>
@@ -224,14 +227,24 @@
             @endif
         </div>
 
-        {{-- ========== MODAL: NADAJ VIP ========== --}}
+        {{-- ========== MODAL: NADAJ / ZARZĄDZAJ VIP ========== --}}
         @if ($showVipModal)
+            @php
+                $modalUser = $selectedUserId ? \App\Models\User::find($selectedUserId) : null;
+                $modalHasVip = $modalUser?->hasPremium();
+            @endphp
             <div class="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
                 <div class="bg-gray-800 border border-yellow-600/60 rounded-xl max-w-md w-full p-6 shadow-2xl space-y-4">
                     <h3 class="text-xl font-bold text-yellow-400 flex items-center gap-2">
-                        👑 Nadaj VIP dla postaci: <span class="text-white">{{ $selectedCharacterName }}</span>
+                        👑 Zarządzaj VIP dla postaci: <span class="text-white">{{ $selectedCharacterName }}</span>
                     </h3>
-                    <p class="text-sm text-gray-300">Wybierz liczbę dni dostępu VIP (Premium), które chcesz przyznać dla konta tego gracza.</p>
+                    @if($modalHasVip)
+                        <div class="bg-yellow-950/60 border border-yellow-600/50 p-3 rounded-lg text-xs text-yellow-200">
+                            ✨ Gracz posiada aktywny VIP do: <strong class="text-yellow-400">{{ $modalUser->premium_until->format('Y-m-d H:i') }}</strong>.
+                        </div>
+                    @endif
+
+                    <p class="text-sm text-gray-300">Wybierz liczbę dni, które chcesz dodać do dostępu VIP (Premium) konta gracza.</p>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Czas trwania (w dniach):</label>
@@ -244,9 +257,18 @@
                         </select>
                     </div>
 
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button wire:click="closeVipModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 font-semibold transition">Anuluj</button>
-                        <button wire:click="grantVip" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-sm text-white font-bold transition">Przyznaj VIP</button>
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-gray-700">
+                        @if($modalHasVip)
+                            <button wire:click="revokeVip" onclick="confirm('Czy na pewno chcesz odebrać status VIP temu graczowi?') || event.stopImmediatePropagation()" class="px-3 py-2 bg-red-900/80 hover:bg-red-700 text-red-200 border border-red-600 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer">
+                                🚫 Zabierz VIP
+                            </button>
+                        @else
+                            <div></div>
+                        @endif
+                        <div class="flex gap-2">
+                            <button wire:click="closeVipModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 font-semibold transition cursor-pointer">Anuluj</button>
+                            <button wire:click="grantVip" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 rounded-lg text-sm text-white font-bold transition cursor-pointer">Przyznaj VIP</button>
+                        </div>
                     </div>
                 </div>
             </div>
