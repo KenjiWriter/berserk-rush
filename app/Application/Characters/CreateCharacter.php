@@ -47,7 +47,7 @@ class CreateCharacter
         }
 
         try {
-            return DB::transaction(function () use ($user, $name, $str, $int, $vit, $agi, $avatar) {
+            $result = DB::transaction(function () use ($user, $name, $str, $int, $vit, $agi, $avatar) {
                 // Double-check character limit inside transaction
                 if ($user->characters()->count() >= 4) {
                     return Result::error('MAX_CHARACTERS', 'Osiągnięto limit 4 postaci na konto.');
@@ -90,6 +90,23 @@ class CreateCharacter
 
                 return Result::ok($character);
             });
+
+            if ($result->isOk() && $character = $result->getPayload()) {
+                try {
+                    broadcast(new \App\Domain\Social\Events\MessageSent(
+                        characterName:  'System',
+                        characterLevel: 0,
+                        combatPower:    0,
+                        message:        "Wojownik {$character->name} właśnie zaczął swoją przygodę!",
+                        sentAt:         now()->toTimeString(),
+                        characterId:    'system',
+                    ));
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to broadcast new character chat notification', ['error' => $e->getMessage()]);
+                }
+            }
+
+            return $result;
         } catch (\Exception $e) {
             return Result::error('DATABASE_ERROR', 'Wystąpił błąd podczas tworzenia postaci.');
         }

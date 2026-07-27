@@ -53,4 +53,21 @@ class CreateCharacterTest extends TestCase
         $this->assertCount(1, $items2);
         $this->assertEquals('Zardzewiały Miecz', $items2->first()->template->name);
     }
+
+    public function test_new_character_broadcasts_chat_notification()
+    {
+        \Illuminate\Support\Facades\Event::fake([\App\Domain\Social\Events\MessageSent::class]);
+
+        $user = User::factory()->create();
+        $createService = new CreateCharacter();
+
+        $result = $createService->handle($user, 'Guts', 5, 2, 2, 1);
+        $this->assertTrue($result->isOk());
+
+        \Illuminate\Support\Facades\Event::assertDispatched(\App\Domain\Social\Events\MessageSent::class, function ($event) {
+            return $event->characterName === 'System' &&
+                   $event->characterId === 'system' &&
+                   $event->message === 'Wojownik Guts właśnie zaczął swoją przygodę!';
+        });
+    }
 }
