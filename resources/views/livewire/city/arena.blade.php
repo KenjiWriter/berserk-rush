@@ -51,6 +51,9 @@
                     <div class="font-bold text-lg">{{ $character->name }}</div>
                     <div class="text-amber-300">Ranking: {{ $character->elo }} ({{ ucfirst($currentLeague) }})</div>
                     <div class="text-yellow-400">Żetony: {{ $character->arena_tokens }}</div>
+                    <div class="text-red-400 font-semibold text-xs mt-0.5 flex items-center justify-center sm:justify-end gap-1">
+                        <i class="fa-solid fa-swords text-red-400"></i> Walki dzisiaj: <span class="text-amber-200 font-bold">{{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }}</span>
+                    </div>
                 </div>
                 <button wire:click="goTo('gladiator')" @click="travelingTo = 'Gladiator'" 
                     class="w-full sm:w-auto min-h-[44px] relative rounded-lg px-6 py-2.5 shadow-lg overflow-hidden group flex items-center justify-center">
@@ -93,7 +96,12 @@
                     <div class="flex flex-col md:flex-row justify-between items-center mb-8 border-b-2 border-amber-800/50 pb-4 gap-4">
                         <div class="text-center md:text-left">
                             <h2 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font">Dostępni przeciwnicy</h2>
-                            <p class="text-amber-300/80 text-xs md:text-sm mt-1">Znajdź rywala w swojej lidze i walcz o chwałę oraz żetony areny!</p>
+                            <p class="text-amber-300/80 text-xs md:text-sm mt-1 flex flex-wrap items-center gap-2">
+                                <span>Znajdź rywala w swojej lidze i walcz o chwałę oraz żetony areny!</span>
+                                <span class="px-2 py-0.5 rounded bg-amber-900/60 border border-amber-600/50 text-amber-200 font-semibold text-xs inline-flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-amber-400"></i> Dzienny limit: {{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }} (Reset 00:00)
+                                </span>
+                            </p>
                         </div>
                         <div class="text-center md:text-right">
                             <button wire:click="refreshOpponents" class="relative rounded-lg px-6 py-2 shadow-lg overflow-hidden group">
@@ -133,14 +141,22 @@
                                         <span>Elo: {{ $oppElo }}</span>
                                     </div>
                                     
+                                    @php
+                                        $hasDailyFights = $character->getRemainingDailyPvpFights() > 0;
+                                    @endphp
                                     <button wire:click="challengeOpponent('{{ $oppId }}')" 
                                         wire:loading.attr="disabled"
-                                        class="w-full relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group/btn mt-auto disabled:opacity-50 disabled:cursor-wait">
+                                        @if(!$hasDailyFights) disabled title="Wyczerpano dzienny limit 5 walk na Arenie. Limit odnawia się o 00:00." @endif
+                                        class="w-full relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group/btn mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
                                         <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
-                                        <div class="absolute inset-0 bg-red-900/60 group-hover/btn:bg-red-800/60 transition-colors rounded-lg"></div>
+                                        <div class="absolute inset-0 {{ $hasDailyFights ? 'bg-red-900/60 group-hover/btn:bg-red-800/60' : 'bg-stone-800/80' }} transition-colors rounded-lg"></div>
                                         <span class="relative text-red-100 font-bold medieval-font drop-shadow-md">
                                             <span wire:loading.remove wire:target="challengeOpponent('{{ $oppId }}')" class="flex items-center justify-center gap-1.5">
-                                                <i class="fa-solid fa-hand-fist text-red-200"></i> Wyzwij
+                                                @if($hasDailyFights)
+                                                    <i class="fa-solid fa-hand-fist text-red-200"></i> Wyzwij
+                                                @else
+                                                    <i class="fa-solid fa-lock text-stone-300"></i> Limit wyczerpany
+                                                @endif
                                             </span>
                                             <span wire:loading wire:target="challengeOpponent('{{ $oppId }}')">
                                                 <svg class="animate-spin h-5 w-5 mx-auto text-red-200 inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
@@ -256,13 +272,21 @@
                                             {{-- Akcja --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-right">
                                                 @if(!$isCurrentCharacter)
+                                                    @php
+                                                        $hasDailyFights = $character->getRemainingDailyPvpFights() > 0;
+                                                    @endphp
                                                     <button wire:click="challengeOpponent('{{ $rowChar->id }}')"
                                                         wire:loading.attr="disabled"
-                                                        class="relative rounded-lg px-4 py-1.5 shadow overflow-hidden group/btn disabled:opacity-50 disabled:cursor-wait">
+                                                        @if(!$hasDailyFights) disabled title="Wyczerpano dzienny limit 5 walk na Arenie. Limit odnawia się o 00:00." @endif
+                                                        class="relative rounded-lg px-4 py-1.5 shadow overflow-hidden group/btn disabled:opacity-50 disabled:cursor-not-allowed">
                                                         <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
-                                                        <div class="absolute inset-0 bg-red-900/70 group-hover/btn:bg-red-800/70 transition-colors rounded-lg"></div>
+                                                        <div class="absolute inset-0 {{ $hasDailyFights ? 'bg-red-900/70 group-hover/btn:bg-red-800/70' : 'bg-stone-800/80' }} transition-colors rounded-lg"></div>
                                                         <span class="relative text-red-100 text-xs font-bold medieval-font flex items-center gap-1">
-                                                            <i class="fa-solid fa-hand-fist text-red-200"></i> Wyzwij
+                                                            @if($hasDailyFights)
+                                                                <i class="fa-solid fa-hand-fist text-red-200"></i> Wyzwij
+                                                            @else
+                                                                <i class="fa-solid fa-lock text-stone-300"></i> Limit wyczerpany
+                                                            @endif
                                                         </span>
                                                     </button>
                                                 @else

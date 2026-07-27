@@ -14,6 +14,8 @@ class Character extends Model
 {
     use HasUlids;
 
+    public const MAX_DAILY_PVP_FIGHTS = 5;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -32,6 +34,8 @@ class Character extends Model
         'arena_tokens',
         'pvp_refreshes_used',
         'pvp_refreshes_reset_at',
+        'daily_pvp_fights_used',
+        'daily_pvp_fights_last_reset_at',
         'active_title_id',
         'achievement_points',
         'current_location',
@@ -49,8 +53,28 @@ class Character extends Model
         'arena_tokens' => 'integer',
         'pvp_refreshes_used' => 'integer',
         'pvp_refreshes_reset_at' => 'datetime',
+        'daily_pvp_fights_used' => 'integer',
+        'daily_pvp_fights_last_reset_at' => 'datetime',
         'last_active_at' => 'datetime',
     ];
+
+    public function checkAndResetDailyPvpFights(): void
+    {
+        $todayStart = now()->startOfDay();
+
+        if (!$this->daily_pvp_fights_last_reset_at || $this->daily_pvp_fights_last_reset_at->lt($todayStart)) {
+            $this->update([
+                'daily_pvp_fights_used' => 0,
+                'daily_pvp_fights_last_reset_at' => now(),
+            ]);
+        }
+    }
+
+    public function getRemainingDailyPvpFights(): int
+    {
+        $this->checkAndResetDailyPvpFights();
+        return max(0, self::MAX_DAILY_PVP_FIGHTS - ($this->daily_pvp_fights_used ?? 0));
+    }
 
     public function isOnline(): bool
     {

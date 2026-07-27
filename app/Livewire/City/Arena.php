@@ -30,6 +30,7 @@ class Arena extends Component
         }
 
         $this->character = $character;
+        $this->character->checkAndResetDailyPvpFights();
         $this->currentLeague = $character->league ?? 'bronze';
         $this->loadOpponents();
     }

@@ -9,8 +9,10 @@ W walkach z innymi graczami wprowadzono mechanizm snapshotów. Dzięki temu moż
 - Atakujący wyzywając rywala zapisuje bieżące "Widmo" (statystyki i ekwipunek) w encji spotkania,
 - Tak samo zapisywane są aktualne statystyki obrońcy, by walka przebiegła na równych i stałych warunkach.
 
-### System ELO i Ligi
-Arena posiada własny system matchmakingu i rangowania:
+### System ELO, Ligi i Dzienny Limit Walk
+Arena posiada własny system matchmakingu, rangowania oraz limitowania pojedynków:
+- **Dzienny limit walk:** Każdy gracz posiada limit 5 walk na Arenie dziennie w roli atakującego,
+- **Reset o 0:00:** Dzienny limit 5 walk odnawia się automatycznie dla wszystkich graczy każdego dnia o godzinie 00:00,
 - Wygrana powoduje kradzież pewnej puli ELO na rzecz Atakującego,
 - Gracze rywalizują o jak najwyższe miejsca w Lidze, co generuje stałą rotację rankingową,
 - Na podstawie ELO wyznaczana jest aktualna ranga gracza (Brąz, Srebro, Złoto, Platyna).
