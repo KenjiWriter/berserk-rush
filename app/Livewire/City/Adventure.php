@@ -90,6 +90,7 @@ class Adventure extends Component
     public function render()
     {
         $dungeons = collect();
+        $dungeonCount = Dungeon::count();
         $activeRun = null;
         
         if ($this->tab === 'dungeons') {
@@ -138,13 +139,14 @@ class Adventure extends Component
         $activeQuestIds = $this->character->activeQuests()->pluck('quest_id')->toArray();
 
         return view('livewire.city.adventure', [
-            'dungeons' => $dungeons,
-            'activeRun' => $activeRun,
+            'dungeons'          => $dungeons,
+            'dungeonCount'      => $dungeonCount,
+            'activeRun'         => $activeRun,
             'activeWorldBosses' => $activeWorldBosses,
             'defeatedWorldBosses' => $defeatedWorldBosses,
             'participatedBosses' => $participatedBosses,
-            'topDamageDealers' => $topDamageDealers,
-            'activeQuestIds' => $activeQuestIds,
+            'topDamageDealers'  => $topDamageDealers,
+            'activeQuestIds'    => $activeQuestIds,
         ]);
     }
 }

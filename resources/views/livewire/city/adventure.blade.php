@@ -73,7 +73,7 @@
                     class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'dungeons' ? 'bg-gradient-to-r from-amber-700 to-amber-600 text-white shadow-lg border border-amber-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-dungeon text-amber-400"></i>
                     <span>Lochy</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'dungeons' ? 'bg-amber-950 text-amber-200' : 'bg-slate-800 text-slate-400' }}">{{ count($dungeons) }}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'dungeons' ? 'bg-amber-950 text-amber-200' : 'bg-slate-800 text-slate-400' }}">{{ $dungeonCount }}</span>
                 </button>
             </div>
         </div>
@@ -681,8 +681,26 @@
                         $canEnter = $dungeon->canCharacterEnter($character);
                         $hasKey = $dungeon->entry_item_template_id ? $character->items()->whereIn('location', ['inventory', 'material_stash'])->where('template_id', $dungeon->entry_item_template_id)->where('stack_size', '>=', 1)->exists() : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
+                        $dungeonMonsters = $dungeon->stages->filter(fn($s) => $s->monster)->map(fn($s) => $s->monster)->unique('id')->values();
                     @endphp
-                    <div class="group bg-slate-900/80 backdrop-blur-md border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_-5px_rgba(217,119,6,0.2)]">
+                    <div x-data="{
+                        showBestiaryModal: false,
+                        turningPage: false,
+                        turnDirection: 'next',
+                        monsterIds: [ @foreach($dungeonMonsters as $dm) '{{ $dm->id }}', @endforeach ],
+                        selectedMonsterId: '{{ $dungeonMonsters->first()?->id ?? '' }}',
+                        selectMonster(id) {
+                            if (this.selectedMonsterId === id || this.turningPage) return;
+                            let currIdx = this.monsterIds.indexOf(this.selectedMonsterId);
+                            let targetIdx = this.monsterIds.indexOf(id);
+                            this.turnDirection = targetIdx >= currIdx ? 'next' : 'prev';
+                            this.turningPage = true;
+                            $dispatch('play-audio', { type: 'book_turn' });
+                            setTimeout(() => { this.selectedMonsterId = id; }, 220);
+                            setTimeout(() => { this.turningPage = false; }, 450);
+                        }
+                    }" class="group bg-slate-900/80 backdrop-blur-md border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_-5px_rgba(217,119,6,0.2)]">
+
                         {{-- Dungeon Banner --}}
                         <div class="h-32 bg-gradient-to-br from-slate-800 to-amber-950 relative border-b border-slate-700 flex items-center justify-center">
                             <i class="fa-solid fa-dungeon text-5xl text-slate-700 group-hover:text-amber-500/40 transition-colors"></i>
@@ -710,7 +728,7 @@
                             </div>
                         </div>
 
-                        <div class="p-4 pt-0">
+                        <div class="p-4 pt-0 space-y-2.5">
                             @if($isInProgress)
                                 <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-amber-600 text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-500 transition-colors border border-amber-500">
                                     Kontynuuj Wyprawę
@@ -728,7 +746,225 @@
                                     Rozpocznij Ekspedycję
                                 </button>
                             @endif
+
+                            {{-- KSIĘGA BESTII BUTTON --}}
+                            <button @click="showBestiaryModal = true"
+                                class="w-full bg-slate-800/90 hover:bg-slate-700/90 text-amber-200 font-bold py-2.5 px-4 rounded-xl transition-all duration-200 text-xs sm:text-sm border border-amber-600/40 hover:border-amber-400/80 shadow-md medieval-font flex items-center justify-center gap-2 group/btn">
+                                <span class="group-hover/btn:rotate-12 transition-transform inline-block"><i class="fa-solid fa-book-bookmark text-amber-400"></i></span>
+                                KSIĘGA BESTII
+                            </button>
                         </div>
+
+                        {{-- BESTIARY MODAL --}}
+                        <template x-teleport="body">
+                            <div x-show="showBestiaryModal" style="display: none;"
+                                 x-transition:enter="transition ease-out duration-300"
+                                 x-transition:enter-start="opacity-0 scale-95"
+                                 x-transition:enter-end="opacity-100 scale-100"
+                                 x-transition:leave="transition ease-in duration-200"
+                                 x-transition:leave-start="opacity-100 scale-100"
+                                 x-transition:leave-end="opacity-0 scale-95"
+                                 class="fixed inset-0 z-[200] flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+
+                                <div @click.outside="showBestiaryModal = false"
+                                     class="relative w-full max-w-5xl bg-gradient-to-r from-amber-950 via-yellow-950 to-amber-950 p-3 sm:p-6 rounded-2xl border-4 border-amber-800/90 shadow-[0_25px_60px_rgba(0,0,0,0.95)] flex flex-col max-h-[92vh] overflow-hidden my-auto">
+
+                                    {{-- Gold Corners --}}
+                                    <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-500 rounded-tl-xl pointer-events-none z-30"></div>
+                                    <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-amber-500 rounded-tr-xl pointer-events-none z-30"></div>
+                                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-amber-500 rounded-bl-xl pointer-events-none z-30"></div>
+                                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-amber-500 rounded-br-xl pointer-events-none z-30"></div>
+
+                                    <button @click="showBestiaryModal = false"
+                                        class="absolute top-3 right-4 z-40 text-amber-200 hover:text-red-400 text-3xl font-bold drop-shadow-md transition-colors">
+                                        &times;
+                                    </button>
+
+                                    <div class="relative z-20 text-center mb-3 border-b-2 border-amber-800/60 pb-3 flex items-center justify-between px-2">
+                                        <div class="text-left hidden sm:block">
+                                            <span class="text-xs text-amber-400/80 font-bold uppercase tracking-widest">Księga Bestii</span>
+                                            <h4 class="text-sm font-bold text-amber-200 medieval-font">{{ $dungeon->name }}</h4>
+                                        </div>
+                                        <h2 class="text-2xl sm:text-3xl font-black text-amber-200 medieval-font tracking-wide drop-shadow-md mx-auto flex items-center gap-2">
+                                            <i class="fa-solid fa-scroll text-amber-400"></i>
+                                            <span>Kodeks Bestii: {{ $dungeon->name }}</span>
+                                        </h2>
+                                        <div class="text-right hidden sm:block w-24"></div>
+                                    </div>
+
+                                    @if($dungeonMonsters->isEmpty())
+                                        <div class="flex items-center justify-center py-16 bg-[#f4e4bc] rounded-xl text-amber-950">
+                                            <p class="italic font-bold text-lg">Brak informacji o przeciwnikach w tym lochu...</p>
+                                        </div>
+                                    @else
+                                        {{-- Monster Tabs --}}
+                                        <div class="relative z-20 flex overflow-x-auto gap-1.5 mb-2 pb-2 custom-scrollbar">
+                                            @foreach($dungeonMonsters as $dm)
+                                                <button @click="selectMonster('{{ $dm->id }}')"
+                                                    :class="selectedMonsterId == '{{ $dm->id }}' ? 'bg-[#f4e4bc] text-amber-950 border-amber-700 shadow-lg -translate-y-1 font-black' : 'bg-amber-900/80 text-amber-200 hover:bg-amber-800 hover:-translate-y-0.5 font-bold'"
+                                                    class="px-3 py-1.5 rounded-t-xl text-xs sm:text-sm border-t-2 border-x-2 border-amber-800/60 whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 medieval-font">
+                                                    @if($dm->type && $dm->type->value === 'undead') <i class="fa-solid fa-skull text-stone-900"></i>
+                                                    @elseif($dm->type && $dm->type->value === 'demon') <i class="fa-solid fa-dragon text-purple-900"></i>
+                                                    @elseif($dm->type && $dm->type->value === 'beast') <i class="fa-solid fa-paw text-amber-900"></i>
+                                                    @else <i class="fa-solid fa-skull text-stone-900"></i> @endif
+                                                    <span>{{ $dm->name }}</span>
+                                                    <span class="text-[10px] opacity-75">(Lvl {{ $dm->level }})</span>
+                                                </button>
+                                            @endforeach
+                                        </div>
+
+                                        {{-- Parchment Pages --}}
+                                        <div class="relative flex-1 bg-[#f4e4bc] text-amber-950 border-2 border-amber-900/50 rounded-xl shadow-inner overflow-y-auto custom-scrollbar p-4 sm:p-6 min-h-[480px]">
+                                            <div class="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-10 bg-gradient-to-r from-amber-950/25 via-amber-950/5 to-amber-950/25 pointer-events-none z-20"></div>
+
+                                            {{-- 3D Page Flip --}}
+                                            <div x-show="turningPage" class="absolute inset-0 pointer-events-none z-30 overflow-hidden rounded-xl" style="perspective: 1600px;">
+                                                <template x-if="turnDirection === 'next'">
+                                                    <div class="hidden md:block absolute top-0 bottom-0 right-0 w-1/2 origin-left animate-page-flip-next rounded-r-xl border-l-2 border-amber-900/40 bg-[#ebd7a7] shadow-[0_15px_35px_rgba(0,0,0,0.5)]">
+                                                        <div class="absolute inset-0 bg-gradient-to-r from-amber-950/30 via-amber-900/5 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden;">
+                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto"><i class="fa-solid fa-scroll"></i></div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="turnDirection === 'prev'">
+                                                    <div class="hidden md:block absolute top-0 bottom-0 left-0 w-1/2 origin-right animate-page-flip-prev rounded-l-xl border-r-2 border-amber-900/40 bg-[#ebd7a7] shadow-[0_15px_35px_rgba(0,0,0,0.5)]">
+                                                        <div class="absolute inset-0 bg-gradient-to-l from-amber-950/30 via-amber-900/5 to-amber-950/20 p-6 flex flex-col justify-between" style="backface-visibility: hidden;">
+                                                            <div class="text-center text-5xl opacity-25 text-amber-950 my-auto"><i class="fa-solid fa-scroll"></i></div>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <div class="md:hidden absolute inset-0 bg-[#e8d5a7] z-30 animate-book-shadow-pulse border-2 border-amber-900/30 rounded-xl flex items-center justify-center">
+                                                    <div class="text-amber-950 font-bold medieval-font text-3xl animate-bounce"><i class="fa-solid fa-scroll"></i></div>
+                                                </div>
+                                                <div class="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-12 bg-gradient-to-r from-amber-950/60 via-amber-950/10 to-amber-950/60 animate-book-shadow-pulse"></div>
+                                            </div>
+
+                                            @foreach($dungeonMonsters as $dm)
+                                                <div x-show="selectedMonsterId == '{{ $dm->id }}'" class="flex flex-col md:flex-row w-full gap-6 sm:gap-8 h-full">
+
+                                                    {{-- LEFT PAGE: Monster info --}}
+                                                    <div class="w-full md:w-1/2 flex flex-col items-center border-b md:border-b-0 md:border-r border-amber-900/30 pb-6 md:pb-0 md:pr-6">
+                                                        <div class="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden ring-4 ring-amber-900/70 shadow-2xl mb-4 bg-amber-950 flex-shrink-0">
+                                                            @if(!empty($dm->avatar))
+                                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $dm->avatar]) }}" alt="{{ $dm->name }}" class="w-full h-full object-cover">
+                                                            @else
+                                                                <img src="{{ asset('img/monsters/placeholder.png') }}" alt="{{ $dm->name }}" class="w-full h-full object-cover">
+                                                            @endif
+                                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent"></div>
+                                                            <div class="absolute bottom-2 left-0 w-full text-center text-amber-200 font-black medieval-font text-lg drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]">
+                                                                Poziom {{ $dm->level }}
+                                                            </div>
+                                                        </div>
+
+                                                        <h3 class="text-2xl sm:text-3xl font-black text-amber-950 medieval-font mb-2 text-center tracking-wide">{{ $dm->name }}</h3>
+
+                                                        @if($dm->type)
+                                                            <div class="bg-amber-900 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md mb-4 border border-amber-700">
+                                                                Rasa: {{ $dm->type->label() }}
+                                                            </div>
+                                                        @endif
+
+                                                        {{-- Stage badge --}}
+                                                        @php $dmStage = $dungeon->stages->firstWhere('monster_id', $dm->id); @endphp
+                                                        @if($dmStage)
+                                                            <div class="mb-3 bg-red-900/60 text-red-200 px-3 py-1 rounded-full text-xs font-bold border border-red-700/50">
+                                                                Etap #{{ $dmStage->stage_order }} lochu
+                                                            </div>
+                                                        @endif
+
+                                                        <div class="w-full bg-amber-100/70 rounded-xl p-4 border border-amber-900/40 shadow-sm mt-auto">
+                                                            <h4 class="font-bold text-amber-950 mb-3 border-b border-amber-900/30 pb-1 flex items-center justify-between text-sm">
+                                                                <span><i class="fa-solid fa-bolt text-amber-600 mr-1"></i> Atrybuty Bojowe</span>
+                                                                <span class="text-xs text-amber-800">Przeciwnik</span>
+                                                            </h4>
+                                                            <div class="grid grid-cols-2 gap-2.5 text-xs font-semibold">
+                                                                <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-heart text-red-600 mr-1"></i> Punkty Życia</span>
+                                                                    <span class="text-red-700 font-bold text-sm">{{ number_format($dm->stats['hp'] ?? $dm->level * 20) }}</span>
+                                                                </div>
+                                                                <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-khanda text-amber-700 mr-1"></i> Atak</span>
+                                                                    <span class="text-amber-950 font-bold text-sm">{{ $dm->stats['atk'] ?? '?' }}</span>
+                                                                </div>
+                                                                <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-shield-halved text-slate-700 mr-1"></i> Obrona</span>
+                                                                    <span class="text-slate-800 font-bold text-sm">{{ $dm->stats['def'] ?? '?' }}</span>
+                                                                </div>
+                                                                <div class="flex justify-between items-center bg-amber-200/60 p-2 rounded-lg border border-amber-900/20">
+                                                                    <span class="text-amber-900 font-bold"><i class="fa-solid fa-wind text-emerald-700 mr-1"></i> Zręczność</span>
+                                                                    <span class="text-emerald-800 font-bold text-sm">{{ $dm->stats['agi'] ?? '?' }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- RIGHT PAGE: Loot table --}}
+                                                    <div class="w-full md:w-1/2 flex flex-col">
+                                                        <h4 class="text-xl font-black text-amber-950 medieval-font mb-4 border-b-2 border-amber-900/30 pb-2 flex items-center justify-between">
+                                                            <span><i class="fa-solid fa-gift text-amber-600 mr-1"></i> Tabela Zdobyczy</span>
+                                                            <span class="text-xs font-bold text-amber-800">Szansa na łup</span>
+                                                        </h4>
+                                                        <div class="space-y-2.5 overflow-y-auto max-h-[360px] pr-1 custom-scrollbar">
+                                                            @if($dm->lootTable && $dm->lootTable->entries->isNotEmpty())
+                                                                @php $totalWeight = max(1, $dm->lootTable->entries->sum('weight')); @endphp
+                                                                @foreach($dm->lootTable->entries->sortByDesc('weight') as $entry)
+                                                                    @php
+                                                                        $chance = round(($entry->weight / $totalWeight) * 100, 1);
+                                                                        if (in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate && $entry->itemTemplate->type === 'quest_item') {
+                                                                            if (!$entry->itemTemplate->quest_id || !in_array($entry->itemTemplate->quest_id, $activeQuestIds)) {
+                                                                                continue;
+                                                                            }
+                                                                        }
+                                                                    @endphp
+                                                                    <div class="bg-amber-100/80 rounded-xl p-3 border border-amber-900/30 shadow-sm relative overflow-hidden group hover:bg-amber-100 transition-colors">
+                                                                        <div class="absolute inset-y-0 left-0 bg-amber-300/40 pointer-events-none transition-all duration-500" style="width: {{ min(100, $chance) }}%"></div>
+                                                                        <div class="relative z-10 flex items-center justify-between gap-3">
+                                                                            <div class="flex items-center gap-3">
+                                                                                <div class="w-10 h-10 rounded-lg bg-amber-900/10 border border-amber-900/30 flex items-center justify-center text-xl flex-shrink-0 shadow-inner">
+                                                                                    @if($entry->reward_type === 'gold') <i class="fa-solid fa-coins text-yellow-600"></i>
+                                                                                    @elseif($entry->reward_type === 'xp') <i class="fa-solid fa-sparkles text-amber-600"></i>
+                                                                                    @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
+                                                                                        <img src="{{ route('assets.items', ['filename' => $entry->itemTemplate->icon]) }}" onerror="this.src='{{ route('assets.items', ['filename' => 'default.png']) }}'" class="w-7 h-7 object-contain">
+                                                                                    @endif
+                                                                                </div>
+                                                                                <div>
+                                                                                    <div class="font-bold text-amber-950 text-sm">
+                                                                                        @if($entry->reward_type === 'gold') Złoto
+                                                                                        @elseif($entry->reward_type === 'xp') Doświadczenie
+                                                                                        @elseif(in_array($entry->reward_type, ['item', 'material']) && $entry->itemTemplate)
+                                                                                            <span class="{{ $entry->itemTemplate->rarity === 'legendary' ? 'text-amber-700 font-extrabold' : ($entry->itemTemplate->rarity === 'epic' ? 'text-purple-900 font-bold' : ($entry->itemTemplate->rarity === 'rare' ? 'text-blue-900 font-bold' : 'text-amber-950 font-bold')) }}">
+                                                                                                {{ $entry->itemTemplate->name }}
+                                                                                            </span>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                    <div class="text-xs text-amber-800 font-semibold">
+                                                                                        Ilość: {{ $entry->min_qty }}{{ $entry->min_qty != $entry->max_qty ? ' - ' . $entry->max_qty : '' }}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div class="text-right flex-shrink-0">
+                                                                                <div class="text-base font-black text-amber-950">{{ $chance }}%</div>
+                                                                                <div class="text-[9px] text-amber-800 font-bold uppercase tracking-wider">Prawdopodobieństwo</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            @else
+                                                                <div class="text-center py-10">
+                                                                    <div class="text-4xl mb-2 text-amber-900/60"><i class="fa-solid fa-spider"></i></div>
+                                                                    <p class="text-amber-900 italic font-bold text-sm">Przeciwnik nie posiada znanych łupów...</p>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
+                        </template>
+
                     </div>
                 @endforeach
             </div>
