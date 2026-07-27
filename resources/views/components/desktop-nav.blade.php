@@ -205,7 +205,7 @@
                     {{-- Miasto --}}
                     <a href="{{ route('city.hub', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })"
                        :title="collapsed ? 'Miasto' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.hub') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -225,7 +225,7 @@
                     {{-- Postać & Ekwipunek --}}
                     <a href="{{ route('city.profile', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })"
                        :title="collapsed ? 'Postać & Ekwipunek' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.profile') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -248,7 +248,7 @@
                     {{-- Wyprawy --}}
                     <a href="{{ route('city.adventure', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: 'fa-solid fa-map-location-dot' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })"
                        :title="collapsed ? 'Wyprawy' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -283,7 +283,7 @@
                     @else
                         <a href="{{ route('city.quests', $charId) }}" wire:navigate
                            @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                           @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Karczmy...', icon: 'fa-solid fa-beer-mug-empty' })"
+                           @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Karczmy...', icon: 'fa-solid fa-beer-mug-empty', url: $el.href })"
                            :title="collapsed ? 'Zadania & Karczma' : ''"
                            :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                            class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -324,7 +324,7 @@
                     {{-- Brońmistrz --}}
                     <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda', url: $el.href })"
                        :title="collapsed ? 'Handlarz Bronią' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.weaponsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -344,7 +344,7 @@
                     {{-- Zbrojownia --}}
                     <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved', url: $el.href })"
                        :title="collapsed ? 'Zbrojownia' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.armorsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -364,7 +364,7 @@
                     {{-- Wiedźma --}}
                     <a href="{{ route('city.witch', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: 'fa-solid fa-wand-magic-sparkles' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: 'fa-solid fa-wand-magic-sparkles', url: $el.href })"
                        :title="collapsed ? 'Wiedźma' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.witch') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -384,7 +384,7 @@
                     {{-- Sklep Magiczny --}}
                     <a href="{{ route('city.wizard', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Sklepie Magicznym...', icon: 'fa-solid fa-hat-wizard' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Sklepie Magicznym...', icon: 'fa-solid fa-hat-wizard', url: $el.href })"
                        :title="collapsed ? 'Sklep Magiczny' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.wizard') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -404,7 +404,7 @@
                     {{-- Czarnoksiężnik --}}
                     <a href="{{ route('city.warlock', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Czarnoksiężnika...', icon: 'fa-solid fa-skull' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Czarnoksiężnika...', icon: 'fa-solid fa-skull', url: $el.href })"
                        :title="collapsed ? 'Czarnoksiężnik' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.warlock') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -427,7 +427,7 @@
                     {{-- Aukcje & Rynek --}}
                     <a href="{{ route('city.market', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż na Rynek...', icon: 'fa-solid fa-scale-balanced' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż na Rynek...', icon: 'fa-solid fa-scale-balanced', url: $el.href })"
                        :title="collapsed ? 'Aukcje & Rynek' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.market') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -464,7 +464,7 @@
                     {{-- Arena --}}
                     <a href="{{ route('city.arena', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })"
                        :title="collapsed ? 'Arena Walk' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.arena*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -484,7 +484,7 @@
                     {{-- Gladiator --}}
                     <a href="{{ route('city.gladiator', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Gladiatora...', icon: 'fa-solid fa-coins' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Gladiatora...', icon: 'fa-solid fa-coins', url: $el.href })"
                        :title="collapsed ? 'Gladiator Shop' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.gladiator') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -504,7 +504,7 @@
                     {{-- Gildia --}}
                     <a href="{{ route('city.guild', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag', url: $el.href })"
                        :title="collapsed ? 'Gildia' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.guild') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -539,7 +539,7 @@
                     @else
                         <a href="{{ route('city.quests', $charId) }}" wire:navigate
                            @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                           @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-award' })"
+                           @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-award', url: $el.href })"
                            :title="collapsed ? 'Wyzwania' : ''"
                            :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                            class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -563,7 +563,7 @@
                     {{-- Poczta --}}
                     <a href="{{ route('city.mailbox', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Sprawdzanie Poczty...', icon: 'fa-solid fa-envelope' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Sprawdzanie Poczty...', icon: 'fa-solid fa-envelope', url: $el.href })"
                        :title="collapsed ? 'Skrzynka Pocztowa' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                        class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.mailbox') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
@@ -589,7 +589,7 @@
             <div class="pt-2 space-y-1.5">
                 <a href="{{ route('itemshop') }}" wire:navigate
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                   @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Sklepu Gemów...', icon: 'fa-solid fa-gem' })"
+                   @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Sklepu Gemów...', icon: 'fa-solid fa-gem', url: $el.href })"
                    :title="collapsed ? 'Sklep Gemów' : ''"
                    :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                    class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('itemshop') ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-800 text-stone-950 border-yellow-300 shadow-[0_0_20px_rgba(245,158,11,0.7),inset_0_1px_0_rgba(255,255,255,0.5)] scale-[1.02]' : 'bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-amber-600/60 text-amber-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' }}">
@@ -646,7 +646,7 @@
             <div class="pt-2 border-t border-amber-900/40">
                 <a href="{{ route('characters.leave') }}" wire:navigate
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                   @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: 'fa-solid fa-right-from-bracket' })"
+                   @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: 'fa-solid fa-right-from-bracket', url: $el.href })"
                    :title="collapsed ? 'Lobby' : ''"
                    :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
                    class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 bg-gradient-to-b from-stone-800 via-stone-900 to-black text-amber-200 border-amber-800/80 hover:border-red-500 hover:text-red-200 hover:bg-gradient-to-b hover:from-red-950 hover:to-black shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]">

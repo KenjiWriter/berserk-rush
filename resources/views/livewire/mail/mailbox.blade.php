@@ -15,7 +15,7 @@
                 </div>
             </div>
             
-            <button wire:click="backToCity" @click="$dispatch('location-leave')"
+            <button wire:click="backToCity" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })"
                 class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 text-amber-200 font-bold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg border border-slate-500 flex items-center">
                 🏠 Powrót do miasta
             </button>

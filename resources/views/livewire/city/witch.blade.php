@@ -38,7 +38,7 @@
                 </div>
 
                 {{-- Back Button --}}
-                <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway' }); $dispatch('play-audio', { type: 'tab' })"
+                <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' }); $dispatch('play-audio', { type: 'tab' })"
                     class="px-4 py-2.5 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-amber-200 font-extrabold text-xs uppercase tracking-widest border-2 border-slate-700 hover:border-fuchsia-500 hover:text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-200 flex items-center gap-2 group cursor-pointer">
                     <i class="fa-solid fa-archway text-amber-400 group-hover:scale-110 transition-transform"></i>
                     <span>Powrót do Miasta</span>

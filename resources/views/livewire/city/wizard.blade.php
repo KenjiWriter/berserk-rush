@@ -26,7 +26,7 @@
                     <span class="flex items-center gap-1">🪙 {{ $character->gold }}</span>
                     <span class="flex items-center gap-1 text-blue-300">💎 {{ auth()->user()->gems ?? 0 }}</span>
                 </div>
-                <button wire:click="backToHub" @click="$dispatch('location-leave')"
+                <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })"
                     class="bg-indigo-950/80 hover:bg-indigo-800 border border-indigo-500/50 text-indigo-200 font-bold py-2 px-5 rounded-full transition-all duration-300 transform hover:scale-105 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_25px_rgba(99,102,241,0.6)] medieval-font">
                     🏰 Powrót
                 </button>

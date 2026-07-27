@@ -50,7 +50,7 @@
                         @endif
                     </button>
 
-                    <button wire:click="backToHub" @click="$dispatch('location-leave')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                    <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                             class="w-full sm:w-auto bg-gradient-to-r from-stone-900 to-amber-950/80 hover:from-amber-900/80 hover:to-amber-900 text-amber-200 border border-amber-700/60 hover:border-amber-400/90 px-5 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm hover:scale-105 active:scale-95 group">
                         <i class="fa-solid fa-archway text-amber-400 transform group-hover:-translate-x-1 transition-transform"></i> Powrót do miasta
                     </button>

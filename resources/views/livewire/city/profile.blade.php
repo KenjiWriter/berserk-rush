@@ -28,7 +28,7 @@
                 </div>
             </div>
 
-            <button wire:click="backToHub" @click="$dispatch('location-leave')"
+            <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })"
                 class="w-full sm:w-auto text-center bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 flex items-center justify-center gap-1.5 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
                 <i class="fa-solid fa-archway text-stone-950"></i> Powrót do miasta
             </button>

@@ -170,13 +170,13 @@
                 <div>
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Eksploracja</div>
                     <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('city.hub', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway' })"
+                        <a href="{{ route('city.hub', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-archway text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Miasto</span>
                         </a>
 
-                        <a href="{{ route('city.profile', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield' })"
+                        <a href="{{ route('city.profile', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                             <i class="fa-solid fa-user-shield text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Postać</span>
@@ -185,7 +185,7 @@
                             @endif
                         </a>
 
-                        <a href="{{ route('city.adventure', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: 'fa-solid fa-map-location-dot' })"
+                        <a href="{{ route('city.adventure', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-map-location-dot text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Wyprawy</span>
@@ -199,7 +199,7 @@
                                 <i class="fa-solid fa-lock text-amber-500 text-xs ml-auto shrink-0"></i>
                             </a>
                         @else
-                            <a href="{{ route('city.quests', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-beer-mug-empty' })"
+                            <a href="{{ route('city.quests', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-beer-mug-empty', url: $el.href })"
                                class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                                 <i class="fa-solid fa-beer-mug-empty text-amber-400 text-sm shrink-0"></i>
                                 <span class="truncate text-[11px] sm:text-xs">Wyzwania</span>
@@ -215,31 +215,31 @@
                 <div>
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Sklepy & Rzemiosło</div>
                     <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda' })"
+                        <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-khanda text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Brońmistrz</span>
                         </a>
 
-                        <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved' })"
+                        <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-shield-halved text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Zbrojownia</span>
                         </a>
 
-                        <a href="{{ route('city.witch', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: 'fa-solid fa-wand-magic-sparkles' })"
+                        <a href="{{ route('city.witch', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: 'fa-solid fa-wand-magic-sparkles', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Wiedźma</span>
                         </a>
 
-                        <a href="{{ route('city.wizard', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Sklep Magiczny...', icon: 'fa-solid fa-hat-wizard' })"
+                        <a href="{{ route('city.wizard', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Sklep Magiczny...', icon: 'fa-solid fa-hat-wizard', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-hat-wizard text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Magia</span>
                         </a>
 
-                        <a href="{{ route('city.warlock', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Czarnoksiężnik...', icon: 'fa-solid fa-skull' })"
+                        <a href="{{ route('city.warlock', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Czarnoksiężnik...', icon: 'fa-solid fa-skull', url: $el.href })"
                            class="flex items-center gap-1.5 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                             <i class="fa-solid fa-skull text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[10px] xs:text-[11px] sm:text-xs tracking-tight xs:tracking-wider min-w-0">Czarnoksiężnik</span>
@@ -248,7 +248,7 @@
                             @endif
                         </a>
 
-                        <a href="{{ route('city.market', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż na Rynek...', icon: 'fa-solid fa-scale-balanced' })"
+                        <a href="{{ route('city.market', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż na Rynek...', icon: 'fa-solid fa-scale-balanced', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-scale-balanced text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Rynek</span>
@@ -260,25 +260,25 @@
                 <div>
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Społeczność & Walka</div>
                     <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('city.arena', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon' })"
+                        <a href="{{ route('city.arena', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-dungeon text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Arena Walk</span>
                         </a>
 
-                        <a href="{{ route('city.gladiator', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Gladiator Shop...', icon: 'fa-solid fa-coins' })"
+                        <a href="{{ route('city.gladiator', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Gladiator Shop...', icon: 'fa-solid fa-coins', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-coins text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Gladiator</span>
                         </a>
 
-                        <a href="{{ route('city.guild', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag' })"
+                        <a href="{{ route('city.guild', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-flag text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Gildia</span>
                         </a>
 
-                        <a href="{{ route('city.mailbox', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Skrzynka Pocztowa...', icon: 'fa-solid fa-envelope' })"
+                        <a href="{{ route('city.mailbox', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Skrzynka Pocztowa...', icon: 'fa-solid fa-envelope', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                             <i class="fa-solid fa-envelope text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Poczta</span>
@@ -291,7 +291,7 @@
 
                 {{-- Premium & Lobby --}}
                 <div class="pt-2 space-y-2 border-t border-amber-900/40">
-                    <a href="{{ route('itemshop') }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Sklep Gemów...', icon: 'fa-solid fa-gem' })"
+                    <a href="{{ route('itemshop') }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Sklep Gemów...', icon: 'fa-solid fa-gem', url: $el.href })"
                        class="flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-stone-950 font-black border border-yellow-300 shadow">
                         <i class="fa-solid fa-gem text-stone-950 text-sm"></i>
                         <span>SKLEP GEMÓW</span>
@@ -309,7 +309,7 @@
                         <span>ZGŁOŚ SUGESTIĘ</span>
                     </button>
 
-                    <a href="{{ route('characters.leave') }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: 'fa-solid fa-right-from-bracket' })"
+                    <a href="{{ route('characters.leave') }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Powrót do Lobby...', icon: 'fa-solid fa-right-from-bracket', url: $el.href })"
                        class="flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg bg-gradient-to-r from-stone-900 via-red-950 to-stone-950 text-red-200 border border-red-700/60 hover:border-red-500 transition-all">
                         <i class="fa-solid fa-right-from-bracket text-red-400 text-sm"></i>
                         <span>POWRÓT DO LOBBY</span>
@@ -324,7 +324,7 @@
             <div class="flex justify-around items-center h-16 px-1">
                 <a href="{{ route('city.hub', $charId) }}" wire:navigate 
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-                   @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway' })">
+                   @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })">
                     <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-archway text-amber-400 text-lg"></i>
                     </span>
@@ -333,7 +333,7 @@
 
                 <a href="{{ route('city.profile', $charId) }}" wire:navigate 
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.profile') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-                   @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield' })">
+                   @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })">
                     <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-user-shield text-amber-400 text-lg"></i>
                         @if($profileBadgeCount > 0)
@@ -345,7 +345,7 @@
 
                 <a href="{{ route('city.adventure', $charId) }}" wire:navigate 
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-                   @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: 'fa-solid fa-map-location-dot' })">
+                   @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })">
                     <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-map-location-dot text-amber-400 text-lg"></i>
                     </span>
@@ -354,7 +354,7 @@
 
                 <a href="{{ route('city.arena', $charId) }}" wire:navigate 
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
-                   @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon' })">
+                   @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })">
                     <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-khanda text-amber-400 text-lg"></i>
                     </span>

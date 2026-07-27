@@ -137,6 +137,34 @@
         }
     </style>
     <script>
+        window.visitedLocations = window.visitedLocations || new Set();
+
+        window.normalizeLocationUrl = function(url) {
+            if (!url) return '';
+            try {
+                const parsed = new URL(url, window.location.origin);
+                return parsed.pathname;
+            } catch (e) {
+                return String(url).split('?')[0].split('#')[0];
+            }
+        };
+
+        window.isLocationCached = function(url) {
+            if (!url) return false;
+            const normalized = window.normalizeLocationUrl(url);
+            return window.visitedLocations.has(normalized);
+        };
+
+        if (window.location.pathname) {
+            window.visitedLocations.add(window.normalizeLocationUrl(window.location.pathname));
+        }
+
+        document.addEventListener('livewire:navigated', () => {
+            if (window.location.pathname) {
+                window.visitedLocations.add(window.normalizeLocationUrl(window.location.pathname));
+            }
+        });
+
         document.addEventListener('pointerdown', function unlock() {
             let audio = new Audio("data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA");
             audio.play().catch(() => {});
@@ -148,7 +176,17 @@
 <body class="font-sans antialiased">
     {{-- ===== Global Location Transition Overlay ===== --}}
     <div x-data="{ leaving: false, text: 'Podróż...', icon: 'fa-solid fa-archway' }"
-         @location-leave.window="leaving = true; text = $event.detail?.text || 'Podróż...'; icon = $event.detail?.icon || 'fa-solid fa-archway'"
+         @location-leave.window="
+             let targetUrl = $event.detail?.url || $event.detail?.targetUrl;
+             if (targetUrl && window.isLocationCached && window.isLocationCached(targetUrl)) {
+                 leaving = false;
+             } else {
+                 leaving = true;
+                 text = $event.detail?.text || 'Podróż...';
+                 icon = $event.detail?.icon || 'fa-solid fa-archway';
+             }
+         "
+         @livewire:navigated.window="leaving = false"
          x-show="leaving"
          x-transition:enter="transition ease-in-out duration-500"
          x-transition:enter-start="opacity-0"
