@@ -1,13 +1,123 @@
 <div class="min-h-screen bg-gray-900 text-gray-100 p-8">
     <div class="max-w-7xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-amber-500">⚔️ Zarządzanie Przedmiotami</h1>
-            <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-white underline">&larr; Powrót do panelu</a>
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-3xl font-bold text-amber-500">⚔️ Zarządzanie Przedmiotami</h1>
+                <p class="text-gray-400 text-sm mt-1">Twórz, edytuj oraz masowo przeskalowuj statystyki przedmiotów.</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button type="button" wire:click="$toggle('showBulkModal')" class="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold py-2 px-4 rounded shadow-lg transition flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    {{ $showBulkModal ? 'Ukryj Masową Edycję' : '⚡ Masowa Zmiana Statystyk' }}
+                </button>
+                <a href="{{ route('admin.dashboard') }}" class="text-gray-400 hover:text-white underline">&larr; Powrót do panelu</a>
+            </div>
         </div>
 
         @if (session()->has('message'))
-            <div class="bg-green-600 text-white p-3 rounded mb-4 shadow">
-                {{ session('message') }}
+            <div class="bg-green-600 text-white p-3 rounded mb-6 shadow flex justify-between items-center">
+                <span>{{ session('message') }}</span>
+                <button type="button" onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 font-bold">&times;</button>
+            </div>
+        @endif
+
+        <!-- Panel Masowej Zmiany Statystyk Przedmiotów -->
+        @if($showBulkModal)
+            <div class="bg-gradient-to-br from-gray-800 to-gray-900 border-2 border-amber-500/50 rounded-xl p-6 mb-8 shadow-2xl animate-fade-in relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none text-amber-500 text-9xl font-black">
+                    ⚔️
+                </div>
+                
+                <div class="flex items-center justify-between border-b border-gray-700 pb-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-amber-400 flex items-center gap-2">
+                            ⚡ Masowa Zmiana Statystyk Przedmiotów
+                        </h2>
+                        <p class="text-xs text-gray-400 mt-1">
+                            Podaj mnożnik dla podstawowych statystyk przedmiotów (np. <code class="bg-gray-900 px-1 rounded text-amber-300">1.5</code> podnosi statystykę o 50%). Wartość <code class="bg-gray-900 px-1 rounded text-gray-300">1.0</code> oznacza brak zmian.
+                        </p>
+                    </div>
+                    <button type="button" wire:click="resetBulkMultipliers" class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 py-1.5 px-3 rounded transition">
+                        Resetuj Mnożniki (1.0)
+                    </button>
+                </div>
+
+                <!-- Filtry Docelowe -->
+                <div class="mb-6 bg-gray-900/60 p-4 rounded-lg border border-gray-700/60">
+                    <h3 class="text-sm font-bold text-gray-300 mb-3 flex items-center gap-2">
+                        <span>🎯 Filtr przedmiotów (opcjonalnie):</span>
+                    </h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Typ Przedmiotu</label>
+                            <select wire:model.live="bulkType" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                                <option value="">-- Wszystkie Typy --</option>
+                                <option value="weapon">Broń</option>
+                                <option value="armor">Pancerz</option>
+                                <option value="accessory">Akcesorium</option>
+                                <option value="consumable">Użytkowe</option>
+                                <option value="material">Materiał</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Min Level Wymagany</label>
+                            <input type="number" wire:model.live="bulkMinLevel" placeholder="Brak" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 mb-1">Max Level Wymagany</label>
+                            <input type="number" wire:model.live="bulkMaxLevel" placeholder="Brak" class="w-full bg-gray-800 border border-gray-700 rounded px-3 py-1.5 text-sm text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mnożniki Statystyk -->
+                <div class="mb-6">
+                    <h3 class="text-sm font-bold text-gray-300 mb-3">✖️ Mnożniki Statystyk Przedmiotów</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-orange-400 mb-1">Atak *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkAtkMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-blue-400 mb-1">Obrona *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkDefMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-red-400 mb-1">HP Bonus *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkHpMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-cyan-400 mb-1">Mana Bonus *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkManaMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-yellow-400 mb-1">Siła (STR) *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkStrMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-green-400 mb-1">Zręczność (AGI) *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkAgiMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-pink-400 mb-1">Witalność (VIT) *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkVitMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                        <div class="bg-gray-900 p-2.5 rounded border border-gray-700">
+                            <label class="block text-xs font-bold text-purple-400 mb-1">Inteligencja (INT) *</label>
+                            <input type="number" step="0.1" min="0" wire:model="bulkIntMult" class="w-full bg-gray-800 border border-gray-600 rounded py-1 px-2 text-white font-bold text-sm focus:border-amber-500">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" 
+                        wire:click="applyBulkStatChanges" 
+                        onclick="return confirm('Czy na pewno chcesz przeliczyć statystyki dla wybranych przedmiotów? Akcja zmieni dane w bazie!')"
+                        class="bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2.5 px-6 rounded-lg shadow-lg transition flex items-center gap-2 cursor-pointer">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                        Zastosuj Masową Zmianę Przedmiotów
+                    </button>
+                </div>
             </div>
         @endif
 

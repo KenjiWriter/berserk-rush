@@ -38,6 +38,120 @@ class ItemTemplates extends Component
     public $usedIcons = [];
     public $cacheBuster = 0;
 
+    // Masowa zmiana statystyk przedmiotów
+    public $showBulkModal = false;
+    public $bulkType = '';
+    public $bulkMinLevel = null;
+    public $bulkMaxLevel = null;
+
+    public $bulkAtkMult = 1.0;
+    public $bulkDefMult = 1.0;
+    public $bulkHpMult = 1.0;
+    public $bulkManaMult = 1.0;
+    public $bulkStrMult = 1.0;
+    public $bulkAgiMult = 1.0;
+    public $bulkVitMult = 1.0;
+    public $bulkIntMult = 1.0;
+
+    public function resetBulkMultipliers()
+    {
+        $this->bulkAtkMult = 1.0;
+        $this->bulkDefMult = 1.0;
+        $this->bulkHpMult = 1.0;
+        $this->bulkManaMult = 1.0;
+        $this->bulkStrMult = 1.0;
+        $this->bulkAgiMult = 1.0;
+        $this->bulkVitMult = 1.0;
+        $this->bulkIntMult = 1.0;
+    }
+
+    public function applyBulkStatChanges()
+    {
+        $query = ItemTemplate::query();
+
+        if ($this->bulkType) {
+            $query->where('type', $this->bulkType);
+        }
+        if ($this->bulkMinLevel !== null && $this->bulkMinLevel !== '') {
+            $query->where('level_requirement', '>=', (int)$this->bulkMinLevel);
+        }
+        if ($this->bulkMaxLevel !== null && $this->bulkMaxLevel !== '') {
+            $query->where('level_requirement', '<=', (int)$this->bulkMaxLevel);
+        }
+
+        $itemsToUpdate = $query->get();
+        $count = $itemsToUpdate->count();
+
+        if ($count === 0) {
+            session()->flash('message', 'Brak przedmiotów spełniających kryteria filtrów.');
+            return;
+        }
+
+        foreach ($itemsToUpdate as $item) {
+            $stats = $item->base_stats ?? [];
+            $modified = false;
+
+            // Attack multipliers
+            if ((float)$this->bulkAtkMult !== 1.0) {
+                foreach (['attack_min', 'attack_max', 'magic_attack_min', 'magic_attack_max'] as $key) {
+                    if (isset($stats[$key])) {
+                        $stats[$key] = (int) max(1, round($stats[$key] * (float)$this->bulkAtkMult));
+                        $modified = true;
+                    }
+                }
+            }
+
+            // Defense multiplier
+            if ((float)$this->bulkDefMult !== 1.0 && isset($stats['defense'])) {
+                $stats['defense'] = (int) max(0, round($stats['defense'] * (float)$this->bulkDefMult));
+                $modified = true;
+            }
+
+            // HP multiplier
+            if ((float)$this->bulkHpMult !== 1.0 && isset($stats['hp_bonus'])) {
+                $stats['hp_bonus'] = (int) max(0, round($stats['hp_bonus'] * (float)$this->bulkHpMult));
+                $modified = true;
+            }
+
+            // Mana multiplier
+            if ((float)$this->bulkManaMult !== 1.0 && isset($stats['mana_bonus'])) {
+                $stats['mana_bonus'] = (int) max(0, round($stats['mana_bonus'] * (float)$this->bulkManaMult));
+                $modified = true;
+            }
+
+            // STR multiplier
+            if ((float)$this->bulkStrMult !== 1.0 && isset($stats['str_bonus'])) {
+                $stats['str_bonus'] = (int) max(0, round($stats['str_bonus'] * (float)$this->bulkStrMult));
+                $modified = true;
+            }
+
+            // AGI multiplier
+            if ((float)$this->bulkAgiMult !== 1.0 && isset($stats['agi_bonus'])) {
+                $stats['agi_bonus'] = (int) max(0, round($stats['agi_bonus'] * (float)$this->bulkAgiMult));
+                $modified = true;
+            }
+
+            // VIT multiplier
+            if ((float)$this->bulkVitMult !== 1.0 && isset($stats['vit_bonus'])) {
+                $stats['vit_bonus'] = (int) max(0, round($stats['vit_bonus'] * (float)$this->bulkVitMult));
+                $modified = true;
+            }
+
+            // INT multiplier
+            if ((float)$this->bulkIntMult !== 1.0 && isset($stats['int_bonus'])) {
+                $stats['int_bonus'] = (int) max(0, round($stats['int_bonus'] * (float)$this->bulkIntMult));
+                $modified = true;
+            }
+
+            if ($modified) {
+                $item->update(['base_stats' => $stats]);
+            }
+        }
+
+        session()->flash('message', "⚡ Pomyślnie zaktualizowano statystyki dla {$count} szablonów przedmiotów!");
+        $this->resetBulkMultipliers();
+    }
+
     public function mount()
     {
         $this->loadAvailableIcons();

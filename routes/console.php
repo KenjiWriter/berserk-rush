@@ -13,4 +13,5 @@ Artisan::command('inspire', function () {
 
 Schedule::job(new ExpireMarketListingsJob())->hourly();
 Schedule::command('app:world-boss-tick')->hourly();
+Schedule::job(new WorldBossRewardJob())->hourly();
 Schedule::job(new ExpireOldMailJob())->daily();
