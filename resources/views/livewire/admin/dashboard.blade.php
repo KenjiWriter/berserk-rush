@@ -3,7 +3,7 @@
         <h1 class="text-3xl font-bold mb-8 text-amber-500">Berserk Rush - Panel Administracyjny</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @if(auth()->user()->permission_level >= 10)
+            @if(auth()->user()->permission_level >= 9)
             <a href="{{ route('admin.news') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
                 <h2 class="text-xl font-bold mb-2">📜 Aktualności</h2>
                 <p class="text-gray-400">Zarządzanie ogłoszeniami wyświetlanymi na stronie głównej.</p>
@@ -65,7 +65,7 @@
                 <p class="text-gray-400">Zarządzanie osiągnięciami, punktami i nagrodami.</p>
             </a>
 
-            @if(auth()->user()->permission_level >= 10)
+            @if(auth()->user()->permission_level >= 9)
             <a href="{{ route('admin.gallery') }}" class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700 hover:border-amber-500 transition">
                 <h2 class="text-xl font-bold mb-2">🖼️ Galeria</h2>
                 <p class="text-gray-400">Zarządzanie zdjęciami na stronie głównej gry.</p>
@@ -87,7 +87,7 @@
                 <p class="text-gray-400">Zarządzanie umiejętnościami, ich siłą i wymaganą bronią.</p>
             </a>
 
-            @if(auth()->user()->permission_level >= 10)
+            @if(auth()->user()->permission_level >= 9)
             <a href="{{ route('admin.characters') }}" class="bg-gradient-to-br from-amber-900/50 to-red-900/50 p-6 rounded-lg shadow-[0_0_15px_rgba(245,158,11,0.15)] border border-amber-600/60 hover:border-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.35)] transition-all">
                 <h2 class="text-xl font-bold mb-2 text-amber-400">🧙‍♂️ Postacie / Gracze</h2>
                 <p class="text-gray-300">Podgląd lokalizacji, statusu online/offline, VIP, gemów i wyciszeń (mute).</p>

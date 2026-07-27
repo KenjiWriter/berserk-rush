@@ -138,11 +138,11 @@
 
                                 {{-- Rola / Uprawnienia --}}
                                 <td class="py-3 px-4">
-                                    @if ($user?->permission_level >= 10)
+                                    @if ($user?->permission_level >= 9)
                                         <span class="inline-flex items-center gap-1 bg-red-950/90 border border-red-500/60 text-red-300 text-xs px-2.5 py-1 rounded-md font-extrabold shadow-[0_0_8px_rgba(239,68,68,0.3)]">
                                             👑 Admin
                                         </span>
-                                    @elseif ($user?->permission_level === 9)
+                                    @elseif ($user?->permission_level === 8)
                                         <span class="inline-flex items-center gap-1 bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 text-xs px-2.5 py-1 rounded-md font-extrabold shadow-[0_0_8px_rgba(16,185,129,0.3)]">
                                             🛡️ Moderator
                                         </span>
@@ -193,7 +193,7 @@
                                 <td class="py-3 px-4 text-right">
                                     <div class="flex items-center justify-end gap-1.5">
                                         {{-- Grant / Revoke Moderator Button --}}
-                                        @if ($user?->permission_level === 9)
+                                        @if ($user?->permission_level === 8)
                                             <button
                                                 wire:click="revokeModerator('{{ $user?->id }}')"
                                                 onclick="confirm('Czy na pewno chcesz odebrać uprawnienia Moderatora graczowi {{ $char->name }}?') || event.stopImmediatePropagation()"
@@ -202,7 +202,7 @@
                                             >
                                                 🛡️ Zabierz Mod
                                             </button>
-                                        @elseif (($user?->permission_level ?? 0) < 9)
+                                        @elseif (($user?->permission_level ?? 0) < 8)
                                             <button
                                                 wire:click="grantModerator('{{ $user?->id }}')"
                                                 onclick="confirm('Czy na pewno chcesz nadać uprawnienia Moderatora graczowi {{ $char->name }}?') || event.stopImmediatePropagation()"

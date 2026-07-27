@@ -11,7 +11,7 @@ class EnsureFullAdminRole
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || Auth::user()->permission_level < 10) {
+        if (!Auth::check() || Auth::user()->permission_level < 9) {
             abort(403, 'Brak uprawnień. Sekcja dostępna tylko dla administratorów.');
         }
 

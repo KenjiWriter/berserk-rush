@@ -176,7 +176,7 @@ class Characters extends Component
     {
         $user = User::find($userId);
         if ($user) {
-            $user->permission_level = 9;
+            $user->permission_level = 8;
             $user->save();
 
             $this->dispatch('notify', message: "Przyznano rolę Moderatora dla konta gracza {$user->name}!", type: 'success');
@@ -186,7 +186,7 @@ class Characters extends Component
     public function revokeModerator(string $userId): void
     {
         $user = User::find($userId);
-        if ($user && $user->permission_level === 9) {
+        if ($user && $user->permission_level === 8) {
             $user->permission_level = 0;
             $user->save();
 
@@ -220,7 +220,7 @@ class Characters extends Component
             });
         } elseif ($this->filter === 'moderators') {
             $query->whereHas('user', function ($u) {
-                $u->where('permission_level', 9);
+                $u->where('permission_level', 8);
             });
         }
 

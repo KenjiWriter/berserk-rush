@@ -67,7 +67,7 @@
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
         {{-- Admin Link Header --}}
-        @if(auth()->user()->permission_level >= 9)
+        @if(auth()->user()->permission_level >= 8)
             <div class="flex justify-end mb-4">
                 <a href="{{ route('admin.dashboard') }}"
                     class="bg-red-950/80 border border-red-700/50 hover:bg-red-900 hover:border-red-500 text-red-200 font-bold py-2 px-4 rounded-xl transition-all duration-300 shadow-lg medieval-font flex items-center backdrop-blur-sm text-xs">

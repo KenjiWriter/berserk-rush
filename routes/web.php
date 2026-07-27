@@ -99,7 +99,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');
     Route::get('/achievements', \App\Livewire\Admin\Achievements::class)->name('achievements');
 
-    // Super-Admin only routes (permission_level >= 10)
+    // Super-Admin only routes (permission_level >= 9)
     Route::middleware('admin.full')->group(function () {
         Route::get('/news', \App\Livewire\Admin\NewsList::class)->name('news');
         Route::get('/item-shop-packages', \App\Livewire\Admin\ItemShopPackages::class)->name('item-shop-packages');

@@ -100,17 +100,17 @@ class User extends Authenticatable
 
     public function isModerator(): bool
     {
-        return $this->permission_level === 9;
+        return $this->permission_level === 8;
     }
 
     public function isAdmin(): bool
     {
-        return $this->permission_level >= 10;
+        return $this->permission_level >= 9;
     }
 
     public function hasAdminAccess(): bool
     {
-        return $this->permission_level >= 9;
+        return $this->permission_level >= 8;
     }
 
     public function hasPremium(): bool

@@ -173,7 +173,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/give ')) {
-            if ($character->user->permission_level >= 9) {
+            if ($character->user->permission_level >= 8) {
                 $this->handleGiveCommand($message, $character);
             } else {
                 $lowerMsg = strtolower($message);
@@ -188,7 +188,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/exp ')) {
-            if ($character->user->permission_level >= 9) {
+            if ($character->user->permission_level >= 8) {
                 $this->handleExpCommand($message, $character);
             } else {
                 $this->addError('newMessage', 'Brak uprawnień.');
@@ -198,7 +198,7 @@ class GlobalChatComponent extends Component
         }
 
         if (str_starts_with(strtolower($message), '/set ')) {
-            if ($character->user->permission_level >= 9) {
+            if ($character->user->permission_level >= 8) {
                 $this->handleSetCommand($message, $character);
             } else {
                 $this->addError('newMessage', 'Brak uprawnień.');
@@ -216,8 +216,8 @@ class GlobalChatComponent extends Component
             $titlePrefix = $character->activeTitle->prefix;
         }
 
-        $isModerator = ($character->user->permission_level == 9);
-        $isAdmin = ($character->user->permission_level >= 10);
+        $isModerator = ($character->user->permission_level == 8);
+        $isAdmin = ($character->user->permission_level >= 9);
 
         if ($this->currentChannel === 'guild' && $character->guild_id) {
             broadcast(new \App\Domain\Social\Events\GuildMessageSent(

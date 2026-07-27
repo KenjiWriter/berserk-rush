@@ -16,8 +16,8 @@ class ModeratorPermissionTest extends TestCase
     public function test_user_permission_helpers(): void
     {
         $userNormal = User::factory()->create(['permission_level' => 0]);
-        $userMod = User::factory()->create(['permission_level' => 9]);
-        $userAdmin = User::factory()->create(['permission_level' => 10]);
+        $userMod = User::factory()->create(['permission_level' => 8]);
+        $userAdmin = User::factory()->create(['permission_level' => 9]);
 
         $this->assertFalse($userNormal->isModerator());
         $this->assertFalse($userNormal->isAdmin());
@@ -34,9 +34,9 @@ class ModeratorPermissionTest extends TestCase
 
     public function test_moderator_can_access_allowed_admin_routes_but_forbidden_from_admin_only_routes(): void
     {
-        $moderator = User::factory()->create(['permission_level' => 9]);
+        $moderator = User::factory()->create(['permission_level' => 8]);
 
-        // Allowed routes
+        // Allowed routes for Moderator
         $this->actingAs($moderator)->get(route('admin.dashboard'))->assertOk();
         $this->actingAs($moderator)->get(route('admin.monsters'))->assertOk();
         $this->actingAs($moderator)->get(route('admin.maps'))->assertOk();
@@ -63,7 +63,7 @@ class ModeratorPermissionTest extends TestCase
 
     public function test_admin_can_grant_and_revoke_moderator_in_characters_panel(): void
     {
-        $admin = User::factory()->create(['permission_level' => 10]);
+        $admin = User::factory()->create(['permission_level' => 9]);
         $targetUser = User::factory()->create(['permission_level' => 0]);
         $targetChar = Character::create([
             'user_id' => $targetUser->id,
@@ -79,7 +79,7 @@ class ModeratorPermissionTest extends TestCase
             ->call('grantModerator', (string) $targetUser->id)
             ->assertDispatched('notify');
 
-        $this->assertEquals(9, $targetUser->fresh()->permission_level);
+        $this->assertEquals(8, $targetUser->fresh()->permission_level);
         $this->assertTrue($targetUser->fresh()->isModerator());
 
         Livewire::test(Characters::class)

@@ -11,7 +11,7 @@ class EnsureAdminRole
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || Auth::user()->permission_level < 9) {
+        if (!Auth::check() || Auth::user()->permission_level < 8) {
             abort(403, 'Unauthorized action.');
         }
 
