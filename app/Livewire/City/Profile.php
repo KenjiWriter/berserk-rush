@@ -127,7 +127,7 @@ class Profile extends Component
             $this->character->clearStatsCache();
             $this->character->refresh();
             $this->character->load(['equippedItems.template', 'inventoryItems.template']);
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -155,7 +155,7 @@ class Profile extends Component
             $this->character->clearStatsCache();
             $this->character->refresh();
             $this->character->load(['equippedItems.template', 'inventoryItems.template']);
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -247,11 +247,11 @@ class Profile extends Component
             $totalAllocated = array_sum(array_map('intval', $addedStats));
             $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalAllocated}.");
             $this->dispatch('play-audio', type: 'stat');
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         } else {
             $this->character->refresh();
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            $this->dispatch('stats-saved', points: $this->character->character_points, attributes: $this->character->getTotalAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         }
     }
 
@@ -469,6 +469,8 @@ class Profile extends Component
             'backpackCount' => $this->character->getBackpackCount(),
             'backpackCapacity' => $this->character->getBackpackCapacity(),
             'totalAttributes' => $totalAttributes,
+            'baseAttributes' => $this->character->getBaseAttributes(),
+            'bonusAttributes' => $this->character->getBonusAttributes(),
             'derivedStats' => $derivedStats,
             'activeWeaponType' => $activeWeaponType,
             'activeScalingStats' => $activeScalingStats,

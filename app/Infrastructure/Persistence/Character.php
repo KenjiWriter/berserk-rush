@@ -294,6 +294,30 @@ class Character extends Model
         }
     }
 
+    public function getBaseAttributes(): array
+    {
+        $attrs = $this->getAttribute('attributes') ?? [];
+        return [
+            'str' => (int)($attrs['str'] ?? 0),
+            'int' => (int)($attrs['int'] ?? 0),
+            'vit' => (int)($attrs['vit'] ?? 0),
+            'agi' => (int)($attrs['agi'] ?? 0),
+        ];
+    }
+
+    public function getBonusAttributes(): array
+    {
+        $total = $this->getTotalAttributes();
+        $base = $this->getBaseAttributes();
+
+        return [
+            'str' => max(0, ($total['str'] ?? 0) - $base['str']),
+            'int' => max(0, ($total['int'] ?? 0) - $base['int']),
+            'vit' => max(0, ($total['vit'] ?? 0) - $base['vit']),
+            'agi' => max(0, ($total['agi'] ?? 0) - $base['agi']),
+        ];
+    }
+
     public function getTotalAttributes(): array
     {
         return Cache::remember($this->getCacheKey('total_attributes'), 3600, function () {

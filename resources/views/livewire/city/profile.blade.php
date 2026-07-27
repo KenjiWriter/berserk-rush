@@ -406,10 +406,16 @@
                          availablePoints: {{ $character->character_points }},
                          buffered: { str: 0, int: 0, vit: 0, agi: 0 },
                          baseAttributes: {
-                             str: {{ $totalAttributes['str'] ?? 0 }},
-                             int: {{ $totalAttributes['int'] ?? 0 }},
-                             vit: {{ $totalAttributes['vit'] ?? 0 }},
-                             agi: {{ $totalAttributes['agi'] ?? 0 }}
+                             str: {{ $baseAttributes['str'] ?? 0 }},
+                             int: {{ $baseAttributes['int'] ?? 0 }},
+                             vit: {{ $baseAttributes['vit'] ?? 0 }},
+                             agi: {{ $baseAttributes['agi'] ?? 0 }}
+                         },
+                         bonusAttributes: {
+                             str: {{ $bonusAttributes['str'] ?? 0 }},
+                             int: {{ $bonusAttributes['int'] ?? 0 }},
+                             vit: {{ $bonusAttributes['vit'] ?? 0 }},
+                             agi: {{ $bonusAttributes['agi'] ?? 0 }}
                          },
                          isSaving: false,
                          hasQueuedSave: false,
@@ -420,8 +426,11 @@
                              if (data && typeof data.points !== 'undefined' && data.points !== null) {
                                  let pendingTotal = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
                                  this.availablePoints = Math.max(0, data.points - pendingTotal);
-                                 if (data.attributes) {
-                                     this.baseAttributes = { ...data.attributes };
+                                 if (data.baseAttributes) {
+                                     this.baseAttributes = { ...data.baseAttributes };
+                                 }
+                                 if (data.bonusAttributes) {
+                                     this.bonusAttributes = { ...data.bonusAttributes };
                                  }
                              }
                          },
@@ -529,7 +538,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-str" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.str + buffered.str"></span>
+                                <div class="flex items-center gap-1">
+                                    <span id="stat-flash-str" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.str + buffered.str"></span>
+                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.str > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.str + ')'"></span>
+                                </div>
                                 <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('str', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="availablePoints >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -548,7 +560,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-int" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.int + buffered.int"></span>
+                                <div class="flex items-center gap-1">
+                                    <span id="stat-flash-int" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.int + buffered.int"></span>
+                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.int > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.int + ')'"></span>
+                                </div>
                                 <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('int', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="availablePoints >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -567,7 +582,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-vit" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.vit + buffered.vit"></span>
+                                <div class="flex items-center gap-1">
+                                    <span id="stat-flash-vit" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.vit + buffered.vit"></span>
+                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.vit > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.vit + ')'"></span>
+                                </div>
                                 <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('vit', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="availablePoints >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
@@ -586,7 +604,10 @@
                                 @endif
                             </div>
                             <div class="flex items-center gap-2">
-                                <span id="stat-flash-agi" class="text-amber-300 font-bold text-base w-8 text-right inline-block transition-transform" x-text="baseAttributes.agi + buffered.agi"></span>
+                                <div class="flex items-center gap-1">
+                                    <span id="stat-flash-agi" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.agi + buffered.agi"></span>
+                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.agi > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.agi + ')'"></span>
+                                </div>
                                 <div class="flex gap-1" x-show="availablePoints > 0">
                                     <button @click="add('agi', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
                                     <button x-show="availablePoints >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
