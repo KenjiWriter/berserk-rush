@@ -22,16 +22,20 @@ class Hub extends Component
 
         // Set active character in session
         session(['active_character' => $character->id]);
+
+        Auth::user()->checkAndRepairTutorialStage($character);
     }
 
     #[On('tutorial-completed')]
     public function refreshOnTutorial()
     {
-        // Just trigger a re-render so $gameStage in blade gets updated
+        Auth::user()->checkAndRepairTutorialStage($this->character);
     }
 
     public function goTo(string $building): void
     {
+        Auth::user()->checkAndRepairTutorialStage($this->character);
+
         if ($building === 'quests' && auth()->user()->game_stage < 22) {
             $this->dispatch('notify', type: 'error', message: 'Tablica Wyzwań jest zablokowana! Wbij 5 poziom postaci i wyczekuj rozkazów Kapitana.');
             return;

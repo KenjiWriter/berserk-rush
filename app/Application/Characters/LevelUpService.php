@@ -50,11 +50,11 @@ class LevelUpService
                             $levelUp['to']
                         ));
                     }
-                    
-                    // Tutorial stage update
-                    if ($currentLevel >= 5 && $character->user && $character->user->game_stage == 21) {
-                        $character->user->update(['game_stage' => 22]);
-                    }
+                }
+
+                // Check and repair tutorial stage if character is level >= 5
+                if ($character->user) {
+                    $character->user->checkAndRepairTutorialStage($character);
                 }
 
                 $result = new LevelUpResult(

@@ -13,6 +13,9 @@
 
         $skillPointsCount = $character ? ($character->skill_points ?? 0) : 0;
         $unreadMailCount = $character ? \App\Infrastructure\Persistence\Mail::where('to_character_id', $character->id)->where('claimed', false)->count() : 0;
+        if (auth()->check()) {
+            auth()->user()->checkAndRepairTutorialStage($character);
+        }
         $isQuestsLocked = auth()->check() && (auth()->user()->game_stage < 22);
 
         $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount;

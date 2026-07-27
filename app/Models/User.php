@@ -127,4 +127,24 @@ class User extends Authenticatable
 
         return max(0, now()->diffInSeconds($this->muted_until, false));
     }
+
+    public function checkAndRepairTutorialStage(?Character $character = null): void
+    {
+        if ($this->game_stage == 21) {
+            if (!$character) {
+                $activeCharacterId = session('active_character');
+                if ($activeCharacterId) {
+                    $character = $this->characters()->find($activeCharacterId);
+                }
+            }
+            if (!$character) {
+                $character = $this->characters()->orderBy('level', 'desc')->first();
+            }
+
+            if ($character && $character->level >= 5) {
+                $this->game_stage = 22;
+                $this->save();
+            }
+        }
+    }
 }

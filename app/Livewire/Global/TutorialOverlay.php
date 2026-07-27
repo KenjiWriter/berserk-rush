@@ -28,6 +28,9 @@ class TutorialOverlay extends Component
         $this->randomCaptainIndex = rand(1, 4);
         
         $user = Auth::user();
+        if ($user) {
+            $user->checkAndRepairTutorialStage();
+        }
         
         // We show it only if game_stage matches the step index (0-based or 1-based, here step-1)
         if ($user && $user->game_stage >= $this->step) {
@@ -79,6 +82,7 @@ class TutorialOverlay extends Component
 
                 $user->game_stage = $this->step;
                 $user->save();
+                $user->checkAndRepairTutorialStage($character);
 
                 if ($this->rewardGold > 0 || $this->rewardXp > 0) {
                     $this->dispatch('stats-updated', 
