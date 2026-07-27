@@ -207,6 +207,16 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if (str_starts_with(strtolower($message), '/addsp ') || str_starts_with(strtolower($message), '/givesp ')) {
+            if ($character->user->permission_level >= 8) {
+                $this->handleAddSpCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
         $cp = $character->getTotalCombatPower();
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
@@ -715,12 +725,64 @@ class GlobalChatComponent extends Component
             $character->save();
             $this->dispatch('notify', message: "Zmieniono poziom na {$value}.", type: 'success');
         } elseif ($type === 'sp') {
-            // Dodajemy punkty, zgodnie z intencją "dodawania" z prośby (lub możemy przypisywać)
-            $character->character_points += $value;
+            $character->skill_points += $value;
             $character->save();
             $this->dispatch('notify', message: "Dodano {$value} punktów SP.", type: 'success');
         } else {
             $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp).');
         }
+    }
+
+    private function handleAddSpCommand(string $command, Character $senderCharacter): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 2) {
+            $this->addError('newMessage', 'Użycie: /addsp <ilość> LUB /addsp <uid|nazwa> <ilość>');
+            return;
+        }
+
+        if (count($parts) === 2) {
+            $target = $senderCharacter;
+            $amount = (int) $parts[1];
+        } else {
+            $identifier = $parts[1];
+            $amount = (int) $parts[2];
+
+            $target = Character::find($identifier);
+            if (!$target && is_numeric($identifier)) {
+                $user = \App\Models\User::find((int) $identifier);
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+            if (!$target) {
+                $target = Character::where('name', $identifier)->first();
+            }
+            if (!$target) {
+                $user = \App\Models\User::where('email', $identifier)->first();
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+        }
+
+        if (!$target) {
+            $this->addError('newMessage', 'Nie znaleziono postaci ani użytkownika.');
+            return;
+        }
+
+        if ($amount <= 0) {
+            $this->addError('newMessage', 'Ilość punktów musi być większa niż 0.');
+            return;
+        }
+
+        $target->skill_points = max(0, ($target->skill_points ?? 0) + $amount);
+        $target->save();
+
+        if (method_exists($target, 'clearStatsCache')) {
+            $target->clearStatsCache();
+        }
+
+        $this->dispatch('notify', message: "Dodano {$amount} punktów umiejętności (SP) dla postaci {$target->name}.", type: 'success');
     }
 }
