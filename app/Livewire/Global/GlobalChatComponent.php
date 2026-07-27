@@ -228,6 +228,12 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if (str_starts_with($lowerMsg, '/stage') || str_starts_with($lowerMsg, '/gamestage') || str_starts_with($lowerMsg, '/checkstage')) {
+            $this->handleStageCommand($message, $character);
+            $this->newMessage = '';
+            return;
+        }
+
         $cp = $character->getTotalCombatPower();
 
         \Illuminate\Support\Facades\Log::info("Sending message", ['character_id' => $character->id, 'channel' => $this->currentChannel, 'message' => $message]);
@@ -854,5 +860,50 @@ class GlobalChatComponent extends Component
 
         $this->dispatch('notify', message: "Dodano {$amount} punktów atrybutów (AP/Statystyk) dla postaci {$target->name}.", type: 'success');
         $this->dispatch('stats-saved', points: $target->character_points, baseAttributes: $target->getBaseAttributes(), bonusAttributes: $target->getBonusAttributes());
+    }
+
+    private function handleStageCommand(string $command, Character $senderCharacter): void
+    {
+        $parts = explode(' ', trim($command), 2);
+        
+        if (count($parts) === 1 || empty(trim($parts[1]))) {
+            $target = $senderCharacter;
+        } else {
+            $identifier = trim($parts[1]);
+
+            if ($senderCharacter->user->permission_level < 8 && strtolower($identifier) !== strtolower($senderCharacter->name) && strtolower($identifier) !== strtolower((string)$senderCharacter->id)) {
+                $this->addError('newMessage', 'Brak uprawnień do sprawdzania innych graczy.');
+                return;
+            }
+
+            $target = Character::find($identifier);
+            if (!$target && is_numeric($identifier)) {
+                $user = \App\Models\User::find((int) $identifier);
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+            if (!$target) {
+                $target = Character::whereRaw('LOWER(name) = ?', [strtolower($identifier)])->first();
+            }
+            if (!$target) {
+                $user = \App\Models\User::where('email', $identifier)->orWhere('name', $identifier)->first();
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+        }
+
+        if (!$target) {
+            $this->addError('newMessage', 'Nie znaleziono postaci ani użytkownika.');
+            return;
+        }
+
+        $user = $target->user;
+        $stage = $user ? $user->game_stage : 0;
+        $userStr = $user ? "{$user->name} (UID: {$user->id})" : 'Brak konta';
+
+        $msg = "Postać: {$target->name} (Lvl {$target->level}) | Konto: {$userStr} | Game Stage: {$stage}";
+        $this->dispatch('notify', message: $msg, type: 'info');
     }
 }
