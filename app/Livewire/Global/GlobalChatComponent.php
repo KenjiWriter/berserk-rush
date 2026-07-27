@@ -207,6 +207,16 @@ class GlobalChatComponent extends Component
             return;
         }
 
+        if (str_starts_with(strtolower($message), '/setstage ') || str_starts_with(strtolower($message), '/set-stage ')) {
+            if ($character->user->permission_level >= 8) {
+                $this->handleSetStageCommand($message, $character);
+            } else {
+                $this->addError('newMessage', 'Brak uprawnień.');
+            }
+            $this->newMessage = '';
+            return;
+        }
+
         if (str_starts_with(strtolower($message), '/addsp ') || str_starts_with(strtolower($message), '/givesp ')) {
             if ($character->user->permission_level >= 8) {
                 $this->handleAddSpCommand($message, $character);
@@ -750,9 +760,65 @@ class GlobalChatComponent extends Component
             $character->save();
             $this->dispatch('notify', message: "Dodano {$value} punktów atrybutów (AP).", type: 'success');
             $this->dispatch('stats-saved', points: $character->character_points, baseAttributes: $character->getBaseAttributes(), bonusAttributes: $character->getBonusAttributes());
+        } elseif ($type === 'stage' || $type === 'gamestage' || $type === 'game_stage') {
+            $user = $character->user;
+            if ($user) {
+                $user->game_stage = max(0, $value);
+                $user->save();
+                $this->dispatch('notify', message: "Zmieniono Game Stage konta na {$value}.", type: 'success');
+            }
         } else {
-            $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp, ap, stat).');
+            $this->addError('newMessage', 'Nieznany typ dla komendy /set (dostępne: level, sp, ap, stat, stage).');
         }
+    }
+
+    private function handleSetStageCommand(string $command, Character $senderCharacter): void
+    {
+        $parts = explode(' ', trim($command));
+        if (count($parts) < 2) {
+            $this->addError('newMessage', 'Użycie: /setstage <wartość> LUB /setstage <uid|nazwa|email> <wartość>');
+            return;
+        }
+
+        if (count($parts) === 2) {
+            $target = $senderCharacter;
+            $stage = (int) $parts[1];
+        } else {
+            $identifier = $parts[1];
+            $stage = (int) $parts[2];
+
+            $target = Character::find($identifier);
+            if (!$target && is_numeric($identifier)) {
+                $user = \App\Models\User::find((int) $identifier);
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+            if (!$target) {
+                $target = Character::whereRaw('LOWER(name) = ?', [strtolower($identifier)])->first();
+            }
+            if (!$target) {
+                $user = \App\Models\User::where('email', $identifier)->orWhere('name', $identifier)->first();
+                if ($user) {
+                    $target = $user->characters()->first();
+                }
+            }
+        }
+
+        if (!$target || !$target->user) {
+            $this->addError('newMessage', 'Nie znaleziono postaci ani użytkownika.');
+            return;
+        }
+
+        if ($stage < 0) {
+            $this->addError('newMessage', 'Game Stage nie może być ujemny.');
+            return;
+        }
+
+        $target->user->game_stage = $stage;
+        $target->user->save();
+
+        $this->dispatch('notify', message: "Ustawiono Game Stage dla konta {$target->user->name} na {$stage}.", type: 'success');
     }
 
     private function handleAddSpCommand(string $command, Character $senderCharacter): void
