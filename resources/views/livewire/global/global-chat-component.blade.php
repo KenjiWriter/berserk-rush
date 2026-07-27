@@ -85,7 +85,7 @@
             const targetPos = this.userScrollPos;
             this.isUpdating = true;
 
-            this.$nextTick(() => {
+            const applyScroll = () => {
                 if (el) {
                     if (wasBottom) {
                         el.scrollTop = el.scrollHeight;
@@ -94,9 +94,17 @@
                         el.scrollTop = targetPos;
                     }
                 }
-                setTimeout(() => {
-                    this.isUpdating = false;
-                }, 100);
+            };
+
+            this.$nextTick(() => {
+                applyScroll();
+                requestAnimationFrame(() => {
+                    applyScroll();
+                    setTimeout(() => {
+                        applyScroll();
+                        this.isUpdating = false;
+                    }, 120);
+                });
             });
         },
         handleScroll() {
@@ -194,12 +202,12 @@
         
         {{-- Tooltip Container: Centered Modal on mobile, Absolute Popover on desktop --}}
         <div 
-            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:absolute lg:inset-auto lg:right-full lg:bottom-0 lg:mr-3 lg:bg-transparent lg:backdrop-blur-none p-4 lg:p-0 pointer-events-auto"
+            class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/60 backdrop-blur-sm lg:static lg:bg-transparent lg:backdrop-blur-none pointer-events-auto"
             @click.self="closeTooltip()"
         >
             <div
                 @click.outside="if ($wire.activeTooltipId) closeTooltip()"
-                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0"
+                class="relative rounded-xl border border-amber-700/60 shadow-2xl p-4 w-full max-w-[320px] lg:w-80 text-left flex flex-col h-auto max-h-[80vh] overflow-y-auto shrink-0 lg:absolute lg:right-full lg:bottom-0 lg:mr-3 lg:max-h-[500px]"
                 style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%);"
             >
                 {{-- Close button --}}
