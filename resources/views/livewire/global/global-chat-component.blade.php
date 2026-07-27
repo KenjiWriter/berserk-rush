@@ -602,6 +602,7 @@
     </div>
     @endif
 </div>
+</div>
 
 <style>
     /* Chat message appear animation */
