@@ -655,120 +655,89 @@
 
         {{-- DUNGEONS TAB --}}
         @if($tab === 'dungeons')
-        <div class="w-full">
+        <div class="w-full px-4 md:px-0">
             @if($activeRun)
-                <div class="bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl max-w-4xl mx-auto backdrop-blur-md">
-                    <div>
-                        <div class="flex items-center gap-2 mb-1">
-                            <i class="fa-solid fa-person-running text-amber-400 text-xl"></i>
-                            <h3 class="text-2xl font-bold text-amber-200 medieval-font">Trwająca Ekspedycja</h3>
+                <div class="bg-gradient-to-r from-amber-950/90 via-slate-900 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl max-w-5xl mx-auto backdrop-blur-md">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500/20 flex items-center justify-center text-amber-500 text-3xl border border-amber-500/30">
+                            <i class="fa-solid fa-dungeon"></i>
                         </div>
-                        <p class="text-slate-300 text-sm">Jesteś w trakcie pokonywania lochu. Kontynuuj swoją przygodę!</p>
-                        <p class="text-xs text-amber-400 mt-1 font-bold">Obecny etap: {{ $activeRun->current_stage }}</p>
+                        <div>
+                            <h3 class="text-2xl font-bold text-amber-200 medieval-font">Aktywna Wyprawa</h3>
+                            <p class="text-slate-300 text-sm">Twoja drużyna walczy w głębinach lochu: {{ $activeRun->dungeon->name }}</p>
+                            <span class="inline-block px-2 py-0.5 mt-2 rounded bg-amber-900/50 text-amber-300 text-xs font-bold border border-amber-700">Etap {{ $activeRun->current_stage }} / {{ $activeRun->dungeon->stages->count() }}</span>
+                        </div>
                     </div>
                     <button wire:click="enterDungeon({{ $activeRun->dungeon_id }})" 
-                        class="w-full sm:w-auto bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-3 px-8 rounded-xl transition-all duration-200 transform hover:scale-105 shadow-lg border border-amber-400 medieval-font whitespace-nowrap flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-arrow-right"></i>
-                        <span>Kontynuuj Ekspedycję</span>
+                        class="w-full sm:w-auto bg-amber-600 hover:bg-amber-500 text-white font-bold py-4 px-8 rounded-xl transition-all transform hover:scale-105 shadow-xl border border-amber-400 medieval-font">
+                        Powrót do walki
                     </button>
                 </div>
             @endif
 
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
                 @foreach($dungeons as $dungeon)
                     @php
                         $canEnter = $dungeon->canCharacterEnter($character);
                         $hasKey = $dungeon->entry_item_template_id ? $character->items()->whereIn('location', ['inventory', 'material_stash'])->where('template_id', $dungeon->entry_item_template_id)->where('stack_size', '>=', 1)->exists() : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
                     @endphp
-                    <div x-data="{ showMonsters: false }" 
-                         class="bg-slate-900/90 backdrop-blur-md border-2 {{ $isInProgress ? 'border-amber-500 ring-2 ring-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.2)]' : ($canEnter && $hasKey ? 'border-slate-800 hover:border-slate-600' : 'border-slate-800 opacity-70') }} rounded-2xl p-5 transition-all duration-300 flex flex-col justify-between h-full group">
-                        
-                        <div>
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="text-2xl font-bold text-amber-100 medieval-font tracking-wide">{{ $dungeon->name }}</h3>
-                                <div class="bg-slate-950 text-slate-300 text-xs font-bold px-2.5 py-1 rounded-full border border-slate-700 flex-shrink-0">
-                                    Wym. Poz. {{ $dungeon->min_level }}
-                                </div>
-                            </div>
-
-                            <p class="text-slate-400 text-xs leading-relaxed mb-4 line-clamp-3">{{ $dungeon->description }}</p>
-
-                            <div class="space-y-2 mb-4 bg-slate-950/70 p-3 rounded-xl border border-slate-800/80 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-400">Liczba etapów:</span>
-                                    <span class="text-amber-200 font-bold">{{ $dungeon->stages->count() }} Etapów</span>
-                                </div>
-                                
-                                @if($dungeon->entryItemTemplate)
-                                    <div class="flex justify-between items-center border-t border-slate-800/80 pt-2 mt-2">
-                                        <span class="text-slate-400">Klucz wstępu:</span>
-                                        <span class="font-bold {{ $hasKey ? 'text-emerald-400' : 'text-red-400' }} flex items-center gap-1">
-                                            @if($hasKey) <i class="fa-solid fa-check text-emerald-400"></i> @else <i class="fa-solid fa-xmark text-red-400"></i> @endif 
-                                            {{ $dungeon->entryItemTemplate->name }}
-                                        </span>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <button @click="showMonsters = !showMonsters" 
-                                class="w-full mb-4 bg-slate-800/80 hover:bg-slate-700 text-slate-200 font-semibold py-2 px-3 rounded-xl transition-colors text-xs border border-slate-700 flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-eye text-slate-300"></i>
-                                <span x-text="showMonsters ? 'Ukryj listę przeciwników' : 'Pokaż listę przeciwników'"></span>
-                            </button>
-                            
-                            {{-- Expandable Monster List --}}
-                            <div x-show="showMonsters" 
-                                 x-transition:enter="transition ease-out duration-200"
-                                 x-transition:enter-start="opacity-0 max-h-0"
-                                 x-transition:enter-end="opacity-100 max-h-64"
-                                 class="mb-4 text-left border-t border-slate-800 pt-3 space-y-2 max-h-64 overflow-y-auto pr-1 custom-scrollbar">
-                                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Przeciwnicy lochu:</h4>
-                                @foreach($dungeon->stages as $stage)
-                                    @php $monster = $stage->monster; @endphp
-                                    @if($monster)
-                                    <div class="bg-slate-950/80 rounded-lg p-2 border border-slate-800 text-xs flex items-center justify-between">
-                                        <div class="flex items-center gap-2">
-                                            <span class="text-amber-500 font-bold">#{{ $stage->stage_order }}</span>
-                                            <span class="font-bold text-red-300">{{ $monster->name }}</span>
-                                        </div>
-                                        <span class="text-slate-400 font-semibold text-[11px]">(Lvl {{ $monster->level }})</span>
-                                    </div>
-                                    @endif
-                                @endforeach
+                    <div class="group bg-slate-900/80 backdrop-blur-md border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_-5px_rgba(217,119,6,0.2)]">
+                        {{-- Dungeon Banner --}}
+                        <div class="h-32 bg-gradient-to-br from-slate-800 to-amber-950 relative border-b border-slate-700 flex items-center justify-center">
+                            <i class="fa-solid fa-dungeon text-5xl text-slate-700 group-hover:text-amber-500/40 transition-colors"></i>
+                            <div class="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10 text-xs font-bold text-white tracking-widest uppercase">
+                                Wym. Lvl {{ $dungeon->min_level }}
                             </div>
                         </div>
 
-                        <div class="mt-auto">
+                        <div class="p-5 flex-grow">
+                            <h3 class="text-xl font-bold text-amber-100 medieval-font mb-2">{{ $dungeon->name }}</h3>
+                            <p class="text-slate-400 text-xs mb-4 line-clamp-2 h-8">{{ $dungeon->description }}</p>
+                            
+                            {{-- Bestiary Preview --}}
+                            <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800 space-y-2">
+                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Przeciwnicy lochu</div>
+                                @foreach($dungeon->stages->take(3) as $stage)
+                                    <div class="flex items-center justify-between text-xs">
+                                        <span class="text-slate-300"><span class="text-amber-600 mr-2">#{{ $stage->stage_order }}</span> {{ $stage->monster->name }}</span>
+                                        <span class="text-slate-600 font-mono">Lv. {{ $stage->monster->level }}</span>
+                                    </div>
+                                @endforeach
+                                @if($dungeon->stages->count() > 3)
+                                    <div class="text-[10px] text-amber-600 text-center font-bold pt-1 border-t border-slate-800">+ {{ $dungeon->stages->count() - 3 }} więcej...</div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <div class="p-4 pt-0">
                             @if($isInProgress)
-                                <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-3 px-4 rounded-xl transition-colors border border-amber-400 medieval-font shadow-lg">
-                                    Kontynuuj Ekspedycję
+                                <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-amber-600 text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-500 transition-colors border border-amber-500">
+                                    Kontynuuj Wyprawę
                                 </button>
-                            @elseif($canEnter && $hasKey && !$activeRun)
-                                <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-slate-800 hover:bg-slate-700 text-amber-200 hover:text-white font-bold py-3 px-4 rounded-xl transition-colors border border-slate-600 medieval-font shadow-md">
-                                    Rozpocznij Ekspedycję
+                            @elseif(!$canEnter)
+                                <button disabled class="w-full bg-slate-800 text-slate-500 py-3 rounded-xl font-bold medieval-font cursor-not-allowed border border-slate-700">
+                                    Zbyt niski poziom
+                                </button>
+                            @elseif(!$hasKey)
+                                <button disabled class="w-full bg-slate-800 text-red-400 py-3 rounded-xl font-bold medieval-font cursor-not-allowed border border-red-900/50">
+                                    Brak klucza
                                 </button>
                             @else
-                                <button disabled class="w-full bg-slate-800/60 text-slate-500 font-bold py-3 px-4 rounded-xl cursor-not-allowed border border-slate-800 medieval-font text-center">
-                                    @if($activeRun)
-                                        Inna ekspedycja w toku
-                                    @elseif(!$canEnter)
-                                        Wymagany poziom {{ $dungeon->min_level }}
-                                    @else
-                                        Brak klucza wstępu
-                                    @endif
+                                <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-slate-800 text-amber-200 hover:text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-900/50 transition-all border border-slate-600 hover:border-amber-600">
+                                    Rozpocznij Ekspedycję
                                 </button>
                             @endif
                         </div>
                     </div>
                 @endforeach
             </div>
-            
-            @if($dungeons && $dungeons->isEmpty())
-                <div class="text-center py-16 bg-slate-900/60 rounded-2xl border border-slate-800 max-w-xl mx-auto">
-                    <div class="text-6xl mb-3 text-slate-600/50"><i class="fa-solid fa-dungeon"></i></div>
-                    <h3 class="text-2xl font-bold text-slate-400 medieval-font mb-2">Brak dostępnych lochów</h3>
-                    <p class="text-sm text-slate-500">Wróć później, gdy pojawią się nowe wyzwania w krainie.</p>
+
+            @if($dungeons->isEmpty())
+                <div class="text-center py-20">
+                    <div class="text-6xl text-slate-800 mb-4"><i class="fa-solid fa-scroll"></i></div>
+                    <h3 class="text-xl font-bold text-slate-400 medieval-font">Brak dostupnych lochów</h3>
+                    <p class="text-slate-600 text-sm">Wróć później, gdy pojawią się nowe wyzwania w krainie.</p>
                 </div>
             @endif
         </div>

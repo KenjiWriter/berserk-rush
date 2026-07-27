@@ -1,62 +1,79 @@
-<div class="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 text-gray-100 relative overflow-hidden">
+<div id="dungeon-run-component" class="min-h-screen relative overflow-hidden"
+     x-data="{ isPaused: false, speed: 1 }">
 
-    {{-- Background --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-red-950/30 via-transparent to-gray-950/50"></div>
+    {{-- Dynamic Background --}}
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-30"
+         style="background-image: url('{{ asset('img/adventure-background.png') }}');"></div>
 
-    <div class="relative container mx-auto px-4 py-8 max-w-5xl">
+    {{-- Dark overlay + red dungeon tint --}}
+    <div class="absolute inset-0 bg-black/80"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-red-950/30 via-transparent to-red-950/40"></div>
+
+    {{-- Dynamic Attack FX Layer --}}
+    <div id="dungeon-combat-fx-overlay" class="fixed inset-0 pointer-events-none z-[150] overflow-hidden"></div>
+
+    <div class="relative z-10 container mx-auto px-4 py-2 lg:py-3 min-h-screen max-w-[1600px]">
 
         {{-- Header --}}
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-4">
-                <div class="text-4xl">⚔️</div>
-                <div>
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent" style="font-family: 'Cinzel', serif;">
-                        {{ $dungeon->name }}
-                    </h1>
-                    <p class="text-gray-400 text-sm">Etap {{ $currentStage }} / {{ $totalStages }}</p>
-                </div>
+        <div class="flex items-center justify-between mb-2 lg:mb-3">
+            <div>
+                <h1 class="text-2xl sm:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
+                    {{ $dungeon->name }}
+                </h1>
+                @if($run)
+                    <p class="text-xs text-red-300/80 mt-0.5">Etap <span class="font-bold text-amber-300">{{ $currentStage }}</span> / {{ $totalStages }}</p>
+                @endif
             </div>
             <button wire:click="backToDungeonList"
-                class="bg-gradient-to-r from-gray-700 to-gray-800 hover:from-gray-600 hover:to-gray-700 text-amber-200 font-bold py-2 px-4 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg" style="font-family: 'Cinzel', serif;">
-                ↩️ Lista lochów
+                class="relative rounded-lg px-4 py-2 shadow-lg bg-slate-900/80 border border-red-800/40 hover:border-red-500 transition-all">
+                <span class="text-amber-100 font-bold medieval-font">
+                    <i class="fa-solid fa-dungeon mr-1"></i> Lochy
+                </span>
             </button>
         </div>
 
         {{-- Error message --}}
         @if($errorMessage)
-            <div class="bg-red-900/50 border border-red-700 rounded-lg p-4 mb-6">
-                <p class="text-red-300 font-semibold">⚠️ {{ $errorMessage }}</p>
+            <div class="mb-3 p-3 bg-red-950/90 border border-red-600/60 rounded-xl backdrop-blur-md text-center">
+                <p class="text-red-300 font-semibold text-sm flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation text-red-400"></i>
+                    {{ $errorMessage }}
+                </p>
             </div>
         @endif
 
         {{-- NO ACTIVE RUN - Start screen --}}
         @if(!$run)
-            <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-8 text-center backdrop-blur-sm">
-                <div class="text-6xl mb-4">🏚️</div>
-                <h2 class="text-2xl font-bold text-amber-300 mb-3" style="font-family: 'Cinzel', serif;">{{ $dungeon->name }}</h2>
-                <div class="text-gray-400 mb-6 space-y-1">
-                    <p>Etapy: <strong class="text-amber-300">{{ $totalStages }}</strong></p>
-                    <p>Wymagany poziom: <strong class="text-amber-300">{{ $dungeon->min_level }}</strong></p>
+            <div class="max-w-2xl mx-auto mt-8">
+                <div class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30">
+                    <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
+                    <div class="relative p-8 text-center">
+                        <div class="text-7xl mb-4 drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]">🏚️</div>
+                        <h2 class="text-3xl font-bold text-amber-200 medieval-font mb-2 tracking-wide">{{ $dungeon->name }}</h2>
+                        <div class="text-slate-300 mb-6 space-y-1 text-sm">
+                            <p>Etapy: <strong class="text-amber-300">{{ $totalStages }}</strong></p>
+                            <p>Wymagany poziom: <strong class="text-amber-300">{{ $dungeon->min_level }}</strong></p>
+                        </div>
+                        <button wire:click="startRun"
+                            class="rounded-xl px-8 py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-700 border border-red-400/60 text-white font-extrabold medieval-font shadow-[0_0_25px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95 transition-all"
+                            wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
+                            <span wire:loading.remove wire:target="startRun"><i class="fa-solid fa-dungeon mr-2"></i>Rozpocznij Ekspedycję</span>
+                            <span wire:loading wire:target="startRun">Rozpoczynanie...</span>
+                        </button>
+                    </div>
                 </div>
-                <button wire:click="startRun"
-                    class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg shadow-green-900/30 text-lg"
-                    style="font-family: 'Cinzel', serif;"
-                    wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
-                    <span wire:loading.remove wire:target="startRun">⚔️ Rozpocznij ekspedycję</span>
-                    <span wire:loading wire:target="startRun">
-                        <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                        Rozpoczynanie...
-                    </span>
-                </button>
             </div>
 
         {{-- DUNGEON COMPLETE --}}
         @elseif($battleResult && ($battleResult['result'] ?? '') === 'dungeon_complete' && !$showBattle)
-            <div class="bg-gray-800/80 border border-amber-500 rounded-xl p-8 text-center backdrop-blur-sm shadow-2xl">
-                <div class="text-7xl mb-4">🏆</div>
-                <h2 class="text-3xl font-bold text-amber-300 mb-3" style="font-family: 'Cinzel', serif;">Gratulacje!</h2>
-                <p class="text-gray-300 text-lg mb-2">Ukończyłeś loch <strong class="text-amber-400">{{ $dungeon->name }}</strong>!</p>
-                <p class="text-gray-400 mb-6">Przetrwałeś wszystkie {{ $totalStages }} etapów.</p>
+            <div class="max-w-2xl mx-auto mt-8">
+            <div class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/60">
+                <div class="absolute inset-0 bg-gradient-to-b from-amber-500/15 via-transparent to-black/70 pointer-events-none"></div>
+                <div class="relative p-8 text-center">
+                <div class="text-7xl mb-4 animate-bounce">🏆</div>
+                <h2 class="text-3xl font-bold text-amber-300 medieval-font mb-2">Gratulacje!</h2>
+                <p class="text-slate-300 text-lg mb-2">Ukończyłeś loch <strong class="text-amber-400">{{ $dungeon->name }}</strong>!</p>
+                <p class="text-slate-400 mb-6">Przetrwałeś wszystkie {{ $totalStages }} etapów.</p>
                 
                 @if(isset($battleResult['total_loot']))
                     <div class="max-w-md mx-auto bg-gray-900/80 border-2 border-amber-600/50 rounded-lg p-5 mb-8 text-left shadow-inner">
@@ -113,244 +130,334 @@
                 @endif
 
                 <button wire:click="backToDungeonList"
-                    class="bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
-                    style="font-family: 'Cinzel', serif;">
-                    🏰 Powrót do listy lochów
+                    class="rounded-xl px-8 py-3 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all">
+                    <i class="fa-solid fa-dungeon mr-2"></i> Powrót do listy lochów
                 </button>
+                </div>
+            </div>
             </div>
 
         {{-- LOSS --}}
         @elseif($battleResult && ($battleResult['result'] ?? '') === 'loss' && !$showBattle)
-            <div class="bg-gray-800/80 border border-red-700 rounded-xl p-8 text-center backdrop-blur-sm">
-                <div class="text-7xl mb-4">💀</div>
-                <h2 class="text-3xl font-bold text-red-400 mb-3" style="font-family: 'Cinzel', serif;">Poległeś!</h2>
-                <p class="text-gray-300 text-lg mb-2">Zostałeś pokonany na etapie <strong class="text-red-300">{{ $battleResult['stage'] ?? $currentStage }}</strong>.</p>
-                <p class="text-gray-500 mb-6">Twoja ekspedycja dobiegła końca...</p>
+            <div class="max-w-2xl mx-auto mt-8">
+            <div class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-700/60">
+                <div class="absolute inset-0 bg-gradient-to-b from-red-900/20 via-transparent to-black/70 pointer-events-none"></div>
+                <div class="relative p-8 text-center">
+                <div class="text-7xl mb-4 drop-shadow-[0_0_30px_rgba(239,68,68,0.5)]">💀</div>
+                <h2 class="text-3xl font-bold text-red-400 medieval-font mb-2">Poległeś!</h2>
+                <p class="text-slate-300 text-lg mb-2">Zostałeś pokonany na etapie <strong class="text-red-300">{{ $battleResult['stage'] ?? $currentStage }}</strong>.</p>
+                <p class="text-slate-500 mb-6">Twoja ekspedycja dobiegła końca... Wszystkie łupy przepadły.</p>
                 <button wire:click="backToDungeonList"
-                    class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-3 px-8 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-lg text-lg"
-                    style="font-family: 'Cinzel', serif;">
-                    🏰 Powrót do listy lochów
+                    class="rounded-xl px-8 py-3 bg-slate-800 border border-slate-600 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all hover:bg-slate-700">
+                    <i class="fa-solid fa-dungeon mr-2"></i> Powrót do listy lochów
                 </button>
+                </div>
+            </div>
             </div>
 
         {{-- ACTIVE RUN --}}
         @else
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 pb-24 lg:pb-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 pb-24 lg:pb-6">
 
-                {{-- Left: Character status + Potions --}}
-                <div class="col-span-1 md:col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-2 lg:order-1" id="player-panel-container">
-                    {{-- Character HP --}}
-                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
-                        <h3 class="text-[10px] lg:text-sm font-bold text-gray-400 uppercase tracking-wider mb-2 lg:mb-3">Twoja postać</h3>
-                        <div class="text-center mb-2 lg:mb-3">
-                            <span class="text-3xl">🛡️</span>
-                            <p class="font-bold text-sm lg:text-base text-amber-300 mt-1 truncate" style="font-family: 'Cinzel', serif;">{{ $character->name }}</p>
-                            <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $character->level }}</p>
-                        </div>
+                {{-- Left: Player Panel --}}
+                <div class="col-span-1 md:col-span-1 lg:col-span-1 order-2 lg:order-1" id="dungeon-player-panel-container">
+                    <div id="dungeon-player-panel"
+                        class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 transition-all duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-b from-amber-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
-                        {{-- HP Bar --}}
-                        <div class="mb-2">
-                            <div class="flex justify-between text-[10px] lg:text-sm mb-1">
-                                <span class="text-gray-400">HP</span>
-                                @php $displayPlayerHp = $showBattle ? $animatedPlayerHp : $currentHp; @endphp
-                                <span class="text-{{ $displayPlayerHp > $maxHp * 0.5 ? 'green' : ($displayPlayerHp > $maxHp * 0.25 ? 'yellow' : 'red') }}-400 font-bold">
-                                    {{ $displayPlayerHp }} / {{ $maxHp }}
-                                </span>
-                            </div>
-                            <div class="w-full bg-gray-900 rounded-full h-4 border border-gray-600">
-                                @php $hpPercent = $maxHp > 0 ? ($displayPlayerHp / $maxHp) * 100 : 0; @endphp
-                                <div class="h-full rounded-full transition-all duration-300 ease-out {{ $hpPercent > 50 ? 'bg-gradient-to-r from-green-600 to-green-500' : ($hpPercent > 25 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500') }}"
-                                     style="width: {{ $hpPercent }}%"></div>
-                            </div>
-                        </div>
+                        <div class="relative p-3 sm:p-4 lg:p-4 xl:p-5 space-y-3 lg:space-y-4">
 
-                        {{-- Stage progress --}}
-                        <div class="mt-2 lg:mt-4">
-                            <div class="flex justify-between text-[10px] lg:text-sm mb-1">
-                                <span class="text-gray-400">Postęp</span>
-                                <span class="text-amber-300 font-bold">Etap {{ $currentStage }} / {{ $totalStages }}</span>
-                            </div>
-                            <div class="w-full bg-gray-900 rounded-full h-2.5 border border-gray-600">
-                                @php $stagePercent = $totalStages > 0 ? (($currentStage - 1) / $totalStages) * 100 : 0; @endphp
-                                <div class="h-full rounded-full bg-gradient-to-r from-amber-600 to-amber-400 transition-all duration-500"
-                                     style="width: {{ $stagePercent }}%"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- Potions --}}
-                    <div class="bg-gray-800/80 border border-gray-700 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
-                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3">🧪 Mikstury</h3>
-                        @if($potions->count() > 0)
-                            <div class="space-y-2">
-                                @foreach($potions as $potion)
-                                    <div class="flex items-center justify-between bg-gray-900/50 rounded-lg p-3 border border-gray-700/50">
-                                        <div class="flex items-center space-x-2">
-                                            <span class="text-lg">🧪</span>
-                                            <div>
-                                                <p class="text-sm font-semibold text-gray-200">{{ $potion->template->name }}</p>
-                                                <p class="text-xs text-gray-500">
-                                                    Leczy: {{ $potion->template->base_stats['heal'] ?? 50 }} HP
-                                                    @if($potion->stack_size > 1)
-                                                        • x{{ $potion->stack_size }}
-                                                    @endif
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <button wire:click="usePotion('{{ $potion->id }}')"
-                                            class="bg-green-700 hover:bg-green-600 text-white text-xs font-bold py-1.5 px-3 rounded transition-colors"
-                                            wire:loading.attr="disabled" wire:target="usePotion('{{ $potion->id }}')">
-                                            <span wire:loading.remove wire:target="usePotion('{{ $potion->id }}')">Użyj</span>
-                                            <span wire:loading wire:target="usePotion('{{ $potion->id }}')">...</span>
-                                        </button>
+                            {{-- Player Header & Avatar --}}
+                            <div class="text-center">
+                                <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto">
+                                    <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-amber-500/80 shadow-[0_0_25px_rgba(245,158,11,0.35)] bg-slate-900">
+                                        <img src="{{ $character->avatar ? asset('img/avatars/' . $character->avatar . '.png') : asset('img/avatars/default.png') }}" alt="{{ $character->name }}" class="w-full h-full object-cover">
                                     </div>
-                                @endforeach
+                                    <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300 shadow-lg medieval-font">Lvl {{ $character->level }}</span>
+                                </div>
+                                <h3 class="mt-3 text-base sm:text-lg font-extrabold text-amber-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">{{ $character->name }}</h3>
+                                <p class="text-xs text-amber-400/80">{{ $character->class ?? 'Bohater' }}</p>
                             </div>
-                        @else
-                            <p class="text-gray-500 text-sm text-center py-3">Brak mikstur w ekwipunku.</p>
-                        @endif
+
+                            {{-- HP Bar --}}
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-bold text-amber-200 medieval-font">
+                                    <span>Życie</span>
+                                    @php $displayPlayerHp = $showBattle ? $animatedPlayerHp : $currentHp; @endphp
+                                    <span class="font-mono text-emerald-300">{{ $displayPlayerHp }}/{{ $maxHp }}</span>
+                                </div>
+                                <div class="h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
+                                    @php $hpPercent = $maxHp > 0 ? ($displayPlayerHp / $maxHp) * 100 : 0; @endphp
+                                    <div class="h-full rounded-full transition-all duration-500 {{ $hpPercent > 50 ? 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]' : ($hpPercent > 25 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500') }}"
+                                         style="width: {{ $hpPercent }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- Stage Progress --}}
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-semibold text-amber-200/80 medieval-font">
+                                    <span>Postęp Lochu</span>
+                                    <span class="font-mono text-amber-300">Etap {{ $currentStage }}/{{ $totalStages }}</span>
+                                </div>
+                                <div class="h-2.5 w-full rounded-full bg-red-950/70 ring-1 ring-red-700/40 p-0.5">
+                                    @php $stagePercent = $totalStages > 0 ? (($currentStage - 1) / $totalStages) * 100 : 0; @endphp
+                                    <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-600 to-orange-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] transition-all duration-500" style="width: {{ $stagePercent }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- Attributes --}}
+                            <div>
+                                <h4 class="text-xs font-bold text-amber-200/90 mb-1.5 medieval-font tracking-wide">Atrybuty Bojowe</h4>
+                                @php $pStats = $character->getTotalAttributes(); @endphp
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <div class="bg-slate-900/90 border border-red-800/40 rounded-xl p-1.5 text-center">
+                                        <div class="text-[10px] font-semibold text-red-300">STR (Siła)</div>
+                                        <div class="text-sm font-black text-amber-100 font-mono">{{ $pStats['str'] ?? 0 }}</div>
+                                    </div>
+                                    <div class="bg-slate-900/90 border border-blue-800/40 rounded-xl p-1.5 text-center">
+                                        <div class="text-[10px] font-semibold text-blue-300">INT (Wiedza)</div>
+                                        <div class="text-sm font-black text-amber-100 font-mono">{{ $pStats['int'] ?? 0 }}</div>
+                                    </div>
+                                    <div class="bg-slate-900/90 border border-emerald-800/40 rounded-xl p-1.5 text-center">
+                                        <div class="text-[10px] font-semibold text-emerald-300">VIT (Witalność)</div>
+                                        <div class="text-sm font-black text-amber-100 font-mono">{{ $pStats['vit'] ?? 0 }}</div>
+                                    </div>
+                                    <div class="bg-slate-900/90 border border-amber-800/40 rounded-xl p-1.5 text-center">
+                                        <div class="text-[10px] font-semibold text-amber-300">AGI (Zręczność)</div>
+                                        <div class="text-sm font-black text-amber-100 font-mono">{{ $pStats['agi'] ?? 0 }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Potions --}}
+                            @if($potions->count() > 0)
+                                <div class="border-t border-amber-900/40 pt-3">
+                                    <h4 class="text-xs font-bold text-amber-200/90 mb-2 medieval-font flex items-center gap-1.5">
+                                        <i class="fa-solid fa-flask text-purple-400"></i> Mikstury
+                                    </h4>
+                                    <div class="space-y-1.5">
+                                        @foreach($potions as $potion)
+                                            <div class="flex items-center justify-between bg-slate-900/80 rounded-xl px-3 py-2 border border-purple-900/40">
+                                                <div>
+                                                    <p class="text-xs font-bold text-purple-200">{{ $potion->template->name }}</p>
+                                                    <p class="text-[10px] text-slate-500">Leczy: {{ $potion->template->base_stats['heal'] ?? 50 }} HP @if($potion->stack_size > 1)• x{{ $potion->stack_size }}@endif</p>
+                                                </div>
+                                                <button wire:click="usePotion('{{ $potion->id }}')"
+                                                    class="bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors border border-purple-500/50"
+                                                    wire:loading.attr="disabled" wire:target="usePotion('{{ $potion->id }}')">
+                                                    <span wire:loading.remove wire:target="usePotion('{{ $potion->id }}')">Użyj</span>
+                                                    <span wire:loading wire:target="usePotion('{{ $potion->id }}')">...</span>
+                                                </button>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
-                {{-- Center: Fight Action / Battle Log --}}
-                <div class="col-span-1 md:col-span-2 lg:col-span-1 space-y-4 order-1 lg:order-2 flex flex-col justify-center min-h-[300px] lg:min-h-[400px] mb-4 lg:mb-0"
-                     @if($isCalculating) wire:poll.1s="checkCombatStatus" @endif>
-                     
+                {{-- Center: Kronika Bitwy --}}
+                <div class="col-span-1 md:col-span-2 lg:col-span-1 order-1 lg:order-2 mb-2 lg:mb-0">
+                <section class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30 h-[340px] sm:h-[380px] md:h-[430px] lg:h-[460px] xl:h-[520px] flex flex-col"
+                         @if($isCalculating) wire:poll.1s="checkCombatStatus" @endif>
+
+                    <header class="relative p-2 text-center bg-red-950/40 border-b border-red-500/20 backdrop-blur-md">
+                        <h3 class="font-serif text-base sm:text-lg lg:text-xl text-amber-200 tracking-wider medieval-font drop-shadow">Kronika Bitwy</h3>
+                        @if($run && !$isCalculating)
+                            <p class="text-xs text-red-300/80 mt-0.5">Etap {{ $currentStage }} / {{ $totalStages }}</p>
+                        @endif
+                    </header>
+
+                    <div id="dungeon-battle-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar">
+
                     @if($isCalculating)
-                        {{-- Calculating state --}}
-                        <div class="bg-gray-800/90 border border-amber-900/50 rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm flex flex-col justify-center h-full">
-                            <div class="text-5xl mb-4 animate-pulse">⏳</div>
-                            <h3 class="text-lg text-gray-400 uppercase tracking-widest mb-2 font-bold">Walka trwa</h3>
-                            <h2 class="text-2xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Trwa obliczanie walki...</h2>
-                            <div class="flex justify-center items-center mt-4 text-amber-500">
-                                <svg class="animate-spin h-10 w-10" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                        <div class="h-full flex flex-col items-center justify-center text-center">
+                            <div class="relative w-24 h-24 mb-4">
+                                <div class="absolute inset-0 rounded-full border-4 border-red-500/30 border-t-red-400 animate-spin"></div>
+                                <div class="absolute inset-2 rounded-full border-4 border-red-700/30 border-b-red-600 animate-[spin_1.5s_linear_infinite_reverse]"></div>
                             </div>
+                            <h3 class="font-serif text-2xl sm:text-3xl text-amber-200 tracking-wider medieval-font animate-pulse">Obliczanie walki...</h3>
+                            <p class="text-amber-300/80 italic mt-2 font-semibold text-sm">Krzyżowanie mieczy...</p>
                         </div>
                     @elseif($showBattle && $battleResult)
-                        {{-- Battle result overlay --}}
-                        <div class="bg-gray-800/90 border {{ ($battleResult['result'] ?? '') === 'loss' ? 'border-red-700' : 'border-amber-600' }} rounded-xl p-6 backdrop-blur-sm h-full flex flex-col">
-                            <h3 class="text-lg font-bold text-center mb-4 {{ ($battleResult['result'] ?? '') === 'loss' ? 'text-red-400' : 'text-amber-300' }}" style="font-family: 'Cinzel', serif;">
-                                @if(($battleResult['result'] ?? '') === 'loss')
-                                    💀 Porażka!
-                                @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
-                                    🏆 Loch ukończony!
-                                @else
-                                    ⚔️ Etap zaliczony!
-                                @endif
-                            </h3>
-
+                        <ul class="space-y-2 text-amber-100">
                             @if($isPlaying)
-                                <div class="text-center mb-3">
-                                    <button wire:click="skipBattle"
-                                        class="text-gray-400 hover:text-amber-300 text-sm italic transition-colors font-semibold"
-                                        style="font-family: 'Cinzel', serif;">
-                                        ⏩ Pomiń animację walki
+                                <li class="text-center py-3">
+                                    <button wire:click="skipBattle" class="text-slate-400 hover:text-amber-300 text-sm italic transition-colors font-semibold medieval-font">
+                                        <i class="fa-solid fa-forward-fast mr-1"></i> Pomiń animację walki
                                     </button>
-                                </div>
+                                </li>
                             @endif
 
-                            {{-- Battle log --}}
-                            <div class="flex-1 overflow-y-auto max-h-80 bg-gray-900/50 rounded-lg p-3 mb-4 border border-gray-700/50 space-y-1 custom-scrollbar" id="dungeon-battle-log-container">
-                                @foreach($visibleTurns as $turn)
-                                    <div class="text-sm {{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }} animate-[fadeIn_0.3s_ease-out]">
-                                        @if($turn['type'] === 'miss')
-                                            <span class="text-gray-500">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : '👹 Potwór' }}: Pudło!</span>
-                                        @else
-                                            <span>{{ $turn['actor'] === 'player' ? '🛡️ Ty' : '👹 Potwór' }}: </span>
-                                            <span class="{{ $turn['crit'] ? 'text-yellow-400 font-bold' : '' }}">
-                                                {{ $turn['value'] }} obrażeń{{ $turn['crit'] ? ' ⚡KRYTYCZNE!' : '' }}
-                                            </span>
-                                            <span class="text-gray-600 text-xs ml-2">
-                                                [HP: {{ $turn['playerHp'] }} | Potwór: {{ $turn['enemyHp'] }}]
-                                            </span>
-                                        @endif
+                            {{-- Battle log turns --}}
+                            <div class="">
+                            @foreach($visibleTurns as $index => $turn)
+                                <li class="leading-relaxed bg-slate-900/70 border border-red-500/20 rounded-xl px-3 py-2 shadow-sm backdrop-blur-sm text-xs sm:text-sm">
+                                    <span class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-red-900/80 text-red-200 rounded-md border border-red-600/40 px-1 py-0.5 mr-1.5 font-mono">T{{ $index + 1 }}</span>
+                                    @if($turn['type'] === 'miss')
+                                        <span class="text-slate-300 italic font-semibold">
+                                            <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
+                                            pudłuje atak!
+                                        </span>
+                                    @else
+                                        <span class="{{ $turn['actor'] === 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
+                                            <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
+                                            zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong> obrażeń
+                                            @if($turn['crit']) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
+                                        </span>
+                                        <span class="text-slate-600 text-xs ml-2 font-mono">[HP: {{ $turn['playerHp'] }} | Potwór: {{ $turn['enemyHp'] }}]</span>
+                                    @endif
+                                </li>
+                            @endforeach
+                            @if($isPlaying)
+                                <li class="text-center text-slate-500 text-xs italic py-2 animate-pulse">Trwa walka...</li>
+                            @endif
+
+                            @if(!$isPlaying && $battleResult)
+                                <li class="text-center mt-4 p-4 rounded-2xl backdrop-blur-md {{ ($battleResult['result'] ?? '') === 'loss' ? 'bg-red-950/80 border border-red-500/40 text-red-200' : (($battleResult['result'] ?? '') === 'dungeon_complete' ? 'bg-amber-950/80 border border-amber-500/40 text-amber-200' : 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200') }}">
+                                    <div class="text-xl font-bold medieval-font">
+                                        @if(($battleResult['result'] ?? '') === 'loss') KLĘSKA!
+                                        @elseif(($battleResult['result'] ?? '') === 'dungeon_complete') LOCH UKOŃCZONY!
+                                        @else ETAP ZALICZONY! @endif
                                     </div>
-                                @endforeach
-                                @if($isPlaying)
-                                    <div class="text-gray-500 text-xs italic mt-2 animate-pulse">Trwa walka...</div>
-                                @endif
-                            </div>
-
-                            {{-- Summary (Only show when playback is finished) --}}
-                            @if(!$isPlaying)
-                                <div class="text-center mt-auto animate-[fadeIn_0.5s_ease-out]">
-                                    <p class="text-gray-400 text-sm mb-4">
-                                        Twoje HP po walce: <strong class="text-{{ ($battleResult['player_hp'] ?? 0) > 0 ? 'green' : 'red' }}-400">{{ $battleResult['player_hp'] ?? 0 }}</strong>
-                                    </p>
-                                    <button wire:click="dismissBattle"
-                                        class="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-500 hover:to-gray-600 text-white font-bold py-2 px-6 rounded-lg transition-all duration-200 w-full"
-                                        style="font-family: 'Cinzel', serif;">
-                                        @if(($battleResult['result'] ?? '') === 'stage_clear')
-                                            ➡️ Następny etap
-                                        @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
-                                            🏆 Zobacz Podsumowanie
-                                        @else
-                                            💀 Podsumowanie Porażki
-                                        @endif
-                                    </button>
-                                </div>
+                                    <p class="text-xs mt-1 opacity-75">Twoje HP po walce: {{ $battleResult['player_hp'] ?? 0 }}</p>
+                                </li>
                             @endif
-                        </div>
+                        </ul>
                     @elseif($monster && !$showBattle)
-                        {{-- Intermediate view in the center --}}
-                        <div class="bg-gray-800/90 border border-amber-900/50 rounded-xl p-8 text-center shadow-2xl backdrop-blur-sm flex flex-col justify-center h-full">
+                        <div class="h-full flex flex-col items-center justify-center text-center">
                             <div class="text-5xl mb-4">🚪</div>
-                            <h3 class="text-lg text-gray-400 uppercase tracking-widest mb-2 font-bold">Wyzwanie Etapu</h3>
-                            <h2 class="text-3xl font-bold text-amber-400 mb-6" style="font-family: 'Cinzel', serif;">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
-                            <p class="text-gray-300 italic mb-8">Z mroku wyłania się kolejny przeciwnik. Przygotuj się do walki, wypij mikstury i dobądź broni!</p>
-                            <button wire:click="fight"
-                                class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 px-10 rounded-lg transition-all duration-200 transform hover:scale-105 shadow-[0_0_20px_rgba(220,38,38,0.4)] text-xl uppercase tracking-wider"
-                                style="font-family: 'Cinzel', serif;"
-                                wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
-                                <span wire:loading.remove wire:target="fight">⚔️ Rozpocznij Walkę</span>
-                                <span wire:loading wire:target="fight">
-                                    <svg class="animate-spin h-5 w-5 inline mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                                    Uruchamianie...
-                                </span>
-                            </button>
+                            <h3 class="text-lg text-amber-400/80 uppercase tracking-widest mb-2 font-bold medieval-font">Wyzwanie Etapu</h3>
+                            <h2 class="text-3xl font-bold text-amber-200 mb-3 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                            <p class="text-slate-400 italic text-sm">Z mroku wyłania się kolejny przeciwnik. Przygotuj się do walki!</p>
                         </div>
                     @endif
+
+                    </div>
+
+                    {{-- Battle Controls --}}
+                    <footer class="relative p-3 lg:p-3.5 bg-red-950/40 border-t border-red-500/20 backdrop-blur-md">
+                        <div class="flex items-center justify-center gap-2.5">
+                            @if($isCalculating)
+                                <span class="text-red-300/60 text-xs medieval-font animate-pulse">Obliczanie walki w tle...</span>
+                            @elseif($showBattle && $isPlaying)
+                                <button wire:click="skipBattle"
+                                    class="rounded-xl px-5 py-2.5 bg-slate-800/80 border border-slate-600 text-amber-200 font-bold hover:bg-slate-700 transition-all medieval-font text-xs sm:text-sm">
+                                    <i class="fa-solid fa-forward-fast mr-1"></i> Pomiń animację
+                                </button>
+                            @elseif($showBattle && !$isPlaying && $battleResult)
+                                <button wire:click="dismissBattle"
+                                    class="rounded-xl px-6 py-2.5 sm:px-7 sm:py-3 bg-gradient-to-r from-red-700 via-red-600 to-red-700 border border-red-400/60 text-white font-extrabold text-sm sm:text-base medieval-font shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95 transition-all">
+                                    @if(($battleResult['result'] ?? '') === 'stage_clear')
+                                        <i class="fa-solid fa-arrow-right mr-1"></i> Następny Etap
+                                    @elseif(($battleResult['result'] ?? '') === 'dungeon_complete')
+                                        <i class="fa-solid fa-trophy mr-1"></i> Zobacz Podsumowanie
+                                    @else
+                                        <i class="fa-solid fa-skull mr-1"></i> Podsumowanie Porażki
+                                    @endif
+                                </button>
+                            @elseif($monster && !$showBattle && !$isCalculating)
+                                <button wire:click="fight"
+                                    class="rounded-xl px-6 py-2.5 sm:px-7 sm:py-3 bg-gradient-to-r from-red-700 via-red-600 to-red-700 border border-red-400/60 text-white font-extrabold text-sm sm:text-base medieval-font shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95 transition-all"
+                                    wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
+                                    <span wire:loading.remove wire:target="fight"><i class="fa-solid fa-swords mr-1"></i> Rozpocznij Walkę</span>
+                                    <span wire:loading wire:target="fight">Uruchamianie...</span>
+                                </button>
+                            @endif
+                        </div>
+                    </footer>
+                </section>
                 </div>
 
-                {{-- Right: Monster --}}
-                <div class="col-span-1 md:col-span-1 lg:col-span-1 space-y-2 lg:space-y-4 order-3 lg:order-3" id="enemy-panel-container">
+                {{-- Right: Enemy Panel --}}
+                <div class="col-span-1 md:col-span-1 lg:col-span-1 order-3 lg:order-3" id="dungeon-enemy-panel-container">
                     @if($monster)
-                        {{-- Monster info always visible on the right --}}
-                        <div class="bg-gray-800/80 border border-red-900/50 rounded-xl p-3 lg:p-5 backdrop-blur-sm">
-                            <h3 class="text-[10px] lg:text-sm font-bold text-red-400 uppercase tracking-wider mb-2 lg:mb-3">Przeciwnik</h3>
-                            <div class="text-center mb-3 lg:mb-5">
-                                <span class="text-4xl lg:text-5xl drop-shadow-[0_0_15px_rgba(220,38,38,0.6)]">👹</span>
-                                <p class="font-bold text-red-300 mt-2 lg:mt-3 text-sm lg:text-xl truncate" style="font-family: 'Cinzel', serif;">{{ $monster->name }}</p>
-                                <p class="text-gray-400 text-[10px] lg:text-sm">Poziom {{ $monster->level }}<span class="hidden lg:inline"> • {{ $monster->rank?->label() ?? 'Normal' }}</span></p>
-                            </div>
+                        <div id="dungeon-enemy-panel"
+                            class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30 transition-all duration-300">
+                            <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
-                            <div class="grid grid-cols-2 gap-1 lg:gap-3 mb-2">
-                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
-                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">HP</p>
-                                    @php 
-                                        $baseMonsterHp = $monster->stats['hp'] ?? $monster->level * 20;
-                                        $displayMonsterHp = ($showBattle && !$isCalculating) ? $animatedEnemyHp : $baseMonsterHp; 
-                                    @endphp
-                                    <p class="font-bold text-red-400 text-sm lg:text-lg">
-                                        @if($isCalculating)
-                                            <span class="animate-pulse">?</span> / {{ $baseMonsterHp }}
-                                        @else
-                                            {{ $displayMonsterHp }}
-                                        @endif
-                                    </p>
+                            <div class="relative p-3.5 sm:p-4 lg:p-4 xl:p-6 space-y-3 lg:space-y-3.5 xl:space-y-5">
+
+                                {{-- Enemy Header & Avatar --}}
+                                <div class="text-center">
+                                    <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto">
+                                        <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-red-600/80 shadow-[0_0_25px_rgba(239,68,68,0.35)] bg-slate-900">
+                                            @if(!empty($monster->avatar))
+                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $monster->avatar]) }}" alt="{{ $monster->name }}" class="w-full h-full object-cover">
+                                            @else
+                                                <img src="{{ asset('img/monsters/placeholder.png') }}" alt="{{ $monster->name }}" class="w-full h-full object-cover">
+                                            @endif
+                                        </div>
+                                        <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-rose-600 text-red-100 text-xs font-black px-2.5 py-0.5 rounded-full border border-red-400 shadow-lg medieval-font">Lvl {{ $monster->level }}</span>
+                                    </div>
+                                    <h3 class="mt-3 text-base sm:text-lg font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">{{ $monster->name }}</h3>
+                                    <p class="text-xs text-red-400/80">Etap {{ $currentStage }} / {{ $totalStages }} @if($monster->rank) • {{ $monster->rank?->label() }} @endif</p>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
-                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">ATK</p>
-                                    <p class="font-bold text-orange-400 text-sm lg:text-lg">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</p>
+
+                                {{-- Enemy HP Bar --}}
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-xs font-bold text-red-200 medieval-font">
+                                        <span>Życie</span>
+                                        @php
+                                            $baseMonsterHp = $monster->stats['hp'] ?? $monster->level * 20;
+                                            $displayMonsterHp = ($showBattle && !$isCalculating) ? $animatedEnemyHp : $baseMonsterHp;
+                                        @endphp
+                                        <span class="font-mono text-red-300">
+                                            @if($isCalculating)<span class="animate-pulse">?</span>@else{{ $displayMonsterHp }}@endif / {{ $baseMonsterHp }}
+                                        </span>
+                                    </div>
+                                    <div class="h-4 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
+                                        @php $enemyHpPercent = $baseMonsterHp > 0 ? ($displayMonsterHp / $baseMonsterHp) * 100 : 0; @endphp
+                                        <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] transition-all duration-500" style="width: {{ $enemyHpPercent }}%"></div>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
-                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">DEF</p>
-                                    <p class="font-bold text-blue-400 text-sm lg:text-lg">{{ $monster->stats['def'] ?? $monster->level }}</p>
+
+                                {{-- Enemy Stats --}}
+                                <div>
+                                    <h4 class="text-xs font-bold text-red-200/90 mb-1.5 medieval-font">Statystyki Potwora</h4>
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        <div class="bg-slate-900/90 border border-red-900/40 rounded-xl p-1.5 text-center">
+                                            <div class="text-[10px] font-semibold text-red-400 flex items-center justify-center gap-1"><i class="fa-solid fa-crosshairs"></i> ATK</div>
+                                            <div class="text-sm font-black text-red-200 font-mono">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/90 border border-blue-900/40 rounded-xl p-1.5 text-center">
+                                            <div class="text-[10px] font-semibold text-blue-400 flex items-center justify-center gap-1"><i class="fa-solid fa-shield"></i> DEF</div>
+                                            <div class="text-sm font-black text-blue-200 font-mono">{{ $monster->stats['def'] ?? $monster->level }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/90 border border-emerald-900/40 rounded-xl p-1.5 text-center">
+                                            <div class="text-[10px] font-semibold text-emerald-400 flex items-center justify-center gap-1"><i class="fa-solid fa-wind"></i> AGI</div>
+                                            <div class="text-sm font-black text-emerald-200 font-mono">{{ $monster->stats['agi'] ?? $monster->level }}</div>
+                                        </div>
+                                        <div class="bg-slate-900/90 border border-rose-900/40 rounded-xl p-1.5 text-center">
+                                            <div class="text-[10px] font-semibold text-rose-400 flex items-center justify-center gap-1"><i class="fa-solid fa-heart"></i> MAX HP</div>
+                                            <div class="text-sm font-black text-rose-200 font-mono">{{ number_format($baseMonsterHp) }}</div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="bg-gray-900/60 rounded-lg p-1 lg:p-3 border border-gray-700/50 text-center">
-                                    <p class="text-[9px] lg:text-xs text-gray-500 uppercase tracking-widest mb-1">AGI</p>
-                                    <p class="font-bold text-green-400 text-sm lg:text-lg">{{ $monster->stats['agi'] ?? $monster->level }}</p>
-                                </div>
+
+                                {{-- Accumulated Loot Preview --}}
+                                @if($run && $run->accumulated_loot && (($run->accumulated_loot['xp'] ?? 0) > 0 || ($run->accumulated_loot['gold'] ?? 0) > 0))
+                                    <div class="border-t border-amber-900/40 pt-3">
+                                        <h4 class="text-xs font-bold text-amber-200/90 mb-2 medieval-font flex items-center gap-1.5">
+                                            <i class="fa-solid fa-bag-shopping text-amber-400"></i> Skumulowany Łup
+                                        </h4>
+                                        <div class="grid grid-cols-2 gap-1.5">
+                                            @if(($run->accumulated_loot['xp'] ?? 0) > 0)
+                                                <div class="bg-slate-900/80 border border-indigo-900/40 rounded-xl p-1.5 text-center">
+                                                    <div class="text-[10px] text-indigo-400">XP</div>
+                                                    <div class="text-xs font-bold text-indigo-200 font-mono">+{{ number_format($run->accumulated_loot['xp']) }}</div>
+                                                </div>
+                                            @endif
+                                            @if(($run->accumulated_loot['gold'] ?? 0) > 0)
+                                                <div class="bg-slate-900/80 border border-yellow-900/40 rounded-xl p-1.5 text-center">
+                                                    <div class="text-[10px] text-yellow-400">Złoto</div>
+                                                    <div class="text-xs font-bold text-yellow-200 font-mono">+{{ number_format($run->accumulated_loot['gold']) }}</div>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     @endif
@@ -361,73 +468,62 @@
     </div>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(5px); }
-            to { opacity: 1; transform: translateY(0); }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&display=swap');
+
+        .medieval-font { font-family: 'Cinzel', serif; }
+
+        .fct-damage-number-dungeon {
+            position: fixed;
+            pointer-events: none;
+            z-index: 200;
+            font-family: 'Cinzel', serif;
+            animation: fct-float 0.85s ease-out forwards;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.9);
         }
-        
-        .anim-damage {
-            animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        @keyframes fct-float {
+            0%   { transform: translateY(0) scale(1); opacity: 1; }
+            60%  { transform: translateY(-50px) scale(1.15); opacity: 1; }
+            100% { transform: translateY(-85px) scale(0.7); opacity: 0; }
         }
 
-        .anim-attack-player {
-            animation: attack-player 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        .anim-lunge-player-d { animation: lunge-player-d 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+        .anim-lunge-enemy-d  { animation: lunge-enemy-d 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+        .anim-hit-bounce-d   { animation: hit-bounce-d 0.45s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes lunge-player-d {
+            0%   { transform: translateX(0) scale(1); }
+            40%  { transform: translateX(14px) scale(1.03); filter: brightness(1.3); }
+            70%  { transform: translateX(-4px) scale(0.98); }
+            100% { transform: translateX(0) scale(1); filter: brightness(1); }
+        }
+        @keyframes lunge-enemy-d {
+            0%   { transform: translateX(0) scale(1); }
+            40%  { transform: translateX(-14px) scale(1.03); filter: brightness(1.3); }
+            70%  { transform: translateX(4px) scale(0.98); }
+            100% { transform: translateX(0) scale(1); filter: brightness(1); }
+        }
+        @keyframes hit-bounce-d {
+            10%, 90% { transform: translate3d(-2px, 0, 0); border-color: rgba(239, 68, 68, 0.8); }
+            20%, 80% { transform: translate3d(3px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+            40%, 60% { transform: translate3d(5px, 0, 0); }
         }
 
-        .anim-attack-enemy {
-            animation: attack-enemy 0.3s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        @keyframes shake {
-            10%, 90% { transform: translate3d(-2px, 0, 0) scale(0.98); border-color: rgba(239, 68, 68, 0.8); }
-            20%, 80% { transform: translate3d(3px, 0, 0) scale(0.98); }
-            30%, 50%, 70% { transform: translate3d(-5px, 0, 0) scale(0.98); }
-            40%, 60% { transform: translate3d(5px, 0, 0) scale(0.98); }
-        }
-
-        @keyframes attack-player {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(20px); border-color: rgba(59, 130, 246, 0.8); }
-            100% { transform: translateX(0); }
-        }
-
-        @keyframes attack-enemy {
-            0% { transform: translateX(0); }
-            50% { transform: translateX(-20px); border-color: rgba(239, 68, 68, 0.8); }
-            100% { transform: translateX(0); }
-        }
-
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(17, 24, 39, 0.5); 
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(75, 85, 99, 0.8); 
-            border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(107, 114, 128, 0.8); 
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(17,24,39,0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(185,28,28,0.5); border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(220,38,38,0.7); }
     </style>
 
     @script
     <script>
-        let playbackInterval = null;
+        let dungeonPlaybackInterval = null;
         let userHasScrolledUp = false;
 
         function scrollDungeonLogToBottom(force = false) {
             const container = document.getElementById('dungeon-battle-log-container');
             if (!container) return;
-
-            if (force) {
-                userHasScrolledUp = false;
-            }
-
+            if (force) userHasScrolledUp = false;
             const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
             if (force || !userHasScrolledUp || distanceFromBottom < 150) {
                 container.scrollTop = container.scrollHeight;
@@ -436,44 +532,57 @@
 
         const dungeonLogContainer = document.getElementById('dungeon-battle-log-container');
         if (dungeonLogContainer) {
-            if (window._dungeonLogObserver) {
-                window._dungeonLogObserver.disconnect();
-            }
-            window._dungeonLogObserver = new MutationObserver(() => {
-                scrollDungeonLogToBottom();
-            });
+            if (window._dungeonLogObserver) window._dungeonLogObserver.disconnect();
+            window._dungeonLogObserver = new MutationObserver(() => scrollDungeonLogToBottom());
             window._dungeonLogObserver.observe(dungeonLogContainer, { childList: true, subtree: true });
-
             dungeonLogContainer.addEventListener('scroll', () => {
-                const distanceFromBottom = dungeonLogContainer.scrollHeight - dungeonLogContainer.scrollTop - dungeonLogContainer.clientHeight;
-                if (distanceFromBottom > 150) {
-                    userHasScrolledUp = true;
-                } else {
-                    userHasScrolledUp = false;
-                }
+                const dist = dungeonLogContainer.scrollHeight - dungeonLogContainer.scrollTop - dungeonLogContainer.clientHeight;
+                userHasScrolledUp = dist > 150;
             }, { passive: true });
         }
 
-        $wire.on('start-playback', (e) => {
-            let speedMultiplier = e.speed || 1;
-            let intervalTime = 600 / speedMultiplier; // base speed 600ms per turn
-            userHasScrolledUp = false;
-            
-            if (playbackInterval) clearInterval(playbackInterval);
-            
-            scrollDungeonLogToBottom(true);
+        function spawnDungeonImpactParticles(targetPanel, pType) {
+            const rect = targetPanel.getBoundingClientRect();
+            const fxOverlay = document.getElementById('dungeon-combat-fx-overlay');
+            if (!fxOverlay) return;
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 3;
+            const particleCount = pType === 'crit' ? 16 : 10;
+            const color = pType === 'crit' ? '#fbbf24' : '#f87171';
+            const shadowColor = pType === 'crit' ? 'rgba(245,158,11,0.9)' : 'rgba(239,68,68,0.8)';
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'fixed pointer-events-none z-[195] rounded-full';
+                const size = Math.floor(Math.random() * 10) + 6;
+                p.style.width = `${size}px`; p.style.height = `${size}px`;
+                p.style.left = `${centerX}px`; p.style.top = `${centerY}px`;
+                p.style.backgroundColor = color;
+                p.style.boxShadow = `0 0 12px ${shadowColor}`;
+                fxOverlay.appendChild(p);
+                const angle = (i / particleCount) * Math.PI * 2 + (Math.random() * 0.4 - 0.2);
+                const distance = Math.floor(Math.random() * 70) + 30;
+                p.animate([
+                    { transform: 'translate(-50%,-50%) scale(1.2)', opacity: 1 },
+                    { transform: `translate(calc(${Math.cos(angle)*distance}px - 50%),calc(${Math.sin(angle)*distance}px - 50%)) scale(0)`, opacity: 0 }
+                ], { duration: 450 + Math.random() * 250, easing: 'cubic-bezier(0.1,0.8,0.3,1)', fill: 'forwards' });
+                setTimeout(() => { if (p.parentNode) p.parentNode.removeChild(p); }, 750);
+            }
+        }
 
-            playbackInterval = setInterval(() => {
+        $wire.on('start-playback', (e) => {
+            userHasScrolledUp = false;
+            scrollDungeonLogToBottom(true);
+            let speedMultiplier = e.speed || 1;
+            let intervalTime = 600 / speedMultiplier;
+            if (dungeonPlaybackInterval) clearInterval(dungeonPlaybackInterval);
+            dungeonPlaybackInterval = setInterval(() => {
                 $wire.dispatch('resume-playback');
                 scrollDungeonLogToBottom();
             }, intervalTime);
         });
 
         $wire.on('stop-playback', () => {
-            if (playbackInterval) {
-                clearInterval(playbackInterval);
-                playbackInterval = null;
-            }
+            if (dungeonPlaybackInterval) { clearInterval(dungeonPlaybackInterval); dungeonPlaybackInterval = null; }
         });
 
         $wire.on('turn-played', (event) => {
@@ -481,45 +590,50 @@
             const data = (event && event[0]) ? event[0] : event;
             const actor = data.actor;
             const type = data.type;
-            
-            const playerPanel = document.getElementById('player-panel-container');
-            const enemyPanel = document.getElementById('enemy-panel-container');
-            
+            const isCrit = data.crit || false;
+            const value = data.value || 0;
+
+            const playerPanel = document.getElementById('dungeon-player-panel-container');
+            const enemyPanel  = document.getElementById('dungeon-enemy-panel-container');
+            const fxOverlay   = document.getElementById('dungeon-combat-fx-overlay');
+
             if (!playerPanel || !enemyPanel) return;
 
-            // Remove existing animation classes to re-trigger
-            playerPanel.classList.remove('anim-attack-player', 'anim-damage');
-            enemyPanel.classList.remove('anim-attack-enemy', 'anim-damage');
-            
-            // Force reflow
+            playerPanel.classList.remove('anim-lunge-player-d','anim-lunge-enemy-d','anim-hit-bounce-d');
+            enemyPanel.classList.remove('anim-lunge-player-d','anim-lunge-enemy-d','anim-hit-bounce-d');
             void playerPanel.offsetWidth;
             void enemyPanel.offsetWidth;
 
-            if (actor === 'player') {
-                playerPanel.classList.add('anim-attack-player');
-                if (type !== 'miss') {
-                    setTimeout(() => enemyPanel.classList.add('anim-damage'), 150);
-                }
-            } else {
-                enemyPanel.classList.add('anim-attack-enemy');
-                if (type !== 'miss') {
-                    setTimeout(() => playerPanel.classList.add('anim-damage'), 150);
-                }
-            }
-        });
+            const attackerPanel = actor === 'player' ? playerPanel : enemyPanel;
+            const defenderPanel = actor === 'player' ? enemyPanel : playerPanel;
 
-        $wire.on('scroll-to-bottom', () => {
+            if (actor === 'player') playerPanel.classList.add('anim-lunge-player-d');
+            else enemyPanel.classList.add('anim-lunge-enemy-d');
+
+            const defenderRect = defenderPanel.getBoundingClientRect();
             setTimeout(() => {
-                let container = document.getElementById('dungeon-battle-log-container');
-                if (container) {
-                    container.scrollTop = container.scrollHeight;
+                if (type !== 'miss') {
+                    defenderPanel.classList.add('anim-hit-bounce-d');
+                    spawnDungeonImpactParticles(defenderPanel, isCrit ? 'crit' : 'hit');
                 }
-            }, 50);
+                if (fxOverlay) {
+                    const fct = document.createElement('div');
+                    fct.className = 'fct-damage-number-dungeon';
+                    fct.style.left = `${defenderRect.left + defenderRect.width / 2}px`;
+                    fct.style.top = `${defenderRect.top + defenderRect.height / 3 - 20}px`;
+                    if (type === 'miss') fct.innerHTML = `<span class="text-blue-300 font-black text-2xl">UNIK!</span>`;
+                    else if (isCrit) fct.innerHTML = `<span class="text-amber-300 font-black text-3xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${value}</span>`;
+                    else fct.innerHTML = `<span class="text-red-400 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${value}</span>`;
+                    fxOverlay.appendChild(fct);
+                    setTimeout(() => { if (fct.parentNode) fct.parentNode.removeChild(fct); }, 900);
+                }
+            }, 170);
         });
 
-        // Cleanup on unmount
+        $wire.on('scroll-to-bottom', () => { setTimeout(() => scrollDungeonLogToBottom(true), 50); });
+
         document.addEventListener('livewire:navigating', () => {
-            if (playbackInterval) clearInterval(playbackInterval);
+            if (dungeonPlaybackInterval) clearInterval(dungeonPlaybackInterval);
         });
     </script>
     @endscript
