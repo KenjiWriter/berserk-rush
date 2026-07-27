@@ -625,13 +625,41 @@ class GlobalChatComponent extends Component
                 $this->addError('newMessage', 'Nie znaleziono przedmiotu o podanym ID.');
                 return;
             }
-            \App\Infrastructure\Persistence\ItemInstance::create([
-                'template_id' => $template->id,
-                'owner_character_id' => $character->id,
-                'location' => 'inventory',
-                'stack_size' => $amount,
-                'rarity' => 'common',
-            ]);
+
+            $targetLocation = in_array($template->type, ['material', 'consumable', 'currency'])
+                ? 'material_stash'
+                : 'inventory';
+
+            if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+                // Stack with existing item if possible
+                $existing = \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $character->id)
+                    ->where('template_id', $template->id)
+                    ->where('location', $targetLocation)
+                    ->first();
+
+                if ($existing) {
+                    $existing->increment('stack_size', $amount);
+                } else {
+                    \App\Infrastructure\Persistence\ItemInstance::create([
+                        'template_id' => $template->id,
+                        'owner_character_id' => $character->id,
+                        'location' => $targetLocation,
+                        'stack_size' => $amount,
+                        'rarity' => 'common',
+                        'upgrade_level' => 0,
+                    ]);
+                }
+            } else {
+                \App\Infrastructure\Persistence\ItemInstance::create([
+                    'template_id' => $template->id,
+                    'owner_character_id' => $character->id,
+                    'location' => $targetLocation,
+                    'stack_size' => $amount,
+                    'rarity' => 'common',
+                    'upgrade_level' => 0,
+                ]);
+            }
+
             $this->dispatch('notify', message: "Dodano przedmiot {$template->name} ({$amount}x).", type: 'success');
         }
     }
