@@ -759,16 +759,19 @@
             let isPaused = false;
             let currentSpeed = 1;
 
+            let userHasScrolledUp = false;
+
             function scrollCombatLogToBottom(force = false) {
                 const container = document.getElementById('combat-log-container');
                 if (!container) return;
 
-                const isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
-                if (force || isNearBottom) {
-                    container.scrollTo({
-                        top: container.scrollHeight,
-                        behavior: force ? 'auto' : 'smooth'
-                    });
+                if (force) {
+                    userHasScrolledUp = false;
+                }
+
+                const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+                if (force || !userHasScrolledUp || distanceFromBottom < 150) {
+                    container.scrollTop = container.scrollHeight;
                 }
             }
 
@@ -781,6 +784,15 @@
                     scrollCombatLogToBottom();
                 });
                 window._combatLogObserver.observe(logContainer, { childList: true, subtree: true });
+
+                logContainer.addEventListener('scroll', () => {
+                    const distanceFromBottom = logContainer.scrollHeight - logContainer.scrollTop - logContainer.clientHeight;
+                    if (distanceFromBottom > 150) {
+                        userHasScrolledUp = true;
+                    } else {
+                        userHasScrolledUp = false;
+                    }
+                }, { passive: true });
             }
 
             function cleanUp() {
@@ -848,11 +860,14 @@
             Livewire.on('start-playback', (event) => {
                 cleanUp();
                 isPaused = false;
+                userHasScrolledUp = false;
                 let evtSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : null);
                 if (evtSpeed) {
                     currentSpeed = evtSpeed;
                 }
+                setTimeout(() => scrollCombatLogToBottom(true), 10);
                 setTimeout(() => scrollCombatLogToBottom(true), 50);
+                setTimeout(() => scrollCombatLogToBottom(true), 150);
                 scheduleNextTurn(currentSpeed === 2 ? 100 : 200);
             });
 

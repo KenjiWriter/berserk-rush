@@ -390,31 +390,49 @@
     <script>
         document.addEventListener('livewire:initialized', () => {
             let playbackTimeout;
+            let userHasScrolledUp = false;
 
             function scrollArenaLogToBottom(force = false) {
                 const container = document.getElementById('arena-combat-log-container');
                 if (!container) return;
-                const isNearBottom = (container.scrollHeight - container.scrollTop - container.clientHeight) < 100;
-                if (force || isNearBottom) {
-                    container.scrollTo({
-                        top: container.scrollHeight,
-                        behavior: force ? 'auto' : 'smooth'
-                    });
+
+                if (force) {
+                    userHasScrolledUp = false;
+                }
+
+                const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+                if (force || !userHasScrolledUp || distanceFromBottom < 150) {
+                    container.scrollTop = container.scrollHeight;
                 }
             }
 
             const arenaLogContainer = document.getElementById('arena-combat-log-container');
             if (arenaLogContainer) {
-                const observer = new MutationObserver(() => {
+                if (window._arenaLogObserver) {
+                    window._arenaLogObserver.disconnect();
+                }
+                window._arenaLogObserver = new MutationObserver(() => {
                     scrollArenaLogToBottom();
                 });
-                observer.observe(arenaLogContainer, { childList: true, subtree: true });
+                window._arenaLogObserver.observe(arenaLogContainer, { childList: true, subtree: true });
+
+                arenaLogContainer.addEventListener('scroll', () => {
+                    const distanceFromBottom = arenaLogContainer.scrollHeight - arenaLogContainer.scrollTop - arenaLogContainer.clientHeight;
+                    if (distanceFromBottom > 150) {
+                        userHasScrolledUp = true;
+                    } else {
+                        userHasScrolledUp = false;
+                    }
+                }, { passive: true });
             }
 
             Livewire.on('start-playback', (data) => {
                 clearTimeout(playbackTimeout);
+                userHasScrolledUp = false;
                 const speed = data.speed || (data[0] && data[0].speed) || 1;
+                setTimeout(() => scrollArenaLogToBottom(true), 10);
                 setTimeout(() => scrollArenaLogToBottom(true), 50);
+                setTimeout(() => scrollArenaLogToBottom(true), 150);
                 playNextTurn(speed);
             });
 
