@@ -11,18 +11,13 @@ class LootTableSeeder extends Seeder
 {
     public function run(): void
     {
-        // Pobieramy materiały i uzbrojenie z bazy
+        // Pobieramy materiały z bazy
         $materials = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'material')->get();
-        $weapons = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'weapon')->get();
-        $armors = \App\Infrastructure\Persistence\ItemTemplate::where('type', 'armor')->get();
 
         $fang = $materials->where('name', 'Wilczy Kieł')->first();
         $herb = $materials->where('name', 'Mroczne Zioło')->first();
         $bone = $materials->where('name', 'Strzaskana Kość')->first();
         $crystal = $materials->where('name', 'Kryształ Cienia')->first();
-
-        $rustySword = $weapons->where('name', 'Zardzewiały Miecz')->first();
-        $leatherArmor = $armors->where('name', 'Skórzana Zbroja')->first();
 
         // Tabela ogólna dla Lasu
         $forestLoot = LootTable::firstOrCreate(['name' => 'forest_common']);
@@ -39,7 +34,7 @@ class LootTableSeeder extends Seeder
         if ($fang) {
             LootTableEntry::create([
                 'loot_table_id' => $forestLoot->id,
-                'reward_type' => 'item',
+                'reward_type' => 'material',
                 'ref_ulid' => $fang->id,
                 'weight' => 6,
                 'min_qty' => 1,
@@ -50,22 +45,11 @@ class LootTableSeeder extends Seeder
         if ($herb) {
             LootTableEntry::create([
                 'loot_table_id' => $forestLoot->id,
-                'reward_type' => 'item',
+                'reward_type' => 'material',
                 'ref_ulid' => $herb->id,
                 'weight' => 4,
                 'min_qty' => 1,
                 'max_qty' => 3
-            ]);
-        }
-
-        if ($rustySword) {
-            LootTableEntry::create([
-                'loot_table_id' => $forestLoot->id,
-                'reward_type' => 'item',
-                'ref_ulid' => $rustySword->id,
-                'weight' => 2,
-                'min_qty' => 1,
-                'max_qty' => 1
             ]);
         }
 
@@ -84,22 +68,11 @@ class LootTableSeeder extends Seeder
         if ($bone) {
             LootTableEntry::create([
                 'loot_table_id' => $ruinsLoot->id,
-                'reward_type' => 'item',
+                'reward_type' => 'material',
                 'ref_ulid' => $bone->id,
                 'weight' => 7,
                 'min_qty' => 1,
                 'max_qty' => 2
-            ]);
-        }
-
-        if ($leatherArmor) {
-            LootTableEntry::create([
-                'loot_table_id' => $ruinsLoot->id,
-                'reward_type' => 'item',
-                'ref_ulid' => $leatherArmor->id,
-                'weight' => 2,
-                'min_qty' => 1,
-                'max_qty' => 1
             ]);
         }
 
@@ -118,7 +91,7 @@ class LootTableSeeder extends Seeder
         if ($crystal) {
             LootTableEntry::create([
                 'loot_table_id' => $desertLoot->id,
-                'reward_type' => 'item',
+                'reward_type' => 'material',
                 'ref_ulid' => $crystal->id,
                 'weight' => 6,
                 'min_qty' => 1,
