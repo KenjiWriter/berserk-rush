@@ -185,9 +185,9 @@
 
             <!-- Auto-refresh Controls & Action Buttons -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button onclick="window.location.reload()" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 text-black font-extrabold text-sm tracking-wider uppercase transition-all transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-amber-600/30">
-                    <i class="fa-solid fa-rotate-right transition-transform group-hover:rotate-180"></i>
-                    Sprawdź dostępność
+                <button type="button" id="refresh-btn" onclick="reloadPage()" class="group w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 hover:from-amber-500 hover:to-amber-400 active:scale-95 text-black font-extrabold text-sm tracking-wider uppercase transition-all shadow-lg shadow-amber-600/30 cursor-pointer">
+                    <i id="refresh-icon" class="fa-solid fa-rotate-right transition-transform group-hover:rotate-180"></i>
+                    <span id="refresh-text">Odśwież stronę</span>
                 </button>
             </div>
 
@@ -206,6 +206,17 @@
 
     <!-- Embers Generator Script & Countdown -->
     <script>
+        // Reload function that bypasses cache
+        function reloadPage() {
+            const icon = document.getElementById('refresh-icon');
+            const text = document.getElementById('refresh-text');
+            if (icon) icon.classList.add('fa-spin');
+            if (text) text.innerText = 'Odświeżanie...';
+            
+            // Hard reload with cache buster
+            window.location.href = window.location.origin + window.location.pathname + '?r=' + Date.now();
+        }
+
         // Embers animation generator
         (function createEmbers() {
             const container = document.getElementById('embers-container');
@@ -232,7 +243,7 @@
             if (countdownEl) countdownEl.innerText = seconds;
             if (seconds <= 0) {
                 clearInterval(timer);
-                window.location.reload();
+                reloadPage();
             }
         }, 1000);
     </script>
