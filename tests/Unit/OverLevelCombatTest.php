@@ -127,9 +127,13 @@ class OverLevelCombatTest extends TestCase
         $payload = $simRes->getPayload();
         $this->assertNotEmpty($payload['turns']);
 
-        // Confirm last turn state shows monsters_state
+        // Confirm last turn state shows monsters_state with non-empty stats
         $lastTurn = end($payload['turns']);
         $this->assertArrayHasKey('monsters_state', $lastTurn);
+        foreach ($lastTurn['monsters_state'] as $mState) {
+            $this->assertArrayHasKey('stats', $mState);
+            $this->assertGreaterThan(0, $mState['stats']['atk'] ?? 0);
+        }
     }
 
     public function test_max_two_duplicates_per_group()

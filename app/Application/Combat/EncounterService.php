@@ -130,6 +130,7 @@ class EncounterService
                                     'hp' => $scaled['hp'],
                                     'stats' => $scaled,
                                     'avatar' => $mObj->avatar,
+                                    'rank' => is_object($mObj->rank) ? $mObj->rank->value : (string)$mObj->rank,
                                 ];
                             }
                             $firstMonsterId = $monstersList[0]['id'];
@@ -1086,7 +1087,9 @@ class EncounterService
                 'hp' => $m['hp'],
                 'maxHp' => $m['maxHp'],
                 'level' => $m['level'],
+                'stats' => $m['stats'] ?? [],
                 'avatar' => $m['avatar'] ?? null,
+                'rank' => $m['rank'] ?? 'regular',
             ];
         }, $monsters);
     }
