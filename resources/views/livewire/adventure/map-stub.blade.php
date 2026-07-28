@@ -130,7 +130,7 @@
                 </div>
 
                 {{-- Custom Targeting Strategy Dropdown with FontAwesome Icons --}}
-                <div class="relative flex items-center gap-2 text-xs font-bold font-sans"
+                <div class="relative flex items-center gap-2 text-xs font-bold font-sans z-[100]"
                      x-data="{ 
                          open: false, 
                          strategy: @entangle('targetStrategy'),
@@ -162,7 +162,7 @@
                          x-transition:leave="transition ease-in duration-100"
                          x-transition:leave-start="opacity-100 scale-100"
                          x-transition:leave-end="opacity-0 scale-95"
-                         class="absolute right-0 top-full mt-2 w-52 bg-slate-950/95 border-2 border-purple-500/80 rounded-xl shadow-2xl backdrop-blur-xl p-1.5 z-50 space-y-1"
+                         class="absolute right-0 top-full mt-2 w-52 bg-slate-950/95 border-2 border-purple-500/80 rounded-xl shadow-2xl backdrop-blur-xl p-1.5 z-[200] space-y-1"
                          style="display: none;">
                         
                         <button @click="$wire.setTargetStrategy('random'); open = false" 
