@@ -901,7 +901,8 @@
                 <div class="space-y-4">
                     @forelse($this->guilds as $guild)
                         @php $isOwnGuild = $guild->id === $character->guild_id; @endphp
-                        <div class="bg-gradient-to-r from-stone-900/90 via-amber-950/20 to-stone-900/90 border {{ $isOwnGuild ? 'border-cyan-600/60' : 'border-amber-800/40 hover:border-amber-500/70' }} rounded-xl p-4 sm:p-5 shadow-lg hover:shadow-[0_4px_20px_rgba(245,158,11,0.15)] transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 group">
+                        <div class="bg-gradient-to-r from-stone-900/90 via-amber-950/20 to-stone-900/90 border {{ $isOwnGuild ? 'border-cyan-600/60' : 'border-amber-800/40 hover:border-amber-500/70' }} rounded-xl p-4 sm:p-5 shadow-lg hover:shadow-[0_4px_20px_rgba(245,158,11,0.15)] transition-all duration-300 group">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
 
                             {{-- Info Left --}}
                             <div class="flex items-start sm:items-center gap-4">
@@ -935,9 +936,13 @@
                                             <i class="fa-solid fa-users text-amber-500"></i> Członkowie: <strong class="text-amber-200">{{ $guild->members_count }}/{{ $guild->getMaxMembers() }}</strong>
                                         </span>
                                         @if($guild->hasWarTeam())
-                                            <span class="flex items-center gap-1.5 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
-                                                <i class="fa-solid fa-khanda text-red-400"></i> <span class="text-red-300 font-semibold">Drużyna Wojenna Gotowa</span>
-                                            </span>
+                                            <button type="button" wire:click="toggleWarTeamPreview('{{ $guild->id }}')"
+                                                    @click="$dispatch('play-audio', { type: 'tab' })"
+                                                    class="flex items-center gap-1.5 bg-red-950/60 hover:bg-red-900/70 px-2.5 py-1 rounded-lg border border-red-800/60 hover:border-red-500/80 transition-colors cursor-pointer">
+                                                <i class="fa-solid fa-khanda text-red-400"></i>
+                                                <span class="text-red-300 font-semibold">Drużyna Wojenna Gotowa</span>
+                                                <i class="fa-solid {{ $expandedWarTeamGuildId === $guild->id ? 'fa-chevron-up' : 'fa-chevron-down' }} text-red-400/70 text-[10px]"></i>
+                                            </button>
                                         @else
                                             <span class="flex items-center gap-1.5 bg-stone-950/60 px-2.5 py-1 rounded-lg border border-stone-800">
                                                 <i class="fa-solid fa-khanda text-stone-500"></i> <span class="text-stone-500">Brak Drużyny Wojennej</span>
@@ -971,6 +976,105 @@
                                     </div>
                                 @endif
                             </div>
+                        </div>
+
+                        @if($expandedWarTeamGuildId === $guild->id)
+                            {{-- War Team Roster Preview --}}
+                            <div class="mt-4 pt-4 border-t border-red-800/30" x-data="{ hovered: null }">
+                                <div class="text-[11px] text-red-300/80 font-semibold uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-khanda"></i> Skład Drużyny Wojennej
+                                </div>
+                                <div class="flex flex-wrap gap-4">
+                                    @forelse($warTeamMembersCache[$guild->id] ?? [] as $m)
+                                        @php
+                                            $td = $memberTooltipData[$m['id']] ?? null;
+                                            $avatarName = $td['avatar'] ?? 'plate.png';
+                                            if ($avatarName && !str_contains($avatarName, '.')) { $avatarName .= '.png'; }
+                                            $avatarUrl = asset('img/avatars/' . ltrim($avatarName ?? 'plate.png', '/'));
+                                        @endphp
+                                        <div class="relative" @mouseenter="hovered = '{{ $m['id'] }}'" @mouseleave="hovered = null">
+                                            <div class="flex flex-col items-center gap-1 cursor-default">
+                                                <div class="w-14 h-14 rounded-xl border-2 border-red-700/60 hover:border-red-400 overflow-hidden bg-stone-900 shadow-md transition-colors">
+                                                    <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="{{ $m['name'] }}" onerror="this.src='{{ asset('img/avatars/plate.png') }}'">
+                                                </div>
+                                                <span class="text-[10px] text-amber-300 truncate w-16 text-center">{{ $m['name'] }}</span>
+                                            </div>
+
+                                            @if($td)
+                                                <div x-show="hovered === '{{ $m['id'] }}'"
+                                                     x-transition
+                                                     class="absolute z-20 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-xl border border-amber-700/60 shadow-2xl p-4 text-left pointer-events-none"
+                                                     style="background: linear-gradient(160deg, rgba(15,7,2,0.98) 0%, rgba(40,18,4,0.98) 100%); display: none;">
+                                                    <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1.5 w-3 h-3 rotate-45 bg-amber-900 border-b border-r border-amber-700/60"></div>
+
+                                                    <div class="mb-2 border-b border-amber-800/50 pb-2 flex items-center gap-2">
+                                                        <div class="w-10 h-10 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900">
+                                                            <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="">
+                                                        </div>
+                                                        <div class="min-w-0 flex-1">
+                                                            @if(!empty($td['title']))
+                                                                <span class="text-[9px] text-purple-400 font-bold uppercase tracking-wider block truncate">[{{ $td['title'] }}]</span>
+                                                            @endif
+                                                            <p class="text-amber-300 font-bold text-xs truncate medieval-font">{{ $td['name'] }}</p>
+                                                            <div class="flex gap-2 text-[11px] mt-0.5">
+                                                                <span class="text-amber-500">Poz. <span class="text-amber-200 font-bold">{{ $td['level'] }}</span></span>
+                                                                <span class="text-amber-500">CP: <span class="text-amber-200 font-bold">{{ number_format($td['combat_power']) }}</span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <p class="text-amber-600/80 text-[10px] font-semibold uppercase tracking-wider mb-1.5">Ekwipunek</p>
+                                                    @if(count($td['equipped_items']) === 0)
+                                                        <p class="text-amber-700/60 text-[11px] italic">Brak założonego ekwipunku</p>
+                                                    @else
+                                                        <div class="space-y-1 max-h-40 overflow-y-auto">
+                                                            @foreach($td['equipped_items'] as $ei)
+                                                                @php
+                                                                    $rarityColor = match($ei['rarity'] ?? 'common') {
+                                                                        'uncommon'  => 'text-green-400',
+                                                                        'rare'      => 'text-blue-400',
+                                                                        'epic'      => 'text-purple-400',
+                                                                        'legendary' => 'text-amber-400',
+                                                                        default     => 'text-stone-300',
+                                                                    };
+                                                                @endphp
+                                                                <div class="flex items-center justify-between text-[11px] py-0.5">
+                                                                    <span class="{{ $rarityColor }} flex items-center gap-1.5 min-w-0 truncate">
+                                                                        @if(!empty($ei['icon']))
+                                                                            <img src="{{ route('assets.items', ['filename' => $ei['icon']]) }}" class="w-4 h-4 object-contain shrink-0" alt="">
+                                                                        @endif
+                                                                        <span class="truncate">
+                                                                            {{ $ei['name'] }}
+                                                                            @if(in_array($ei['type'] ?? '', ['weapon', 'armor', 'accessory']))
+                                                                                <span class="text-emerald-400">+{{ $ei['upgrade_level'] ?? 0 }}</span>
+                                                                            @endif
+                                                                        </span>
+                                                                    </span>
+                                                                    <span class="text-amber-700 text-[9px] ml-1 shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+
+                                                    @if($td['pet'])
+                                                        <p class="text-amber-600/80 text-[10px] font-semibold uppercase tracking-wider mb-1 mt-2">Chowaniec</p>
+                                                        <div class="flex items-center justify-between text-[11px]">
+                                                            <span class="text-stone-300 truncate max-w-[150px]">
+                                                                <i class="fa-solid fa-paw mr-1"></i>{{ $td['pet']['name'] }}
+                                                                <span class="text-amber-500/70 text-[10px] ml-1">Poz. {{ $td['pet']['level'] }}</span>
+                                                            </span>
+                                                            <span class="text-amber-700 text-[9px] ml-1">{{ number_format($td['pet']['combat_power']) }} CP</span>
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @empty
+                                        <div class="text-xs text-stone-500 italic">Brak danych o składzie drużyny.</div>
+                                    @endforelse
+                                </div>
+                            </div>
+                        @endif
                         </div>
                     @empty
                         <div class="text-center py-12 px-4 bg-stone-950/60 border border-amber-900/30 rounded-2xl">

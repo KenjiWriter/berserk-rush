@@ -28,7 +28,7 @@ class AllocateAttributesAction
         }
 
         try {
-            return DB::transaction(function () use ($character, $toAdd, $totalRequested, $validAttributes) {
+            $result = DB::transaction(function () use ($character, $toAdd, $totalRequested, $validAttributes) {
                 /** @var Character|null $lockedCharacter */
                 $lockedCharacter = Character::where('id', $character->id)->lockForUpdate()->first();
 
@@ -50,11 +50,20 @@ class AllocateAttributesAction
 
                 $lockedCharacter->attributes = $attributes;
                 $lockedCharacter->character_points = $availablePoints - $totalRequested;
-                $lockedCharacter->clearStatsCache();
                 $lockedCharacter->save();
 
                 return Result::ok($lockedCharacter);
             });
+
+            // Cache musi zostać wyczyszczony dopiero PO zatwierdzeniu transakcji - w
+            // przeciwnym razie równoległy odczyt tuż przed commitem może odtworzyć
+            // cache ze starymi (nieaktualnymi) atrybutami, które utrzymają się do
+            // wygaśnięcia TTL (3600s).
+            if ($result->isOk()) {
+                $result->getPayload()->clearStatsCache();
+            }
+
+            return $result;
         } catch (\Throwable $e) {
             return Result::error('DATABASE_ERROR', 'Wystąpił błąd podczas zapisywania atrybutów: ' . $e->getMessage());
         }

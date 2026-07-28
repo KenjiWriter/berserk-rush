@@ -431,7 +431,14 @@
                          isSaving: false,
                          hasQueuedSave: false,
                          bufferTimer: null,
-                         
+                         syncInterval: null,
+                         syncProgress: 0,
+                         BUFFER_MS: 700,
+
+                         get hasPending() {
+                             return (this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi) > 0;
+                         },
+
                          updatePointsFromEvent(detail) {
                              let data = Array.isArray(detail) ? detail[0] : detail;
                              if (data && typeof data.points !== 'undefined' && data.points !== null) {
@@ -451,7 +458,7 @@
                              if (actual > 0) {
                                  this.buffered[stat] += actual;
                                  this.availablePoints -= actual;
-                                 
+
                                  // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
                                  window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
 
@@ -461,11 +468,34 @@
                                      el.offsetHeight; // trigger reflow
                                      el.style.animation = 'flashText 0.15s ease-out forwards';
                                  }
-                                 
-                                 // 1-sekundowy bufor (1000ms)
-                                 clearTimeout(this.bufferTimer);
-                                 this.bufferTimer = setTimeout(() => this.flushBuffer(), 1000);
+
+                                 this.restartSyncTimer();
                              }
+                         },
+
+                         restartSyncTimer() {
+                             clearTimeout(this.bufferTimer);
+                             clearInterval(this.syncInterval);
+                             this.syncProgress = 0;
+                             const start = performance.now();
+                             this.syncInterval = setInterval(() => {
+                                 this.syncProgress = Math.min(100, ((performance.now() - start) / this.BUFFER_MS) * 100);
+                             }, 50);
+                             this.bufferTimer = setTimeout(() => {
+                                 clearInterval(this.syncInterval);
+                                 this.syncProgress = 100;
+                                 this.flushBuffer();
+                             }, this.BUFFER_MS);
+                         },
+
+                         // Natychmiastowe wysłanie bufora - używane przy zmianie zakładki / opuszczaniu widoku,
+                         // żeby niewysłane jeszcze punkty nigdy nie zostały utracone.
+                         forceFlush() {
+                             if (!this.hasPending) return;
+                             clearTimeout(this.bufferTimer);
+                             clearInterval(this.syncInterval);
+                             this.syncProgress = 100;
+                             this.flushBuffer();
                          },
 
                          async flushBuffer() {
@@ -481,41 +511,64 @@
                              this.buffered = { str: 0, int: 0, vit: 0, agi: 0 };
                              this.isSaving = true;
                              this.hasQueuedSave = false;
-                             
+
                              try {
                                  await $wire.saveAttributes(toSave);
                              } finally {
                                  this.isSaving = false;
                                  let currentBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
                                  if (this.hasQueuedSave || currentBuffered > 0) {
+                                     this.syncProgress = 100;
                                      this.flushBuffer();
+                                 } else {
+                                     this.syncProgress = 0;
                                  }
                              }
                          }
                      }"
+                     x-init="
+                         document.addEventListener('livewire:navigate', () => forceFlush());
+                     "
                      @stats-saved.window="updatePointsFromEvent($event.detail)"
                  @endif
             >
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
-                        <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
-                        <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Statystyki
                         </button>
-                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Pety<span class="hidden xs:inline"> & Inkubator</span>
                         </button>
-                        <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Kolekcje<span class="hidden xs:inline"> & Tytuły</span>
                         </button>
-                        <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
-                        <span x-show="availablePoints > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap self-end sm:self-center">Punkty: <span x-text="availablePoints"></span></span>
+                        <div class="flex items-center gap-2 self-end sm:self-center">
+                            <span x-show="availablePoints > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap">Punkty: <span x-text="availablePoints"></span></span>
+                            <div x-show="isSaving || hasPending" class="flex items-center gap-1.5 bg-stone-900/90 border border-amber-700/50 rounded-xl px-2 py-1 whitespace-nowrap">
+                                <template x-if="isSaving">
+                                    <span class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-amber-300 font-semibold">
+                                        <i class="fa-solid fa-spinner fa-spin"></i> Zapisywanie...
+                                    </span>
+                                </template>
+                                <template x-if="!isSaving && hasPending">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-[10px] sm:text-[11px] text-stone-400 font-semibold">Synchronizacja</span>
+                                        <div class="w-10 sm:w-12 h-1.5 bg-stone-700 rounded-full overflow-hidden">
+                                            <div class="h-full bg-amber-400 transition-[width] duration-75 ease-linear" :style="'width:' + syncProgress + '%'"></div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
                     @endif
                 </div>
                 @if($activeTab === 'attributes')

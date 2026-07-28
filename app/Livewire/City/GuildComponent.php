@@ -35,6 +35,11 @@ class GuildComponent extends Component
     // List search
     public string $searchQuery = '';
 
+    // Browse: war team roster preview (guild_id => list of character data) + hover tooltip data
+    public ?string $expandedWarTeamGuildId = null;
+    public array $warTeamMembersCache = [];
+    public array $memberTooltipData = [];
+
     public function mount(Character $character): void
     {
         if (Auth::user()->id !== $character->user_id) {
@@ -123,6 +128,66 @@ class GuildComponent extends Component
         } else {
             $this->addError('challenge', $result->getErrorMessage());
         }
+    }
+
+    public function toggleWarTeamPreview(string $guildId): void
+    {
+        if ($this->expandedWarTeamGuildId === $guildId) {
+            $this->expandedWarTeamGuildId = null;
+            return;
+        }
+
+        $guild = Guild::find($guildId);
+        if (!$guild) return;
+
+        $characterIds = $guild->war_team ?? [];
+        $characters = Character::whereIn('id', $characterIds)->get()->keyBy('id');
+
+        $members = [];
+        foreach ($characterIds as $characterId) {
+            if (!isset($characters[$characterId])) continue;
+            $members[] = ['id' => $characterId, 'name' => $characters[$characterId]->name];
+            $this->loadMemberTooltipData($characterId, $characters[$characterId]);
+        }
+
+        $this->warTeamMembersCache[$guildId] = $members;
+        $this->expandedWarTeamGuildId = $guildId;
+    }
+
+    private function loadMemberTooltipData(string $characterId, Character $character): void
+    {
+        if (isset($this->memberTooltipData[$characterId])) return;
+
+        $character->loadMissing(['equippedItems.template', 'guild', 'activeTitle']);
+
+        $equippedPet = \App\Infrastructure\Persistence\Pet::where('character_id', $characterId)
+            ->where('is_equipped', true)
+            ->first();
+
+        $equippedItems = $character->equippedItems->map(fn ($item) => [
+            'name'          => $item->template?->name ?? 'Nieznany',
+            'type'          => $item->template?->type ?? 'unknown',
+            'icon'          => $item->template?->icon,
+            'upgrade_level' => $item->upgrade_level,
+            'rarity'        => $item->rarity,
+            'combat_power'  => $item->getCombatPower(),
+        ])->values()->toArray();
+
+        $this->memberTooltipData[$characterId] = [
+            'name'          => $character->name,
+            'level'         => $character->level,
+            'combat_power'  => $character->getTotalCombatPower(),
+            'avatar'        => $character->avatar ?? 'plate.png',
+            'guild'         => $character->guild ? $character->guild->name : null,
+            'title'         => $character->activeTitle ? $character->activeTitle->prefix : null,
+            'equipped_items' => $equippedItems,
+            'pet'           => $equippedPet ? [
+                'name' => $equippedPet->name,
+                'rarity' => $equippedPet->rarity,
+                'level' => $equippedPet->level,
+                'combat_power' => $equippedPet->getCombatPower(),
+            ] : null,
+        ];
     }
 
     public function setPanelTab(string $tab): void
