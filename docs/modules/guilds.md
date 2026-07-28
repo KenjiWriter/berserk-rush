@@ -47,16 +47,73 @@ Złoto i klejnoty mają określony limit (cap), po przekroczeniu którego dotacj
 - Zaproszenie wysyłane jest jako **Wiadomość In-Game z załącznikiem** typu `guild_invite`.
 - Gracz po wejściu do skrzynki pocztowej może "odebrać" załącznik, co automatycznie dołącza go do gildii (o ile nadal spełnia warunki i ma miejsce).
 
+### Wojny Gildii (Guild Wars) - Starcie 5v5 (2026-07-28)
+
+Każda gildia może ustawić **drużynę wojenną** - dokładnie 5 postaci (`Guild::war_team`,
+`Guild::hasWarTeam()` wymaga równo 5 członków) - i wyzwać inną gildię na wojnę
+(`GuildWarService::challengeGuild()`). Po zaakceptowaniu wyzwania
+(`GuildWarService::acceptWar()`) obie drużyny zostają "zamrożone" jako rostery
+(`GuildWar::challenger_roster` / `defender_roster`, tablice 5 ID postaci), a
+gildia broniąca się zostaje zablokowana na ulepszenia (`is_war_locked`) do
+czasu rozstrzygnięcia.
+
+**Rozstrzygnięcie wojny (`GuildWarService::processWar()`) to JEDNO starcie
+drużynowe 5v5**, a nie 5 osobnych pojedynków 1v1 jak we wcześniejszej wersji
+systemu:
+- Obie 5-osobowe drużyny wchodzą na tę samą "planszę" jednocześnie -
+  mechanicznie jest to bezpośredni odpowiednik starcia grupowego PvE
+  (`EncounterService::simulateMultiCombat()`, patrz `docs/modules/combat.md`,
+  sekcja 6), tylko że po OBU stronach stoją żywi gracze zamiast potworów.
+- **Inicjatywa:** kolejność działania wszystkich 10 postaci ustalana jest raz
+  na starcie wg atrybutu AGI (remisy rozstrzygane losowo) i obowiązuje przez
+  całą walkę - w każdej rundzie każda żywa postać wykonuje dokładnie jedną
+  akcję w tej kolejności.
+- **Cel ataku - "focus fire":** każda postać atakuje żywego przeciwnika z
+  NAJNIŻSZYM aktualnym HP po przeciwnej stronie (`selectLowestHpAlive()`),
+  dzięki czemu drużyny realnie "topnieją" jeden przeciwnik na raz zamiast
+  rozkładać obrażenia równo po całej piątce - to celowa decyzja, żeby walki
+  5v5 miały wyraźny, czytelny rytm (kto pada pierwszy) zamiast rozmytego
+  wyniku.
+- **Obrażenia, krytyk, unik, umiejętności bojowe i "magic burst"** liczone są
+  identyczną formułą jak na Arenie PvP (`PvPEncounterService::performAttack()`),
+  zaimplementowaną osobno jako `GuildWarService::resolveTeamAttack()` (operuje
+  na dowolnej parze z 10-osobowej "planszy", a nie na dwóch stałych
+  snapshotach jak w PvP) - pełny parytet balansu między Areną i Wojnami
+  Gildii.
+- **Koniec starcia:** wojna kończy się, gdy jedna drużyna zostanie całkowicie
+  pokonana (0 żywych), lub po osiągnięciu limitu 40 rund - wtedy o zwycięstwie
+  decyduje wyższy ŁĄCZNY procent pozostałego HP drużyny (suma HP / suma maxHP
+  wszystkich członków, żywych i poległych).
+- **Nagrody:** zwycięska gildia przejmuje CAŁY skarbiec (złoto + klejnoty)
+  przegranej gildii, a cała zwycięska drużyna wojenna (do 5 postaci) dostaje
+  50 żetonów areny (`arena_tokens`). Obie gildie zostają odblokowane
+  (`is_war_locked = false`) niezależnie od wyniku.
+- Pełny log starcia (wszystkie rundy, ataki, trafienia/krytyki/unik,
+  stan HP obu drużyn po każdej akcji) zapisywany jest jako JEDEN wiersz w
+  `guild_war_fights` (kolumny `challenger_snapshot`/`defender_snapshot`
+  przechowują TABLICĘ snapshotów do 5 postaci, nie pojedynczy obiekt jak w
+  poprzedniej wersji z 5 osobnymi pojedynkami).
+
+> **Status wdrożenia:** `GuildWarService` (wyzwanie/akceptacja/rozstrzygnięcie
+> wojny) jest w pełni zaimplementowany, ale na dzień dzisiejszy NIE jest
+> jeszcze podpięty pod żaden interfejs w Livewire ani trasę HTTP (brak wywołań
+> `challengeGuild()`/`acceptWar()`/`declineWar()`/`processWar()` poza samym
+> serwisem) - ekran wyboru przeciwnika, akceptacji wyzwania i podglądu wyniku
+> starcia wciąż wymaga zbudowania w warstwie UI.
+
 ---
 
 ## Architektura techniczna
 
 ### Modele i Tabele
-- `Guild`: Główna tabela gildii (nazwa, opis, skarbiec, poziom, max_members).
+- `Guild`: Główna tabela gildii (nazwa, opis, skarbiec, poziom, max_members, `war_team`, `is_war_locked`).
 - `GuildMember`: Tabela łącząca `Guild` i `Character`, przechowująca rolę gracza i datę dołączenia.
 - `GuildLog`: Historia akcji (dotacje, dołączenie, opuszczenie).
+- `GuildWar`: Pojedyncza wojna między dwiema gildiami (status, rostery, nagrody, zwycięzca).
+- `GuildWarFight`: Log starcia drużynowego 5v5 danej wojny (jeden wiersz na wojnę, `fight_order = 1`) - snapshoty obu drużyn, pełny log rund, liczba ocalałych po każdej stronie.
 
 ### Serwisy i Akcje
 Zarządzanie gildią opiera się o mechanizmy transakcji by zachować spójność danych:
 - Przekazywanie zasobów odbywa się wewnątrz `DB::transaction()`.
 - Autoryzacja i operacje na czacie (jak wpisywanie `/donate`) wykonują logikę na żywo w kontrolerach Livewire i rozgłaszają eventy.
+- `GuildWarService`: wyzwanie na wojnę, akceptacja/odrzucenie, oraz symulacja starcia drużynowego 5v5 (patrz sekcja "Wojny Gildii" wyżej) - całość również w `DB::transaction()`.

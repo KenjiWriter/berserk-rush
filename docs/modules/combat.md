@@ -56,8 +56,9 @@ Wewnątrz tury występują 3 stany ataku:
 > magiczny jest mitygowany tą samą obroną przeciwnika co reszta obrażeń (nie ma osobnej
 > "obrony magicznej" - to celowe uproszczenie) i w pełni uczestniczy w mnożniku trafienia
 > krytycznego. Logika: `EncounterService::calculateDamage()` (PvE, zwraca dodatkowy klucz
-> `magic` w tablicy wyniku obok `base`/`bonus`/`total`) oraz analogiczny fragment w
-> `PvPEncounterService::resolveTurn` (PvP, arena/wojny gildii) - obie ścieżki liczą
+> `magic` w tablicy wyniku obok `base`/`bonus`/`total`), `PvPEncounterService::performAttack()`
+> (Arena 1v1) oraz `GuildWarService::resolveTeamAttack()` (Wojny Gildii 5v5, patrz
+> `docs/modules/guilds.md`, sekcja "Wojny Gildii") - wszystkie trzy ścieżki liczą
 > "magic burst" niezależnie, ale w ten sam sposób.
 
 ### 3. Wynik Walki i Nagrody
@@ -77,10 +78,3 @@ Podczas przebywania na mapie komponent `MapStub` śledzi statystyki pojedynczej 
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:
 1. **Frontend Session Lock (`MapStub`)**: Każdy zamontowany komponent `MapStub` generuje unikalny token sesji karty i rejestruje go w pamięci Cache (`adventure_active_tab:{character_id}`). W przypadku otwarcia nowej karty lub przełączenia, aktywna staje się tylko ostatnia karta. Nieaktywne karty wstrzymują automatyczne walki i wyświetlają banner z opcją przejęcia aktywnego statusu.
 2. **Backend Rate Limit (`EncounterService::start`)**: Serwis waliduje minimalny czas od rozpoczęcia ostatniej walki danej postaci (1300 ms) oraz nakłada blokadę transakcyjną `lockForUpdate()` na model postaci, odrzucając wszelkie próby symultanicznych żądań walki z błędem `COMBAT_IN_PROGRESS`.
-
-### 6. Walki Grupowe (Over-Level) i System Skilli (2026-07-28)
-- Gdy postać wchodzi na mapę poniżej swojego poziomu (`Map::isOverLevel`), zamiast pojedynczego przeciwnika losowana jest **grupa 3-4 potworów** (maks. 2 duplikaty tego samego potwora w grupie). Symulacja przechodzi wtedy przez `EncounterService::simulateMultiCombat()` zamiast standardowego `simulateCombat()`.
-- W starciu grupowym gracz domyślnie atakuje jeden cel na turę wg wybranej taktyki (`target_strategy`), a żywe potwory atakują sekwencyjnie każdy swoją turę (z obniżką obrażeń -10% za każdego dodatkowego potwora w grupie, by zrównoważyć przewagę liczebną).
-- Skille bojowe (patrz pełny opis w `docs/modules/skills.md`) działają identycznie w starciach 1 na 1 i grupowych, z jednym wyjątkiem: umiejętności oznaczone `is_aoe = true` trafiają WSZYSTKICH żywych przeciwników grupy jednocześnie zamiast jednego, wytypowanego przez taktykę celu (`EncounterService::resolveAoeSkill()` / `playerAttackAoeTarget()`).
-- Pasywne umiejętności (aura obrażeń fizycznych, szansa na natychmiastowy dodatkowy atak) oraz efekty zamrożenia/ogłuszenia (`freeze`/`stun`) działają zarówno w starciach 1 na 1, jak i grupowych - w tych drugich, unieruchomienie liczone jest osobno dla każdego potwora w grupie.
-- Logika PvP (`PvPEncounterService`) jest zawsze starciem 1 na 1 (bez odpowiednika AoE), ale mechaniki leczenia, zamrożenia/ogłuszenia oraz pasywów są tam lustrzanie zaimplementowane dla zachowania parytetu balansu między PvE i PvP.

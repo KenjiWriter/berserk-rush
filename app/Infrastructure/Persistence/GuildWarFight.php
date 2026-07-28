@@ -17,14 +17,22 @@ class GuildWarFight extends Model
         'defender_snapshot',
         'turns',
         'combat_data',
+        'challenger_survivors',
+        'defender_survivors',
+        'rounds',
     ];
 
     protected $casts = [
+        // Starcie drużynowe 5v5 (2026-07-28): tablica do 5 snapshotów postaci
+        // zamiast pojedynczego obiektu - patrz GuildWarService::simulateTeamBattle().
         'challenger_snapshot' => 'array',
         'defender_snapshot' => 'array',
         'turns' => 'array',
         'combat_data' => 'array',
         'fight_order' => 'integer',
+        'challenger_survivors' => 'integer',
+        'defender_survivors' => 'integer',
+        'rounds' => 'integer',
     ];
 
     // Relationships

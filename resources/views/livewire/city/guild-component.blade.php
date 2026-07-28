@@ -405,6 +405,10 @@
                                     class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'wars' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
                                 <i class="fa-solid fa-khanda text-amber-400"></i> Wojny Gildii
                             </button>
+                            <button wire:click="browseGuilds" @click="$dispatch('play-audio', { type: 'tab' })"
+                                    class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 text-stone-400 hover:text-amber-300 hover:bg-stone-900/60">
+                                <i class="fa-solid fa-magnifying-glass text-amber-400"></i> Przeglądaj Gildie
+                            </button>
                             @if($myMember && $myMember->role === 'leader')
                                 <button wire:click="setPanelTab('settings')" @click="$dispatch('play-audio', { type: 'tab' })"
                                         class="px-4 py-2 rounded-xl text-sm font-bold medieval-font transition-all flex items-center gap-2 {{ $panelTab === 'settings' ? 'bg-amber-950/80 text-amber-200 border border-amber-500/70 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-300 hover:bg-stone-900/60' }}">
@@ -840,6 +844,141 @@
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+        @elseif($viewMode === 'browse')
+            {{-- BROWSE OTHER GUILDS (available while already in a guild) --}}
+            @php
+                $myGuildForBrowse = $character->guild;
+                $myMemberForBrowse = $myGuildForBrowse ? $myGuildForBrowse->members->where('character_id', $character->id)->first() : null;
+                $isLeaderForBrowse = $myMemberForBrowse && $myMemberForBrowse->role === 'leader';
+            @endphp
+            <div class="bg-gradient-to-b from-stone-900/95 via-amber-950/30 to-stone-900/95 border-2 border-amber-800/60 rounded-2xl p-5 sm:p-7 shadow-2xl backdrop-blur-md relative">
+                <div class="absolute top-2 left-2 text-amber-600/40 text-xs font-serif select-none pointer-events-none">❖</div>
+                <div class="absolute top-2 right-2 text-amber-600/40 text-xs font-serif select-none pointer-events-none">❖</div>
+                <div class="absolute bottom-2 left-2 text-amber-600/40 text-xs font-serif select-none pointer-events-none">❖</div>
+                <div class="absolute bottom-2 right-2 text-amber-600/40 text-xs font-serif select-none pointer-events-none">❖</div>
+
+                {{-- Header Actions --}}
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-6 border-b border-amber-800/50 pb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-amber-300 medieval-font flex items-center gap-2.5">
+                            <i class="fa-solid fa-magnifying-glass text-amber-400"></i> Przegląd Gildii Królestwa
+                        </h2>
+                        <p class="text-xs text-amber-400/60">
+                            @if($isLeaderForBrowse)
+                                Jako lider możesz wyzwać na wojnę gildie posiadające ustawioną drużynę wojenną.
+                            @else
+                                Podgląd innych Zakonów działających w królestwie.
+                            @endif
+                        </p>
+                    </div>
+
+                    <button wire:click="setViewMode('panel')" @click="$dispatch('play-audio', { type: 'tab' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                            class="w-full sm:w-auto bg-gradient-to-r from-stone-900 to-amber-950/80 hover:from-amber-900/80 hover:to-amber-900 text-amber-200 border border-amber-700/60 hover:border-amber-400/90 px-5 py-2.5 rounded-xl font-bold shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm hover:scale-105 active:scale-95">
+                        <i class="fa-solid fa-arrow-left"></i> Powrót do Panelu Gildii
+                    </button>
+                </div>
+
+                {{-- Search Bar --}}
+                <div class="mb-6 relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-amber-500/70 text-sm">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <input type="text" wire:model.live.debounce.300ms="searchQuery"
+                           placeholder="Szukaj gildii po nazwie..."
+                           class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl pl-11 pr-4 py-3 text-sm text-amber-100 placeholder-amber-600/60 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition shadow-inner">
+                </div>
+
+                @error('challenge')
+                    <div class="bg-red-950/80 border-2 border-red-500/70 text-red-100 px-4 py-3 rounded-xl mb-5 text-sm backdrop-blur-md shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-red-400"></i> <span>{{ $message }}</span>
+                    </div>
+                @enderror
+
+                {{-- Cards Container --}}
+                <div class="space-y-4">
+                    @forelse($this->guilds as $guild)
+                        @php $isOwnGuild = $guild->id === $character->guild_id; @endphp
+                        <div class="bg-gradient-to-r from-stone-900/90 via-amber-950/20 to-stone-900/90 border {{ $isOwnGuild ? 'border-cyan-600/60' : 'border-amber-800/40 hover:border-amber-500/70' }} rounded-xl p-4 sm:p-5 shadow-lg hover:shadow-[0_4px_20px_rgba(245,158,11,0.15)] transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4 group">
+
+                            {{-- Info Left --}}
+                            <div class="flex items-start sm:items-center gap-4">
+                                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-amber-900/80 via-stone-900 to-stone-950 border border-amber-500/50 flex flex-col items-center justify-center shrink-0 shadow-inner group-hover:border-amber-400 transition-colors">
+                                    <i class="fa-solid fa-shield-halved text-amber-400 text-lg sm:text-xl"></i>
+                                    <span class="text-[9px] font-bold text-amber-300 tracking-tighter uppercase mt-0.5">Lvl {{ $guild->level }}</span>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <div class="flex flex-wrap items-center gap-2">
+                                        <h3 class="text-lg sm:text-xl font-bold text-amber-200 medieval-font group-hover:text-amber-300 transition-colors">
+                                            {{ $guild->name }}
+                                        </h3>
+                                        @if($isOwnGuild)
+                                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-700/60">
+                                                Twoja Gildia
+                                            </span>
+                                        @endif
+                                        <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-950/80 text-amber-400 border border-amber-700/60">
+                                            Poziom {{ $guild->level }}
+                                        </span>
+                                    </div>
+
+                                    <p class="text-xs text-amber-300/70 italic">
+                                        {{ $guild->title ?? 'Brak tytułu Zakonu' }}
+                                    </p>
+
+                                    {{-- Badges --}}
+                                    <div class="flex flex-wrap items-center gap-3 text-xs text-stone-400 pt-1">
+                                        <span class="flex items-center gap-1.5 bg-stone-950/60 px-2.5 py-1 rounded-lg border border-stone-800">
+                                            <i class="fa-solid fa-users text-amber-500"></i> Członkowie: <strong class="text-amber-200">{{ $guild->members_count }}/{{ $guild->getMaxMembers() }}</strong>
+                                        </span>
+                                        @if($guild->hasWarTeam())
+                                            <span class="flex items-center gap-1.5 bg-red-950/60 px-2.5 py-1 rounded-lg border border-red-800/60">
+                                                <i class="fa-solid fa-khanda text-red-400"></i> <span class="text-red-300 font-semibold">Drużyna Wojenna Gotowa</span>
+                                            </span>
+                                        @else
+                                            <span class="flex items-center gap-1.5 bg-stone-950/60 px-2.5 py-1 rounded-lg border border-stone-800">
+                                                <i class="fa-solid fa-khanda text-stone-500"></i> <span class="text-stone-500">Brak Drużyny Wojennej</span>
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Action Button --}}
+                            <div class="self-end md:self-center shrink-0">
+                                @if(!$isOwnGuild && $isLeaderForBrowse && $guild->hasWarTeam())
+                                    <button wire:click="challengeGuildToWar('{{ $guild->id }}')"
+                                            wire:confirm="Czy na pewno chcesz wyzwać gildię &quot;{{ $guild->name }}&quot; na wojnę?"
+                                            @click="$dispatch('play-audio', { type: 'tab' })"
+                                            wire:loading.attr="disabled" wire:target="challengeGuildToWar('{{ $guild->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="challengeGuildToWar('{{ $guild->id }}')"
+                                            class="bg-gradient-to-r from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 text-red-100 border border-red-500/60 hover:border-red-400 px-5 py-2 rounded-xl text-sm font-bold shadow-[0_0_15px_rgba(220,38,38,0.3)] hover:shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all duration-200 flex items-center gap-2 medieval-font hover:scale-105 active:scale-95">
+                                        <span wire:loading.remove wire:target="challengeGuildToWar('{{ $guild->id }}')" class="flex items-center gap-1.5">
+                                            <i class="fa-solid fa-khanda text-red-300"></i> Wyzwij na Wojnę
+                                        </span>
+                                        <span wire:loading wire:target="challengeGuildToWar('{{ $guild->id }}')" class="flex items-center gap-2">
+                                            <svg class="animate-spin h-4 w-4 text-red-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                            Wysyłanie...
+                                        </span>
+                                    </button>
+                                @elseif(!$isOwnGuild)
+                                    <div class="px-4 py-2 bg-stone-950/80 border border-stone-800 text-stone-500 rounded-xl text-xs font-semibold italic flex items-center gap-2">
+                                        <i class="fa-solid fa-circle-info text-stone-500"></i>
+                                        {{ $guild->hasWarTeam() ? 'Tylko lider może wyzwać na wojnę' : 'Gildia nie jest gotowa do wojny' }}
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-12 px-4 bg-stone-950/60 border border-amber-900/30 rounded-2xl">
+                            <i class="fa-solid fa-scroll text-amber-500 text-4xl mb-3 block"></i>
+                            <h3 class="text-xl font-bold text-amber-300 medieval-font mb-1">Brak Gildii do Wyświetlenia</h3>
+                            <p class="text-xs text-amber-400/60 max-w-md mx-auto">Nie odnaleziono gildii pasujących do wyszukiwania.</p>
+                        </div>
+                    @endforelse
                 </div>
             </div>
         @endif

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\City;
 
+use App\Application\Guilds\GuildWarService;
 use App\Infrastructure\Persistence\Character;
 use App\Models\Guild;
 use App\Models\GuildMember;
@@ -15,7 +16,7 @@ class GuildComponent extends Component
 {
     public Character $character;
 
-    public string $viewMode = 'list'; // 'list', 'create', 'panel'
+    public string $viewMode = 'list'; // 'list', 'create', 'panel', 'browse'
     public string $panelTab = 'members'; // 'members', 'logs', 'wars'
     
     // Create form
@@ -51,7 +52,9 @@ class GuildComponent extends Component
     {
         $this->character->refresh();
         if ($this->character->guild_id) {
-            $this->viewMode = 'panel';
+            if ($this->viewMode !== 'browse') {
+                $this->viewMode = 'panel';
+            }
             if ($this->panelTab === 'settings') {
                 $this->initEditGuild();
             }
@@ -90,6 +93,36 @@ class GuildComponent extends Component
     public function setViewMode(string $mode): void
     {
         $this->viewMode = $mode;
+    }
+
+    public function browseGuilds(): void
+    {
+        $this->searchQuery = '';
+        $this->viewMode = 'browse';
+    }
+
+    public function challengeGuildToWar(string $guildId, GuildWarService $service): void
+    {
+        if (!$this->character->guild_id) return;
+
+        $myGuild = Guild::find($this->character->guild_id);
+        if (!$myGuild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->addError('challenge', 'Tylko lider może wyzwać inną gildię na wojnę.');
+            return;
+        }
+
+        $targetGuild = Guild::find($guildId);
+        if (!$targetGuild) return;
+
+        $result = $service->challengeGuild($myGuild, $targetGuild);
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Wyzwanie na wojnę zostało wysłane do gildii "' . $targetGuild->name . '"!');
+        } else {
+            $this->addError('challenge', $result->getErrorMessage());
+        }
     }
 
     public function setPanelTab(string $tab): void
