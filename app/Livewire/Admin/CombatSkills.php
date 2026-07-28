@@ -12,9 +12,13 @@ use Illuminate\Support\Str;
 class CombatSkills extends Component
 {
     public $skills;
-    public $name, $description, $type = 'active', $required_weapon_type = 'any', $effect_type = 'direct_dmg';
+    public $name, $description, $type = 'active', $required_weapon_type = 'all', $effect_type = 'direct_dmg';
     public $base_cooldown = 0, $base_duration = 0, $base_value = 0, $scaling_value = 0;
     public $required_level = 1, $unlock_cost = 0, $icon;
+    // Rozszerzenie systemu skilli (2026-07-28): przełącznik obrażeń magicznych
+    // (magicDamage w logu walki zamiast obrażeń fizycznych) oraz flaga obszarowa
+    // (uderza wszystkich wrogów w starciach grupowych) - patrz EncounterService.
+    public $is_magic = false, $is_aoe = false;
     public $editingId = null;
     public $availableIcons = [];
     public $usedIcons = [];
@@ -26,10 +30,12 @@ class CombatSkills extends Component
         'type' => 'required|in:active,passive',
         'required_weapon_type' => 'required|string',
         'effect_type' => 'required|string',
+        'is_magic' => 'boolean',
+        'is_aoe' => 'boolean',
         'base_cooldown' => 'required|integer|min:0',
         'base_duration' => 'required|integer|min:0',
-        'base_value' => 'required|integer|min:0',
-        'scaling_value' => 'required|integer|min:0',
+        'base_value' => 'required|numeric|min:0',
+        'scaling_value' => 'required|numeric|min:0',
         'required_level' => 'required|integer|min:1',
         'unlock_cost' => 'required|integer|min:0',
         'icon' => 'nullable|string',
@@ -121,6 +127,8 @@ class CombatSkills extends Component
             'type' => $this->type,
             'required_weapon_type' => $this->required_weapon_type,
             'effect_type' => $this->effect_type,
+            'is_magic' => (bool) $this->is_magic,
+            'is_aoe' => (bool) $this->is_aoe,
             'base_cooldown' => $this->base_cooldown,
             'base_duration' => $this->base_duration,
             'base_value' => $this->base_value,
@@ -136,7 +144,7 @@ class CombatSkills extends Component
             CombatSkill::create($data);
         }
 
-        $this->reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'required_level', 'unlock_cost', 'icon', 'editingId']);
+        $this->reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'is_magic', 'is_aoe', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'required_level', 'unlock_cost', 'icon', 'editingId']);
         $this->loadData();
         $this->loadAvailableIcons();
         session()->flash('message', 'Umiejętność zapisana.');
@@ -151,6 +159,8 @@ class CombatSkills extends Component
         $this->type = $skill->type;
         $this->required_weapon_type = $skill->required_weapon_type;
         $this->effect_type = $skill->effect_type;
+        $this->is_magic = (bool) $skill->is_magic;
+        $this->is_aoe = (bool) $skill->is_aoe;
         $this->base_cooldown = $skill->base_cooldown;
         $this->base_duration = $skill->base_duration;
         $this->base_value = $skill->base_value;

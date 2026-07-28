@@ -598,7 +598,10 @@ class Character extends Model
             return [
                 'id' => $charSkill->skill->id,
                 'name' => $charSkill->skill->name,
+                'type' => $charSkill->skill->type, // active, passive
                 'effect_type' => $charSkill->skill->effect_type,
+                'is_magic' => (bool) $charSkill->skill->is_magic,
+                'is_aoe' => (bool) $charSkill->skill->is_aoe,
                 'base_cooldown' => $charSkill->skill->base_cooldown,
                 'base_duration' => $charSkill->skill->base_duration,
                 'base_value' => $charSkill->skill->base_value,

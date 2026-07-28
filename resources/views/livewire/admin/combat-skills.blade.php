@@ -54,10 +54,13 @@
                         <div class="w-1/2">
                             <label class="block text-gray-400 text-sm font-bold mb-2">Wymagana Broń</label>
                             <select wire:model="required_weapon_type" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
-                                <option value="any">Dowolna</option>
+                                <option value="all">Dowolna</option>
                                 <option value="sword">Miecz</option>
+                                <option value="axe">Topór</option>
                                 <option value="bow">Łuk</option>
-                                <option value="staff">Kostur</option>
+                                <option value="wand">Różdżka</option>
+                                <option value="bell">Dzwon</option>
+                                <option value="dagger">Sztylet</option>
                             </select>
                             @error('required_weapon_type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                         </div>
@@ -66,12 +69,30 @@
                     <div class="mb-4">
                         <label class="block text-gray-400 text-sm font-bold mb-2">Rodzaj Efektu</label>
                         <select wire:model="effect_type" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
-                            <option value="direct_dmg">Bezpośrednie Obrażenia</option>
+                            <option value="direct_dmg">Bezpośrednie Obrażenia (1 cel)</option>
+                            <option value="aoe_dmg">Obrażenia Obszarowe (wymaga "Bije obszarowo")</option>
                             <option value="poison">Trucizna (DoT % Current HP)</option>
                             <option value="fire">Podpalenie (DoT % Max HP)</option>
-                            <option value="buff_phys_dmg">Wzmocnienie Obrażeń Fiz.</option>
+                            <option value="buff_phys_dmg">Wzmocnienie Obrażeń Fiz. (aktywowane, X tur)</option>
+                            <option value="heal">Leczenie (% Max HP)</option>
+                            <option value="freeze">Zamrożenie (dmg + unieruchomienie X tur)</option>
+                            <option value="stun">Ogłuszenie (dmg + unieruchomienie X tur)</option>
+                            <option value="passive_aura_dmg">[Pasywna] Aura Obrażeń Fiz. (stale aktywna)</option>
+                            <option value="passive_extra_attack">[Pasywna] Szansa na Dodatkowy Atak</option>
                         </select>
                         @error('effect_type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        <p class="text-xs text-gray-500 mt-1">Skille pasywne wymagają ustawienia Typu na "Pasywna" powyżej - działają stale, bez cooldownu, gdy wyposażone.</p>
+                    </div>
+
+                    <div class="flex gap-6 mb-4">
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="checkbox" wire:model="is_magic" class="rounded bg-gray-700 border-gray-600 text-amber-500 focus:ring-amber-500">
+                            Obrażenia magiczne (Różdżka/Dzwon)
+                        </label>
+                        <label class="flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+                            <input type="checkbox" wire:model="is_aoe" class="rounded bg-gray-700 border-gray-600 text-amber-500 focus:ring-amber-500">
+                            Bije obszarowo (grupy potworów)
+                        </label>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 mb-4">
@@ -135,7 +156,7 @@
                             Zapisz
                         </button>
                         @if($editingId)
-                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'required_level', 'unlock_cost', 'icon'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'is_magic', 'is_aoe', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'required_level', 'unlock_cost', 'icon'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
                                 Anuluj
                             </button>
                         @endif
@@ -176,7 +197,15 @@
                                         <div class="text-xs text-gray-400">Broń: {{ $skill->required_weapon_type }}</div>
                                     </td>
                                     <td class="p-3">
-                                        <div class="text-purple-400">{{ $skill->effect_type }}</div>
+                                        <div class="text-purple-400 flex items-center gap-2">
+                                            {{ $skill->effect_type }}
+                                            @if($skill->is_magic)
+                                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-sky-900 text-sky-400 border border-sky-700">Magia</span>
+                                            @endif
+                                            @if($skill->is_aoe)
+                                                <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-900 text-emerald-400 border border-emerald-700">AoE</span>
+                                            @endif
+                                        </div>
                                         <div class="text-xs text-gray-500">Wartość: {{ $skill->base_value }} (CD: {{ $skill->base_cooldown }}, Czas: {{ $skill->base_duration }})</div>
                                     </td>
                                     <td class="p-3 text-right">

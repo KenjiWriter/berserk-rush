@@ -209,8 +209,8 @@ class PvPEncounterService
         $maxTurns = 50;
 
         $state = [
-            'attacker' => ['cooldowns' => [], 'effects' => []],
-            'defender' => ['cooldowns' => [], 'effects' => []],
+            'attacker' => ['cooldowns' => [], 'effects' => [], 'cc_turns' => 0, 'passives' => $this->computePassives($attacker)],
+            'defender' => ['cooldowns' => [], 'effects' => [], 'cc_turns' => 0, 'passives' => $this->computePassives($defender)],
         ];
 
         while ($attackerHp > 0 && $defenderHp > 0 && $turnCount < $maxTurns) {
@@ -218,21 +218,105 @@ class PvPEncounterService
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
+            // Zamrożenie/ogłuszenie: aktor traci turę ataku, ale cooldowny nadal tykają
+            if (($state[$actorKey]['cc_turns'] ?? 0) > 0) {
+                $state[$actorKey]['cc_turns']--;
+                $turns[] = [
+                    'actor' => $actorKey,
+                    'type' => 'crowd_controlled',
+                    'value' => 0,
+                    'crit' => false,
+                    'attackerHp' => $attackerHp,
+                    'defenderHp' => $defenderHp,
+                ];
+
+                foreach ($state[$actorKey]['cooldowns'] as &$cd) {
+                    if ($cd > 0) $cd--;
+                }
+                unset($cd);
+
+                $turnCount++;
+                continue;
+            }
+
             $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $actorKey, $state[$actorKey], $state[$targetKey]);
-            
+
             $attackerHp = $turn['attackerHp'];
             $defenderHp = $turn['defenderHp'];
             $turns[] = $turn;
+
+            if (!empty($turn['cc_applied'])) {
+                $state[$targetKey]['cc_turns'] = max($state[$targetKey]['cc_turns'] ?? 0, (int) $turn['cc_applied']['duration']);
+            }
 
             // Decrement cooldowns
             foreach ($state[$actorKey]['cooldowns'] as &$cd) {
                 if ($cd > 0) $cd--;
             }
+            unset($cd);
 
             $turnCount++;
+
+            // Pasywna szansa na natychmiastowy dodatkowy atak (np. Furia Berserkera - topór)
+            if ($attackerHp > 0 && $defenderHp > 0 && $this->rollPassiveChance($state[$actorKey]['passives']['extra_attack_chance'] ?? 0)) {
+                $bonusTurn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $actorKey, $state[$actorKey], $state[$targetKey]);
+                $bonusTurn['extra_attack'] = true;
+
+                $attackerHp = $bonusTurn['attackerHp'];
+                $defenderHp = $bonusTurn['defenderHp'];
+                $turns[] = $bonusTurn;
+
+                if (!empty($bonusTurn['cc_applied'])) {
+                    $state[$targetKey]['cc_turns'] = max($state[$targetKey]['cc_turns'] ?? 0, (int) $bonusTurn['cc_applied']['duration']);
+                }
+
+                $turnCount++;
+            }
         }
 
         return $turns;
+    }
+
+    /**
+     * Wylicza sumaryczne efekty pasywnych umiejętności (equip_slot 1-3, type = 'passive')
+     * z wyposażonego decku danej strony pojedynku PvP (snapshot). Lustrzane odbicie
+     * EncounterService::initPassives() dla starć PvE - patrz tam pełny opis.
+     */
+    private function computePassives(array $snapshot): array
+    {
+        $passives = ['aura_dmg' => 0, 'extra_attack_chance' => 0];
+        $weaponType = $snapshot['weapon_type'] ?? 'barehands';
+
+        foreach (($snapshot['skills'] ?? []) as $skill) {
+            if (($skill['type'] ?? 'active') !== 'passive') {
+                continue;
+            }
+
+            $reqWep = $skill['required_weapon_type'] ?? null;
+            if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $weaponType) {
+                continue;
+            }
+
+            $effLevel = max(1, $skill['level'] ?? 1);
+            $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+
+            if (($skill['effect_type'] ?? null) === 'passive_aura_dmg') {
+                $passives['aura_dmg'] += $effVal;
+            } elseif (($skill['effect_type'] ?? null) === 'passive_extra_attack') {
+                $passives['extra_attack_chance'] = max($passives['extra_attack_chance'], min(0.75, max(0, $effVal)));
+            }
+        }
+
+        return $passives;
+    }
+
+    private function rollPassiveChance(float $chance): bool
+    {
+        if ($chance <= 0) {
+            return false;
+        }
+
+        return mt_rand(1, 10000) <= (int) round($chance * 10000);
     }
 
     private function performAttack(array $attackerSnapshot, array $defenderSnapshot, int $attackerHp, int $defenderHp, string $actor, array &$actorState, array &$targetState): array
@@ -246,6 +330,13 @@ class PvPEncounterService
         
         $skillToUse = null;
         foreach ($skills as $skill) {
+            // Umiejętności pasywne (Aura Miecza, Furia Berserkera) nie są "rzucane" -
+            // działają cały czas poprzez computePassives(), nie mogą więc zostać
+            // wybrane jako aktywny skill tej tury.
+            if (($skill['type'] ?? 'active') !== 'active') {
+                continue;
+            }
+
             if ($skill['required_weapon_type'] === 'all' || $skill['required_weapon_type'] === $weaponType) {
                 $cd = $actorState['cooldowns'][$skill['id']] ?? 0;
                 if ($cd <= 0) {
@@ -284,15 +375,55 @@ class PvPEncounterService
         
         $damage = mt_rand($baseDmgMin, $baseDmgMax);
         
+        $isMagicSkill = false;
+        $ccEffectType = null;
+        $ccDuration = 0;
+
         if ($skillToUse) {
             $actorState['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
             $effLevel = max(1, $skillToUse['level'] ?? 1);
             $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
-            
-            $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
 
-            if (in_array($effectType, ['direct_dmg', 'direct', 'damage'])) {
+            $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
+            $isMagicSkill = (bool) ($skillToUse['is_magic'] ?? false);
+
+            // --- HEAL: leczy aktora o % jego maksymalnego HP, zastępuje atak tej tury ---
+            if ($effectType === 'heal') {
+                $actingMaxHp = $actingSnapshot['max_hp'] ?? 1;
+                $currentActingHp = $actor === 'attacker' ? $attackerHp : $defenderHp;
+                $healAmount = max(1, (int) round($actingMaxHp * $bonus));
+                $newActingHp = min($actingMaxHp, $currentActingHp + $healAmount);
+
+                $healTurn = [
+                    'actor' => $actor,
+                    'type' => 'skill_heal',
+                    'skill_id' => $skillToUse['id'],
+                    'skill_name' => $skillToUse['name'] ?? null,
+                    'effect_type' => $effectType,
+                    'is_magic' => $isMagicSkill,
+                    'value' => $healAmount,
+                    'healAmount' => $healAmount,
+                    'crit' => false,
+                ];
+
+                if ($actor === 'attacker') {
+                    $healTurn['attackerHp'] = $newActingHp;
+                    $healTurn['defenderHp'] = $defenderHp;
+                } else {
+                    $healTurn['attackerHp'] = $attackerHp;
+                    $healTurn['defenderHp'] = $newActingHp;
+                }
+
+                return $healTurn;
+            }
+
+            if (in_array($effectType, ['direct_dmg', 'direct', 'damage', 'aoe_dmg', 'freeze', 'stun'])) {
                 $damage = (int)($damage * $bonus);
+
+                if (in_array($effectType, ['freeze', 'stun'], true)) {
+                    $ccEffectType = $effectType;
+                    $ccDuration = max(1, (int) ($skillToUse['base_duration'] ?? 1));
+                }
             } elseif (in_array($effectType, ['buff_phys_dmg', 'buff_damage'])) {
                 $actorState['effects']['buff_phys_dmg'] = [
                     'type' => 'buff_phys_dmg',
@@ -318,16 +449,22 @@ class PvPEncounterService
             }
         }
 
-        // Apply active physical damage buff if present
+        // Apply active physical damage buff + pasywna aura (np. Aura Miecza) if present
+        $physBuffValue = ($actorState['effects']['buff_phys_dmg']['value'] ?? 0) + ($actorState['passives']['aura_dmg'] ?? 0);
+
+        if ($physBuffValue > 0) {
+            $damage = (int)($damage * (1 + $physBuffValue));
+        }
+
         if (isset($actorState['effects']['buff_phys_dmg'])) {
             $buff = &$actorState['effects']['buff_phys_dmg'];
             if ($buff['duration'] > 0) {
-                $damage = (int)($damage * (1 + $buff['value']));
                 $buff['duration']--;
                 if ($buff['duration'] <= 0) {
                     unset($actorState['effects']['buff_phys_dmg']);
                 }
             }
+            unset($buff);
         }
 
         // Process DoT for target during this exchange
@@ -411,6 +548,13 @@ class PvPEncounterService
             $damage = (int)($damage * 1.5);
         }
 
+        // Przełącznik obrażeń magicznych: dla skilli oznaczonych is_magic (Różdżka/Dzwon)
+        // całość obrażeń tej tury pokazywana jest jako magicDamage - tak samo jak
+        // w EncounterService::playerAttack() (patrz komentarz tam - to reklasyfikacja
+        // do UI, mitygacja liczona identycznie, bez osobnej "obrony magicznej").
+        $magicBurstDisplay = $magicBurstDamage > 0 ? (int) ($isCrit ? $magicBurstDamage * 1.5 : $magicBurstDamage) : 0;
+        $magicDamageDisplay = ($isMagicSkill ? (int) $damage : 0) + $magicBurstDisplay;
+
         $turn = [
             'actor' => $actor,
             'type' => $skillToUse ? 'skill' : 'hit',
@@ -418,13 +562,21 @@ class PvPEncounterService
             'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
             'dotType' => $dotDamage > 0 ? $dotType : null,
             'crit' => $isCrit,
-            'magicDamage' => $magicBurstDamage > 0 ? (int) ($isCrit ? $magicBurstDamage * 1.5 : $magicBurstDamage) : null,
+            'is_magic' => $isMagicSkill,
+            'magicDamage' => $magicDamageDisplay > 0 ? $magicDamageDisplay : null,
         ];
-        
+
         if ($skillToUse) {
             $turn['skill_id'] = $skillToUse['id'];
             $turn['skill_name'] = $skillToUse['name'];
             $turn['effect_type'] = $skillToUse['effect_type'] ?? null;
+
+            if ($ccEffectType !== null) {
+                $turn['cc_applied'] = [
+                    'type' => $ccEffectType,
+                    'duration' => $ccDuration,
+                ];
+            }
         }
 
         if ($actor === 'attacker') {

@@ -9,6 +9,7 @@ use App\Application\Loot\DropService;
 use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Monster;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\CombatSkill;
 use App\Infrastructure\Persistence\Encounter;
 use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\WorldBossInstance;
@@ -20,6 +21,13 @@ class EncounterService
     private array $activeDots = [];
     private $equippedSkills = null;
     private array $activeBuffs = [];
+
+    // Rozszerzenie systemu skilli (2026-07-28): pasywne umiejętności (aura obrażeń,
+    // szansa na dodatkowy atak) oraz licznik unieruchomienia potwora (freeze/stun)
+    // w walkach 1 na 1. W walkach grupowych (over-level) unieruchomienie liczone jest
+    // per-potwór wewnątrz tablicy $monsters (klucz 'cc_turns'), patrz simulateMultiCombat().
+    private array $activePassives = [];
+    private int $monsterCcTurns = 0;
 
     public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random'): Result
     {
@@ -308,7 +316,7 @@ class EncounterService
                 if ($isOverLevel && !empty($encounter->combat_data['monsters'])) {
                     $monstersData = $encounter->combat_data['monsters'];
                     $tactic = $encounter->combat_data['target_strategy'] ?? 'random';
-                    $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic);
+                    $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic, $playerMaxHp);
 
                     $lastTurn = end($turns);
                     $finalPlayerHp = $lastTurn ? ($lastTurn['playerHp'] ?? 0) : $playerHp;
@@ -338,7 +346,7 @@ class EncounterService
                         $xpRewardData['bonus'] = $xpRewardData['total'] - $xpRewardData['base'];
                     }
                 } else {
-                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss);
+                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss, $playerMaxHp);
                     $lastTurn = end($turns);
                     $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
 
@@ -546,12 +554,14 @@ class EncounterService
         }
     }
 
-    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false): array
+    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false, int $playerMaxHp = 0): array
     {
         // Reset state for new combat
         $this->activeCooldowns = [];
         $this->activeDots = [];
         $this->activeBuffs = [];
+        $this->activePassives = [];
+        $this->monsterCcTurns = 0;
         $this->equippedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
             ->where('character_id', $character->id)
             ->where('is_equipped', true)
@@ -562,6 +572,12 @@ class EncounterService
             if ($cs->skill->type === 'active') {
                 $this->activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1); // ready slightly earlier
             }
+        }
+
+        $this->initPassives($character);
+
+        if ($playerMaxHp <= 0) {
+            $playerMaxHp = $playerHp;
         }
 
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
@@ -591,8 +607,56 @@ class EncounterService
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
 
-                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss);
+                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
+                $playerHp = $turn['playerHp'];
                 $monsterHp = $turn['enemyHp'];
+
+                if (!empty($turn['cc_applied'])) {
+                    $this->monsterCcTurns = max($this->monsterCcTurns, (int) $turn['cc_applied']['duration']);
+                }
+
+                $turn['state'] = [
+                    'dots' => $this->activeDots,
+                    'buffs' => $this->activeBuffs,
+                    'cooldowns' => $this->activeCooldowns,
+                ];
+                $turns[] = $turn;
+                $turnCount++;
+
+                // Pasywna szansa na natychmiastowy dodatkowy atak (np. "Furia Berserkera" - topór)
+                if ($monsterHp > 0 && $this->rollExtraAttack()) {
+                    $bonusTurn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
+                    $bonusTurn['extra_attack'] = true;
+                    $playerHp = $bonusTurn['playerHp'];
+                    $monsterHp = $bonusTurn['enemyHp'];
+
+                    if (!empty($bonusTurn['cc_applied'])) {
+                        $this->monsterCcTurns = max($this->monsterCcTurns, (int) $bonusTurn['cc_applied']['duration']);
+                    }
+
+                    $bonusTurn['state'] = [
+                        'dots' => $this->activeDots,
+                        'buffs' => $this->activeBuffs,
+                        'cooldowns' => $this->activeCooldowns,
+                    ];
+                    $turns[] = $bonusTurn;
+                    $turnCount++;
+                }
+
+                continue;
+            }
+
+            if ($this->monsterCcTurns > 0) {
+                // Potwór jest zamrożony/ogłuszony - traci turę ataku
+                $this->monsterCcTurns--;
+                $turn = [
+                    'actor' => 'enemy',
+                    'type' => 'crowd_controlled',
+                    'value' => 0,
+                    'crit' => false,
+                    'playerHp' => $playerHp,
+                    'enemyHp' => $monsterHp,
+                ];
             } else {
                 $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp);
                 $playerHp = $turn['playerHp'];
@@ -611,8 +675,68 @@ class EncounterService
         return $turns;
     }
 
-    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp, bool $isWorldBoss = false): array
+    /**
+     * Wylicza aktywne efekty pasywnych umiejętności (equip_slot 1-3, type = 'passive')
+     * z wyposażonego decku. W przeciwieństwie do skilli aktywnych, pasywy nie mają
+     * cooldownu ani nie "zastępują" ataku - działają cały czas, o ile wymagana broń
+     * (required_weapon_type) jest założona w ręce głównej.
+     *
+     * Obsługiwane effect_type:
+     * - passive_aura_dmg: stały % bonusu do obrażeń fizycznych (np. "Aura Miecza").
+     * - passive_extra_attack: szansa (0..1) na natychmiastowy dodatkowy atak po trafieniu
+     *   (np. "Furia Berserkera" dla topora).
+     */
+    private function initPassives(Character $character): void
     {
+        $this->activePassives = [];
+        if (!$this->equippedSkills) {
+            return;
+        }
+
+        $equippedWeaponType = $character->getEquippedWeaponType();
+
+        foreach ($this->equippedSkills as $cs) {
+            if ($cs->skill->type !== 'passive') {
+                continue;
+            }
+
+            $reqWep = $cs->skill->required_weapon_type;
+            if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
+                continue;
+            }
+
+            $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+
+            if ($cs->skill->effect_type === 'passive_aura_dmg') {
+                $this->activePassives['aura_dmg'] = ($this->activePassives['aura_dmg'] ?? 0) + $effVal;
+            } elseif ($cs->skill->effect_type === 'passive_extra_attack') {
+                // Cap zabezpieczający przed absurdalnymi wartościami z panelu admina
+                $chance = min(0.75, max(0, $effVal));
+                $this->activePassives['extra_attack_chance'] = max($this->activePassives['extra_attack_chance'] ?? 0, $chance);
+            }
+        }
+    }
+
+    /**
+     * Rzuca kością na pasywną szansę "dodatkowego ataku" (np. Furia Berserkera).
+     * Wspólne dla walk 1 na 1 oraz walk grupowych.
+     */
+    private function rollExtraAttack(): bool
+    {
+        $chance = $this->activePassives['extra_attack_chance'] ?? 0;
+        if ($chance <= 0) {
+            return false;
+        }
+
+        return mt_rand(1, 10000) <= (int) round($chance * 10000);
+    }
+
+    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp, bool $isWorldBoss = false, int $playerMaxHp = 0): array
+    {
+        if ($playerMaxHp <= 0) {
+            $playerMaxHp = $playerHp;
+        }
+
         $equippedWeaponType = $character->getEquippedWeaponType();
 
         $usedSkill = null;
@@ -694,21 +818,46 @@ class EncounterService
             $csSkill = $usedSkill['skill'];
             $effVal = $usedSkill['effVal'];
 
+            // --- HEAL: umiejętność lecząca zastępuje atak tej tury - nie zadaje
+            // obrażeń przeciwnikowi (poza już aktywnymi DoT-ami), leczy postać gracza
+            // o % maksymalnego HP (base_value, skalowane scaling_value/poziom). ---
+            if ($csSkill->effect_type === 'heal') {
+                $healAmount = max(1, (int) round($playerMaxHp * $effVal));
+                $newPlayerHp = min($playerMaxHp, $playerHp + $healAmount);
+                $newMonsterHp = max(0, $monsterHp - $dotDamage);
+
+                return [
+                    'actor' => 'player',
+                    'type' => 'skill_heal',
+                    'skill_name' => $csSkill->name,
+                    'effect_type' => $csSkill->effect_type,
+                    'is_magic' => (bool) $csSkill->is_magic,
+                    'value' => $healAmount,
+                    'healAmount' => $healAmount,
+                    'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+                    'dotType' => $dotDamage > 0 ? $dotType : null,
+                    'crit' => false,
+                    'playerHp' => $newPlayerHp,
+                    'enemyHp' => $newMonsterHp,
+                ];
+            }
+
             $skillMultiplier = 1.0;
-            if ($csSkill->effect_type === 'direct_dmg') {
+            if (in_array($csSkill->effect_type, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true)) {
                 $skillMultiplier = $effVal;
             }
-            
+
             $damageData = $this->calculateDamage($character, $monster);
             $damage = (int)($damageData['total'] * $skillMultiplier);
             $baseDamage = (int)($damageData['base'] * $skillMultiplier);
             $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
             $magicDamage = (int)(($damageData['magic'] ?? 0) * $skillMultiplier);
 
-            // Active Buffs Application
-            if (isset($this->activeBuffs['phys_dmg'])) {
-                $damage = (int)($damage * (1 + $this->activeBuffs['phys_dmg']['value']));
-                $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
+            // Active Buffs Application (bonus z aktywnego buffa + stała pasywna aura, np. Aura Miecza)
+            $physBuffValue = ($this->activeBuffs['phys_dmg']['value'] ?? 0) + ($this->activePassives['aura_dmg'] ?? 0);
+            if ($physBuffValue > 0) {
+                $damage = (int)($damage * (1 + $physBuffValue));
+                $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
             }
 
             $isCrit = $this->rollCritical($character, $monster);
@@ -719,13 +868,26 @@ class EncounterService
                 $magicDamage = (int)($magicDamage * 1.5);
             }
 
+            // Przełącznik obrażeń magicznych: skille oznaczone is_magic (Różdżka/Dzwon)
+            // pokazują CAŁOŚĆ wyliczonych obrażeń jako magicDamage zamiast
+            // baseDamage/bonusDamage. To wyłącznie reklasyfikacja do UI/logu walki -
+            // mitygacja (obrona przeciwnika) liczona jest identycznie jak dla obrażeń
+            // fizycznych, zgodnie z celowym uproszczeniem opisanym w combat.md (brak
+            // osobnej "obrony magicznej").
+            if ($csSkill->is_magic) {
+                $magicDamage += $baseDamage + $bonusDamage;
+                $baseDamage = 0;
+                $bonusDamage = 0;
+            }
+
             $newMonsterHp = max(0, $monsterHp - $damage - $dotDamage);
 
-            return [
+            $result = [
                 'actor' => 'player',
                 'type' => 'skill',
                 'skill_name' => $csSkill->name,
                 'effect_type' => $csSkill->effect_type,
+                'is_magic' => (bool) $csSkill->is_magic,
                 'value' => $damage,
                 'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
                 'dotType' => $dotDamage > 0 ? $dotType : null,
@@ -736,6 +898,19 @@ class EncounterService
                 'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
                 'magicDamage' => $magicDamage > 0 ? $magicDamage : null,
             ];
+
+            if (in_array($csSkill->effect_type, ['freeze', 'stun'], true)) {
+                // Unieruchamia cel na base_duration tur (traci turę/tury ataku).
+                // Duration nie skaluje się z poziomem skilla - podobnie jak inne
+                // pola base_duration w systemie (dot/buff) - balans ustawiany wprost
+                // per-skill w seederze/panelu admina.
+                $result['cc_applied'] = [
+                    'type' => $csSkill->effect_type,
+                    'duration' => max(1, (int) $csSkill->base_duration),
+                ];
+            }
+
+            return $result;
         }
 
         // Standard attack
@@ -745,10 +920,11 @@ class EncounterService
         $bonusDamage = $damageData['bonus'];
         $magicDamage = $damageData['magic'] ?? 0;
 
-        // Apply global buffs to normal attacks
-        if (isset($this->activeBuffs['phys_dmg'])) {
-            $damage = (int)($damage * (1 + $this->activeBuffs['phys_dmg']['value']));
-            $baseDamage = (int)($baseDamage * (1 + $this->activeBuffs['phys_dmg']['value']));
+        // Apply global buffs + passive aura (np. Aura Miecza) to normal attacks
+        $physBuffValue = ($this->activeBuffs['phys_dmg']['value'] ?? 0) + ($this->activePassives['aura_dmg'] ?? 0);
+        if ($physBuffValue > 0) {
+            $damage = (int)($damage * (1 + $physBuffValue));
+            $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
         }
 
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
@@ -1041,11 +1217,106 @@ class EncounterService
         ];
     }
 
-    private function simulateMultiCombat(Character $character, array $monsters, int $playerHp, string $tactic = 'random'): array
+    /**
+     * Znajduje pierwszy gotowy (cooldown <= 0), pasujący do broni skill obszarowy
+     * (is_aoe = true) z wyposażonego decku. Używane wyłącznie w starciach grupowych
+     * (simulateMultiCombat) - np. "Rozproszenie Strzał" (łuk), "Kule Ognia" (różdżka).
+     */
+    private function resolveAoeSkill(Character $character): ?\App\Infrastructure\Persistence\CharacterCombatSkill
+    {
+        $equippedWeaponType = $character->getEquippedWeaponType();
+
+        foreach ($this->equippedSkills as $cs) {
+            if ($cs->skill->type !== 'active' || ($this->activeCooldowns[$cs->id] ?? 0) > 0) {
+                continue;
+            }
+            if (!$cs->skill->is_aoe) {
+                continue;
+            }
+            if (!in_array($cs->skill->effect_type, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true)) {
+                continue;
+            }
+
+            $reqWep = $cs->skill->required_weapon_type;
+            if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
+                continue;
+            }
+
+            return $cs;
+        }
+
+        return null;
+    }
+
+    /**
+     * Wylicza obrażenia skilla obszarowego wobec JEDNEGO z celów w grupie. Analogiczne
+     * do gałęzi obrażeń w playerAttack(), ale bez ponownego wyboru/konsumpcji cooldownu
+     * (skill jest konsumowany raz przez wywołującego dla całej salwy AOE) i bez DoT
+     * (efekty obszarowe działają na obrażeniach bezpośrednich/CC, nie na DoT).
+     */
+    private function playerAttackAoeTarget(Character $character, CombatSkill $csSkill, float $effVal, Monster $monsterModel, int $monsterHp): array
+    {
+        $skillMultiplier = in_array($csSkill->effect_type, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true) ? $effVal : 1.0;
+
+        $damageData = $this->calculateDamage($character, $monsterModel);
+        $damage = (int)($damageData['total'] * $skillMultiplier);
+        $baseDamage = (int)($damageData['base'] * $skillMultiplier);
+        $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
+        $magicDamage = (int)(($damageData['magic'] ?? 0) * $skillMultiplier);
+
+        $physBuffValue = ($this->activeBuffs['phys_dmg']['value'] ?? 0) + ($this->activePassives['aura_dmg'] ?? 0);
+        if ($physBuffValue > 0) {
+            $damage = (int)($damage * (1 + $physBuffValue));
+            $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
+        }
+
+        $isCrit = $this->rollCritical($character, $monsterModel);
+        if ($isCrit) {
+            $damage = (int)($damage * 1.5);
+            $baseDamage = (int)($baseDamage * 1.5);
+            $bonusDamage = (int)($bonusDamage * 1.5);
+            $magicDamage = (int)($magicDamage * 1.5);
+        }
+
+        if ($csSkill->is_magic) {
+            $magicDamage += $baseDamage + $bonusDamage;
+            $baseDamage = 0;
+            $bonusDamage = 0;
+        }
+
+        $newMonsterHp = max(0, $monsterHp - $damage);
+
+        $turn = [
+            'actor' => 'player',
+            'type' => 'skill',
+            'aoe' => true,
+            'skill_name' => $csSkill->name,
+            'effect_type' => $csSkill->effect_type,
+            'is_magic' => (bool) $csSkill->is_magic,
+            'value' => $damage,
+            'crit' => $isCrit,
+            'enemyHp' => $newMonsterHp,
+            'baseDamage' => $baseDamage,
+            'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
+            'magicDamage' => $magicDamage > 0 ? $magicDamage : null,
+        ];
+
+        if (in_array($csSkill->effect_type, ['freeze', 'stun'], true)) {
+            $turn['cc_applied'] = [
+                'type' => $csSkill->effect_type,
+                'duration' => max(1, (int) $csSkill->base_duration),
+            ];
+        }
+
+        return $turn;
+    }
+
+    private function simulateMultiCombat(Character $character, array $monsters, int $playerHp, string $tactic = 'random', int $playerMaxHp = 0): array
     {
         $this->activeCooldowns = [];
         $this->activeDots = [];
         $this->activeBuffs = [];
+        $this->activePassives = [];
         $this->equippedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
             ->where('character_id', $character->id)
             ->where('is_equipped', true)
@@ -1058,6 +1329,18 @@ class EncounterService
             }
         }
 
+        $this->initPassives($character);
+
+        if ($playerMaxHp <= 0) {
+            $playerMaxHp = $playerHp;
+        }
+
+        // Znaczniki unieruchomienia (freeze/stun) per-potwór
+        foreach ($monsters as &$initM) {
+            $initM['cc_turns'] = $initM['cc_turns'] ?? 0;
+        }
+        unset($initM);
+
         $turns = [];
         $turnCount = 0;
         $maxTurns = 80;
@@ -1067,9 +1350,32 @@ class EncounterService
         $monsterDmgMult = max(0.1, 1.0 - ($extraMonsters * 0.10));
 
         while ($playerHp > 0 && $this->anyMonsterAlive($monsters) && $turnCount < $maxTurns) {
-            // 1. Living monsters attack sequentially
+            // 1. Living monsters attack sequentially (chyba że są unieruchomione)
             foreach ($monsters as $mIdx => &$m) {
                 if ($m['hp'] <= 0 || $playerHp <= 0) {
+                    continue;
+                }
+
+                if (($m['cc_turns'] ?? 0) > 0) {
+                    $m['cc_turns']--;
+                    $turn = [
+                        'actor' => 'enemy',
+                        'type' => 'crowd_controlled',
+                        'value' => 0,
+                        'crit' => false,
+                        'playerHp' => $playerHp,
+                        'enemyHp' => $m['hp'],
+                        'enemy_index' => $mIdx,
+                        'enemy_name' => $m['name'],
+                    ];
+                    $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['state'] = [
+                        'dots' => $this->activeDots,
+                        'buffs' => $this->activeBuffs,
+                        'cooldowns' => $this->activeCooldowns,
+                    ];
+                    $turns[] = $turn;
+                    $turnCount++;
                     continue;
                 }
 
@@ -1079,7 +1385,7 @@ class EncounterService
                 }
 
                 $turn = $this->monsterAttack($monsterModel, $character, $playerHp, $m['hp']);
-                
+
                 if ($turn['type'] === 'hit' && ($turn['value'] ?? 0) > 0) {
                     $turn['value'] = max(1, (int)round($turn['value'] * $monsterDmgMult));
                     if (isset($turn['baseDamage'])) {
@@ -1107,7 +1413,7 @@ class EncounterService
                 break;
             }
 
-            // 2. Player attacks 1 target based on tactic
+            // 2. Player attacks: skill obszarowy bije wszystkich, w innym wypadku 1 cel wg taktyki
             foreach ($this->activeCooldowns as $id => $cd) {
                 if ($cd > 0) $this->activeCooldowns[$id]--;
             }
@@ -1116,29 +1422,105 @@ class EncounterService
                 if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
             }
 
-            $targetIdx = $this->selectTargetMonster($monsters, $tactic);
-            if ($targetIdx === null) {
-                break;
+            $aoeSkillCs = $this->resolveAoeSkill($character);
+
+            if ($aoeSkillCs) {
+                $this->activeCooldowns[$aoeSkillCs->id] = $aoeSkillCs->skill->base_cooldown;
+                $effVal = $aoeSkillCs->skill->base_value + ($aoeSkillCs->skill->scaling_value * ($aoeSkillCs->level - 1));
+
+                foreach ($monsters as $mIdx => &$m) {
+                    if (($m['hp'] ?? 0) <= 0) {
+                        continue;
+                    }
+                    $monsterModel = Monster::find($m['id']);
+                    if (!$monsterModel) {
+                        continue;
+                    }
+
+                    $turn = $this->playerAttackAoeTarget($character, $aoeSkillCs->skill, $effVal, $monsterModel, $m['hp']);
+                    $m['hp'] = $turn['enemyHp'];
+
+                    if (!empty($turn['cc_applied'])) {
+                        $m['cc_turns'] = max($m['cc_turns'] ?? 0, (int) $turn['cc_applied']['duration']);
+                    }
+
+                    $turn['target_index'] = $mIdx;
+                    $turn['target_name'] = $m['name'];
+                    $turn['playerHp'] = $playerHp;
+                    $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['state'] = [
+                        'dots' => $this->activeDots,
+                        'buffs' => $this->activeBuffs,
+                        'cooldowns' => $this->activeCooldowns,
+                    ];
+
+                    $turns[] = $turn;
+                    $turnCount++;
+                }
+                unset($m);
+            } else {
+                $targetIdx = $this->selectTargetMonster($monsters, $tactic);
+                if ($targetIdx === null) {
+                    break;
+                }
+
+                $targetMonster = &$monsters[$targetIdx];
+                $monsterModel = Monster::find($targetMonster['id']);
+                if ($monsterModel) {
+                    $turn = $this->playerAttack($character, $monsterModel, $playerHp, $targetMonster['hp'], $targetMonster['maxHp'], false, $playerMaxHp);
+                    $playerHp = $turn['playerHp'];
+                    $targetMonster['hp'] = $turn['enemyHp'];
+
+                    if (!empty($turn['cc_applied'])) {
+                        $targetMonster['cc_turns'] = max($targetMonster['cc_turns'] ?? 0, (int) $turn['cc_applied']['duration']);
+                    }
+
+                    $turn['target_index'] = $targetIdx;
+                    $turn['target_name'] = $targetMonster['name'];
+                    $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['state'] = [
+                        'dots' => $this->activeDots,
+                        'buffs' => $this->activeBuffs,
+                        'cooldowns' => $this->activeCooldowns,
+                    ];
+
+                    $turns[] = $turn;
+                    $turnCount++;
+                }
+                unset($targetMonster);
             }
 
-            $targetMonster = &$monsters[$targetIdx];
-            $monsterModel = Monster::find($targetMonster['id']);
-            if ($monsterModel) {
-                $turn = $this->playerAttack($character, $monsterModel, $playerHp, $targetMonster['hp'], $targetMonster['maxHp'], false);
-                $targetMonster['hp'] = $turn['enemyHp'];
-                $turn['target_index'] = $targetIdx;
-                $turn['target_name'] = $targetMonster['name'];
-                $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
-                $turn['state'] = [
-                    'dots' => $this->activeDots,
-                    'buffs' => $this->activeBuffs,
-                    'cooldowns' => $this->activeCooldowns,
-                ];
+            // 3. Pasywna szansa na natychmiastowy dodatkowy atak (np. Furia Berserkera)
+            if ($playerHp > 0 && $this->anyMonsterAlive($monsters) && $this->rollExtraAttack()) {
+                $bonusIdx = $this->selectTargetMonster($monsters, $tactic);
+                if ($bonusIdx !== null) {
+                    $bonusTarget = &$monsters[$bonusIdx];
+                    $bonusMonsterModel = Monster::find($bonusTarget['id']);
+                    if ($bonusMonsterModel) {
+                        $bonusTurn = $this->playerAttack($character, $bonusMonsterModel, $playerHp, $bonusTarget['hp'], $bonusTarget['maxHp'], false, $playerMaxHp);
+                        $bonusTurn['extra_attack'] = true;
+                        $playerHp = $bonusTurn['playerHp'];
+                        $bonusTarget['hp'] = $bonusTurn['enemyHp'];
 
-                $turns[] = $turn;
-                $turnCount++;
+                        if (!empty($bonusTurn['cc_applied'])) {
+                            $bonusTarget['cc_turns'] = max($bonusTarget['cc_turns'] ?? 0, (int) $bonusTurn['cc_applied']['duration']);
+                        }
+
+                        $bonusTurn['target_index'] = $bonusIdx;
+                        $bonusTurn['target_name'] = $bonusTarget['name'];
+                        $bonusTurn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                        $bonusTurn['state'] = [
+                            'dots' => $this->activeDots,
+                            'buffs' => $this->activeBuffs,
+                            'cooldowns' => $this->activeCooldowns,
+                        ];
+
+                        $turns[] = $bonusTurn;
+                        $turnCount++;
+                    }
+                    unset($bonusTarget);
+                }
             }
-            unset($targetMonster);
         }
 
         return $turns;
@@ -1165,6 +1547,7 @@ class EncounterService
                 'avatar' => $m['avatar'] ?? null,
                 'rank' => $m['rank'] ?? 'regular',
                 'tier_label' => $m['tier_label'] ?? null,
+                'cc_turns' => $m['cc_turns'] ?? 0,
             ];
         }, $monsters);
     }
