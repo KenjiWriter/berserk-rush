@@ -25,6 +25,8 @@ class Profile extends Component
     public int $sellPrice = 100;
     public string $sellCurrency = 'gold';
     public int $sellDuration = 24;
+    public int $sellQuantity = 1;
+    public int $sellItemStackSize = 1;
 
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
@@ -261,6 +263,10 @@ class Profile extends Component
         $this->sellPrice = 100;
         $this->sellCurrency = 'gold';
         $this->sellDuration = 24;
+        $this->sellQuantity = 1;
+
+        $item = ItemInstance::find($itemUlid);
+        $this->sellItemStackSize = $item ? (int) ($item->stack_size ?? 1) : 1;
     }
 
     public function closeSellModal()
@@ -271,15 +277,17 @@ class Profile extends Component
     public function sellItem(\App\Application\Economy\Actions\CreateMarketListingAction $action)
     {
         if (!$this->sellingItemUlid) return;
-        
+
         $item = ItemInstance::find($this->sellingItemUlid);
         if (!$item) {
             $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
             return;
         }
 
-        $result = $action->execute($this->character, $item, (int) $this->sellPrice, $this->sellCurrency, (int) $this->sellDuration);
-        
+        $quantity = max(1, min((int) $this->sellQuantity, (int) ($item->stack_size ?? 1)));
+
+        $result = $action->execute($this->character, $item, (int) $this->sellPrice, $this->sellCurrency, (int) $this->sellDuration, $quantity);
+
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot wystawiony na market!');
             $this->closeSellModal();

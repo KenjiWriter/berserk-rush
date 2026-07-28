@@ -94,7 +94,7 @@ class MarketListing extends Model
     {
         return match ($this->status) {
             'active'    => 'Aktywna',
-            'sold'      => 'Sprzedana',
+            'sold'      => 'Sprzedano',
             'expired'   => 'Wygasła',
             'cancelled' => 'Anulowana',
             default     => $this->status,

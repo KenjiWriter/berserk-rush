@@ -21,14 +21,14 @@ class CreateMarketListingAction
         72 => 500,
     ];
 
-    public function execute(Character $character, ItemInstance $item, int $price, string $currency, int $durationHours): Result
+    public function execute(Character $character, ItemInstance $item, int $price, string $currency, int $durationHours, int $quantity = 1): Result
     {
         if ($item->owner_character_id !== $character->id) {
             return Result::error('NOT_OWNER', 'Ten przedmiot nie należy do Ciebie.');
         }
 
-        if (!in_array($item->location, ['inventory', 'equipped'])) {
-            return Result::error('NOT_IN_INVENTORY', 'Przedmiot musi znajdować się w plecaku lub być ubrany, aby go wystawić.');
+        if (!in_array($item->location, ['inventory', 'equipped', 'material_stash'])) {
+            return Result::error('NOT_IN_INVENTORY', 'Przedmiot musi znajdować się w plecaku lub magazynie materiałów, aby go wystawić.');
         }
 
         if ($item->bound_to_character) {
@@ -51,6 +51,12 @@ class CreateMarketListingAction
             return Result::error('INVALID_DURATION', 'Nieprawidłowy czas trwania. Wybierz 24, 48 lub 72 godziny.');
         }
 
+        $quantity = max(1, $quantity);
+        $stackSize = (int) ($item->stack_size ?? 1);
+        if ($quantity > $stackSize) {
+            return Result::error('INVALID_QUANTITY', "Nie możesz wystawić więcej niż posiadasz ({$stackSize} szt.).");
+        }
+
         $listingFee = self::LISTING_FEES[$durationHours];
 
         if ($character->gold < $listingFee) {
@@ -58,56 +64,74 @@ class CreateMarketListingAction
         }
 
         try {
-            return DB::transaction(function () use ($character, $item, $price, $currency, $durationHours, $listingFee) {
+            return DB::transaction(function () use ($character, $item, $price, $currency, $durationHours, $listingFee, $quantity) {
                 $idempotencyKey = 'market_list:' . $item->id . ':' . Str::ulid();
                 $wasEquipped = $item->location === 'equipped';
+                $isMaterial = $item->location === 'material_stash';
+                $stackSize = (int) ($item->stack_size ?? 1);
 
                 // Deduct listing fee
                 $character->gold -= $listingFee;
                 $character->save();
 
                 CurrencyLedger::create([
-                    'id' => Str::ulid(),
+                    'id'              => Str::ulid(),
                     'idempotency_key' => $idempotencyKey . ':fee',
-                    'character_id' => $character->id,
-                    'currency_type' => 'gold',
-                    'amount' => -$listingFee,
-                    'balance_after' => $character->gold,
-                    'source_type' => 'market_listing_fee',
-                    'source_id' => $item->id,
-                    'description' => "Opłata za wystawienie na market ({$durationHours}h)",
-                    'created_at' => now(),
+                    'character_id'    => $character->id,
+                    'currency_type'   => 'gold',
+                    'amount'          => -$listingFee,
+                    'balance_after'   => $character->gold,
+                    'source_type'     => 'market_listing_fee',
+                    'source_id'       => $item->id,
+                    'description'     => "Opłata za wystawienie na market ({$durationHours}h)",
+                    'created_at'      => now(),
                 ]);
 
-                // Move item to market
-                $item->update([
-                    'location' => 'market',
-                    'owner_character_id' => null,
-                ]);
+                // Handle stack splitting for materials
+                if ($isMaterial && $quantity < $stackSize) {
+                    // Split: create a new item instance with the sold quantity
+                    $listingItem = $item->replicate();
+                    $listingItem->id = Str::ulid();
+                    $listingItem->stack_size = $quantity;
+                    $listingItem->location = 'market';
+                    $listingItem->owner_character_id = null;
+                    $listingItem->save();
+
+                    // Reduce original stack
+                    $item->stack_size = $stackSize - $quantity;
+                    $item->save();
+                } else {
+                    // Move entire item to market
+                    $item->update([
+                        'location'             => 'market',
+                        'owner_character_id'   => null,
+                    ]);
+                    $listingItem = $item;
+                }
 
                 if ($wasEquipped) {
                     $character->clearStatsCache();
                 }
 
                 ItemLedger::create([
-                    'id' => Str::ulid(),
-                    'character_id' => $character->id,
-                    'item_instance_id' => $item->id,
-                    'action' => 'listed_on_market',
-                    'ref_type' => 'market_listing',
-                    'ref_id' => null,
-                    'quantity_change' => -1,
-                    'idempotency_key' => $idempotencyKey . ':item',
+                    'id'               => Str::ulid(),
+                    'character_id'     => $character->id,
+                    'item_instance_id' => $listingItem->id,
+                    'action'           => 'listed_on_market',
+                    'ref_type'         => 'market_listing',
+                    'ref_id'           => null,
+                    'quantity_change'  => -$quantity,
+                    'idempotency_key'  => $idempotencyKey . ':item',
                 ]);
 
                 // Create listing
                 $listing = MarketListing::create([
                     'seller_character_id' => $character->id,
-                    'item_instance_id' => $item->id,
-                    'price' => $price,
-                    'currency' => $currency,
-                    'status' => 'active',
-                    'expires_at' => now()->addHours($durationHours),
+                    'item_instance_id'    => $listingItem->id,
+                    'price'               => $price,
+                    'currency'            => $currency,
+                    'status'              => 'active',
+                    'expires_at'          => now()->addHours($durationHours),
                 ]);
 
                 // Update item ledger ref_id

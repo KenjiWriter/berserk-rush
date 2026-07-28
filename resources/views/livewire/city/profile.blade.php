@@ -1145,8 +1145,33 @@
                 @endif
                 
                 <div class="space-y-4 mb-6">
+                    @php
+                        $modalItem = \App\Infrastructure\Persistence\ItemInstance::find($sellingItemUlid);
+                        $isStackable = $modalItem && ($modalItem->stack_size ?? 1) > 1;
+                        $maxQty = $modalItem ? (int)($modalItem->stack_size ?? 1) : 1;
+                    @endphp
+
+                    @if($isStackable)
                     <div>
-                        <label class="block text-sm font-bold text-gray-300 mb-1">Cena</label>
+                        <label class="block text-sm font-bold text-gray-300 mb-1">
+                            Ilość <span class="text-amber-400 font-extrabold">(max: {{ $maxQty }})</span>
+                        </label>
+                        <div class="flex items-center gap-3">
+                            <input type="range"
+                                   wire:model.live="sellQuantity"
+                                   min="1" max="{{ $maxQty }}"
+                                   class="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500">
+                            <input type="number"
+                                   wire:model.live="sellQuantity"
+                                   min="1" max="{{ $maxQty }}"
+                                   class="w-20 bg-gray-800 border border-gray-600 rounded p-2 text-white text-center font-bold">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Możesz sprzedać część lub całość stosu.</p>
+                    </div>
+                    @endif
+
+                    <div>
+                        <label class="block text-sm font-bold text-gray-300 mb-1">Cena @if($isStackable)<span class="text-amber-400/70 font-normal text-xs">(za całą wybraną ilość)</span>@endif</label>
                         <input type="number" wire:model="sellPrice" min="1" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white" placeholder="Wpisz cenę...">
                     </div>
                     
@@ -1167,6 +1192,7 @@
                         </select>
                     </div>
                 </div>
+
                 
                 <div class="flex justify-end gap-3">
                     <button wire:click="closeSellModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded font-bold transition">Anuluj</button>
