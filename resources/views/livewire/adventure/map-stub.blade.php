@@ -448,9 +448,12 @@
                                             class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-amber-900/80 text-amber-200 rounded-md border border-amber-600/40 px-1 py-0.5 mr-1.5 font-mono">
                                             T{{ $index + 1 }}
                                         </span>
+                                        @php
+                                            $turnEnemyName = $turn['enemy_name'] ?? $turn['target_name'] ?? $enemy['name'];
+                                        @endphp
                                         @if ($turn['type'] == 'miss')
                                             <span class="text-slate-300 italic font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
                                                 pudłuje atak!
                                                 @if (!empty($turn['dotDamage']))
                                                     <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
@@ -462,7 +465,7 @@
                                             </span>
                                         @elseif ($turn['type'] == 'skill')
                                             <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
                                                 używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
                                                 @if (!empty($turn['dotDamage']))
                                                     <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
@@ -473,7 +476,7 @@
                                         @else
                                             <span
                                                 class="{{ $turn['actor'] == 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
                                                 zadaje 
                                                 @if($turn['actor'] == 'player' && isset($turn['bonusDamage']) && $turn['bonusDamage'] > 0)
                                                     <strong class="text-amber-300 font-mono">{{ $turn['baseDamage'] }} (+{{ $turn['bonusDamage'] }})</strong>

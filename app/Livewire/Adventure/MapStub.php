@@ -736,26 +736,36 @@ class MapStub extends Component
 
     public function getActiveMonsterIndex(): int
     {
-        if (empty($this->visibleTurns)) {
+        $monsters = $this->getCurrentMonstersState();
+
+        // Helper: find first alive monster index
+        $firstAlive = function() use ($monsters): int {
+            foreach ($monsters as $idx => $m) {
+                if (($m['hp'] ?? 0) > 0) return $idx;
+            }
             return 0;
+        };
+
+        if (empty($this->visibleTurns)) {
+            return $firstAlive();
         }
 
         $lastTurn = end($this->visibleTurns);
-        if (isset($lastTurn['enemy_index'])) {
-            return (int)$lastTurn['enemy_index'];
-        }
-        if (isset($lastTurn['target_index'])) {
-            return (int)$lastTurn['target_index'];
-        }
 
-        $monsters = $this->getCurrentMonstersState();
-        foreach ($monsters as $idx => $m) {
-            if (($m['hp'] ?? 0) > 0) {
-                return $idx;
+        // Prefer target_index (player attacked this monster) over enemy_index (monster attacked player)
+        // because target_index tells us which monster the player is currently focusing
+        foreach (['target_index', 'enemy_index'] as $key) {
+            if (isset($lastTurn[$key])) {
+                $idx = (int)$lastTurn[$key];
+                // If that monster is already dead, fall back to first alive
+                if (!empty($monsters[$idx]) && ($monsters[$idx]['hp'] ?? 0) > 0) {
+                    return $idx;
+                }
+                return $firstAlive();
             }
         }
 
-        return 0;
+        return $firstAlive();
     }
 
     public function getActiveMonster(): array
