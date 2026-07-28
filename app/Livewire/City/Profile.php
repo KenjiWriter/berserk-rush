@@ -231,7 +231,7 @@ class Profile extends Component
     }
     // -----------------------------
 
-    public function saveAttributes(array $addedStats, \App\Application\Characters\AllocateAttributesAction $action)
+    public function saveAttributes(array $addedStats, int $seq, \App\Application\Characters\AllocateAttributesAction $action)
     {
         $result = $action->execute($this->character, $addedStats);
 
@@ -249,11 +249,11 @@ class Profile extends Component
             $totalAllocated = array_sum(array_map('intval', $addedStats));
             $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalAllocated}.");
             $this->dispatch('play-audio', type: 'stat');
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes(), seq: $seq);
         } else {
             $this->character->refresh();
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
+            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes(), seq: $seq);
         }
     }
 

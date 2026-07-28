@@ -434,6 +434,8 @@
                          syncInterval: null,
                          syncProgress: 0,
                          BUFFER_MS: 700,
+                         saveSeq: 0,
+                         lastAppliedSeq: 0,
 
                          get hasPending() {
                              return (this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi) > 0;
@@ -441,15 +443,30 @@
 
                          updatePointsFromEvent(detail) {
                              let data = Array.isArray(detail) ? detail[0] : detail;
-                             if (data && typeof data.points !== 'undefined' && data.points !== null) {
-                                 let pendingTotal = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
-                                 this.availablePoints = Math.max(0, data.points - pendingTotal);
-                                 if (data.baseAttributes) {
-                                     this.baseAttributes = { ...data.baseAttributes };
-                                 }
-                                 if (data.bonusAttributes) {
-                                     this.bonusAttributes = { ...data.bonusAttributes };
-                                 }
+                             if (!data || typeof data.points === 'undefined' || data.points === null) return;
+
+                             // 'stats-saved' jest też wysyłane przez equipItem/unequipItem (bez 'seq').
+                             // Jeśli w trakcie trwa zapis atrybutów (isSaving), taki event może dotyczyć
+                             // stanu sprzed tego zapisu - pomijamy go, żeby nie nadpisać świeższych danych,
+                             // które i tak zaraz przyjdą z własnym eventem zapisu atrybutów.
+                             if (typeof data.seq === 'undefined' && this.isSaving) return;
+
+                             // Odpowiedzi na saveAttributes mogą wrócić w innej kolejności niż zostały
+                             // wysłane (np. przy szybkim klikaniu / kolejkowaniu zapisów). Ignorujemy
+                             // każdą odpowiedź starszą niż już zastosowana, żeby atrybuty nigdy nie
+                             // "cofnęły się" do wcześniejszego stanu.
+                             if (typeof data.seq !== 'undefined' && data.seq !== null) {
+                                 if (data.seq < this.lastAppliedSeq) return;
+                                 this.lastAppliedSeq = data.seq;
+                             }
+
+                             let pendingTotal = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
+                             this.availablePoints = Math.max(0, data.points - pendingTotal);
+                             if (data.baseAttributes) {
+                                 this.baseAttributes = { ...data.baseAttributes };
+                             }
+                             if (data.bonusAttributes) {
+                                 this.bonusAttributes = { ...data.bonusAttributes };
                              }
                          },
 
@@ -511,9 +528,11 @@
                              this.buffered = { str: 0, int: 0, vit: 0, agi: 0 };
                              this.isSaving = true;
                              this.hasQueuedSave = false;
+                             this.saveSeq += 1;
+                             let seq = this.saveSeq;
 
                              try {
-                                 await $wire.saveAttributes(toSave);
+                                 await $wire.saveAttributes(toSave, seq);
                              } finally {
                                  this.isSaving = false;
                                  let currentBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
