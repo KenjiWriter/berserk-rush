@@ -22,11 +22,11 @@ class Profile extends Component
 
     // Market Selling
     public ?string $sellingItemUlid = null;
-    public int $sellPrice = 100;
-    public string $sellCurrency = 'gold';
-    public int $sellDuration = 24;
-    public int $sellQuantity = 1;
-    public int $sellItemStackSize = 1;
+    public $sellPrice = 100;
+    public $sellCurrency = 'gold';
+    public $sellDuration = 24;
+    public $sellQuantity = 1;
+    public $sellItemStackSize = 1;
 
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
@@ -278,6 +278,16 @@ class Profile extends Component
     {
         if (!$this->sellingItemUlid) return;
 
+        $price = (int) $this->sellPrice;
+        if ($price < 1) {
+            $this->dispatch('notify', type: 'error', message: 'Cena musi być większa od zera.');
+            return;
+        }
+        if ($price > 999_999_999) {
+            $this->dispatch('notify', type: 'error', message: 'Maksymalna cena to 999 999 999.');
+            return;
+        }
+
         $item = ItemInstance::find($this->sellingItemUlid);
         if (!$item) {
             $this->dispatch('notify', type: 'error', message: 'Przedmiot nie istnieje.');
@@ -286,7 +296,7 @@ class Profile extends Component
 
         $quantity = max(1, min((int) $this->sellQuantity, (int) ($item->stack_size ?? 1)));
 
-        $result = $action->execute($this->character, $item, (int) $this->sellPrice, $this->sellCurrency, (int) $this->sellDuration, $quantity);
+        $result = $action->execute($this->character, $item, $price, (string) $this->sellCurrency, (int) $this->sellDuration, $quantity);
 
         if ($result->isOk()) {
             $this->dispatch('notify', type: 'success', message: 'Przedmiot wystawiony na market!');

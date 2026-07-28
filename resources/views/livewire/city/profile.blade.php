@@ -1171,8 +1171,12 @@
                     @endif
 
                     <div>
-                        <label class="block text-sm font-bold text-gray-300 mb-1">Cena @if($isStackable)<span class="text-amber-400/70 font-normal text-xs">(za całą wybraną ilość)</span>@endif</label>
-                        <input type="number" wire:model="sellPrice" min="1" class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white" placeholder="Wpisz cenę...">
+                        <label class="block text-sm font-bold text-gray-300 mb-1">Cena @if($isStackable)<span class="text-amber-400/70 font-normal text-xs">(za całą wybraną ilość)</span>@endif
+                            <span class="text-stone-500 font-normal text-xs ml-1">(max: 999 999 999)</span>
+                        </label>
+                        <input type="number" wire:model="sellPrice" min="1" max="999999999" maxlength="9"
+                               oninput="if(this.value.length > 9) this.value = this.value.slice(0,9); if(parseInt(this.value) > 999999999) this.value = 999999999;"
+                               class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white" placeholder="Wpisz cenę...">
                     </div>
                     
                     <div>
