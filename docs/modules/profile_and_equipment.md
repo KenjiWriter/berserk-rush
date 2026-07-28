@@ -41,15 +41,48 @@ Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swo
 - UI używa animowanych wskaźników (pulse) dla nieprzydzielonych punktów i interaktywnych dymków (tooltipów) z informacją o działaniu konkretnej statystyki.
 - **Resetowanie Atrybutów:** Gracz ma możliwość zresetowania rozdanych atrybutów dla swoich postaci z poziomu Sklepu Premium (`ItemShopComponent`) za 50 Gemów. Reset zeruje przydzielone statystyki i zwraca całą pulę punktów (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdysponowania.
 
-> **Uwaga (rework itemizacji, 2026-07-28):** STR/INT/VIT/AGI to teraz wyłącznie
-> statystyki rozdawane ręcznie przez gracza (oraz bonusy z tytułów/osiągnięć) -
-> ekwipunek (broń, zbroja) nie dodaje już do nich żadnych bonusów. Przedmioty dają
-> zamiast tego: obrażenia fizyczne, obrażenia magiczne, obronę, HP i szansę na
-> trafienie krytyczne (patrz `docs/modules/combat.md`). **Jedynym wyjątkiem jest
-> biżuteria** (naszyjnik/pierścień w slotach `neck`/`ring`) - część egzemplarzy,
-> zwłaszcza tych wytworzonych w rzemiośle lub zaklętych u Wiedźmy, sporadycznie
-> nadal daje niewielki, płaski bonus do jednego atrybutu (+1 do +5, niezależnie od
-> poziomu/rzadkości przedmiotu - to nie skaluje się tak jak reszta statystyk).
+> **Uwaga (rework itemizacji, 2026-07-28, poranek):** STR/INT/VIT/AGI były przez
+> chwilę wyłącznie statystykami rozdawanymi ręcznie przez gracza (oraz bonusami z
+> tytułów/osiągnięć) - broń i zbroja nie dodawały już do nich żadnych bonusów, dając
+> zamiast tego wyłącznie obrażenia fizyczne/magiczne, obronę, HP i szansę na
+> trafienie krytyczne. Jedynym wyjątkiem była biżuteria (patrz niżej). **Ta decyzja
+> została częściowo cofnięta tego samego dnia** - patrz kolejna notatka.
+>
+> **Uwaga (itemizacja klasowa, 2026-07-28, popołudnie):** Zestawy zbroi (hełm/klatka/
+> buty) z dropu/craftingu (`ItemTemplateSeeder.php`, sufiksy `_w`/`_m`/`_a`) ZNOWU
+> dają surowe atrybuty, tym razem tematycznie per "klasa" ekwipunku:
+> - **Wojownik** (`_w` - miecz/topór/łuk, zbroja płytowa) -> **STR + VIT** (50/50).
+> - **Mag** (`_m` - różdżka/dzwon, szaty) -> **INT**.
+> - **Skrytobójca / Ninja** (`_a` - sztylet, skóry) -> **AGI**.
+>
+> Bronie NADAL nie dają atrybutów (tylko obrażenia/crit, jak w reworku z rana) -
+> tylko 3-częściowy zestaw zbroi per klasa. Skalowanie jest **liniowe względem
+> poziomu przedmiotu** (nie multiplikatywne jak `scale` przy obrażeniach): od 12 pkt
+> danego atrybutu na tier `poziom 5`, do 200 pkt na tier `poziom 85` (najlepszy
+> zestaw możliwy do założenia na poziomie postaci 90, bo kolejny tier wymaga
+> poziomu 95), aż do 233 pkt na endgame'owym tierze `poziom 99`.
+>
+> Budżet ręcznych punktów postaci (`character_points`) na max poziomie (99) wynosi
+> **10 + 98 * 3 = 304** (nie zaokrąglone "307" - patrz wzór w sekcji 4 wyżej). Pełny
+> zestaw klasowy na poziomie 90 (tier 85) daje więc ok. **40% tyle, co cała ręczna
+> pula** (200 z 200+304), a na endgame'owym tierze 99 - ok. **43%** (233 z 233+304).
+> Ręczne rozdawanie punktów zostaje więc zawsze głównym źródłem atrybutów, a
+> ekwipunek klasowy - wyraźnym, ale nie dominującym bonusem, przez co warto zarówno
+> levelować/rozdawać punkty, jak i kompletować pasujący zestaw klasowy (np. zestaw
+> Skrytobójcy realnie podbija AGI, więc unik/krytyk/inicjatywę w walce - patrz
+> `docs/modules/combat.md`). Ulepszanie (+0..+9 w Kowalu) dolicza swoje standardowe
+> +10%/poziom do KAŻDEGO dodatniego stata w `base_stats`, więc w pełni wykuty zestaw
+> daje dodatkowo do +90% ponad te wartości - identycznie jak przy innych statach.
+>
+> **Jedynym wyjątkiem POZA systemem klasowym** pozostaje biżuteria (naszyjnik/
+> pierścień w slotach `neck`/`ring`) - część egzemplarzy, zwłaszcza tych
+> wytworzonych w rzemiośle lub zaklętych u Wiedźmy, sporadycznie nadal daje
+> niewielki, płaski bonus do LOSOWEGO jednego atrybutu (+1 do +5, niezależnie od
+> klasy/poziomu/rzadkości przedmiotu - to nie skaluje się jak zestawy klasowe).
+> Zestawy sklepowe (`ShopEquipmentSeeder.php`) pozostają uniwersalne/bezklasowe i
+> nadal nie dają żadnych atrybutów.
+>
 > `Character::getTotalAttributes()` nadal generycznie sumuje klucze `*_bonus` z
-> ekwipunku, więc ten wyjątek działa "za darmo" - nie wymagał zmian w kodzie postaci,
-> tylko w tym, co seedery/crafting/zaklinanie faktycznie przydzielają przedmiotom.
+> ekwipunku, więc cały ten mechanizm działa "za darmo" - nie wymagał zmian w kodzie
+> postaci, tylko w tym, co seeder faktycznie przydziela przedmiotom
+> (`$classArmorAttributes` w `ItemTemplateSeeder.php`).

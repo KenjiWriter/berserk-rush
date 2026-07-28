@@ -31,7 +31,18 @@ Moduł Czarodzieja pozwala graczom na dodawanie magicznych właściwości (bonus
 W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane są odpowiednie statystyki. Przykładowo:
 - **Bronie (Main Hand):** Zwiększone obrażenia fizyczne (`attack_power`), magiczne (`magic_attack`), obrażenia krytyczne, lub silny przeciwko konkretnemu typowi potworów (np. nieumarli, orkowie, demony).
 - **Zbroje (Klatka, Głowa, Stopy):** Zwiększone punkty życia, obrona, szansa na unik, czy odporność na konkretny typ potworów.
-- **Biżuteria (Szyja, Pierścienie):** Ma własną, osobną pulę (`accessoryBonuses`) - głównie HP/obrona/krytyk, ale to **jedyny typ przedmiotu**, który może wylosować (obok reszty) niewielki, płaski bonus do jednego atrybutu bazowego (STR/INT/VIT/AGI, +1 do +5) - patrz `docs/modules/profile_and_equipment.md`. Zwykła broń i zbroja nie mogą już wylosować atrybutów.
+- **Biżuteria (Szyja, Pierścienie):** Ma własną, osobną pulę (`accessoryBonuses`) - głównie HP/obrona/krytyk, ale to **jedyny typ przedmiotu**, który może **wylosować w zaklęciu** (obok reszty) niewielki, płaski bonus do jednego atrybutu bazowego (STR/INT/VIT/AGI, +1 do +5) - patrz `docs/modules/profile_and_equipment.md`. Zwykła broń i zbroja nie mogą wylosować atrybutów **w zaklęciu** (`EnchantmentStrategy::poolFor()` bez zmian).
+
+> **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
+> zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od
+> tego, zestawy zbroi klasowej z dropu/craftingu (`_w`/`_m`/`_a` w
+> `ItemTemplateSeeder.php`) mają teraz swój STAŁY, wbudowany bonus atrybutu wpisany
+> wprost w `base_stats` szablonu (Wojownik→STR+VIT, Mag→INT, Skrytobójca→AGI) - to
+> nie jest zaklęcie i nie da się tego zresetować/przelosować u Czarodzieja/Wiedźmy,
+> tak jak nie da się przelosować `defense` czy `hp_bonus` szablonu. Zaklęcie może co
+> najwyżej dołożyć fizyczne/magiczne obrażenia, obronę, HP, krytyk itp. na to samo
+> zbroi - nie dokłada dodatkowego atrybutu (poza wspomnianym wyjątkiem biżuterii).
+> Pełny opis balansu - patrz `docs/modules/profile_and_equipment.md`, sekcja 4.
 
 > **Uwaga (rework itemizacji, 2026-07-28):** Naprawiono afiksy `attack_power` i
 > `magic_attack` z puli broni - wcześniej zapisywały się w `roll_stats['enchants']`,

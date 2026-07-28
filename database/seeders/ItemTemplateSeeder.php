@@ -36,13 +36,96 @@ class ItemTemplateSeeder extends Seeder
 
 
 
-        // UWAGA (rework itemizacji): przedmioty nie przydzielają już surowych atrybutów
-        // (STR/INT/VIT/AGI) postaci. Zamiast tego dają wyłącznie: obrażenia fizyczne
-        // (attack_min/attack_max), obrażenia magiczne (magic_attack_min/max lub - w
-        // przypadku Dzwonów - dodatkowy "magic burst"), obronę (defense), HP (hp_bonus)
-        // oraz szansę na trafienie krytyczne (crit_chance). Jedynym wyjątkiem jest
-        // biżuteria (naszyjnik/pierścień), która sporadycznie i w niewielkiej, płaskiej
-        // ilości (+1..+5, patrz niżej w pętli generującej) może dać bonus do atrybutu.
+        // UWAGA (itemizacja klasowa, 2026-07-28): bronie NADAL nie przydzielają surowych
+        // atrybutów (STR/INT/VIT/AGI) - dają wyłącznie obrażenia fizyczne/magiczne
+        // (attack_min/max, magic_attack_min/max lub "magic burst" Dzwonów) i crit_chance,
+        // dokładnie jak w poprzednim reworku itemizacji. To, co się zmieniło, to 3 zestawy
+        // zbroi (hełm/klatka/buty) tematyczne per "klasa" (patrz $prototypes niżej:
+        // sufiks `_w` = Wojownik, `_m` = Mag, `_a` = Skrytobójca/Ninja) - te NAPRAWDĘ znowu
+        // dają surowe atrybuty, oprócz swoich zwykłych statów (defense/hp_bonus/mana_bonus/
+        // crit_chance), poprzez tablicę $classArmorAttributes zdefiniowaną niżej:
+        //   - Mag (`helmet_m`/`armor_m`/`boots_m`)         -> INT (int_bonus)
+        //   - Skrytobójca/Ninja (`helmet_a`/`armor_a`/`boots_a`) -> AGI (agi_bonus)
+        //   - Wojownik (`helmet_w`/`armor_w`/`boots_w`)     -> STR + VIT (str_bonus/vit_bonus, 50/50)
+        //
+        // Balans (patrz też docs/modules/profile_and_equipment.md, sekcja 4):
+        //   - Pula ręcznych punktów postaci (`character_points`) na max poziomie (99) to
+        //     10 + 98*3 = 304 (formuła w `LevelUpService`/`Character::syncMissingPoints`).
+        //   - Najlepszy zestaw zbroi możliwy do założenia na poziomie 90 to tier `level=85`
+        //     (kolejny, `level=95`, wymaga wyższego levelu) - ten tier celowo sumuje się do
+        //     RÓWNO 200 pkt danego atrybutu (head 25% / chest 50% / boots 25% z 200), czyli
+        //     ok. 40% w stosunku do pełnej ręcznej puli (200 / (200+304) ≈ 39,7%) - realnie
+        //     mniej, bo na poziomie 90 gracz ma dopiero 277 pkt ręcznych, nie 304.
+        //   - Progresja jest CELOWO liniowa (nie eksploduje wykładniczo jak `scale` przy
+        //     obrażeniach) - rośnie od 12 pkt (tier lvl 5) do 233 pkt (tier lvl 99, najlepszy
+        //     w grze), żeby ręczne rozdawanie punktów zawsze pozostawało głównym (>55%)
+        //     źródłem atrybutów, a eq klasowe było wyraźnym, ale nie dominującym bonusem.
+        //   - Ulepszanie (+0..+9 w Kowalu) i tak dolicza swoje standardowe +10%/poziom do
+        //     KAŻDEGO dodatniego stata w `base_stats` (patrz `ItemInstance::getUpgradeBonusStats()`),
+        //     więc w pełni wykute +9 sztuki dają dodatkowo do +90% ponad wartości z tabeli -
+        //     to świadomie spójne z tym, jak działają już inne staty (obrażenia/obrona/hp).
+        //   - Jedynym wyjątkiem POZA tym systemem klasowym pozostaje biżuteria (naszyjnik/
+        //     pierścień), która sporadycznie i w niewielkiej, płaskiej ilości (+1..+5, patrz
+        //     niżej w pętli generującej) może dać bonus do LOSOWEGO atrybutu, niezależnie od
+        //     klasy/tematu.
+        $classArmorAttributes = [
+            5   => [
+                'helmet_w' => ['str_bonus' => 2, 'vit_bonus' => 1], 'armor_w' => ['str_bonus' => 3, 'vit_bonus' => 3], 'boots_w' => ['str_bonus' => 2, 'vit_bonus' => 1],
+                'helmet_m' => ['int_bonus' => 3], 'armor_m' => ['int_bonus' => 6], 'boots_m' => ['int_bonus' => 3],
+                'helmet_a' => ['agi_bonus' => 3], 'armor_a' => ['agi_bonus' => 6], 'boots_a' => ['agi_bonus' => 3],
+            ],
+            15  => [
+                'helmet_w' => ['str_bonus' => 4, 'vit_bonus' => 5], 'armor_w' => ['str_bonus' => 8, 'vit_bonus' => 9], 'boots_w' => ['str_bonus' => 4, 'vit_bonus' => 5],
+                'helmet_m' => ['int_bonus' => 9], 'armor_m' => ['int_bonus' => 17], 'boots_m' => ['int_bonus' => 9],
+                'helmet_a' => ['agi_bonus' => 9], 'armor_a' => ['agi_bonus' => 17], 'boots_a' => ['agi_bonus' => 9],
+            ],
+            25  => [
+                'helmet_w' => ['str_bonus' => 8, 'vit_bonus' => 7], 'armor_w' => ['str_bonus' => 14, 'vit_bonus' => 15], 'boots_w' => ['str_bonus' => 8, 'vit_bonus' => 7],
+                'helmet_m' => ['int_bonus' => 15], 'armor_m' => ['int_bonus' => 29], 'boots_m' => ['int_bonus' => 15],
+                'helmet_a' => ['agi_bonus' => 15], 'armor_a' => ['agi_bonus' => 29], 'boots_a' => ['agi_bonus' => 15],
+            ],
+            35  => [
+                'helmet_w' => ['str_bonus' => 10, 'vit_bonus' => 11], 'armor_w' => ['str_bonus' => 20, 'vit_bonus' => 20], 'boots_w' => ['str_bonus' => 10, 'vit_bonus' => 11],
+                'helmet_m' => ['int_bonus' => 21], 'armor_m' => ['int_bonus' => 40], 'boots_m' => ['int_bonus' => 21],
+                'helmet_a' => ['agi_bonus' => 21], 'armor_a' => ['agi_bonus' => 40], 'boots_a' => ['agi_bonus' => 21],
+            ],
+            45  => [
+                'helmet_w' => ['str_bonus' => 13, 'vit_bonus' => 13], 'armor_w' => ['str_bonus' => 27, 'vit_bonus' => 27], 'boots_w' => ['str_bonus' => 13, 'vit_bonus' => 13],
+                'helmet_m' => ['int_bonus' => 26], 'armor_m' => ['int_bonus' => 54], 'boots_m' => ['int_bonus' => 26],
+                'helmet_a' => ['agi_bonus' => 26], 'armor_a' => ['agi_bonus' => 54], 'boots_a' => ['agi_bonus' => 26],
+            ],
+            55  => [
+                'helmet_w' => ['str_bonus' => 16, 'vit_bonus' => 16], 'armor_w' => ['str_bonus' => 32, 'vit_bonus' => 33], 'boots_w' => ['str_bonus' => 16, 'vit_bonus' => 16],
+                'helmet_m' => ['int_bonus' => 32], 'armor_m' => ['int_bonus' => 65], 'boots_m' => ['int_bonus' => 32],
+                'helmet_a' => ['agi_bonus' => 32], 'armor_a' => ['agi_bonus' => 65], 'boots_a' => ['agi_bonus' => 32],
+            ],
+            65  => [
+                'helmet_w' => ['str_bonus' => 19, 'vit_bonus' => 19], 'armor_w' => ['str_bonus' => 38, 'vit_bonus' => 39], 'boots_w' => ['str_bonus' => 19, 'vit_bonus' => 19],
+                'helmet_m' => ['int_bonus' => 38], 'armor_m' => ['int_bonus' => 77], 'boots_m' => ['int_bonus' => 38],
+                'helmet_a' => ['agi_bonus' => 38], 'armor_a' => ['agi_bonus' => 77], 'boots_a' => ['agi_bonus' => 38],
+            ],
+            75  => [
+                'helmet_w' => ['str_bonus' => 22, 'vit_bonus' => 22], 'armor_w' => ['str_bonus' => 44, 'vit_bonus' => 44], 'boots_w' => ['str_bonus' => 22, 'vit_bonus' => 22],
+                'helmet_m' => ['int_bonus' => 44], 'armor_m' => ['int_bonus' => 88], 'boots_m' => ['int_bonus' => 44],
+                'helmet_a' => ['agi_bonus' => 44], 'armor_a' => ['agi_bonus' => 88], 'boots_a' => ['agi_bonus' => 44],
+            ],
+            85  => [
+                'helmet_w' => ['str_bonus' => 25, 'vit_bonus' => 25], 'armor_w' => ['str_bonus' => 50, 'vit_bonus' => 50], 'boots_w' => ['str_bonus' => 25, 'vit_bonus' => 25],
+                'helmet_m' => ['int_bonus' => 50], 'armor_m' => ['int_bonus' => 100], 'boots_m' => ['int_bonus' => 50],
+                'helmet_a' => ['agi_bonus' => 50], 'armor_a' => ['agi_bonus' => 100], 'boots_a' => ['agi_bonus' => 50],
+            ],
+            95  => [
+                'helmet_w' => ['str_bonus' => 28, 'vit_bonus' => 28], 'armor_w' => ['str_bonus' => 56, 'vit_bonus' => 56], 'boots_w' => ['str_bonus' => 28, 'vit_bonus' => 28],
+                'helmet_m' => ['int_bonus' => 56], 'armor_m' => ['int_bonus' => 112], 'boots_m' => ['int_bonus' => 56],
+                'helmet_a' => ['agi_bonus' => 56], 'armor_a' => ['agi_bonus' => 112], 'boots_a' => ['agi_bonus' => 56],
+            ],
+            99  => [
+                'helmet_w' => ['str_bonus' => 29, 'vit_bonus' => 29], 'armor_w' => ['str_bonus' => 58, 'vit_bonus' => 59], 'boots_w' => ['str_bonus' => 29, 'vit_bonus' => 29],
+                'helmet_m' => ['int_bonus' => 58], 'armor_m' => ['int_bonus' => 117], 'boots_m' => ['int_bonus' => 58],
+                'helmet_a' => ['agi_bonus' => 58], 'armor_a' => ['agi_bonus' => 117], 'boots_a' => ['agi_bonus' => 58],
+            ],
+        ];
+
         $prototypes = [
             'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
             'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 10]],
@@ -211,9 +294,20 @@ class ItemTemplateSeeder extends Seeder
                     }
                 }
 
+                // Itemizacja klasowa: zestawy zbroi Wojownika/Maga/Skrytobójcy (_w/_m/_a)
+                // dostają dodatkowo skalujący się liniowo bonus atrybutu, NIEZALEŻNIE od
+                // multiplikatywnej skali `scale` powyżej (patrz duży komentarz nad
+                // $classArmorAttributes). To jedyne miejsce (poza biżuterią) gdzie
+                // wygenerowany szablon dostaje surowy atrybut.
+                if (isset($classArmorAttributes[$theme['level']][$protoKey])) {
+                    foreach ($classArmorAttributes[$theme['level']][$protoKey] as $attrKey => $attrVal) {
+                        $scaledStats[$attrKey] = $attrVal;
+                    }
+                }
+
                 // Wyjątek dla biżuterii: sporadyczny, PŁASKI bonus do jednego atrybutu
-                // (+1..+5), niezależny od skali poziomu - jedyne miejsce, gdzie przedmiot
-                // wciąż może dotknąć STR/INT/VIT/AGI, i to w bardzo skromnej ilości.
+                // (+1..+5), niezależny od skali poziomu - to nadal osobny, dodatkowy
+                // mechanizm (biżuteria nie ma "klasy") obok systemu klasowego wyżej.
                 if (in_array($protoKey, ['amulet', 'ring'], true) && $index % 2 === 1) {
                     $flatAttrKeys = ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
                     $flatValues = [1, 4, 5];
@@ -243,9 +337,9 @@ class ItemTemplateSeeder extends Seeder
                         ],
                     ]);
                 } else {
-                    // Re-uruchomienie seedera synchronizuje też statystyki z nowym
-                    // schematem itemizacji (bez tego istniejące szablony zostałyby
-                    // ze starymi, atrybutowymi statami na żywej bazie).
+                    // Re-uruchomienie seedera synchronizuje też statystyki z aktualnym
+                    // schematem itemizacji klasowej (bez tego istniejące szablony
+                    // zostałyby ze starymi statami na żywej bazie).
                     $existing->update([
                         'sub_type' => $proto['sub_type'] ?? null,
                         'base_stats' => $scaledStats,

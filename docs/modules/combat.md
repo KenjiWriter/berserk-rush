@@ -35,15 +35,19 @@ Wewnątrz tury występują 3 stany ataku:
     - **Domyślnie / Pięści (`barehands`)**: `STR * 2`
 - HP u gracza zależy głównie od `VIT`: `100 + (VIT * 10) + (Poziom * 5)`. HP u potworów skaluje się z ich poziomem oraz poziomem gracza.
 
-> **Uwaga (rework itemizacji, 2026-07-28):** Przedmioty (broń, zbroja) nie przydzielają
-> już bonusów do surowych atrybutów (STR/INT/VIT/AGI) - `getAttributeAttackBonus` nadal
-> liczy bonus ataku z atrybutów postaci (rozdanych ręcznie punktów), ale te atrybuty nie
-> są już zasilane przez ekwipunek. Zamiast tego przedmioty dają wyłącznie: obrażenia
-> fizyczne (`attack_min`/`attack_max`), obrażenia magiczne (`magic_attack_min`/`max`),
-> obronę (`defense`), HP (`hp_bonus`) i szansę na trafienie krytyczne (`crit_chance`).
-> Jedynym wyjątkiem jest biżuteria (naszyjnik/pierścień), która sporadycznie i w bardzo
-> niewielkiej, płaskiej ilości (+1..+5) może nadal dać bonus do jednego atrybutu - patrz
-> `docs/modules/profile_and_equipment.md`.
+> **Uwaga (itemizacja klasowa, 2026-07-28):** Bronie nadal nie przydzielają bonusów do
+> surowych atrybutów (STR/INT/VIT/AGI) - dają wyłącznie obrażenia fizyczne
+> (`attack_min`/`attack_max`), obrażenia magiczne (`magic_attack_min`/`max`), obronę
+> (`defense`), HP (`hp_bonus`) i szansę na trafienie krytyczne (`crit_chance`).
+> `getAttributeAttackBonus` liczy bonus ataku z atrybutów postaci (STR/INT/AGI), a te
+> są zasilane przez: ręcznie rozdane punkty, biżuterię (sporadyczny płaski +1..+5) ORAZ
+> od dziś także **zestawy zbroi klasowej** (hełm/klatka/buty tematyczne per Wojownik
+> `_w`→STR+VIT / Mag `_m`→INT / Skrytobójca `_a`→AGI, skalujące się liniowo z
+> poziomem przedmiotu) - to bezpośrednio wpływa na `getAttributeAttackBonus` (np.
+> pełny zestaw Maga podbija `INT`, więc mocniej "Różdżka: INT * 2") oraz na inicjatywę/
+> unik/krytyk liczone z `AGI` (zestaw Skrytobójcy). Pełne wyjaśnienie balansu (budżet
+> punktów, tabela wartości per poziom) - patrz `docs/modules/profile_and_equipment.md`,
+> sekcja 4.
 >
 > **Dzwon (`bell`) - broń hybrydowa "Magic Burst":** Dzwony zadają normalny atak
 > fizyczny jak inna broń walki wręcz (`attack_min`/`attack_max`), ale dodatkowo mają

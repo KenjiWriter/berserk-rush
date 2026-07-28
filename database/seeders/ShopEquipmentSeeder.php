@@ -14,10 +14,15 @@ class ShopEquipmentSeeder extends Seeder
         // Usunięcie starych przedmiotów kupców
         MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'gladiator'])->delete();
 
-        // UWAGA (rework itemizacji): jak w ItemTemplateSeeder - przedmioty ze sklepu
-        // NIE dają już surowych atrybutów (STR/INT/VIT/AGI), tylko obrażenia fizyczne,
-        // obrażenia magiczne, obronę, HP i szansę na trafienie krytyczne. Dzwon (bell)
-        // to broń hybrydowa: fizyczny atak bazowy + szansa na dodatkowy "magic burst".
+        // UWAGA (itemizacja klasowa, 2026-07-28): przedmioty ze sklepu (uniwersalne,
+        // bez podziału na klasy Wojownik/Mag/Skrytobójca) NADAL nie dają surowych
+        // atrybutów (STR/INT/VIT/AGI) - tylko obrażenia fizyczne, obrażenia magiczne,
+        // obronę, HP i szansę na trafienie krytyczne. Dzwon (bell) to broń hybrydowa:
+        // fizyczny atak bazowy + szansa na dodatkowy "magic burst". Zestawy TEMATYCZNE
+        // per klasa (Wojownik/Mag/Skrytobójca -> STR+VIT/INT/AGI) istnieją tylko wśród
+        // przedmiotów z dropu/craftingu w `ItemTemplateSeeder.php` (sufiksy `_w`/`_m`/`_a`)
+        // - jeśli w przyszłości sklep też ma dostać zestawy klasowe, trzeba by potroić
+        // liczbę wariantów `armor`/`helmet`/`boots` per tier tak jak tam.
         $prototypes = [
             'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
             'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 9]],
