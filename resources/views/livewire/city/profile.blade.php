@@ -454,7 +454,7 @@
                              // Odpowiedzi na saveAttributes mogą wrócić w innej kolejności niż zostały
                              // wysłane (np. przy szybkim klikaniu / kolejkowaniu zapisów). Ignorujemy
                              // każdą odpowiedź starszą niż już zastosowana, żeby atrybuty nigdy nie
-                             // "cofnęły się" do wcześniejszego stanu.
+                             // cofnęły się do wcześniejszego stanu.
                              if (typeof data.seq !== 'undefined' && data.seq !== null) {
                                  if (data.seq < this.lastAppliedSeq) return;
                                  this.lastAppliedSeq = data.seq;
