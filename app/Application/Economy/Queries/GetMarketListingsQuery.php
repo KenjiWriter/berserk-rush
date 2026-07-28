@@ -86,12 +86,26 @@ class GetMarketListingsQuery
         }
 
         // Validate sort column
-        $allowedSorts = ['created_at', 'price', 'expires_at'];
+        $allowedSorts = ['created_at', 'price', 'expires_at', 'level'];
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'created_at';
         }
         $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
 
-        return $query->orderBy($sortBy, $sortDir)->paginate($perPage);
+        if ($sortBy === 'level') {
+            // level_requirement mieszka w item_templates, więc sortujemy podzapytaniem,
+            // by uniknąć duplikowania wierszy przez join i konfliktów nazw kolumn.
+            $levelSubquery = \App\Infrastructure\Persistence\ItemTemplate::query()
+                ->selectRaw('level_requirement')
+                ->join('item_instances', 'item_instances.template_id', '=', 'item_templates.id')
+                ->whereColumn('item_instances.id', 'market_listings.item_instance_id')
+                ->limit(1);
+
+            $query->orderBy($levelSubquery, $sortDir);
+        } else {
+            $query->orderBy($sortBy, $sortDir);
+        }
+
+        return $query->paginate($perPage);
     }
 }

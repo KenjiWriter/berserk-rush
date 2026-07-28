@@ -144,6 +144,7 @@
                                     <select wire:model.live="sortBy" class="w-2/3 bg-stone-900 border border-amber-900/80 rounded-lg px-2 py-2 text-xs text-amber-100 font-sans">
                                         <option value="created_at">Najnowsze</option>
                                         <option value="price">Cena</option>
+                                        <option value="level">Poziom</option>
                                         <option value="expires_at">Wygasające</option>
                                     </select>
                                     <select wire:model.live="sortDir" class="w-1/3 bg-stone-900 border border-amber-900/80 rounded-lg px-2 py-2 text-xs text-amber-100 font-sans">
