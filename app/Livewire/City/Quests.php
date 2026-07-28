@@ -231,7 +231,25 @@ class Quests extends Component
                                    ->whereNotNull('completed_at');
                       });
             })
-            ->get();
+            ->get()
+            ->sortBy(function ($achievement) {
+                $ca = $achievement->characterAchievements->first();
+                $rewarded = $ca ? (bool) $ca->rewarded : false;
+                $progress = $ca ? $ca->progress : 0;
+                $percent = min(100, ($progress / max(1, $achievement->target_value)) * 100);
+
+                // Odebrane => na sam dół (grupa 2)
+                if ($rewarded) {
+                    return 20000 - $percent;
+                }
+                // Ukończone, czekające na odbiór => na górę (grupa 0)
+                $isCompleted = $ca && $ca->completed_at !== null;
+                if ($isCompleted) {
+                    return 0 - $percent; // np. -100 do 0
+                }
+                // W trakcie => środek (grupa 1), sortowane malejąco po %
+                return 10000 - $percent;
+            });
         }
 
         return view('livewire.city.quests', [
