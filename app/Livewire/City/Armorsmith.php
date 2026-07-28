@@ -5,16 +5,10 @@ namespace App\Livewire\City;
 use Livewire\Component;
 use App\Infrastructure\Persistence\Character;
 use Illuminate\Support\Facades\Gate;
-use App\Infrastructure\Persistence\ItemRecipe;
-use App\Infrastructure\Persistence\ItemTemplate;
-use App\Application\Items\CraftingService;
 
 class Armorsmith extends Component
 {
     public Character $character;
-
-    public string $activeTab = 'shop'; // 'shop', 'forge', 'craft'
-    public ?string $selectedUpgradeItemId = null;
 
     public array $selectedItemIds = [];
     public bool $bulkSellMode = false;
@@ -45,8 +39,8 @@ class Armorsmith extends Component
 
     public function selectByRarity(string $rarity)
     {
-        $query = ($this->playerItemFilter === 'materials') 
-            ? $this->character->materialStashItems() 
+        $query = ($this->playerItemFilter === 'materials')
+            ? $this->character->materialStashItems()
             : $this->character->inventoryItems();
 
         $matchingItemIds = $query
@@ -73,8 +67,8 @@ class Armorsmith extends Component
 
     public function selectAllInventory()
     {
-        $query = ($this->playerItemFilter === 'materials') 
-            ? $this->character->materialStashItems() 
+        $query = ($this->playerItemFilter === 'materials')
+            ? $this->character->materialStashItems()
             : $this->character->inventoryItems();
 
         $allIds = $query->pluck('id')->toArray();
@@ -109,36 +103,10 @@ class Armorsmith extends Component
         $this->character->refresh();
     }
 
-    public function selectItemForUpgrade($itemId)
-    {
-        $this->selectedUpgradeItemId = $itemId;
-        $this->activeTab = 'forge';
-    }
-
-    public function cancelUpgradeSelection()
-    {
-        $this->selectedUpgradeItemId = null;
-    }
-    
-    public bool $showUpgradeModal = false;
-    public string $upgradeModalTitle = '';
-    public string $upgradeModalMessage = '';
-    public string $upgradeModalType = 'success';
-
-    public function closeUpgradeModal()
-    {
-        $this->showUpgradeModal = false;
-    }
-
     public function mount(Character $character): void
     {
         Gate::authorize('view', $character);
         $this->character = $character;
-    }
-
-    public function setTab(string $tab)
-    {
-        $this->activeTab = $tab;
     }
 
     public function buyItem(int $merchantItemId, \App\Application\Items\ShopService $shop)
@@ -171,43 +139,17 @@ class Armorsmith extends Component
         $this->character->refresh();
     }
 
-    public function upgradeItem(string $itemInstanceId, \App\Application\Items\UpgradeService $upgrade)
-    {
-        $item = \App\Infrastructure\Persistence\ItemInstance::find($itemInstanceId);
-        $result = $upgrade->upgradeItem($this->character, $item);
-        
-        $this->upgradeModalType = $result['success'] ? 'success' : 'error';
-        $this->upgradeModalTitle = $result['success'] ? 'Sukces!' : 'Niepowodzenie';
-        $this->upgradeModalMessage = $result['message'];
-        $this->showUpgradeModal = true;
-        
-        $this->dispatch('play-audio', type: $result['success'] ? 'upgrade-success' : 'upgrade-fail');
-        
-        $this->character->refresh();
-    }
-
     public function backToHub(): void
     {
         $this->redirect(route('city.hub', $this->character), navigate: true);
     }
 
-    public function craftItem(string $recipeId, CraftingService $craftingService)
+    public function goToBlacksmith(): void
     {
-        $recipe = ItemRecipe::find($recipeId);
-        if (!$recipe) return;
-
-        $result = $craftingService->craftItem($this->character, $recipe);
-
-        if ($result['success']) {
-            $this->dispatch('notify', type: 'success', message: $result['message']);
-            $this->dispatch('play-audio', type: 'upgrade-success');
-        } else {
-            $this->dispatch('notify', type: 'error', message: $result['message']);
-        }
-        $this->character->refresh();
+        $this->redirect(route('city.blacksmith', $this->character), navigate: true);
     }
 
-    public function render(\App\Application\Items\ShopService $shopService, \App\Application\Items\UpgradeService $upgradeService)
+    public function render(\App\Application\Items\ShopService $shopService)
     {
         $shopItems = \App\Infrastructure\Persistence\MerchantItem::where('merchant_id', 'armorsmith')
             ->where('required_level', '<=', $this->character->level)
@@ -217,7 +159,7 @@ class Armorsmith extends Component
             ->filter(function($mi) {
                 return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
             });
-        
+
         $shopPrices = [];
         foreach($shopItems as $mi) {
             if (!$mi->template) continue;
@@ -226,106 +168,13 @@ class Armorsmith extends Component
 
 
         // Sell items based on playerItemFilter
-        $inventoryItems = ($this->playerItemFilter === 'materials') 
+        $inventoryItems = ($this->playerItemFilter === 'materials')
             ? $this->character->materialStashItems()->take(100)->get()
             : $this->character->inventoryItems()->take(64)->get();
 
         $sellPrices = [];
         foreach($inventoryItems as $item) {
             $sellPrices[$item->id] = $shopService->getSellPrice($item);
-        }
-
-        // Upgrade only armors
-        $upgradableItems = $this->character->inventoryItems()->whereHas('template', function($q) {
-            $q->where('type', 'armor');
-        })->take(64)->get()->merge(
-            $this->character->equippedItems()->whereHas('template', function($q) {
-                $q->where('type', 'armor');
-            })->get()
-        );
-        
-        $upgradeCosts = [];
-        foreach($upgradableItems as $item) {
-            $upgradeCosts[$item->id] = $upgradeService->getUpgradeCost($item);
-        }
-        
-        $inventoryMaterials = $this->character->items()
-            ->whereIn('location', ['material_stash', 'inventory'])
-            ->whereHas('template', function($q) {
-                $q->where('type', 'material');
-            })->get();
-
-        $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
-            $q->where('type', 'armor');
-        })->get();
-
-        // Batch fetch monster drops to eliminate N+1 queries
-        $allMatIds = [];
-        foreach ($recipes as $recipe) {
-            foreach ($recipe->ingredients as $ing) {
-                if (!empty($ing['template_id'])) {
-                    $allMatIds[] = $ing['template_id'];
-                }
-            }
-        }
-        $allMatIds = array_unique($allMatIds);
-
-        $monsterDropsMap = [];
-        if (!empty($allMatIds)) {
-            $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $allMatIds)
-                ->whereHas('lootTable.monsters')
-                ->with('lootTable.monsters')
-                ->get();
-            foreach ($entries as $entry) {
-                if ($entry->lootTable && $entry->lootTable->monsters) {
-                    foreach ($entry->lootTable->monsters as $m) {
-                        if ($m->name) {
-                            $monsterDropsMap[$entry->ref_ulid][] = $m->name;
-                        }
-                    }
-                }
-            }
-            foreach ($monsterDropsMap as $ulid => $mList) {
-                $monsterDropsMap[$ulid] = array_values(array_unique($mList));
-            }
-        }
-
-
-        $preparedRecipes = [];
-        foreach ($recipes as $recipe) {
-            $preparedIngredients = [];
-            $canCraft = $this->character->gold >= $recipe->gold_cost;
-
-            foreach ($recipe->ingredients as $ing) {
-                $mat = ItemTemplate::find($ing['template_id']);
-                $owned = $inventoryMaterials->where('template_id', $ing['template_id'])->sum('stack_size');
-                $req = $ing['quantity'];
-                
-                if ($owned < $req) $canCraft = false;
-
-                $dropMonsters = $mat ? ($monsterDropsMap[$mat->id] ?? []) : [];
-
-                $preparedIngredients[] = [
-                    'name' => $mat ? $mat->name : 'Nieznany',
-                    'icon' => $mat ? $mat->icon : null,
-                    'owned' => $owned,
-                    'required' => $req,
-                    'ok' => $owned >= $req,
-                    'dropped_by' => $dropMonsters,
-                ];
-            }
-
-            $preparedRecipes[] = [
-                'id' => $recipe->id,
-                'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
-                'result_icon' => $recipe->resultItemTemplate->icon ?? null,
-                'result_level' => $recipe->resultItemTemplate->level_requirement ?? 1,
-                'result_type' => $recipe->resultItemTemplate->type ?? 'armor',
-                'result_stats' => $recipe->resultItemTemplate->base_stats ?? [],
-                'gold_cost' => $recipe->gold_cost,
-                'ingredients' => $preparedIngredients,
-                'can_craft' => $canCraft,
-            ];
         }
 
         $equipped = [];
@@ -338,10 +187,6 @@ class Armorsmith extends Component
             'shopPrices' => $shopPrices,
             'inventoryItems' => $inventoryItems,
             'sellPrices' => $sellPrices,
-            'upgradableItems' => $upgradableItems,
-            'upgradeCosts' => $upgradeCosts,
-            'inventoryMaterials' => $inventoryMaterials,
-            'recipes' => $preparedRecipes,
             'equipped' => $equipped,
         ]);
     }

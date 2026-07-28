@@ -8,6 +8,7 @@ use App\Livewire\City\Adventure;
 use App\Livewire\Characters\Show;
 use App\Livewire\City\Armorsmith;
 use App\Livewire\City\Weaponsmith;
+use App\Livewire\City\Blacksmith;
 use App\Livewire\Characters\Create;
 use App\Livewire\Adventure\MapStub;
 use App\Http\Controllers\Auth\SocialLoginController;
@@ -61,6 +62,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/profile', \App\Livewire\City\Profile::class)->name('profile');
         Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
         Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
+        Route::get('/blacksmith', Blacksmith::class)->name('blacksmith');
         Route::get('/witch', Witch::class)->name('witch');
         Route::get('/wizard', \App\Livewire\City\Wizard::class)->name('wizard');
         Route::get('/warlock', \App\Livewire\City\Warlock::class)->name('warlock');

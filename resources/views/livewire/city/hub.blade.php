@@ -202,6 +202,20 @@
                 </button>
             </div>
 
+            {{-- BLACKSMITH / KOWAL (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-stone-700/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('blacksmith')" @click="travelingTo = 'Kowal'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20"></div>
+                    <div class="absolute inset-0 p-4 flex flex-col justify-end">
+                        <div wire:loading wire:target="goTo('blacksmith')" class="mb-1"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                        <h3 class="text-xl font-bold text-amber-300 medieval-font drop-shadow">Kowal</h3>
+                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Ulepszanie sprzętu</p>
+                    </div>
+                </button>
+            </div>
+
             {{-- QUESTS (6 cols, 1 row) --}}
             <div class="col-span-6 row-span-1 relative group rounded-3xl overflow-hidden border border-teal-900/50 shadow-lg transition-all duration-300 hover:border-teal-500/80 hover:shadow-[0_0_20px_rgba(20,184,166,0.2)] {{ $gameStage < 22 ? 'opacity-60 grayscale' : ($gameStage == 23 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '') }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
@@ -352,6 +366,17 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="font-bold text-amber-300 medieval-font text-lg">Brońmistrz</div>
+                        </div>
+                    </button>
+                </div>
+
+                {{-- Kowal (Blacksmith) --}}
+                <div class="col-span-1">
+                    <button wire:click="goTo('blacksmith')" @click="travelingTo = 'Kowal'" class="w-full h-36 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="font-bold text-amber-300 medieval-font text-lg">Kowal</div>
                         </div>
                     </button>
                 </div>

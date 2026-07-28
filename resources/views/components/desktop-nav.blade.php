@@ -361,6 +361,26 @@
                               class="truncate">ZBROJOWNIA</span>
                     </a>
 
+                    {{-- Kowal --}}
+                    <a href="{{ route('city.blacksmith', $charId) }}" wire:navigate
+                       @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Podróż do Kowala...', icon: 'fa-solid fa-anvil', url: $el.href })"
+                       :title="collapsed ? 'Kowal' : ''"
+                       :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
+                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.blacksmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                        <span :class="collapsed ? 'w-full text-amber-400' : 'w-5 text-amber-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
+                            <i class="fa-solid fa-anvil"></i>
+                        </span>
+                        <span x-show="!collapsed"
+                              x-transition:enter="transition-opacity ease-out duration-200 delay-100"
+                              x-transition:enter-start="opacity-0"
+                              x-transition:enter-end="opacity-100"
+                              x-transition:leave="transition-opacity ease-in duration-75"
+                              x-transition:leave-start="opacity-100"
+                              x-transition:leave-end="opacity-0"
+                              class="truncate">KOWAL</span>
+                    </a>
+
                     {{-- Wiedźma --}}
                     <a href="{{ route('city.witch', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
@@ -521,44 +541,6 @@
                               class="truncate">GILDIA</span>
                     </a>
 
-                    {{-- Wyzwania --}}
-                    @if($isQuestsLocked)
-                        <a href="javascript:void(0)"
-                           @click.prevent="$dispatch('notify', { type: 'error', message: 'Tablica Wyzwań jest zablokowana! Wbij 5 poziom postaci i wyczekuj rozkazów Kapitana.' })"
-                           :title="collapsed ? 'Wyzwania (Zablokowane)' : ''"
-                           :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
-                           class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 bg-stone-900/90 text-stone-500 border-stone-800 opacity-60 grayscale cursor-not-allowed">
-                            <span :class="collapsed ? 'w-full text-amber-500/40' : 'w-5 text-amber-500/40'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
-                                <i class="fa-solid fa-award"></i>
-                            </span>
-                            <span x-show="!collapsed" class="truncate">WYZWANIA</span>
-                            <span :class="collapsed ? 'absolute top-1 right-1' : 'absolute right-2 top-1/2 -translate-y-1/2'" class="text-amber-500 text-xs">
-                                <i class="fa-solid fa-lock"></i>
-                            </span>
-                        </a>
-                    @else
-                        <a href="{{ route('city.quests', $charId) }}" wire:navigate
-                           @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                           @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-award', url: $el.href })"
-                           :title="collapsed ? 'Wyzwania' : ''"
-                           :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
-                           class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.quests') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
-                            <span :class="collapsed ? 'w-full text-amber-400' : 'w-5 text-amber-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
-                                <i class="fa-solid fa-award"></i>
-                            </span>
-                            <span x-show="!collapsed"
-                                  x-transition:enter="transition-opacity ease-out duration-200 delay-100"
-                                  x-transition:enter-start="opacity-0"
-                                  x-transition:enter-end="opacity-100"
-                                  x-transition:leave="transition-opacity ease-in duration-75"
-                                  x-transition:leave-start="opacity-100"
-                                  x-transition:leave-end="opacity-0"
-                                  class="truncate">WYZWANIA</span>
-                            @if($questBadgeCount > 0)
-                                <span :class="collapsed ? 'absolute top-1 right-1' : 'absolute right-3 top-1/2 -translate-y-1/2'" class="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[10px] text-slate-950 font-black animate-bounce z-10 transition-all duration-300">!</span>
-                            @endif
-                        </a>
-                    @endif
 
                     {{-- Poczta --}}
                     <a href="{{ route('city.mailbox', $charId) }}" wire:navigate

@@ -78,7 +78,7 @@
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
                 <span class="relative flex items-center gap-2">
                     <i class="fa-solid fa-flask-vial text-emerald-400"></i>
-                    Warzenie Mikstur
+                    Rzemiosło
                 </span>
             </button>
         </div>
@@ -224,7 +224,7 @@
                             Kocioł Alchemiczny
                         </h3>
                         <p class="text-xs sm:text-sm text-emerald-200/80 font-sans leading-relaxed">
-                            Wybierz recepturę i zgromadź odpowiednie składniki. Resztą zajmie się magia kociołka.
+                            Wybierz recepturę i zgromadź odpowiednie składniki - mikstury, ale też broń i zbroję. Resztą zajmie się magia kociołka.
                         </p>
                     </div>
 
@@ -308,18 +308,18 @@
                                         </span>
                                     </div>
                                     
-                                    <button wire:click="craftPotion('{{ $recipe['id'] }}')" 
-                                        wire:loading.attr="disabled" 
+                                    <button wire:click="craftItem('{{ $recipe['id'] }}')"
+                                        wire:loading.attr="disabled"
                                         @if(!$recipe['can_craft']) disabled @endif
                                         class="relative overflow-hidden font-extrabold py-2.5 px-6 rounded-xl shadow-lg border transition-all duration-300 medieval-font tracking-wider uppercase text-xs cursor-pointer
-                                        {{ $recipe['can_craft'] 
-                                            ? 'bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 hover:from-emerald-600 hover:to-teal-600 text-white border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.4)] transform hover:scale-105 active:scale-95' 
+                                        {{ $recipe['can_craft']
+                                            ? 'bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 hover:from-emerald-600 hover:to-teal-600 text-white border-emerald-400/60 shadow-[0_0_15px_rgba(16,185,129,0.4)] transform hover:scale-105 active:scale-95'
                                             : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}">
-                                        <span wire:loading.remove wire:target="craftPotion('{{ $recipe['id'] }}')" class="flex items-center gap-1.5">
+                                        <span wire:loading.remove wire:target="craftItem('{{ $recipe['id'] }}')" class="flex items-center gap-1.5">
                                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                                            Uwarz Miksturę
+                                            Wytwórz
                                         </span>
-                                        <span wire:loading wire:target="craftPotion('{{ $recipe['id'] }}')" class="flex items-center gap-2">
+                                        <span wire:loading wire:target="craftItem('{{ $recipe['id'] }}')" class="flex items-center gap-2">
                                             <i class="fa-solid fa-spinner animate-spin text-emerald-300"></i>
                                             Bulgocze...
                                         </span>

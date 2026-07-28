@@ -63,7 +63,7 @@
                             @elseif($step == 17)
                                 Teraz, kiedy już potrafisz walczyć i zarządzać swoim rozwojem, pora poznać mieszkańców naszego miasta. Na początek zabiorę Cię do naszego miejscowego Brońmistrza. Przejdźmy tam!
                             @elseif($step == 18)
-                                Witaj u Brońmistrza! To tutaj możesz kupować nowe bronie, sprzedawać zbędny balast, którego nie chcesz wystawiać na Targowisku, a co najważniejsze - ulepszać swój ekwipunek. Pamiętaj, że każdy przedmiot można ulepszyć od poziomu +0 aż do +9 w Kuźni Ulepszeń!
+                                Witaj u Brońmistrza! To tutaj możesz kupować nowe bronie oraz sprzedawać zbędny balast, którego nie chcesz wystawiać na Targowisku. Gdy zechcesz ulepszyć swój ekwipunek, odwiedź naszego Kowala - to on w swojej Kuźni podniesie poziom Twojego sprzętu od +0 aż do +9!
                             @elseif($step == 19)
                                 Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Brońmistrza nową broń - znacznie ułatwi Ci to początkowe potyczki!
                             @elseif($step == 21)
