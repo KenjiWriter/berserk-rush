@@ -955,7 +955,13 @@ class EncounterService
 
         $baseCrit = 0.05 + ($agility * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
-        $critChance = max(0.03, min(0.50, $baseCrit - $agiCritPenalty));
+        // UWAGA (fix 2026-07-28): usunięto górny sufit 50% na życzenie - szansa gracza na
+        // krytyka rośnie teraz bez ograniczenia wraz z AGI oraz crit_chance z ekwipunku
+        // (nowy system itemów opiera się mocno na tej staty, więc stary sztywny cap
+        // psuł skalowanie). Dolny próg 0.03 zostaje, żeby krytyk nigdy nie spadł do zera
+        // przy bardzo dużej przewadze AGI potwora. Krytyk POTWORA (rollMonsterCritical
+        // poniżej) zostaje bez zmian, wciąż capowany na 30%.
+        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
@@ -976,8 +982,14 @@ class EncounterService
 
     private function rollDodge(int $defenderAgi, int $attackerAgi): bool
     {
+        // UWAGA (fix 2026-07-28): usunięto górny sufit 18% na życzenie. Ta funkcja jest
+        // współdzielona - liczy szansę na unik zarówno gdy broni się gracz, jak i gdy
+        // broni się potwór (patrz wywołania w playerAttack()/monsterAttack() poniżej),
+        // więc zdjęcie capa dotyczy obu stron symetrycznie, tak jak to już wcześniej
+        // działało (nie było tu podziału gracz/potwór - w przeciwieństwie do rollCritical
+        // vs rollMonsterCritical, które to zawsze były rozdzielone).
         $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        $dodgeChance = min(0.18, 0.03 + ($agiDodgeAdvantage * 0.0015));
+        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015);
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }
