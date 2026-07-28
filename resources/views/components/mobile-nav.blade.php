@@ -8,7 +8,7 @@
         $questBadgeCount = $claimableQuests + $availableQuests;
 
         $unclaimedAchievements = $character ? \App\Infrastructure\Persistence\CharacterAchievement::where('character_id', $character->id)->whereNotNull('completed_at')->where('rewarded', false)->count() : 0;
-        $unassignedStatPoints = $character ? ($character->character_points ?? 0) : 0;
+        $unassignedStatPoints = $character ? max(0, (int) ($character->character_points ?? 0)) : 0;
         $profileBadgeCount = $unclaimedAchievements + $unassignedStatPoints;
 
         $skillPointsCount = $character ? ($character->skill_points ?? 0) : 0;
