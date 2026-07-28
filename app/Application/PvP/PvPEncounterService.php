@@ -261,13 +261,18 @@ class PvPEncounterService
         $int = $attrs['int'] ?? 0;
         $agi = $attrs['agi'] ?? 0;
 
-        $statBonus = match ($weaponType) {
+        // UWAGA (rebalans obrażeń, 2026-07-28): zduplikowana logika z
+        // Character::getAttributeAttackBonus() (tu operujemy na snapshotach, nie na
+        // żywym modelu, więc nie można po prostu wywołać metody). Mnożnik musi być
+        // trzymany zsynchronizowany z `Character::ATTRIBUTE_DAMAGE_MULTIPLIER`.
+        $rawStatBonus = match ($weaponType) {
             'bow', 'sword', 'dagger' => $str + $agi,
             'bell' => $str + $int,
             'wand' => $int * 2,
             'axe' => $str * 2,
             default => $str * 2,
         };
+        $statBonus = (int) round($rawStatBonus * Character::ATTRIBUTE_DAMAGE_MULTIPLIER);
 
         $eqStats = $actingSnapshot['equipment_stats'] ?? [];
         $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);

@@ -16,6 +16,21 @@ class Character extends Model
 
     public const MAX_DAILY_PVP_FIGHTS = 5;
 
+    // UWAGA (rebalans obrażeń/HP, 2026-07-28): przedmioty dają teraz o 25% mniej
+    // płaskich statystyk (attack_min/max, magic_attack_min/max, magic_burst_min/max,
+    // hp_bonus - patrz seedery), a w zamian atrybuty postaci (STR/INT/AGI dla
+    // obrażeń, VIT dla HP) liczą się mocniej w tych samych formułach - o +50%
+    // względem poprzednich, "gołych" wartości STR/INT/AGI i VIT*10. Efekt: przy
+    // typowym zestawie na poziomie 50 udział atrybutów w obrażeniach rośnie z ok.
+    // 31% do ok. 46% całości, przy praktycznie tej samej sumie obrażeń (zmiana
+    // źródła mocy, a nie jej redukcja). Ta sama stała jest używana w
+    // `PvPEncounterService::resolveTurn()` (tam liczba jest duplikowana z powodu
+    // działania na snapshotach, nie na żywym modelu `Character`).
+    public const ATTRIBUTE_DAMAGE_MULTIPLIER = 1.5;
+    // Analogicznie: mnożnik VIT->HP podniesiony z 10 do 15 (+50%), przy tym samym
+    // -25% cięciu `hp_bonus` z przedmiotów.
+    public const ATTRIBUTE_HP_MULTIPLIER = 15;
+
     protected $fillable = [
         'user_id',
         'name',
@@ -542,7 +557,7 @@ class Character extends Model
         return Cache::remember($this->getCacheKey('max_hp'), 3600, function () {
             $vitality = $this->getTotalAttributes()['vit'] ?? 1;
             $eq = $this->getEquipmentStats();
-            return 100 + ($vitality * 10) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
+            return 100 + ($vitality * self::ATTRIBUTE_HP_MULTIPLIER) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
         });
     }
 
@@ -675,12 +690,14 @@ class Character extends Model
         $int = $attributes['int'] ?? 0;
         $agi = $attributes['agi'] ?? 0;
 
-        return match ($weaponType) {
+        $rawBonus = match ($weaponType) {
             'bow', 'sword', 'dagger' => $str + $agi,
             'bell' => $str + $int,
             'wand' => $int * 2,
             'axe' => $str * 2,
             default => $str * 2,
         };
+
+        return (int) round($rawBonus * self::ATTRIBUTE_DAMAGE_MULTIPLIER);
     }
 }

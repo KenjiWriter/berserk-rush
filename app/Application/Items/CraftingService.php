@@ -127,6 +127,12 @@ class CraftingService
      * i szansę na trafienie krytyczne. Jedynym wyjątkiem jest biżuteria
      * (`accessory`), która sporadycznie (25% szans na rzut) może dodatkowo wylosować
      * niewielki, płaski bonus do jednego atrybutu (+1..+5).
+     *
+     * UWAGA (rebalans obrażeń/HP, 2026-07-28): widełki attack_min/max,
+     * magic_attack_min/max i hp_bonus obcięte o ok. 25%, zrekompensowane wyższym
+     * mnożnikiem atrybutów w formule obrażeń/HP - patrz `Character::ATTRIBUTE_DAMAGE_MULTIPLIER`
+     * / `ATTRIBUTE_HP_MULTIPLIER` i identyczna notatka w `ItemTemplateSeeder.php`.
+     * `defense` i `crit_chance` (szanse, nie obrażenia) zostają bez zmian.
      */
     private function generateBonusStats($template, string $rarity): array
     {
@@ -147,21 +153,21 @@ class CraftingService
 
         $possibleStats = match ($template->type) {
             'weapon' => array_merge([
-                'attack_min' => [1, 5],
-                'attack_max' => [2, 8],
+                'attack_min' => [1, 4],
+                'attack_max' => [2, 6],
                 'crit_chance' => [1, 3],
             ], $isCasterWeapon ? [
-                'magic_attack_min' => [1, 5],
-                'magic_attack_max' => [2, 8],
+                'magic_attack_min' => [1, 4],
+                'magic_attack_max' => [2, 6],
             ] : []),
             'armor' => [
                 'defense' => [1, 5],
-                'hp_bonus' => [10, 50],
+                'hp_bonus' => [8, 38],
                 'crit_chance' => [1, 2],
             ],
             'accessory' => [
                 'defense' => [1, 3],
-                'hp_bonus' => [8, 35],
+                'hp_bonus' => [6, 26],
                 'crit_chance' => [1, 3],
             ],
             default => [],

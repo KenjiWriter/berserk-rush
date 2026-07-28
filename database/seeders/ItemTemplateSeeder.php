@@ -18,10 +18,10 @@ class ItemTemplateSeeder extends Seeder
 
             // Keys & Tutorial / Starter Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'sub_type' => null, 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
-            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 7, 'crit_chance' => 1], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 10], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 18], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'crit_chance' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 1], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 14], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
 
         foreach ($manualItems as $item) {
@@ -126,31 +126,39 @@ class ItemTemplateSeeder extends Seeder
             ],
         ];
 
+        // UWAGA (rebalans obrażeń/HP, 2026-07-28): attack_min/max, magic_attack_min/max,
+        // magic_burst_min/max i hp_bonus obcięte o 25% (x0.75) względem poprzednich
+        // wartości - zrekompensowane podniesieniem mnożnika atrybutów w formule obrażeń
+        // (`Character::ATTRIBUTE_DAMAGE_MULTIPLIER`, x1.5) i HP (`ATTRIBUTE_HP_MULTIPLIER`,
+        // VIT x15 zamiast x10). `defense` i `crit_chance`/`magic_burst_chance` (szanse, nie
+        // wartości obrażeń) NIE są tu ruszane - poza zakresem tej zmiany. Wartości niecałkowite
+        // są celowe: finalna wartość per-tier i tak przechodzi przez `(int) round(... * scale)`
+        // niżej w pętli generującej.
         $prototypes = [
-            'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
-            'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 10]],
-            'bow'      => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 3]],
+            'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1]],
+            'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 7.5]],
+            'bow'      => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 3]],
             // Dzwon (bell): broń hybrydowa - normalny atak fizyczny jak inne bronie
             // walki wręcz, plus szansa na dodatkowe, OSOBNE obrażenia magiczne przy
             // trafieniu ("magic burst"). Patrz EncounterService::calculateDamage().
-            'bell'     => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 4, 'magic_burst_chance' => 30, 'magic_burst_min' => 4, 'magic_burst_max' => 9]],
-            'wand'     => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 9, 'crit_chance' => 1]],
-            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'crit_chance' => 8]],
+            'bell'     => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3, 'magic_burst_chance' => 30, 'magic_burst_min' => 3, 'magic_burst_max' => 6.75]],
+            'wand'     => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6.75, 'crit_chance' => 1]],
+            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 3, 'crit_chance' => 8]],
 
-            'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 14]],
-            'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 6, 'hp_bonus' => 26]],
-            'boots_w'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 8]],
+            'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 10.5]],
+            'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 6, 'hp_bonus' => 19.5]],
+            'boots_w'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 6]],
 
-            'helmet_m' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 1, 'hp_bonus' => 6, 'mana_bonus' => 15]],
-            'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'hp_bonus' => 10, 'mana_bonus' => 30]],
-            'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 5, 'mana_bonus' => 10]],
+            'helmet_m' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 1, 'hp_bonus' => 4.5, 'mana_bonus' => 15]],
+            'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'hp_bonus' => 7.5, 'mana_bonus' => 30]],
+            'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 3.75, 'mana_bonus' => 10]],
 
-            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 6, 'crit_chance' => 3]],
-            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'hp_bonus' => 10, 'crit_chance' => 4]],
-            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 6, 'crit_chance' => 3]],
+            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 3]],
+            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'hp_bonus' => 7.5, 'crit_chance' => 4]],
+            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 3]],
 
-            'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 20, 'defense' => 1, 'crit_chance' => 1]],
-            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 10, 'defense' => 1, 'crit_chance' => 2]],
+            'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'defense' => 1, 'crit_chance' => 1]],
+            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 7.5, 'defense' => 1, 'crit_chance' => 2]],
         ];
 
         $themes = [

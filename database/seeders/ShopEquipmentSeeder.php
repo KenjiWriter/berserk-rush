@@ -23,19 +23,24 @@ class ShopEquipmentSeeder extends Seeder
         // przedmiotów z dropu/craftingu w `ItemTemplateSeeder.php` (sufiksy `_w`/`_m`/`_a`)
         // - jeśli w przyszłości sklep też ma dostać zestawy klasowe, trzeba by potroić
         // liczbę wariantów `armor`/`helmet`/`boots` per tier tak jak tam.
+        //
+        // UWAGA (rebalans obrażeń/HP, 2026-07-28): attack_min/max, magic_attack_min/max,
+        // magic_burst_min/max i hp_bonus obcięte o 25% (x0.75), zrekompensowane wyższym
+        // mnożnikiem atrybutów w formule obrażeń/HP - patrz identyczna notatka i
+        // wyjaśnienie w `ItemTemplateSeeder.php`.
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
-            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 9]],
-            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 2]],
-            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 7, 'crit_chance' => 1]],
-            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'crit_chance' => 6]],
-            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 3, 'magic_burst_chance' => 25, 'magic_burst_min' => 3, 'magic_burst_max' => 6]],
+            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1]],
+            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 6.75]],
+            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.75, 'crit_chance' => 2]],
+            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2.25, 'magic_attack_max' => 5.25, 'crit_chance' => 1]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 3, 'crit_chance' => 6]],
+            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 2.25, 'magic_burst_chance' => 25, 'magic_burst_min' => 2.25, 'magic_burst_max' => 4.5]],
 
-            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 18]],
-            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 10]],
-            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 6]],
-            'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'mana_bonus' => 10, 'defense' => 1]],
-            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['crit_chance' => 2, 'hp_bonus' => 8]],
+            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 13.5]],
+            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 7.5]],
+            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 4.5]],
+            'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 11.25, 'mana_bonus' => 10, 'defense' => 1]],
+            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['crit_chance' => 2, 'hp_bonus' => 6]],
         ];
 
         // Skala jest niższa niż w craftingu (~80%) -> teraz zmieniona na 1.2 aby Miecz Nowicjusza był lepszy od Zardzewiałego
