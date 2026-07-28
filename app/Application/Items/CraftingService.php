@@ -63,8 +63,8 @@ class CraftingService
             $rarity = 'common';
             $rollStats = [];
 
-            // If it's a weapon or armor, determine rarity and stats
-            if (in_array($template->type, ['weapon', 'armor'])) {
+            // If it's combat gear (weapon, armor or jewelry), determine rarity and stats
+            if (in_array($template->type, ['weapon', 'armor', 'accessory'])) {
                 $rarity = $this->rollRarity();
                 $rollStats = $this->generateBonusStats($template, $rarity);
             }
@@ -121,6 +121,13 @@ class CraftingService
         }
     }
 
+    /**
+     * UWAGA (rework itemizacji): wytworzone przedmioty nie losują już surowych
+     * atrybutów (STR/INT/VIT/AGI) - tylko obrażenia fizyczne/magiczne, obronę, HP
+     * i szansę na trafienie krytyczne. Jedynym wyjątkiem jest biżuteria
+     * (`accessory`), która sporadycznie (25% szans na rzut) może dodatkowo wylosować
+     * niewielki, płaski bonus do jednego atrybutu (+1..+5).
+     */
     private function generateBonusStats($template, string $rarity): array
     {
         $rollsCount = match ($rarity) {
@@ -135,24 +142,33 @@ class CraftingService
             return [];
         }
 
-        $possibleStats = [
-            'attack_min' => [1, 5],
-            'attack_max' => [2, 8],
-            'defense' => [1, 5],
-            'hp_bonus' => [10, 50],
-            'str_bonus' => [1, 3],
-            'agi_bonus' => [1, 3],
-            'int_bonus' => [1, 3],
-            'vit_bonus' => [1, 3],
-        ];
+        $baseStats = $template->base_stats ?? [];
+        $isCasterWeapon = isset($baseStats['magic_attack_min']) || isset($baseStats['magic_burst_chance']);
 
-        // Based on item type, filter what can roll
-        if ($template->type === 'weapon') {
-            unset($possibleStats['defense']);
-            unset($possibleStats['hp_bonus']);
-        } elseif ($template->type === 'armor') {
-            unset($possibleStats['attack_min']);
-            unset($possibleStats['attack_max']);
+        $possibleStats = match ($template->type) {
+            'weapon' => array_merge([
+                'attack_min' => [1, 5],
+                'attack_max' => [2, 8],
+                'crit_chance' => [1, 3],
+            ], $isCasterWeapon ? [
+                'magic_attack_min' => [1, 5],
+                'magic_attack_max' => [2, 8],
+            ] : []),
+            'armor' => [
+                'defense' => [1, 5],
+                'hp_bonus' => [10, 50],
+                'crit_chance' => [1, 2],
+            ],
+            'accessory' => [
+                'defense' => [1, 3],
+                'hp_bonus' => [8, 35],
+                'crit_chance' => [1, 3],
+            ],
+            default => [],
+        };
+
+        if (empty($possibleStats)) {
+            return [];
         }
 
         $rolledStats = [];
@@ -168,6 +184,13 @@ class CraftingService
             } else {
                 $rolledStats[$statKey] = $value;
             }
+        }
+
+        // Biżuteria: sporadyczna (25%) szansa na dodatkowy, płaski bonus atrybutu.
+        if ($template->type === 'accessory' && mt_rand(1, 100) <= 25) {
+            $flatAttrKeys = ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
+            $attrKey = $flatAttrKeys[array_rand($flatAttrKeys)];
+            $rolledStats[$attrKey] = ($rolledStats[$attrKey] ?? 0) + mt_rand(1, 5);
         }
 
         return $rolledStats;

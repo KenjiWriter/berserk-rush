@@ -426,13 +426,18 @@ class Character extends Model
                 'magic_attack_max' => 0,
                 'defense' => 0,
                 'crit_chance' => 0,
+                // "Magic burst": dodatkowe, oddzielne obrażenia magiczne z pewną szansą
+                // na trafienie (używane przez Dzwony - patrz EncounterService).
+                'magic_burst_chance' => 0,
+                'magic_burst_min' => 0,
+                'magic_burst_max' => 0,
             ];
 
             foreach ($this->equippedItems as $item) {
                 $base = $item->template->base_stats ?? [];
                 $roll = $item->roll_stats ?? [];
                 $upgrade = $item->getUpgradeBonusStats();
-                
+
                 $stats['hp_bonus'] += ($base['hp_bonus'] ?? 0) + ($roll['hp_bonus'] ?? 0) + ($upgrade['hp_bonus'] ?? 0);
                 $stats['mana_bonus'] += ($base['mana_bonus'] ?? 0) + ($roll['mana_bonus'] ?? 0) + ($upgrade['mana_bonus'] ?? 0);
                 $stats['attack_min'] += ($base['attack_min'] ?? 0) + ($roll['attack_min'] ?? 0) + ($upgrade['attack_min'] ?? 0);
@@ -441,9 +446,27 @@ class Character extends Model
                 $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0) + ($upgrade['magic_attack_max'] ?? 0);
                 $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
                 $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
-                
+                $stats['magic_burst_chance'] += ($base['magic_burst_chance'] ?? 0) + ($roll['magic_burst_chance'] ?? 0) + ($upgrade['magic_burst_chance'] ?? 0);
+                $stats['magic_burst_min'] += ($base['magic_burst_min'] ?? 0) + ($roll['magic_burst_min'] ?? 0) + ($upgrade['magic_burst_min'] ?? 0);
+                $stats['magic_burst_max'] += ($base['magic_burst_max'] ?? 0) + ($roll['magic_burst_max'] ?? 0) + ($upgrade['magic_burst_max'] ?? 0);
+
                 if (isset($roll['enchants']) && is_array($roll['enchants'])) {
                     foreach ($roll['enchants'] as $enchantType => $enchantValue) {
+                        // 'attack_power'/'magic_attack' to płaskie afiksy z Czarodzieja -
+                        // rozbijamy je na parę min/max, żeby faktycznie liczyły się w
+                        // kalkulacji obrażeń (calculateDamage czyta *_min/*_max, nie
+                        // pojedynczą wartość).
+                        if ($enchantType === 'attack_power') {
+                            $stats['attack_min'] += $enchantValue;
+                            $stats['attack_max'] += $enchantValue;
+                            continue;
+                        }
+                        if ($enchantType === 'magic_attack') {
+                            $stats['magic_attack_min'] += $enchantValue;
+                            $stats['magic_attack_max'] += $enchantValue;
+                            continue;
+                        }
+
                         if (!isset($stats[$enchantType])) {
                             $stats[$enchantType] = 0;
                         }

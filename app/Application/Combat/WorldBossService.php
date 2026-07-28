@@ -5,12 +5,8 @@ namespace App\Application\Combat;
 use App\Infrastructure\Persistence\WorldBossInstance;
 use App\Infrastructure\Persistence\WorldBossDamageLog;
 use App\Infrastructure\Persistence\Monster;
-use App\Infrastructure\Persistence\ItemTemplate;
-use App\Infrastructure\Persistence\ItemInstance;
-use App\Infrastructure\Persistence\Character;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class WorldBossService
 {
@@ -18,11 +14,19 @@ class WorldBossService
     {
         DB::beginTransaction();
         try {
-            // 1. Distribute rewards for all world bosses
-            $this->distributeRewards();
-
-            // 2. Spawn new world bosses for each map
-            $this->spawnWorldBosses();
+            // Nagrody za pokonanie world bossa są rozdawane WYŁĄCZNIE przez
+            // App\Jobs\WorldBossRewardJob (reaguje na realne zwycięstwo graczy,
+            // czyści instancję/logi i respawnuje danego bossa po fakcie - patrz
+            // docs/modules/world_boss.md). Wcześniej ten tick bezwarunkowo
+            // rozdawał nagrody i kasował WSZYSTKIE instancje co godzinę,
+            // niezależnie od tego czy boss faktycznie padł, przez co współdzielony
+            // pasek HP resetował się zanim gracze zdążyli go realnie wyzerować -
+            // to był główny powód, dla którego world bossy "nie dawało się zabić".
+            //
+            // Ten tick ma teraz jedno zadanie: dosiać brakujące instancje bossów
+            // (np. dla nowo dodanych map albo tych usuniętych przez
+            // WorldBossRewardJob po pokonaniu), bez ruszania walk w toku.
+            $this->ensureBossesSpawned();
 
             DB::commit();
             Log::info("WorldBossTick executed successfully.");
@@ -74,57 +78,13 @@ class WorldBossService
         }
     }
 
-    private function distributeRewards(): void
-    {
-        $allInstances = WorldBossInstance::all();
-
-        // 01k4jpx94j70x2vv10b835key1 is the rusty key ID, with fallback to type='key'
-        $keyTemplateId = '01k4jpx94j70x2vv10b835key1';
-        $keyTemplate = ItemTemplate::find($keyTemplateId) ?? ItemTemplate::where('type', 'key')->first();
-
-        if (!$keyTemplate) {
-            Log::warning("Key template not found for World Boss rewards.");
-            return;
-        }
-
-        foreach ($allInstances as $instance) {
-            $topLogs = WorldBossDamageLog::select('character_id', \Illuminate\Support\Facades\DB::raw('SUM(damage) as damage'))
-                ->where('world_boss_instance_id', $instance->id)
-                ->groupBy('character_id')
-                ->orderByDesc('damage')
-                ->limit(10)
-                ->get();
-
-            $rank = 1;
-            foreach ($topLogs as $log) {
-                $keysToGive = 1;
-                if ($rank === 1) $keysToGive = 5;
-                elseif ($rank === 2) $keysToGive = 4;
-                elseif ($rank === 3) $keysToGive = 3;
-                elseif ($rank === 4) $keysToGive = 2;
-                elseif ($rank >= 5 && $rank <= 10) $keysToGive = 1;
-
-                for ($i = 0; $i < $keysToGive; $i++) {
-                    ItemInstance::create([
-                        'template_id' => $keyTemplateId,
-                        'owner_character_id' => $log->character_id,
-                        'location' => 'inventory',
-                        'stack_size' => 1,
-                        'rarity' => 'uncommon',
-                        'roll_stats' => [],
-                        'upgrade_level' => 0,
-                        'bound_to_character' => false,
-                        'version' => 1,
-                    ]);
-                }
-                $rank++;
-            }
-        }
-
-        // Cleanup old instances and logs
-        WorldBossDamageLog::query()->delete();
-        WorldBossInstance::query()->delete();
-    }
+    // UWAGA (fix 2026-07-28): dawniej istniała tu metoda distributeRewards(),
+    // wywoływana co godzinę z tickHourly() niezależnie od tego czy world boss
+    // faktycznie został pokonany. Rozdawanie nagród (kluczy) za pokonanie world
+    // bossa jest teraz WYŁĄCZNIE odpowiedzialnością App\Jobs\WorldBossRewardJob,
+    // który reaguje na realne zwycięstwo (is_defeated = true) zamiast siłowo
+    // rozstrzygać walki w toku. Metodę usunięto, żeby uniknąć dwóch
+    // konkurujących ze sobą systemów nagród - patrz docs/modules/world_boss.md.
 
     private function spawnWorldBosses(): void
     {

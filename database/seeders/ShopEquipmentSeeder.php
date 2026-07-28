@@ -14,19 +14,23 @@ class ShopEquipmentSeeder extends Seeder
         // Usunięcie starych przedmiotów kupców
         MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'gladiator'])->delete();
 
+        // UWAGA (rework itemizacji): jak w ItemTemplateSeeder - przedmioty ze sklepu
+        // NIE dają już surowych atrybutów (STR/INT/VIT/AGI), tylko obrażenia fizyczne,
+        // obrażenia magiczne, obronę, HP i szansę na trafienie krytyczne. Dzwon (bell)
+        // to broń hybrydowa: fizyczny atak bazowy + szansa na dodatkowy "magic burst".
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 1]],
-            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 7, 'str_bonus' => 1]],
-            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'agi_bonus' => 1]],
-            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 1]],
-            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 1, 'crit_chance' => 3]],
-            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2, 'magic_attack_max' => 5, 'int_bonus' => 1]],
+            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
+            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 9]],
+            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 2]],
+            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 7, 'crit_chance' => 1]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'crit_chance' => 6]],
+            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 3, 'magic_burst_chance' => 25, 'magic_burst_min' => 3, 'magic_burst_max' => 6]],
 
-            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1]],
-            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1]],
-            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 5, 'agi_bonus' => 1]],
-            'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'mana_bonus' => 10, 'vit_bonus' => 1]],
-            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['str_bonus' => 1, 'agi_bonus' => 1, 'int_bonus' => 1]],
+            'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 18]],
+            'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 10]],
+            'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 6]],
+            'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'mana_bonus' => 10, 'defense' => 1]],
+            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['crit_chance' => 2, 'hp_bonus' => 8]],
         ];
 
         // Skala jest niższa niż w craftingu (~80%) -> teraz zmieniona na 1.2 aby Miecz Nowicjusza był lepszy od Zardzewiałego
@@ -115,7 +119,7 @@ class ShopEquipmentSeeder extends Seeder
 
         $generatedCount = 0;
 
-        foreach ($themes as $theme) {
+        foreach ($themes as $themeIndex => $theme) {
             $merchantTarget = $theme['merchant'] ?? null;
 
             foreach ($prototypes as $protoKey => $proto) {
@@ -125,6 +129,13 @@ class ShopEquipmentSeeder extends Seeder
 
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
+                    if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
+                        // Wartości procentowe nie mnożą się przez skalę poziomu - rosną
+                        // liniowo z kolejnym tier'em sklepu i mają sensowny sufit.
+                        $cap = $statName === 'crit_chance' ? 40 : 60;
+                        $scaledStats[$statName] = min($cap, $baseValue + ($themeIndex * 2));
+                        continue;
+                    }
                     $scaledValue = $baseValue * $theme['scale'];
                     // Zaokrąglij w górę i upewnij się, że minimum to 1
                     $scaledStats[$statName] = max(1, (int) ceil($scaledValue));
@@ -151,7 +162,11 @@ class ShopEquipmentSeeder extends Seeder
                         ],
                     ]);
                 } else {
-                    $template->update(['sub_type' => $proto['sub_type'] ?? null]);
+                    // Synchronizuj też statystyki przy ponownym odpaleniu seedera.
+                    $template->update([
+                        'sub_type' => $proto['sub_type'] ?? null,
+                        'base_stats' => $scaledStats,
+                    ]);
                 }
 
                 // Przypisanie do handlarza

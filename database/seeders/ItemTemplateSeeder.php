@@ -18,10 +18,10 @@ class ItemTemplateSeeder extends Seeder
 
             // Keys & Tutorial / Starter Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'sub_type' => null, 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
-            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'str_bonus' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 6, 'str_bonus' => 2], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8, 'vit_bonus' => 1], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 15, 'str_bonus' => 1], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 3, 'attack_max' => 7, 'crit_chance' => 1], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 10], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 18], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
 
         foreach ($manualItems as $item) {
@@ -36,28 +36,38 @@ class ItemTemplateSeeder extends Seeder
 
 
 
+        // UWAGA (rework itemizacji): przedmioty nie przydzielają już surowych atrybutów
+        // (STR/INT/VIT/AGI) postaci. Zamiast tego dają wyłącznie: obrażenia fizyczne
+        // (attack_min/attack_max), obrażenia magiczne (magic_attack_min/max lub - w
+        // przypadku Dzwonów - dodatkowy "magic burst"), obronę (defense), HP (hp_bonus)
+        // oraz szansę na trafienie krytyczne (crit_chance). Jedynym wyjątkiem jest
+        // biżuteria (naszyjnik/pierścień), która sporadycznie i w niewielkiej, płaskiej
+        // ilości (+1..+5, patrz niżej w pętli generującej) może dać bonus do atrybutu.
         $prototypes = [
-            'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 5, 'str_bonus' => 2]],
-            'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 8, 'str_bonus' => 3]],
-            'bow'      => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'agi_bonus' => 2]],
-            'bell'     => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 3, 'magic_attack_max' => 6, 'int_bonus' => 2, 'mana_bonus' => 10]],
-            'wand'     => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 8, 'int_bonus' => 3]],
-            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'agi_bonus' => 2, 'crit_chance' => 5]],
-            
-            'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 10, 'vit_bonus' => 1, 'str_bonus' => 1]],
-            'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 5, 'hp_bonus' => 20, 'vit_bonus' => 2, 'str_bonus' => 1]],
-            'boots_w'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 5, 'vit_bonus' => 1, 'str_bonus' => 1]],
-            
-            'helmet_m' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 1, 'mana_bonus' => 15, 'int_bonus' => 2]],
-            'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'mana_bonus' => 30, 'int_bonus' => 3]],
-            'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'mana_bonus' => 10, 'int_bonus' => 1]],
-            
-            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'agi_bonus' => 2, 'crit_chance' => 2]],
-            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'agi_bonus' => 3, 'crit_chance' => 3]],
-            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'agi_bonus' => 2, 'crit_chance' => 2]],
-            
-            'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 25, 'vit_bonus' => 2]],
-            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['str_bonus' => 3, 'agi_bonus' => 1, 'int_bonus' => 1]],
+            'sword'    => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 1]],
+            'axe'      => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 10]],
+            'bow'      => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 6, 'crit_chance' => 3]],
+            // Dzwon (bell): broń hybrydowa - normalny atak fizyczny jak inne bronie
+            // walki wręcz, plus szansa na dodatkowe, OSOBNE obrażenia magiczne przy
+            // trafieniu ("magic burst"). Patrz EncounterService::calculateDamage().
+            'bell'     => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 2, 'attack_max' => 4, 'magic_burst_chance' => 30, 'magic_burst_min' => 4, 'magic_burst_max' => 9]],
+            'wand'     => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 4, 'magic_attack_max' => 9, 'crit_chance' => 1]],
+            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1, 'attack_max' => 4, 'crit_chance' => 8]],
+
+            'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 14]],
+            'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 6, 'hp_bonus' => 26]],
+            'boots_w'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 8]],
+
+            'helmet_m' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 1, 'hp_bonus' => 6, 'mana_bonus' => 15]],
+            'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'hp_bonus' => 10, 'mana_bonus' => 30]],
+            'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 5, 'mana_bonus' => 10]],
+
+            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 6, 'crit_chance' => 3]],
+            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'hp_bonus' => 10, 'crit_chance' => 4]],
+            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 6, 'crit_chance' => 3]],
+
+            'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 20, 'defense' => 1, 'crit_chance' => 1]],
+            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 10, 'defense' => 1, 'crit_chance' => 2]],
         ];
 
         $themes = [
@@ -191,11 +201,23 @@ class ItemTemplateSeeder extends Seeder
                 
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
-                    if ($statName === 'crit_chance') {
-                        $scaledStats[$statName] = min(50, $baseValue + ($index * 2));
+                    if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
+                        // Wartości procentowe - rosną liniowo z kolejnym tier'em zamiast
+                        // mnożyć się przez skalę mocy, i mają sensowny sufit.
+                        $cap = $statName === 'crit_chance' ? 50 : 70;
+                        $scaledStats[$statName] = min($cap, $baseValue + ($index * 2));
                     } else {
                         $scaledStats[$statName] = (int) round($baseValue * $theme['scale']);
                     }
+                }
+
+                // Wyjątek dla biżuterii: sporadyczny, PŁASKI bonus do jednego atrybutu
+                // (+1..+5), niezależny od skali poziomu - jedyne miejsce, gdzie przedmiot
+                // wciąż może dotknąć STR/INT/VIT/AGI, i to w bardzo skromnej ilości.
+                if (in_array($protoKey, ['amulet', 'ring'], true) && $index % 2 === 1) {
+                    $flatAttrKeys = ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
+                    $flatValues = [1, 4, 5];
+                    $scaledStats[$flatAttrKeys[$index % count($flatAttrKeys)]] = $flatValues[$index % count($flatValues)];
                 }
 
                 $name = $theme['names'][$protoKey] ?? ('Przedmiot ' . $protoKey);
@@ -221,7 +243,13 @@ class ItemTemplateSeeder extends Seeder
                         ],
                     ]);
                 } else {
-                    $existing->update(['sub_type' => $proto['sub_type'] ?? null]);
+                    // Re-uruchomienie seedera synchronizuje też statystyki z nowym
+                    // schematem itemizacji (bez tego istniejące szablony zostałyby
+                    // ze starymi, atrybutowymi statami na żywej bazie).
+                    $existing->update([
+                        'sub_type' => $proto['sub_type'] ?? null,
+                        'base_stats' => $scaledStats,
+                    ]);
                 }
 
                 $generatedCount++;

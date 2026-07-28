@@ -42,13 +42,24 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Gobliński Sztylet'],
                         'items' => ['Miecz Leśnego Goblina', 'Zatrute Sztylety Goblina']
                     ],
+                    // 'Strażnik Puszczy' to zwykły killable boss (rank 'boss') tej mapy - to na niego
+                    // przeniesiono unikalne dropy, które wcześniej wisiały na 'Król Lasu' (patrz niżej).
                     'Strażnik Puszczy' => [
                         'materials' => ['Prastara Kora'],
-                        'items' => ['Topór Drwala z Mrocznego Lasu', 'Wzmocniony Hełm Strażnika']
+                        'items' => ['Topór Drwala z Mrocznego Lasu', 'Wzmocniony Hełm Strażnika', 'Ostrze Króla Lasu', 'Amulet Prastarego Dębu', 'Pierścień Wędrowca']
                     ],
+                    // UWAGA (fix 2026-07-28): 'Król Lasu' ma rank='worldboss'. Starcia ze
+                    // światowymi bossami w EncounterService::simulate() są na sztywno rozstrzygane
+                    // jako zwycięstwo przeciwnika ($winner = 'enemy'; "Worldboss always wins/survives"),
+                    // więc DropService NIGDY nie jest wywoływany dla tych walk - żaden wpis w
+                    // LootTable przypisanej bezpośrednio do potwora rangi worldboss nie może
+                    // realnie wypaść. Unikalne materiały/przedmioty zostały więc przeniesione na
+                    // 'Strażnika Puszczy' (zwykłego, zabijalnego bossa tej samej mapy). Nagrody za
+                    // faktyczne pokonanie world bossa (klucze do lochów) idą osobnym torem -
+                    // patrz `App\Jobs\WorldBossRewardJob` i `docs/modules/world_boss.md`.
                     'Król Lasu' => [
-                        'materials' => ['Prastara Kora'],
-                        'items' => ['Ostrze Króla Lasu', 'Amulet Prastarego Dębu', 'Pierścień Wędrowca']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -80,13 +91,22 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Odłamek Ruin'],
                         'items' => ['Ząbkowany Topór Upiora', 'Żelazne Sabatony']
                     ],
+                    // 'Władca Krypty' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Licz Cieni' (rank='worldboss', patrz uwaga niżej), w tym
+                    // 'Fragment Całunu', który wcześniej NIE MIAŁ żadnego innego źródła w grze.
                     'Władca Krypty' => [
-                        'materials' => ['Strzaskana Kość'],
-                        'items' => ['Dzwon Pokutny', 'Naszyjnik z Zimnej Stali']
+                        'materials' => ['Strzaskana Kość', 'Fragment Całunu'],
+                        'items' => ['Dzwon Pokutny', 'Naszyjnik z Zimnej Stali', 'Zbutwiała Szata Licza', 'Pierścień Wiecznego Żalu', 'Sztylety Skrytobójcy Dusz']
                     ],
+                    // UWAGA (fix 2026-07-28): tak jak 'Król Lasu' - 'Licz Cieni' ma
+                    // rank='worldboss', więc jego własna LootTable nigdy nie jest losowana
+                    // (DropService nie jest wywoływany dla walk ze światowym bossem). Materiał
+                    // 'Fragment Całunu' był tu JEDYNYM źródłem w całej grze - bez przeniesienia
+                    // przedmiot "Zbutwiała Szata Licza" byłby całkowicie nieosiągalny (nie do
+                    // zdobycia z dropu ani do wytworzenia, bo receptura wymaga tego materiału).
                     'Licz Cieni' => [
-                        'materials' => ['Fragment Całunu'],
-                        'items' => ['Zbutwiała Szata Licza', 'Pierścień Wiecznego Żalu', 'Sztylety Skrytobójcy Dusz']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -118,13 +138,19 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Gruba Skóra Trolla'],
                         'items' => ['Różdżka Ziemnej Magii', 'Płaszcz Skalnego Cienia']
                     ],
+                    // 'Starożytny Ogr' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Król Trolli' (rank='worldboss', patrz uwaga niżej).
                     'Starożytny Ogr' => [
-                        'materials' => ['Ogrzy Pazur'],
-                        'items' => ['Hełm z Czaszki Ogra', 'Łuk z Kości Jaskiniowca']
+                        'materials' => ['Ogrzy Pazur', 'Gruba Skóra Trolla'],
+                        'items' => ['Hełm z Czaszki Ogra', 'Łuk z Kości Jaskiniowca', 'Amulet Skalnego Trolla', 'Kamienny Pierścień']
                     ],
+                    // UWAGA (fix 2026-07-28): 'Król Trolli' ma rank='worldboss' - patrz
+                    // wyjaśnienie przy 'Król Lasu' powyżej (DropService nigdy nie jest
+                    // wywoływany dla walk ze światowym bossem, więc jego własna LootTable
+                    // nigdy się nie losuje).
                     'Król Trolli' => [
-                        'materials' => ['Gruba Skóra Trolla'],
-                        'items' => ['Amulet Skalnego Trolla', 'Kamienny Pierścień']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -156,13 +182,16 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Twarde Rzemienie'],
                         'items' => ['Dzwon Krwawego Rytuału', 'Skórznia Orkowego Zabójcy']
                     ],
+                    // 'Niszczyciel Pustkowi' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Wódz Orków' (rank='worldboss', patrz uwaga przy 'Król Lasu' na górze pliku -
+                    // DropService nigdy nie jest wywoływany dla walk ze światowym bossem).
                     'Niszczyciel Pustkowi' => [
-                        'materials' => ['Twarde Rzemienie'],
-                        'items' => ['Hełm Wodza Orków', 'Trzewiki Rytualne']
+                        'materials' => ['Twarde Rzemienie', 'Symbol Wodza'],
+                        'items' => ['Hełm Wodza Orków', 'Trzewiki Rytualne', 'Glewia Wodza Orków', 'Naszyjnik Orkowego Wodza']
                     ],
                     'Wódz Orków' => [
-                        'materials' => ['Symbol Wodza'],
-                        'items' => ['Glewia Wodza Orków', 'Naszyjnik Orkowego Wodza']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -194,13 +223,16 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Łuska Hydry'],
                         'items' => ['Ostrze z Zęba Hydry', 'Pancerz z Łusek Hydry', 'Zatrute Kły Hydry']
                     ],
+                    // 'Królowa Wiedźm' to zwykły killable boss (rank 'boss') tej mapy - przejęła
+                    // dropy 'Moczarowy Behemot' (rank='worldboss', patrz uwaga przy 'Król Lasu'
+                    // na górze pliku).
                     'Królowa Wiedźm' => [
-                        'materials' => ['Wiedźmi Amulet'],
-                        'items' => ['Pierścień Zgniłego Mchu', 'Podeszwy Bezdźwięku']
+                        'materials' => ['Wiedźmi Amulet', 'Łuska Hydry'],
+                        'items' => ['Pierścień Zgniłego Mchu', 'Podeszwy Bezdźwięku', 'Zardzewiały Hełm z Głębin', 'Naszyjnik z Oka Hydry']
                     ],
                     'Moczarowy Behemot' => [
-                        'materials' => ['Łuska Hydry'],
-                        'items' => ['Zardzewiały Hełm z Głębin', 'Naszyjnik z Oka Hydry']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -232,13 +264,15 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Zniszczona Księga Magii'],
                         'items' => ['Różdżka z Górskiego Kryształu', 'Dzwon Górskiego Echa', 'Kaptur Burzowych Chmur']
                     ],
+                    // 'Władca Cieni' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Smok Cienia' (rank='worldboss', patrz uwaga przy 'Król Lasu' na górze pliku).
                     'Władca Cieni' => [
-                        'materials' => ['Kryształ Cienia'],
-                        'items' => ['Sztylety Skalnego Kła', 'Pierścień Czarnego Kryształu']
+                        'materials' => ['Kryształ Cienia', 'Łuska Smoka Cienia'],
+                        'items' => ['Sztylety Skalnego Kła', 'Pierścień Czarnego Kryształu', 'Piekielny Miecz Smoka', 'Topór Smoczego Gniewu', 'Smoczy Łuk', 'Pancerz ze Smoczych Łusek', 'Amulet Smoczego Oka']
                     ],
                     'Smok Cienia' => [
-                        'materials' => ['Łuska Smoka Cienia'],
-                        'items' => ['Piekielny Miecz Smoka', 'Topór Smoczego Gniewu', 'Smoczy Łuk', 'Pancerz ze Smoczych Łusek', 'Amulet Smoczego Oka']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ],
@@ -270,13 +304,15 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Szkło Iluzji'],
                         'items' => ['Dzwon Mistrza Iluzji', 'Szata Mistrza Iluzji', 'Maska Niewidzialności']
                     ],
+                    // 'Wielki Inkwizytor' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Arcymag' (rank='worldboss', patrz uwaga przy 'Król Lasu' na górze pliku).
                     'Wielki Inkwizytor' => [
                         'materials' => ['Czysta Mana'],
-                        'items' => ['Łuk z Eterycznej Energii', 'Naszyjnik Runicznej Energii']
+                        'items' => ['Łuk z Eterycznej Energii', 'Naszyjnik Runicznej Energii', 'Kostur Arcymaga', 'Różdżka Smoczej Łuski', 'Pierścień Absolutu']
                     ],
                     'Arcymag' => [
                         'materials' => [],
-                        'items' => ['Kostur Arcymaga', 'Różdżka Smoczej Łuski', 'Pierścień Absolutu']
+                        'items' => []
                     ]
                 ]
             ],
@@ -308,13 +344,17 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Przeklęta Stal'],
                         'items' => ['Miecz Pana Zniszczenia', 'Korona Pana Zniszczenia']
                     ],
+                    // 'Książę Zniszczenia' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // dropy 'Pan Zniszczenia' (rank='worldboss', patrz uwaga przy 'Król Lasu' na
+                    // górze pliku). 'Esencja Zniszczenia' była już wspólnym materiałem obu wpisów,
+                    // więc nie duplikujemy jej na liście materiałów.
                     'Książę Zniszczenia' => [
                         'materials' => ['Esencja Zniszczenia'],
-                        'items' => ['Dzwon Ostatniego Tchnienia', 'Szata Mrocznej Pustki']
+                        'items' => ['Dzwon Ostatniego Tchnienia', 'Szata Mrocznej Pustki', 'Łuk Apokalipsy', 'Serce Pana Zniszczenia', 'Sygnet Apokalipsy', 'Sztylety Ostatecznego Zniszczenia']
                     ],
                     'Pan Zniszczenia' => [
-                        'materials' => ['Esencja Zniszczenia'],
-                        'items' => ['Łuk Apokalipsy', 'Serce Pana Zniszczenia', 'Sygnet Apokalipsy', 'Sztylety Ostatecznego Zniszczenia']
+                        'materials' => [],
+                        'items' => []
                     ]
                 ]
             ]

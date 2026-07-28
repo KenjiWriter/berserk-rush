@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\WorldBossDamageLog;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Mail;
+use App\Application\Combat\WorldBossService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -36,17 +37,23 @@ class WorldBossRewardJob implements ShouldQueue
             return;
         }
 
-        // Pobierz wszystkich bossów, którzy mają przynajmniej jeden wpis obrażeń i nie zostali jeszcze nagrodzeni
-        $activeBosses = WorldBossInstance::where('is_defeated', false)
+        // UWAGA (fix 2026-07-28): warunek był odwrócony - `is_defeated = false`
+        // oznaczał "jeszcze nie nagrodzony", więc ten job co godzinę siłowo
+        // rozstrzygał WSZYSTKIE toczące się walki (nawet gdy boss wciąż żył),
+        // rozdawał nagrody i resetował instancję, zanim gracze zdążyli go
+        // realnie pokonać. Teraz reagujemy wyłącznie na bossów faktycznie
+        // pokonanych (is_defeated = true, ustawiane przez walkę gracza po
+        // wyzerowaniu current_hp), zgodnie z docs/modules/world_boss.md.
+        $defeatedBosses = WorldBossInstance::where('is_defeated', true)
             ->whereHas('damageLogs')
             ->get();
 
-        if ($activeBosses->isEmpty()) {
-            Log::info('WorldBossRewardJob: Brak aktywnych bossów z logami obrażeń.');
+        if ($defeatedBosses->isEmpty()) {
+            Log::info('WorldBossRewardJob: Brak pokonanych bossów oczekujących na nagrody.');
             return;
         }
 
-        foreach ($activeBosses as $boss) {
+        foreach ($defeatedBosses as $boss) {
             DB::transaction(function () use ($boss, $keyTemplate) {
                 // Oblicz ranking po łącznych obrażeniach
                 $rankings = WorldBossDamageLog::select('character_id', DB::raw('SUM(damage) as total_damage'))
@@ -94,12 +101,19 @@ class WorldBossRewardJob implements ShouldQueue
                     $place++;
                 }
 
-                // Oznacz bossa jako pokonanego — nowa instancja zostanie wygenerowana przy następnym ataku
-                $boss->update(['is_defeated' => true]);
+                // Nagrody rozdane - usuń logi obrażeń i samą instancję (a nie tylko flagę),
+                // żeby nie zostawiać martwych rekordów i żeby respawn poniżej zawsze stworzył
+                // dla tej mapy świeżą, w pełni żywą instancję z pełnym HP.
+                WorldBossDamageLog::where('world_boss_instance_id', $boss->id)->delete();
+                $boss->delete();
 
-                Log::info("WorldBossRewardJob: Boss {$boss->id} oznaczony jako pokonany, nagrody rozdane.");
+                Log::info("WorldBossRewardJob: Boss {$boss->id} pokonany, nagrody rozdane, instancja i logi wyczyszczone.");
             });
         }
+
+        // Respawnuj bossów, których instancje właśnie usunęliśmy (i wszelkich innych
+        // brakujących), żeby mapa nie została bez world bossa.
+        app(WorldBossService::class)->ensureBossesSpawned();
 
         Log::info('WorldBossRewardJob: Zakończono rozdawanie nagród.');
     }

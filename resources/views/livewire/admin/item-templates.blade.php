@@ -252,11 +252,18 @@
                                     'defense' => 'Obrona',
                                     'hp_bonus' => 'Bonus HP',
                                     'mana_bonus' => 'Bonus Mana',
-                                    'str_bonus' => 'Siła (STR)',
-                                    'agi_bonus' => 'Zręczność (AGI)',
-                                    'int_bonus' => 'Inteligencja (INT)',
-                                    'vit_bonus' => 'Witalność (VIT)',
                                     'crit_chance' => 'Szansa na cios kryt.',
+                                    'magic_burst_chance' => 'Szansa Magic Burst (Dzwon) %',
+                                    'magic_burst_min' => 'Magic Burst Min (Dzwon)',
+                                    'magic_burst_max' => 'Magic Burst Max (Dzwon)',
+                                    // UWAGA (rework itemizacji): zwykły ekwipunek (broń/zbroja) nie powinien
+                                    // już dostawać surowych atrybutów. Poniższe 4 zostały jako WYJĄTEK
+                                    // wyłącznie dla biżuterii (naszyjnik/pierścień) - i to w małych ilościach
+                                    // (+1..+5), zgodnie z docs/modules/profile_and_equipment.md.
+                                    'str_bonus' => 'Siła (STR) - tylko biżuteria, +1..+5',
+                                    'agi_bonus' => 'Zręczność (AGI) - tylko biżuteria, +1..+5',
+                                    'int_bonus' => 'Inteligencja (INT) - tylko biżuteria, +1..+5',
+                                    'vit_bonus' => 'Witalność (VIT) - tylko biżuteria, +1..+5',
                                 ];
                             @endphp
                             @foreach($availableStats as $key => $label)

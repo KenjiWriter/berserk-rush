@@ -19,12 +19,17 @@ Przechowuje dane o aktualnie żyjącym (lub pokonanym) bossie na mapie. Śledzi 
 Rejestruje każde uderzenie zadane przez gracza danej instancji bossa. Powiązuje `world_boss_instance_id`, `character_id` oraz `damage`. 
 
 ### 3. Zadania Cykliczne (Cron Jobs)
-System opiera się na zadaniach (Jobs) uruchamianych cyklicznie przez konsolę (`WorldBossTick`):
-* **Spawn Bossa**: Gdy brakuje aktywnego bossa, system losowo wybiera potwora i przypisuje go do odpowiedniej mapy z ogromnym modyfikatorem HP (np. `hp * 1000`).
-* **Rozdawanie Nagród (`WorldBossRewardJob`)**: Kiedy boss zostanie pokonany lub upłynie jego czas ważności, zadanie zlicza całkowite obrażenia, tworzy ranking Top 10 i rozsyła maile z nagrodami (np. Kluczami do Lochów) według zasady: 1. miejsce (5 kluczy), 2. miejsce (4 klucze), 3. miejsce (3 klucze), 4-10. miejsce (1 klucz).
+System opiera się na dwóch niezależnych zadaniach hourly zarejestrowanych w `routes/console.php`:
+* **`app:world-boss-tick` → `WorldBossService::tickHourly()`**: JEDYNE zadanie tego joba to dosianie brakujących instancji bossów (`ensureBossesSpawned()`) — np. dla map, które aktualnie nie mają żywej instancji, w tym tych, które właśnie usunął `WorldBossRewardJob` po pokonaniu. Nie rusza walk w toku i nie rozdaje nagród.
+* **Rozdawanie Nagród (`WorldBossRewardJob`)**: JEDYNY autorytet od nagród. Reaguje wyłącznie na instancje z `is_defeated = true` (czyli faktycznie pokonane, patrz niżej), zlicza całkowite obrażenia, tworzy ranking Top 10 i rozsyła maile z nagrodami (Kluczami do Lochów, `location = 'mail'`) według zasady: 1. miejsce (5 kluczy), 2. miejsce (4 klucze), 3. miejsce (3 klucze), 4-10. miejsce (1 klucz). Po rozdaniu nagród usuwa logi obrażeń oraz samą instancję (nie tylko flagę), żeby kolejny `ensureBossesSpawned()` mógł stworzyć świeżą instancję z pełnym HP.
+
+> **UWAGA (fix 2026-07-28, historyczny bug — "world bossa nie da się zabić")**: Wcześniej `WorldBossService::tickHourly()` co godzinę BEZWARUNKOWO rozdawał nagrody i kasował WSZYSTKIE instancje (niezależnie od tego, czy boss faktycznie padł), a `WorldBossRewardJob` filtrował po `is_defeated = false` — czyli reagował na bossów WCIĄŻ ŻYWYCH, a nie pokonanych. Efekt: nawet gdy społeczność realnie wyzerowała wspólną pulę HP, oba zadania i tak co godzinę resetowały walkę od nowa, więc pokonanie bossa nigdy nie "domykało się" w bazie. Naprawiono usuwając zduplikowaną logikę nagród z `WorldBossService` i odwracając warunek w `WorldBossRewardJob` na `is_defeated = true`.
 
 ## Cykl Życia World Bossa
-1. **Pojawienie się (Spawn)**: Wywołane przez Command `WorldBossTick`. Boss staje się aktywny i widoczny dla wszystkich graczy w Mieście oraz jako przycisk na powiązanej Mapie.
-2. **Ataki Graczy**: Z każdym atakiem pula HP bossa topnieje. System asynchronicznie przelicza i dopisuje obrażenia używając `SimulateCombatJob`. 
-3. **Zakończenie (Defeat)**: Jeżeli HP spadnie poniżej zera, flaga `is_defeated` ustawiana jest na `true`.
-4. **Rozliczenie (Rewards)**: Uruchamia się Job pocztowy, który bezpiecznie przyznaje łupy na skrzynki pocztowe graczy w odpowiednich proporcjach.
+1. **Pojawienie się (Spawn)**: `ensureBossesSpawned()` (wywoływane przez `app:world-boss-tick` co godzinę oraz przez `WorldBossRewardJob` po rozdaniu nagród) tworzy instancję dla każdego potwora rangi `worldboss`, który nie ma aktualnie żywej instancji na swojej mapie. Boss staje się aktywny i widoczny dla wszystkich graczy w Mieście oraz jako przycisk na powiązanej Mapie.
+2. **Ataki Graczy**: Z każdym atakiem pula HP bossa topnieje (`EncounterService`, patrz `WorldBossDamageLog`). Każdy atak gracza jest w ramach walki rozstrzygany na jego niekorzyść (`$winner = 'enemy'`) — to celowe, bo world boss to wspólny licznik obrażeń, a nie walka 1:1 do wygrania; obrażenia zadane liczą się jednak realnie do `current_hp`.
+3. **Zakończenie (Defeat)**: Gdy `current_hp` spadnie do zera lub poniżej, flaga `is_defeated` ustawiana jest na `true` bezpośrednio w `EncounterService` — to jedyne miejsce, gdzie boss jest oznaczany jako realnie pokonany.
+4. **Rozliczenie (Rewards)**: `WorldBossRewardJob` (hourly) znajduje instancje z `is_defeated = true`, rozdaje nagrody pocztą, usuwa logi obrażeń i instancję, po czym wywołuje `ensureBossesSpawned()`, żeby mapa od razu dostała świeżego bossa.
+
+## Uwagi dot. dropów z world bossów
+Starcia ze światowym bossem NIGDY nie kończą się `$winner = 'player'` (patrz punkt 2 powyżej), więc `DropService` — który uruchamia się tylko przy zwycięstwie gracza — nigdy nie jest wywoływany dla tych walk. Jakikolwiek wpis w `LootTable` przypisany bezpośrednio do potwora rangi `worldboss` jest więc martwy i nieosiągalny. Unikalne materiały/przedmioty każdego world bossa zostały dlatego przeniesione (w `MonsterLootSeeder`) na zwykłego, zabijalnego potwora rangi `boss` z tej samej mapy — patrz `docs/modules/loot.md`. Nagrody za samo pokonanie world bossa (klucze do lochów) idą całkowicie osobnym torem opisanym wyżej.

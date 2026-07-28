@@ -207,10 +207,17 @@ class ItemInstance extends Model
             'defense' => 1.5,
             'hp_bonus' => 0.1,
             'mana_bonus' => 0.1,
+            // Wyjątek biżuterii: przedmioty co do zasady nie dają już atrybutów, ale
+            // gdy naszyjnik/pierścień wylosuje mały, płaski bonus (+1..+5), nadal
+            // powinien się liczyć do Combat Power.
             'str_bonus' => 2.0,
             'agi_bonus' => 2.0,
             'int_bonus' => 2.0,
             'vit_bonus' => 2.0,
+            'crit_chance' => 1.0,
+            'magic_burst_min' => 1.0,
+            'magic_burst_max' => 1.0,
+            'magic_burst_chance' => 1.5,
         ];
 
         foreach ($allStats as $stat => $value) {

@@ -35,6 +35,27 @@ Wewnątrz tury występują 3 stany ataku:
     - **Domyślnie / Pięści (`barehands`)**: `STR * 2`
 - HP u gracza zależy głównie od `VIT`: `100 + (VIT * 10) + (Poziom * 5)`. HP u potworów skaluje się z ich poziomem oraz poziomem gracza.
 
+> **Uwaga (rework itemizacji, 2026-07-28):** Przedmioty (broń, zbroja) nie przydzielają
+> już bonusów do surowych atrybutów (STR/INT/VIT/AGI) - `getAttributeAttackBonus` nadal
+> liczy bonus ataku z atrybutów postaci (rozdanych ręcznie punktów), ale te atrybuty nie
+> są już zasilane przez ekwipunek. Zamiast tego przedmioty dają wyłącznie: obrażenia
+> fizyczne (`attack_min`/`attack_max`), obrażenia magiczne (`magic_attack_min`/`max`),
+> obronę (`defense`), HP (`hp_bonus`) i szansę na trafienie krytyczne (`crit_chance`).
+> Jedynym wyjątkiem jest biżuteria (naszyjnik/pierścień), która sporadycznie i w bardzo
+> niewielkiej, płaskiej ilości (+1..+5) może nadal dać bonus do jednego atrybutu - patrz
+> `docs/modules/profile_and_equipment.md`.
+>
+> **Dzwon (`bell`) - broń hybrydowa "Magic Burst":** Dzwony zadają normalny atak
+> fizyczny jak inna broń walki wręcz (`attack_min`/`attack_max`), ale dodatkowo mają
+> szansę (`magic_burst_chance`, %) na dołożenie do trafienia OSOBNYCH, dodatkowych
+> obrażeń magicznych (`magic_burst_min`-`magic_burst_max`). Ten dodatkowy komponent
+> magiczny jest mitygowany tą samą obroną przeciwnika co reszta obrażeń (nie ma osobnej
+> "obrony magicznej" - to celowe uproszczenie) i w pełni uczestniczy w mnożniku trafienia
+> krytycznego. Logika: `EncounterService::calculateDamage()` (PvE, zwraca dodatkowy klucz
+> `magic` w tablicy wyniku obok `base`/`bonus`/`total`) oraz analogiczny fragment w
+> `PvPEncounterService::resolveTurn` (PvP, arena/wojny gildii) - obie ścieżki liczą
+> "magic burst" niezależnie, ale w ten sam sposób.
+
 ### 3. Wynik Walki i Nagrody
 Na sam koniec symulacji:
 - Ustalany jest zwycięzca.

@@ -344,6 +344,20 @@ class PvPEncounterService
             $targetState['effects'] = array_filter($targetState['effects'], fn($e) => ($e['duration'] ?? 0) > 0);
         }
 
+        // "Magic burst": bronie hybrydowe (np. Dzwon) mają szansę dołożyć dodatkowe
+        // obrażenia magiczne do ataku, poza zwykłymi obrażeniami fizycznymi.
+        // Mitygowane tą samą obroną przeciwnika co reszta obrażeń (uproszczony model).
+        $magicBurstDamage = 0;
+        $magicBurstChance = $eqStats['magic_burst_chance'] ?? 0;
+        if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
+            $burstMin = $eqStats['magic_burst_min'] ?? 0;
+            $burstMax = max($burstMin, $eqStats['magic_burst_max'] ?? 0);
+            if ($burstMax > 0) {
+                $magicBurstDamage = mt_rand((int) $burstMin, (int) $burstMax);
+                $damage += $magicBurstDamage;
+            }
+        }
+
         // Defender's defense
         $defVit = $targetSnapshot['attributes']['vit'] ?? 1;
         $defEq = $targetSnapshot['equipment_stats'] ?? [];
@@ -393,6 +407,7 @@ class PvPEncounterService
             'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
             'dotType' => $dotDamage > 0 ? $dotType : null,
             'crit' => $isCrit,
+            'magicDamage' => $magicBurstDamage > 0 ? (int) ($isCrit ? $magicBurstDamage * 1.5 : $magicBurstDamage) : null,
         ];
         
         if ($skillToUse) {

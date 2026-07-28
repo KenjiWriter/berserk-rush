@@ -35,8 +35,33 @@ class EnchantmentStrategy
         'resist_orcs' => [2, 10],
     ];
 
+    // Biżuteria (naszyjnik/pierścień): jedyny wyjątek od zasady "przedmioty nie
+    // dodają atrybutów" - zaklinanie może sporadycznie trafić w niewielki, płaski
+    // bonus do jednego atrybutu (+1..+5), obok zwykłych bonusów obronnych/HP.
+    private array $accessoryBonuses = [
+        'hp_bonus' => [20, 120],
+        'defense' => [2, 10],
+        'crit_chance' => [1, 5],
+        'str_bonus' => [1, 5],
+        'agi_bonus' => [1, 5],
+        'int_bonus' => [1, 5],
+        'vit_bonus' => [1, 5],
+    ];
+
     public function __construct(private RandomProvider $rng)
     {}
+
+    private function poolFor(ItemInstance $item): array
+    {
+        $type = $item->template->type;
+
+        if ($type === 'accessory') {
+            return $this->accessoryBonuses;
+        }
+
+        $isWeapon = in_array($type, ['sword', 'staff', 'bow', 'weapon']);
+        return $isWeapon ? $this->weaponBonuses : $this->armorBonuses;
+    }
 
     public function canEnchant(ItemInstance $item): bool
     {
@@ -63,9 +88,7 @@ class EnchantmentStrategy
 
     public function generateRandomEnchantment(ItemInstance $item): array
     {
-        $type = $item->template->type;
-        $isWeapon = in_array($type, ['sword', 'staff', 'bow', 'weapon']);
-        $pool = $isWeapon ? $this->weaponBonuses : $this->armorBonuses;
+        $pool = $this->poolFor($item);
 
         $currentEnchants = array_keys($item->getEnchantments());
         $availableBonuses = array_values(array_diff(array_keys($pool), $currentEnchants));
@@ -83,10 +106,8 @@ class EnchantmentStrategy
     
     public function generateMultipleRandomEnchantments(ItemInstance $item, int $count): array
     {
-        $type = $item->template->type;
-        $isWeapon = in_array($type, ['sword', 'staff', 'bow', 'weapon']);
-        $pool = $isWeapon ? $this->weaponBonuses : $this->armorBonuses;
-        
+        $pool = $this->poolFor($item);
+
         $availableBonuses = array_keys($pool);
         $enchants = [];
         

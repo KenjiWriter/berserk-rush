@@ -20,7 +20,8 @@ Realizacją craftingu zajmuje się wywoływany w akcji interfejsu (Livewire) mec
 1.  **Weryfikacja bazy surowcowej**: Pobranie ekwipunku gracza, sprawdzenie czy zsumowane *stacki* pokrywają *quantity* ze wszystkich składników wymienionych w JSON receptury.
 2.  **Weryfikacja środków finansowych**: Sprawdzenie balansu konta (gold).
 3.  **Transakcja Odbioru**: Odjęcie złota z postaci. Zmniejszenie `stack_size` odpowiadających `ItemInstance` u gracza (z usuwaniem przedmiotów jeśli ich *stack* osiągnie 0).
-4.  **Mechanika Rzadkości (Rarity)**: Dla sprzętu bojowego (broń, zbroja) gra losuje szansę na lepszą jakość (Common 70%, Uncommon 20%, Rare 8%, Epic 1.9%, Legendary 0.1%). Wylosowanie lepszej rzadkości dodaje bonusowe statystyki (`roll_stats`) i zwiększa Combat Power przedmiotu.
+4.  **Mechanika Rzadkości (Rarity)**: Dla sprzętu bojowego (broń, zbroja **i biżuteria**) gra losuje szansę na lepszą jakość (Common 70%, Uncommon 20%, Rare 8%, Epic 1.9%, Legendary 0.1%). Wylosowanie lepszej rzadkości dodaje bonusowe statystyki (`roll_stats`) i zwiększa Combat Power przedmiotu.
+    > **Uwaga (rework itemizacji, 2026-07-28):** Pula losowanych statystyk (`generateBonusStats`) nie zawiera już surowych atrybutów (STR/INT/VIT/AGI) dla broni i zbroi - tylko obrażenia fizyczne/magiczne, obronę, HP i szansę na trafienie krytyczne. Biżuteria (`accessory`) została dodatkowo włączona do tej mechaniki rzadkości (wcześniej crafting nie losował jej statystyk) i jako jedyna ma 25% szans na dodatkowy, płaski bonus do jednego atrybutu (+1..+5) - patrz `docs/modules/profile_and_equipment.md`.
 5.  **Generacja**: Utworzenie wynikowego przedmiotu z wpisem w Ekwipunku gracza.
 6.  **Rejestracja Historii**: Wpis logów transakcji do `ItemLedger` (`action` => 'crafting', `ref_type` => 'crafting_service') na rzecz Idempotency i celów analitycznych.
 

@@ -40,3 +40,16 @@ Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swo
 - Mechanika pozwala na szybkie dodawanie punktów pojedynczo (`+1`) lub po pięć sztuk naraz (`+5`).
 - UI używa animowanych wskaźników (pulse) dla nieprzydzielonych punktów i interaktywnych dymków (tooltipów) z informacją o działaniu konkretnej statystyki.
 - **Resetowanie Atrybutów:** Gracz ma możliwość zresetowania rozdanych atrybutów dla swoich postaci z poziomu Sklepu Premium (`ItemShopComponent`) za 50 Gemów. Reset zeruje przydzielone statystyki i zwraca całą pulę punktów (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdysponowania.
+
+> **Uwaga (rework itemizacji, 2026-07-28):** STR/INT/VIT/AGI to teraz wyłącznie
+> statystyki rozdawane ręcznie przez gracza (oraz bonusy z tytułów/osiągnięć) -
+> ekwipunek (broń, zbroja) nie dodaje już do nich żadnych bonusów. Przedmioty dają
+> zamiast tego: obrażenia fizyczne, obrażenia magiczne, obronę, HP i szansę na
+> trafienie krytyczne (patrz `docs/modules/combat.md`). **Jedynym wyjątkiem jest
+> biżuteria** (naszyjnik/pierścień w slotach `neck`/`ring`) - część egzemplarzy,
+> zwłaszcza tych wytworzonych w rzemiośle lub zaklętych u Wiedźmy, sporadycznie
+> nadal daje niewielki, płaski bonus do jednego atrybutu (+1 do +5, niezależnie od
+> poziomu/rzadkości przedmiotu - to nie skaluje się tak jak reszta statystyk).
+> `Character::getTotalAttributes()` nadal generycznie sumuje klucze `*_bonus` z
+> ekwipunku, więc ten wyjątek działa "za darmo" - nie wymagał zmian w kodzie postaci,
+> tylko w tym, co seedery/crafting/zaklinanie faktycznie przydzielają przedmiotom.

@@ -28,10 +28,17 @@ Moduł Czarodzieja pozwala graczom na dodawanie magicznych właściwości (bonus
 - Wylosowane statystyki są dopisywane do właściwości JSON `roll_stats['enchants']` w instancji przedmiotu (`ItemInstance`).
 
 ### 3. Pule Bonusów i Typy
-W zależności od typu przedmiotu losowane są odpowiednie statystyki. Przykładowo:
-- **Bronie (Main Hand):** Zwiększone obrażenia fizyczne, magiczne, obrażenia krytyczne, lub silny przeciwko konkretnemu typowi potworów (np. nieumarli, orkowie, demony).
-- **Zbroje (Klatka, Głowa, Stopy):** Zwiększone punkty życia, obrona, witalność, czy zmniejszenie otrzymywanych obrażeń.
-- **Biżuteria (Szyja, Pierścienie):** Bonusy do statystyk bazowych (np. INT, STR, AGI).
+W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane są odpowiednie statystyki. Przykładowo:
+- **Bronie (Main Hand):** Zwiększone obrażenia fizyczne (`attack_power`), magiczne (`magic_attack`), obrażenia krytyczne, lub silny przeciwko konkretnemu typowi potworów (np. nieumarli, orkowie, demony).
+- **Zbroje (Klatka, Głowa, Stopy):** Zwiększone punkty życia, obrona, szansa na unik, czy odporność na konkretny typ potworów.
+- **Biżuteria (Szyja, Pierścienie):** Ma własną, osobną pulę (`accessoryBonuses`) - głównie HP/obrona/krytyk, ale to **jedyny typ przedmiotu**, który może wylosować (obok reszty) niewielki, płaski bonus do jednego atrybutu bazowego (STR/INT/VIT/AGI, +1 do +5) - patrz `docs/modules/profile_and_equipment.md`. Zwykła broń i zbroja nie mogą już wylosować atrybutów.
+
+> **Uwaga (rework itemizacji, 2026-07-28):** Naprawiono afiksy `attack_power` i
+> `magic_attack` z puli broni - wcześniej zapisywały się w `roll_stats['enchants']`,
+> ale żadna kalkulacja obrażeń faktycznie ich nie odczytywała (silnik walki czyta
+> tylko `attack_min`/`attack_max`/`magic_attack_min`/`magic_attack_max`), więc te dwa
+> zaklęcia były martwe. `Character::getEquipmentStats()` teraz rozbija je na parę
+> min/max, więc realnie zwiększają obrażenia.
 
 ### 4. Reroll (Przelosowanie)
 - Przedmioty, które posiadają już przypisane magiczne bonusy (minimum jeden), mogą zostać przelosowane.

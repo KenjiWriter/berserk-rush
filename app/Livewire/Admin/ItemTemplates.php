@@ -217,9 +217,14 @@ class ItemTemplates extends Component
             'magic_attack_min' => 1.0, 'magic_attack_max' => 1.0,
             'defense' => 1.5,
             'hp_bonus' => 0.1, 'mana_bonus' => 0.1,
+            // Wyjątek biżuterii (patrz item-templates.blade.php) - te 4 nadal ważą
+            // sporo, bo mimo że przedmioty zwykle ich nie dają, gdy się pojawią
+            // (małe, płaskie +1..+5) wciąż liczą się do Combat Power.
             'str_bonus' => 2.0, 'agi_bonus' => 2.0,
             'int_bonus' => 2.0, 'vit_bonus' => 2.0,
             'crit_chance' => 1.0,
+            'magic_burst_min' => 1.0, 'magic_burst_max' => 1.0,
+            'magic_burst_chance' => 1.5,
         ];
 
         foreach ($this->selectedStats as $stat) {

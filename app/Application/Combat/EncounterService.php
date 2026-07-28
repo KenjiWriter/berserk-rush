@@ -703,7 +703,8 @@ class EncounterService
             $damage = (int)($damageData['total'] * $skillMultiplier);
             $baseDamage = (int)($damageData['base'] * $skillMultiplier);
             $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
-            
+            $magicDamage = (int)(($damageData['magic'] ?? 0) * $skillMultiplier);
+
             // Active Buffs Application
             if (isset($this->activeBuffs['phys_dmg'])) {
                 $damage = (int)($damage * (1 + $this->activeBuffs['phys_dmg']['value']));
@@ -715,6 +716,7 @@ class EncounterService
                 $damage = (int)($damage * 1.5);
                 $baseDamage = (int)($baseDamage * 1.5);
                 $bonusDamage = (int)($bonusDamage * 1.5);
+                $magicDamage = (int)($magicDamage * 1.5);
             }
 
             $newMonsterHp = max(0, $monsterHp - $damage - $dotDamage);
@@ -732,6 +734,7 @@ class EncounterService
                 'enemyHp' => $newMonsterHp,
                 'baseDamage' => $baseDamage,
                 'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
+                'magicDamage' => $magicDamage > 0 ? $magicDamage : null,
             ];
         }
 
@@ -740,6 +743,7 @@ class EncounterService
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
         $bonusDamage = $damageData['bonus'];
+        $magicDamage = $damageData['magic'] ?? 0;
 
         // Apply global buffs to normal attacks
         if (isset($this->activeBuffs['phys_dmg'])) {
@@ -773,6 +777,7 @@ class EncounterService
             $damage = (int)($damage * 1.5);
             $baseDamage = (int)($baseDamage * 1.5);
             $bonusDamage = (int)($bonusDamage * 1.5);
+            $magicDamage = (int)($magicDamage * 1.5);
         }
 
         $newMonsterHp = max(0, $monsterHp - $damage - $dotDamage);
@@ -788,9 +793,10 @@ class EncounterService
             'enemyHp' => $newMonsterHp,
         ];
 
-        if ($bonusDamage > 0) {
+        if ($bonusDamage > 0 || $magicDamage > 0) {
             $turn['baseDamage'] = $baseDamage;
-            $turn['bonusDamage'] = $bonusDamage;
+            $turn['bonusDamage'] = $bonusDamage > 0 ? $bonusDamage : null;
+            $turn['magicDamage'] = $magicDamage > 0 ? $magicDamage : null;
         }
 
         return $turn;
@@ -879,17 +885,33 @@ class EncounterService
             $bonusKey = 'strong_vs_' . $typeStr;
             $altBonusKey = 'bonus_vs_' . $typeStr;
             $pluralBonusKey = 'strong_vs_' . $typeStr . 's';
-            
+
             $bonusPercentage = ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
             if ($bonusPercentage > 0) {
                 $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
             }
         }
 
+        // "Magic burst": bronie hybrydowe (np. Dzwon) mają szansę zadać dodatkowe,
+        // OSOBNE obrażenia magiczne przy trafieniu, poza normalnym atakiem fizycznym.
+        // Mitygowane tą samą obroną przeciwnika co reszta obrażeń (uproszczony model,
+        // bez osobnej "obrony magicznej").
+        $magicBurstDamage = 0;
+        $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
+        if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
+            $burstMin = $eq['magic_burst_min'] ?? 0;
+            $burstMax = max($burstMin, $eq['magic_burst_max'] ?? 0);
+            if ($burstMax > 0) {
+                $rawBurst = mt_rand((int) $burstMin, (int) $burstMax);
+                $magicBurstDamage = max(1, (int) round($rawBurst - ($defense / 2)));
+            }
+        }
+
         return [
             'base' => $baseDamage,
             'bonus' => $bonusDamage,
-            'total' => $baseDamage + $bonusDamage
+            'magic' => $magicBurstDamage,
+            'total' => $baseDamage + $bonusDamage + $magicBurstDamage,
         ];
     }
 
