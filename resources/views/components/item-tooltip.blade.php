@@ -177,7 +177,7 @@
         <!-- Ten przedmiot -->
         <div class="flex-1">
             @if($hasAnyStats)
-                <div class="text-sm text-green-400 space-y-1">
+                <div class="text-sm text-gray-200 space-y-1">
                     @foreach($all_base_keys as $stat)
                         @php
                             $val = $base_stats[$stat] ?? 0;
@@ -194,7 +194,7 @@
                         <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
                             <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
                             <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-green-400' : 'text-gray-500' }}">+{{ $val }}{{ $suffix }}</span>
+                                <span class="font-bold {{ $val > 0 ? 'text-gray-200' : 'text-gray-500' }}">+{{ $val }}{{ $suffix }}</span>
                                 @if($up_val > 0)
                                     <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }}{{ $suffix }})</span>
                                 @endif
