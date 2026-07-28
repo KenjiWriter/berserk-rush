@@ -8,7 +8,7 @@
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
             <div class="bg-black/60 border border-amber-700/50 rounded-lg p-3 sm:p-4 shadow-2xl backdrop-blur-md">
                 <h2 class="text-xl sm:text-2xl font-bold text-amber-500 medieval-font flex items-center gap-2 tracking-wider">
-                    <i class="fa-solid fa-anvil text-amber-500 text-xl sm:text-2xl mr-1"></i> Kowal
+                    <i class="fa-solid fa-hammer text-amber-500 text-xl sm:text-2xl mr-1"></i> Kowal
                 </h2>
             </div>
 

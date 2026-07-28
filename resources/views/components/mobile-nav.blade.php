@@ -227,9 +227,9 @@
                             <span class="truncate text-[11px] sm:text-xs">Zbrojownia</span>
                         </a>
 
-                        <a href="{{ route('city.blacksmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Kowala...', icon: 'fa-solid fa-anvil', url: $el.href })"
+                        <a href="{{ route('city.blacksmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Kowala...', icon: 'fa-solid fa-hammer', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
-                            <i class="fa-solid fa-anvil text-amber-400 text-sm shrink-0"></i>
+                            <i class="fa-solid fa-hammer text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Kowal</span>
                         </a>
 
@@ -237,12 +237,6 @@
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Wiedźma</span>
-                        </a>
-
-                        <a href="{{ route('city.wizard', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Sklep Magiczny...', icon: 'fa-solid fa-hat-wizard', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
-                            <i class="fa-solid fa-hat-wizard text-amber-400 text-sm shrink-0"></i>
-                            <span class="truncate text-[11px] sm:text-xs">Magia</span>
                         </a>
 
                         <a href="{{ route('city.warlock', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Czarnoksiężnik...', icon: 'fa-solid fa-skull', url: $el.href })"

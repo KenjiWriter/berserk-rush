@@ -243,7 +243,7 @@
             </div>
 
             {{-- WITCH (3 cols, 1 row) --}}
-            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-fuchsia-900/50 shadow-lg transition-all duration-300 hover:border-fuchsia-500/80 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)]"
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-fuchsia-900/50 shadow-lg transition-all duration-300 hover:border-fuchsia-500/80 hover:shadow-[0_0_20px_rgba(217,70,239,0.2)] {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
                 <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/witch-bg.png') }}');"></div>
@@ -251,21 +251,7 @@
                     <div class="relative z-10 text-center">
                         <div wire:loading wire:target="goTo('witch')" class="mb-1"><svg class="animate-spin h-7 w-7 text-fuchsia-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         <h3 class="text-xl font-bold text-fuchsia-300 medieval-font group-hover:text-fuchsia-200 drop-shadow">Wiedźma</h3>
-                        <p class="text-fuchsia-200/70 text-xs font-medium mt-0.5">Kupuj i wytwarzaj mikstury</p>
-                    </div>
-                </button>
-            </div>
-
-            {{-- WIZARD (3 cols, 1 row) --}}
-            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-indigo-900/50 shadow-lg transition-all duration-300 hover:border-indigo-500/80 hover:shadow-[0_0_20px_rgba(99,102,241,0.2)] {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
-                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
-                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/wizard-bg.png') }}');"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
-                    <div class="relative z-10 text-center">
-                        <div wire:loading wire:target="goTo('wizard')" class="mb-1"><svg class="animate-spin h-7 w-7 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                        <h3 class="text-xl font-bold text-indigo-300 medieval-font group-hover:text-indigo-200 drop-shadow">Czarodziej</h3>
-                        <p class="text-indigo-200/70 text-xs font-medium mt-0.5">Zaklinanie przedmioty i czary</p>
+                        <p class="text-fuchsia-200/70 text-xs font-medium mt-0.5">Mikstury i zaczarowanie przedmiotów</p>
                     </div>
                 </button>
             </div>
@@ -405,22 +391,11 @@
 
                 {{-- Witch --}}
                 <div class="col-span-1">
-                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" class="w-full h-36 rounded-3xl border-2 border-fuchsia-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                    <button wire:click="goTo('witch')" @click="travelingTo = 'Wiedźma'" class="w-full h-36 rounded-3xl border-2 border-fuchsia-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
                         <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/witch-bg.png') }}');"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="font-bold text-fuchsia-400 medieval-font text-lg">Wiedźma</div>
-                        </div>
-                    </button>
-                </div>
-
-                {{-- Wizard --}}
-                <div class="col-span-1">
-                    <button wire:click="goTo('wizard')" @click="travelingTo = 'Czarodziej'" class="w-full h-36 rounded-3xl border-2 border-indigo-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 31 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
-                        <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/wizard-bg.png') }}');"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                        <div class="absolute bottom-0 w-full p-4 text-center">
-                            <div class="font-bold text-indigo-400 medieval-font text-lg">Czarodziej</div>
                         </div>
                     </button>
                 </div>

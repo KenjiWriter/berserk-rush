@@ -13,16 +13,30 @@ use App\Infrastructure\Persistence\ItemRecipe;
 use App\Infrastructure\Persistence\MerchantItem;
 use App\Application\Items\CraftingService;
 use App\Application\Items\ShopService;
+use App\Application\Wizard\EnchantItem;
+use App\Application\Wizard\RerollEnchantments;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Livewire\Attributes\On;
 
 class Witch extends Component
 {
     public Character $character;
     public $message = '';
     public $messageType = 'info';
-    public $activeTab = 'shop'; // shop, crafting
+    public $activeTab = 'shop'; // shop, crafting, enchant
+
+    // Zakładka Zaczarowania (przeniesiona od Czarodzieja)
+    public ?string $activeItemId = null;
+    public ?string $actionMessage = null;
+    public ?string $actionType = null; // 'success' or 'error'
+
+    #[On('tutorial-completed')]
+    public function refreshOnTutorial()
+    {
+        // Re-render component on tutorial step update
+    }
 
     public function mount(Character $character): void
     {
@@ -58,7 +72,7 @@ class Witch extends Component
 
         $price = 1500;
         $template = ItemTemplate::where('id', 'potion-exp-special')->first();
-        
+
         if (!$template) {
             $this->showMessage('Mikstura nie istnieje w bazie.', 'error');
             return;
@@ -145,6 +159,105 @@ class Witch extends Component
         $this->messageType = $type;
     }
 
+    // --- Zaczarowanie przedmiotów (przeniesione od Czarodzieja) ---
+
+    public function selectItemToEnchant(string $itemInstanceId)
+    {
+        $this->activeItemId = $itemInstanceId;
+        $this->clearEnchantMessages();
+    }
+
+    public function deselectItem()
+    {
+        $this->activeItemId = null;
+        $this->clearEnchantMessages();
+    }
+
+    public function clearEnchantMessages()
+    {
+        $this->actionMessage = null;
+        $this->actionType = null;
+    }
+
+    public function enchant(string $currencyType, EnchantItem $enchantItemAction)
+    {
+        $this->clearEnchantMessages();
+
+        if (!$this->activeItemId) return;
+
+        $item = ItemInstance::find($this->activeItemId);
+        if (!$item) return;
+
+        try {
+            $result = $enchantItemAction->execute($item, $this->character, $currencyType);
+
+            if ($result->isError()) {
+                $this->actionType = 'error';
+                $this->actionMessage = $result->getErrorMessage();
+                $this->dispatch('play-audio', type: 'enchant-fail');
+            } else {
+                $payload = $result->getPayload();
+                if ($payload['success'] ?? false) {
+                    $this->actionType = 'success';
+                    $this->actionMessage = $payload['message'] ?? 'Przedmiot został pomyślnie zaklęty. Dodano nowy bonus!';
+                    $this->dispatch('play-audio', type: 'enchant-success');
+
+                    // Tutorial step update
+                    if (auth()->user()->game_stage == 32) {
+                        auth()->user()->update(['game_stage' => 33]);
+                    }
+                } else {
+                    $this->actionType = 'error';
+                    $this->actionMessage = $payload['message'] ?? 'Zaklinanie nie powiodło się.';
+                    $this->dispatch('play-audio', type: 'enchant-fail');
+                }
+                $this->character->refresh();
+                $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
+            }
+        } catch (\Exception $e) {
+            $this->actionType = 'error';
+            $this->actionMessage = $e->getMessage();
+            $this->dispatch('play-audio', type: 'enchant-fail');
+        }
+    }
+
+    public function reroll(string $currencyType, RerollEnchantments $rerollAction)
+    {
+        $this->clearEnchantMessages();
+
+        if (!$this->activeItemId) return;
+
+        $item = ItemInstance::find($this->activeItemId);
+        if (!$item) return;
+
+        try {
+            $result = $rerollAction->execute($item, $this->character, $currencyType);
+
+            if ($result->isError()) {
+                $this->actionType = 'error';
+                $this->actionMessage = $result->getErrorMessage();
+                $this->dispatch('play-audio', type: 'enchant-fail');
+            } else {
+                $payload = $result->getPayload();
+                if ($payload['success'] ?? false) {
+                    $this->actionType = 'success';
+                    $this->actionMessage = $payload['message'] ?? 'Bonusy przedmiotu zostały wylosowane na nowo!';
+                    $this->dispatch('play-audio', type: 'enchant-success');
+                } else {
+                    $this->actionType = 'error';
+                    $this->actionMessage = $payload['message'] ?? 'Operacja nie powiodła się.';
+                    $this->dispatch('play-audio', type: 'enchant-fail');
+                }
+                $this->character->refresh();
+                $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
+            }
+        } catch (\Exception $e) {
+            $this->actionType = 'error';
+            $this->actionMessage = $e->getMessage();
+            $this->dispatch('play-audio', type: 'enchant-fail');
+        }
+    }
+
     public function render(ShopService $shopService)
     {
         // Special Potion Cooldown Logic
@@ -153,7 +266,7 @@ class Witch extends Component
         $cd = CharacterCooldown::where('character_id', $this->character->id)
             ->where('cooldown_key', 'witch_exp_potion_daily')
             ->first();
-        
+
         if ($cd && $cd->expires_at > Carbon::now()) {
             $canBuySpecial = false;
             $specialCooldown = $cd->expires_at;
@@ -168,7 +281,7 @@ class Witch extends Component
             ->filter(function($mi) {
                 return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
             });
-            
+
         $shopPrices = [];
         foreach($shopItems as $mi) {
             if (!$mi->template) continue;
@@ -182,7 +295,7 @@ class Witch extends Component
         })->get();
 
         $inventory = $this->character->materialStashItems()->get()->merge($this->character->inventoryItems()->get());
-        
+
         $preparedRecipes = [];
         foreach ($recipes as $recipe) {
             $preparedIngredients = [];
@@ -192,7 +305,7 @@ class Witch extends Component
                 $mat = ItemTemplate::find($ing['template_id']);
                 $owned = $inventory->where('template_id', $ing['template_id'])->sum('stack_size');
                 $req = $ing['quantity'];
-                
+
                 if ($owned < $req) $canCraft = false;
 
                 $dropMonsters = [];
@@ -223,13 +336,29 @@ class Witch extends Component
             ];
         }
 
+        // Zaczarowywalne przedmioty (broń, zbroja, biżuteria)
+        $enchantableItems = $this->character->inventoryItems()->whereHas('template', function($q) {
+            $q->whereIn('type', ['weapon', 'armor', 'accessory']);
+        })->get()->merge(
+            $this->character->equippedItems()->whereHas('template', function($q) {
+                $q->whereIn('type', ['weapon', 'armor', 'accessory']);
+            })->get()
+        );
+
+        $equipped = [];
+        foreach ($this->character->equippedItems()->with('template')->get() as $eq) {
+            $equipped[$eq->template->slot] = $eq;
+        }
+
         return view('livewire.city.witch', [
             'canBuySpecial' => $canBuySpecial,
             'specialCooldown' => $specialCooldown,
             'shopItems' => $shopItems,
             'shopPrices' => $shopPrices,
             'recipes' => $preparedRecipes,
+            'enchantableItems' => $enchantableItems,
+            'activeItem' => $this->activeItemId ? $enchantableItems->firstWhere('id', $this->activeItemId) : null,
+            'equipped' => $equipped,
         ]);
     }
 }
-
