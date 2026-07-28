@@ -23,6 +23,8 @@ class MarketComponent extends Component
     public $rarity = '';
     public $currency = '';
     public $slot = '';
+    public $maxPrice = '';
+    public $maxLevel = '';
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
 
@@ -32,6 +34,8 @@ class MarketComponent extends Component
         'rarity' => ['except' => ''],
         'currency' => ['except' => ''],
         'slot' => ['except' => ''],
+        'maxPrice' => ['except' => ''],
+        'maxLevel' => ['except' => ''],
         'sortBy' => ['except' => 'created_at'],
         'sortDir' => ['except' => 'desc'],
     ];
@@ -48,9 +52,15 @@ class MarketComponent extends Component
 
     public function updating($name, $value)
     {
-        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'sortBy', 'sortDir', 'activeTab'])) {
+        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'maxLevel', 'sortBy', 'sortDir', 'activeTab'])) {
             $this->resetPage();
         }
+    }
+
+    public function resetFilters()
+    {
+        $this->reset(['search', 'rarity', 'currency', 'slot', 'maxPrice', 'maxLevel']);
+        $this->resetPage();
     }
 
     public function switchTab($tab)
@@ -123,6 +133,14 @@ class MarketComponent extends Component
                 'currency' => $this->currency,
                 'slot' => $this->slot,
             ];
+
+            if ($this->maxPrice !== '' && $this->maxPrice !== null) {
+                $filters['max_price'] = $this->maxPrice;
+            }
+
+            if ($this->maxLevel !== '' && $this->maxLevel !== null) {
+                $filters['max_level'] = $this->maxLevel;
+            }
             
             $listings = $query->execute($filters, $this->sortBy, $this->sortDir, 12);
         } else {

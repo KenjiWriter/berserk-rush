@@ -121,7 +121,23 @@
                                     <option value="gems">Tylko Klejnoty</option>
                                 </select>
                             </div>
-                            
+
+                            <div>
+                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Maks. Cena</label>
+                                <div class="relative">
+                                    <input type="number" min="0" wire:model.live.debounce.400ms="maxPrice" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Bez limitu">
+                                    <i class="fa-solid fa-coins absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Maks. Poziom Przedmiotu</label>
+                                <div class="relative">
+                                    <input type="number" min="0" wire:model.live.debounce.400ms="maxLevel" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Bez limitu">
+                                    <i class="fa-solid fa-ranking-star absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Sortowanie</label>
                                 <div class="flex gap-2">
@@ -136,6 +152,11 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <button wire:click="resetFilters" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-stone-900 border border-amber-700/60 text-amber-300 font-extrabold text-[10px] uppercase tracking-wider hover:bg-amber-950 hover:border-amber-400 transition-all cursor-pointer shadow">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>Wyczyść Filtry</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -270,7 +291,7 @@
                             </div>
                             <h3 class="text-lg font-extrabold text-amber-300 mb-1">Brak Wyników Wyszukiwania</h3>
                             <p class="text-xs text-amber-200/60 font-sans">Nie znaleziono ofert spełniających podane kryteria filtracji.</p>
-                            <button wire:click="$set('search', ''); $set('rarity', ''); $set('currency', ''); $set('slot', '');" class="mt-5 px-4 py-2 rounded-xl bg-stone-900 border border-amber-700/60 text-amber-300 font-extrabold text-xs uppercase tracking-wider hover:bg-amber-950 hover:border-amber-400 transition-all inline-flex items-center gap-2 cursor-pointer shadow">
+                            <button wire:click="resetFilters" class="mt-5 px-4 py-2 rounded-xl bg-stone-900 border border-amber-700/60 text-amber-300 font-extrabold text-xs uppercase tracking-wider hover:bg-amber-950 hover:border-amber-400 transition-all inline-flex items-center gap-2 cursor-pointer shadow">
                                 <i class="fa-solid fa-rotate-left"></i>
                                 <span>Wyczyść Filtry</span>
                             </button>
