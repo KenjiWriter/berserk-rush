@@ -19,8 +19,11 @@ class PlayerStashService
             return Result::error('NOT_OWNER', 'Nie jesteś właścicielem tego przedmiotu.');
         }
 
-        if ($item->location !== 'inventory') {
-            return Result::error('NOT_IN_INVENTORY', 'Przedmiot nie znajduje się w plecaku.');
+        $isMaterial = $item->template?->type === 'material';
+        $expectedLocation = $isMaterial ? 'material_stash' : 'inventory';
+
+        if ($item->location !== $expectedLocation) {
+            return Result::error('NOT_IN_INVENTORY', 'Przedmiot nie znajduje się w plecaku ani w schowku materiałów.');
         }
 
         $user = $character->user()->first();
@@ -72,16 +75,27 @@ class PlayerStashService
             return Result::error('INVALID_ITEM', 'Ten przedmiot nie znajduje się w Twoim magazynie.');
         }
 
-        if ($character->isBackpackFull()) {
-            $count = $character->getBackpackCount();
-            $max = $character->getBackpackCapacity();
-            return Result::error('INVENTORY_FULL', "Twój plecak jest pełny ({$count}/{$max}). Zwolnij miejsce w plecaku!");
+        $isMaterial = $item->template?->type === 'material';
+        $targetLocation = $isMaterial ? 'material_stash' : 'inventory';
+
+        if ($isMaterial) {
+            if ($character->isMaterialStashFull()) {
+                $count = $character->getMaterialStashCount();
+                $max = $character->getMaterialStashCapacity();
+                return Result::error('MATERIAL_STASH_FULL', "Twój schowek materiałów jest pełny ({$count}/{$max}). Zwolnij miejsce!");
+            }
+        } else {
+            if ($character->isBackpackFull()) {
+                $count = $character->getBackpackCount();
+                $max = $character->getBackpackCapacity();
+                return Result::error('INVENTORY_FULL', "Twój plecak jest pełny ({$count}/{$max}). Zwolnij miejsce w plecaku!");
+            }
         }
 
         try {
-            return DB::transaction(function () use ($item, $character) {
+            return DB::transaction(function () use ($item, $character, $targetLocation) {
                 $item->update([
-                    'location' => 'inventory',
+                    'location' => $targetLocation,
                     'owner_character_id' => $character->id,
                     'user_id' => null,
                 ]);

@@ -29,9 +29,11 @@ Gracze mogą przekazywać swoje zasoby na rzecz gildii za pomocą specjalnych ko
 - `/donate gems <ilość>` - wpłaca klejnoty do skarbca
 
 Ponadto gildia posiada **Magazyn Gildyjny (Guild Stash)** z pojemnością 20 slotów:
-- Członkowie gildii mogą deponować nieprzypisane przedmioty z plecaka do magazynu gildii za pomocą serwisu `GuildStashService::deposit()`.
-- Każdy członek gildii może wyciągać przedmioty z magazynu gildii do swojego plecaka (`GuildStashService::withdraw()`), o ile posiada wolne miejsce.
+- Członkowie gildii mogą deponować nieprzypisane przedmioty z plecaka **oraz materiały ze schowka materiałów** do magazynu gildii za pomocą serwisu `GuildStashService::deposit()`. Serwis rozpoznaje typ przedmiotu (`ItemTemplate::type === 'material'`) i wymaga, aby przedmiot znajdował się w odpowiedniej lokalizacji źródłowej (`inventory` dla zwykłych przedmiotów, `material_stash` dla materiałów) przed zdeponowaniem.
+- Każdy członek gildii może wyciągać przedmioty z magazynu gildii (`GuildStashService::withdraw()`), o ile posiada wolne miejsce w docelowej lokalizacji: zwykłe przedmioty trafiają z powrotem do plecaka (wymagane wolne miejsce w plecaku, walidowane przez `Character::isBackpackFull()`), a materiały wracają do schowka materiałów (wymagane wolne miejsce w schowku, walidowane przez `Character::isMaterialStashFull()`). Próba wyciągnięcia przedmiotu bez wolnego miejsca w odpowiednim miejscu docelowym kończy się błędem (`INVENTORY_FULL` lub `MATERIAL_STASH_FULL`).
 - Wszystkie operacje deponowania i wyciągania przedmiotów są automatycznie zapisywane w dzienniku zdarzeń gildii (`GuildLog`).
+
+Analogiczne zasady (rozróżnienie `inventory`/`material_stash` przy deponowaniu oraz walidacja wolnego miejsca przy wyciąganiu) obowiązują w **Magazynie Gracza** (`PlayerStashService`), opisanym w module Profilu i Ekwipunku.
 
 Złoto i klejnoty mają określony limit (cap), po przekroczeniu którego dotacje są blokowane, dopóki skarbiec nie zostanie rozbudowany.
 
