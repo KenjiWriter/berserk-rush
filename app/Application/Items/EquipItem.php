@@ -51,7 +51,6 @@ class EquipItem
                 // Equip the new item
                 $item->update([
                     'location' => 'equipped',
-                    'bound_to_character' => true, // Equipping usually binds the item
                 ]);
 
                 Log::info('Item equipped', [

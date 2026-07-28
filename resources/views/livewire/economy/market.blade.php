@@ -169,7 +169,7 @@
 
                                     <div class="flex items-start space-x-3 mb-3">
                                         {{-- Item Icon Frame --}}
-                                        <div class="w-12 h-12 rounded-lg border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-2xl shadow-inner relative overflow-hidden">
+                                        <div class="w-12 h-12 rounded-lg border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-2xl shadow-inner relative">
                                             @if($listing->item->template->icon)
                                                 <img src="{{ route('assets.items', ['filename' => $listing->item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md p-0.5" alt="{{ $listing->item->template->name }}">
                                             @else
@@ -182,6 +182,10 @@
                                                     @else <i class="fa-solid fa-box"></i>
                                                     @endif
                                                 </span>
+                                            @endif
+                                            <x-item-upgrade-overlay :level="$listing->item->upgrade_level ?? 0" :type="$listing->item->template->type ?? ''" />
+                                            @if(($listing->item->stack_size ?? 1) > 1)
+                                                <span class="absolute bottom-0.5 right-0.5 text-amber-200 font-extrabold text-[9px] bg-black/80 border border-amber-600/60 px-0.5 rounded shadow leading-none z-10">x{{ $listing->item->stack_size }}</span>
                                             @endif
                                         </div>
                                         
@@ -306,7 +310,7 @@
                                     <tr class="hover:bg-amber-950/20 transition-colors">
                                         <td class="p-3">
                                             <div class="flex items-center space-x-3">
-                                                <div class="w-9 h-9 rounded-lg border border-amber-600/80 bg-stone-900 flex items-center justify-center shrink-0 text-amber-400 text-base shadow-inner">
+                                                <div class="w-9 h-9 rounded-lg border border-amber-600/80 bg-stone-900 flex items-center justify-center shrink-0 text-amber-400 text-base shadow-inner relative">
                                                     @if($listing->item->template->icon)
                                                         <img src="{{ route('assets.items', ['filename' => $listing->item->template->icon]) }}" class="w-full h-full object-contain p-0.5" alt="{{ $listing->item->template->name }}">
                                                     @else
@@ -317,6 +321,10 @@
                                                         @elseif($listing->item->template->slot === 'boots') <i class="fa-solid fa-shoe-prints"></i>
                                                         @else <i class="fa-solid fa-box"></i>
                                                         @endif
+                                                    @endif
+                                                    <x-item-upgrade-overlay :level="$listing->item->upgrade_level ?? 0" :type="$listing->item->template->type ?? ''" />
+                                                    @if(($listing->item->stack_size ?? 1) > 1)
+                                                        <span class="absolute bottom-0.5 right-0.5 text-amber-200 font-extrabold text-[9px] bg-black/80 border border-amber-600/60 px-0.5 rounded shadow leading-none z-10">x{{ $listing->item->stack_size }}</span>
                                                     @endif
                                                 </div>
                                                 <div>
