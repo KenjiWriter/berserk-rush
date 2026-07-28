@@ -85,6 +85,13 @@ class EncounterService
 
                 $isTutorial = ($char->user && $char->user->game_stage <= 12);
                 $isOverLevel = $map->isOverLevel($char);
+
+                // Tier scaling: player's natural tier vs map's tier
+                $playerTier = $isTutorial ? 1 : $map->getPlayerTier($char);
+                $tierDiff = $isTutorial ? 0 : $map->getTierDiff($char);
+                $tierMultiplier = $isTutorial ? 1.0 : $map->getMonsterTierMultiplier($char);
+                $tierLabel = $tierDiff > 0 ? "[T{$playerTier}]" : null;
+
                 $monster = $forcedMonster;
                 $monstersList = [];
 
@@ -122,6 +129,16 @@ class EncounterService
                                 $selectedCounts[$mObj->id] = ($selectedCounts[$mObj->id] ?? 0) + 1;
 
                                 $scaled = $mObj->getScaledStats($char->level, false);
+
+                                // Apply tier multiplier to all stats
+                                if ($tierMultiplier > 1.0) {
+                                    foreach (['hp', 'atk', 'def', 'agi', 'int'] as $statKey) {
+                                        if (isset($scaled[$statKey])) {
+                                            $scaled[$statKey] = (int)ceil($scaled[$statKey] * $tierMultiplier);
+                                        }
+                                    }
+                                }
+
                                 $monstersList[] = [
                                     'id' => $mObj->id,
                                     'name' => $mObj->name,
@@ -131,6 +148,7 @@ class EncounterService
                                     'stats' => $scaled,
                                     'avatar' => $mObj->avatar,
                                     'rank' => is_object($mObj->rank) ? $mObj->rank->value : (string)$mObj->rank,
+                                    'tier_label' => $tierLabel,
                                 ];
                             }
                             $firstMonsterId = $monstersList[0]['id'];
@@ -146,6 +164,9 @@ class EncounterService
                     'monster_name' => $monster->name,
                     'monster_level' => $monster->level,
                     'is_overlevel' => $isOverLevel,
+                    'player_tier' => $playerTier,
+                    'tier_diff' => $tierDiff,
+                    'tier_multiplier' => $tierMultiplier,
                 ]);
 
                 // Check if this is an active world boss
@@ -164,10 +185,20 @@ class EncounterService
                     }
                 }
 
-                // Determine turn order using scaled stats
+                // Determine turn order using scaled stats (apply tier multiplier to single monster too)
                 $totalAttributes = $character->getTotalAttributes();
                 $playerAgi = $totalAttributes['agi'] ?? 0;
                 $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
+
+                // Apply tier multiplier to single-monster stats
+                if ($tierMultiplier > 1.0 && !$isOverLevel) {
+                    foreach (['hp', 'atk', 'def', 'agi', 'int'] as $statKey) {
+                        if (isset($scaledMonsterStats[$statKey])) {
+                            $scaledMonsterStats[$statKey] = (int)ceil($scaledMonsterStats[$statKey] * $tierMultiplier);
+                        }
+                    }
+                }
+
                 $monsterAgi = $scaledMonsterStats['agi'];
                 $playerFirst = $playerAgi >= $monsterAgi;
 
@@ -188,6 +219,12 @@ class EncounterService
                         'is_overlevel' => ($isOverLevel && !$forcedMonster && !$isTutorial),
                         'target_strategy' => $targetStrategy,
                         'monsters' => $monstersList,
+                        'player_tier' => $playerTier,
+                        'tier_diff' => $tierDiff,
+                        'tier_multiplier' => $tierMultiplier,
+                        'tier_label' => $tierLabel,
+                        // Pre-scaled stats for single-monster fights
+                        'scaled_monster_stats' => (!$isOverLevel && $tierMultiplier > 1.0) ? $scaledMonsterStats : null,
                     ],
                     'rewards_applied' => false,
                     'started_at' => now(),
@@ -240,7 +277,10 @@ class EncounterService
                 ]);
 
                 $isTutorial = ($character->user && $character->user->game_stage <= 12);
-                $scaledStats = $monster->getScaledStats($character->level, $isTutorial);
+
+                // Use pre-scaled stats if tier multiplier was applied in start()
+                $scaledStatOverride = $encounter->combat_data['scaled_monster_stats'] ?? null;
+                $scaledStats = $scaledStatOverride ?? $monster->getScaledStats($character->level, $isTutorial);
 
                 // Initialize HP
                 $playerHp = $character->getMaxHp();
@@ -1090,6 +1130,7 @@ class EncounterService
                 'stats' => $m['stats'] ?? [],
                 'avatar' => $m['avatar'] ?? null,
                 'rank' => $m['rank'] ?? 'regular',
+                'tier_label' => $m['tier_label'] ?? null,
             ];
         }, $monsters);
     }

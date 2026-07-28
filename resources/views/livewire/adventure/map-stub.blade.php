@@ -688,7 +688,12 @@
                                                         @endif
                                                     </div>
                                                     <div class="flex-1 min-w-0">
-                                                        <div class="text-[10px] font-bold text-red-200 truncate leading-tight">{{ $m['name'] }}</div>
+                                                        <div class="text-[10px] font-bold text-red-200 truncate leading-tight">
+                                                            {{ $m['name'] }}
+                                                            @if(!empty($m['tier_label']))
+                                                                <span class="ml-0.5 text-[8px] font-black text-amber-300 bg-amber-900/60 border border-amber-500/50 rounded px-1 py-0">{{ $m['tier_label'] }}</span>
+                                                            @endif
+                                                        </div>
                                                         <div class="text-[9px] text-amber-300/80 font-mono">Lvl {{ $m['level'] }}</div>
                                                         <div class="h-1.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/30 p-0.5 mt-0.5">
                                                             <div class="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300" style="width: {{ $mHpPct }}%"></div>
@@ -721,8 +726,16 @@
                                 </div>
 
                                 {{-- Enemy Name --}}
-                                <h3 class="mt-2.5 lg:mt-3 text-base sm:text-lg lg:text-xl xl:text-2xl font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] tracking-wide">
+                                <h3 class="mt-2.5 lg:mt-3 text-base sm:text-lg lg:text-xl xl:text-2xl font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] tracking-wide flex items-center justify-center gap-2 flex-wrap">
                                     {{ $displayMonster['name'] }}
+                                    @php
+                                        $activeTierLabel = $displayMonster['tier_label'] ?? $tierLabel;
+                                    @endphp
+                                    @if(!empty($activeTierLabel))
+                                        <span class="inline-flex items-center text-xs font-black px-2 py-0.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-500 text-slate-900 border border-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.6)] drop-shadow-none" title="Tier {{ $activeTierLabel }} — statystyki potwora są wzmocnione">
+                                            <i class="fa-solid fa-star-of-david text-[9px] mr-1"></i>{{ $activeTierLabel }}
+                                        </span>
+                                    @endif
                                 </h3>
                                 <p class="text-xs lg:text-sm text-red-400/80 tracking-wider">
                                     {{ $displayMonster['rank'] ?? 'Przeciwnik' }}

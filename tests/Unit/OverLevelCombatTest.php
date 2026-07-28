@@ -191,4 +191,114 @@ class OverLevelCombatTest extends TestCase
             $service->simulate($encounter);
         }
     }
+
+    public function test_tier_scaling_applied_when_player_is_higher_tier()
+    {
+        // Tier 6 map (level_min=65) exists in db (seeded by MapSeeder),
+        // but for this unit test we create maps inline.
+        // Player at level 65 → playerTier = T2 (we only seed T1 at level_min=0 and T2 at level_min=10 below)
+        $user = User::factory()->create(['game_stage' => 20]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'TierTestHero',
+            'class' => 'warrior',
+            'level' => 20,
+            'experience' => 0,
+            'gold' => 0,
+        ]);
+
+        // Tier 2 map (player level 20 >= level_min 10 → player is T2)
+        $mapT2 = Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Stare Ruiny Test',
+            'level_min' => 10,
+            'level_max' => 30,
+            'tier' => 2,
+        ]);
+
+        // Tier 1 map (lower than player's natural tier T2)
+        $mapT1 = Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Mroczny Las Test',
+            'level_min' => 0,
+            'level_max' => 15,
+            'tier' => 1,
+        ]);
+
+        // Check playerTier
+        $playerTier = $mapT1->getPlayerTier($character);
+        $this->assertEquals(2, $playerTier);
+
+        // Check tierDiff: playerTier(2) - mapTier(1) = 1
+        $tierDiff = $mapT1->getTierDiff($character);
+        $this->assertEquals(1, $tierDiff);
+
+        // Check multiplier: 1.0 + (playerTier * 0.20) = 1.0 + (2 * 0.20) = 1.4
+        $tierMultiplier = $mapT1->getMonsterTierMultiplier($character);
+        $this->assertEquals(1.40, $tierMultiplier);
+
+        // Check no scaling on same tier map
+        $this->assertEquals(0, $mapT2->getTierDiff($character));
+        $this->assertEquals(1.0, $mapT2->getMonsterTierMultiplier($character));
+    }
+
+    public function test_tier_label_appears_in_combat_data_and_monster_list()
+    {
+        $user = User::factory()->create(['game_stage' => 20]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'TierLabelHero',
+            'class' => 'warrior',
+            'level' => 20,
+            'experience' => 0,
+            'gold' => 0,
+        ]);
+
+        Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Stare Ruiny Test',
+            'level_min' => 10,
+            'level_max' => 30,
+            'tier' => 2,
+        ]);
+
+        $mapT1 = Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Mroczny Las Test',
+            'level_min' => 0,
+            'level_max' => 15,
+            'tier' => 1,
+        ]);
+
+        Monster::create([
+            'map_id' => $mapT1->id,
+            'name' => 'Wilk Leśny',
+            'level' => 3,
+            'rank' => 'regular',
+            'stats' => ['hp' => 50, 'atk' => 8, 'def' => 2, 'agi' => 5],
+        ]);
+
+        $service = app(EncounterService::class);
+        // Over-level (lvl 20 > level_max 15) so 3-4 monsters
+        $result = $service->start($character, $mapT1);
+        $this->assertTrue($result->isOk());
+        $encounter = $result->getPayload();
+
+        // tier_label should be [T2]
+        $this->assertEquals('[T2]', $encounter->combat_data['tier_label']);
+        $this->assertEquals(2, $encounter->combat_data['player_tier']);
+        $this->assertEquals(1, $encounter->combat_data['tier_diff']);
+
+        // All monsters in the list should carry the tier_label
+        foreach ($encounter->combat_data['monsters'] as $m) {
+            $this->assertEquals('[T2]', $m['tier_label']);
+        }
+
+        // Monster stats should be scaled by 1.4x
+        $baseAtk = 8; // original atk
+        $expectedAtk = (int)ceil($baseAtk * 1.40);
+        foreach ($encounter->combat_data['monsters'] as $m) {
+            $this->assertGreaterThanOrEqual($expectedAtk, $m['stats']['atk']);
+        }
+    }
 }

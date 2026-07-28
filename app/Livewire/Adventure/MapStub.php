@@ -44,6 +44,12 @@ class MapStub extends Component
     public bool $isOverLevelCombat = false;
     public array $enemies = [];
 
+    // Tier scaling state
+    public int $playerTier = 1;
+    public int $tierDiff = 0;
+    public float $tierMultiplier = 1.0;
+    public ?string $tierLabel = null;
+
     // Multi-tab anti-cheat session token
     public string $tabSessionToken = '';
     public bool $isInactiveTab = false;
@@ -470,6 +476,12 @@ class MapStub extends Component
         } else {
             $this->enemies = [];
         }
+
+        // Load tier scaling info
+        $this->playerTier = (int)($encounter->combat_data['player_tier'] ?? 1);
+        $this->tierDiff = (int)($encounter->combat_data['tier_diff'] ?? 0);
+        $this->tierMultiplier = (float)($encounter->combat_data['tier_multiplier'] ?? 1.0);
+        $this->tierLabel = $encounter->combat_data['tier_label'] ?? null;
 
         $this->allTurns = $combatResult['turns'];
         $this->result = $combatResult['result'];
