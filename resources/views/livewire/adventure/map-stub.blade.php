@@ -118,6 +118,33 @@
             </div>
         </div>
 
+        {{-- Over-Level Banner & Targeting Strategy Selector --}}
+        @if ($map->isOverLevel($character))
+            <div class="mb-3 p-3 bg-purple-950/90 border-2 border-purple-500/80 rounded-xl shadow-xl backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-3 text-amber-100">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-users-rays text-amber-400 text-xl"></i>
+                    <div>
+                        <div class="font-bold text-sm text-purple-200 medieval-font">Walka z Wieloma Przeciwnikami (3-4 Potwory)</div>
+                        <div class="text-xs text-purple-300/90">Przekroczono sugerowany max poziom ({{ $map->level_max }}). Obrażenia potworów zredukowane (-10%/ekstra potwora). Nagrody zredukowane o 66%.</div>
+                    </div>
+                </div>
+
+                {{-- Targeting Strategy Dropdown --}}
+                <div class="flex items-center gap-2 text-xs font-bold font-sans">
+                    <label for="targeting-tactic" class="whitespace-nowrap text-amber-300 flex items-center gap-1">
+                        <i class="fa-solid fa-crosshairs"></i> Taktyka ataku:
+                    </label>
+                    <select id="targeting-tactic" wire:change="setTargetStrategy($event.target.value)" class="bg-slate-900 border border-purple-400/80 rounded-lg px-2.5 py-1 text-xs text-amber-100 font-bold focus:ring-2 focus:ring-purple-400 focus:outline-none">
+                        <option value="random" {{ $targetStrategy === 'random' ? 'selected' : '' }}>🎲 Losowy przeciwnik</option>
+                        <option value="highest_hp" {{ $targetStrategy === 'highest_hp' ? 'selected' : '' }}>❤️ Najwięcej HP</option>
+                        <option value="lowest_hp" {{ $targetStrategy === 'lowest_hp' ? 'selected' : '' }}>🩸 Najmniej HP</option>
+                        <option value="highest_att" {{ $targetStrategy === 'highest_att' ? 'selected' : '' }}>⚔️ Największy Atak</option>
+                        <option value="highest_def" {{ $targetStrategy === 'highest_def' ? 'selected' : '' }}>🛡️ Największa Obrona</option>
+                    </select>
+                </div>
+            </div>
+        @endif
+
         {{-- Classic RPG Battle Layout --}}
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 max-w-[1600px] w-full mx-auto pb-24 lg:pb-6">
 
@@ -562,7 +589,49 @@
                     <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
                     <div class="relative p-3.5 sm:p-4 lg:p-4 xl:p-6 space-y-3 lg:space-y-3.5 xl:space-y-5">
-                        @if(!empty($enemy))
+                        @if ($isOverLevelCombat && !empty($this->getCurrentMonstersState()))
+                            <div class="text-center mb-2">
+                                <span class="bg-gradient-to-r from-purple-700 to-indigo-600 text-amber-100 text-xs font-black px-3 py-1 rounded-full border border-purple-400 shadow-md medieval-font">
+                                    Grupa {{ count($this->getCurrentMonstersState()) }} Przeciwników
+                                </span>
+                            </div>
+
+                            <div class="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-1">
+                                @foreach($this->getCurrentMonstersState() as $mIdx => $m)
+                                    @php
+                                        $mHpPct = max(0, min(100, (($m['hp'] ?? 0) / max(1, $m['maxHp'] ?? 1)) * 100));
+                                        $isDead = (($m['hp'] ?? 0) <= 0);
+                                    @endphp
+                                    <div class="bg-slate-900/90 border {{ $isDead ? 'border-slate-800 opacity-50' : 'border-red-600/50 hover:border-red-400' }} rounded-xl p-3 shadow-md transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-red-500/60 bg-slate-950 flex-shrink-0">
+                                                @if(!empty($m['avatar']))
+                                                    <img src="{{ route('assets.monsters.avatars', ['filename' => $m['avatar']]) }}" class="w-full h-full object-cover">
+                                                @else
+                                                    <img src="{{ asset('img/monsters/placeholder.png') }}" class="w-full h-full object-cover">
+                                                @endif
+                                                @if($isDead)
+                                                    <div class="absolute inset-0 bg-black/80 flex items-center justify-center text-red-500 font-bold text-xs">❌</div>
+                                                @endif
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex justify-between items-center text-xs">
+                                                    <span class="font-bold text-red-200 truncate medieval-font">{{ $m['name'] }}</span>
+                                                    <span class="text-[10px] text-amber-300 font-bold font-mono">Lvl {{ $m['level'] }}</span>
+                                                </div>
+                                                <div class="flex justify-between text-[11px] font-mono text-red-300 mt-1">
+                                                    <span>Życie:</span>
+                                                    <span>{{ max(0, $m['hp']) }}/{{ $m['maxHp'] }}</span>
+                                                </div>
+                                                <div class="h-2.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/40 p-0.5 mt-1">
+                                                    <div class="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300" style="width: {{ $mHpPct }}%"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @elseif(!empty($enemy))
                             {{-- Enemy Header & Avatar --}}
                             <div class="text-center">
                                 <div class="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-24 lg:h-24 xl:w-28 xl:h-28 2xl:w-32 2xl:h-32 mx-auto">

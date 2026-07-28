@@ -39,6 +39,11 @@ class MapStub extends Component
     public int $currentTurnIndex = 0;
     public bool $isCalculating = false;
 
+    // Multi-monster & Targeting Tactic state
+    public string $targetStrategy = 'random';
+    public bool $isOverLevelCombat = false;
+    public array $enemies = [];
+
     // Multi-tab anti-cheat session token
     public string $tabSessionToken = '';
     public bool $isInactiveTab = false;
@@ -98,6 +103,7 @@ class MapStub extends Component
         $this->sessionStartTime = time();
         $this->playbackSpeed = session('combat_playback_speed', 1);
         $this->autoChain = session('combat_auto_chain', true);
+        $this->targetStrategy = session('combat_target_strategy', 'random');
 
         // Authorization check
         if (Auth::user()->id !== $character->user_id) {
@@ -153,6 +159,14 @@ class MapStub extends Component
         }
     }
 
+    public function setTargetStrategy(string $strategy): void
+    {
+        if (in_array($strategy, ['random', 'highest_hp', 'lowest_hp', 'highest_att', 'highest_def'])) {
+            $this->targetStrategy = $strategy;
+            session(['combat_target_strategy' => $strategy]);
+        }
+    }
+
     public function startBattle(?int $monsterId = null): void
     {
         if (!$this->isActiveTab()) {
@@ -179,7 +193,7 @@ class MapStub extends Component
         }
         
         $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
-        $startResult = $encounterService->start($this->character, $this->map, $forcedMonster);
+        $startResult = $encounterService->start($this->character, $this->map, $forcedMonster, $this->targetStrategy);
 
         if ($startResult->isError()) {
             $this->addError('battle', $startResult->getErrorMessage());
@@ -450,6 +464,13 @@ class MapStub extends Component
             'avatar' => $monster->avatar,
         ];
 
+        $this->isOverLevelCombat = $encounter->combat_data['is_overlevel'] ?? false;
+        if ($this->isOverLevelCombat && !empty($encounter->combat_data['monsters'])) {
+            $this->enemies = $encounter->combat_data['monsters'];
+        } else {
+            $this->enemies = [];
+        }
+
         $this->allTurns = $combatResult['turns'];
         $this->result = $combatResult['result'];
         $this->playerFirst = $encounter->player_first;
@@ -460,6 +481,16 @@ class MapStub extends Component
         $this->xpData = $combatResult['rewards']['xp_data'] ?? [];
         $this->damageDealt = $combatResult['rewards']['damage_dealt'] ?? 0;
         $this->pendingNotifications = $combatResult['notifications'] ?? [];
+    }
+
+    public function getCurrentMonstersState(): array
+    {
+        if (empty($this->visibleTurns)) {
+            return $this->enemies;
+        }
+
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['monsters_state'] ?? $this->enemies;
     }
 
     /**

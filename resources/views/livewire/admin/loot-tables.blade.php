@@ -146,9 +146,31 @@
                             </div>
 
                             @if(in_array($entryRewardType, ['item', 'material']))
-                                <div>
-                                    <label class="block text-gray-400 text-xs font-bold mb-1">Wybierz Przedmiot/Materiał</label>
-                                    <select wire:model="entryRefUlid" class="shadow border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-800 text-white focus:outline-none focus:border-amber-500 text-sm">
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <label class="block text-gray-400 text-xs font-bold">Wybierz Przedmiot/Materiał</label>
+                                        <span class="text-[10px] text-amber-400 font-mono font-semibold">Wyniki: {{ $itemTemplates->count() }}</span>
+                                    </div>
+                                    
+                                    <!-- Wyszukiwarka Przedmiotów -->
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-gray-400">
+                                            <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                                        </div>
+                                        <input type="text" 
+                                               wire:model.live.debounce.150ms="itemSearch" 
+                                               placeholder="Szukaj po nazwie, typie lub ID..." 
+                                               class="pl-8 pr-7 shadow border border-gray-600 rounded-lg w-full py-1.5 px-3 bg-gray-800 text-white text-xs focus:outline-none focus:border-amber-500 placeholder-gray-500 transition">
+                                        @if($itemSearch)
+                                            <button type="button" 
+                                                    wire:click="$set('itemSearch', '')" 
+                                                    class="absolute inset-y-0 right-0 pr-2 flex items-center text-gray-400 hover:text-white text-xs">
+                                                <i class="fa-solid fa-circle-xmark"></i>
+                                            </button>
+                                        @endif
+                                    </div>
+
+                                    <select wire:model.live="entryRefUlid" class="shadow border border-gray-600 rounded-lg w-full py-2 px-3 bg-gray-800 text-white focus:outline-none focus:border-amber-500 text-sm">
                                         <option value="">-- Wybierz szablon z bazy --</option>
                                         @foreach($itemTemplates as $tpl)
                                             <option value="{{ $tpl->id }}">
@@ -157,6 +179,25 @@
                                         @endforeach
                                     </select>
                                     @error('entryRefUlid') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+
+                                    @if($selectedItemTemplate)
+                                        <div class="p-2.5 bg-gray-800/90 border border-amber-500/40 rounded-lg flex items-center gap-3 text-xs shadow-inner">
+                                            @if($selectedItemTemplate->icon)
+                                                <img src="{{ asset('assets/items/' . $selectedItemTemplate->icon) }}" class="w-8 h-8 object-contain bg-gray-900 rounded p-1 border border-gray-700 shrink-0" alt="icon">
+                                            @else
+                                                <div class="w-8 h-8 bg-gray-900 rounded border border-gray-700 flex items-center justify-center text-gray-500 shrink-0">
+                                                    <i class="fa-solid fa-box"></i>
+                                                </div>
+                                            @endif
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-bold text-amber-300 truncate">{{ $selectedItemTemplate->name }}</div>
+                                                <div class="text-[10px] text-gray-400 flex items-center gap-2 mt-0.5">
+                                                    <span class="bg-gray-700 px-1.5 py-0.2 rounded text-gray-300 font-semibold uppercase text-[9px]">{{ $selectedItemTemplate->type }}</span>
+                                                    <span class="font-mono text-gray-500 truncate text-[10px]">{{ $selectedItemTemplate->id }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 

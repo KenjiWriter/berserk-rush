@@ -21,7 +21,7 @@ class EncounterService
     private $equippedSkills = null;
     private array $activeBuffs = [];
 
-    public function start(Character $character, Map $map, ?Monster $forcedMonster = null): Result
+    public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random'): Result
     {
         Log::info('EncounterService::start called', [
             'character_id' => $character->id,
@@ -29,10 +29,11 @@ class EncounterService
             'map_id' => $map->id,
             'map_name' => $map->name,
             'forced_monster_id' => $forcedMonster?->id,
+            'target_strategy' => $targetStrategy,
         ]);
 
         try {
-            return DB::transaction(function () use ($character, $map, $forcedMonster) {
+            return DB::transaction(function () use ($character, $map, $forcedMonster, $targetStrategy) {
                 // Lock character row to serialize concurrent battle requests
                 $char = Character::where('id', $character->id)->lockForUpdate()->first();
                 if (!$char) {
@@ -83,7 +84,9 @@ class EncounterService
                 }
 
                 $isTutorial = ($char->user && $char->user->game_stage <= 12);
+                $isOverLevel = $map->isOverLevel($char);
                 $monster = $forcedMonster;
+                $monstersList = [];
 
                 if (!$monster) {
                     if ($isTutorial) {
@@ -93,24 +96,43 @@ class EncounterService
                         }) ?? $map->monsters->sortBy('level')->first();
                     } else {
                         // Get monsters for this map
-                        $monsters = $map->monsters->whereNotIn('rank', [
+                        $monstersPool = $map->monsters->whereNotIn('rank', [
                             \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
                             \App\Domain\Combat\Enums\MonsterRank::BOSS
                         ]);
 
-                        if ($monsters->isEmpty()) {
+                        if ($monstersPool->isEmpty()) {
                             return Result::error('NO_MONSTERS', 'Brak zwykłych potworów na tej mapie');
                         }
 
-                        // Get random monster
-                        $monster = $monsters->random();
+                        if ($isOverLevel) {
+                            $monsterCount = mt_rand(3, 4);
+                            for ($i = 0; $i < $monsterCount; $i++) {
+                                $mObj = $monstersPool->random();
+                                $scaled = $mObj->getScaledStats($char->level, false);
+                                $monstersList[] = [
+                                    'id' => $mObj->id,
+                                    'name' => $mObj->name,
+                                    'level' => $mObj->level,
+                                    'maxHp' => $scaled['hp'],
+                                    'hp' => $scaled['hp'],
+                                    'stats' => $scaled,
+                                    'avatar' => $mObj->avatar,
+                                ];
+                            }
+                            $firstMonsterId = $monstersList[0]['id'];
+                            $monster = $map->monsters->find($firstMonsterId) ?? $monstersPool->random();
+                        } else {
+                            $monster = $monstersPool->random();
+                        }
                     }
                 }
 
                 Log::info('Selected monster for encounter', [
                     'monster_id' => $monster->id,
                     'monster_name' => $monster->name,
-                    'monster_level' => $monster->level
+                    'monster_level' => $monster->level,
+                    'is_overlevel' => $isOverLevel,
                 ]);
 
                 // Check if this is an active world boss
@@ -136,7 +158,7 @@ class EncounterService
                 $monsterAgi = $scaledMonsterStats['agi'];
                 $playerFirst = $playerAgi >= $monsterAgi;
 
-                // Create encounter - używając ended_at zamiast finished_at
+                // Create encounter
                 $encounter = Encounter::create([
                     'character_id' => $character->id,
                     'map_id' => $map->id,
@@ -149,7 +171,10 @@ class EncounterService
                     'combat_data' => [
                         'player_agi' => $playerAgi,
                         'monster_agi' => $monsterAgi,
-                        'created_at' => now()->toISOString()
+                        'created_at' => now()->toISOString(),
+                        'is_overlevel' => ($isOverLevel && !$forcedMonster && !$isTutorial),
+                        'target_strategy' => $targetStrategy,
+                        'monsters' => $monstersList,
                     ],
                     'rewards_applied' => false,
                     'started_at' => now(),
@@ -216,6 +241,7 @@ class EncounterService
                 ]);
 
                 // Simulate combat
+                $isOverLevel = $encounter->combat_data['is_overlevel'] ?? false;
                 $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
                 $isWorldBoss = ($rankVal === 'worldboss');
                 if ($isWorldBoss) {
@@ -223,62 +249,94 @@ class EncounterService
                     $monsterHp = $monsterMaxHp;
                 }
 
-                $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss);
-
-                $lastTurn = end($turns);
-                $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
-                
-                // Determine winner and rewards
                 $goldRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
                 $xpRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
 
-                if ($isWorldBoss) {
-                    $winner = 'enemy'; // Worldboss always wins/survives
-                    $damageDealt = max(0, $monsterMaxHp - $finalMonsterHp);
-                    
-                    // Skalowanie nagród używając spłaszczonej krzywej (np. pierwiastek) by zapobiec nieskończonemu wzrostowi
-                    $baseGold = max(10, (int)ceil(pow($damageDealt, 0.7)));
-                    $baseXp = max(80, (int)ceil(pow($damageDealt, 0.75) * 4));
+                if ($isOverLevel && !empty($encounter->combat_data['monsters'])) {
+                    $monstersData = $encounter->combat_data['monsters'];
+                    $tactic = $encounter->combat_data['target_strategy'] ?? 'random';
+                    $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic);
 
-                    $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
-                    $goldMult = $multiplierService->getGoldMultiplier($character);
-                    $xpMult = $multiplierService->getExpMultiplier($character);
-
-                    $goldRewardData = ['base' => $baseGold, 'bonus' => (int)($baseGold * $goldMult) - $baseGold, 'total' => (int)($baseGold * $goldMult), 'multiplier' => $goldMult];
-                    $xpRewardData = ['base' => $baseXp, 'bonus' => (int)($baseXp * $xpMult) - $baseXp, 'total' => (int)($baseXp * $xpMult), 'multiplier' => $xpMult];
-
-                    // Zapisz log damage
-                    $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
-                        ->where('monster_id', $monster->id)
-                        ->where('is_defeated', false)
-                        ->first();
-                        
-                    if (!$activeBoss) {
-                        $activeBoss = WorldBossInstance::create([
-                            'map_id' => $encounter->map_id,
-                            'monster_id' => $monster->id,
-                            'total_hp' => $monster->stats['hp'] ?? 1000000,
-                            'current_hp' => $monster->stats['hp'] ?? 1000000,
-                            'is_defeated' => false
-                        ]);
+                    $lastTurn = end($turns);
+                    $finalPlayerHp = $lastTurn ? ($lastTurn['playerHp'] ?? 0) : $playerHp;
+                    $allDead = true;
+                    if ($lastTurn && !empty($lastTurn['monsters_state'])) {
+                        foreach ($lastTurn['monsters_state'] as $ms) {
+                            if (($ms['hp'] ?? 0) > 0) {
+                                $allDead = false;
+                                break;
+                            }
+                        }
                     }
 
-                    WorldBossDamageLog::create([
-                        'world_boss_instance_id' => $activeBoss->id,
-                        'character_id' => $character->id,
-                        'damage' => $damageDealt
-                    ]);
-                    
-                    $activeBoss->decrement('current_hp', $damageDealt);
-                    if ($activeBoss->current_hp <= 0) {
-                        $activeBoss->update(['is_defeated' => true]);
-                    }
-                } else {
-                    $winner = $finalMonsterHp <= 0 ? 'player' : 'enemy';
+                    $winner = ($finalPlayerHp > 0 && $allDead) ? 'player' : 'enemy';
 
                     if ($winner === 'player') {
                         $goldRewardData = $this->calculateGoldReward($monster, $character);
                         $xpRewardData = $this->calculateXpReward($monster, $character);
+
+                        // Apply Over-Level Penalty (-66% rewards, so 0.33x multiplier)
+                        $goldRewardData['base'] = (int)ceil($goldRewardData['base'] * 0.33);
+                        $goldRewardData['total'] = (int)ceil($goldRewardData['total'] * 0.33);
+                        $goldRewardData['bonus'] = $goldRewardData['total'] - $goldRewardData['base'];
+
+                        $xpRewardData['base'] = (int)ceil($xpRewardData['base'] * 0.33);
+                        $xpRewardData['total'] = (int)ceil($xpRewardData['total'] * 0.33);
+                        $xpRewardData['bonus'] = $xpRewardData['total'] - $xpRewardData['base'];
+                    }
+                } else {
+                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss);
+                    $lastTurn = end($turns);
+                    $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
+
+                    if ($isWorldBoss) {
+                        $winner = 'enemy'; // Worldboss always wins/survives
+                        $damageDealt = max(0, $monsterMaxHp - $finalMonsterHp);
+                        
+                        // Skalowanie nagród używając spłaszczonej krzywej (np. pierwiastek) by zapobiec nieskończonemu wzrostowi
+                        $baseGold = max(10, (int)ceil(pow($damageDealt, 0.7)));
+                        $baseXp = max(80, (int)ceil(pow($damageDealt, 0.75) * 4));
+
+                        $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
+                        $goldMult = $multiplierService->getGoldMultiplier($character);
+                        $xpMult = $multiplierService->getExpMultiplier($character);
+
+                        $goldRewardData = ['base' => $baseGold, 'bonus' => (int)($baseGold * $goldMult) - $baseGold, 'total' => (int)($baseGold * $goldMult), 'multiplier' => $goldMult];
+                        $xpRewardData = ['base' => $baseXp, 'bonus' => (int)($baseXp * $xpMult) - $baseXp, 'total' => (int)($baseXp * $xpMult), 'multiplier' => $xpMult];
+
+                        // Zapisz log damage
+                        $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
+                            ->where('monster_id', $monster->id)
+                            ->where('is_defeated', false)
+                            ->first();
+                            
+                        if (!$activeBoss) {
+                            $activeBoss = WorldBossInstance::create([
+                                'map_id' => $encounter->map_id,
+                                'monster_id' => $monster->id,
+                                'total_hp' => $monster->stats['hp'] ?? 1000000,
+                                'current_hp' => $monster->stats['hp'] ?? 1000000,
+                                'is_defeated' => false
+                            ]);
+                        }
+
+                        WorldBossDamageLog::create([
+                            'world_boss_instance_id' => $activeBoss->id,
+                            'character_id' => $character->id,
+                            'damage' => $damageDealt
+                        ]);
+                        
+                        $activeBoss->decrement('current_hp', $damageDealt);
+                        if ($activeBoss->current_hp <= 0) {
+                            $activeBoss->update(['is_defeated' => true]);
+                        }
+                    } else {
+                        $winner = $finalMonsterHp <= 0 ? 'player' : 'enemy';
+
+                        if ($winner === 'player') {
+                            $goldRewardData = $this->calculateGoldReward($monster, $character);
+                            $xpRewardData = $this->calculateXpReward($monster, $character);
+                        }
                     }
                 }
                 
@@ -894,5 +952,185 @@ class EncounterService
             'total' => $total,
             'multiplier' => $multiplier
         ];
+    }
+
+    private function simulateMultiCombat(Character $character, array $monsters, int $playerHp, string $tactic = 'random'): array
+    {
+        $this->activeCooldowns = [];
+        $this->activeDots = [];
+        $this->activeBuffs = [];
+        $this->equippedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+            ->where('character_id', $character->id)
+            ->where('is_equipped', true)
+            ->orderBy('equip_slot')
+            ->get();
+
+        foreach ($this->equippedSkills as $cs) {
+            if ($cs->skill->type === 'active') {
+                $this->activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1);
+            }
+        }
+
+        $turns = [];
+        $turnCount = 0;
+        $maxTurns = 80;
+
+        $extraMonsters = count($monsters) - 1;
+        // Monster damage reduction: 10% per extra monster
+        $monsterDmgMult = max(0.1, 1.0 - ($extraMonsters * 0.10));
+
+        while ($playerHp > 0 && $this->anyMonsterAlive($monsters) && $turnCount < $maxTurns) {
+            // 1. Living monsters attack sequentially
+            foreach ($monsters as $mIdx => &$m) {
+                if ($m['hp'] <= 0 || $playerHp <= 0) {
+                    continue;
+                }
+
+                $monsterModel = Monster::find($m['id']);
+                if (!$monsterModel) {
+                    continue;
+                }
+
+                $turn = $this->monsterAttack($monsterModel, $character, $playerHp, $m['hp']);
+                
+                if ($turn['type'] === 'hit' && ($turn['value'] ?? 0) > 0) {
+                    $turn['value'] = max(1, (int)round($turn['value'] * $monsterDmgMult));
+                    if (isset($turn['baseDamage'])) {
+                        $turn['baseDamage'] = max(1, (int)round($turn['baseDamage'] * $monsterDmgMult));
+                    }
+                }
+
+                $playerHp = max(0, $playerHp - $turn['value']);
+                $turn['playerHp'] = $playerHp;
+                $turn['enemy_index'] = $mIdx;
+                $turn['enemy_name'] = $m['name'];
+                $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                $turn['state'] = [
+                    'dots' => $this->activeDots,
+                    'buffs' => $this->activeBuffs,
+                    'cooldowns' => $this->activeCooldowns,
+                ];
+
+                $turns[] = $turn;
+                $turnCount++;
+            }
+            unset($m);
+
+            if ($playerHp <= 0 || !$this->anyMonsterAlive($monsters)) {
+                break;
+            }
+
+            // 2. Player attacks 1 target based on tactic
+            foreach ($this->activeCooldowns as $id => $cd) {
+                if ($cd > 0) $this->activeCooldowns[$id]--;
+            }
+            foreach ($this->activeBuffs as $k => $b) {
+                $this->activeBuffs[$k]['duration']--;
+                if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
+            }
+
+            $targetIdx = $this->selectTargetMonster($monsters, $tactic);
+            if ($targetIdx === null) {
+                break;
+            }
+
+            $targetMonster = &$monsters[$targetIdx];
+            $monsterModel = Monster::find($targetMonster['id']);
+            if ($monsterModel) {
+                $turn = $this->playerAttack($character, $monsterModel, $playerHp, $targetMonster['hp'], $targetMonster['maxHp'], false);
+                $targetMonster['hp'] = $turn['enemyHp'];
+                $turn['target_index'] = $targetIdx;
+                $turn['target_name'] = $targetMonster['name'];
+                $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                $turn['state'] = [
+                    'dots' => $this->activeDots,
+                    'buffs' => $this->activeBuffs,
+                    'cooldowns' => $this->activeCooldowns,
+                ];
+
+                $turns[] = $turn;
+                $turnCount++;
+            }
+            unset($targetMonster);
+        }
+
+        return $turns;
+    }
+
+    private function anyMonsterAlive(array $monsters): bool
+    {
+        foreach ($monsters as $m) {
+            if (($m['hp'] ?? 0) > 0) return true;
+        }
+        return false;
+    }
+
+    private function getMonstersStateSummary(array $monsters): array
+    {
+        return array_map(function($m) {
+            return [
+                'id' => $m['id'],
+                'name' => $m['name'],
+                'hp' => $m['hp'],
+                'maxHp' => $m['maxHp'],
+                'level' => $m['level'],
+                'avatar' => $m['avatar'] ?? null,
+            ];
+        }, $monsters);
+    }
+
+    private function selectTargetMonster(array $monsters, string $tactic): ?int
+    {
+        $aliveIndices = [];
+        foreach ($monsters as $idx => $m) {
+            if (($m['hp'] ?? 0) > 0) {
+                $aliveIndices[] = $idx;
+            }
+        }
+
+        if (empty($aliveIndices)) {
+            return null;
+        }
+
+        if ($tactic === 'highest_hp') {
+            usort($aliveIndices, function($a, $b) use ($monsters) {
+                return $monsters[$b]['hp'] <=> $monsters[$a]['hp'];
+            });
+            return $aliveIndices[0];
+        }
+
+        if ($tactic === 'lowest_hp') {
+            usort($aliveIndices, function($a, $b) use ($monsters) {
+                return $monsters[$a]['hp'] <=> $monsters[$b]['hp'];
+            });
+            return $aliveIndices[0];
+        }
+
+        if ($tactic === 'highest_att') {
+            usort($aliveIndices, function($a, $b) use ($monsters) {
+                $atkA = $monsters[$a]['stats']['atk'] ?? 0;
+                $atkB = $monsters[$b]['stats']['atk'] ?? 0;
+                if ($atkA === $atkB) {
+                    return $monsters[$b]['hp'] <=> $monsters[$a]['hp'];
+                }
+                return $atkB <=> $atkA;
+            });
+            return $aliveIndices[0];
+        }
+
+        if ($tactic === 'highest_def') {
+            usort($aliveIndices, function($a, $b) use ($monsters) {
+                $defA = $monsters[$a]['stats']['def'] ?? 0;
+                $defB = $monsters[$b]['stats']['def'] ?? 0;
+                if ($defA === $defB) {
+                    return $monsters[$b]['hp'] <=> $monsters[$a]['hp'];
+                }
+                return $defB <=> $defA;
+            });
+            return $aliveIndices[0];
+        }
+
+        // Default 'random'
+        return $aliveIndices[array_rand($aliveIndices)];
     }
 }

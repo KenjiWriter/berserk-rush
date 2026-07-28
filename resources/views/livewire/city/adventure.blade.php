@@ -155,10 +155,14 @@
 
                     <div class="bg-slate-900/90 border-2 {{ $isAccessible ? 'border-emerald-800/60 hover:border-emerald-400' : 'border-slate-800 opacity-60' }} rounded-2xl shadow-xl backdrop-blur-md transition-all duration-300 flex flex-col h-full overflow-hidden {{ $isAccessible ? 'hover:shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:-translate-y-1' : '' }} {{ $isFirstMapTutorial ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 shadow-[0_0_25px_rgba(245,158,11,0.6)] relative z-10' : '' }}">
 
-                        {{-- Current Level Badge --}}
+                        {{-- Current Level / Over-level Badge --}}
                         @if ($isCurrentLevel)
                             <div class="absolute top-3 right-3 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 px-3 py-1 rounded-full text-xs font-black shadow-lg border border-yellow-300 z-20 flex items-center gap-1.5 animate-pulse">
                                 <i class="fa-solid fa-star text-slate-950"></i> REKOMENDOWANA
+                            </div>
+                        @elseif ($map->isOverLevel($character))
+                            <div class="absolute top-3 right-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-3 py-1 rounded-full text-xs font-black shadow-lg border border-purple-400 z-20 flex items-center gap-1.5">
+                                <i class="fa-solid fa-users text-amber-300"></i> 3-4 POTWORY (-66% ŁUP)
                             </div>
                         @endif
 
@@ -174,11 +178,7 @@
                                     <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-[2px] flex flex-col items-center justify-center p-4 text-center">
                                         <div class="text-4xl text-amber-500/80 mb-2"><i class="fa-solid fa-lock"></i></div>
                                         <div class="text-xs font-bold text-slate-300">
-                                            @if ($character->level < $map->level_min)
-                                                Wymagany poziom: {{ $map->level_min }}
-                                            @else
-                                                Przekroczony limit poziomu (max: {{ $map->level_max }})
-                                            @endif
+                                            Wymagany poziom: {{ $map->level_min }}
                                         </div>
                                     </div>
                                 @endif

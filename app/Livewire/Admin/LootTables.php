@@ -23,6 +23,7 @@ class LootTables extends Component
     public $entryMinQty = 1;
     public $entryMaxQty = 1;
     public $entryWeight = 10;
+    public $itemSearch = '';
 
     protected $rules = [
         'name' => 'required|string|max:255',
@@ -91,6 +92,12 @@ class LootTables extends Component
         $this->resetEntryForm();
     }
 
+    public function updatedEntryRewardType()
+    {
+        $this->entryRefUlid = null;
+        $this->itemSearch = '';
+    }
+
     public function saveEntry()
     {
         if (!$this->selectedTableId) {
@@ -144,6 +151,7 @@ class LootTables extends Component
         $this->entryMinQty = $entry->min_qty;
         $this->entryMaxQty = $entry->max_qty;
         $this->entryWeight = $entry->weight;
+        $this->itemSearch = '';
     }
 
     public function deleteEntry($entryId)
@@ -164,6 +172,7 @@ class LootTables extends Component
         $this->entryMinQty = 1;
         $this->entryMaxQty = 1;
         $this->entryWeight = 10;
+        $this->itemSearch = '';
     }
 
     public function render()
@@ -182,13 +191,38 @@ class LootTables extends Component
             }
         }
 
-        $itemTemplates = ItemTemplate::orderBy('name')->get();
+        $itemTemplatesQuery = ItemTemplate::query();
+
+        $search = trim($this->itemSearch);
+        if (!empty($search)) {
+            $itemTemplatesQuery->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('id', 'like', "%{$search}%")
+                  ->orWhere('type', 'like', "%{$search}%")
+                  ->orWhere('sub_type', 'like', "%{$search}%");
+            });
+        } else {
+            if ($this->entryRewardType === 'material') {
+                $itemTemplatesQuery->where('type', 'material');
+            } elseif ($this->entryRewardType === 'item') {
+                $itemTemplatesQuery->where('type', '!=', 'material');
+            }
+        }
+
+        if ($this->entryRefUlid) {
+            $selectedUlid = $this->entryRefUlid;
+            $itemTemplatesQuery->orWhere('id', $selectedUlid);
+        }
+
+        $itemTemplates = $itemTemplatesQuery->orderBy('name')->get();
+        $selectedItemTemplate = $this->entryRefUlid ? ItemTemplate::find($this->entryRefUlid) : null;
 
         return view('livewire.admin.loot-tables', [
             'selectedTable' => $selectedTable,
             'entries' => $entries,
             'totalWeight' => $totalWeight,
             'itemTemplates' => $itemTemplates,
+            'selectedItemTemplate' => $selectedItemTemplate,
         ]);
     }
 }

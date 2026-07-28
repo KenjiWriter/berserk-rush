@@ -24,6 +24,12 @@ class DropService
     public function rollLoot(Encounter $encounter): Result
     {
         try {
+            $isOverLevel = $encounter->combat_data['is_overlevel'] ?? false;
+            if ($isOverLevel && $this->rng->int(1, 100) > 33) {
+                // 66% chance penalty to drop no items/materials on over-level farming
+                return Result::ok(new DropResult(0, 0, [], [], false));
+            }
+
             $monster = $encounter->monster;
             if (!$monster || !$monster->loot_table_id) {
                 return Result::ok(new DropResult(0, 0, [], [], false));

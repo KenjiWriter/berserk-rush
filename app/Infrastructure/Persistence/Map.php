@@ -22,15 +22,16 @@ class Map extends Model
 
     public function isAccessibleBy(Character $character): bool
     {
-        if (!is_null($this->level_min) && !is_null($this->level_max)) {
-            return $character->level >= $this->level_min && $character->level <= $this->level_max;
-        }
-
         if (!is_null($this->level_min)) {
             return $character->level >= $this->level_min;
         }
 
         return true;
+    }
+
+    public function isOverLevel(Character $character): bool
+    {
+        return !is_null($this->level_max) && $character->level > $this->level_max;
     }
 
     public function getLevelRangeAttribute(): string
