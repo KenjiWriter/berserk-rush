@@ -991,6 +991,10 @@
                                     <x-item-tooltip :item="$item">
                                         <x-slot:actions>
                                             <div class="flex flex-col gap-2 w-full">
+                                                <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-1.5 rounded transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
+                                                    <i class="fa-solid fa-vault"></i> Przenieś do magazynu
+                                                </button>
+
                                                 @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
                                                     <button wire:click.stop="openSellModal('{{ $item->id }}'); closeTooltip();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-1.5 rounded font-bold shadow transition-colors text-xs">
                                                         Wystaw na targowisko
