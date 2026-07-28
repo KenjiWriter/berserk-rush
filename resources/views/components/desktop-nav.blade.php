@@ -148,16 +148,15 @@
                          x-transition:leave-end="opacity-0"
                          class="space-y-2 pt-1 border-t border-amber-900/40">
 
-                        {{-- EXP Progress Bar --}}
-                        <div>
+                        {{-- EXP Progress Bar (Hidden when Level >= 99) --}}
+                        <div x-show="navLevel < 99">
                             <div class="flex justify-between text-[9px] font-bold text-stone-400 mb-1 font-sans">
                                 <span class="text-amber-500/90 tracking-wider">EXP <span class="text-amber-300/90 font-semibold ml-0.5">(<span x-text="navXpPct + '%'">{{ $initialXpPct }}%</span>)</span></span>
-                                <template x-if="navLevel >= 99"><span class="text-amber-400 font-bold">MAX</span></template>
-                                <template x-if="navLevel < 99"><span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($initialXpReq) }}</span></span></template>
+                                <span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($initialXpReq) }}</span></span>
                             </div>
                             <div class="w-full h-2 bg-stone-900 rounded-full overflow-hidden border border-stone-800 shadow-inner">
                                 <div class="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 transition-all duration-700 relative rounded-full"
-                                     :style="`width: ${navLevel >= 99 ? 100 : Math.min(100, Math.max(0, (navXp / Math.max(1, navXpReq)) * 100))}%`">
+                                     :style="`width: ${Math.min(100, Math.max(0, (navXp / Math.max(1, navXpReq)) * 100))}%`">
                                     <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                                 </div>
                             </div>

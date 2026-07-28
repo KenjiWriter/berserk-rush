@@ -83,6 +83,13 @@ class Character extends Model
 
     protected static function booted()
     {
+        static::saving(function ($character) {
+            if (($character->level ?? 0) >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
+                $character->level = \App\Application\Characters\LevelUpService::MAX_LEVEL;
+                $character->xp = 0;
+            }
+        });
+
         static::updated(function ($character) {
             $character->clearStatsCache();
         });

@@ -225,17 +225,19 @@
                             </div>
                         @endif
 
-                        {{-- XP Progress Bar --}}
-                        <div class="space-y-1">
-                            <div class="flex justify-between text-xs font-semibold text-indigo-200">
-                                <span>Doświadczenie</span>
-                                <span class="font-mono text-indigo-300">{{ $character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL ? 'MAX' : $character->xp.'/'.$this->getXpToNextLevel() }}</span>
+                        {{-- XP Progress Bar (Hidden when Level >= 99) --}}
+                        @if($character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL)
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-semibold text-indigo-200">
+                                    <span>Doświadczenie</span>
+                                    <span class="font-mono text-indigo-300">{{ $character->xp }}/{{ $this->getXpToNextLevel() }}</span>
+                                </div>
+                                <div class="h-2 sm:h-2.5 w-full rounded-full bg-indigo-950/70 ring-1 ring-indigo-700/40 p-0.5">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-400 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500"
+                                        style="width: {{ $this->getXpPercentage() }}%"></div>
+                                </div>
                             </div>
-                            <div class="h-2 sm:h-2.5 w-full rounded-full bg-indigo-950/70 ring-1 ring-indigo-700/40 p-0.5">
-                                <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-400 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500"
-                                    style="width: {{ $this->getXpPercentage() }}%"></div>
-                            </div>
-                        </div>
+                        @endif
 
                         {{-- Player Attributes Grid (Loaded immediately!) --}}
                         <div>

@@ -247,19 +247,19 @@
                     
                     @php 
                         $isMaxLevel = $character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL;
-                        $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
-                        $xpPercent = $isMaxLevel ? 100 : min(100, ($character->xp / max(1, $xpRequired)) * 100);
                     @endphp
-                    <div class="w-full bg-gray-900 rounded-full h-4 sm:h-5 relative border border-gray-700 shadow-inner overflow-hidden cursor-help" title="{{ $isMaxLevel ? 'Maksymalny poziom (99)' : 'Doświadczenie: '.$character->xp.' / '.$xpRequired }}">
-                        <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
-                        <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
-                            @if($isMaxLevel)
-                                XP: MAX (Poziom 99)
-                            @else
+                    @if(!$isMaxLevel)
+                        @php
+                            $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
+                            $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
+                        @endphp
+                        <div class="w-full bg-gray-900 rounded-full h-4 sm:h-5 relative border border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
+                            <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
+                            <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
                                 XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
-                            @endif
-                        </span>
-                    </div>
+                            </span>
+                        </div>
+                    @endif
                     <div class="w-full mt-2.5 sm:mt-3 border-t border-stone-800 pt-2 sm:pt-2.5">
                         <h3 class="text-[10px] xs:text-xs font-bold text-amber-400/90 uppercase tracking-widest mb-1.5 sm:mb-2 text-center medieval-font">Wyposażone Skille</h3>
                         <div class="flex justify-center gap-2 sm:gap-3.5">
