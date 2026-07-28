@@ -107,8 +107,20 @@ class EncounterService
 
                         if ($isOverLevel) {
                             $monsterCount = mt_rand(3, 4);
+                            $selectedCounts = [];
                             for ($i = 0; $i < $monsterCount; $i++) {
-                                $mObj = $monstersPool->random();
+                                // Filter pool to monsters picked fewer than 2 times
+                                $availablePool = $monstersPool->filter(function($m) use ($selectedCounts) {
+                                    return ($selectedCounts[$m->id] ?? 0) < 2;
+                                });
+
+                                if ($availablePool->isEmpty()) {
+                                    $availablePool = $monstersPool;
+                                }
+
+                                $mObj = $availablePool->random();
+                                $selectedCounts[$mObj->id] = ($selectedCounts[$mObj->id] ?? 0) + 1;
+
                                 $scaled = $mObj->getScaledStats($char->level, false);
                                 $monstersList[] = [
                                     'id' => $mObj->id,

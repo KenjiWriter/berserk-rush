@@ -722,11 +722,47 @@ class MapStub extends Component
         ];
     }
 
+    public function getActiveMonsterIndex(): int
+    {
+        if (empty($this->visibleTurns)) {
+            return 0;
+        }
+
+        $lastTurn = end($this->visibleTurns);
+        if (isset($lastTurn['enemy_index'])) {
+            return (int)$lastTurn['enemy_index'];
+        }
+        if (isset($lastTurn['target_index'])) {
+            return (int)$lastTurn['target_index'];
+        }
+
+        $monsters = $this->getCurrentMonstersState();
+        foreach ($monsters as $idx => $m) {
+            if (($m['hp'] ?? 0) > 0) {
+                return $idx;
+            }
+        }
+
+        return 0;
+    }
+
+    public function getActiveMonster(): array
+    {
+        $monsters = $this->getCurrentMonstersState();
+        if (empty($monsters)) {
+            return $this->enemy;
+        }
+
+        $idx = $this->getActiveMonsterIndex();
+        return $monsters[$idx] ?? $monsters[0] ?? $this->enemy;
+    }
+
     public function getEnemyCombatStats(): array
     {
-        if (empty($this->enemy)) return [];
+        $activeEnemy = $this->isOverLevelCombat ? $this->getActiveMonster() : $this->enemy;
+        if (empty($activeEnemy)) return [];
 
-        $enemyStats = $this->enemy['stats'] ?? [];
+        $enemyStats = $activeEnemy['stats'] ?? [];
         $enemyAgi = $enemyStats['agi'] ?? 0;
         $playerAgi = $this->player['stats']['agi'] ?? 0;
 

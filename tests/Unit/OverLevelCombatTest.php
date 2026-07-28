@@ -131,4 +131,60 @@ class OverLevelCombatTest extends TestCase
         $lastTurn = end($payload['turns']);
         $this->assertArrayHasKey('monsters_state', $lastTurn);
     }
+
+    public function test_max_two_duplicates_per_group()
+    {
+        $user = User::factory()->create(['game_stage' => 20]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'DupeChecker',
+            'class' => 'warrior',
+            'level' => 25,
+            'experience' => 0,
+            'gold' => 0,
+        ]);
+
+        $map = Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Mroczny Las',
+            'level_min' => 0,
+            'level_max' => 15,
+            'tier' => 1,
+        ]);
+
+        $m1 = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Wilk Leśny',
+            'level' => 3,
+            'rank' => 'regular',
+            'stats' => ['hp' => 50, 'atk' => 8, 'def' => 2, 'agi' => 5],
+        ]);
+
+        $m2 = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Goblin Zwiadowca',
+            'level' => 5,
+            'rank' => 'regular',
+            'stats' => ['hp' => 80, 'atk' => 12, 'def' => 4, 'agi' => 8],
+        ]);
+
+        $service = app(EncounterService::class);
+
+        // Run 20 starts to verify no group ever exceeds 2 duplicates of any monster
+        for ($k = 0; $k < 20; $k++) {
+            $startRes = $service->start($character, $map);
+            $this->assertTrue($startRes->isOk());
+            $encounter = $startRes->getPayload();
+
+            $monsters = $encounter->combat_data['monsters'];
+            $counts = array_count_values(array_column($monsters, 'id'));
+
+            foreach ($counts as $mId => $count) {
+                $this->assertLessThanOrEqual(2, $count, "Monster {$mId} was spawned {$count} times (max 2 allowed)");
+            }
+
+            // Simulate to finish encounter so next iteration can start
+            $service->simulate($encounter);
+        }
+    }
 }

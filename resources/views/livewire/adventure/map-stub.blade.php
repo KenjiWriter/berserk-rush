@@ -129,18 +129,77 @@
                     </div>
                 </div>
 
-                {{-- Targeting Strategy Dropdown --}}
-                <div class="flex items-center gap-2 text-xs font-bold font-sans">
-                    <label for="targeting-tactic" class="whitespace-nowrap text-amber-300 flex items-center gap-1">
-                        <i class="fa-solid fa-crosshairs"></i> Taktyka ataku:
-                    </label>
-                    <select id="targeting-tactic" wire:change="setTargetStrategy($event.target.value)" class="bg-slate-900 border border-purple-400/80 rounded-lg px-2.5 py-1 text-xs text-amber-100 font-bold focus:ring-2 focus:ring-purple-400 focus:outline-none">
-                        <option value="random" {{ $targetStrategy === 'random' ? 'selected' : '' }}>🎲 Losowy przeciwnik</option>
-                        <option value="highest_hp" {{ $targetStrategy === 'highest_hp' ? 'selected' : '' }}>❤️ Najwięcej HP</option>
-                        <option value="lowest_hp" {{ $targetStrategy === 'lowest_hp' ? 'selected' : '' }}>🩸 Najmniej HP</option>
-                        <option value="highest_att" {{ $targetStrategy === 'highest_att' ? 'selected' : '' }}>⚔️ Największy Atak</option>
-                        <option value="highest_def" {{ $targetStrategy === 'highest_def' ? 'selected' : '' }}>🛡️ Największa Obrona</option>
-                    </select>
+                {{-- Custom Targeting Strategy Dropdown with FontAwesome Icons --}}
+                <div class="relative flex items-center gap-2 text-xs font-bold font-sans"
+                     x-data="{ 
+                         open: false, 
+                         strategy: @entangle('targetStrategy'),
+                         labels: {
+                             'random': { label: 'Losowy przeciwnik', icon: 'fa-solid fa-dice text-purple-400' },
+                             'highest_hp': { label: 'Najwięcej HP', icon: 'fa-solid fa-heart text-red-500' },
+                             'lowest_hp': { label: 'Najmniej HP', icon: 'fa-solid fa-droplet text-rose-400' },
+                             'highest_att': { label: 'Największy Atak', icon: 'fa-solid fa-swords text-amber-400' },
+                             'highest_def': { label: 'Największa Obrona', icon: 'fa-solid fa-shield-halved text-blue-400' }
+                         }
+                     }">
+                    <span class="whitespace-nowrap text-amber-300 flex items-center gap-1.5 medieval-font">
+                        <i class="fa-solid fa-crosshairs text-amber-400"></i> Taktyka ataku:
+                    </span>
+
+                    {{-- Dropdown Trigger Button --}}
+                    <button @click="open = !open" @click.outside="open = false" 
+                        class="bg-slate-900 border border-purple-400/80 hover:border-purple-300 text-amber-100 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 shadow-md backdrop-blur-md transition-all active:scale-95">
+                        <i :class="labels[strategy]?.icon || 'fa-solid fa-dice text-purple-400'"></i>
+                        <span x-text="labels[strategy]?.label || 'Losowy przeciwnik'"></span>
+                        <i class="fa-solid fa-chevron-down text-[10px] text-purple-300 ml-1 transition-transform" :class="{ 'rotate-180': open }"></i>
+                    </button>
+
+                    {{-- Dropdown Menu Items --}}
+                    <div x-show="open" 
+                         x-transition:enter="transition ease-out duration-150"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         class="absolute right-0 top-full mt-2 w-52 bg-slate-950/95 border-2 border-purple-500/80 rounded-xl shadow-2xl backdrop-blur-xl p-1.5 z-50 space-y-1"
+                         style="display: none;">
+                        
+                        <button @click="$wire.setTargetStrategy('random'); open = false" 
+                            :class="strategy === 'random' ? 'bg-purple-900/90 text-amber-200 border-purple-400/60 font-black' : 'text-slate-200 hover:bg-slate-900 hover:text-amber-100'"
+                            class="w-full text-left px-2.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition-all border border-transparent">
+                            <i class="fa-solid fa-dice text-purple-400 w-4 text-center"></i>
+                            <span>Losowy przeciwnik</span>
+                        </button>
+
+                        <button @click="$wire.setTargetStrategy('highest_hp'); open = false" 
+                            :class="strategy === 'highest_hp' ? 'bg-purple-900/90 text-amber-200 border-purple-400/60 font-black' : 'text-slate-200 hover:bg-slate-900 hover:text-amber-100'"
+                            class="w-full text-left px-2.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition-all border border-transparent">
+                            <i class="fa-solid fa-heart text-red-500 w-4 text-center"></i>
+                            <span>Najwięcej HP</span>
+                        </button>
+
+                        <button @click="$wire.setTargetStrategy('lowest_hp'); open = false" 
+                            :class="strategy === 'lowest_hp' ? 'bg-purple-900/90 text-amber-200 border-purple-400/60 font-black' : 'text-slate-200 hover:bg-slate-900 hover:text-amber-100'"
+                            class="w-full text-left px-2.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition-all border border-transparent">
+                            <i class="fa-solid fa-droplet text-rose-400 w-4 text-center"></i>
+                            <span>Najmniej HP</span>
+                        </button>
+
+                        <button @click="$wire.setTargetStrategy('highest_att'); open = false" 
+                            :class="strategy === 'highest_att' ? 'bg-purple-900/90 text-amber-200 border-purple-400/60 font-black' : 'text-slate-200 hover:bg-slate-900 hover:text-amber-100'"
+                            class="w-full text-left px-2.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition-all border border-transparent">
+                            <i class="fa-solid fa-swords text-amber-400 w-4 text-center"></i>
+                            <span>Największy Atak</span>
+                        </button>
+
+                        <button @click="$wire.setTargetStrategy('highest_def'); open = false" 
+                            :class="strategy === 'highest_def' ? 'bg-purple-900/90 text-amber-200 border-purple-400/60 font-black' : 'text-slate-200 hover:bg-slate-900 hover:text-amber-100'"
+                            class="w-full text-left px-2.5 py-2 rounded-lg text-xs font-bold flex items-center gap-2.5 transition-all border border-transparent">
+                            <i class="fa-solid fa-shield-halved text-blue-400 w-4 text-center"></i>
+                            <span>Największa Obrona</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         @endif
@@ -589,86 +648,101 @@
                     <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
                     <div class="relative p-3.5 sm:p-4 lg:p-4 xl:p-6 space-y-3 lg:space-y-3.5 xl:space-y-5">
-                        @if ($isOverLevelCombat && !empty($this->getCurrentMonstersState()))
-                            <div class="text-center mb-2">
-                                <span class="bg-gradient-to-r from-purple-700 to-indigo-600 text-amber-100 text-xs font-black px-3 py-1 rounded-full border border-purple-400 shadow-md medieval-font">
-                                    Grupa {{ count($this->getCurrentMonstersState()) }} Przeciwników
-                                </span>
-                            </div>
+                        @php
+                            $monstersState = $isOverLevelCombat ? $this->getCurrentMonstersState() : [];
+                            $displayMonster = ($isOverLevelCombat && !empty($monstersState)) ? $this->getActiveMonster() : $enemy;
+                            $activeMonsterIdx = $isOverLevelCombat ? $this->getActiveMonsterIndex() : 0;
+                        @endphp
 
-                            <div class="space-y-3 max-h-[460px] overflow-y-auto custom-scrollbar pr-1">
-                                @foreach($this->getCurrentMonstersState() as $mIdx => $m)
-                                    @php
-                                        $mHpPct = max(0, min(100, (($m['hp'] ?? 0) / max(1, $m['maxHp'] ?? 1)) * 100));
-                                        $isDead = (($m['hp'] ?? 0) <= 0);
-                                    @endphp
-                                    <div class="bg-slate-900/90 border {{ $isDead ? 'border-slate-800 opacity-50' : 'border-red-600/50 hover:border-red-400' }} rounded-xl p-3 shadow-md transition-all">
-                                        <div class="flex items-center gap-3">
-                                            <div class="relative w-12 h-12 rounded-lg overflow-hidden border border-red-500/60 bg-slate-950 flex-shrink-0">
-                                                @if(!empty($m['avatar']))
-                                                    <img src="{{ route('assets.monsters.avatars', ['filename' => $m['avatar']]) }}" class="w-full h-full object-cover">
-                                                @else
-                                                    <img src="{{ asset('img/monsters/placeholder.png') }}" class="w-full h-full object-cover">
-                                                @endif
-                                                @if($isDead)
-                                                    <div class="absolute inset-0 bg-black/80 flex items-center justify-center text-red-500 font-bold text-xs">❌</div>
-                                                @endif
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <div class="flex justify-between items-center text-xs">
-                                                    <span class="font-bold text-red-200 truncate medieval-font">{{ $m['name'] }}</span>
-                                                    <span class="text-[10px] text-amber-300 font-bold font-mono">Lvl {{ $m['level'] }}</span>
-                                                </div>
-                                                <div class="flex justify-between text-[11px] font-mono text-red-300 mt-1">
-                                                    <span>Życie:</span>
-                                                    <span>{{ max(0, $m['hp']) }}/{{ $m['maxHp'] }}</span>
-                                                </div>
-                                                <div class="h-2.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/40 p-0.5 mt-1">
-                                                    <div class="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300" style="width: {{ $mHpPct }}%"></div>
-                                                </div>
-                                            </div>
-                                        </div>
+                        @if(!empty($displayMonster))
+                            {{-- Group Monster Stack Header (if in over-level multi-monster fight) --}}
+                            @if ($isOverLevelCombat && !empty($monstersState))
+                                <div class="mb-3 bg-slate-900/90 rounded-2xl p-2.5 border border-purple-500/40 shadow-inner">
+                                    <div class="flex items-center justify-between mb-2 px-1">
+                                        <span class="text-xs font-black text-purple-300 medieval-font flex items-center gap-1.5">
+                                            <i class="fa-solid fa-layer-group text-amber-400"></i> Stos Przeciwników ({{ count($monstersState) }})
+                                        </span>
+                                        <span class="text-[10px] bg-purple-900/80 text-amber-200 px-2 py-0.5 rounded-full font-bold font-mono border border-purple-400/40">
+                                            Aktywny: #{{ $activeMonsterIdx + 1 }} {{ $displayMonster['name'] }}
+                                        </span>
                                     </div>
-                                @endforeach
-                            </div>
-                        @elseif(!empty($enemy))
-                            {{-- Enemy Header & Avatar --}}
+
+                                    {{-- Stack Chips --}}
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                                        @foreach($monstersState as $mIdx => $m)
+                                            @php
+                                                $mHpPct = max(0, min(100, (($m['hp'] ?? 0) / max(1, $m['maxHp'] ?? 1)) * 100));
+                                                $isDead = (($m['hp'] ?? 0) <= 0);
+                                                $isActive = ($mIdx === $activeMonsterIdx && !$isDead);
+                                            @endphp
+                                            <div class="relative bg-slate-950/80 rounded-xl p-1.5 border transition-all duration-300 {{ $isActive ? 'border-amber-400 ring-2 ring-amber-400/80 bg-amber-950/50 scale-[1.03] shadow-[0_0_15px_rgba(245,158,11,0.5)]' : ($isDead ? 'border-slate-800 opacity-40 grayscale' : 'border-red-900/40 hover:border-red-500/60') }}">
+                                                <div class="flex items-center gap-1.5">
+                                                    <div class="relative w-8 h-8 rounded-lg overflow-hidden border border-red-500/50 bg-slate-900 flex-shrink-0">
+                                                        @if(!empty($m['avatar']))
+                                                            <img src="{{ route('assets.monsters.avatars', ['filename' => $m['avatar']]) }}" class="w-full h-full object-cover">
+                                                        @else
+                                                            <img src="{{ asset('img/monsters/placeholder.png') }}" class="w-full h-full object-cover">
+                                                        @endif
+                                                        @if($isDead)
+                                                            <div class="absolute inset-0 bg-black/80 flex items-center justify-center text-red-500 font-bold text-[10px]">❌</div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="flex-1 min-w-0">
+                                                        <div class="text-[10px] font-bold text-red-200 truncate leading-tight">{{ $m['name'] }}</div>
+                                                        <div class="text-[9px] text-amber-300/80 font-mono">Lvl {{ $m['level'] }}</div>
+                                                        <div class="h-1.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/30 p-0.5 mt-0.5">
+                                                            <div class="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300" style="width: {{ $mHpPct }}%"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
+                            {{-- Featured Active Monster Main Card --}}
                             <div class="text-center">
                                 <div class="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-24 lg:h-24 xl:w-28 xl:h-28 2xl:w-32 2xl:h-32 mx-auto">
                                     <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-red-600/80 shadow-[0_0_25px_rgba(239,68,68,0.35)] bg-slate-900">
-                                        @if(!empty($enemy['avatar']))
-                                            <img src="{{ route('assets.monsters.avatars', ['filename' => $enemy['avatar']]) }}"
-                                                alt="{{ $enemy['name'] }}"
+                                        @if(!empty($displayMonster['avatar']))
+                                            <img src="{{ route('assets.monsters.avatars', ['filename' => $displayMonster['avatar']]) }}"
+                                                alt="{{ $displayMonster['name'] }}"
                                                 class="w-full h-full object-cover">
                                         @else
                                             <img src="{{ asset('img/monsters/placeholder.png') }}"
-                                                alt="{{ $enemy['name'] }}"
+                                                alt="{{ $displayMonster['name'] }}"
                                                 class="w-full h-full object-cover">
                                         @endif
                                     </div>
                                     <span class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-rose-600 text-red-100 text-xs sm:text-sm font-black px-3 py-0.5 rounded-full border border-red-400 shadow-lg medieval-font">
-                                        Lvl {{ $enemy['level'] }}
+                                        Lvl {{ $displayMonster['level'] }}
                                     </span>
                                 </div>
 
                                 {{-- Enemy Name --}}
                                 <h3 class="mt-2.5 lg:mt-3 text-base sm:text-lg lg:text-xl xl:text-2xl font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] tracking-wide">
-                                    {{ $enemy['name'] }}
+                                    {{ $displayMonster['name'] }}
                                 </h3>
                                 <p class="text-xs lg:text-sm text-red-400/80 tracking-wider">
-                                    {{ $enemy['rank'] ?? 'Przeciwnik' }}
+                                    {{ $displayMonster['rank'] ?? 'Przeciwnik' }}
                                 </p>
                             </div>
 
                             {{-- Enemy HP Bar --}}
+                            @php
+                                $displayHp = $displayMonster['hp'] ?? 0;
+                                $displayMaxHp = $displayMonster['maxHp'] ?? 1;
+                                $displayHpPercent = max(0, min(100, ($displayHp / max(1, $displayMaxHp)) * 100));
+                            @endphp
                             <div class="space-y-1.5">
                                 <div class="flex justify-between text-xs lg:text-sm font-bold text-red-200 medieval-font drop-shadow">
                                     <span>Życie Przeciwnika</span>
-                                    <span class="font-mono text-red-300 text-sm lg:text-base">{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] }}</span>
+                                    <span class="font-mono text-red-300 text-sm lg:text-base">{{ max(0, $displayHp) }}/{{ $displayMaxHp }}</span>
                                 </div>
                                 <div class="h-4 sm:h-5 w-full rounded-full bg-black/80 ring-1 ring-red-700/50 p-0.5 shadow-inner">
                                     <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] transition-all duration-500"
-                                        style="width: {{ $this->getEnemyHpPercent() }}%"></div>
+                                        style="width: {{ $displayHpPercent }}%"></div>
                                 </div>
                             </div>
 
@@ -721,15 +795,15 @@
                                 <div class="grid grid-cols-2 gap-2 lg:gap-2.5">
                                     <div class="bg-slate-900/90 border border-red-800/40 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-red-300 tracking-wider">ATK (Atak)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-red-100 font-mono">{{ $enemy['stats']['atk'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-red-100 font-mono">{{ $displayMonster['stats']['atk'] ?? 0 }}</div>
                                     </div>
                                     <div class="bg-slate-900/90 border border-slate-700/50 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-slate-300 tracking-wider">DEF (Obrona)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-slate-100 font-mono">{{ $enemy['stats']['def'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-slate-100 font-mono">{{ $displayMonster['stats']['def'] ?? 0 }}</div>
                                     </div>
                                     <div class="bg-slate-900/90 border border-amber-800/40 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-amber-300 tracking-wider">AGI (Zręczność)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-amber-100 font-mono">{{ $enemy['stats']['agi'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-amber-100 font-mono">{{ $displayMonster['stats']['agi'] ?? 0 }}</div>
                                     </div>
                                 </div>
 
