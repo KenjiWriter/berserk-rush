@@ -21,13 +21,16 @@ class LevelUpService
                 $currentLevel = $character->level;
                 $currentXp = $character->xp;
 
+                $maxXpAtMaxLevel = max(0, $this->xpToNext(self::MAX_LEVEL) - 1);
+
                 if ($currentLevel >= self::MAX_LEVEL) {
                     $currentLevel = self::MAX_LEVEL;
-                    $currentXp = 0;
-                    if ($character->level !== self::MAX_LEVEL || $character->xp !== 0) {
+                    $currentXp = min($currentXp, $maxXpAtMaxLevel);
+
+                    if ($character->level !== self::MAX_LEVEL || $character->xp !== $currentXp) {
                         $character->update([
                             'level' => self::MAX_LEVEL,
-                            'xp' => 0,
+                            'xp' => $currentXp,
                         ]);
                     }
 
@@ -56,7 +59,7 @@ class LevelUpService
 
                 if ($currentLevel >= self::MAX_LEVEL) {
                     $currentLevel = self::MAX_LEVEL;
-                    $currentXp = 0;
+                    $currentXp = min($currentXp, $maxXpAtMaxLevel);
                 }
 
                 if (!empty($levelUps) || $currentLevel !== $character->level || $currentXp !== $character->xp) {
@@ -104,10 +107,6 @@ class LevelUpService
 
     public function xpToNext(int $level): int
     {
-        if ($level >= self::MAX_LEVEL) {
-            return 0;
-        }
-
         $base = 15 * pow($level, 2) + 50 * $level + 0.15 * pow($level, 4.1);
         if ($level > 85) {
             $base += 0.025 * pow($level - 85, 5.5);

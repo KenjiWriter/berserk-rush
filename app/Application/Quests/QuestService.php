@@ -143,7 +143,7 @@ class QuestService
                 $character->gold += $quest->reward_gold;
             }
 
-            if ($character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL && $quest->reward_exp > 0) {
+            if ($quest->reward_exp > 0) {
                 $character->xp += $quest->reward_exp;
             }
 

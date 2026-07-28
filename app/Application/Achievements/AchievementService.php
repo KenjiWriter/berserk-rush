@@ -108,7 +108,7 @@ class AchievementService
             $character->gold += $achievement->reward_gold;
         }
 
-        if ($character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL && $achievement->reward_exp > 0) {
+        if ($achievement->reward_exp > 0) {
             $character->xp += $achievement->reward_exp;
             // Aplikowanie logiki awansu w tle
             app(\App\Application\Characters\LevelUpService::class)->checkAndApply($character);

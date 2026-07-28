@@ -467,9 +467,6 @@ class MapStub extends Component
      */
     public function getXpToNextLevel(): int
     {
-        if ($this->character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
-            return 0;
-        }
         return $this->getXpRequiredForLevel($this->character->level + 1);
     }
 
@@ -478,9 +475,6 @@ class MapStub extends Component
      */
     public function getXpPercentage(): float
     {
-        if ($this->character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
-            return 100.0;
-        }
         $xpToNext = $this->getXpToNextLevel();
         $currentXp = $this->character->xp;
         return min(100, ($currentXp / max(1, $xpToNext)) * 100);

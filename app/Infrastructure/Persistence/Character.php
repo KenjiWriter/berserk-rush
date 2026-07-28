@@ -86,7 +86,10 @@ class Character extends Model
         static::saving(function ($character) {
             if (($character->level ?? 0) >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
                 $character->level = \App\Application\Characters\LevelUpService::MAX_LEVEL;
-                $character->xp = 0;
+                $maxXp = max(0, app(\App\Application\Characters\LevelUpService::class)->xpToNext(\App\Application\Characters\LevelUpService::MAX_LEVEL) - 1);
+                if ($character->xp > $maxXp) {
+                    $character->xp = $maxXp;
+                }
             }
         });
 

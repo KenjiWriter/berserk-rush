@@ -59,7 +59,6 @@
                         navGold: {{ $character->gold }},
                         navGems: {{ $character->gems }},
                         get navXpPct() {
-                            if (this.navLevel >= 99) return '100.0';
                             return (Math.min(100, Math.max(0, (this.navXp / Math.max(1, this.navXpReq)) * 100))).toFixed(1);
                         },
 
@@ -129,8 +128,8 @@
                 </div>
 
                 @if($character)
-                    {{-- EXP Progress Bar (Hidden when Level >= 99) --}}
-                    <div x-show="navLevel < 99">
+                    {{-- EXP Progress Bar --}}
+                    <div>
                         <div class="flex justify-between text-[9px] font-bold text-stone-400 mb-1 font-sans">
                             <span class="text-amber-500/90 tracking-wider">EXP <span class="text-amber-300/90 font-semibold ml-0.5">(<span x-text="navXpPct + '%'">{{ $mobileXpPct }}%</span>)</span></span>
                             <span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($mobileXpReq) }}</span></span>
