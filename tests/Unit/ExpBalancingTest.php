@@ -55,4 +55,54 @@ class ExpBalancingTest extends TestCase
         $this->assertGreaterThan(50, $reward3['base']);
         $this->assertLessThan(200, $reward3['base']);
     }
+
+    public function test_level_99_is_max_level_and_prevents_further_exp_and_level_up(): void
+    {
+        $service = new LevelUpService();
+
+        // Level 99 returns 0 XP required for next level
+        $this->assertEquals(0, $service->xpToNext(99));
+        $this->assertEquals(0, $service->xpToNext(100));
+
+        $user = \App\Models\User::factory()->create();
+        $char = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MaxHero',
+            'level' => 98,
+            'xp' => 100000000,
+            'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
+        ]);
+
+        $res = $service->checkAndApply($char);
+        $this->assertTrue($res->isOk());
+        $char->refresh();
+
+        // Level must cap at 99 and XP must reset to 0
+        $this->assertEquals(99, $char->level);
+        $this->assertEquals(0, $char->xp);
+
+        // Attempting to add XP to level 99 character via checkAndApply
+        $char->update(['xp' => 50000]);
+        $res2 = $service->checkAndApply($char);
+        $this->assertTrue($res2->isOk());
+        $char->refresh();
+
+        $this->assertEquals(99, $char->level);
+        $this->assertEquals(0, $char->xp);
+        $this->assertFalse($res2->getPayload()->hadLevelUp);
+    }
+
+    public function test_level_99_character_gets_zero_xp_reward_from_monsters(): void
+    {
+        $encounterService = new EncounterService();
+        $reflection = new \ReflectionClass($encounterService);
+        $method = $reflection->getMethod('calculateXpReward');
+        $method->setAccessible(true);
+
+        $maxChar = new Character(['level' => 99]);
+        $monster = new Monster(['level' => 90]);
+
+        $reward = $method->invoke($encounterService, $monster, $maxChar);
+        $this->assertEquals(0, $reward['total']);
+    }
 }

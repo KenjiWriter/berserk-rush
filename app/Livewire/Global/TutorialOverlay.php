@@ -64,7 +64,7 @@ class TutorialOverlay extends Component
                     ]);
                 }
 
-                if ($this->rewardXp > 0 && $character) {
+                if ($this->rewardXp > 0 && $character && $character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL) {
                     $character->xp += $this->rewardXp;
                 }
 

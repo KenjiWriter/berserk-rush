@@ -59,6 +59,7 @@
                         navGold: {{ $character->gold }},
                         navGems: {{ $character->gems }},
                         get navXpPct() {
+                            if (this.navLevel >= 99) return '100.0';
                             return (Math.min(100, Math.max(0, (this.navXp / Math.max(1, this.navXpReq)) * 100))).toFixed(1);
                         },
 
@@ -132,11 +133,12 @@
                     <div>
                         <div class="flex justify-between text-[9px] font-bold text-stone-400 mb-1 font-sans">
                             <span class="text-amber-500/90 tracking-wider">EXP <span class="text-amber-300/90 font-semibold ml-0.5">(<span x-text="navXpPct + '%'">{{ $mobileXpPct }}%</span>)</span></span>
-                            <span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($mobileXpReq) }}</span></span>
+                            <template x-if="navLevel >= 99"><span class="text-amber-400 font-bold">MAX</span></template>
+                            <template x-if="navLevel < 99"><span><span x-text="Number(navXp).toLocaleString()">{{ number_format($character->xp) }}</span> / <span x-text="Number(navXpReq).toLocaleString()">{{ number_format($mobileXpReq) }}</span></span></template>
                         </div>
                         <div class="w-full h-2 bg-stone-900 rounded-full overflow-hidden border border-stone-800 shadow-inner">
                             <div class="h-full bg-gradient-to-r from-blue-600 via-indigo-500 to-cyan-400 transition-all duration-700 relative rounded-full"
-                                 :style="`width: ${Math.min(100, Math.max(0, (navXp / Math.max(1, navXpReq)) * 100))}%`">
+                                 :style="`width: ${navLevel >= 99 ? 100 : Math.min(100, Math.max(0, (navXp / Math.max(1, navXpReq)) * 100))}%`">
                                 <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                             </div>
                         </div>

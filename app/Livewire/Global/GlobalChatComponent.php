@@ -597,6 +597,13 @@ class GlobalChatComponent extends Component
                 return;
             }
 
+            if ($character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
+                $character->xp = 0;
+                $character->save();
+                $this->addError('newMessage', 'Postać osiągnęła już maksymalny poziom (99).');
+                return;
+            }
+
             $character->xp += $amount;
             $character->save();
             $levelUpService = app(\App\Application\Characters\LevelUpService::class);
@@ -712,6 +719,13 @@ class GlobalChatComponent extends Component
         $amount = (int) $parts[1];
         if ($amount <= 0) {
             $this->addError('newMessage', 'Ilość musi być większa niż 0.');
+            return;
+        }
+
+        if ($character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
+            $character->xp = 0;
+            $character->save();
+            $this->addError('newMessage', 'Postać osiągnęła już maksymalny poziom (99).');
             return;
         }
 

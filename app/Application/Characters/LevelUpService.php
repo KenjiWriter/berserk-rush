@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\DB;
 
 class LevelUpService
 {
+    public const MAX_LEVEL = 99;
+
     public function checkAndApply(Character $character): Result
     {
         try {
@@ -19,8 +21,30 @@ class LevelUpService
                 $currentLevel = $character->level;
                 $currentXp = $character->xp;
 
+                if ($currentLevel >= self::MAX_LEVEL) {
+                    $currentLevel = self::MAX_LEVEL;
+                    $currentXp = 0;
+                    if ($character->level !== self::MAX_LEVEL || $character->xp !== 0) {
+                        $character->update([
+                            'level' => self::MAX_LEVEL,
+                            'xp' => 0,
+                        ]);
+                    }
+
+                    if ($character->user) {
+                        $character->user->checkAndRepairTutorialStage($character);
+                    }
+
+                    return Result::ok(new LevelUpResult(
+                        levelUps: [],
+                        newLevel: self::MAX_LEVEL,
+                        pointsGained: 0,
+                        hadLevelUp: false
+                    ));
+                }
+
                 // Check for level ups
-                while ($currentXp >= $this->xpToNext($currentLevel)) {
+                while ($currentLevel < self::MAX_LEVEL && $currentXp >= $this->xpToNext($currentLevel)) {
                     $currentXp -= $this->xpToNext($currentLevel);
                     $currentLevel++;
 
@@ -30,7 +54,12 @@ class LevelUpService
                     ];
                 }
 
-                if (!empty($levelUps)) {
+                if ($currentLevel >= self::MAX_LEVEL) {
+                    $currentLevel = self::MAX_LEVEL;
+                    $currentXp = 0;
+                }
+
+                if (!empty($levelUps) || $currentLevel !== $character->level || $currentXp !== $character->xp) {
                     $pointsGained = count($levelUps) * 3;
 
                     $character->update([
@@ -75,6 +104,10 @@ class LevelUpService
 
     public function xpToNext(int $level): int
     {
+        if ($level >= self::MAX_LEVEL) {
+            return 0;
+        }
+
         $base = 15 * pow($level, 2) + 50 * $level + 0.15 * pow($level, 4.1);
         if ($level > 85) {
             $base += 0.025 * pow($level - 85, 5.5);

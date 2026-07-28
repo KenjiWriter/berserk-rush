@@ -51,7 +51,7 @@ class RewardService
                 }
 
                 // Apply XP reward
-                if ($encounter->xp_reward > 0) {
+                if ($character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL && $encounter->xp_reward > 0) {
                     $character->increment('xp', $encounter->xp_reward);
                 }
 

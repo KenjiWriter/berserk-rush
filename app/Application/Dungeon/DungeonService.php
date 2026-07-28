@@ -405,7 +405,7 @@ class DungeonService
             }
 
             // Grant XP
-            if (($loot['xp'] ?? 0) > 0) {
+            if ($character->level < \App\Application\Characters\LevelUpService::MAX_LEVEL && ($loot['xp'] ?? 0) > 0) {
                 $character->increment('xp', $loot['xp']);
                 app(\App\Application\Characters\LevelUpService::class)->checkAndApply($character);
             }
