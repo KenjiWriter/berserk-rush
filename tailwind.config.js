@@ -9,6 +9,19 @@ export default {
         './resources/views/**/*.blade.php',
     ],
 
+    safelist: [
+        // Item upgrade overlay - filled squares
+        'bg-amber-600', 'shadow-[0_0_3px_rgba(180,83,9,0.8)]',
+        'bg-sky-400',   'shadow-[0_0_3px_rgba(56,189,248,0.8)]',
+        'bg-yellow-300','shadow-[0_0_4px_rgba(253,224,71,0.9)]',
+        'bg-stone-800/90', 'border', 'border-stone-600/60',
+        // Badge colors
+        'bg-amber-900/90', 'text-amber-300', 'border-amber-600/50',
+        'bg-sky-900/90',   'text-sky-300',   'border-sky-500/50',
+        'bg-yellow-900/90','text-yellow-200', 'border-yellow-400/60',
+        'shadow-[0_0_6px_rgba(253,224,71,0.4)]',
+    ],
+
     theme: {
         extend: {
             fontFamily: {

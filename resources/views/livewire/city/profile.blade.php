@@ -146,9 +146,7 @@
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
-                                        @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[9px] xs:text-[10px] sm:text-[11px] bg-stone-950/90 px-1 py-0.2 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
-                                        @endif
+                                        <x-item-upgrade-overlay :level="$equipped[$slot]->upgrade_level ?? 0" :type="$equipped[$slot]->template->type ?? ''" />
                                     </div>
                                 @else
                                     <div class="text-center text-xs text-white p-0.5 sm:p-1">
@@ -369,9 +367,7 @@
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
-                                        @if(in_array($equipped[$slot]->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                            <span class="absolute bottom-0.5 left-0.5 text-amber-300 font-extrabold text-[9px] xs:text-[10px] sm:text-[11px] bg-stone-950/90 px-1 py-0.2 rounded-md border border-amber-500/50 shadow">+{{ $equipped[$slot]->upgrade_level ?? 0 }}</span>
-                                        @endif
+                                        <x-item-upgrade-overlay :level="$equipped[$slot]->upgrade_level ?? 0" :type="$equipped[$slot]->template->type ?? ''" />
                                     </div>
                                 @else
                                     <div class="text-center text-xs text-white p-0.5 sm:p-1">
@@ -889,9 +885,7 @@
                                             <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
                                         @endif
                                     </div>
-                                    @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                        <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50 pointer-events-none">+{{ $item->upgrade_level ?? 0 }}</span>
-                                    @endif
+                                    <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
                                 </div>
                             @else
                                 <div class="text-center text-xs text-white">
@@ -1063,9 +1057,7 @@
                                             <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
                                         @endif
                                     </div>
-                                    @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']))
-                                        <span class="absolute bottom-0 left-0 text-amber-500 font-bold text-[10px] bg-black/80 px-1 rounded-tr border-t border-r border-gray-700/50 pointer-events-none">+{{ $item->upgrade_level ?? 0 }}</span>
-                                    @endif
+                                    <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
                                 </div>
                             @else
                                 <div class="text-center text-xs text-white">

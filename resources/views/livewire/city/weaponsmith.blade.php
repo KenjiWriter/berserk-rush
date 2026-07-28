@@ -133,9 +133,7 @@
                                             @if($item->template->icon)
                                                 <div class="w-full h-full p-2 relative flex items-center justify-center">
                                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
-                                                    @if($item->upgrade_level > 0)
-                                                        <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
-                                                    @endif
+                                                    <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
                                                     @if(($item->stack_size ?? 1) > 1)
                                                         <span class="absolute bottom-1 right-1 text-white font-bold text-xs bg-black/80 border border-slate-600 px-1.5 py-0.5 rounded shadow">x{{ $item->stack_size }}</span>
                                                     @endif
@@ -441,9 +439,7 @@
                                                 @if($item->template->icon)
                                                     <div class="w-full h-full p-2 relative flex items-center justify-center">
                                                         <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
-                                                        @if($item->upgrade_level > 0)
-                                                            <span class="absolute bottom-1 right-1 text-yellow-400 font-bold text-xs bg-black/80 px-1.5 py-0.5 rounded shadow">+{{ $item->upgrade_level }}</span>
-                                                        @endif
+                                                        <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
                                                     </div>
                                                 @else
                                                     <div class="text-[10px] text-center p-1 truncate w-full">{{ $item->template->name }}</div>
