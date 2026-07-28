@@ -144,7 +144,7 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         <x-item-upgrade-overlay :level="$equipped[$slot]->upgrade_level ?? 0" :type="$equipped[$slot]->template->type ?? ''" />
                                     </div>
@@ -365,10 +365,11 @@
                              @if(isset($equipped[$slot])) @mouseenter="clearTimeout(hoverTimeout); open = true" @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" @click="clearTimeout(hoverTimeout); open = true" @endif>
                             @if(isset($equipped[$slot]))
                                 @if($equipped[$slot]->template->icon)
-                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1">
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
                                         <x-item-upgrade-overlay :level="$equipped[$slot]->upgrade_level ?? 0" :type="$equipped[$slot]->template->type ?? ''" />
                                     </div>
+
                                 @else
                                     <div class="text-center text-xs text-white p-0.5 sm:p-1">
                                         <span class="block truncate w-10 xs:w-12 sm:w-16 text-amber-200 font-semibold text-[9px] xs:text-[10px] sm:text-xs">{{ $equipped[$slot]->template->name }}</span>
@@ -877,7 +878,7 @@
                              @click="activeItemId = null; openTooltip()">
                             
                             @if($item->template->icon)
-                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
+                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
                                     
                                     <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
@@ -1050,7 +1051,7 @@
                              @click="activeItemId = null; openTooltip()">
                             
                             @if($item->template->icon)
-                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center">
+                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
                                     <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
                                         @if($item->stack_size > 1)
