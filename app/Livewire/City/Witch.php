@@ -122,7 +122,7 @@ class Witch extends Component
         $this->character->refresh();
     }
 
-    public function craftItem($recipeId)
+    public function craftPotion($recipeId)
     {
         $recipe = ItemRecipe::find($recipeId);
         if (!$recipe) return;
@@ -176,9 +176,9 @@ class Witch extends Component
         }
 
 
-        // Crafting Recipes (mikstury, ale też broń i zbroja - Wiedźma odpowiada za cały crafting)
+        // Crafting Recipes
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function($q) {
-            $q->whereIn('type', ['consumable', 'weapon', 'armor']);
+            $q->where('type', 'consumable');
         })->get();
 
         $inventory = $this->character->materialStashItems()->get()->merge($this->character->inventoryItems()->get());

@@ -30,6 +30,6 @@ Gra posiada pełnoprawny widok graficzny zarządzania przepisami w zakładce Adm
 ### Elementy UI
 Widok Czarownicy (`Witch.php`) posiada dedykowane zakładki:
 *   `shop`: Wylistowuje dostępne mikstury z modelu `MerchantItem` oraz wyróżnioną ofertę na miksturę doświadczenia (limitowaną dziennie opartą o `character_cooldowns`).
-*   `crafting`: Lista wszystkich przepisów (`ItemRecipe`), których wynikowy szablon ma `type` w `['consumable', 'weapon', 'armor']` - a więc zarówno mikstury, jak i broń oraz zbroja. Komponent sam przeszukuje ekwipunek i renderuje postęp zebrania składników wizualnie, kontrolując aktywność przycisku "Wytwórz" (`Witch::craftItem`).
+*   `crafting`: Lista przepisów alchemicznych. Komponent sam przeszukuje ekwipunek i renderuje postęp zebrania składników wizualnie, kontrolując aktywność przycisku "Uwarz".
 
-> **Uwaga (refaktor):** Rzemiosło (crafting) broni i zbroi zostało wydzielone z Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`), ale zamiast trafić do nowej domeny Kowala, zostało scentralizowane u **Wiedźmy** razem z craftingiem mikstur - jeden wspólny ekran wytwarzania dla wszystkich typów przedmiotów. Domena **Kowal** (`Blacksmith.php`, patrz `docs/modules/blacksmith.md`) obsługuje wyłącznie ulepszanie (`forge`), bez zakładki rzemiosła.
+> **Uwaga (refaktor):** Rzemiosło broni i zbroi zostało wydzielone z Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`) do osobnej domeny **Kowal** (`Blacksmith.php`) - patrz `docs/modules/blacksmith.md`. Wiedźma nadal obsługuje wyłącznie crafting mikstur (`consumable`).

@@ -79,7 +79,7 @@ Gdy gracz już wie jak być silnym i ma co zdobywać, czas pokazać mu innych gr
 ## 🟢 Faza 9: Rzemiosło i Zbieractwo (Crafting) (✅ Zakończona)
 Wykorzystanie zebranych materiałów (które już potrafi zrzucić `DropService`) do tworzenia cennych mikstur i ekwipunku bez konieczności liczenia na łut szczęścia z potworów.
 - [x] **Przepisy (Recipes):** Definiowanie rzemiosła – co można połączyć by stworzyć coś nowego. Zarządzanie z poziomu GUI Administratora.
-- [x] **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`. Rzemiosło mikstur, broni i zbroi zebrane w jednym, ogólnym widoku Wiedźmy (`app/Livewire/City/Witch.php`) - patrz `docs/modules/witch_and_crafting.md`. Ulepszanie sprzętu (osobna mechanika) obsługuje domena **Kowal** (`app/Livewire/City/Blacksmith.php`) - patrz `docs/modules/blacksmith.md`.
+- [x] **Wytwarzanie (CraftingService):** Palenie (niszczenie) materiałów w zamian za stworzenie nowego, potężniejszego `ItemInstance`. Ulepszanie i rzemiosło broni oraz zbroi zebrane w jednym, ogólnym widoku domeny **Kowal** (`app/Livewire/City/Blacksmith.php`), z filtrem typu/slotu (broń/hełm/zbroja/buty) - patrz `docs/modules/blacksmith.md`.
 - [x] **System Rzadkości (Rarities):** Szansa na stworzenie przedmiotu o wyższej wartości nominalnej (Common, Uncommon, Rare, Epic, Legendary). Rzadkość generuje potężniejsze statystyki bonusowe i podnosi CP przedmiotu.
 
 ---

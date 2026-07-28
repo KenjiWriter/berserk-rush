@@ -25,15 +25,39 @@
 
         <div class="bg-black/50 border border-amber-700/30 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md flex-grow flex flex-col">
 
-            {{-- Header pasek --}}
+            {{-- Tabs --}}
             <div class="flex border-b border-amber-900/50 bg-black/40">
-                <div class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg flex items-center justify-center gap-1.5 sm:gap-2 bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]">
+                <button wire:click="setTab('forge')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
                     <i class="fa-solid fa-fire-flame-curved text-amber-400/80"></i> Kuźnia Ulepszeń
-                </div>
+                </button>
+                <button wire:click="setTab('crafting')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                    <i class="fa-solid fa-hammer text-amber-400/80"></i> Rzemiosło
+                </button>
+            </div>
+
+            {{-- Filtr typu ekwipunku --}}
+            <div class="flex flex-wrap items-center gap-2 px-6 pt-4">
+                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mr-1">Filtr:</span>
+                <button wire:click="setItemFilter('all')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'all' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                    <i class="fa-solid fa-list"></i> Wszystko
+                </button>
+                <button wire:click="setItemFilter('weapon')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'weapon' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                    <i class="fa-solid fa-khanda"></i> Broń
+                </button>
+                <button wire:click="setItemFilter('head')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'head' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                    <i class="fa-solid fa-crown"></i> Hełmy
+                </button>
+                <button wire:click="setItemFilter('chest')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'chest' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                    <i class="fa-solid fa-shield-halved"></i> Zbroje
+                </button>
+                <button wire:click="setItemFilter('feet')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'feet' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                    <i class="fa-solid fa-shoe-prints"></i> Buty
+                </button>
             </div>
 
             {{-- Content --}}
             <div class="p-6 flex-grow flex flex-col h-full">
+                @if($activeTab === 'forge')
                     <div class="h-full flex flex-col gap-6 relative" x-data="{ hammering: false }">
                         @php
                             $upgradeItem = $selectedUpgradeItemId ? $upgradableItems->firstWhere('id', $selectedUpgradeItemId) : null;
@@ -230,11 +254,110 @@
                                         </div>
                                     @endif
                                 @empty
-                                    <div class="col-span-full text-center text-gray-500 py-4">Brak przedmiotów do ulepszenia.</div>
+                                    <div class="col-span-full text-center text-gray-500 py-4">Brak przedmiotów do ulepszenia (sprawdź filtr powyżej).</div>
                                 @endforelse
                             </div>
                         </div>
                     </div>
+                @elseif($activeTab === 'crafting')
+                    <div class="flex flex-col gap-4 h-full overflow-y-auto custom-scrollbar pt-6 pb-6 pr-2">
+                        @forelse($recipes as $recipe)
+                            <div wire:key="recipe-{{ $recipe['id'] }}"
+                                 x-data="{ showInfo: false, timeout: null }"
+                                 :class="{ 'z-[100]': showInfo, 'z-10': !showInfo }"
+                                 class="bg-black/60 border border-amber-600/30 hover:border-amber-500/80 transition-all rounded-lg p-4 flex flex-col md:flex-row items-center gap-6 shadow-xl backdrop-blur relative">
+
+                                <!-- Left: Result Item -->
+                                <div class="flex items-center gap-4 w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-700 pb-4 md:pb-0 md:pr-4 relative"
+                                     @mouseenter="clearTimeout(timeout); showInfo = true"
+                                     @mouseleave="timeout = setTimeout(() => showInfo = false, 300)">
+
+                                    <div class="w-16 h-16 bg-gray-900/80 rounded border border-gray-600 flex items-center justify-center p-2 flex-shrink-0 cursor-help">
+                                        @if($recipe['result_icon'])
+                                            <img src="{{ route('assets.items', ['filename' => $recipe['result_icon']]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $recipe['result_name'] }}">
+                                        @else
+                                            <span class="text-xs text-gray-500">Brak</span>
+                                        @endif
+                                    </div>
+                                    <div class="flex-grow cursor-help">
+                                        <h3 class="font-bold text-lg text-blue-300">{{ $recipe['result_name'] }}</h3>
+                                        <p class="text-sm text-gray-400 mt-1">Koszt: <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ number_format($recipe['gold_cost']) }}</span></p>
+                                    </div>
+
+                                    <!-- Infobox Docelowego Przedmiotu -->
+                                    <div x-show="showInfo" x-transition.opacity
+                                         class="absolute z-[9999] top-full left-0 mt-2 w-auto pointer-events-auto">
+                                        @php
+                                            $resultSlot = $recipe['result_slot'] ?? \App\Infrastructure\Persistence\ItemTemplate::where('name', $recipe['result_name'])->value('slot');
+                                            $dummyItem = new \stdClass();
+                                            $dummyItem->template = new \stdClass();
+                                            $dummyItem->template->name = $recipe['result_name'];
+                                            $dummyItem->template->level_requirement = $recipe['result_level'];
+                                            $dummyItem->template->type = $recipe['result_type'];
+                                            $dummyItem->template->slot = $resultSlot;
+                                            $dummyItem->template->base_stats = $recipe['result_stats'];
+                                        @endphp
+                                        <x-item-tooltip :item="$dummyItem" :equippedItem="$equipped[$resultSlot ?? ''] ?? null" />
+                                    </div>
+                                </div>
+
+                                <!-- Center: Requirements -->
+                                <div class="flex-grow w-full flex flex-col">
+                                    <h4 class="text-amber-500 font-bold text-xs uppercase tracking-wider mb-2 hidden md:block">Wymagane materiały</h4>
+                                    <div class="flex flex-wrap items-center gap-3">
+                                        @foreach($recipe['ingredients'] as $ing)
+                                            <div class="relative group cursor-help">
+                                                <div class="flex items-center gap-2 bg-gray-900/80 p-2 rounded border border-gray-700 transition hover:bg-gray-800">
+                                                    @if($ing['icon'])
+                                                        <img src="{{ route('assets.items', ['filename' => $ing['icon']]) }}" class="w-8 h-8 object-contain" alt="{{ $ing['name'] }}">
+                                                    @else
+                                                        <div class="w-8 h-8 bg-gray-800 rounded text-[10px] text-gray-500 flex items-center justify-center">{{ substr($ing['name'],0,3) }}</div>
+                                                    @endif
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xs text-gray-300 font-bold truncate max-w-[100px]">{{ $ing['name'] }}</span>
+                                                        <span class="text-xs {{ $ing['ok'] ? 'text-green-400' : 'text-red-400' }} font-bold">
+                                                            {{ $ing['owned'] }} / {{ $ing['required'] }}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Tooltip -->
+                                                <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-50 shadow-2xl backdrop-blur-sm pointer-events-none">
+                                                    <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
+                                                    @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
+                                                        <div class="flex flex-wrap justify-center gap-1 mt-2">
+                                                            @foreach(array_unique($ing['dropped_by']) as $monsterName)
+                                                                <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @else
+                                                        <div class="text-[10px] text-gray-500 text-center italic mt-2">Brak w znanych tabelach łupów.</div>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                <!-- Right: Craft Button -->
+                                <div class="w-full md:w-auto flex-shrink-0 flex items-center mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-gray-700 pl-0 md:pl-4">
+                                    @if($recipe['can_craft'])
+                                        <button wire:click="craftItem('{{ $recipe['id'] }}')" class="w-full md:w-48 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-3 px-6 rounded shadow transition-all whitespace-nowrap medieval-font flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-hammer"></i> Wytwórz
+                                        </button>
+                                    @else
+                                        <button disabled class="w-full md:w-48 bg-gray-800 text-gray-500 font-bold py-3 px-4 rounded cursor-not-allowed whitespace-nowrap medieval-font border border-gray-700 flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-circle-xmark text-red-400"></i> Brak surowców
+                                        </button>
+                                    @endif
+                                </div>
+
+                            </div>
+                        @empty
+                            <div class="col-span-full text-center text-gray-500 py-12">Brak dostępnych przepisów (sprawdź filtr powyżej).</div>
+                        @endforelse
+                    </div>
+                @endif
             </div>
 
         </div>

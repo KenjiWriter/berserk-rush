@@ -16,9 +16,9 @@ Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni i
 ## Mechaniki
 
 ### 1. Interfejs Kowala
-- Moduł dostępny w mieście pod postacią Kowala, dostępnego z Hubu (kafelek "Kowal") oraz z poziomu Brońmistrza/Zbrojmistrza (przycisk "Kowal (Ulepszanie)").
+- Moduł dostępny w mieście pod postacią Kowala, dostępnego z Hubu (kafelek "Kowal") oraz z poziomu Brońmistrza/Zbrojmistrza (przycisk "Kowal (Ulepszanie i Rzemiosło)").
 - Kowal obsługuje ulepszanie zarówno broni (Slot: `main_hand`), jak i zbroi (`head`, `chest`, `feet`) w jednym, ogólnym widoku - bez podziału na osobne postaci NPC.
-- Widok Kowala zawiera wyłącznie Kuźnię Ulepszeń (jedna zakładka, bez rzemiosła). Wytwarzanie (crafting) przedmiotów - w tym broni i zbroi - obsługuje Wiedźma, patrz `docs/modules/witch_and_crafting.md`.
+- Posiada dwie zakładki: **Kuźnię Ulepszeń** oraz **Rzemiosło** (patrz `docs/modules/blacksmith.md`), a nad obiema zakładkami pasek filtrów typu/slotu (Wszystko / Broń / Hełmy / Zbroje / Buty).
 
 ### 2. Proces Ulepszania
 - Przedmioty mają swój poziom ulepszenia wyrażony w systemie od `+0` (domyślny) do `+9` (maksymalny).

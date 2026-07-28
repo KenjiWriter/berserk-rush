@@ -211,7 +211,7 @@
                     <div class="absolute inset-0 p-4 flex flex-col justify-end">
                         <div wire:loading wire:target="goTo('blacksmith')" class="mb-1"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         <h3 class="text-xl font-bold text-amber-300 medieval-font drop-shadow">Kowal</h3>
-                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Ulepszanie sprzętu</p>
+                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Ulepszanie i rzemiosło</p>
                     </div>
                 </button>
             </div>
