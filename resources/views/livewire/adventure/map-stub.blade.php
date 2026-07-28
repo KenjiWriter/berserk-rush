@@ -747,7 +747,9 @@
 
                             {{-- Enemy HP Bar --}}
                             @php
-                                $displayHp = $displayMonster['hp'] ?? 0;
+                                $displayHp = ($isOverLevelCombat && !empty($monstersState))
+                                    ? ($displayMonster['hp'] ?? 0)
+                                    : $this->getCurrentEnemyHp();
                                 $displayMaxHp = $displayMonster['maxHp'] ?? 1;
                                 $displayHpPercent = max(0, min(100, ($displayHp / max(1, $displayMaxHp)) * 100));
                             @endphp
