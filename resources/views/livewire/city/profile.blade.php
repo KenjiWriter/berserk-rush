@@ -814,8 +814,12 @@
                                 });
                             },
                             openTooltip() {
-                                if (activeItemId && activeItemId !== '{{ $item->id }}') return;
                                 clearTimeout(this.hoverTimeout);
+                                // If another item is active, close it immediately and open this one
+                                if (activeItemId && activeItemId !== '{{ $item->id }}') {
+                                    // Dispatch a close event to the previously active item
+                                    window.dispatchEvent(new CustomEvent('close-item-tooltip', { detail: { id: activeItemId } }));
+                                }
                                 activeItemId = '{{ $item->id }}';
                                 this.open = true;
                                 this.checkPosition();
@@ -827,7 +831,7 @@
                                     if (activeItemId === '{{ $item->id }}') {
                                         activeItemId = null;
                                     }
-                                }, 250);
+                                }, 120);
                             },
                             forceClose() {
                                 clearTimeout(this.hoverTimeout);
@@ -837,6 +841,7 @@
                                 }
                             }
                         }" @click.outside="forceClose()" 
+                             @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
                              wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                              draggable="true"
                              @dragstart="
