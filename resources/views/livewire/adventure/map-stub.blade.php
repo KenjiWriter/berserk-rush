@@ -120,7 +120,7 @@
 
         {{-- Over-Level Banner & Targeting Strategy Selector --}}
         @if ($map->isOverLevel($character))
-            <div class="mb-3 p-3 bg-purple-950/90 border-2 border-purple-500/80 rounded-xl shadow-xl backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-3 text-amber-100">
+            <div class="relative z-[150] mb-3 p-3 bg-purple-950/90 border-2 border-purple-500/80 rounded-xl shadow-xl backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-3 text-amber-100">
                 <div class="flex items-center gap-2">
                     <i class="fa-solid fa-users-rays text-amber-400 text-xl"></i>
                     <div>
