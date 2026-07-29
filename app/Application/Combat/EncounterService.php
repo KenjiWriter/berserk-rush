@@ -124,16 +124,24 @@ class EncounterService
                         }
 
                         if ($isOverLevel) {
+                            // Boss wyłączony z puli walk grupowych (over-level) - pity timer
+                            // (patrz BossPityService) dotyczy tylko normalnego starcia 1 na 1
+                            // poniżej; nie ma sensu mieszać go z walką 3-4 potworów naraz.
+                            $overLevelPool = $monstersPool->where('rank', '!=', \App\Domain\Combat\Enums\MonsterRank::BOSS);
+                            if ($overLevelPool->isEmpty()) {
+                                $overLevelPool = $monstersPool;
+                            }
+
                             $monsterCount = mt_rand(3, 4);
                             $selectedCounts = [];
                             for ($i = 0; $i < $monsterCount; $i++) {
                                 // Filter pool to monsters picked fewer than 2 times
-                                $availablePool = $monstersPool->filter(function($m) use ($selectedCounts) {
+                                $availablePool = $overLevelPool->filter(function($m) use ($selectedCounts) {
                                     return ($selectedCounts[$m->id] ?? 0) < 2;
                                 });
 
                                 if ($availablePool->isEmpty()) {
-                                    $availablePool = $monstersPool;
+                                    $availablePool = $overLevelPool;
                                 }
 
                                 $mObj = $availablePool->random();
@@ -165,9 +173,29 @@ class EncounterService
                             $firstMonsterId = $monstersList[0]['id'];
                             $monster = $map->monsters->find($firstMonsterId) ?? $monstersPool->random();
                         } else {
-                            $monster = $monstersPool->random();
+                            // Pity timer na bossa (ustalone z użytkownikiem, 2026-07-29): bazowo
+                            // 10% szansy na wylosowanie bossa zamiast zwykłego potwora, +0.5% za
+                            // każde zwycięstwo nad nie-bossem na TEJ mapie od ostatniego pojawienia
+                            // się bossa (patrz BossPityService::recordNonBossVictory() w simulate()
+                            // poniżej). Licznik resetuje się, gdy boss faktycznie się pojawi - patrz
+                            // dalej w tej metodzie, zaraz po ustaleniu $monster.
+                            $bossPool = $monstersPool->where('rank', \App\Domain\Combat\Enums\MonsterRank::BOSS);
+                            $regularPool = $monstersPool->where('rank', '!=', \App\Domain\Combat\Enums\MonsterRank::BOSS);
+
+                            if ($bossPool->isNotEmpty() && app(\App\Application\Combat\BossPityService::class)->rollBoss($char, $map->id)) {
+                                $monster = $bossPool->random();
+                            } else {
+                                $monster = $regularPool->isNotEmpty() ? $regularPool->random() : $monstersPool->random();
+                            }
                         }
                     }
+                }
+
+                // Reset pity timera w momencie faktycznego pojawienia się bossa - niezależnie
+                // od tego, którą ścieżką $monster został ustalony (losowo, forced, itd.) i
+                // niezależnie od wyniku samej walki.
+                if (!$isTutorial && $monster && $monster->rank === \App\Domain\Combat\Enums\MonsterRank::BOSS) {
+                    app(\App\Application\Combat\BossPityService::class)->recordBossAppeared($char, $map->id);
                 }
 
                 Log::info('Selected monster for encounter', [
@@ -400,6 +428,16 @@ class EncounterService
                         if ($winner === 'player') {
                             $goldRewardData = $this->calculateGoldReward($monster, $character);
                             $xpRewardData = $this->calculateXpReward($monster, $character);
+
+                            // Pity timer na bossa: zwycięstwo nad NIE-bossem podnosi szansę na
+                            // pojawienie się bossa przy kolejnym starciu na tej mapie (patrz
+                            // BossPityService i wybór $monster w EncounterService::start()).
+                            // Zwycięstwo nad samym bossem nic tu nie zmienia - licznik i tak
+                            // został wyzerowany w start() w momencie jego pojawienia się.
+                            if ($monster->rank !== \App\Domain\Combat\Enums\MonsterRank::BOSS) {
+                                app(\App\Application\Combat\BossPityService::class)
+                                    ->recordNonBossVictory($character, $encounter->map_id);
+                            }
                         }
                     }
                 }

@@ -74,6 +74,8 @@ class Blacksmith extends Component
         $this->dispatch('play-audio', type: $result['success'] ? 'upgrade-success' : 'upgrade-fail');
 
         $this->character->refresh();
+
+        $this->dispatch('stats-updated', gold: $this->character->gold);
     }
 
     public function craftItem(string $recipeId, CraftingService $craftingService)
@@ -90,6 +92,8 @@ class Blacksmith extends Component
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }
         $this->character->refresh();
+
+        $this->dispatch('stats-updated', gold: $this->character->gold);
     }
 
     /**
