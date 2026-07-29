@@ -124,9 +124,16 @@ class Blacksmith extends Component
             return $this->matchesItemFilter($item->template->type ?? null, $item->template->slot ?? null);
         })->values();
 
+        // Koszt ulepszenia liczony wyłącznie dla aktualnie wybranego przedmiotu (widok i tak
+        // pokazuje tylko $upgradeCosts[$selectedUpgradeItemId]) - liczenie go dla całej listy
+        // (do kilkudziesięciu przedmiotów, każdy z własnymi zapytaniami o zasady/materiały/dropy)
+        // przy każdym renderze komponentu powodowało zauważalny lag przy przełączaniu zakładek.
         $upgradeCosts = [];
-        foreach ($upgradableItems as $item) {
-            $upgradeCosts[$item->id] = $upgradeService->getUpgradeCost($item);
+        if ($this->selectedUpgradeItemId) {
+            $selectedItem = $upgradableItems->firstWhere('id', $this->selectedUpgradeItemId);
+            if ($selectedItem) {
+                $upgradeCosts[$selectedItem->id] = $upgradeService->getUpgradeCost($selectedItem);
+            }
         }
 
         $inventoryMaterials = $this->character->items()
@@ -158,6 +165,11 @@ class Blacksmith extends Component
         }
         $allMatIds = array_unique($allMatIds);
 
+        // Batch fetch materiał templates (eliminuje N+1 z pojedynczych ItemTemplate::find() w pętli niżej)
+        $materialTemplates = !empty($allMatIds)
+            ? ItemTemplate::whereIn('id', $allMatIds)->get()->keyBy('id')
+            : collect();
+
         $monsterDropsMap = [];
         if (!empty($allMatIds)) {
             $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $allMatIds)
@@ -187,7 +199,7 @@ class Blacksmith extends Component
             $canCraft = $this->character->gold >= $recipe->gold_cost;
 
             foreach ($recipe->ingredients as $ing) {
-                $mat = ItemTemplate::find($ing['template_id']);
+                $mat = $materialTemplates->get($ing['template_id']);
                 $owned = $inventoryMaterials->where('template_id', $ing['template_id'])->sum('stack_size');
                 $req = $ing['quantity'];
 
