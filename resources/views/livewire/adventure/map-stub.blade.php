@@ -742,7 +742,16 @@
                                     @endif
                                 </h3>
                                 <p class="text-xs lg:text-sm text-red-400/80 tracking-wider">
-                                    {{ $displayMonster['rank'] ?? 'Przeciwnik' }}
+                                    @php
+                                        $enemyRankValue = $displayMonster['rank'] ?? null;
+                                        $enemyRankLabel = match ($enemyRankValue) {
+                                            'boss' => 'Boss Mapy',
+                                            'worldboss' => 'World Boss',
+                                            'elite' => 'Elita',
+                                            default => 'Przeciwnik',
+                                        };
+                                    @endphp
+                                    {{ $enemyRankLabel }}
                                 </p>
                             </div>
 

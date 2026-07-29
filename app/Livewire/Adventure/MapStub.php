@@ -468,6 +468,7 @@ class MapStub extends Component
             'hp' => $monsterMaxHp,
             'stats' => $monsterStats,
             'avatar' => $monster->avatar,
+            'rank' => is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank,
         ];
 
         $this->isOverLevelCombat = $encounter->combat_data['is_overlevel'] ?? false;
