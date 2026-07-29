@@ -44,13 +44,20 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > to teraz **procentowy** bonus (nie płaska wartość) do obrażeń fizycznych/magicznych -
 > `Character::getEquipmentStats()` mnoży nim całościowe `attack_min`/`attack_max`
 > (odpowiednio `magic_attack_min`/`max`) wyliczone z bazowych statystyk broni, rzutów i
-> ulepszeń, zamiast dodawać go jako płaski dodatek. Zakres losowania (`[10, 50]`)
-> pozostał ten sam, ale **losowanie w tym konkretnym afiksie NIE jest już jednostajne**
-> jak reszta puli - `EnchantmentStrategy::rollBonusValue()` stosuje rozkład wykładniczy
-> (`roll^3`, wzorem rzadkiego "FMS"/zatrutego miecza z Metin2), przez co np. +30% trafia
-> się w ok. 21% losowań, +40% w ok. 10%, a +45-50% to prawdziwy rarytas (odpowiednio
-> ok. 5% i poniżej 0.5%). Reszta puli (crit_chance, str_bonus, resist_X itd.) losuje się
-> bez zmian, jednostajnie w swoim zakresie.
+> ulepszeń, zamiast dodawać go jako płaski dodatek. **Losowanie w tym konkretnym afiksie
+> NIE jest jednostajne** jak reszta puli - `EnchantmentStrategy::rollBonusValue()`
+> stosuje rozkład wykładniczy (`roll^3`, wzorem rzadkiego "FMS"/zatrutego miecza z
+> Metin2). Reszta puli (crit_chance, str_bonus, resist_X itd.) losuje się bez zmian,
+> jednostajnie w swoim zakresie.
+>
+> **Zakres `[-20, 50]` - prawdziwy hazard (rozszerzenie z tego samego dnia):** na
+> życzenie użytkownika zakres objął też wyniki UJEMNE - zaklęcie może więc realnie
+> **osłabić** broń. Rozkład jest silnie przechylony w stronę dołu zakresu (nie w stronę
+> zera) - empirycznie (20k prób): wynik ujemny ~34% szans, `>= +30%` ~11%, `>= +45%` ~2%,
+> a samo maksimum `+50%` poniżej 1%. UI (`witch.blade.php`) oznacza ten afiks ikoną
+> kostki i czerwoną ramką na liście "Możliwe Zaklęcia", a już rzucony wynik ujemny
+> wyświetla się na czerwono w sekcji "Magiczne Moce" - w przeciwieństwie do reszty puli,
+> gdzie każdy wynik jest z definicji korzystny dla gracza.
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od

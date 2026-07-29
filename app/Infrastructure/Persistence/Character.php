@@ -546,13 +546,15 @@ class Character extends Model
                 }
             }
 
-            if ($attackPowerPct > 0) {
-                $stats['attack_min'] = (int) round($stats['attack_min'] * (1 + $attackPowerPct / 100));
-                $stats['attack_max'] = (int) round($stats['attack_max'] * (1 + $attackPowerPct / 100));
+            // !== 0 (nie > 0): zakres [-20, 50] pozwala na wynik ujemny (osłabienie broni),
+            // więc trzeba go zastosować niezależnie od znaku - patrz EnchantmentStrategy.
+            if ($attackPowerPct !== 0) {
+                $stats['attack_min'] = max(0, (int) round($stats['attack_min'] * (1 + $attackPowerPct / 100)));
+                $stats['attack_max'] = max(0, (int) round($stats['attack_max'] * (1 + $attackPowerPct / 100)));
             }
-            if ($magicAttackPct > 0) {
-                $stats['magic_attack_min'] = (int) round($stats['magic_attack_min'] * (1 + $magicAttackPct / 100));
-                $stats['magic_attack_max'] = (int) round($stats['magic_attack_max'] * (1 + $magicAttackPct / 100));
+            if ($magicAttackPct !== 0) {
+                $stats['magic_attack_min'] = max(0, (int) round($stats['magic_attack_min'] * (1 + $magicAttackPct / 100)));
+                $stats['magic_attack_max'] = max(0, (int) round($stats['magic_attack_max'] * (1 + $magicAttackPct / 100)));
             }
 
             // Add Active Buffs

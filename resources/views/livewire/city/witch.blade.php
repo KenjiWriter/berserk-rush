@@ -378,6 +378,28 @@
                                     $nextChance = [75, 50, 40, 30, 20][$enchantCount] ?? 0;
                                     $rerollGoldCost = max(200, $enchantCount * 200);
                                     $rerollGemCost = max(2, $enchantCount * 2);
+
+                                    // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć - reszta
+                                    // (w tym attack_power/magic_attack) jest wyrażona w %.
+                                    $flatBonusKeys = ['hp_bonus', 'defense', 'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
+
+                                    $bonusIcon = function (string $key): string {
+                                        return match (true) {
+                                            $key === 'attack_power' => 'fa-khanda',
+                                            $key === 'magic_attack' => 'fa-wand-magic-sparkles',
+                                            $key === 'crit_chance' => 'fa-bullseye',
+                                            $key === 'dodge_chance' => 'fa-wind',
+                                            $key === 'hp_bonus' => 'fa-heart',
+                                            $key === 'defense' => 'fa-shield-halved',
+                                            $key === 'poison_chance' => 'fa-skull-crossbones',
+                                            $key === 'stun_chance' => 'fa-bolt-lightning',
+                                            str_starts_with($key, 'strong_vs_') => 'fa-khanda',
+                                            str_starts_with($key, 'resist_') => 'fa-shield',
+                                            str_starts_with($key, 'double_') => 'fa-coins',
+                                            in_array($key, ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true) => 'fa-dumbbell',
+                                            default => 'fa-star',
+                                        };
+                                    };
                                 @endphp
 
                                 {{-- Magical Runes Ring --}}
@@ -436,9 +458,17 @@
                                         @if($enchantCount > 0)
                                             <div class="space-y-2">
                                                 @foreach($enchants as $bonusType => $bonusValue)
-                                                    <div class="flex justify-between items-center bg-black/40 rounded px-3 py-1.5 border border-purple-900/50">
-                                                        <span class="capitalize text-indigo-200">{{ str_replace('_', ' ', $bonusType) }}</span>
-                                                        <span class="font-bold text-yellow-300 text-lg drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]">+{{ $bonusValue }}</span>
+                                                    @php
+                                                        $isPct = !in_array($bonusType, $flatBonusKeys, true);
+                                                        $isNegative = $bonusValue < 0;
+                                                        $displayValue = ($bonusValue > 0 ? '+' : '') . $bonusValue . ($isPct ? '%' : '');
+                                                    @endphp
+                                                    <div class="flex justify-between items-center rounded px-3 py-1.5 border {{ $isNegative ? 'bg-red-950/40 border-red-800/60' : 'bg-black/40 border-purple-900/50' }}">
+                                                        <span class="flex items-center gap-2 {{ $isNegative ? 'text-red-200' : 'text-indigo-200' }}">
+                                                            <i class="fa-solid {{ $bonusIcon($bonusType) }} {{ $isNegative ? 'text-red-400' : 'text-purple-400' }} w-4 text-center"></i>
+                                                            {{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusType) }}
+                                                        </span>
+                                                        <span class="font-bold text-lg {{ $isNegative ? 'text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]' : 'text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]' }}">{{ $displayValue }}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -498,10 +528,22 @@
                                                             // wszystko inne (w tym attack_power/magic_attack, patrz
                                                             // EnchantmentStrategy) jest wyrażone w %.
                                                             $isPct = !in_array($bonusKey, ['hp_bonus', 'defense', 'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true);
+                                                            $suffix = $isPct ? '%' : '';
+                                                            // Afiksy z zakresem obejmującym wynik ujemny (attack_power/magic_attack) -
+                                                            // ryzykowny "hazard", oznaczony osobno i innym formatem zakresu.
+                                                            $isRisky = $range[0] < 0;
+                                                            $rangeLabel = $isRisky
+                                                                ? "{$range[0]}{$suffix} do +{$range[1]}{$suffix}"
+                                                                : "+{$range[0]}-{$range[1]}{$suffix}";
                                                         @endphp
-                                                        <div class="flex justify-between items-center bg-black/30 rounded-lg px-3 py-1.5 border border-indigo-900/40">
-                                                            <span class="text-gray-300">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusKey) }}</span>
-                                                            <span class="text-indigo-300 font-mono font-bold">+{{ $range[0] }}-{{ $range[1] }}{{ $isPct ? '%' : '' }}</span>
+                                                        <div class="flex justify-between items-center bg-black/30 rounded-lg px-3 py-1.5 border {{ $isRisky ? 'border-red-900/60' : 'border-indigo-900/40' }}">
+                                                            <span class="text-gray-300 flex items-center gap-1.5">
+                                                                {{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusKey) }}
+                                                                @if($isRisky)
+                                                                    <i class="fa-solid fa-dice text-red-400 text-[10px]" title="Ryzykowny afiks - możliwy wynik ujemny!"></i>
+                                                                @endif
+                                                            </span>
+                                                            <span class="font-mono font-bold {{ $isRisky ? 'text-red-300' : 'text-indigo-300' }}">{{ $rangeLabel }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>

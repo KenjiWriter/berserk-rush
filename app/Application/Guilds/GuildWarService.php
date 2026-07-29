@@ -346,6 +346,7 @@ class GuildWarService
                 'side' => 'challenger', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
+                'passives' => $this->computeTeamPassives($snap),
             ];
         }
         foreach (array_values($defenderSnapshots) as $i => $snap) {
@@ -353,6 +354,7 @@ class GuildWarService
                 'side' => 'defender', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
+                'passives' => $this->computeTeamPassives($snap),
             ];
         }
 
@@ -410,13 +412,15 @@ class GuildWarService
                     continue;
                 }
 
-                $turn = $this->resolveTeamAttack($combatants[$ci], $combatants[$targetIdx]);
-                $turn['round'] = $round + 1;
-                $turn['team_state'] = $this->getTeamStateSummary($combatants);
-                $turns[] = $turn;
-
-                if (!empty($turn['cc_applied'])) {
-                    $combatants[$targetIdx]['cc_turns'] = max($combatants[$targetIdx]['cc_turns'] ?? 0, (int) $turn['cc_applied']['duration']);
+                // Może zwrócić kilka turnów naraz (skill obszarowy trafiający całą wrogą
+                // drużynę, lub dodatkowy atak z pasywnej szansy) - CC jest aplikowane
+                // bezpośrednio na trafiony cel wewnątrz resolveHitAgainstTarget() (referencja
+                // do $combatants), więc tutaj tylko dopisujemy turny do logu walki.
+                $resultTurns = $this->resolveTeamAttack($combatants, $ci, $targetIdx, $enemySide);
+                foreach ($resultTurns as $rt) {
+                    $rt['round'] = $round + 1;
+                    $rt['team_state'] = $this->getTeamStateSummary($combatants);
+                    $turns[] = $rt;
                 }
 
                 // Cooldowny umiejętności aktora tykają po jego własnej akcji.
@@ -460,23 +464,69 @@ class GuildWarService
     }
 
     /**
-     * Rozwiązuje jeden atak w starciu drużynowym 5v5. Logika obrażeń, krytyka,
-     * uniku, umiejętności bojowych oraz "magic burst" jest zduplikowana z
-     * `PvPEncounterService::performAttack()` (tam operujemy na dwóch stałych
-     * snapshotach atakujący/broniący, tutaj na dowolnej parze combatantów z
-     * 10-osobowej "planszy" 5v5) - przy zmianie balansu obrażeń w jednym
-     * miejscu, zmień też w drugim.
+     * Rozwiązuje jedną AKCJĘ w starciu drużynowym 5v5 (może wygenerować kilka turnów -
+     * skill obszarowy trafia całą wrogą drużynę naraz, a pasywna szansa może dołożyć
+     * dodatkowy atak). Logika obrażeń, krytyka, uniku, umiejętności bojowych oraz
+     * "magic burst" jest zduplikowana z `PvPEncounterService::performAttack()` (tam
+     * operujemy na dwóch stałych snapshotach atakujący/broniący, tutaj na dowolnej
+     * parze combatantów z 10-osobowej "planszy" 5v5) - przy zmianie balansu obrażeń
+     * w jednym miejscu, zmień też w drugim. Od 2026-07-29 obsługuje pełen parytet
+     * z PvE/PvP: `heal`, `freeze`/`stun` (CC), `buff_defense`, `is_aoe` oraz pasywy
+     * (`passive_aura_dmg`/`passive_extra_attack`) - wcześniej te effect_type po
+     * prostu wykonywały niezmodyfikowany atak zamiast swojego właściwego efektu.
      */
-    private function resolveTeamAttack(array &$actor, array &$target): array
+    private function resolveTeamAttack(array &$combatants, int $actorIdx, int $primaryTargetIdx, string $enemySide): array
     {
-        $snap = $actor['snapshot'];
-        $targetSnap = $target['snapshot'];
+        $turns = $this->resolveTeamAction($combatants, $actorIdx, $primaryTargetIdx, $enemySide);
 
+        $anyHit = false;
+        foreach ($turns as $t) {
+            if (($t['type'] ?? '') !== 'miss') {
+                $anyHit = true;
+                break;
+            }
+        }
+
+        // Pasywna szansa na natychmiastowy dodatkowy atak (np. Furia Berserkera - topór).
+        // Nie rzuca ponownie szansy na kolejny dodatkowy atak (brak nieskończonych łańcuchów) -
+        // dlatego woła resolveTeamAction() bezpośrednio, a nie resolveTeamAttack() rekurencyjnie.
+        if ($anyHit && $combatants[$actorIdx]['alive']) {
+            $extraChance = $combatants[$actorIdx]['passives']['extra_attack_chance'] ?? 0;
+            if ($this->rollPassiveChance($extraChance)) {
+                $bonusTargetIdx = $this->selectLowestHpAlive($combatants, $enemySide);
+                if ($bonusTargetIdx !== null) {
+                    $bonusTurns = $this->resolveTeamAction($combatants, $actorIdx, $bonusTargetIdx, $enemySide);
+                    foreach ($bonusTurns as &$bt) {
+                        $bt['extra_attack'] = true;
+                    }
+                    unset($bt);
+                    $turns = array_merge($turns, $bonusTurns);
+                }
+            }
+        }
+
+        return $turns;
+    }
+
+    /**
+     * Rdzeń pojedynczej akcji: wybór gotowego skilla, jego efekt (heal / self-buff /
+     * atak pojedynczy / AOE) - bez rzutu na pasywną szansę dodatkowego ataku (patrz
+     * resolveTeamAttack() powyżej).
+     */
+    private function resolveTeamAction(array &$combatants, int $actorIdx, int $primaryTargetIdx, string $enemySide): array
+    {
+        $actor = &$combatants[$actorIdx];
+        $snap = $actor['snapshot'];
         $skills = $snap['skills'] ?? [];
         $weaponType = $snap['weapon_type'] ?? 'barehands';
 
         $skillToUse = null;
         foreach ($skills as $skill) {
+            // Umiejętności pasywne nie są "rzucane" - działają cały czas poprzez
+            // computeTeamPassives(), nie mogą więc zostać wybrane jako akcja tej tury.
+            if (($skill['type'] ?? 'active') !== 'active') {
+                continue;
+            }
             if (($skill['required_weapon_type'] ?? 'all') === 'all' || $skill['required_weapon_type'] === $weaponType) {
                 $cd = $actor['cooldowns'][$skill['id']] ?? 0;
                 if ($cd <= 0) {
@@ -485,6 +535,80 @@ class GuildWarService
                 }
             }
         }
+
+        $effectType = $skillToUse['effect_type'] ?? null;
+        $bonus = 0.0;
+
+        if ($skillToUse) {
+            $actor['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
+            $effLevel = max(1, $skillToUse['level'] ?? 1);
+            $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
+        }
+
+        // --- HEAL: leczy aktora, nie atakuje (aktywne DoT-y na wybranym celu nadal tykają). ---
+        if ($effectType === 'heal') {
+            return [$this->resolveTeamHeal($combatants, $actorIdx, $primaryTargetIdx, $bonus, $skillToUse)];
+        }
+
+        if (in_array($effectType, ['buff_phys_dmg', 'buff_damage'], true)) {
+            $actor['effects']['buff_phys_dmg'] = [
+                'type' => 'buff_phys_dmg',
+                'duration' => $skillToUse['base_duration'],
+                'value' => $bonus,
+            ];
+        } elseif ($effectType === 'buff_defense') {
+            $actor['effects']['buff_defense'] = [
+                'type' => 'buff_defense',
+                'duration' => $skillToUse['base_duration'],
+                'value' => $bonus,
+            ];
+        }
+
+        $physBuffValue = ($actor['effects']['buff_phys_dmg']['value'] ?? 0) + ($actor['passives']['aura_dmg'] ?? 0);
+
+        $isAoe = $skillToUse && !empty($skillToUse['is_aoe']) && in_array($effectType, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true);
+
+        if ($isAoe) {
+            $turns = [];
+            foreach ($combatants as $idx => $candidate) {
+                if ($candidate['side'] === $enemySide && $candidate['alive']) {
+                    $turns[] = $this->resolveHitAgainstTarget($combatants, $actorIdx, $idx, $skillToUse, $effectType, $bonus, $physBuffValue, true);
+                }
+            }
+        } else {
+            $turns = [$this->resolveHitAgainstTarget($combatants, $actorIdx, $primaryTargetIdx, $skillToUse, $effectType, $bonus, $physBuffValue, false)];
+        }
+
+        // Dekrementacja własnych self-buffów aktora (buff_phys_dmg/buff_defense) - raz na
+        // akcję, niezależnie od liczby trafionych celów przy AOE.
+        foreach (['buff_phys_dmg', 'buff_defense'] as $buffKey) {
+            if (isset($actor['effects'][$buffKey]) && $actor['effects'][$buffKey]['duration'] > 0) {
+                $actor['effects'][$buffKey]['duration']--;
+                if ($actor['effects'][$buffKey]['duration'] <= 0) {
+                    unset($actor['effects'][$buffKey]);
+                }
+            }
+        }
+
+        return $turns;
+    }
+
+    /**
+     * Wylicza pojedyncze trafienie aktora w jeden cel - używane zarówno dla zwykłego
+     * ataku/skilla pojedynczego celu, jak i (wywoływane wielokrotnie z resolveTeamAction())
+     * dla każdego trafionego przeciwnika skillem obszarowym (is_aoe). DoT na celu tyka
+     * tylko dla trafień pojedynczych - w starciach AOE efekty obszarowe działają
+     * wyłącznie na obrażeniach bezpośrednich/CC, nie na DoT (parytet z
+     * `EncounterService::playerAttackAoeTarget()`).
+     */
+    private function resolveHitAgainstTarget(array &$combatants, int $actorIdx, int $targetIdx, ?array $skillToUse, ?string $effectType, float $bonus, float $physBuffValue, bool $isAoe): array
+    {
+        $actor = &$combatants[$actorIdx];
+        $target = &$combatants[$targetIdx];
+
+        $snap = $actor['snapshot'];
+        $targetSnap = $target['snapshot'];
+        $weaponType = $snap['weapon_type'] ?? 'barehands';
 
         $attrs = $snap['attributes'] ?? [];
         $str = $attrs['str'] ?? 0;
@@ -510,55 +634,21 @@ class GuildWarService
 
         $damage = mt_rand($baseDmgMin, $baseDmgMax);
 
-        if ($skillToUse) {
-            $actor['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
-            $effLevel = max(1, $skillToUse['level'] ?? 1);
-            $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
-            $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
-
-            if (in_array($effectType, ['direct_dmg', 'direct', 'damage'])) {
-                $damage = (int) ($damage * $bonus);
-            } elseif (in_array($effectType, ['buff_phys_dmg', 'buff_damage'])) {
-                $actor['effects']['buff_phys_dmg'] = [
-                    'type' => 'buff_phys_dmg',
-                    'duration' => $skillToUse['base_duration'],
-                    'value' => $bonus,
-                ];
-            } elseif (in_array($effectType, ['poison', 'dot_poison'])) {
-                $target['effects'][$skillToUse['id']] = [
-                    'type' => 'poison',
-                    'name' => $skillToUse['name'] ?? 'Otrucie',
-                    'duration' => $skillToUse['base_duration'],
-                    'value' => $bonus,
-                ];
-            } elseif (in_array($effectType, ['fire', 'dot_fire'])) {
-                $target['effects'][$skillToUse['id']] = [
-                    'type' => 'fire',
-                    'name' => $skillToUse['name'] ?? 'Podpalenie',
-                    'duration' => $skillToUse['base_duration'],
-                    'value' => $bonus,
-                ];
-            }
+        if ($skillToUse && in_array($effectType, ['direct_dmg', 'direct', 'damage', 'aoe_dmg', 'freeze', 'stun'], true)) {
+            $damage = (int) ($damage * $bonus);
         }
 
-        if (isset($actor['effects']['buff_phys_dmg'])) {
-            $buff = &$actor['effects']['buff_phys_dmg'];
-            if ($buff['duration'] > 0) {
-                $damage = (int) ($damage * (1 + $buff['value']));
-                $buff['duration']--;
-                if ($buff['duration'] <= 0) {
-                    unset($actor['effects']['buff_phys_dmg']);
-                }
-            }
-            unset($buff);
+        if ($physBuffValue > 0) {
+            $damage = (int) ($damage * (1 + $physBuffValue));
         }
 
-        // DoT (otrucie/podpalenie) tyka na celu przy każdym ataku wymierzonym w niego.
+        // DoT (otrucie/podpalenie) tyka na celu przy każdym ataku wymierzonym w niego -
+        // pomijane dla trafień AOE (patrz docblock powyżej).
         $dotDamage = 0;
         $dotType = null;
-        if (!empty($target['effects'])) {
+        if (!$isAoe && !empty($target['effects'])) {
             foreach ($target['effects'] as $id => &$eff) {
-                if (($eff['type'] ?? '') === 'buff_phys_dmg') continue;
+                if (in_array($eff['type'] ?? '', ['buff_phys_dmg', 'buff_defense'], true)) continue;
 
                 if (($eff['duration'] ?? 0) > 0 && in_array($eff['type'] ?? '', ['poison', 'dot_poison', 'fire', 'dot_fire'])) {
                     $dmg = max(1, (int) ($target['maxHp'] * $eff['value']));
@@ -588,6 +678,13 @@ class GuildWarService
         $defense = $defVit + ($targetSnap['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
+        // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
+        // Tarczy") - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
+        $targetDefenseBuffValue = min(0.75, max(0, $target['effects']['buff_defense']['value'] ?? 0));
+        if ($targetDefenseBuffValue > 0) {
+            $damage = max(1, $damage * (1 - $targetDefenseBuffValue));
+        }
+
         // "Silny vs Bohaterów" - patrz identyczny bonus w PvPEncounterService::performAttack().
         $heroBonusPct = $eq['strong_vs_hero'] ?? 0;
         if ($heroBonusPct > 0) {
@@ -614,6 +711,9 @@ class GuildWarService
             'target_idx' => $target['idx'],
             'target_name' => $targetSnap['name'] ?? null,
         ];
+        if ($isAoe) {
+            $turn['aoe'] = true;
+        }
 
         if ($isMiss) {
             $target['hp'] = max(0, $target['hp'] - $dotDamage);
@@ -643,7 +743,13 @@ class GuildWarService
             if ($skillToUse) {
                 $turn['skill_id'] = $skillToUse['id'];
                 $turn['skill_name'] = $skillToUse['name'];
-                $turn['effect_type'] = $skillToUse['effect_type'] ?? null;
+                $turn['effect_type'] = $effectType;
+
+                if (in_array($effectType, ['freeze', 'stun'], true)) {
+                    $ccDuration = max(1, (int) ($skillToUse['base_duration'] ?? 1));
+                    $turn['cc_applied'] = ['type' => $effectType, 'duration' => $ccDuration];
+                    $target['cc_turns'] = max($target['cc_turns'] ?? 0, $ccDuration);
+                }
             }
 
             // Procki otrucia/ogłuszenia z ekwipunku - patrz rollEquipmentProcs() na górze klasy.
@@ -652,7 +758,9 @@ class GuildWarService
                 $target['effects']['equipment_poison'] = $procs['dot'];
             }
             if ($procs['cc']) {
-                $turn['cc_applied'] = $procs['cc'];
+                $mergedDuration = max($turn['cc_applied']['duration'] ?? 0, $procs['cc']['duration']);
+                $turn['cc_applied'] = ['type' => $procs['cc']['type'], 'duration' => $mergedDuration];
+                $target['cc_turns'] = max($target['cc_turns'] ?? 0, $mergedDuration);
             }
         }
 
@@ -662,6 +770,105 @@ class GuildWarService
         }
 
         return $turn;
+    }
+
+    /**
+     * Aktor leczy się o % maksymalnego HP zamiast atakować (analogicznie do
+     * `EncounterService::playerAttack()`/`PvPEncounterService::performAttack()` -
+     * patrz docs/modules/skills.md pkt. 5). Aktywne DoT-y na uprzednio wybranym
+     * celu nadal tykają tej samej tury.
+     */
+    private function resolveTeamHeal(array &$combatants, int $actorIdx, int $targetIdx, float $bonus, array $skillToUse): array
+    {
+        $actor = &$combatants[$actorIdx];
+        $target = &$combatants[$targetIdx];
+
+        $dotDamage = 0;
+        $dotType = null;
+        if (!empty($target['effects'])) {
+            foreach ($target['effects'] as $id => &$eff) {
+                if (in_array($eff['type'] ?? '', ['buff_phys_dmg', 'buff_defense'], true)) continue;
+
+                if (($eff['duration'] ?? 0) > 0 && in_array($eff['type'] ?? '', ['poison', 'dot_poison', 'fire', 'dot_fire'])) {
+                    $dmg = max(1, (int) ($target['maxHp'] * $eff['value']));
+                    $dotDamage += $dmg;
+                    $dotType = $eff['type'];
+                    $eff['duration']--;
+                }
+            }
+            unset($eff);
+            $target['effects'] = array_filter($target['effects'], fn ($e) => ($e['duration'] ?? 0) > 0);
+        }
+
+        if ($dotDamage > 0) {
+            $target['hp'] = max(0, $target['hp'] - $dotDamage);
+            if ($target['hp'] <= 0) {
+                $target['hp'] = 0;
+                $target['alive'] = false;
+            }
+        }
+
+        $healAmount = max(1, (int) round($actor['maxHp'] * $bonus));
+        $actor['hp'] = min($actor['maxHp'], $actor['hp'] + $healAmount);
+
+        return [
+            'actor_side' => $actor['side'],
+            'actor_idx' => $actor['idx'],
+            'actor_name' => $actor['snapshot']['name'] ?? null,
+            'target_side' => $target['side'],
+            'target_idx' => $target['idx'],
+            'target_name' => $target['snapshot']['name'] ?? null,
+            'type' => 'skill_heal',
+            'skill_id' => $skillToUse['id'] ?? null,
+            'skill_name' => $skillToUse['name'] ?? null,
+            'effect_type' => 'heal',
+            'value' => $healAmount,
+            'healAmount' => $healAmount,
+            'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+            'dotType' => $dotDamage > 0 ? $dotType : null,
+            'crit' => false,
+        ];
+    }
+
+    /**
+     * Wylicza sumaryczne efekty pasywnych umiejętności (type = 'passive') z wyposażonego
+     * decku danego combatanta 5v5. Lustrzane odbicie `PvPEncounterService::computePassives()`.
+     */
+    private function computeTeamPassives(array $snapshot): array
+    {
+        $passives = ['aura_dmg' => 0, 'extra_attack_chance' => 0];
+        $weaponType = $snapshot['weapon_type'] ?? 'barehands';
+
+        foreach (($snapshot['skills'] ?? []) as $skill) {
+            if (($skill['type'] ?? 'active') !== 'passive') {
+                continue;
+            }
+
+            $reqWep = $skill['required_weapon_type'] ?? null;
+            if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $weaponType) {
+                continue;
+            }
+
+            $effLevel = max(1, $skill['level'] ?? 1);
+            $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+
+            if (($skill['effect_type'] ?? null) === 'passive_aura_dmg') {
+                $passives['aura_dmg'] += $effVal;
+            } elseif (($skill['effect_type'] ?? null) === 'passive_extra_attack') {
+                $passives['extra_attack_chance'] = max($passives['extra_attack_chance'], min(0.75, max(0, $effVal)));
+            }
+        }
+
+        return $passives;
+    }
+
+    private function rollPassiveChance(float $chance): bool
+    {
+        if ($chance <= 0) {
+            return false;
+        }
+
+        return mt_rand(1, 10000) <= (int) round($chance * 10000);
     }
 
     private function anyCombatantAlive(array $combatants, string $side): bool

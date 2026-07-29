@@ -16,8 +16,13 @@ class EnchantmentStrategy
     ];
 
     private array $weaponBonuses = [
-        'attack_power' => [10, 50],
-        'magic_attack' => [10, 50],
+        // Ryzykowny afiks (2026-07-29, na życzenie użytkownika): zakres obejmuje teraz
+        // wyniki UJEMNE (-20% do +50%) - większość rzutów ląduje nisko/ujemnie (osłabia
+        // broń!), a wysoki dodatni wynik jest wykładniczo rzadki (patrz rollBonusValue()
+        // niżej) - prawdziwy "hazard" w stylu Metin2 (FMS/zatruty miecz), a nie gwarantowany
+        // bonus jak reszta puli.
+        'attack_power' => [-20, 50],
+        'magic_attack' => [-20, 50],
         'crit_chance' => [1, 10],
         'strong_vs_demons' => [5, 20],
         'strong_vs_undead' => [5, 20],
@@ -152,13 +157,15 @@ class EnchantmentStrategy
         return $roll <= $chance;
     }
 
-    // Afiksy o rozkładzie "rzadkim na górze" (2026-07-29, na życzenie użytkownika,
-    // wzorem FMS/zatrutego miecza z Metin2): 'attack_power'/'magic_attack' są teraz
-    // procentowym bonusem do obrażeń fizycznych/magicznych (patrz
-    // Character::getEquipmentStats(), gdzie mnożą sumaryczne attack_min/max zamiast
-    // dodawać do nich płaską wartość), a losowanie wartości w ich zakresie ([10,50])
-    // NIE jest jednostajne jak reszta puli - wysoki wynik jest wykładniczo rzadszy,
-    // żeby np. +30% było spotykane, a +45-50% było prawdziwym rarytasem.
+    // Afiksy-hazard (2026-07-29, na życzenie użytkownika, wzorem FMS/zatrutego miecza
+    // z Metin2): 'attack_power'/'magic_attack' są procentowym bonusem do obrażeń
+    // fizycznych/magicznych (patrz Character::getEquipmentStats(), gdzie mnożą
+    // sumaryczne attack_min/max zamiast dodawać do nich płaską wartość). Zakres
+    // [-20, 50] obejmuje wyniki UJEMNE (osłabienie broni!) - losowanie NIE jest
+    // jednostajne: rozkład wykładniczy (roll^skew) skupia większość wyników nisko/
+    // ujemnie, a wysoki dodatni wynik jest wykładniczo rzadszy. Empirycznie (skew=3,
+    // 20k prób): P(wynik ujemny) ~34%, P(>=+30%) ~11%, P(>=+45%) ~2%, P(+50%, max)
+    // <1% - prawdziwy hazard, nie gwarantowany bonus jak reszta puli.
     private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack'];
     private const RARE_SCALING_SKEW = 3.0;
 
@@ -168,9 +175,9 @@ class EnchantmentStrategy
             return $this->rng->int($range[0], $range[1]);
         }
 
-        // roll^skew skupia wynik blisko 0 - np. przy skew=3 szansa na trafienie
-        // górnych 20% zakresu (tu: 40-50%) to ok. 9%, a samego maksimum (50%) to
-        // ułamek procenta - "prawie nieosiągalne, ale nie niemożliwe".
+        // roll^skew skupia wynik blisko dolnej granicy zakresu (tu: -20%) - im wyższy
+        // skew, tym rzadziej trafia się górny kraniec (+50%), praktycznie nieosiągalny
+        // ale nie niemożliwy.
         $roll = $this->rng->float(0.0, 1.0);
         $skewed = $roll ** self::RARE_SCALING_SKEW;
 

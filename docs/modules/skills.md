@@ -29,9 +29,10 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 - Kliknięcie wyposażonego skilla pod portretem otwiera dedykowany infobox z informacjami o odnowieniu, czasie trwania, statystykach oraz przyciskiem do zdjęcia skilla.
 
 ### 3. Filtrowanie Listy Skilli u Czarnoksiężnika
-- Widok Czarnoksiężnika (`Warlock.php` / `city.warlock`) pozwala przefiltrować `allSkills` po dwóch niezależnych wymiarach, sterowanych publicznymi właściwościami `weaponFilter` i `typeFilter` (metody `filterByWeapon()`/`filterByType()`):
+- Widok Czarnoksiężnika (`Warlock.php` / `city.warlock`) pozwala przefiltrować `allSkills` po trzech niezależnych wymiarach, sterowanych publicznymi właściwościami `weaponFilter`, `typeFilter` i `categoryFilter` (metody `filterByWeapon()`/`filterByType()`/`filterByCategory()`):
   - **Typ Broni** (`required_weapon_type`): `all`/`sword`/`axe`/`bow`/`wand`/`bell`/`dagger`.
   - **Typ Umiejętności** (`type`): `all`/`active`/`passive`.
+  - **Kategoria** (`categoryFilter`): `all`/`poison`/`fire`/`aoe`/`heal`/`defense`/`dmg` - wyliczana z `effect_type` (oraz `is_aoe` dla kategorii `aoe`), bez osobnej kolumny w bazie. Kategoria `dmg` to zbiorczy "wszystko inne" (obrażenia bezpośrednie/obszarowe, wzmocnienia, CC, pasywy) - dopełnienie pozostałych kategorii. `aoe` nie wyklucza się z pozostałymi (skill może być jednocześnie ogniowy i obszarowy, np. "Ognisty Grad").
 - Filtry łączą się (AND) i można je stosować jednocześnie; wartość `all` pomija dany warunek `where()` w zapytaniu.
 
 ### 4. Wymagania Broni (Weapon Restrictions)
@@ -53,6 +54,7 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
   - **`stun` (Ogłuszenie):** Mechanicznie identyczne z `freeze` (dmg + unieruchomienie na `base_duration` tur), używane tematycznie do skilli wojownika (miecz/topór) zamiast magii mrozu.
   - **`passive_aura_dmg` (Pasywna aura obrażeń):** Stały bonus do obrażeń fizycznych o `base_value` (+ `scaling_value`/poziom), aktywny cały czas gdy skill jest wyposażony i wymóg broni spełniony (np. "Aura Miecza"). Sumuje się z aktywnym buffem `buff_phys_dmg`, jeśli oba są aktywne jednocześnie.
   - **`passive_extra_attack` (Pasywna szansa na dodatkowy atak):** Po każdym trafieniu (podstawowym lub skillem) rzucana jest szansa `base_value` (+ `scaling_value`/poziom, capowana na 75%) na natychmiastowy dodatkowy atak tej samej tury (np. "Furia Berserkera" dla topora). Dodatkowy atak nie rzuca ponownie szansy na kolejny dodatkowy atak (brak nieskończonych łańcuchów).
+  - **`buff_defense` (Obrona):** Redukuje obrażenia przychodzące o `base_value` (+ `scaling_value`/poziom, capowane na 75%) na `base_duration` tur - lustrzane odbicie `buff_phys_dmg`, ale po stronie obrony zamiast ofensywy (np. "Postawa Tarczy"). Podobnie jak `buff_phys_dmg`, użycie skilla obronnego NIE zastępuje ataku tej tury - aktor jednocześnie zakłada buff i wykonuje zwykły atak.
 - **Przełącznik obrażeń magicznych (`is_magic`, boolean):** Umiejętności Różdżki i Dzwonu (klasy magiczne) oznaczane są jako `is_magic = true`. Obrażenia takiego skilla (typu `direct_dmg`/`aoe_dmg`/`freeze`/`stun`) pokazywane są w logu walki jako `magicDamage` zamiast `baseDamage`/`bonusDamage`. To wyłącznie reklasyfikacja do UI - mitygacja (obrona przeciwnika) liczona jest identycznie jak dla obrażeń fizycznych, zgodnie z opisanym w `combat.md` celowym uproszczeniem (brak osobnej "obrony magicznej" w grze).
 
 ### 6. Panel Administracyjny

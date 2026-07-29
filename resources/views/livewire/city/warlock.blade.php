@@ -68,6 +68,15 @@
                     'active' => ['label' => 'Aktywne', 'icon' => 'fa-solid fa-bolt'],
                     'passive' => ['label' => 'Pasywne', 'icon' => 'fa-solid fa-shield'],
                 ];
+                $categoryFilterOptions = [
+                    'all' => ['label' => 'Wszystkie', 'icon' => 'fa-solid fa-icons'],
+                    'poison' => ['label' => 'Trucizna', 'icon' => 'fa-solid fa-skull-crossbones'],
+                    'fire' => ['label' => 'Podpalenie', 'icon' => 'fa-solid fa-fire-flame-curved'],
+                    'aoe' => ['label' => 'AOE', 'icon' => 'fa-solid fa-burst'],
+                    'heal' => ['label' => 'Leczenie', 'icon' => 'fa-solid fa-heart'],
+                    'defense' => ['label' => 'Obrona', 'icon' => 'fa-solid fa-shield-halved'],
+                    'dmg' => ['label' => 'DMG', 'icon' => 'fa-solid fa-hand-fist'],
+                ];
             @endphp
             <div class="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 bg-stone-950/70 border border-emerald-900/50 rounded-2xl p-4 shadow-inner">
                 <div class="flex flex-col items-center gap-2">
@@ -97,6 +106,24 @@
                                 {{ $typeFilter === $value
                                     ? 'bg-sky-800 border-sky-400 text-white shadow-[0_0_10px_rgba(56,189,248,0.4)]'
                                     : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-sky-600 hover:text-sky-200' }}">
+                                <i class="{{ $opt['icon'] }}"></i>
+                                <span>{{ $opt['label'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="hidden sm:block w-px self-stretch bg-emerald-900/50"></div>
+
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Kategoria</span>
+                    <div class="flex flex-wrap justify-center gap-1.5">
+                        @foreach($categoryFilterOptions as $value => $opt)
+                            <button wire:click="filterByCategory('{{ $value }}')"
+                                class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all duration-150 flex items-center gap-1.5 cursor-pointer
+                                {{ $categoryFilter === $value
+                                    ? 'bg-amber-800 border-amber-400 text-white shadow-[0_0_10px_rgba(217,119,6,0.4)]'
+                                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-amber-600 hover:text-amber-200' }}">
                                 <i class="{{ $opt['icon'] }}"></i>
                                 <span>{{ $opt['label'] }}</span>
                             </button>
@@ -163,6 +190,42 @@
                             $effectNextText = number_format($nextValue * 100, 1) . '% Aktualnego HP / Turę (+' . number_format($skill->scaling_value * 100, 1) . '%)';
                             $scalingText = '+' . number_format($skill->scaling_value * 100, 1) . '% Akt. HP / Poziom';
                             $statInfluenceText = 'Poziom Skilla oraz Aktualne HP Przeciwnika.';
+                        } elseif ($skill->effect_type === 'heal') {
+                            $effectTitle = 'Leczenie';
+                            $effectValueText = '+' . round($currentValue * 100) . '% Max HP';
+                            $effectNextText = '+' . round($nextValue * 100) . '% Max HP (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = '+' . round($skill->scaling_value * 100) . '% Max HP / Poziom';
+                            $statInfluenceText = 'Poziom Skilla oraz Maksymalne HP Postaci.';
+                        } elseif (in_array($skill->effect_type, ['freeze', 'stun'])) {
+                            $effectTitle = $skill->effect_type === 'freeze' ? 'Zamrożenie (Obrażenia + CC)' : 'Ogłuszenie (Obrażenia + CC)';
+                            $effectValueText = round($currentValue * 100) . '% Obrażeń Broni, ' . $skill->base_duration . ' Tur Unieruchomienia';
+                            $effectNextText = round($nextValue * 100) . '% Obrażeń Broni (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = round($skill->scaling_value * 100) . '% Obrażeń Broni / Poziom';
+                            $statInfluenceText = 'Siła (STR) [+2 Atak/PKT], Poziom Postaci i Broń.';
+                        } elseif ($skill->effect_type === 'aoe_dmg') {
+                            $effectTitle = 'Obrażenia Obszarowe (AOE)';
+                            $effectValueText = round($currentValue * 100) . '% Obrażeń Broni (wszyscy wrogowie)';
+                            $effectNextText = round($nextValue * 100) . '% Obrażeń Broni (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = round($skill->scaling_value * 100) . '% Obrażeń Broni / Poziom';
+                            $statInfluenceText = 'Siła (STR) [+2 Atak/PKT], Poziom Postaci i Broń.';
+                        } elseif ($skill->effect_type === 'buff_defense') {
+                            $effectTitle = 'Redukcja Obrażeń Przychodzących';
+                            $effectValueText = '-' . round($currentValue * 100) . '% Obrażeń';
+                            $effectNextText = '-' . round($nextValue * 100) . '% Obrażeń (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = '+' . round($skill->scaling_value * 100) . '% Redukcji / Poziom';
+                            $statInfluenceText = 'Wyłącznie Poziom Skilla (cap 75% redukcji).';
+                        } elseif ($skill->effect_type === 'passive_aura_dmg') {
+                            $effectTitle = '[Pasywna] Aura Obrażeń Fizycznych';
+                            $effectValueText = '+' . round($currentValue * 100) . '% Obrażeń Fizycznych';
+                            $effectNextText = '+' . round($nextValue * 100) . '% Obrażeń Fizycznych (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = '+' . round($skill->scaling_value * 100) . '% Ataku / Poziom';
+                            $statInfluenceText = 'Aktywna stale, gdy wymagana broń jest założona.';
+                        } elseif ($skill->effect_type === 'passive_extra_attack') {
+                            $effectTitle = '[Pasywna] Szansa na Dodatkowy Atak';
+                            $effectValueText = round(min(0.75, $currentValue) * 100) . '% Szansy';
+                            $effectNextText = round(min(0.75, $nextValue) * 100) . '% Szansy (+' . round($skill->scaling_value * 100) . '%)';
+                            $scalingText = '+' . round($skill->scaling_value * 100) . '% Szansy / Poziom (cap 75%)';
+                            $statInfluenceText = 'Aktywna stale, gdy wymagana broń jest założona.';
                         } else {
                             $effectTitle = 'Siła Umiejętności';
                             $effectValueText = round($currentValue * 100) . '%';
@@ -242,6 +305,18 @@
                                     <i class="fa-solid fa-fire-flame-curved text-amber-400"></i>
                                 @elseif(in_array($skill->effect_type, ['buff_phys_dmg', 'buff_damage']))
                                     <i class="fa-solid fa-hand-fist text-yellow-400"></i>
+                                @elseif($skill->effect_type === 'heal')
+                                    <i class="fa-solid fa-heart text-rose-400"></i>
+                                @elseif(in_array($skill->effect_type, ['freeze', 'stun']))
+                                    <i class="fa-solid fa-snowflake text-sky-300"></i>
+                                @elseif($skill->effect_type === 'aoe_dmg' || $skill->is_aoe)
+                                    <i class="fa-solid fa-burst text-orange-400"></i>
+                                @elseif($skill->effect_type === 'buff_defense')
+                                    <i class="fa-solid fa-shield-halved text-blue-300"></i>
+                                @elseif($skill->effect_type === 'passive_aura_dmg')
+                                    <i class="fa-solid fa-fire text-orange-300"></i>
+                                @elseif($skill->effect_type === 'passive_extra_attack')
+                                    <i class="fa-solid fa-bolt-lightning text-yellow-300"></i>
                                 @else
                                     <i class="fa-solid fa-khanda text-emerald-400"></i>
                                 @endif

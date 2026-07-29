@@ -15,6 +15,7 @@ class Warlock extends Component
 
     public string $weaponFilter = 'all';
     public string $typeFilter = 'all';
+    public string $categoryFilter = 'all';
 
     public function mount(Character $character)
     {
@@ -38,6 +39,11 @@ class Warlock extends Component
     public function filterByType(string $skillType): void
     {
         $this->typeFilter = $skillType;
+    }
+
+    public function filterByCategory(string $category): void
+    {
+        $this->categoryFilter = $category;
     }
 
     public function unlockSkill(string $skillId, UnlockSkill $unlockAction)
@@ -80,6 +86,18 @@ class Warlock extends Component
 
         if ($this->typeFilter !== 'all') {
             $query->where('type', $this->typeFilter);
+        }
+
+        if ($this->categoryFilter !== 'all') {
+            match ($this->categoryFilter) {
+                'poison' => $query->whereIn('effect_type', ['poison', 'dot_poison']),
+                'fire' => $query->whereIn('effect_type', ['fire', 'dot_fire']),
+                'aoe' => $query->where('is_aoe', true),
+                'heal' => $query->where('effect_type', 'heal'),
+                'defense' => $query->where('effect_type', 'buff_defense'),
+                'dmg' => $query->whereNotIn('effect_type', ['poison', 'dot_poison', 'fire', 'dot_fire', 'heal', 'buff_defense']),
+                default => null,
+            };
         }
 
         $allSkills = $query->get();

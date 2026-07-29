@@ -855,6 +855,15 @@ class EncounterService
                         'value' => $effVal,
                         'duration' => $cs->skill->base_duration,
                     ];
+                } else if ($cs->skill->effect_type === 'buff_defense') {
+                    $this->activeBuffs['defense'] = [
+                        'type' => $cs->skill->effect_type,
+                        'name' => $cs->skill->name,
+                        'icon' => $cs->skill->icon,
+                        'description' => $cs->skill->description ?? ('Redukuje obrażenia przychodzące o ' . round($effVal * 100) . '%.'),
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
                 }
 
                 $usedSkill = [
@@ -1112,6 +1121,13 @@ class EncounterService
             $damage = (int)($damage * 1.5);
             $baseDamage = (int)($baseDamage * 1.5);
             $resistDamage = (int)($resistDamage * 1.5);
+        }
+
+        // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense (np. "Postawa Tarczy") -
+        // capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
+        $defenseBuffValue = min(0.75, max(0, $this->activeBuffs['defense']['value'] ?? 0));
+        if ($defenseBuffValue > 0) {
+            $damage = max(1, (int)($damage * (1 - $defenseBuffValue)));
         }
 
         $newPlayerHp = max(0, $playerHp - $damage);

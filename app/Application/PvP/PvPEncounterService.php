@@ -465,6 +465,12 @@ class PvPEncounterService
                     'duration' => $skillToUse['base_duration'],
                     'value' => $bonus,
                 ];
+            } elseif ($effectType === 'buff_defense') {
+                $actorState['effects']['buff_defense'] = [
+                    'type' => 'buff_defense',
+                    'duration' => $skillToUse['base_duration'],
+                    'value' => $bonus,
+                ];
             } elseif (in_array($effectType, ['poison', 'dot_poison'])) {
                 $targetState['effects'][$skillToUse['id']] = [
                     'type' => 'poison',
@@ -491,15 +497,17 @@ class PvPEncounterService
             $damage = (int)($damage * (1 + $physBuffValue));
         }
 
-        if (isset($actorState['effects']['buff_phys_dmg'])) {
-            $buff = &$actorState['effects']['buff_phys_dmg'];
-            if ($buff['duration'] > 0) {
-                $buff['duration']--;
-                if ($buff['duration'] <= 0) {
-                    unset($actorState['effects']['buff_phys_dmg']);
+        foreach (['buff_phys_dmg', 'buff_defense'] as $buffKey) {
+            if (isset($actorState['effects'][$buffKey])) {
+                $buff = &$actorState['effects'][$buffKey];
+                if ($buff['duration'] > 0) {
+                    $buff['duration']--;
+                    if ($buff['duration'] <= 0) {
+                        unset($actorState['effects'][$buffKey]);
+                    }
                 }
+                unset($buff);
             }
-            unset($buff);
         }
 
         // Process DoT for target during this exchange
@@ -547,6 +555,13 @@ class PvPEncounterService
         $heroBonusPct = $eqStats['strong_vs_hero'] ?? 0;
         if ($heroBonusPct > 0) {
             $damage += $damage * ($heroBonusPct / 100);
+        }
+
+        // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
+        // Tarczy") - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
+        $targetDefenseBuffValue = min(0.75, max(0, $targetState['effects']['buff_defense']['value'] ?? 0));
+        if ($targetDefenseBuffValue > 0) {
+            $damage = max(1, $damage * (1 - $targetDefenseBuffValue));
         }
 
         // Crit & Dodge checks with opponent AGI reduction

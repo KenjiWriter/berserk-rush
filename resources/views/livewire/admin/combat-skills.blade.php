@@ -74,6 +74,7 @@
                             <option value="poison">Trucizna (DoT % Current HP)</option>
                             <option value="fire">Podpalenie (DoT % Max HP)</option>
                             <option value="buff_phys_dmg">Wzmocnienie Obrażeń Fiz. (aktywowane, X tur)</option>
+                            <option value="buff_defense">Redukcja Obrażeń Przychodzących (aktywowane, X tur)</option>
                             <option value="heal">Leczenie (% Max HP)</option>
                             <option value="freeze">Zamrożenie (dmg + unieruchomienie X tur)</option>
                             <option value="stun">Ogłuszenie (dmg + unieruchomienie X tur)</option>
