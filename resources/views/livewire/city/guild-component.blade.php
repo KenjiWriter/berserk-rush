@@ -534,6 +534,10 @@
                         @elseif($panelTab === 'wars')
                             <div class="space-y-4">
                                 @forelse($this->wars as $war)
+                                    @php
+                                        $iAmChallenger = $war->challenger_guild_id === $guild->id;
+                                        $iAmDefender = $war->defender_guild_id === $guild->id;
+                                    @endphp
                                     <div class="bg-stone-950/70 border border-amber-800/40 rounded-xl p-4">
                                         <div class="flex justify-between items-center mb-3">
                                             <div class="flex items-center gap-3">
@@ -552,6 +556,10 @@
                                                     @else
                                                         <span class="text-red-400 font-bold border border-red-500/50 bg-red-950/60 px-2.5 py-1 rounded-lg text-xs">Porażka</span>
                                                     @endif
+                                                @elseif($war->status === 'pending')
+                                                    <span class="text-amber-400 font-bold border border-amber-500/50 bg-amber-950/60 px-2.5 py-1 rounded-lg text-xs">Oczekuje na odpowiedź</span>
+                                                @elseif($war->status === 'declined' || $war->status === 'expired')
+                                                    <span class="text-stone-400 font-bold border border-stone-500/50 bg-stone-900/60 px-2.5 py-1 rounded-lg text-xs">Odrzucona</span>
                                                 @else
                                                     <span class="text-amber-400 font-bold border border-amber-500/50 bg-amber-950/60 px-2.5 py-1 rounded-lg text-xs">W trakcie</span>
                                                 @endif
@@ -560,23 +568,44 @@
                                         <div class="text-[11px] text-stone-500 mb-3 border-b border-amber-900/30 pb-2 font-mono">
                                             Data starcia: {{ $war->created_at->format('Y-m-d H:i') }}
                                         </div>
-                                        
-                                        @if($war->fights->count() > 0)
-                                            <div class="grid grid-cols-5 gap-2">
-                                                @foreach($war->fights as $fight)
-                                                    @php 
-                                                        $amIChallenger = $war->challenger_guild_id === $guild->id;
-                                                        $myCharId = $amIChallenger ? $fight->challenger_character_id : $fight->defender_character_id;
-                                                        $won = $fight->winner_character_id === $myCharId;
-                                                    @endphp
-                                                    <a href="{{ route('city.arena.combat.gvg', ['character' => $character, 'gvgId' => $fight->id]) }}" wire:navigate class="block border {{ $won ? 'border-emerald-600/50 bg-emerald-950/30 hover:bg-emerald-900/50' : 'border-red-600/50 bg-red-950/30 hover:bg-red-900/50' }} rounded-lg p-2 text-center transition">
-                                                        <div class="text-[10px] text-stone-400 mb-1">Runda {{ $fight->fight_order }}</div>
-                                                        <div class="text-xs font-bold {{ $won ? 'text-emerald-400' : 'text-red-400' }} mb-1">{{ $won ? 'Wygrana' : 'Przegrana' }}</div>
-                                                        <div class="text-[10px] text-amber-300 truncate flex items-center justify-center gap-1">
-                                                            <i class="fa-solid fa-play text-[9px]"></i> Obejrzyj
-                                                        </div>
-                                                    </a>
-                                                @endforeach
+
+                                        @if($war->status === 'pending' && $iAmDefender)
+                                            @if($myMember && $myMember->role === 'leader')
+                                                <div class="flex items-center gap-2">
+                                                    <button wire:click="acceptWarChallenge('{{ $war->id }}')"
+                                                            wire:confirm="Zaakceptować wyzwanie? Drużyna wojenna zostanie zamrożona, a starcie rozegra się natychmiast."
+                                                            wire:loading.attr="disabled"
+                                                            class="text-xs font-bold border border-emerald-600/70 text-emerald-300 hover:bg-emerald-950/50 px-3 py-1.5 rounded-lg transition">
+                                                        <i class="fa-solid fa-check mr-1"></i> Zaakceptuj wojnę
+                                                    </button>
+                                                    <button wire:click="declineWarChallenge('{{ $war->id }}')"
+                                                            wire:confirm="Czy na pewno chcesz odrzucić wyzwanie?"
+                                                            wire:loading.attr="disabled"
+                                                            class="text-xs font-bold border border-red-600/70 text-red-400 hover:bg-red-950/50 px-3 py-1.5 rounded-lg transition">
+                                                        <i class="fa-solid fa-xmark mr-1"></i> Odrzuć
+                                                    </button>
+                                                </div>
+                                                @error('war') <div class="text-red-400 text-xs mt-2">{{ $message }}</div> @enderror
+                                            @else
+                                                <div class="text-xs text-stone-500 italic">Oczekuje na odpowiedź lidera gildii.</div>
+                                            @endif
+                                        @elseif($war->status === 'pending' && $iAmChallenger)
+                                            <div class="text-xs text-stone-500 italic">Wyzwanie wysłane - oczekiwanie na odpowiedź przeciwnika.</div>
+                                        @elseif($war->fights->isNotEmpty())
+                                            @php
+                                                $fight = $war->fights->first();
+                                                $myFightSurvivors = $iAmChallenger ? $fight->challenger_survivors : $fight->defender_survivors;
+                                                $enemyFightSurvivors = $iAmChallenger ? $fight->defender_survivors : $fight->challenger_survivors;
+                                            @endphp
+                                            <div class="flex items-center justify-between gap-3 bg-stone-900/60 border border-amber-900/30 rounded-lg p-3">
+                                                <div class="text-xs text-stone-300 font-mono">
+                                                    Rund starcia: <span class="text-amber-300 font-bold">{{ $fight->rounds }}</span>
+                                                    &middot; Ocalali: <span class="text-cyan-300 font-bold">{{ $myFightSurvivors }}</span> vs <span class="text-red-300 font-bold">{{ $enemyFightSurvivors }}</span>
+                                                </div>
+                                                <a href="{{ route('city.arena.combat.gvg', ['character' => $character, 'gvgId' => $fight->id]) }}" wire:navigate
+                                                   class="text-[11px] font-bold text-amber-300 border border-amber-600/50 hover:bg-amber-950/50 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shrink-0">
+                                                    <i class="fa-solid fa-play text-[9px]"></i> Obejrzyj starcie
+                                                </a>
                                             </div>
                                         @else
                                             <div class="text-xs text-stone-500 italic text-center py-2">Brak rozegranych rund walki.</div>

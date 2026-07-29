@@ -110,10 +110,13 @@ class EncounterService
                             return str_contains(mb_strtolower($m->name), 'wilk');
                         }) ?? $map->monsters->sortBy('level')->first();
                     } else {
-                        // Get monsters for this map
+                        // Get monsters for this map. Rank 'worldboss' ma osobny, dedykowany
+                        // mechanizm spotkania (WorldBossInstance + ?world_boss= w MapStub) i
+                        // NIE może wypaść z normalnej puli eksploracji. Rank 'boss' to zwykły,
+                        // zabijalny boss mapy (patrz MonsterLootSeeder) - nie ma dla niego żadnej
+                        // innej ścieżki spotkania, więc musi zostać w puli losowej tak jak 'elite'.
                         $monstersPool = $map->monsters->whereNotIn('rank', [
                             \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
-                            \App\Domain\Combat\Enums\MonsterRank::BOSS
                         ]);
 
                         if ($monstersPool->isEmpty()) {

@@ -40,19 +40,22 @@ class ProcessGuildWarJob implements ShouldQueue
 
         $result = $service->processWar($war);
 
-        if ($result->isSuccess()) {
-            $data = $result->getValue();
+        if ($result->isOk()) {
+            $data = $result->getPayload();
             $winner = $data['winner'];
             $loser = $data['loser'];
             $gold = $data['gold_prize'];
-            $score = $data['score'];
+            $survivors = $data['survivors'];
+
+            $winnerSurvivors = $winner->id === $war->challenger_guild_id ? $survivors['challenger'] : $survivors['defender'];
+            $loserSurvivors = $winner->id === $war->challenger_guild_id ? $survivors['defender'] : $survivors['challenger'];
 
             // Notify both leaders
-            $this->notifyLeader($winner->id, '🏆 Wygrana Wojna Gildii!', "Twoja gildia wygrała wojnę przeciwko {$loser->name} z wynikiem {$score['challenger']}:{$score['defender']}! Zdobyliście {$gold} złota ze skarbca wroga.");
-            $this->notifyLeader($loser->id, '💀 Przegrana Wojna Gildii', "Twoja gildia przegrała wojnę przeciwko {$winner->name} z wynikiem {$score['defender']}:{$score['challenger']}... Straciliście całe złoto ze skarbca ({$gold}).");
+            $this->notifyLeader($winner->id, '🏆 Wygrana Wojna Gildii!', "Twoja gildia wygrała wojnę przeciwko {$loser->name} z wynikiem {$winnerSurvivors}:{$loserSurvivors} ocalałych! Zdobyliście {$gold} złota ze skarbca wroga.");
+            $this->notifyLeader($loser->id, '💀 Przegrana Wojna Gildii', "Twoja gildia przegrała wojnę przeciwko {$winner->name} z wynikiem {$loserSurvivors}:{$winnerSurvivors} ocalałych... Straciliście całe złoto ze skarbca ({$gold}).");
         } else {
             $war->update(['status' => 'error']);
-            Log::error('Guild war processing failed', ['id' => $this->guildWarId, 'error' => $result->getError()]);
+            Log::error('Guild war processing failed', ['id' => $this->guildWarId, 'error' => $result->getErrorMessage()]);
         }
     }
 

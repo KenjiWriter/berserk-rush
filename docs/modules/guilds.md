@@ -94,12 +94,20 @@ systemu:
   przechowują TABLICĘ snapshotów do 5 postaci, nie pojedynczy obiekt jak w
   poprzedniej wersji z 5 osobnymi pojedynkami).
 
-> **Status wdrożenia:** `GuildWarService` (wyzwanie/akceptacja/rozstrzygnięcie
-> wojny) jest w pełni zaimplementowany, ale na dzień dzisiejszy NIE jest
-> jeszcze podpięty pod żaden interfejs w Livewire ani trasę HTTP (brak wywołań
-> `challengeGuild()`/`acceptWar()`/`declineWar()`/`processWar()` poza samym
-> serwisem) - ekran wyboru przeciwnika, akceptacji wyzwania i podglądu wyniku
-> starcia wciąż wymaga zbudowania w warstwie UI.
+> **Status wdrożenia (2026-07-29):** `GuildWarService` jest w pełni podpięty
+> pod UI gildii (`GuildComponent`/`guild-component.blade.php`). Wyzwanie
+> (`challengeGuild()`) wysyła się z ekranu przeglądania gildii. Zakładka
+> "Wojny Gildii" w panelu gildii pokazuje wszystkie wojny; dla wojny w
+> statusie `pending`, w której nasza gildia jest obrońcą, lider widzi
+> przyciski "Zaakceptuj wojnę" / "Odrzuć" (`acceptWarChallenge()`/
+> `declineWarChallenge()`). Akceptacja wywołuje `acceptWar()`, a następnie od
+> razu `ProcessGuildWarJob::dispatchSync()`, które synchronicznie rozgrywa
+> starcie przez `processWar()` - w tym środowisku kolejka używa sterownika
+> `database` bez działającego workera, więc odroczone dispatch-owanie joba
+> nigdy by się nie wykonało i wojna zostawałaby trwale w statusie
+> `in_progress` bez rozegranych rund. Wynik (zwycięstwo/porażka, liczba rund,
+> ocalali) jest widoczny od razu w zakładce "Wojny Gildii" z linkiem do
+> podglądu pełnego starcia (`city.arena.combat.gvg`).
 
 ---
 

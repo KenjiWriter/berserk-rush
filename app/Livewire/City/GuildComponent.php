@@ -4,6 +4,8 @@ namespace App\Livewire\City;
 
 use App\Application\Guilds\GuildWarService;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\GuildWar;
+use App\Jobs\ProcessGuildWarJob;
 use App\Models\Guild;
 use App\Models\GuildMember;
 use Illuminate\Support\Facades\Auth;
@@ -128,6 +130,69 @@ class GuildComponent extends Component
         } else {
             $this->addError('challenge', $result->getErrorMessage());
         }
+    }
+
+    public function acceptWarChallenge(string $warId, GuildWarService $service): void
+    {
+        if (!$this->character->guild_id) return;
+
+        $myGuild = Guild::find($this->character->guild_id);
+        if (!$myGuild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->addError('war', 'Tylko lider może odpowiedzieć na wyzwanie wojenne.');
+            return;
+        }
+
+        $war = GuildWar::find($warId);
+        if (!$war) return;
+
+        $result = $service->acceptWar($war, $myGuild);
+        if (!$result->isOk()) {
+            $this->addError('war', $result->getErrorMessage());
+            return;
+        }
+
+        // Rozstrzygnięcie starcia następuje od razu - brak workera kolejki w tym środowisku.
+        ProcessGuildWarJob::dispatchSync($war->id);
+
+        $war->refresh();
+        if ($war->status === 'finished') {
+            $won = $war->winner_guild_id === $myGuild->id;
+            $this->dispatch('notify', type: $won ? 'success' : 'error', message: $won
+                ? 'Wyzwanie zaakceptowane - Twoja gildia zwyciężyła w starciu!'
+                : 'Wyzwanie zaakceptowane - Twoja gildia przegrała starcie.');
+        } else {
+            $this->dispatch('notify', type: 'success', message: 'Wyzwanie zostało zaakceptowane!');
+        }
+
+        $this->refreshState();
+    }
+
+    public function declineWarChallenge(string $warId, GuildWarService $service): void
+    {
+        if (!$this->character->guild_id) return;
+
+        $myGuild = Guild::find($this->character->guild_id);
+        if (!$myGuild) return;
+
+        $myMember = GuildMember::where('character_id', $this->character->id)->first();
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->addError('war', 'Tylko lider może odpowiedzieć na wyzwanie wojenne.');
+            return;
+        }
+
+        $war = GuildWar::find($warId);
+        if (!$war) return;
+
+        $result = $service->declineWar($war, $myGuild);
+        if (!$result->isOk()) {
+            $this->addError('war', $result->getErrorMessage());
+            return;
+        }
+
+        $this->dispatch('notify', type: 'info', message: 'Wyzwanie wojenne zostało odrzucone.');
     }
 
     public function toggleWarTeamPreview(string $guildId): void
