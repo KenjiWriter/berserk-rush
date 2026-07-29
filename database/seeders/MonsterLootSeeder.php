@@ -363,12 +363,12 @@ class MonsterLootSeeder extends Seeder
         // Pobierz wszystkie przedmioty dla szybkiego wyszukiwania
         $itemTemplates = ItemTemplate::all()->keyBy('name');
 
-        // Pierwsze 3 mapy (wg. progresji level_min) mają podwojoną szansę na drop ekwipunku (x2 wagi),
-        // aby ułatwić start nowym graczom.
-        $doubleItemDropChanceMaps = ['Mroczny Las', 'Stare Ruiny', 'Jaskinia Trolli'];
+        // Pierwsze 3 mapy (wg. progresji level_min) mają zwiększoną o 150% szansę na drop ekwipunku
+        // względem poprzedniego podwojenia (x2 -> x5 wagi), aby ułatwić start nowym graczom.
+        $boostedItemDropChanceMaps = ['Mroczny Las', 'Stare Ruiny', 'Jaskinia Trolli'];
 
         foreach ($mapsData as $mapName => $mapConfig) {
-            $itemWeightMultiplier = in_array($mapName, $doubleItemDropChanceMaps, true) ? 2 : 1;
+            $itemWeightMultiplier = in_array($mapName, $boostedItemDropChanceMaps, true) ? 5 : 1;
 
             foreach ($mapConfig['monsters'] as $monsterName => $dropConfig) {
                 // Znajdź potwora
@@ -450,7 +450,7 @@ class MonsterLootSeeder extends Seeder
                         'ref_ulid' => $template->id,
                     ], [
                         // Bardzo mała szansa (waga 1/320~0.3% dla zwykłych, 2/320~0.6% dla bossów),
-                        // podwojona (x{$itemWeightMultiplier}) na pierwszych 3 mapach.
+                        // zwiększona x{$itemWeightMultiplier} na pierwszych 3 mapach.
                         'weight' => ($isBoss ? 2 : 1) * $itemWeightMultiplier,
                         'min_qty' => 1,
                         'max_qty' => 1
