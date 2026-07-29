@@ -2,7 +2,7 @@
 
 Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni i zbroi). Zwiększa ich statystyki, by sprostać silniejszym wyzwaniom.
 
-> **Uwaga (refaktor):** Ulepszanie zostało wydzielone z Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`) do osobnej domeny **Kowal** (`Blacksmith`), wspólnej dla broni i zbroi. Pełny opis: `docs/modules/blacksmith.md`. Brońmistrz i Zbrojmistrz od teraz odpowiadają wyłącznie za kupno i sprzedaż.
+> **Uwaga (refaktor):** Ulepszanie zostało wydzielone z Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`) do osobnej domeny **Kowal** (`Blacksmith`), wspólnej dla broni i zbroi. Pełny opis: `docs/modules/blacksmith.md`. Brońmistrz i Zbrojmistrz zostali od tamtej pory dodatkowo scaleni w jednego NPC **Handlarza** (`Merchant`) - patrz `docs/modules/merchant.md` - który odpowiada wyłącznie za kupno i sprzedaż.
 
 ## Implementacja
 - Pliki logiki i akcji:
@@ -16,7 +16,7 @@ Moduł Kuźni pozwala graczom na ulepszanie siły bazowych przedmiotów (broni i
 ## Mechaniki
 
 ### 1. Interfejs Kowala
-- Moduł dostępny w mieście pod postacią Kowala, dostępnego z Hubu (kafelek "Kowal") oraz z poziomu Brońmistrza/Zbrojmistrza (przycisk "Kowal (Ulepszanie i Rzemiosło)").
+- Moduł dostępny w mieście pod postacią Kowala, dostępnego z Hubu (kafelek "Kowal") oraz z poziomu Handlarza (przycisk "Kowal (Ulepszanie i Rzemiosło)").
 - Kowal obsługuje ulepszanie zarówno broni (Slot: `main_hand`), jak i zbroi (`head`, `chest`, `feet`) w jednym, ogólnym widoku - bez podziału na osobne postaci NPC.
 - Posiada dwie zakładki: **Kuźnię Ulepszeń** oraz **Rzemiosło** (patrz `docs/modules/blacksmith.md`), a nad obiema zakładkami pasek filtrów typu/slotu (Wszystko / Broń / Hełmy / Zbroje / Buty).
 

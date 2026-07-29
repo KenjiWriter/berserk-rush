@@ -174,30 +174,16 @@
                 </button>
             </div>
 
-            {{-- ARMORSMITH (3 cols, 1 row) --}}
-            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-stone-700/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
-                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
-                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/armormaster.png') }}');"></div>
-                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20"></div>
-                    <div class="absolute inset-0 p-4 flex flex-col justify-end">
-                        <div wire:loading wire:target="goTo('armorsmith')" class="mb-1"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                        <h3 class="text-xl font-bold text-amber-300 medieval-font drop-shadow">Zbrojmistrz</h3>
-                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Pancerze i ochrona</p>
-                    </div>
-                </button>
-            </div>
-
-            {{-- WEAPONSMITH (3 cols, 1 row) --}}
+            {{-- HANDLARZ (3 cols, 1 row) --}}
             <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-stone-700/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)] {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '' }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
+                <button wire:click="goTo('merchant')" @click="travelingTo = 'Handlarz'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full text-left relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-60 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/20"></div>
                     <div class="absolute inset-0 p-4 flex flex-col justify-end">
-                        <div wire:loading wire:target="goTo('weaponsmith')" class="mb-1"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-                        <h3 class="text-xl font-bold text-amber-300 medieval-font drop-shadow">Brońmistrz</h3>
-                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Miecze i uzbrojenie</p>
+                        <div wire:loading wire:target="goTo('merchant')" class="mb-1"><svg class="animate-spin h-6 w-6 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                        <h3 class="text-xl font-bold text-amber-300 medieval-font drop-shadow">Handlarz</h3>
+                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Broń i pancerze</p>
                     </div>
                 </button>
             </div>
@@ -334,24 +320,13 @@
             {{-- Shop Grid --}}
             <div class="grid grid-cols-2 gap-4 pb-6">
 
-                {{-- Armorsmith --}}
+                {{-- Handlarz --}}
                 <div class="col-span-1">
-                    <button wire:click="goTo('armorsmith')" @click="travelingTo = 'Zbrojmistrz'" class="w-full h-36 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
-                        <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/armormaster.png') }}');"></div>
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
-                        <div class="absolute bottom-0 w-full p-4 text-center">
-                            <div class="font-bold text-amber-300 medieval-font text-lg">Zbrojmistrz</div>
-                        </div>
-                    </button>
-                </div>
-
-                {{-- Weaponsmith --}}
-                <div class="col-span-1">
-                    <button wire:click="goTo('weaponsmith')" @click="travelingTo = 'Brońmistrz'" class="w-full h-36 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
+                    <button wire:click="goTo('merchant')" @click="travelingTo = 'Handlarz'" class="w-full h-36 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg {{ $gameStage == 17 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '' }}" wire:loading.attr="disabled">
                         <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 w-full p-4 text-center">
-                            <div class="font-bold text-amber-300 medieval-font text-lg">Brońmistrz</div>
+                            <div class="font-bold text-amber-300 medieval-font text-lg">Handlarz</div>
                         </div>
                     </button>
                 </div>

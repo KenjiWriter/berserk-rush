@@ -13,7 +13,7 @@ class MerchantItems extends Component
     public $merchantItems;
     public $templates;
     
-    public $merchant_id = 'armorsmith';
+    public $merchant_id = 'merchant';
     public $item_template_id;
     public $required_level = 1;
     public $is_limited = false;

@@ -215,16 +215,10 @@
                 <div>
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Sklepy & Rzemiosło</div>
                     <div class="grid grid-cols-2 gap-2">
-                        <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda', url: $el.href })"
+                        <a href="{{ route('city.merchant', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Handlarza...', icon: 'fa-solid fa-shop', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
-                            <i class="fa-solid fa-khanda text-amber-400 text-sm shrink-0"></i>
-                            <span class="truncate text-[11px] sm:text-xs">Brońmistrz</span>
-                        </a>
-
-                        <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
-                            <i class="fa-solid fa-shield-halved text-amber-400 text-sm shrink-0"></i>
-                            <span class="truncate text-[11px] sm:text-xs">Zbrojownia</span>
+                            <i class="fa-solid fa-shop text-amber-400 text-sm shrink-0"></i>
+                            <span class="truncate text-[11px] sm:text-xs">Handlarz</span>
                         </a>
 
                         <a href="{{ route('city.blacksmith', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Kowala...', icon: 'fa-solid fa-hammer', url: $el.href })"

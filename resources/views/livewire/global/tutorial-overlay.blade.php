@@ -61,11 +61,11 @@
                             @elseif($step == 16)
                                 Świetnie sobie poradziłeś z atrybutami! Gratuluję samodzielności. Za twoje zaangażowanie i szybkie postępy wręczam Ci 150 sztuk złota. Przyda Ci się na dalszą drogę!
                             @elseif($step == 17)
-                                Teraz, kiedy już potrafisz walczyć i zarządzać swoim rozwojem, pora poznać mieszkańców naszego miasta. Na początek zabiorę Cię do naszego miejscowego Brońmistrza. Przejdźmy tam!
+                                Teraz, kiedy już potrafisz walczyć i zarządzać swoim rozwojem, pora poznać mieszkańców naszego miasta. Na początek zabiorę Cię do naszego miejscowego Handlarza. Przejdźmy tam!
                             @elseif($step == 18)
-                                Witaj u Brońmistrza! To tutaj możesz kupować nowe bronie oraz sprzedawać zbędny balast, którego nie chcesz wystawiać na Targowisku. Gdy zechcesz ulepszyć swój ekwipunek, odwiedź naszego Kowala - to on w swojej Kuźni podniesie poziom Twojego sprzętu od +0 aż do +9!
+                                Witaj u Handlarza! To tutaj możesz kupować nowe bronie i pancerze oraz sprzedawać zbędny balast, którego nie chcesz wystawiać na Targowisku. Gdy zechcesz ulepszyć swój ekwipunek, odwiedź naszego Kowala - to on w swojej Kuźni podniesie poziom Twojego sprzętu od +0 aż do +9!
                             @elseif($step == 19)
-                                Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Brońmistrza nową broń - znacznie ułatwi Ci to początkowe potyczki!
+                                Widzę, że zdobyłeś trochę złota. Pora wyposażyć się w coś lepszego niż ten Zardzewiały Miecz. {{ auth()->user()->character?->name ?? 'Wojowniku' }}, kup u Handlarza nową broń - znacznie ułatwi Ci to początkowe potyczki!
                             @elseif($step == 21)
                                 Wspaniale! Wygląda na to, że jesteś już w pełni gotowy, by samodzielnie przetrwać w tym brutalnym świecie. Mój wstępny trening dobiegł końca, jednak jestem pewien, że spotkamy się jeszcze w przyszłości. Na koniec, przyjmij ode mnie tę Skórzaną Zbroję. Niech chroni Cię przed atakami! Powodzenia!
                             @elseif($step == 23)

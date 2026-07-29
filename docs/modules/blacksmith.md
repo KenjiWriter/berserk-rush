@@ -3,7 +3,7 @@
 ## 1. Przeznaczenie Domeny
 Domena **Kowal** to zunifikowany punkt w mieście, w którym gracz zajmuje się rozwojem swojego sprzętu bojowego - zarówno **broni**, jak i **zbroi** - w jednym, wspólnym widoku. Domena powstała z wydzielenia funkcjonalności ulepszania (`forge`) i wytwarzania (`crafting`), które wcześniej były zduplikowane osobno u Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`).
 
-Brońmistrz i Zbrojmistrz od tej pory odpowiadają wyłącznie za **kupno i sprzedaż** przedmiotów (zakładka `shop`) i posiadają w nagłówku przycisk przekierowujący do Kowala ("Kowal (Ulepszanie i Rzemiosło)"), aby zachować płynność nawigacji dla graczy przyzwyczajonych do starego układu.
+Kupno i sprzedaż przedmiotów obsługuje dziś jeden, scalony NPC **Handlarz** (`app/Livewire/City/Merchant.php`, route `city.merchant`) - patrz `docs/modules/merchant.md`. Handlarz posiada w nagłówku przycisk przekierowujący do Kowala ("Kowal (Ulepszanie i Rzemiosło)"), aby zachować płynność nawigacji.
 
 Wiedźma pozostaje osobną domeną odpowiedzialną wyłącznie za crafting **mikstur** (`consumable`) - patrz `docs/modules/witch_and_crafting.md`. Kowal obsługuje crafting oraz ulepszanie **broni i zbroi**.
 
@@ -16,7 +16,7 @@ Wiedźma pozostaje osobną domeną odpowiedzialną wyłącznie za crafting **mik
 ## 3. Dostęp
 - **Hub:** kafelek "Kowal" w bento-gridzie (desktop) oraz przycisk w karuzeli "Dzielnica Handlowa" (mobile), routowane przez `Hub::goTo('blacksmith')`.
 - **Nawigacja:** pozycja "Kowal" w sekcji "Sklepy & Rzemiosło" zarówno w `desktop-nav.blade.php`, jak i `mobile-nav.blade.php`.
-- **Z poziomu Brońmistrza/Zbrojmistrza:** przycisk w nagłówku widoku sklepu, `goToBlacksmith()`.
+- **Z poziomu Handlarza:** przycisk w nagłówku widoku sklepu, `goToBlacksmith()`.
 
 ## 4. Zakładki
 Widok Kowala posiada dwie zakładki (`activeTab`):

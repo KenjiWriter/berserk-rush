@@ -22,8 +22,7 @@
                     <div class="mb-4">
                         <label class="block text-gray-400 text-sm font-bold mb-2">Handlarz</label>
                         <select wire:model="merchant_id" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
-                            <option value="armorsmith">Zbrojmistrz</option>
-                            <option value="weaponsmith">Brońmistrz</option>
+                            <option value="merchant">Handlarz</option>
                             <option value="witch">Wiedźma</option>
                             <option value="gladiator">Gladiator</option>
                         </select>

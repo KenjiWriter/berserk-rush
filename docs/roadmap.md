@@ -134,7 +134,7 @@ Obecny interfejs użytkownika był projektowany z myślą o przeglądarkach desk
 *   Strona Główna (Homepage)
 *   Miasto / Hub
 *   Profil i Ekwipunek Gracza
-*   NPC / Sklepy: Kowal (Weaponsmith), Płatnerz (Armorsmith), Wiedźma (Witch)
+*   NPC / Sklepy: Kowal (Blacksmith), Handlarz (Merchant, scalony Brońmistrz+Zbrojmistrz), Wiedźma (Witch)
 *   Arena PvP i Ekran Walki PvP (Arena Combat)
 
 *(Informacja użyteczna przy dodawaniu nowych modułów - należy wzorować się na responsywności powyższych widoków i wykorzystywać stworzone komponenty nawigacji).*
@@ -146,7 +146,7 @@ Stworzenie kompleksowego systemu wprowadzającego nowych graczy w mechaniki gry.
 - [x] **Layout Tutorialu:** Dedykowany komponent Livewire `TutorialOverlay` z avatarem Kapitana, który w formie dialogu tłumaczy graczowi zawiłości systemu.
 - [x] **Część 1 (Strona Główna i Profil):** Wyskakujące instrukcje po utworzeniu postaci, nakierowujące gracza na naukę rozdawania pierwszych statystyk i uświadamiające, jak działają atrybuty.
 - [x] **Część 2 (Ekwipunek i Walka):** Wręczenie Zardzewiałego Miecza, nauka zakładania ekwipunku, a następnie wyprawa na pierwszą mapę PvE, wyłączenie trybu auto-battle w celu objaśnienia starcia i zdobycie nagrody (Hełm).
-- [x] **Część 3 (Gospodarka i Ulepszenia):** Wizyta u Brońmistrza, omówienie Kuźni (+0 do +9) i kupno lepszej broni, za co gracz otrzymuje ostateczną nagrodę (Skórzaną Zbroję) kończącą etap samouczka.
+- [x] **Część 3 (Gospodarka i Ulepszenia):** Wizyta u Handlarza, omówienie Kuźni (+0 do +9) i kupno lepszej broni, za co gracz otrzymuje ostateczną nagrodę (Skórzaną Zbroję) kończącą etap samouczka.
 
 ---
 

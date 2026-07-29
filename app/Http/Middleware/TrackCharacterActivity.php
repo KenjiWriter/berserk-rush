@@ -67,8 +67,7 @@ class TrackCharacterActivity
         return match ($routeName) {
             'city.hub' => 'Miasto (Centrum)',
             'city.profile' => 'Profil postaci',
-            'city.armorsmith' => 'Zbrojmistrz',
-            'city.weaponsmith' => 'Brońmistrz',
+            'city.merchant' => 'Handlarz',
             'city.witch' => 'Wiedźma',
             'city.wizard' => 'Czarodziej',
             'city.warlock' => 'Czarnoksiężnik',

@@ -321,15 +321,15 @@
                 </div>
 
                 <div class="space-y-1.5">
-                    {{-- Brońmistrz --}}
-                    <a href="{{ route('city.weaponsmith', $charId) }}" wire:navigate
+                    {{-- Handlarz --}}
+                    <a href="{{ route('city.merchant', $charId) }}" wire:navigate
                        @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Brońmistrza...', icon: 'fa-solid fa-khanda', url: $el.href })"
-                       :title="collapsed ? 'Handlarz Bronią' : ''"
+                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta u Handlarza...', icon: 'fa-solid fa-shop', url: $el.href })"
+                       :title="collapsed ? 'Handlarz' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
-                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.weaponsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.merchant') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span :class="collapsed ? 'w-full text-amber-400' : 'w-5 text-amber-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
-                            <i class="fa-solid fa-khanda"></i>
+                            <i class="fa-solid fa-shop"></i>
                         </span>
                         <span x-show="!collapsed"
                               x-transition:enter="transition-opacity ease-out duration-200 delay-100"
@@ -338,27 +338,7 @@
                               x-transition:leave="transition-opacity ease-in duration-75"
                               x-transition:leave-start="opacity-100"
                               x-transition:leave-end="opacity-0"
-                              class="truncate">HANDLARZ BRONIĄ</span>
-                    </a>
-
-                    {{-- Zbrojownia --}}
-                    <a href="{{ route('city.armorsmith', $charId) }}" wire:navigate
-                       @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                       @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wizyta w Zbrojowni...', icon: 'fa-solid fa-shield-halved', url: $el.href })"
-                       :title="collapsed ? 'Zbrojownia' : ''"
-                       :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
-                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.armorsmith') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
-                        <span :class="collapsed ? 'w-full text-amber-400' : 'w-5 text-amber-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
-                            <i class="fa-solid fa-shield-halved"></i>
-                        </span>
-                        <span x-show="!collapsed"
-                              x-transition:enter="transition-opacity ease-out duration-200 delay-100"
-                              x-transition:enter-start="opacity-0"
-                              x-transition:enter-end="opacity-100"
-                              x-transition:leave="transition-opacity ease-in duration-75"
-                              x-transition:leave-start="opacity-100"
-                              x-transition:leave-end="opacity-0"
-                              class="truncate">ZBROJOWNIA</span>
+                              class="truncate">HANDLARZ</span>
                     </a>
 
                     {{-- Kowal --}}

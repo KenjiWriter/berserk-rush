@@ -6,8 +6,7 @@ use App\Livewire\City\Witch;
 use App\Livewire\Auth\Register;
 use App\Livewire\City\Adventure;
 use App\Livewire\Characters\Show;
-use App\Livewire\City\Armorsmith;
-use App\Livewire\City\Weaponsmith;
+use App\Livewire\City\Merchant;
 use App\Livewire\City\Blacksmith;
 use App\Livewire\Characters\Create;
 use App\Livewire\Adventure\MapStub;
@@ -60,8 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('play/{character}')->name('city.')->middleware(\App\Http\Middleware\EnsureActiveCharacter::class)->group(function () {
         Route::get('/', Hub::class)->name('hub');
         Route::get('/profile', \App\Livewire\City\Profile::class)->name('profile');
-        Route::get('/armorsmith', Armorsmith::class)->name('armorsmith');
-        Route::get('/weaponsmith', Weaponsmith::class)->name('weaponsmith');
+        Route::get('/merchant', Merchant::class)->name('merchant');
         Route::get('/blacksmith', Blacksmith::class)->name('blacksmith');
         Route::get('/witch', Witch::class)->name('witch');
         Route::get('/wizard', \App\Livewire\City\Wizard::class)->name('wizard');

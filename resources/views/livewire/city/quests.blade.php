@@ -403,10 +403,10 @@
             13 => ['title' => 'Powrót do Miasta i Profilu', 'desc' => 'Zdobyłeś poziom! Czas rozdać punkty.', 'action' => 'Wróć do Miasta, przejdź do Profilu i rozdaj punkty atrybutów.', 'location' => 'Główny Obóz / Profil'],
             14 => ['title' => 'Rozdanie Punktów Atrybutów', 'desc' => 'Rozdziel przydzielone punkty po awansie.', 'action' => 'Kliknij plusy przy atrybutach w Profilu i zapisz.', 'location' => 'Profil Postaci'],
             15 => ['title' => 'Odbiór Nagrody 150 Golda', 'desc' => 'Kapitan przyznaje Ci złoto za postępy.', 'action' => 'Kliknij dymek Kapitana w Profilu, by odebrać 150 sztuk złota.', 'location' => 'Profil Postaci'],
-            16 => ['title' => 'Wizyta u Brońmistrza', 'desc' => 'Pora odwiedzić kowala/brońmistrza.', 'action' => 'Wróć do Głównego Obozu i kliknij kafel "Brońmistrz".', 'location' => 'Główny Obóz (Hub)'],
-            17 => ['title' => 'Instrukcja u Brońmistrza', 'desc' => 'Brońmistrz objaśnia kupno i ulepszanie broni.', 'action' => 'Zapoznaj się z dymkiem Kapitana u Brońmistrza i kliknij dalej.', 'location' => 'Sklep Brońmistrza'],
-            18 => ['title' => 'Zakup Miecza Nowicjusza', 'desc' => 'Musisz kupić nową broń u Brońmistrza.', 'action' => 'Znajdź "Miecz Nowicjusza" w sklepie i kliknij "Kup".', 'location' => 'Sklep Brońmistrza'],
-            19 => ['title' => 'Potwierdzenie Zakupu', 'desc' => 'Kupiłeś nową broń!', 'action' => 'Potwierdź dymek Kapitana u Brońmistrza.', 'location' => 'Sklep Brońmistrza'],
+            16 => ['title' => 'Wizyta u Handlarza', 'desc' => 'Pora odwiedzić kowala/handlarza.', 'action' => 'Wróć do Głównego Obozu i kliknij kafel "Handlarz".', 'location' => 'Główny Obóz (Hub)'],
+            17 => ['title' => 'Instrukcja u Handlarza', 'desc' => 'Handlarz objaśnia kupno i ulepszanie broni.', 'action' => 'Zapoznaj się z dymkiem Kapitana u Handlarza i kliknij dalej.', 'location' => 'Sklep Handlarza'],
+            18 => ['title' => 'Zakup Miecza Nowicjusza', 'desc' => 'Musisz kupić nową broń u Handlarza.', 'action' => 'Znajdź "Miecz Nowicjusza" w sklepie i kliknij "Kup".', 'location' => 'Sklep Handlarza'],
+            19 => ['title' => 'Potwierdzenie Zakupu', 'desc' => 'Kupiłeś nową broń!', 'action' => 'Potwierdź dymek Kapitana u Handlarza.', 'location' => 'Sklep Handlarza'],
             20 => ['title' => 'Odbiór Skórzanej Zbroi', 'desc' => 'Finał pierwszego etapu samouczka.', 'action' => 'Wróć do Głównego Obozu i odbierz Skórzaną Zbroję od Kapitana.', 'location' => 'Główny Obóz (Hub)'],
             21 => ['title' => 'Swobodny Rozwój (Do 5 Poziomu)', 'desc' => 'Eksploruj świat i zdobywaj doświadczenie.', 'action' => 'Zdobądź 5 poziom postaci, aby odblokować Tablicę Wyzwań.', 'location' => 'Przygoda / Mapa'],
             22 => ['title' => 'Odblokowana Tablica Wyzwań', 'desc' => 'Kapitan informuje o nowej Tablicy Wyzwań.', 'action' => 'Przejdź z Głównego Obozu na Tablicę Wyzwań (/quests).', 'location' => 'Główny Obóz (Hub)'],
@@ -592,8 +592,8 @@
                         </div>
 
                         <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
-                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">3. Rozwój & Brońmistrz (Etapy 14 – 21)</h4>
-                            <p class="text-amber-200/80">Wróć do Miasta i Profilu → Rozdziel punkty atrybutów → Odbierz 150 sztuk złota → Przejdź do Brońmistrza → Kup Miecz Nowicjusza → Odbierz Skórzaną Zbroję w Obozie.</p>
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">3. Rozwój & Handlarz (Etapy 14 – 21)</h4>
+                            <p class="text-amber-200/80">Wróć do Miasta i Profilu → Rozdziel punkty atrybutów → Odbierz 150 sztuk złota → Przejdź do Handlarza → Kup Miecz Nowicjusza → Odbierz Skórzaną Zbroję w Obozie.</p>
                         </div>
 
                         <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">

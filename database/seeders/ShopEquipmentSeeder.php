@@ -33,7 +33,7 @@ class ShopEquipmentSeeder extends Seeder
     public function run(): void
     {
         // Usunięcie starych przedmiotów kupców
-        MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'gladiator'])->delete();
+        MerchantItem::query()->whereIn('merchant_id', ['armorsmith', 'weaponsmith', 'merchant', 'gladiator'])->delete();
 
         // UWAGA (itemizacja klasowa, 2026-07-28): przedmioty ze sklepu (uniwersalne,
         // bez podziału na klasy Wojownik/Mag/Skrytobójca) NADAL nie dają surowych
@@ -201,12 +201,9 @@ class ShopEquipmentSeeder extends Seeder
                     ]);
                 }
 
-                // Przypisanie do handlarza
-                if ($merchantTarget === 'gladiator') {
-                    $merchantId = 'gladiator';
-                } else {
-                    $merchantId = ($proto['type'] === 'weapon') ? 'weaponsmith' : 'armorsmith';
-                }
+                // Przypisanie do handlarza (Handlarz sprzedaje zarówno bronie, jak i zbroje/biżuterię
+                // w jednym, wspólnym asortymencie - patrz docs/modules/merchant.md)
+                $merchantId = $merchantTarget === 'gladiator' ? 'gladiator' : 'merchant';
 
                 MerchantItem::updateOrCreate(
                     [
