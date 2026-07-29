@@ -39,8 +39,12 @@ class EnchantmentStrategy
     ];
 
     private array $armorBonuses = [
-        'hp_bonus' => [50, 350],
-        'defense' => [5, 30],
+        // Ryzykowny afiks (2026-07-29, na życzenie użytkownika, wzorem attack_power/
+        // magic_attack): wyrażone teraz w % zamiast płaskich punktów - zakres obejmuje
+        // wyniki UJEMNE, a wysoki dodatni wynik jest wykładniczo rzadki (patrz
+        // RARE_SCALING_KEYS/rollBonusValue() niżej).
+        'hp_bonus' => [-20, 50],
+        'defense' => [-5, 15],
         'dodge_chance' => [1, 5],
         'resist_demons' => [2, 10],
         'resist_undead' => [2, 10],
@@ -166,7 +170,10 @@ class EnchantmentStrategy
     // ujemnie, a wysoki dodatni wynik jest wykładniczo rzadszy. Empirycznie (skew=3,
     // 20k prób): P(wynik ujemny) ~34%, P(>=+30%) ~11%, P(>=+45%) ~2%, P(+50%, max)
     // <1% - prawdziwy hazard, nie gwarantowany bonus jak reszta puli.
-    private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack'];
+    // 'hp_bonus'/'defense' (2026-07-29, na życzenie użytkownika): ten sam hazard,
+    // przeniesiony na pancerz - procentowe wzmocnienie/osłabienie sumarycznego HP/Obrony
+    // z ekwipunku (patrz Character::getEquipmentStats()).
+    private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack', 'hp_bonus', 'defense'];
     private const RARE_SCALING_SKEW = 3.0;
 
     private function rollBonusValue(string $bonusKey, array $range): int

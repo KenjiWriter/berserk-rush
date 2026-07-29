@@ -380,8 +380,8 @@
                                     $rerollGemCost = max(2, $enchantCount * 2);
 
                                     // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć - reszta
-                                    // (w tym attack_power/magic_attack) jest wyrażona w %.
-                                    $flatBonusKeys = ['hp_bonus', 'defense', 'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
+                                    // (w tym attack_power/magic_attack/hp_bonus/defense) jest wyrażona w %.
+                                    $flatBonusKeys = ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
 
                                     $bonusIcon = function (string $key): string {
                                         return match (true) {
@@ -527,7 +527,7 @@
                                                             // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć -
                                                             // wszystko inne (w tym attack_power/magic_attack, patrz
                                                             // EnchantmentStrategy) jest wyrażone w %.
-                                                            $isPct = !in_array($bonusKey, ['hp_bonus', 'defense', 'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true);
+                                                            $isPct = !in_array($bonusKey, ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true);
                                                             $suffix = $isPct ? '%' : '';
                                                             // Afiksy z zakresem obejmującym wynik ujemny (attack_power/magic_attack) -
                                                             // ryzykowny "hazard", oznaczony osobno i innym formatem zakresu.

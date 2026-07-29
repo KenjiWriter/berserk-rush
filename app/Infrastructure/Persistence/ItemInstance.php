@@ -204,6 +204,43 @@ class ItemInstance extends Model
     {
         $stats = $this->roll_stats ?? [];
         $stats['enchants'] = [];
+        $stats['enchant_locks'] = [];
+        $this->roll_stats = $stats;
+    }
+
+    /**
+     * Zablokowane typy zaklęć (klucze z roll_stats['enchants']) - u Wiedźmy przelosowanie
+     * (RerollEnchantments) pomija zablokowane bonusy, losując od nowa tylko resztę.
+     */
+    public function getEnchantLocks(): array
+    {
+        $locks = $this->roll_stats['enchant_locks'] ?? [];
+        // Zablokowany może być tylko bonus, który faktycznie istnieje na przedmiocie -
+        // odfiltrowuje "osierocone" wpisy po ewentualnym reroll/reset gdzie indziej.
+        return array_values(array_intersect($locks, array_keys($this->getEnchantments())));
+    }
+
+    public function isEnchantLocked(string $type): bool
+    {
+        return in_array($type, $this->getEnchantLocks(), true);
+    }
+
+    public function toggleEnchantLock(string $type): void
+    {
+        if (!array_key_exists($type, $this->getEnchantments())) {
+            return;
+        }
+
+        $stats = $this->roll_stats ?? [];
+        $locks = $stats['enchant_locks'] ?? [];
+
+        if (in_array($type, $locks, true)) {
+            $locks = array_values(array_diff($locks, [$type]));
+        } else {
+            $locks[] = $type;
+        }
+
+        $stats['enchant_locks'] = $locks;
         $this->roll_stats = $stats;
     }
 

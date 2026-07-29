@@ -149,11 +149,18 @@
         return ucwords(str_replace('_', ' ', $statKey));
     };
 
-    $isPercentStat = function(string $statKey): bool {
+    // $isEnchant: 'hp_bonus'/'defense' są płaskimi punktami jako bazowa statystyka
+    // przedmiotu (base_stats), ale procentowym (ryzykownym, patrz EnchantmentStrategy)
+    // afiksem Wiedźmy (enchants) - te same klucze, różne znaczenie zależnie od źródła,
+    // więc kontekst trzeba przekazać jawnie z miejsca wywołania.
+    $isPercentStat = function(string $statKey, bool $isEnchant = false): bool {
         if (str_contains($statKey, 'chance') || str_contains($statKey, 'strong_vs') || str_contains($statKey, 'resist') || str_contains($statKey, 'percent') || str_contains($statKey, 'rate')) {
             return true;
         }
         if (in_array($statKey, ['exp_bonus', 'gold_bonus', 'crit_damage', 'life_steal', 'mana_steal', 'attack_power', 'magic_attack'])) {
+            return true;
+        }
+        if ($isEnchant && in_array($statKey, ['hp_bonus', 'defense'])) {
             return true;
         }
         return false;
@@ -258,7 +265,7 @@
                             $val = $enchants[$stat] ?? 0;
                             $eq_val = $canCompare ? ($equipped_enchants[$stat] ?? 0) : 0;
                             $diff = $val - $eq_val;
-                            $suffix = $isPercentStat($stat) ? '%' : '';
+                            $suffix = $isPercentStat($stat, true) ? '%' : '';
                         @endphp
                         <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
                             <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
@@ -304,7 +311,7 @@
                         @endif
                     @endforeach
                     @foreach($all_enchant_keys as $stat)
-                        @php $suffix = $isPercentStat($stat) ? '%' : ''; @endphp
+                        @php $suffix = $isPercentStat($stat, true) ? '%' : ''; @endphp
                         @if(($equipped_enchants[$stat] ?? 0) > 0)
                             <div class="flex justify-between text-purple-400/80">
                                 <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>

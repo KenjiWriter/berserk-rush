@@ -509,6 +509,13 @@ class Character extends Model
             // obrażeń fizycznych" realnie skalowało już wyliczony atak z broni.
             $attackPowerPct = 0;
             $magicAttackPct = 0;
+            // 'hp_bonus'/'defense' (2026-07-29): afiksy z Wiedźmy wyrażone teraz w %
+            // (nie płaskiej wartości), ten sam hazard co attack_power/magic_attack -
+            // patrz EnchantmentStrategy. Zsumowane osobno i zastosowane mnożnikowo
+            // do sumarycznego hp_bonus/defense z przedmiotów, PO zsumowaniu wkładu
+            // wszystkich sztuk ekwipunku (nie jako płaski dodatek per-item).
+            $hpBonusPct = 0;
+            $defensePct = 0;
 
             foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $base = $item->getResolvedBaseStats();
@@ -537,6 +544,14 @@ class Character extends Model
                             $magicAttackPct += $enchantValue;
                             continue;
                         }
+                        if ($enchantType === 'hp_bonus') {
+                            $hpBonusPct += $enchantValue;
+                            continue;
+                        }
+                        if ($enchantType === 'defense') {
+                            $defensePct += $enchantValue;
+                            continue;
+                        }
 
                         if (!isset($stats[$enchantType])) {
                             $stats[$enchantType] = 0;
@@ -555,6 +570,12 @@ class Character extends Model
             if ($magicAttackPct !== 0) {
                 $stats['magic_attack_min'] = max(0, (int) round($stats['magic_attack_min'] * (1 + $magicAttackPct / 100)));
                 $stats['magic_attack_max'] = max(0, (int) round($stats['magic_attack_max'] * (1 + $magicAttackPct / 100)));
+            }
+            if ($hpBonusPct !== 0) {
+                $stats['hp_bonus'] = max(0, (int) round($stats['hp_bonus'] * (1 + $hpBonusPct / 100)));
+            }
+            if ($defensePct !== 0) {
+                $stats['defense'] = max(0, (int) round($stats['defense'] * (1 + $defensePct / 100)));
             }
 
             // Add Active Buffs
