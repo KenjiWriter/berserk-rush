@@ -34,20 +34,21 @@ class RerollEnchantments
         }
 
         // Zablokowane bonusy (patrz ItemInstance::toggleEnchantLock()) zostają
-        // nietknięte - przelosowaniu podlegają wyłącznie te odblokowane, a koszt
-        // skaluje się z ich liczbą, nie z całkowitą liczbą bonusów na przedmiocie.
+        // nietknięte - przelosowaniu podlegają wyłącznie te odblokowane. Blokada to
+        // PREMIUM za "ochronę" bonusu przed rerollem, nie zniżka: każdy zablokowany
+        // slot PODWAJA całkowity koszt (na życzenie użytkownika - odwrotność
+        // pierwotnego pomysłu, gdzie mniej rerollowanych bonusów = taniej).
         $lockedTypes = $item->getEnchantLocks();
         $unlockedTypes = array_values(array_diff(array_keys($currentEnchants), $lockedTypes));
         $rerollCount = count($unlockedTypes);
+        $lockedCount = count($lockedTypes);
 
         if ($rerollCount === 0) {
             return Result::error('ALL_LOCKED', 'Wszystkie bonusy są zablokowane - odblokuj przynajmniej jeden, żeby móc przelosować.');
         }
 
-        // Cost scales with amount of (unlocked) enchantments actually rerolled
-        $cost = $currencyType === 'gold'
-            ? self::COST_GOLD_PER_ENCHANT * $rerollCount
-            : self::COST_GEMS_PER_ENCHANT * $rerollCount;
+        $baseCost = ($currencyType === 'gold' ? self::COST_GOLD_PER_ENCHANT : self::COST_GEMS_PER_ENCHANT) * $rerollCount;
+        $cost = $baseCost * (2 ** $lockedCount);
 
         $idempotencyKey = "reroll:{$item->id}:" . Str::uuid();
 

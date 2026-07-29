@@ -90,10 +90,14 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > 1:1, ten sam typ i ta sama wartość) - `RerollEnchantments::execute()` losuje od nowa
 > wyłącznie typy i wartości odblokowanych slotów (`EnchantmentStrategy::
 > generateMultipleRandomEnchantments()` przyjmuje teraz opcjonalny `$excludeTypes`, żeby
-> nowy rzut nie zdublował zablokowanego typu). **Cena rerolla widoczna w UI aktualizuje
-> się na żywo** wraz z (od)blokowaniem kolejnych bonusów (`200 zł`/`2 gemy` za każdy
-> odblokowany slot, minimum jak dla jednego). Jeśli wszystkie bonusy są zablokowane,
-> przycisk rerolla jest zablokowany z komunikatem - nie ma czego przelosować.
+> nowy rzut nie zdublował zablokowanego typu). **Blokada to premium, nie zniżka**
+> (poprawka z tego samego dnia, na wyraźne życzenie użytkownika - pierwotnie było
+> odwrotnie): bazowy koszt liczy się jak zwykle z liczby odblokowanych slotów
+> (`200 zł`/`2 gemy` za każdy, minimum jak dla jednego), ale **każdy zablokowany slot
+> PODWAJA całkowity koszt** (`× 2^liczba_blokad`) - ochrona ulubionego bonusu przed
+> rerollem ma swoją cenę. Cena widoczna w UI aktualizuje się na żywo wraz z
+> (od)blokowaniem kolejnych bonusów. Jeśli wszystkie bonusy są zablokowane, przycisk
+> rerolla jest zablokowany z komunikatem - nie ma czego przelosować.
 > `ItemInstance::getEnchantLocks()` odfiltrowuje "osierocone" wpisy (typ zablokowany,
 > którego już nie ma wśród bonusów przedmiotu), więc stan nigdy nie rozjeżdża się z
 > rzeczywistą zawartością `roll_stats['enchants']`.

@@ -377,12 +377,13 @@
                                     $enchantCount = count($enchants);
                                     $nextChance = [75, 50, 40, 30, 20][$enchantCount] ?? 0;
 
-                                    // Zablokowane bonusy nie są przelosowywane (patrz RerollEnchantments) -
-                                    // koszt skaluje się wyłącznie z liczbą odblokowanych.
+                                    // Zablokowane bonusy nie są przelosowywane (patrz RerollEnchantments), ale
+                                    // każdy zablokowany slot PODWAJA całkowity koszt - to premium za "ochronę"
+                                    // bonusu przed rerollem, nie zniżka za mniejszy zakres losowania.
                                     $enchantLocks = $activeItem->getEnchantLocks();
                                     $unlockedCount = $enchantCount - count($enchantLocks);
-                                    $rerollGoldCost = max(200, $unlockedCount * 200);
-                                    $rerollGemCost = max(2, $unlockedCount * 2);
+                                    $rerollGoldCost = max(200, $unlockedCount * 200) * (2 ** count($enchantLocks));
+                                    $rerollGemCost = max(2, $unlockedCount * 2) * (2 ** count($enchantLocks));
 
                                     // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć - reszta
                                     // (w tym attack_power/magic_attack/hp_bonus/defense) jest wyrażona w %.
@@ -518,7 +519,7 @@
                                                     <div class="text-center text-sm text-gray-400 mb-2">
                                                         Przelosuj odblokowane bonusy od nowa
                                                         @if(count($enchantLocks) > 0)
-                                                            <span class="text-amber-400 font-semibold">({{ $unlockedCount }}/{{ $enchantCount }} odblokowanych - {{ count($enchantLocks) }} 🔒 zostanie bez zmian)</span>
+                                                            <span class="text-amber-400 font-semibold">({{ $unlockedCount }}/{{ $enchantCount }} odblokowanych - {{ count($enchantLocks) }} 🔒 zostanie bez zmian, cena x{{ 2 ** count($enchantLocks) }} za ochronę)</span>
                                                         @endif:
                                                     </div>
                                                     <div class="grid grid-cols-2 gap-4">

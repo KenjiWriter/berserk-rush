@@ -39,38 +39,28 @@ function createSmartTooltip() {
                     return;
                 }
 
-                const style = {};
+                // Pozycjonowanie liczone względem viewportu (position: fixed), a nie
+                // rodzica (position: absolute) - tooltip jest teleportowany do <body>
+                // (x-teleport="body"), więc offsety liczone względem trigger elementu
+                // nie mają odniesienia do jego rzeczywistego kontekstu pozycjonowania.
+                const minMargin = 12;
                 const triggerCenter = triggerRect.left + triggerRect.width / 2;
-                const halfWidth = tooltipRect.width / 2;
-                const minMargin = 12; // Minimum margin from viewport edges in px
+                let left = triggerCenter - (tooltipRect.width / 2);
+                left = Math.max(minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
 
-                // Horizontal position clamping
-                if (triggerCenter - halfWidth < minMargin) {
-                    // Left edge would overflow screen -> shift right to keep minMargin from left edge
-                    const leftOffset = minMargin - triggerRect.left;
-                    style.left = leftOffset + 'px';
-                    style.transform = 'none';
-                } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
-                    // Right edge would overflow screen -> shift left to keep minMargin from right edge
-                    const leftOffset = (window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width;
-                    style.left = leftOffset + 'px';
-                    style.transform = 'none';
-                } else {
-                    style.left = '50%';
-                    style.transform = 'translateX(-50%)';
-                }
+                const style = {
+                    position: 'fixed',
+                    left: left + 'px',
+                    transform: 'none',
+                    margin: '0',
+                };
 
-                // Vertical positioning (below if not enough room above)
                 if (triggerRect.top < tooltipRect.height + 16) {
-                    style.top = '100%';
+                    style.top = (triggerRect.bottom + 8) + 'px';
                     style.bottom = 'auto';
-                    style.marginTop = '8px';
-                    style.marginBottom = '0';
                 } else {
-                    style.bottom = '100%';
-                    style.top = 'auto';
-                    style.marginBottom = '8px';
-                    style.marginTop = '0';
+                    style.top = (triggerRect.top - tooltipRect.height - 8) + 'px';
+                    style.bottom = 'auto';
                 }
 
                 this.tooltipStyle = style;
