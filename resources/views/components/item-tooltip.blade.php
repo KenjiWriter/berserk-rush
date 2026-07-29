@@ -132,6 +132,11 @@
             'resist_undead' => 'Odporność na Nieumarłe',
             'resist_animals' => 'Odporność na Zwierzęta',
             'resist_orcs' => 'Odporność na Orki',
+            'poison_chance' => 'Szansa na Otrucie',
+            'stun_chance' => 'Szansa na Ogłuszenie',
+            'resist_poison' => 'Odporność na Otrucie',
+            'resist_stun' => 'Odporność na Ogłuszenie',
+            'strong_vs_hero' => 'Silny vs Bohaterów',
         ];
         if (isset($map[$statKey])) {
             return $map[$statKey];

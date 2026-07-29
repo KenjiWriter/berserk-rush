@@ -55,7 +55,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Suchodrzew',
-                    'type' => 'plant',
+                    'type' => 'mystical',
                     'level' => 6,
                     'rank' => 'regular',
                     'stats' => ['hp' => 133, 'atk' => 71, 'def' => 8, 'agi' => 2, 'int' => 3, 'crit' => 0.12, 'dodge' => 0.08],
@@ -71,7 +71,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Goblin Zwiadowca',
-                    'type' => 'goblin',
+                    'type' => 'mystical',
                     'level' => 8,
                     'rank' => 'regular',
                     'stats' => ['hp' => 115, 'atk' => 79, 'def' => 6, 'agi' => 7, 'int' => 6, 'crit' => 0.32, 'dodge' => 0.24],
@@ -79,7 +79,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Strażnik Puszczy',
-                    'type' => 'plant',
+                    'type' => 'mystical',
                     'level' => 12,
                     'rank' => 'boss',
                     'stats' => ['hp' => 364, 'atk' => 32, 'def' => 6, 'agi' => 5, 'int' => 10, 'crit' => 0.25, 'dodge' => 0.08],
@@ -105,7 +105,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Mroczny Kultysta',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 16,
                     'rank' => 'regular',
                     'stats' => ['hp' => 278, 'atk' => 136, 'def' => 12, 'agi' => 11, 'int' => 45, 'crit' => 0.26, 'dodge' => 0.14],
@@ -137,7 +137,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Kamienny Gargulec',
-                    'type' => 'golem',
+                    'type' => 'mystical',
                     'level' => 23,
                     'rank' => 'regular',
                     'stats' => ['hp' => 334, 'atk' => 168, 'def' => 21, 'agi' => 8, 'int' => 10, 'crit' => 0.20, 'dodge' => 0.08],
@@ -187,7 +187,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Ogr Rozłupywacz',
-                    'type' => 'ogre',
+                    'type' => 'mystical',
                     'level' => 32,
                     'rank' => 'regular',
                     'stats' => ['hp' => 505, 'atk' => 267, 'def' => 25, 'agi' => 10, 'int' => 12, 'crit' => 0.28, 'dodge' => 0.08],
@@ -211,7 +211,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Starożytny Ogr',
-                    'type' => 'ogre',
+                    'type' => 'mystical',
                     'level' => 38,
                     'rank' => 'boss',
                     'stats' => ['hp' => 1387, 'atk' => 119, 'def' => 20, 'agi' => 15, 'int' => 15, 'crit' => 0.32, 'dodge' => 0.06],
@@ -303,7 +303,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Błotny Bazyliszek',
-                    'type' => 'monster',
+                    'type' => 'mystical',
                     'level' => 55,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1251, 'atk' => 1162, 'def' => 55, 'agi' => 27, 'int' => 45, 'crit' => 0.35, 'dodge' => 0.20],
@@ -319,7 +319,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Drzewiec Plugawy',
-                    'type' => 'plant',
+                    'type' => 'mystical',
                     'level' => 60,
                     'rank' => 'regular',
                     'stats' => ['hp' => 1401, 'atk' => 1253, 'def' => 66, 'agi' => 21, 'int' => 40, 'crit' => 0.24, 'dodge' => 0.16],
@@ -377,7 +377,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Golem Bazaltowy',
-                    'type' => 'golem',
+                    'type' => 'mystical',
                     'level' => 70,
                     'rank' => 'regular',
                     'stats' => ['hp' => 5259, 'atk' => 2966, 'def' => 258, 'agi' => 15, 'int' => 24, 'crit' => 0.24, 'dodge' => 0.08],
@@ -385,7 +385,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Harpia',
-                    'type' => 'monster',
+                    'type' => 'mystical',
                     'level' => 72,
                     'rank' => 'regular',
                     'stats' => ['hp' => 4146, 'atk' => 2640, 'def' => 142, 'agi' => 44, 'int' => 40, 'crit' => 0.56, 'dodge' => 0.48],
@@ -401,7 +401,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Wędrowny Czarownik',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 74,
                     'rank' => 'regular',
                     'stats' => ['hp' => 4550, 'atk' => 2403, 'def' => 156, 'agi' => 29, 'int' => 128, 'crit' => 0.48, 'dodge' => 0.32],
@@ -417,7 +417,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Smok Cienia',
-                    'type' => 'dragon',
+                    'type' => 'mystical',
                     'level' => 75,
                     'rank' => 'worldboss',
                     'stats' => ['hp' => 720000, 'atk' => 600, 'def' => 240, 'agi' => 100, 'int' => 200, 'crit' => 0.8, 'dodge' => 0.4],
@@ -427,7 +427,7 @@ class MonsterSeeder extends Seeder
             'Wieża Magów' => [
                 [
                     'name' => 'Adepci Run',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 76,
                     'rank' => 'regular',
                     'stats' => ['hp' => 9639, 'atk' => 5599, 'def' => 356, 'agi' => 39, 'int' => 144, 'crit' => 0.48, 'dodge' => 0.32],
@@ -435,7 +435,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Żywiołak Lodu',
-                    'type' => 'elemental',
+                    'type' => 'mystical',
                     'level' => 78,
                     'rank' => 'regular',
                     'stats' => ['hp' => 9953, 'atk' => 5867, 'def' => 430, 'agi' => 37, 'int' => 150, 'crit' => 0.50, 'dodge' => 0.28],
@@ -443,7 +443,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Strażnik Arkanów',
-                    'type' => 'golem',
+                    'type' => 'mystical',
                     'level' => 80,
                     'rank' => 'regular',
                     'stats' => ['hp' => 11315, 'atk' => 6318, 'def' => 468, 'agi' => 35, 'int' => 160, 'crit' => 0.56, 'dodge' => 0.32],
@@ -451,7 +451,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Żywiołak Płomieni',
-                    'type' => 'elemental',
+                    'type' => 'mystical',
                     'level' => 82,
                     'rank' => 'regular',
                     'stats' => ['hp' => 10476, 'atk' => 7037, 'def' => 384, 'agi' => 44, 'int' => 120, 'crit' => 0.6, 'dodge' => 0.28],
@@ -459,7 +459,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Runiczny Konstrukt',
-                    'type' => 'golem',
+                    'type' => 'mystical',
                     'level' => 83,
                     'rank' => 'regular',
                     'stats' => ['hp' => 11524, 'atk' => 6552, 'def' => 517, 'agi' => 31, 'int' => 165, 'crit' => 0.55, 'dodge' => 0.25],
@@ -467,7 +467,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Mistrz Iluzji',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 84,
                     'rank' => 'regular',
                     'stats' => ['hp' => 10896, 'atk' => 6134, 'def' => 356, 'agi' => 50, 'int' => 176, 'crit' => 0.64, 'dodge' => 0.4],
@@ -475,7 +475,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Wielki Inkwizytor',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 88,
                     'rank' => 'boss',
                     'stats' => ['hp' => 36132, 'atk' => 3527, 'def' => 420, 'agi' => 39, 'int' => 450, 'crit' => 0.75, 'dodge' => 0.45],
@@ -483,7 +483,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Arcymag',
-                    'type' => 'human',
+                    'type' => 'mystical',
                     'level' => 85,
                     'rank' => 'worldboss',
                     'stats' => ['hp' => 1000000, 'atk' => 480, 'def' => 200, 'agi' => 120, 'int' => 600, 'crit' => 1, 'dodge' => 0.6],
@@ -517,7 +517,7 @@ class MonsterSeeder extends Seeder
                 ],
                 [
                     'name' => 'Zbezczeszczony Golem',
-                    'type' => 'golem',
+                    'type' => 'mystical',
                     'level' => 92,
                     'rank' => 'regular',
                     'stats' => ['hp' => 33739, 'atk' => 19025, 'def' => 1384, 'agi' => 36, 'int' => 80, 'crit' => 0.58, 'dodge' => 0.30],

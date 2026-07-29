@@ -23,6 +23,14 @@ class EnchantmentStrategy
         'strong_vs_undead' => [5, 20],
         'strong_vs_animals' => [5, 20],
         'strong_vs_orcs' => [5, 20],
+        // Nowe afiksy (2026-07-29): szansa (%) na dołożenie otrucia/ogłuszenia przy
+        // trafieniu (patrz Character::getEquipmentStats() i silniki walki -
+        // EncounterService/PvPEncounterService/GuildWarService) oraz bonus obrażeń
+        // wyłącznie przeciwko innym graczom (PvP Arena / Wojna Gildii - potwory w PvE
+        // nie są "bohaterami", więc tam ten bonus się nie liczy).
+        'poison_chance' => [1, 7],
+        'stun_chance' => [1, 7],
+        'strong_vs_hero' => [5, 20],
     ];
 
     private array $armorBonuses = [
@@ -33,6 +41,10 @@ class EnchantmentStrategy
         'resist_undead' => [2, 10],
         'resist_animals' => [2, 10],
         'resist_orcs' => [2, 10],
+        // Odporność (%) redukująca szansę przeciwnika na otrucie/ogłuszenie -
+        // patrz komentarz w $weaponBonuses wyżej.
+        'resist_poison' => [1, 7],
+        'resist_stun' => [1, 7],
     ];
 
     // Biżuteria (naszyjnik/pierścień): jedyny wyjątek od zasady "przedmioty nie

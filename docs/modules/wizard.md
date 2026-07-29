@@ -29,9 +29,16 @@ Moduł Czarodzieja pozwala graczom na dodawanie magicznych właściwości (bonus
 
 ### 3. Pule Bonusów i Typy
 W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane są odpowiednie statystyki. Przykładowo:
-- **Bronie (Main Hand):** Zwiększone obrażenia fizyczne (`attack_power`), magiczne (`magic_attack`), obrażenia krytyczne, lub silny przeciwko konkretnemu typowi potworów (np. nieumarli, orkowie, demony).
-- **Zbroje (Klatka, Głowa, Stopy):** Zwiększone punkty życia, obrona, szansa na unik, czy odporność na konkretny typ potworów.
+- **Bronie (Main Hand):** Zwiększone obrażenia fizyczne (`attack_power`), magiczne (`magic_attack`), obrażenia krytyczne, silny przeciwko konkretnej rasie potworów (`strong_vs_demons`/`undead`/`animals`/`orcs`), silny przeciwko Bohaterom (`strong_vs_hero`, 5-20% - liczy się TYLKO w PvP Arenie i Wojnie Gildii, patrz `docs/modules/combat.md`), lub szansa (1-7%) na dołożenie otrucia (`poison_chance`) albo ogłuszenia (`stun_chance`) przy trafieniu.
+- **Zbroje (Klatka, Głowa, Stopy):** Zwiększone punkty życia, obrona, szansa na unik, odporność na konkretną rasę potworów, lub odporność (1-7%) na otrucie (`resist_poison`) i ogłuszenie (`resist_stun`) - redukuje szansę przeciwnika z `poison_chance`/`stun_chance` powyżej.
 - **Biżuteria (Szyja, Pierścienie):** Ma własną, osobną pulę (`accessoryBonuses`) - głównie HP/obrona/krytyk, ale to **jedyny typ przedmiotu**, który może **wylosować w zaklęciu** (obok reszty) niewielki, płaski bonus do jednego atrybutu bazowego (STR/INT/VIT/AGI, +1 do +5) - patrz `docs/modules/profile_and_equipment.md`. Zwykła broń i zbroja nie mogą wylosować atrybutów **w zaklęciu** (`EnchantmentStrategy::poolFor()` bez zmian).
+
+> **Uwaga (nowe afiksy walki, 2026-07-29):** `poison_chance`/`stun_chance`/`resist_poison`/
+> `resist_stun`/`strong_vs_hero` są w pełni podpięte do silników walki
+> (`EncounterService`, `PvPEncounterService`, `GuildWarService`) - nie są martwymi
+> polami JSON, jak przez chwilę było to z `attack_power`/`magic_attack` (patrz notatka
+> niżej). Pełny opis mechaniki procków otrucia/ogłuszenia oraz `strong_vs_hero` -
+> `docs/modules/combat.md`, sekcje 7-8.
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od

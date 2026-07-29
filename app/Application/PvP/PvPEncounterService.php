@@ -12,6 +12,36 @@ use Illuminate\Support\Facades\Log;
 
 class PvPEncounterService
 {
+    // Procki z ekwipunku (2026-07-29): zduplikowane z EncounterService::rollEquipmentProcs()
+    // (patrz komentarz tam) - tu obie strony mają ekwipunek, więc odporność
+    // (resist_poison/resist_stun) przeciwnika faktycznie redukuje szansę na proc.
+    private const EQUIPMENT_POISON_DURATION = 3;
+    private const EQUIPMENT_POISON_VALUE = 0.03;
+    private const EQUIPMENT_STUN_DURATION = 1;
+
+    private function rollEquipmentProcs(array $eq, array $resistEq): array
+    {
+        $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
+        $stunChance = max(0, ($eq['stun_chance'] ?? 0) - ($resistEq['resist_stun'] ?? 0));
+
+        $dot = null;
+        if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
+            $dot = [
+                'type' => 'poison',
+                'name' => 'Zatrucie (Ekwipunek)',
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+                'value' => self::EQUIPMENT_POISON_VALUE,
+            ];
+        }
+
+        $cc = null;
+        if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
+            $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
+        }
+
+        return ['dot' => $dot, 'cc' => $cc];
+    }
+
     /**
      * Start a new PvP encounter between two characters.
      */
@@ -511,6 +541,14 @@ class PvPEncounterService
         $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
+        // "Silny vs Bohaterów": w PvE ten bonus nie ma zastosowania (potwór to nie
+        // bohater) - liczy się wyłącznie tutaj i w Wojnie Gildii, bezwarunkowo (obie
+        // strony pojedynku PvP to zawsze gracze).
+        $heroBonusPct = $eqStats['strong_vs_hero'] ?? 0;
+        if ($heroBonusPct > 0) {
+            $damage += $damage * ($heroBonusPct / 100);
+        }
+
         // Crit & Dodge checks with opponent AGI reduction
         $actingAgi = $actingSnapshot['attributes']['agi'] ?? 1;
         $targetAgi = $targetSnapshot['attributes']['agi'] ?? 1;
@@ -553,6 +591,13 @@ class PvPEncounterService
             $damage = (int)($damage * 1.5);
         }
 
+        // Procki otrucia/ogłuszenia z ekwipunku - patrz rollEquipmentProcs() na górze klasy.
+        $procs = $this->rollEquipmentProcs($eqStats, $defEq);
+        if ($procs['dot']) {
+            $targetState['effects']['equipment_poison'] = $procs['dot'];
+        }
+        $ccApplied = $procs['cc'];
+
         // Przełącznik obrażeń magicznych: dla skilli oznaczonych is_magic (Różdżka/Dzwon)
         // całość obrażeń tej tury pokazywana jest jako magicDamage - tak samo jak
         // w EncounterService::playerAttack() (patrz komentarz tam - to reklasyfikacja
@@ -582,6 +627,13 @@ class PvPEncounterService
                     'duration' => $ccDuration,
                 ];
             }
+        }
+
+        if ($ccApplied) {
+            $turn['cc_applied'] = [
+                'type' => $ccApplied['type'],
+                'duration' => max($turn['cc_applied']['duration'] ?? 0, $ccApplied['duration']),
+            ];
         }
 
         if ($actor === 'attacker') {

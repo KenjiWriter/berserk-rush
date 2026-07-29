@@ -5,35 +5,26 @@ namespace App\Domain\Combat\Enums;
 enum MonsterType: string
 {
     case ANIMAL = 'animal';
-    case PLANT = 'plant';
-    case GOBLIN = 'goblin';
     case UNDEAD = 'undead';
     case TROLL = 'troll';
-    case OGRE = 'ogre';
     case ORC = 'orc';
     case DEMON = 'demon';
-    case GOLEM = 'golem';
-    case MONSTER = 'monster';
-    case HUMAN = 'human';
-    case DRAGON = 'dragon';
-    case ELEMENTAL = 'elemental';
+    // Rasa zbiorcza (rework ras, 2026-07-29): wcześniejsze rzadkie/niszowe typy
+    // (roślina, goblin, ogr, golem, uogólniony "potwór", człowiek, smok, żywiołak)
+    // zostały scalone tutaj - nie miały własnego bonusu strong_vs_/resist_ w
+    // EnchantmentStrategy, więc rozdrobnienie na 13 typów nie miało praktycznego
+    // znaczenia balansowego. Ork i Troll zostały jako osobne rasy na życzenie.
+    case MYSTICAL = 'mystical';
 
     public function label(): string
     {
         return match($this) {
             self::ANIMAL => 'Zwierzę',
-            self::PLANT => 'Roślina',
-            self::GOBLIN => 'Goblin',
             self::UNDEAD => 'Nieumarły',
             self::TROLL => 'Troll',
-            self::OGRE => 'Ogr',
             self::ORC => 'Ork',
             self::DEMON => 'Demon',
-            self::GOLEM => 'Golem',
-            self::MONSTER => 'Potwór',
-            self::HUMAN => 'Człowiek',
-            self::DRAGON => 'Smok',
-            self::ELEMENTAL => 'Żywiołak',
+            self::MYSTICAL => 'Mistyczny',
         };
     }
 }

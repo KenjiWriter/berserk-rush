@@ -81,7 +81,54 @@ Gdy `autoChain` jest włączony (`MapStub::completeBattle`), po zakończeniu wal
 - Automat zatrzymuje się na stałe tylko, gdy postać zdobędzie poziom (`levelUps`) - wymaga to ręcznej reakcji gracza (przydział punktów atrybutów).
 - Zdarzenie `auto-chain-next-battle` niesie parametr `delay` (ms) konsumowany po stronie JS (`resources/views/livewire/adventure/map-stub.blade.php`), sterujący czasem oczekiwania przed wywołaniem `startBattle()`.
 
-### 6. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
+### 6. Rasy Potworów (`MonsterType`)
+Każdy potwór (`Monster::type`) ma przypisaną jedną z **6 głównych ras** (rework ras,
+2026-07-29 - wcześniej istniało 13 drobnych typów, z których większość nie miała
+żadnego odpowiednika w systemie zaklęć i była czystym rozdrobnieniem):
+- **Nieumarły (`undead`)**, **Demon (`demon`)**, **Zwierzę (`animal`)**, **Ork (`orc`)**,
+  **Troll (`troll`)** - rasy z dedykowanym bonusem `strong_vs_*`/`resist_*` w puli
+  zaklęć Czarodzieja (patrz `docs/modules/wizard.md`).
+- **Mistyczny (`mystical`)** - nowa, zbiorcza rasa łącząca wszystko, co wcześniej było
+  rozdzielone na rośliny, gobliny, ogry, golemy, uogólnione "potwory", ludzi, smoki i
+  żywiołaki. Nie ma (na razie) własnego bonusu `strong_vs_mystical`/`resist_mystical`.
+
+Rasa wpływa wyłącznie na bonusy `strong_vs_<rasa>` (broń) i `resist_<rasa>` (pancerz)
+wylosowane w zaklęciach - patrz `Character::calculateDamage()` /
+`calculateMonsterDamage()`, które dopasowują `monster->type` do klucza bonusu na
+ekwipunku gracza.
+
+### 7. Otrucie i Ogłuszenie z Ekwipunku (Procki)
+Niezależnie od umiejętności bojowych (skille `poison`/`stun`/`freeze` - patrz
+`docs/modules/skills.md`), sam ekwipunek może dawać **pasywną szansę na dołożenie tego
+samego typu efektu przy każdym wylądowanym trafieniu** (nie tylko przy użyciu skilla),
+dzięki nowym afiksom zaklęć `poison_chance`/`stun_chance` (bronie, 1-7%) oraz
+`resist_poison`/`resist_stun` (pancerze, 1-7% - patrz `docs/modules/wizard.md`).
+
+- **Szansa efektywna:** `max(0, SzansaAtakującego - OdpornośćCelu)`. W PvE potwory nie
+  mają odporności (traktowana jako 0) - w PvP Arenie i Wojnie Gildii obie strony mogą
+  redukować szansę przeciwnika swoim pancerzem.
+- **Otrucie z procka:** 3 tury, 3% aktualnego HP celu na turę - słabsze niż najsłabszy
+  skill otrucia (który zaczyna się od ok. 2-5%), bo to darmowy, pasywny efekt, a nie
+  świadomie odpalona umiejętność. Współdzieli tę samą strukturę danych co DoT ze skilli
+  (`activeDots`/`effects[type=poison]`), więc UI walki renderuje go identycznie.
+- **Ogłuszenie z procka:** 1 tura (tak jak wszystkie skille `stun`/`freeze`) - ofiara
+  traci turę ataku. Współdzieli mechanizm `cc_applied`/`cc_turns` ze skillami.
+- **Gdzie działa:** `EncounterService` (PvE, w tym starcia grupowe over-level - AOE bije
+  tylko szansą na ogłuszenie, bez otrucia, zgodnie z zasadą "AOE bez DoT"),
+  `PvPEncounterService` (Arena 1v1, obie strony), `GuildWarService` (Wojna Gildii 5v5,
+  obie strony - przy tej okazji dodano tam też samą **infrastrukturę ogłuszenia**
+  (`cc_turns` per uczestnik), której wcześniej brakowało w starciach 5v5).
+
+### 8. "Silny Przeciwko Bohaterom" (`strong_vs_hero`)
+Nowy afiks broni (5-20%, ten sam zakres co `strong_vs_<rasa>` - patrz
+`docs/modules/wizard.md`) działający
+**wyłącznie w PvP Arenie i Wojnie Gildii** - w przeciwieństwie do `strong_vs_<rasa>`,
+który dotyczy tylko potworów w PvE, ten bonus dolicza się bezwarunkowo w starciach
+gracz-vs-gracz, bo tam przeciwnik zawsze jest "bohaterem" (inną postacią gracza).
+Liczony analogicznie do `strong_vs_<rasa>` - jako % dokładany do obrażeń już po
+redukcji obrony przeciwnika.
+
+### 9. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:
 1. **Frontend Session Lock (`MapStub`)**: Każdy zamontowany komponent `MapStub` generuje unikalny token sesji karty i rejestruje go w pamięci Cache (`adventure_active_tab:{character_id}`). W przypadku otwarcia nowej karty lub przełączenia, aktywna staje się tylko ostatnia karta. Nieaktywne karty wstrzymują automatyczne walki i wyświetlają banner z opcją przejęcia aktywnego statusu.
 2. **Backend Rate Limit (`EncounterService::start`)**: Serwis waliduje minimalny czas od rozpoczęcia ostatniej walki danej postaci (1300 ms) oraz nakłada blokadę transakcyjną `lockForUpdate()` na model postaci, odrzucając wszelkie próby symultanicznych żądań walki z błędem `COMBAT_IN_PROGRESS`.

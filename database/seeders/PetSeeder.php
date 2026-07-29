@@ -85,15 +85,19 @@ class PetSeeder extends Seeder
             ['description' => 'Loot z Władcy Lochów, zawiera jajka.']
         );
 
+        // Balans ekonomii (2026-07-29): drop przedmiotów (w tym jajek chowańców) zmniejszony
+        // globalnie o 100% (waga x0 - nigdy nie wypadnie, patrz WeightedPicker::pick).
         $drops = [
             ['reward_type' => 'gold', 'ref_ulid' => null, 'min_qty' => 100, 'max_qty' => 500, 'weight' => 100],
-            ['reward_type' => 'item', 'ref_ulid' => 'egg-common', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
-            ['reward_type' => 'item', 'ref_ulid' => 'egg-rare', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 15],
-            ['reward_type' => 'item', 'ref_ulid' => 'egg-epic', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 2],
+            ['reward_type' => 'item', 'ref_ulid' => 'egg-common', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 0],
+            ['reward_type' => 'item', 'ref_ulid' => 'egg-rare', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 0],
+            ['reward_type' => 'item', 'ref_ulid' => 'egg-epic', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 0],
         ];
 
         foreach ($drops as $drop) {
-            LootTableEntry::firstOrCreate([
+            // updateOrCreate (nie firstOrCreate) - żeby ponowne odpalenie seedera po zmianie
+            // wag faktycznie nadpisywało istniejące wpisy, a nie tylko tworzyło brakujące.
+            LootTableEntry::updateOrCreate([
                 'loot_table_id' => $bossLootTable->id,
                 'reward_type' => $drop['reward_type'],
                 'ref_ulid' => $drop['ref_ulid'],

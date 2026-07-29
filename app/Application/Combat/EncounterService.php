@@ -29,6 +29,46 @@ class EncounterService
     private array $activePassives = [];
     private int $monsterCcTurns = 0;
 
+    // Procki z ekwipunku (2026-07-29): 'poison_chance'/'stun_chance' na broni dają
+    // szansę (%) na dołożenie efektu przy KAŻDYM wylądowanym trafieniu (nie tylko
+    // przy użyciu skilla), niezależnie od DoT-ów/CC ze skilli. Potwory nie mają
+    // odporności ekwipunkowej, więc w PvE efektywna szansa = surowa wartość z gearu.
+    // Wartości dobrane niżej niż najsłabsze skille (bo to pasywny, darmowy proc, a nie
+    // świadomie odpalona umiejętność) - patrz CombatSkillSeeder (poison 0.02-0.15,
+    // stun/freeze zawsze 1 tura na niskich poziomach).
+    private const EQUIPMENT_POISON_DURATION = 3;
+    private const EQUIPMENT_POISON_VALUE = 0.03;
+    private const EQUIPMENT_STUN_DURATION = 1;
+
+    /**
+     * Rzuca procki otrucia/ogłuszenia z ekwipunku po wylądowanym trafieniu.
+     * $resistEq to statystyki ekwipunku CELU (puste dla potworów w PvE - nie mają
+     * własnego ekwipunku/odporności).
+     */
+    private function rollEquipmentProcs(array $eq, array $resistEq = []): array
+    {
+        $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
+        $stunChance = max(0, ($eq['stun_chance'] ?? 0) - ($resistEq['resist_stun'] ?? 0));
+
+        $dot = null;
+        if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
+            $dot = [
+                'type' => 'poison',
+                'name' => 'Zatrucie (Ekwipunek)',
+                'description' => 'Zadaje obrażenia od otrucia co turę.',
+                'value' => self::EQUIPMENT_POISON_VALUE,
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+            ];
+        }
+
+        $cc = null;
+        if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
+            $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
+        }
+
+        return ['dot' => $dot, 'cc' => $cc];
+    }
+
     public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random'): Result
     {
         Log::info('EncounterService::start called', [
@@ -779,6 +819,7 @@ class EncounterService
         }
 
         $equippedWeaponType = $character->getEquippedWeaponType();
+        $eq = $character->getEquipmentStats();
 
         $usedSkill = null;
 
@@ -951,6 +992,17 @@ class EncounterService
                 ];
             }
 
+            $procs = $this->rollEquipmentProcs($eq);
+            if ($procs['dot']) {
+                $this->activeDots[] = $procs['dot'];
+            }
+            if ($procs['cc']) {
+                $result['cc_applied'] = [
+                    'type' => $procs['cc']['type'],
+                    'duration' => max($result['cc_applied']['duration'] ?? 0, $procs['cc']['duration']),
+                ];
+            }
+
             return $result;
         }
 
@@ -1014,6 +1066,17 @@ class EncounterService
             $turn['baseDamage'] = $baseDamage;
             $turn['bonusDamage'] = $bonusDamage > 0 ? $bonusDamage : null;
             $turn['magicDamage'] = $magicDamage > 0 ? $magicDamage : null;
+        }
+
+        $procs = $this->rollEquipmentProcs($eq);
+        if ($procs['dot']) {
+            $this->activeDots[] = $procs['dot'];
+        }
+        if ($procs['cc']) {
+            $turn['cc_applied'] = [
+                'type' => $procs['cc']['type'],
+                'duration' => max($turn['cc_applied']['duration'] ?? 0, $procs['cc']['duration']),
+            ];
         }
 
         return $turn;
@@ -1346,6 +1409,15 @@ class EncounterService
             $turn['cc_applied'] = [
                 'type' => $csSkill->effect_type,
                 'duration' => max(1, (int) $csSkill->base_duration),
+            ];
+        }
+
+        // Tylko procek ogłuszenia - bez otrucia, zgodnie z zasadą "AOE bez DoT" powyżej.
+        $stunProc = $this->rollEquipmentProcs($character->getEquipmentStats())['cc'];
+        if ($stunProc) {
+            $turn['cc_applied'] = [
+                'type' => $stunProc['type'],
+                'duration' => max($turn['cc_applied']['duration'] ?? 0, $stunProc['duration']),
             ];
         }
 

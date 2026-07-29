@@ -15,6 +15,36 @@ use Illuminate\Support\Facades\Log;
 
 class GuildWarService
 {
+    // Procki z ekwipunku (2026-07-29): zduplikowane z EncounterService/PvPEncounterService
+    // (patrz komentarze tam) - w 5v5 obie strony mają ekwipunek, więc resist_poison/
+    // resist_stun przeciwnika realnie redukuje szansę na proc.
+    private const EQUIPMENT_POISON_DURATION = 3;
+    private const EQUIPMENT_POISON_VALUE = 0.03;
+    private const EQUIPMENT_STUN_DURATION = 1;
+
+    private function rollEquipmentProcs(array $eq, array $resistEq): array
+    {
+        $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
+        $stunChance = max(0, ($eq['stun_chance'] ?? 0) - ($resistEq['resist_stun'] ?? 0));
+
+        $dot = null;
+        if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
+            $dot = [
+                'type' => 'poison',
+                'name' => 'Zatrucie (Ekwipunek)',
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+                'value' => self::EQUIPMENT_POISON_VALUE,
+            ];
+        }
+
+        $cc = null;
+        if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
+            $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
+        }
+
+        return ['dot' => $dot, 'cc' => $cc];
+    }
+
     /**
      * Challenge another guild to war.
      */
@@ -315,14 +345,14 @@ class GuildWarService
             $combatants[] = [
                 'side' => 'challenger', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
-                'cooldowns' => [], 'effects' => [],
+                'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
             ];
         }
         foreach (array_values($defenderSnapshots) as $i => $snap) {
             $combatants[] = [
                 'side' => 'defender', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
-                'cooldowns' => [], 'effects' => [],
+                'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
             ];
         }
 
@@ -355,10 +385,39 @@ class GuildWarService
                     break 2; // przeciwna drużyna została doszczętnie pokonana w trakcie rundy
                 }
 
+                // Ogłuszenie (ze skilla lub z procka ekwipunku) - aktor traci turę ataku,
+                // ale jego cooldowny nadal tykają (parytet z PvPEncounterService::simulateCombat()).
+                if (($combatants[$ci]['cc_turns'] ?? 0) > 0) {
+                    $combatants[$ci]['cc_turns']--;
+                    $turn = [
+                        'actor_side' => $combatants[$ci]['side'],
+                        'actor_idx' => $combatants[$ci]['idx'],
+                        'actor_name' => $combatants[$ci]['snapshot']['name'] ?? null,
+                        'type' => 'crowd_controlled',
+                        'value' => 0,
+                        'crit' => false,
+                    ];
+                    $turn['round'] = $round + 1;
+                    $turn['team_state'] = $this->getTeamStateSummary($combatants);
+                    $turns[] = $turn;
+
+                    foreach ($combatants[$ci]['cooldowns'] as $skillId => $cd) {
+                        if ($cd > 0) {
+                            $combatants[$ci]['cooldowns'][$skillId]--;
+                        }
+                    }
+
+                    continue;
+                }
+
                 $turn = $this->resolveTeamAttack($combatants[$ci], $combatants[$targetIdx]);
                 $turn['round'] = $round + 1;
                 $turn['team_state'] = $this->getTeamStateSummary($combatants);
                 $turns[] = $turn;
+
+                if (!empty($turn['cc_applied'])) {
+                    $combatants[$targetIdx]['cc_turns'] = max($combatants[$targetIdx]['cc_turns'] ?? 0, (int) $turn['cc_applied']['duration']);
+                }
 
                 // Cooldowny umiejętności aktora tykają po jego własnej akcji.
                 foreach ($combatants[$ci]['cooldowns'] as $skillId => $cd) {
@@ -529,6 +588,12 @@ class GuildWarService
         $defense = $defVit + ($targetSnap['level'] / 2) + ($defEq['defense'] ?? 0);
         $damage = max(1, $damage - ($defense / 2));
 
+        // "Silny vs Bohaterów" - patrz identyczny bonus w PvPEncounterService::performAttack().
+        $heroBonusPct = $eq['strong_vs_hero'] ?? 0;
+        if ($heroBonusPct > 0) {
+            $damage += $damage * ($heroBonusPct / 100);
+        }
+
         $actingAgi = $attrs['agi'] ?? 1;
         $targetAgi = $targetSnap['attributes']['agi'] ?? 1;
 
@@ -579,6 +644,15 @@ class GuildWarService
                 $turn['skill_id'] = $skillToUse['id'];
                 $turn['skill_name'] = $skillToUse['name'];
                 $turn['effect_type'] = $skillToUse['effect_type'] ?? null;
+            }
+
+            // Procki otrucia/ogłuszenia z ekwipunku - patrz rollEquipmentProcs() na górze klasy.
+            $procs = $this->rollEquipmentProcs($eq, $defEq);
+            if ($procs['dot']) {
+                $target['effects']['equipment_poison'] = $procs['dot'];
+            }
+            if ($procs['cc']) {
+                $turn['cc_applied'] = $procs['cc'];
             }
         }
 

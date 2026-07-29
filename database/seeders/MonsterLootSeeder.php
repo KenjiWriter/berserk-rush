@@ -363,19 +363,37 @@ class MonsterLootSeeder extends Seeder
         // Pobierz wszystkie przedmioty dla szybkiego wyszukiwania
         $itemTemplates = ItemTemplate::all()->keyBy('name');
 
-        // Pierwsze 3 mapy (wg. progresji level_min) mają zwiększoną o 150% szansę na drop ekwipunku
-        // względem poprzedniego podwojenia (x2 -> x5 wagi), aby ułatwić start nowym graczom.
-        $boostedItemDropChanceMaps = ['Mroczny Las', 'Stare Ruiny', 'Jaskinia Trolli'];
-
         foreach ($mapsData as $mapName => $mapConfig) {
-            $itemWeightMultiplier = in_array($mapName, $boostedItemDropChanceMaps, true) ? 5 : 1;
-
             foreach ($mapConfig['monsters'] as $monsterName => $dropConfig) {
                 // Znajdź potwora
                 $monster = Monster::where('name', $monsterName)->first();
 
                 if (!$monster) {
                     $this->command->warn("Nie znaleziono potwora {$monsterName}");
+                    continue;
+                }
+
+                $monsterRank = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
+
+                // Potwory rangi 'worldboss' NIE MOGĄ mieć własnego dropu (patrz
+                // docs/modules/loot.md pkt. 4): starcia z nimi nigdy nie kończą się
+                // zwycięstwem gracza, więc DropService nigdy się nie uruchamia dla tych
+                // walk. Zamiast zostawiać martwe wpisy złożone z ogólnych materiałów mapy,
+                // usuwamy listę łupów całkowicie - realny łup (unikalne materiały/przedmioty
+                // world bossa) jest już przeniesiony na bossa lokacji tej samej mapy (patrz
+                // niżej), a wspólny general/boss_general pool i tak trafia do bossa lokacji.
+                if ($monsterRank === 'worldboss') {
+                    // Szukamy PO NAZWIE (nie po aktualnym $monster->loot_table_id!) - w tym
+                    // momencie world boss może tymczasowo wskazywać na WSPÓLNĄ tabelę
+                    // (forest_common/ruins_common/desert_common), którą wcześniej przypisał mu
+                    // LootTableSeeder wg. przedziału poziomów. Kasowanie po loot_table_id
+                    // skasowałoby wpisy współdzielone przez inne potwory wciąż na nią wskazujące.
+                    // Nazwa "Loot for {name}" jest unikalna dla tego potwora, więc bezpieczna.
+                    $staleTable = LootTable::where('name', "Loot for " . $monster->name)->first();
+                    if ($staleTable) {
+                        LootTableEntry::where('loot_table_id', $staleTable->id)->delete();
+                    }
+                    $monster->update(['loot_table_id' => null]);
                     continue;
                 }
 
@@ -398,8 +416,7 @@ class MonsterLootSeeder extends Seeder
                 // Skompletuj wszystkie materiały, które mogą spaść
                 $possibleMaterialDrops = array_merge([], $mapConfig['general'], $specificDrops);
 
-                $monsterRank = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
-                $isBoss = in_array($monsterRank, ['boss', 'worldboss']);
+                $isBoss = $monsterRank === 'boss';
 
                 if ($isBoss && isset($mapConfig['boss_general'])) {
                     $possibleMaterialDrops = array_merge($possibleMaterialDrops, $mapConfig['boss_general']);
@@ -429,7 +446,10 @@ class MonsterLootSeeder extends Seeder
                         'reward_type' => 'material',
                         'ref_ulid' => $template->id,
                     ], [
-                        'weight' => in_array($dropName, $specificDrops) ? 5 : (in_array($dropName, $mapConfig['boss_general'] ?? []) ? 2 : 2),
+                        // Balans ekonomii (2026-07-29): szansa na materiały zwiększona o 400%
+                        // (waga x5) względem poprzednich wartości (5 -> 25, 2 -> 10), aby
+                        // ułatwić crafting po tym, jak drop przedmiotów zszedł do zera (patrz niżej).
+                        'weight' => (in_array($dropName, $specificDrops) ? 5 : 2) * 5,
                         'min_qty' => 1,
                         'max_qty' => $isBoss ? 3 : 1
                     ]);
@@ -449,9 +469,11 @@ class MonsterLootSeeder extends Seeder
                         'reward_type' => 'item',
                         'ref_ulid' => $template->id,
                     ], [
-                        // Bardzo mała szansa (waga 1/320~0.3% dla zwykłych, 2/320~0.6% dla bossów),
-                        // zwiększona x{$itemWeightMultiplier} na pierwszych 3 mapach.
-                        'weight' => ($isBoss ? 2 : 1) * $itemWeightMultiplier,
+                        // Balans ekonomii (2026-07-29): drop bezpośredni przedmiotów ekwipunku
+                        // zmniejszony globalnie o 100% (waga x0 - nigdy nie wypadnie, patrz
+                        // WeightedPicker::pick). Ekwipunek zdobywa się teraz wyłącznie przez
+                        // system rzemiosła z materiałów (patrz docs/modules/witch_and_crafting.md).
+                        'weight' => 0,
                         'min_qty' => 1,
                         'max_qty' => 1
                     ]);

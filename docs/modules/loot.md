@@ -16,7 +16,14 @@ Każdy potwór ma przypisaną własną tabelę loot'u. Gdy potwór zostaje zabit
 ### 2. Generowanie Łupu (`DropService`)
 Uruchamiana jest logika losująca nagrody ze zwycięskiej walki. Główne typy zdobyczy to:
 - **Złoto (Gold) i Gemy (Gems):** Generowane w losowych ilościach. Serwis loguje dopływ waluty za pomocą `CurrencyLedger`. Złoto (gold) przypisywane jest bezpośrednio do walczącej postaci (`characters`), a waluta premium (gems) współdzielona jest na całe konto gracza (`users`). Jest to księga audytowa zapewniająca, że historia zasilania konta i jego obecne saldo (zapisywane w locie) pokrywają się ze stanem wirtualnego portfela, a `idempotency_key` eliminuje ryzyko zdublowania dopływu gotówki po stronie serwera.
-- **Przedmioty i Materiały (Item / Material):** Z potworów wypadają materiały rzemieślnicze (do schowka materiałów) oraz z **bardzo małą szansą (waga 1, waga 2 dla bossów)** wybrane, unikalne przedmioty ekwipunku przypisane do danego gatunku potwora (np. *Wilk Leśny* może dropped *Sztylety z Kości Wilka* lub *Pancerz z Wilczej Skóry*, *Ogr Rozłupywacz* -> *Maczuga Ogra*, *Władca Cieni* -> *Piekielny Miecz Smoka* itp.). Pozostały ekwipunek gracze wytwarzają z zebranych surowców w systemie rzemiosła. Gdy przedmiot/materiał zostanie wylosowany, serwis tworzy fizyczną instancję w bazie (`ItemInstance`), ustala ilosc (`stack_size`) oraz rejestruje fakt zdobyczy w `ItemLedger`.
+- **Przedmioty i Materiały (Item / Material):** Z potworów wypadają materiały rzemieślnicze (do schowka materiałów). **Bezpośredni drop unikalnego ekwipunku przypisanego do gatunku potwora (`reward_type = 'item'`) jest od 2026-07-29 wyzerowany globalnie (waga 0 na każdym wpisie, patrz balans niżej)** — cały ekwipunek gracze zdobywają wyłącznie przez system rzemiosła z zebranych surowców (patrz `docs/modules/witch_and_crafting.md`). Gdy materiał zostanie wylosowany, serwis tworzy fizyczną instancję w bazie (`ItemInstance`), ustala ilosc (`stack_size`) oraz rejestruje fakt zdobyczy w `ItemLedger`.
+
+### 1a. Balans Ekonomii Łupów (fix 2026-07-29)
+W odpowiedzi na zgłoszenie o trudnościach w craftowaniu (Esencja Zniszczenia / Czarny Kamień Dusz z mapy Skażone Miasto), globalna waga wpisów we **wszystkich** seederach łupów (`MonsterLootSeeder`, `LootTableSeeder`, `PetSeeder`, łącznie z jajkami chowańców z `boss_dungeon_loot`) została przeskalowana:
+- **Materiały (`reward_type = 'material'`): waga x5 (+400%)** względem poprzednich wartości — ułatwia zbieranie surowców pod crafting.
+- **Przedmioty (`reward_type = 'item'`): waga 0 (-100%)** — bezpośredni drop ekwipunku (i jajek chowańców) jest całkowicie wyłączony; `WeightedPicker::pick()` nigdy nie wylosuje wpisu o wadze 0.
+
+`PetSeeder` zmieniono z `firstOrCreate` na `updateOrCreate` dla wpisów `boss_dungeon_loot`, żeby ponowne odpalenie seedera faktycznie nadpisywało wagę istniejących wierszy zamiast ich ignorować.
 
 ### 3. Zabezpieczenia Ekonomiczne
 Aby zapobiec dublowaniu łupów z jednej i tej samej walki wskutek problemów z siecią lub ataków typu *Replay*, serwis przed wygenerowaniem zasobów weryfikuje istnienie `idempotency_key` zbudowanego na bazie ID spotkania `encounter:{encounter_id}:drop`. Wszystko przebiega we wspólnej transakcji bazodanowej, z naciskiem na zachowanie pełnej historii ekonomii (Ledgerów) celem łatwiejszego wykrywania exploitów u graczy.
@@ -25,6 +32,8 @@ Aby zapobiec dublowaniu łupów z jednej i tej samej walki wskutek problemów z 
 `DropService` uruchamia się wyłącznie po zwycięstwie gracza (`$winner === 'player'`). Starcia ze światowym bossem w `EncounterService` zawsze rozstrzygają się jako `$winner = 'enemy'` (to celowe — world boss to wspólny licznik obrażeń, patrz `docs/modules/world_boss.md`), więc **żaden wpis w `LootTable` przypisanej bezpośrednio do potwora rangi `worldboss` nigdy się nie wylosuje**. Był to realny bug wykryty 2026-07-28: materiał *Fragment Całunu* (potrzebny do craftu *Zbutwiałej Szaty Licza*) wisiał wyłącznie na worldbossie *Licz Cieni* i był w praktyce nieosiągalny.
 
 Naprawa: `database/seeders/MonsterLootSeeder.php` przenosi teraz materiały/przedmioty każdego world bossa na zwykłego, zabijalnego potwora rangi `boss` z tej samej mapy (worldboss zostaje z pustymi listami `materials`/`items`, z komentarzem wyjaśniającym dlaczego). Zastosowano to dla wszystkich 8 world bossów w grze:
+
+> **Aktualizacja (2026-07-29):** worldboss nie dostaje już żadnej `LootTable` w ogóle — pętla seedera dla `$monsterRank === 'worldboss'` czyści ewentualne stare wpisy i ustawia `loot_table_id = null`, zamiast zostawiać martwą tabelę z ogólnymi materiałami mapy (`general`/`boss_general`), które i tak nigdy się nie wylosują. Ten sam pool materiałów trafia automatycznie do bossa lokacji tej samej mapy (patrz tabela niżej), więc żaden łup nie ginie — usuwana jest tylko myląca, nieosiągalna lista widoczna wcześniej w UI mapy.
 
 | Mapa | World boss (bez dropu) | Nowy właściciel dropu (rank `boss`) |
 |---|---|---|

@@ -31,12 +31,13 @@ class LootTableSeeder extends Seeder
             'max_qty' => 20
         ]);
 
+        // Balans ekonomii (2026-07-29): szansa na materiały zwiększona globalnie o 400% (waga x5).
         if ($fang) {
             LootTableEntry::create([
                 'loot_table_id' => $forestLoot->id,
                 'reward_type' => 'material',
                 'ref_ulid' => $fang->id,
-                'weight' => 6,
+                'weight' => 6 * 5,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
@@ -47,7 +48,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $forestLoot->id,
                 'reward_type' => 'material',
                 'ref_ulid' => $herb->id,
-                'weight' => 4,
+                'weight' => 4 * 5,
                 'min_qty' => 1,
                 'max_qty' => 3
             ]);
@@ -70,7 +71,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $ruinsLoot->id,
                 'reward_type' => 'material',
                 'ref_ulid' => $bone->id,
-                'weight' => 7,
+                'weight' => 7 * 5,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
@@ -93,7 +94,7 @@ class LootTableSeeder extends Seeder
                 'loot_table_id' => $desertLoot->id,
                 'reward_type' => 'material',
                 'ref_ulid' => $crystal->id,
-                'weight' => 6,
+                'weight' => 6 * 5,
                 'min_qty' => 1,
                 'max_qty' => 2
             ]);
