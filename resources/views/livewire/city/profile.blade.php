@@ -412,6 +412,7 @@
 
             <!-- Stats -->
             <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
+                 wire:key="attributes-panel-{{ $character->id }}"
                  @if($activeTab === 'attributes')
                      x-data="{
                          availablePoints: {{ $character->character_points }},
