@@ -54,6 +54,12 @@
                     <button wire:click="setItemFilter('feet')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'feet' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
                         <i class="fa-solid fa-shoe-prints"></i> Buty
                     </button>
+                    <button wire:click="setItemFilter('neck')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'neck' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-gem"></i> Naszyjniki
+                    </button>
+                    <button wire:click="setItemFilter('ring')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'ring' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-ring"></i> Pierścienie
+                    </button>
                 </div>
             </div>
 
@@ -225,7 +231,7 @@
 
                         <!-- Bottom Section: Upgradable Items Inventory -->
                         <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-4 mt-auto">
-                            <h3 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700/50 pb-2 medieval-font">Wybierz przedmiot do ulepszenia (broń i zbroja)</h3>
+                            <h3 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700/50 pb-2 medieval-font">Wybierz przedmiot do ulepszenia (broń, zbroja i akcesoria)</h3>
                             <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
                                 @forelse($upgradableItems as $item)
                                     @if($item->upgrade_level < 9)

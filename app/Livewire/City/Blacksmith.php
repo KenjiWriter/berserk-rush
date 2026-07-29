@@ -16,7 +16,7 @@ class Blacksmith extends Component
     public string $activeTab = 'forge'; // 'forge', 'crafting'
     public ?string $selectedUpgradeItemId = null;
 
-    // Filtr typu/slotu ekwipunku: all, weapon, head, chest, feet
+    // Filtr typu/slotu ekwipunku: all, weapon, head, chest, feet, ring, neck
     public string $itemFilter = 'all';
 
     public bool $showUpgradeModal = false;
@@ -105,18 +105,18 @@ class Blacksmith extends Component
             return $type === 'weapon';
         }
 
-        // head, chest, feet - filtrujemy po slocie zbroi
-        return $type === 'armor' && $slot === $this->itemFilter;
+        // head, chest, feet - slot zbroi; ring, neck - slot akcesoriów
+        return $slot === $this->itemFilter;
     }
 
     public function render(\App\Application\Items\UpgradeService $upgradeService)
     {
         // Ulepszanie: broń oraz zbroja w jednym, ogólnym widoku Kowala
         $upgradableItems = $this->character->inventoryItems()->whereHas('template', function ($q) {
-            $q->whereIn('type', ['weapon', 'armor']);
+            $q->whereIn('type', ['weapon', 'armor', 'accessory']);
         })->take(64)->get()->merge(
             $this->character->equippedItems()->whereHas('template', function ($q) {
-                $q->whereIn('type', ['weapon', 'armor']);
+                $q->whereIn('type', ['weapon', 'armor', 'accessory']);
             })->get()
         );
 
@@ -144,7 +144,7 @@ class Blacksmith extends Component
 
         // Rzemiosło: przepisy na broń oraz zbroję w jednym widoku
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function ($q) {
-            $q->whereIn('type', ['weapon', 'armor']);
+            $q->whereIn('type', ['weapon', 'armor', 'accessory']);
         })->get();
 
         $recipes = $recipes->filter(function ($recipe) {
