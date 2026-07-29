@@ -9,20 +9,22 @@ use Illuminate\Support\Str;
 
 class MonsterSeeder extends Seeder
 {
-    // UWAGA (rebalans potworów 'regular', 2026-07-29): staty hp/atk/def/agi każdego
-    // potwora rangi 'regular' zostały przeliczone symulacyjnie (Monte Carlo, patrz
-    // `php artisan balance:monsters` / app/Console/Commands/BalanceMonstersCommand.php)
-    // pod 6 referencyjnych buildów (po jednym na typ broni: miecz/topór/łuk/sztylet/
-    // dzwon/różdżka, postać poziom = level_min mapy+1, najlepszy dostępny ekwipunek
-    // bez dodatkowych atrybutów) tak, by: wygrywać >=90% z 10 walk, zabijać w 3-4
-    // trafieniach, tracić ~60% max HP w trakcie walki. Stare wartości (ręcznie
-    // dobrane) były w wyższych mapach mocno niedoszacowane względem realnej mocy
-    // sprzętu z ItemTemplateSeeder/ShopEquipmentSeeder (dlatego skok hp/atk na
-    // Górach Cienia/Wieży Magów/Skażonym Mieście jest tak duży). Staty 'boss' i
-    // 'worldboss' NIE zostały tym przeliczeniem objęte (świadomie - zadanie
-    // definiowało cel wyłącznie dla zwykłego, farmowalnego starcia 1 na 1) - jeśli
-    // mają dostać analogiczny formalny balans, potrzebują własnych celów
-    // (np. oczekiwana liczba graczy/DPS, liczba tur do zabicia bossa).
+    // UWAGA (rebalans potworów 'regular'+'boss', 2026-07-29): staty hp/atk/def/agi
+    // każdego potwora rangi 'regular' i 'boss' zostały przeliczone symulacyjnie
+    // (Monte Carlo, patrz `php artisan balance:monsters [--rank=regular|boss]` /
+    // app/Console/Commands/BalanceMonstersCommand.php) pod 6 referencyjnych buildów
+    // (po jednym na typ broni: miecz/topór/łuk/sztylet/dzwon/różdżka, postać poziom =
+    // level_min mapy+1, najlepszy dostępny ekwipunek bez dodatkowych atrybutów).
+    // 'regular': cel >=90% winrate/10 walk, zabicie w 3-4 trafieniach, ~60% straconego
+    // max HP. 'boss': trudniejszy odpowiednik - cel ~65% winrate, 8-12 trafień, ~80-
+    // 100% straconego HP (realne ryzyko śmierci). Stare wartości (ręcznie dobrane)
+    // były w wyższych mapach mocno niedoszacowane względem realnej mocy sprzętu z
+    // ItemTemplateSeeder/ShopEquipmentSeeder (stąd duży skok hp/atk na wyższych mapach).
+    // UWAGA: cel 65% dla bossa to ŚREDNIA po 6 archetypach broni - realny winrate mocno
+    // zależy od wybranej broni (np. na Skażonym Mieście różdżka ~99% vs miecz ~18%) -
+    // to świadomy kompromis zaakceptowany przez projektanta, nie błąd kalibracji.
+    // 'worldboss' NIE został objęty (świadomie, na życzenie użytkownika - system walki
+    // z world bossem ma przejść osobny rework, więc nie ma sensu go teraz kalibrować).
     public function run(): void
     {
         $monstersByMap = [
@@ -80,7 +82,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'plant',
                     'level' => 12,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 2200, 'atk' => 38, 'def' => 18, 'agi' => 12, 'int' => 10, 'crit' => 0.25, 'dodge' => 0.08],
+                    'stats' => ['hp' => 364, 'atk' => 32, 'def' => 6, 'agi' => 5, 'int' => 10, 'crit' => 0.25, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -146,7 +148,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 27,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 7500, 'atk' => 115, 'def' => 52, 'agi' => 35, 'int' => 40, 'crit' => 0.35, 'dodge' => 0.12],
+                    'stats' => ['hp' => 1004, 'atk' => 82, 'def' => 15, 'agi' => 12, 'int' => 40, 'crit' => 0.35, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
@@ -212,7 +214,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'ogre',
                     'level' => 38,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 18000, 'atk' => 175, 'def' => 95, 'agi' => 25, 'int' => 15, 'crit' => 0.32, 'dodge' => 0.06],
+                    'stats' => ['hp' => 1387, 'atk' => 119, 'def' => 20, 'agi' => 15, 'int' => 15, 'crit' => 0.32, 'dodge' => 0.06],
                     'abilities' => []
                 ],
                 [
@@ -278,7 +280,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 53,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 35000, 'atk' => 280, 'def' => 120, 'agi' => 55, 'int' => 30, 'crit' => 0.50, 'dodge' => 0.15],
+                    'stats' => ['hp' => 2376, 'atk' => 209, 'def' => 33, 'agi' => 20, 'int' => 30, 'crit' => 0.50, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -344,7 +346,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 68,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 65000, 'atk' => 380, 'def' => 150, 'agi' => 60, 'int' => 150, 'crit' => 0.45, 'dodge' => 0.22],
+                    'stats' => ['hp' => 4337, 'atk' => 701, 'def' => 56, 'agi' => 28, 'int' => 150, 'crit' => 0.45, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -410,7 +412,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 78,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 120000, 'atk' => 490, 'def' => 200, 'agi' => 95, 'int' => 160, 'crit' => 0.65, 'dodge' => 0.30],
+                    'stats' => ['hp' => 15457, 'atk' => 1551, 'def' => 185, 'agi' => 35, 'int' => 160, 'crit' => 0.65, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -476,7 +478,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'human',
                     'level' => 88,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 220000, 'atk' => 430, 'def' => 180, 'agi' => 90, 'int' => 450, 'crit' => 0.75, 'dodge' => 0.45],
+                    'stats' => ['hp' => 36132, 'atk' => 3527, 'def' => 420, 'agi' => 39, 'int' => 450, 'crit' => 0.75, 'dodge' => 0.45],
                     'abilities' => []
                 ],
                 [
@@ -542,7 +544,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 102,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 450000, 'atk' => 780, 'def' => 320, 'agi' => 130, 'int' => 250, 'crit' => 0.90, 'dodge' => 0.50],
+                    'stats' => ['hp' => 105606, 'atk' => 10755, 'def' => 1191, 'agi' => 44, 'int' => 250, 'crit' => 0.90, 'dodge' => 0.50],
                     'abilities' => []
                 ],
                 [

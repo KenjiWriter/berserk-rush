@@ -30,19 +30,25 @@ use Illuminate\Console\Command;
  */
 class BalanceMonstersCommand extends Command
 {
-    protected $signature = 'balance:monsters {--tune-iterations=25} {--sims=4000} {--verify-sims=8000}';
-    protected $description = 'Symuluje walki referencyjnych postaci i dobiera statystyki potworów (HP/ATK/DEF/AGI) pod zadane cele balansu.';
+    protected $signature = 'balance:monsters {--rank=regular} {--tune-iterations=25} {--sims=4000} {--verify-sims=8000}';
+    protected $description = 'Symuluje walki referencyjnych postaci i dobiera statystyki potworów (HP/ATK/DEF/AGI) pod zadane cele balansu. --rank=regular|boss (worldboss celowo pominięty - system czeka na osobny rework).';
 
     // --- Stałe z Character.php ---
     private const ATTRIBUTE_DAMAGE_MULTIPLIER = 1.5;
     private const ATTRIBUTE_HP_MULTIPLIER = 15;
 
-    // --- Cele balansu (ustalone z użytkownikiem) ---
+    // --- Cele balansu dla 'regular' (ustalone z użytkownikiem, 2026-07-29) ---
     private const TARGET_WINRATE = 0.90;
-    private const TARGET_HITS_MIN = 3.0;
-    private const TARGET_HITS_MAX = 4.0;
     private const TARGET_HITS_MID = 3.5;
     private const TARGET_DMG_TAKEN_FRACTION = 0.60;
+
+    // --- Cele balansu dla 'boss' (ustalone z użytkownikiem, 2026-07-29): trudniejszy
+    // regular - niższy winrate, dużo więcej trafień, bliżej śmierci. Worldboss
+    // celowo POMINIĘTY na życzenie użytkownika (walczy się z nim raz/h w osobnym
+    // panelu, mechanika ma przejść osobny rework, nie ma sensu go teraz kalibrować).
+    private const TARGET_WINRATE_BOSS = 0.65;
+    private const TARGET_HITS_MID_BOSS = 10.0;
+    private const TARGET_DMG_TAKEN_FRACTION_BOSS = 0.90;
 
     /**
      * Tiery sklepowe (ShopEquipmentSeeder::$themes), BEZ tieru gladiatora (lvl 55,
@@ -300,6 +306,16 @@ class BalanceMonstersCommand extends Command
         $tuneIterations = (int) $this->option('tune-iterations');
         $tuneSims = (int) $this->option('sims');
         $verifySims = (int) $this->option('verify-sims');
+        $rank = $this->option('rank');
+
+        if (!in_array($rank, ['regular', 'boss'], true)) {
+            $this->error("Nieobsługiwana ranga '{$rank}' - dozwolone: regular, boss (worldboss celowo pominięty, patrz opis komendy).");
+            return self::FAILURE;
+        }
+
+        $targetWinrate = $rank === 'boss' ? self::TARGET_WINRATE_BOSS : self::TARGET_WINRATE;
+        $targetHitsMid = $rank === 'boss' ? self::TARGET_HITS_MID_BOSS : self::TARGET_HITS_MID;
+        $targetDmgFraction = $rank === 'boss' ? self::TARGET_DMG_TAKEN_FRACTION_BOSS : self::TARGET_DMG_TAKEN_FRACTION;
 
         $summary = [];
 
@@ -350,9 +366,9 @@ class BalanceMonstersCommand extends Command
                 ], $archetypes, array_keys($archetypes))
             );
 
-            [$monster, $verification] = $this->solveMonster($archetypes, $tuneIterations, $tuneSims, $verifySims);
+            [$monster, $verification] = $this->solveMonster($archetypes, $tuneIterations, $tuneSims, $verifySims, $targetWinrate, $targetHitsMid, $targetDmgFraction);
 
-            $this->line("<fg=yellow>Dobrane staty potwora 'regular': HP={$monster['hp']} ATK={$monster['atk']} DEF={$monster['def']} AGI={$monster['agi']}</>");
+            $this->line("<fg=yellow>Dobrane staty potwora '{$rank}': HP={$monster['hp']} ATK={$monster['atk']} DEF={$monster['def']} AGI={$monster['agi']}</>");
 
             $this->table(
                 ['Broń', 'Winrate%', 'Śr. trafień do zabicia', 'Śr. % HP straconego'],
@@ -364,8 +380,8 @@ class BalanceMonstersCommand extends Command
                 ], $verification, array_keys($verification))
             );
 
-            $oldAvg = $this->currentEffectiveAverage($map);
-            $this->line("<fg=gray>Stara śr. efektywna (regular, po x1.35 jeśli dotyczy): HP={$oldAvg['hp']} ATK={$oldAvg['atk']} DEF={$oldAvg['def']} AGI={$oldAvg['agi']}</>");
+            $oldAvg = $rank === 'boss' ? $this->currentEffectiveForRank($map, 'boss') : $this->currentEffectiveAverage($map);
+            $this->line("<fg=gray>Stara śr. efektywna ({$rank}, po x1.35 jeśli dotyczy): HP={$oldAvg['hp']} ATK={$oldAvg['atk']} DEF={$oldAvg['def']} AGI={$oldAvg['agi']}</>");
 
             $kHp = $monster['hp'] / max(1, $oldAvg['hp']);
             $kAtk = $monster['atk'] / max(1, $oldAvg['atk']);
@@ -376,8 +392,8 @@ class BalanceMonstersCommand extends Command
 
             $multiplier = $map['mapCount'] >= 3 ? 1.35 : 1.0;
             foreach ($this->allMonstersRaw[$map['name']] as $m) {
-                if ($m['rank'] !== 'regular') {
-                    continue; // boss/worldboss celowo NIETKNIĘTE - patrz wyjaśnienie w podsumowaniu
+                if ($m['rank'] !== $rank) {
+                    continue; // tylko ranga wybrana przez --rank jest tu przeliczana
                 }
                 $eff = [
                     'hp' => (int) round($m['stats']['hp'] * $multiplier),
@@ -665,8 +681,15 @@ class BalanceMonstersCommand extends Command
      * (0.75x średniego AGI gracza), żeby bohater zawsze atakował pierwszy i uniki/
      * krytyki nie wprowadzały nadmiernej wariancji ponad to, co wynika z samych celów.
      */
-    private function solveMonster(array $archetypes, int $iterations, int $tuneSims, int $verifySims): array
-    {
+    private function solveMonster(
+        array $archetypes,
+        int $iterations,
+        int $tuneSims,
+        int $verifySims,
+        float $targetWinrate = self::TARGET_WINRATE,
+        float $targetHitsMid = self::TARGET_HITS_MID,
+        float $targetDmgFraction = self::TARGET_DMG_TAKEN_FRACTION
+    ): array {
         $avgPlayerAgi = array_sum(array_column($archetypes, 'agi')) / count($archetypes);
         $avgRawDmg = array_sum(array_map(fn ($a) => ($a['baseDamageMin'] + $a['baseDamageMax']) / 2, $archetypes)) / count($archetypes);
         $avgMaxHp = array_sum(array_column($archetypes, 'maxHp')) / count($archetypes);
@@ -676,9 +699,9 @@ class BalanceMonstersCommand extends Command
             'agi' => max(1, (int) round($avgPlayerAgi * 0.75)),
             'def' => max(0, (int) round($avgRawDmg * 0.15)),
         ];
-        $monster['hp'] = max(10, (int) round(max(1, $avgRawDmg - $monster['def'] / 2) * self::TARGET_HITS_MID));
+        $monster['hp'] = max(10, (int) round(max(1, $avgRawDmg - $monster['def'] / 2) * $targetHitsMid));
 
-        $perHitDmgTarget = (self::TARGET_DMG_TAKEN_FRACTION * $avgMaxHp) / self::TARGET_HITS_MID;
+        $perHitDmgTarget = ($targetDmgFraction * $avgMaxHp) / $targetHitsMid;
         $monster['atk'] = max(1, (int) round($perHitDmgTarget + $avgPlayerDef / 2));
 
         for ($iter = 0; $iter < $iterations; $iter++) {
@@ -694,13 +717,13 @@ class BalanceMonstersCommand extends Command
             $agg['avgHits'] /= $n;
             $agg['avgDmgFraction'] /= $n;
 
-            $hitsRatio = self::TARGET_HITS_MID / max(0.5, $agg['avgHits']);
+            $hitsRatio = $targetHitsMid / max(0.5, $agg['avgHits']);
             $monster['hp'] = max(5, (int) round($monster['hp'] * pow($hitsRatio, 0.6)));
 
-            $dmgRatio = self::TARGET_DMG_TAKEN_FRACTION / max(0.05, $agg['avgDmgFraction']);
+            $dmgRatio = $targetDmgFraction / max(0.05, $agg['avgDmgFraction']);
             $monster['atk'] = max(1, (int) round($monster['atk'] * pow($dmgRatio, 0.6)));
 
-            if ($agg['winRate'] < self::TARGET_WINRATE) {
+            if ($agg['winRate'] < $targetWinrate) {
                 // Zbyt trudno - osłabiamy lekko obie strony ryzyka (ATK bardziej niż HP,
                 // bo to głównie ryzyko śmierci gracza psuje winrate przy krótkich walkach).
                 $monster['atk'] = max(1, (int) round($monster['atk'] * 0.96));
@@ -730,6 +753,32 @@ class BalanceMonstersCommand extends Command
             $sum['agi'] += (int) round($row['agi'] * $multiplier);
         }
         $n = count($rows);
+
+        return [
+            'hp' => (int) round($sum['hp'] / $n),
+            'atk' => (int) round($sum['atk'] / $n),
+            'def' => (int) round($sum['def'] / $n),
+            'agi' => (int) round($sum['agi'] / $n),
+        ];
+    }
+
+    /** Jak currentEffectiveAverage(), ale dla dowolnej rangi z $allMonstersRaw (np. 'boss' - zwykle 1 wpis na mapę). */
+    private function currentEffectiveForRank(array $map, string $rank): array
+    {
+        $rows = array_values(array_filter(
+            $this->allMonstersRaw[$map['name']],
+            fn ($m) => $m['rank'] === $rank
+        ));
+        $multiplier = $map['mapCount'] >= 3 ? 1.35 : 1.0;
+
+        $sum = ['hp' => 0, 'atk' => 0, 'def' => 0, 'agi' => 0];
+        foreach ($rows as $row) {
+            $sum['hp'] += (int) round($row['stats']['hp'] * $multiplier);
+            $sum['atk'] += (int) round($row['stats']['atk'] * $multiplier);
+            $sum['def'] += (int) round($row['stats']['def'] * $multiplier);
+            $sum['agi'] += (int) round($row['stats']['agi'] * $multiplier);
+        }
+        $n = max(1, count($rows));
 
         return [
             'hp' => (int) round($sum['hp'] / $n),
