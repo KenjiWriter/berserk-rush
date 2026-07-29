@@ -38,5 +38,8 @@ Filtr działa identycznie dla listy przedmiotów do ulepszenia (`upgradableItems
 ## 6. Szczegóły mechanik
 Pełny opis mechaniki ulepszania (szanse powodzenia, koszty, efekty sukcesu/porażki) znajduje się w `docs/modules/upgrades.md`. Pełny opis mechaniki craftingu (encja `ItemRecipe`, losowanie rzadkości, panel administratora) znajduje się w `docs/modules/witch_and_crafting.md`.
 
-## 7. Historia zmian
+## 7. Podpowiedzi Materiałów (Skąd zdobyć)
+Zarówno w zakładce `forge` (materiały do ulepszenia, budowane przez `UpgradeService::getUpgradeCost()`), jak i `crafting` (składniki receptur, budowane w `Blacksmith::render()`), tooltip każdego materiału ("Do zdobycia z") pokazuje listę potworów, z których dany surowiec wypada, **wraz z nazwą krainy** (`Monster::map->name`), np. "Wilk Leśny · Mroczny Las". Dane pobierane są zbiorczo z `LootTableEntry` (z eager-loadem `lootTable.monsters.map`), żeby uniknąć zapytań N+1 przy wielu materiałach jednocześnie.
+
+## 8. Historia zmian
 > **Refaktor:** Wcześniej funkcjonalność ulepszania i craftingu broni/zbroi była zduplikowana w dwóch osobnych komponentach (`Weaponsmith` obsługiwał tylko `type === 'weapon'`, `Armorsmith` tylko `type === 'armor'`/`'accessory'`), każdy z własnymi zakładkami `forge`/`crafting` i niemal identycznym kodem widoku. Wydzielenie do wspólnej domeny Kowal eliminuje tę duplikację i pozwala ulepszać/wytwarzać dowolny ekwipunek bojowy w jednym miejscu. Dodano też filtr typu/slotu, żeby ułatwić nawigację po połączonej liście broni i różnych części zbroi.

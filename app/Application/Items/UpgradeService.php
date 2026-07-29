@@ -47,7 +47,12 @@ class UpgradeService
                 if ($template) {
                     $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($template) {
                         $q->where('ref_ulid', $template->id);
-                    })->pluck('name')->toArray();
+                    })->with('map')->get()->map(function ($monster) {
+                        return [
+                            'monster' => $monster->name,
+                            'map' => $monster->map->name ?? null,
+                        ];
+                    })->toArray();
 
                     $materials[] = [
                         'template_id' => $template->id,

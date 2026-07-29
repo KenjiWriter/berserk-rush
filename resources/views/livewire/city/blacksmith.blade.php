@@ -143,8 +143,10 @@
                                                                 <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
                                                                 @if(isset($reqMat['dropped_by']) && count($reqMat['dropped_by']) > 0)
                                                                     <div class="flex flex-wrap justify-center gap-1 mt-2">
-                                                                        @foreach(array_unique($reqMat['dropped_by']) as $monsterName)
-                                                                            <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                                        @foreach($reqMat['dropped_by'] as $drop)
+                                                                            <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
+                                                                                {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                            </span>
                                                                         @endforeach
                                                                     </div>
                                                                 @else
@@ -326,8 +328,10 @@
                                                     <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
                                                     @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
                                                         <div class="flex flex-wrap justify-center gap-1 mt-2">
-                                                            @foreach(array_unique($ing['dropped_by']) as $monsterName)
-                                                                <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">{{ $monsterName }}</span>
+                                                            @foreach($ing['dropped_by'] as $drop)
+                                                                <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
+                                                                    {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                </span>
                                                             @endforeach
                                                         </div>
                                                     @else

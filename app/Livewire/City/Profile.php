@@ -479,6 +479,34 @@ class Profile extends Component
 
         $materialStashItems = $this->character->materialStashItems->take(100);
 
+        // Batch fetch monster/map drop sources for materials shown in plecak + magazyn materiałów (eliminuje N+1).
+        $materialTemplateIds = $inventory->filter(fn ($item) => ($item->template->type ?? null) === 'material')->pluck('template_id')
+            ->merge($materialStashItems->pluck('template_id'))
+            ->unique()->filter()->values();
+
+        $materialDropSources = [];
+        if ($materialTemplateIds->isNotEmpty()) {
+            $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $materialTemplateIds)
+                ->whereHas('lootTable.monsters')
+                ->with('lootTable.monsters.map')
+                ->get();
+            foreach ($entries as $entry) {
+                if ($entry->lootTable && $entry->lootTable->monsters) {
+                    foreach ($entry->lootTable->monsters as $m) {
+                        if ($m->name) {
+                            $materialDropSources[$entry->ref_ulid][$m->name] = [
+                                'monster' => $m->name,
+                                'map' => $m->map->name ?? null,
+                            ];
+                        }
+                    }
+                }
+            }
+            foreach ($materialDropSources as $tid => $list) {
+                $materialDropSources[$tid] = array_values($list);
+            }
+        }
+
         $activeWeaponType = $this->character->getEquippedWeaponType();
         $activeScalingStats = match ($activeWeaponType) {
             'bow', 'sword', 'dagger' => ['str', 'agi'],
@@ -492,6 +520,7 @@ class Profile extends Component
             'inventory' => $inventory,
             'playerStashItems' => $playerStashItems,
             'materialStashItems' => $materialStashItems,
+            'materialDropSources' => $materialDropSources,
             'materialStashCount' => $this->character->getMaterialStashCount(),
             'materialStashCapacity' => $this->character->getMaterialStashCapacity(),
             'stashCapacity' => $user?->getStashCapacity() ?? 2,

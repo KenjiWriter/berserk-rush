@@ -1,6 +1,7 @@
 @props([
-    'item', 
+    'item',
     'equippedItem' => null,
+    'dropSources' => null,
 ])
 
 @php
@@ -153,6 +154,22 @@
                 <p class="text-red-400 font-bold text-xs uppercase animate-pulse border-b border-red-500/50 pb-1 w-max">
                     <i class="fa-solid fa-fire text-red-500 mr-1"></i> Nakład: {{ $roll_stats['mint'] }} / {{ $roll_stats['max_mint'] }}
                 </p>
+            @endif
+            @if(($template->type ?? null) === 'material' && $dropSources !== null)
+                <div class="mt-1.5 pt-1.5 border-t border-slate-700/70">
+                    <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Wypada z</p>
+                    @if(count($dropSources) > 0)
+                        <div class="flex flex-wrap gap-1">
+                            @foreach($dropSources as $drop)
+                                <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
+                                    {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                </span>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-[10px] text-gray-500 italic">Brak w znanych tabelach łupów.</p>
+                    @endif
+                </div>
             @endif
         </div>
         

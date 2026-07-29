@@ -827,7 +827,7 @@
                                 <template x-if="open">
                                     <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
                                         <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                        <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                        <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" :dropSources="($item->template->type ?? null) === 'material' ? ($materialDropSources[$item->template_id] ?? []) : null">
                                             <x-slot:actions>
                                                 <div class="flex flex-col gap-2 w-full">
                                                     @if($character->level < $item->template->level_requirement)
@@ -903,7 +903,7 @@
                                  @click.stop="closeTooltip()">
                                 <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" @click.stop>
                                     <button @click="closeTooltip()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
-                                    <x-item-tooltip :item="$item">
+                                    <x-item-tooltip :item="$item" :dropSources="$materialDropSources[$item->template_id] ?? []">
                                         <x-slot:actions>
                                             <div class="flex flex-col gap-2 w-full">
                                                 <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-1.5 rounded transition-colors shadow flex items-center justify-center gap-1.5 text-xs">

@@ -162,19 +162,22 @@ class Blacksmith extends Component
         if (!empty($allMatIds)) {
             $entries = \App\Infrastructure\Persistence\LootTableEntry::whereIn('ref_ulid', $allMatIds)
                 ->whereHas('lootTable.monsters')
-                ->with('lootTable.monsters')
+                ->with('lootTable.monsters.map')
                 ->get();
             foreach ($entries as $entry) {
                 if ($entry->lootTable && $entry->lootTable->monsters) {
                     foreach ($entry->lootTable->monsters as $m) {
                         if ($m->name) {
-                            $monsterDropsMap[$entry->ref_ulid][] = $m->name;
+                            $monsterDropsMap[$entry->ref_ulid][$m->name] = [
+                                'monster' => $m->name,
+                                'map' => $m->map->name ?? null,
+                            ];
                         }
                     }
                 }
             }
             foreach ($monsterDropsMap as $ulid => $mList) {
-                $monsterDropsMap[$ulid] = array_values(array_unique($mList));
+                $monsterDropsMap[$ulid] = array_values($mList);
             }
         }
 
