@@ -52,6 +52,9 @@ class TutorialOverlay extends Component
                 $character = $activeCharacterId ? Character::where('id', $activeCharacterId)->where('user_id', $user->id)->first() : null;
 
                 if ($this->rewardItemTemplateId && $this->rewardItem && $character) {
+                    // Jak w CreateCharacter - bound_to_character odzwierciedla wyłącznie
+                    // aktualny stan założenia. Trwała ochrona nagród samouczka idzie
+                    // przez ItemTemplate::is_tradeable.
                     ItemInstance::create([
                         'template_id' => $this->rewardItem->id,
                         'owner_character_id' => $character->id,
@@ -60,7 +63,6 @@ class TutorialOverlay extends Component
                         'rarity' => 'common',
                         'roll_stats' => [],
                         'upgrade_level' => 0,
-                        'bound_to_character' => true,
                     ]);
                 }
 

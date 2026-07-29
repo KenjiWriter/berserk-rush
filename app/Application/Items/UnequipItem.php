@@ -31,6 +31,7 @@ class UnequipItem
 
                 $item->update([
                     'location' => 'inventory',
+                    'bound_to_character' => false,
                 ]);
 
                 Log::info('Item unequipped', [

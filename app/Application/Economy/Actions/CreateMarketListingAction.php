@@ -32,7 +32,7 @@ class CreateMarketListingAction
         }
 
         if ($item->bound_to_character) {
-            return Result::error('ITEM_BOUND', 'Przedmiot jest przywiązany do postaci i nie może być sprzedany.');
+            return Result::error('ITEM_BOUND', 'Musisz zdjąć ten przedmiot, zanim wystawisz go na targowisko.');
         }
 
         if (!($item->template->is_tradeable ?? true)) {

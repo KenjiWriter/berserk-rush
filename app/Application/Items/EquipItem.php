@@ -45,12 +45,16 @@ class EquipItem
 
                 // If there's an item, unequip it
                 if ($currentlyEquipped) {
-                    $currentlyEquipped->update(['location' => 'inventory']);
+                    $currentlyEquipped->update(['location' => 'inventory', 'bound_to_character' => false]);
                 }
 
-                // Equip the new item
+                // Equip the new item - bound_to_character tracks ONLY current equip
+                // state (patrz UnequipItem, który cofa to przy zdjęciu). Stała
+                // ochrona przed handlem (np. przedmioty startowe) idzie przez
+                // ItemTemplate::is_tradeable, nie przez tę flagę.
                 $item->update([
                     'location' => 'equipped',
+                    'bound_to_character' => true,
                 ]);
 
                 Log::info('Item equipped', [

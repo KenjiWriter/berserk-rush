@@ -35,7 +35,11 @@ class GuildStashService
         }
 
         if ($item->isBound()) {
-            return Result::error('BOUND_ITEM', 'Nie można przekazać przypisanego przedmiotu do magazynu gildii.');
+            return Result::error('BOUND_ITEM', 'Nie można przekazać założonego przedmiotu do magazynu gildii.');
+        }
+
+        if (!($item->template->is_tradeable ?? true)) {
+            return Result::error('ITEM_UNTRADEABLE', 'Tego przedmiotu nie można przekazać do magazynu gildii.');
         }
 
         $currentCount = $guild->guildStashItems()->count();

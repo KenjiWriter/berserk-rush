@@ -76,6 +76,10 @@ class CreateCharacter
                     ?? ItemTemplate::find('01k4jpx94j70x2vv10b835prm4');
 
                 if ($starterWeapon) {
+                    // Nie ustawiamy tu bound_to_character - ta flaga odzwierciedla teraz
+                    // wyłącznie aktualny stan założenia (patrz EquipItem/UnequipItem).
+                    // Trwała ochrona przed handlem dla przedmiotu startowego idzie przez
+                    // ItemTemplate::is_tradeable (patrz ItemTemplateSeeder).
                     ItemInstance::create([
                         'template_id' => $starterWeapon->id,
                         'owner_character_id' => $character->id,
@@ -84,7 +88,6 @@ class CreateCharacter
                         'rarity' => 'common',
                         'roll_stats' => [],
                         'upgrade_level' => 0,
-                        'bound_to_character' => true,
                     ]);
                 }
 
