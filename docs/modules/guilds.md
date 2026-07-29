@@ -93,6 +93,12 @@ systemu:
   `guild_war_fights` (kolumny `challenger_snapshot`/`defender_snapshot`
   przechowują TABLICĘ snapshotów do 5 postaci, nie pojedynczy obiekt jak w
   poprzedniej wersji z 5 osobnymi pojedynkami).
+- **Zestaw wojenny:** snapshoty wszystkich 10 postaci (`processWar()`) liczone
+  są z dedykowanego zestawu "Wojna Gildii" (`createSnapshot('guild_war')`,
+  patrz `docs/modules/profile_and_equipment.md`, sekcja "Zestawy Ekwipunku"),
+  niezależnie od tego czy dana postać jest w drużynie atakującej czy broniącej
+  - z fallbackiem per-slot na aktualny ekwipunek, gdy dany slot zestawu nie
+  jest skonfigurowany.
 
 > **Status wdrożenia (2026-07-29):** `GuildWarService` jest w pełni podpięty
 > pod UI gildii (`GuildComponent`/`guild-component.blade.php`). Wyzwanie

@@ -9,6 +9,14 @@ W walkach z innymi graczami wprowadzono mechanizm snapshotów. Dzięki temu moż
 - Atakujący wyzywając rywala zapisuje bieżące "Widmo" (statystyki i ekwipunek) w encji spotkania,
 - Tak samo zapisywane są aktualne statystyki obrońcy, by walka przebiegła na równych i stałych warunkach.
 
+**Zestaw obronny Areny:** snapshot obrońcy (`$defender->createSnapshot('pvp')`
+w `PvPEncounterService::startEncounter()`) liczy się z dedykowanego zestawu
+"Arena PvP" (patrz `docs/modules/profile_and_equipment.md`, sekcja "Zestawy
+Ekwipunku"), a nie z aktualnie fizycznie założonego ekwipunku - z fallbackiem
+per-slot na aktualny gear, gdy dany slot zestawu nie jest skonfigurowany.
+Atakujący zawsze walczy tym, co ma aktualnie na sobie w momencie ataku
+(`$attacker->createSnapshot()` bez argumentu).
+
 ### System ELO, Ligi i Dzienny Limit Walk
 Arena posiada własny system matchmakingu, rangowania oraz limitowania pojedynków:
 - **Dzienny limit walk:** Każdy gracz posiada limit 5 walk na Arenie dziennie w roli atakującego,

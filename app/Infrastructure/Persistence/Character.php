@@ -206,6 +206,16 @@ class Character extends Model
         return $this->items()->where('location', 'equipped')->with('template');
     }
 
+    public function equipmentSetItems(): HasMany
+    {
+        return $this->hasMany(CharacterEquipmentSetItem::class);
+    }
+
+    public function equipmentSetItemsFor(string $setType)
+    {
+        return $this->equipmentSetItems()->where('set_type', $setType)->with('itemInstance.template');
+    }
+
     public function inventoryItems()
     {
         return $this->items()->where('location', 'inventory')->whereHas('template', function($q) {
@@ -345,11 +355,41 @@ class Character extends Model
         ];
     }
 
-    public function getTotalAttributes(): array
+    /**
+     * Rozwiązuje efektywny zestaw przedmiotów dla wyliczeń bojowych: dla $setType
+     * === null zwraca aktualnie fizycznie założone przedmioty (jak dotychczas);
+     * dla setów wirtualnych (pvp/guild_war/set_1..3) bierze zapisany przedmiot per
+     * slot z `character_equipment_set_items`, a gdy dany slot nie jest
+     * skonfigurowany (albo zapisany przedmiot nie należy już do postaci) - spada
+     * per-slot na aktualnie założony przedmiot (patrz docs/modules/profile_and_equipment.md).
+     */
+    private function resolveEffectiveEquipment(?string $setType = null): \Illuminate\Support\Collection
     {
-        return Cache::remember($this->getCacheKey('total_attributes'), 3600, function () {
+        if ($setType === null) {
+            return $this->equippedItems;
+        }
+
+        $savedBySlot = $this->equipmentSetItemsFor($setType)->get()->keyBy('slot');
+        $liveBySlot = $this->equippedItems->keyBy(fn ($item) => $item->template->slot);
+
+        return collect(CharacterEquipmentSetItem::SLOTS)
+            ->map(function (string $slot) use ($savedBySlot, $liveBySlot) {
+                $saved = $savedBySlot->get($slot)?->itemInstance;
+                if ($saved && $saved->owner_character_id === $this->id) {
+                    return $saved;
+                }
+
+                return $liveBySlot->get($slot);
+            })
+            ->filter()
+            ->values();
+    }
+
+    public function getTotalAttributes(?string $setType = null): array
+    {
+        $compute = function () use ($setType) {
             $base = $this->getAttribute('attributes') ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
-            
+
             $total = [
                 'str' => $base['str'] ?? 0,
                 'int' => $base['int'] ?? 0,
@@ -357,7 +397,7 @@ class Character extends Model
                 'agi' => $base['agi'] ?? 0,
             ];
 
-            foreach ($this->equippedItems as $item) {
+            foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $templateStats = $item->getResolvedBaseStats();
                 $rollStats = $item->roll_stats ?? [];
                 $upgradeStats = $item->getUpgradeBonusStats();
@@ -428,12 +468,18 @@ class Character extends Model
             }
 
             return $total;
-        });
+        };
+
+        if ($setType === null) {
+            return Cache::remember($this->getCacheKey('total_attributes'), 3600, $compute);
+        }
+
+        return $compute();
     }
 
-    public function getEquipmentStats(): array
+    public function getEquipmentStats(?string $setType = null): array
     {
-        return Cache::remember($this->getCacheKey('equipment_stats'), 3600, function () {
+        $compute = function () use ($setType) {
             $stats = [
                 'hp_bonus' => 0,
                 'mana_bonus' => 0,
@@ -450,7 +496,7 @@ class Character extends Model
                 'magic_burst_max' => 0,
             ];
 
-            foreach ($this->equippedItems as $item) {
+            foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $base = $item->getResolvedBaseStats();
                 $roll = $item->roll_stats ?? [];
                 $upgrade = $item->getUpgradeBonusStats();
@@ -551,23 +597,35 @@ class Character extends Model
             }
 
             return $stats;
-        });
+        };
+
+        if ($setType === null) {
+            return Cache::remember($this->getCacheKey('equipment_stats'), 3600, $compute);
+        }
+
+        return $compute();
     }
 
-    public function getMaxHp(): int
+    public function getMaxHp(?string $setType = null): int
     {
-        return Cache::remember($this->getCacheKey('max_hp'), 3600, function () {
-            $vitality = $this->getTotalAttributes()['vit'] ?? 1;
-            $eq = $this->getEquipmentStats();
+        $compute = function () use ($setType) {
+            $vitality = $this->getTotalAttributes($setType)['vit'] ?? 1;
+            $eq = $this->getEquipmentStats($setType);
             return 100 + ($vitality * self::ATTRIBUTE_HP_MULTIPLIER) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
-        });
+        };
+
+        if ($setType === null) {
+            return Cache::remember($this->getCacheKey('max_hp'), 3600, $compute);
+        }
+
+        return $compute();
     }
 
-    public function getTotalCombatPower(): int
+    public function getTotalCombatPower(?string $setType = null): int
     {
-        return Cache::remember($this->getCacheKey('combat_power'), 3600, function () {
+        $compute = function () use ($setType) {
             $cp = 0;
-            foreach ($this->equippedItems as $item) {
+            foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $cp += $item->getCombatPower();
             }
 
@@ -578,7 +636,13 @@ class Character extends Model
             }
 
             return $cp;
-        });
+        };
+
+        if ($setType === null) {
+            return Cache::remember($this->getCacheKey('combat_power'), 3600, $compute);
+        }
+
+        return $compute();
     }
 
     public function pvpEncountersAsAttacker(): HasMany
@@ -591,11 +655,16 @@ class Character extends Model
         return $this->hasMany(PvpEncounter::class, 'defender_character_id');
     }
 
-    public function createSnapshot(): array
+    /**
+     * @param string|null $setType Gdy podane (patrz CharacterEquipmentSetItem::ALL_SETS),
+     *   snapshot liczy statystyki z zapisanego zestawu (pvp/guild_war/...) zamiast
+     *   z aktualnie fizycznie założonego ekwipunku - patrz resolveEffectiveEquipment().
+     */
+    public function createSnapshot(?string $setType = null): array
     {
         // Ensure skills are loaded
         $this->loadMissing('equippedSkills.skill');
-        
+
         $skillsData = $this->equippedSkills->map(function($charSkill) {
             return [
                 'id' => $charSkill->skill->id,
@@ -614,16 +683,16 @@ class Character extends Model
         })->toArray();
 
         // Check weapon type accurately
-        $weaponType = $this->getEquippedWeaponType();
+        $weaponType = $this->getEquippedWeaponType($setType);
 
         return [
             'character_id' => $this->id,
             'name' => $this->name,
             'level' => $this->level,
-            'attributes' => $this->getTotalAttributes(),
-            'equipment_stats' => $this->getEquipmentStats(),
-            'max_hp' => $this->getMaxHp(),
-            'combat_power' => $this->getTotalCombatPower(),
+            'attributes' => $this->getTotalAttributes($setType),
+            'equipment_stats' => $this->getEquipmentStats($setType),
+            'max_hp' => $this->getMaxHp($setType),
+            'combat_power' => $this->getTotalCombatPower($setType),
             'skills' => $skillsData,
             'weapon_type' => $weaponType,
         ];
@@ -648,11 +717,10 @@ class Character extends Model
         return 'platinum';
     }
 
-    public function getEquippedWeaponType(): string
+    public function getEquippedWeaponType(?string $setType = null): string
     {
-        $weapon = $this->equippedItems()->whereHas('template', function($q) {
-            $q->where('slot', 'main_hand');
-        })->first();
+        $weapon = $this->resolveEffectiveEquipment($setType)
+            ->first(fn ($item) => $item->template?->slot === 'main_hand');
 
         if (!$weapon || !$weapon->template) {
             return 'barehands';

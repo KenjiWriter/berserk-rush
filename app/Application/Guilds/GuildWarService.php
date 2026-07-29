@@ -6,6 +6,7 @@ use App\Application\Shared\Result;
 use App\Models\Guild;
 use App\Models\GuildMember;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
 use App\Infrastructure\Persistence\GuildWar;
 use App\Infrastructure\Persistence\GuildWarFight;
 use App\Infrastructure\Persistence\Mail;
@@ -176,17 +177,20 @@ class GuildWarService
                 $challengerCharacters = Character::whereIn('id', $challengerRoster)->get()->keyBy('id');
                 $defenderCharacters = Character::whereIn('id', $defenderRoster)->get()->keyBy('id');
 
+                // Obie strony walczą dedykowanym setem "Wojna Gildii" (z fallbackiem
+                // per-slot na aktualny ekwipunek - patrz Character::resolveEffectiveEquipment()),
+                // niezależnie od tego, czy to atak czy obrona.
                 $challengerSnapshots = [];
                 foreach ($challengerRoster as $characterId) {
                     if (isset($challengerCharacters[$characterId])) {
-                        $challengerSnapshots[] = $challengerCharacters[$characterId]->createSnapshot();
+                        $challengerSnapshots[] = $challengerCharacters[$characterId]->createSnapshot(CharacterEquipmentSetItem::SET_GUILD_WAR);
                     }
                 }
 
                 $defenderSnapshots = [];
                 foreach ($defenderRoster as $characterId) {
                     if (isset($defenderCharacters[$characterId])) {
-                        $defenderSnapshots[] = $defenderCharacters[$characterId]->createSnapshot();
+                        $defenderSnapshots[] = $defenderCharacters[$characterId]->createSnapshot(CharacterEquipmentSetItem::SET_GUILD_WAR);
                     }
                 }
 

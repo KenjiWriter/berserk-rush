@@ -21,6 +21,68 @@
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none"></div>
 
 
+            <!-- Zestawy Ekwipunku: szybka zmiana (Arena PvP / Wojna Gildii / Set 1-3) -->
+            <div class="flex flex-wrap justify-center gap-1.5 xs:gap-2 mb-2" x-data="{ openSet: null }">
+                @foreach($equipmentSets as $setType => $set)
+                    @php
+                        $setIcon = match($setType) {
+                            'pvp' => 'fa-shield-halved',
+                            'guild_war' => 'fa-flag',
+                            default => 'fa-star',
+                        };
+                    @endphp
+                    <div class="relative" @click.outside="openSet === '{{ $setType }}' && (openSet = null)">
+                        <button type="button" @click="openSet = (openSet === '{{ $setType }}' ? null : '{{ $setType }}')"
+                                class="flex items-center gap-1.5 px-2 xs:px-2.5 py-1 xs:py-1.5 rounded-lg border-2 text-[9px] xs:text-[11px] font-semibold transition-colors
+                                    {{ $set['locked'] ? 'border-stone-700 bg-stone-900/60 text-stone-500' : 'border-amber-600/60 bg-stone-900/80 text-amber-200 hover:border-amber-400' }}">
+                            <i class="fa-solid {{ $setIcon }}"></i>
+                            <span>{{ $set['label'] }}</span>
+                            @if($set['locked'])
+                                <i class="fa-solid fa-lock text-stone-500"></i>
+                            @elseif($set['configuredCount'] > 0)
+                                <span class="text-green-400">({{ $set['configuredCount'] }}/6)</span>
+                            @endif
+                        </button>
+
+                        <div x-show="openSet === '{{ $setType }}'" x-transition.opacity style="display: none;" @click.stop
+                             class="absolute z-[999] top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-stone-900 border border-amber-500/50 rounded-xl shadow-2xl p-3 text-left">
+                            @if($set['locked'])
+                                <p class="text-stone-400 text-xs mb-2">Ten zestaw jest dostępny wyłącznie dla graczy Premium.</p>
+                            @else
+                                <div class="grid grid-cols-6 gap-1 mb-2">
+                                    @foreach($set['slots'] as $slot => $item)
+                                        <div class="w-7 h-7 bg-stone-800 border border-stone-700 rounded flex items-center justify-center" title="{{ ucfirst($slot) }}">
+                                            @if($item && $item->template && $item->template->icon)
+                                                <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain p-0.5" alt="{{ $item->template->name }}">
+                                            @else
+                                                <i class="fa-solid fa-circle-question text-stone-600 text-[10px]"></i>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @if($set['configuredCount'] === 0)
+                                    <p class="text-stone-500 text-[10px] mb-2">Nieskonfigurowany - użyje aktualnego ekwipunku.</p>
+                                @endif
+                            @endif
+                            <div class="flex flex-col gap-1.5">
+                                <button wire:click="saveEquipmentSet('{{ $setType }}')" @click="openSet = null"
+                                        @if($set['locked']) disabled @endif
+                                        class="w-full bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold py-1.5 rounded">
+                                    Zapisz aktualny ekwipunek
+                                </button>
+                                @if($set['isWearable'])
+                                    <button wire:click="applyEquipmentSet('{{ $setType }}')" @click="openSet = null"
+                                            @if($set['locked'] || $set['configuredCount'] === 0) disabled @endif
+                                            class="w-full bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold py-1.5 rounded">
+                                        Załóż ten zestaw
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
             <!-- Equipment Slots & Portrait -->
             <div class="flex justify-center items-start gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 lg:gap-4 xl:gap-6 mb-3 mt-1 sm:mt-2">
                 <!-- Left Slots -->

@@ -6,6 +6,7 @@ use App\Application\Shared\Result;
 use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\Encounter;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -57,8 +58,12 @@ class PvPEncounterService
                     'attacker_character_id' => $attacker->id,
                     'defender_character_id' => $defender->id,
                     'state' => 'pending',
+                    // Atakujący zawsze walczy tym, co ma aktualnie założone - to on
+                    // wybiera moment ataku. Obrońca broni się dedykowanym setem "Arena
+                    // PvP" (z fallbackiem per-slot na aktualny ekwipunek - patrz
+                    // Character::resolveEffectiveEquipment()), bo może być offline.
                     'attacker_snapshot' => $attacker->createSnapshot(),
-                    'defender_snapshot' => $defender->createSnapshot(),
+                    'defender_snapshot' => $defender->createSnapshot(CharacterEquipmentSetItem::SET_PVP),
                 ]);
 
                 // Simulate immediately

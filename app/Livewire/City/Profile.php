@@ -3,8 +3,10 @@
 namespace App\Livewire\City;
 
 use App\Application\Items\EquipItem;
+use App\Application\Items\EquipmentSetService;
 use App\Application\Items\UnequipItem;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Pet;
 use App\Infrastructure\Persistence\CharacterIncubator;
@@ -161,6 +163,42 @@ class Profile extends Component
             $this->dispatch('notify', type: 'success', message: 'Przedmiot zdjęty pomyślnie.');
             $this->dispatch('play-audio', type: 'unequip');
             $this->character->clearStatsCache();
+            $this->character->refresh();
+            $this->character->load(['equippedItems.template', 'inventoryItems.template']);
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public const EQUIPMENT_SET_LABELS = [
+        CharacterEquipmentSetItem::SET_PVP => 'Arena PvP',
+        CharacterEquipmentSetItem::SET_GUILD_WAR => 'Wojna Gildii',
+        CharacterEquipmentSetItem::SET_1 => 'Set 1',
+        CharacterEquipmentSetItem::SET_2 => 'Set 2',
+        CharacterEquipmentSetItem::SET_3 => 'Set 3',
+    ];
+
+    public function saveEquipmentSet(string $setType, EquipmentSetService $service)
+    {
+        $result = $service->saveCurrentAsSet($this->character, $setType);
+
+        if ($result->isOk()) {
+            $label = self::EQUIPMENT_SET_LABELS[$setType] ?? $setType;
+            $this->dispatch('notify', type: 'success', message: "Zapisano aktualny ekwipunek jako zestaw: {$label}.");
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function applyEquipmentSet(string $setType, EquipmentSetService $service)
+    {
+        $result = $service->applySet($this->character, $setType);
+
+        if ($result->isOk()) {
+            $label = self::EQUIPMENT_SET_LABELS[$setType] ?? $setType;
+            $this->dispatch('notify', type: 'success', message: "Założono zestaw: {$label}.");
+            $this->dispatch('play-audio', type: 'equip');
             $this->character->refresh();
             $this->character->load(['equippedItems.template', 'inventoryItems.template']);
         } else {
@@ -405,7 +443,27 @@ class Profile extends Component
                 $equipped[$slot] = $item;
             }
         }
-        
+
+        $hasPremium = auth()->user()?->hasPremium() ?? false;
+        $savedSetItems = $this->character->equipmentSetItems()->with('itemInstance.template')->get()->groupBy('set_type');
+
+        $equipmentSets = [];
+        foreach (CharacterEquipmentSetItem::ALL_SETS as $setType) {
+            $itemsForSet = ($savedSetItems->get($setType) ?? collect())->keyBy('slot');
+            $slots = [];
+            foreach (CharacterEquipmentSetItem::SLOTS as $slot) {
+                $slots[$slot] = $itemsForSet->get($slot)?->itemInstance;
+            }
+
+            $equipmentSets[$setType] = [
+                'label' => self::EQUIPMENT_SET_LABELS[$setType],
+                'isWearable' => in_array($setType, CharacterEquipmentSetItem::WEARABLE_SETS, true),
+                'locked' => in_array($setType, CharacterEquipmentSetItem::VIP_ONLY_SETS, true) && !$hasPremium,
+                'slots' => $slots,
+                'configuredCount' => $itemsForSet->count(),
+            ];
+        }
+
         $totalAttributes = $this->character->getTotalAttributes();
         
         // Derived stats
@@ -536,6 +594,7 @@ class Profile extends Component
             'incubator' => $incubator,
             'eggs' => $eggs,
             'baseAvatars' => $baseAvatars,
+            'equipmentSets' => $equipmentSets,
         ]);
     }
 }

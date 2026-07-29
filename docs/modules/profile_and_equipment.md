@@ -89,3 +89,41 @@ Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swo
 > ekwipunku, więc cały ten mechanizm działa "za darmo" - nie wymagał zmian w kodzie
 > postaci, tylko w tym, co seeder faktycznie przydziela przedmiotom
 > (`$classArmorAttributes` w `ItemTemplateSeeder.php`).
+
+### 5. Zestawy Ekwipunku (Arena PvP / Wojna Gildii / Set 1-2-3)
+
+Postać może zapisać do **5 niezależnych, wirtualnych zestawów** ekwipunku,
+niezależnych od tego, co jest aktualnie fizycznie założone:
+- **`pvp`** ("Arena PvP") - używany wyłącznie do wyliczenia snapshotu OBROŃCY,
+  gdy ktoś wyzywa naszą postać na Arenie (patrz `docs/modules/pvp_and_arena.md`).
+  Atakujący zawsze walczy swoim aktualnie założonym gearem.
+- **`guild_war`** ("Wojna Gildii") - używany dla OBU stron (atak i obrona)
+  podczas rozstrzygania starcia 5v5 (patrz `docs/modules/guilds.md`).
+- **`set_1`** - dostępny dla każdego gracza.
+- **`set_2`** / **`set_3`** - wymagają Premium (`User::hasPremium()`), analogicznie
+  do limitu plecaka.
+
+**Model danych:** tabela `character_equipment_set_items` (`character_id`,
+`set_type`, `slot`, `item_instance_id`, unikalny indeks na trójce
+`character_id`+`set_type`+`slot`) - model `CharacterEquipmentSetItem`. Zestawy
+NIE poruszają fizycznie przedmiotów (poza jawnym "Załóż zestaw" dla
+set_1/2/3) - to czysto wirtualny zapis "który przedmiot w którym slocie".
+
+**Zapisywanie / zakładanie (`EquipmentSetService`):**
+- `saveCurrentAsSet()` - zapisuje to, co postać ma AKTUALNIE założone, jako
+  dany zestaw (nadpisuje poprzednią zawartość).
+- `applySet()` - **tylko dla `set_1`/`set_2`/`set_3`** - fizycznie zamienia
+  bieżący ekwipunek na zapisany (swap slot-po-slocie, jak przy zwykłym
+  zakładaniu). `pvp`/`guild_war` nigdy nie są "zakładane" (błąd `NOT_WEARABLE`).
+
+**Fallback per-slot:** gdy wyliczenia bojowe pytają o zestaw (`pvp`/`guild_war`),
+a dany slot nie jest skonfigurowany, albo zapisany przedmiot już nie należy do
+postaci (sprzedany, przekazany dalej) - TYLKO ten pojedynczy slot spada na
+aktualnie założony przedmiot, reszta zestawu działa normalnie
+(`Character::resolveEffectiveEquipment()`). Jeśli cały zestaw jest pusty,
+efektywnie odpowiada to aktualnie założonemu ekwipunkowi.
+
+**UI:** pasek 5 przycisków nad slotami w `profile.blade.php` (Arena PvP /
+Wojna Gildii / Set 1 / Set 2 / Set 3, kłódka gdy brak Premium) - rozwijane
+menu z podglądem zapisanych przedmiotów oraz przyciskami "Zapisz aktualny
+ekwipunek" i (tylko dla setów do noszenia) "Załóż ten zestaw".
