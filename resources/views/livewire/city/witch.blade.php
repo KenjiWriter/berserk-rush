@@ -494,7 +494,10 @@
                                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                                                     @foreach($possibleBonuses as $bonusKey => $range)
                                                         @php
-                                                            $isPct = str_contains($bonusKey, 'chance') || str_contains($bonusKey, 'resist') || str_contains($bonusKey, 'strong_vs');
+                                                            // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć -
+                                                            // wszystko inne (w tym attack_power/magic_attack, patrz
+                                                            // EnchantmentStrategy) jest wyrażone w %.
+                                                            $isPct = !in_array($bonusKey, ['hp_bonus', 'defense', 'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true);
                                                         @endphp
                                                         <div class="flex justify-between items-center bg-black/30 rounded-lg px-3 py-1.5 border border-indigo-900/40">
                                                             <span class="text-gray-300">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusKey) }}</span>
