@@ -403,7 +403,7 @@
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
-                    <div id="combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
+                    <div id="combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar">
                         {{-- Loading Overlay during startBattle --}}
                         <div wire:loading.flex wire:target="startBattle" class="absolute inset-0 z-20 flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md text-center">
                             <div class="relative w-20 h-20 mb-3">
@@ -415,7 +415,7 @@
                         </div>
 
                         @if($isCalculating)
-                            <div class="h-full flex flex-col items-center justify-center text-center">
+                            <div class="h-full flex flex-col items-center justify-center text-center" wire:poll.500ms="checkCombatStatus">
                                 <div class="relative w-24 h-24 sm:w-28 sm:h-28 mb-4">
                                     <div class="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin"></div>
                                     <div class="absolute inset-2 rounded-full border-4 border-amber-700/30 border-b-amber-600 animate-[spin_1.5s_linear_infinite_reverse]"></div>
@@ -443,7 +443,7 @@
                                     @endif
                             @else
                                 @foreach ($visibleTurns as $index => $turn)
-                                    <li class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
+                                    <li wire:key="turn-{{ $currentEncounterId }}-{{ $index }}" class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
                                         <span
                                             class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-amber-900/80 text-amber-200 rounded-md border border-amber-600/40 px-1 py-0.5 mr-1.5 font-mono">
                                             T{{ $index + 1 }}
@@ -500,6 +500,7 @@
                                 {{-- Battle Result & Rewards --}}
                                 @if ($battleCompleted)
                                     <li
+                                        wire:key="battle-result-{{ $currentEncounterId }}"
                                         class="text-center mt-4 p-4 rounded-2xl {{ $result == 'win' ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 shadow-[0_0_25px_rgba(16,185,129,0.2)]' : ($result == 'finished' ? 'bg-purple-950/80 border border-purple-500/40 text-purple-200' : 'bg-red-950/80 border border-red-500/40 text-red-200') }} backdrop-blur-md">
                                         <div class="text-xl sm:text-2xl font-bold medieval-font tracking-wide">
                                             {{ $result == 'win' ? 'TRIUMF!' : ($result == 'finished' ? 'WALKA ZAKOŃCZONA' : 'KLĘSKA!') }}
