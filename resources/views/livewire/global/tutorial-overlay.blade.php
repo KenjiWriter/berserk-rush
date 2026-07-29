@@ -141,7 +141,7 @@
                                                         @foreach($rewardItem->base_stats ?? [] as $stat => $val)
                                                             <div class="flex justify-between">
                                                                 <span class="capitalize">{{ str_replace('_', ' ', $stat) }}</span>
-                                                                <span class="font-bold">+{{ $val }}</span>
+                                                                <span class="font-bold">+{{ is_array($val) ? $val[0] . '-' . $val[1] : $val }}</span>
                                                             </div>
                                                         @endforeach
                                                     </div>
