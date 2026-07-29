@@ -356,7 +356,7 @@ class Character extends Model
             ];
 
             foreach ($this->equippedItems as $item) {
-                $templateStats = $item->template->base_stats ?? [];
+                $templateStats = $item->getResolvedBaseStats();
                 $rollStats = $item->roll_stats ?? [];
                 $upgradeStats = $item->getUpgradeBonusStats();
 
@@ -449,7 +449,7 @@ class Character extends Model
             ];
 
             foreach ($this->equippedItems as $item) {
-                $base = $item->template->base_stats ?? [];
+                $base = $item->getResolvedBaseStats();
                 $roll = $item->roll_stats ?? [];
                 $upgrade = $item->getUpgradeBonusStats();
 

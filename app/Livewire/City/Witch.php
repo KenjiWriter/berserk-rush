@@ -141,7 +141,7 @@ class Witch extends Component
         $recipe = ItemRecipe::find($recipeId);
         if (!$recipe) return;
 
-        $action = new CraftingService();
+        $action = app(CraftingService::class);
         $result = $action->craftItem($this->character, $recipe);
 
         if ($result['success']) {

@@ -30,7 +30,6 @@ class ItemTemplates extends Component
         'slot' => 'nullable|string',
         'level_requirement' => 'required|integer|min:1',
         'selectedStats' => 'array',
-        'statValues.*' => 'numeric',
         'duration_minutes' => 'nullable|integer|min:1',
     ];
 
@@ -100,53 +99,43 @@ class ItemTemplates extends Component
             // Attack multipliers
             if ((float)$this->bulkAtkMult !== 1.0) {
                 foreach (['attack_min', 'attack_max', 'magic_attack_min', 'magic_attack_max'] as $key) {
-                    if (isset($stats[$key])) {
-                        $stats[$key] = (int) max(1, round($stats[$key] * (float)$this->bulkAtkMult));
-                        $modified = true;
-                    }
+                    $modified = $this->scaleBulkStat($stats, $key, (float)$this->bulkAtkMult, 1) || $modified;
                 }
             }
 
             // Defense multiplier
-            if ((float)$this->bulkDefMult !== 1.0 && isset($stats['defense'])) {
-                $stats['defense'] = (int) max(0, round($stats['defense'] * (float)$this->bulkDefMult));
-                $modified = true;
+            if ((float)$this->bulkDefMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'defense', (float)$this->bulkDefMult) || $modified;
             }
 
             // HP multiplier
-            if ((float)$this->bulkHpMult !== 1.0 && isset($stats['hp_bonus'])) {
-                $stats['hp_bonus'] = (int) max(0, round($stats['hp_bonus'] * (float)$this->bulkHpMult));
-                $modified = true;
+            if ((float)$this->bulkHpMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'hp_bonus', (float)$this->bulkHpMult) || $modified;
             }
 
             // Mana multiplier
-            if ((float)$this->bulkManaMult !== 1.0 && isset($stats['mana_bonus'])) {
-                $stats['mana_bonus'] = (int) max(0, round($stats['mana_bonus'] * (float)$this->bulkManaMult));
-                $modified = true;
+            if ((float)$this->bulkManaMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'mana_bonus', (float)$this->bulkManaMult) || $modified;
             }
 
             // STR multiplier
-            if ((float)$this->bulkStrMult !== 1.0 && isset($stats['str_bonus'])) {
-                $stats['str_bonus'] = (int) max(0, round($stats['str_bonus'] * (float)$this->bulkStrMult));
-                $modified = true;
+            if ((float)$this->bulkStrMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'str_bonus', (float)$this->bulkStrMult) || $modified;
             }
 
             // AGI multiplier
-            if ((float)$this->bulkAgiMult !== 1.0 && isset($stats['agi_bonus'])) {
-                $stats['agi_bonus'] = (int) max(0, round($stats['agi_bonus'] * (float)$this->bulkAgiMult));
-                $modified = true;
+            if ((float)$this->bulkAgiMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'agi_bonus', (float)$this->bulkAgiMult) || $modified;
             }
 
             // VIT multiplier
-            if ((float)$this->bulkVitMult !== 1.0 && isset($stats['vit_bonus'])) {
-                $stats['vit_bonus'] = (int) max(0, round($stats['vit_bonus'] * (float)$this->bulkVitMult));
-                $modified = true;
+            if ((float)$this->bulkVitMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'vit_bonus', (float)$this->bulkVitMult) || $modified;
             }
 
             // INT multiplier
-            if ((float)$this->bulkIntMult !== 1.0 && isset($stats['int_bonus'])) {
-                $stats['int_bonus'] = (int) max(0, round($stats['int_bonus'] * (float)$this->bulkIntMult));
-                $modified = true;
+            if ((float)$this->bulkIntMult !== 1.0) {
+                $modified = $this->scaleBulkStat($stats, 'int_bonus', (float)$this->bulkIntMult) || $modified;
             }
 
             if ($modified) {
@@ -156,6 +145,29 @@ class ItemTemplates extends Component
 
         session()->flash('message', "⚡ Pomyślnie zaktualizowano statystyki dla {$count} szablonów przedmiotów!");
         $this->resetBulkMultipliers();
+    }
+
+    /**
+     * Multiplies a base_stats entry in place by $mult. Handles both the legacy
+     * scalar format and the [min, max] ranged format used by weapon/armor/accessory
+     * templates - for ranges, both bounds are scaled independently.
+     */
+    private function scaleBulkStat(array &$stats, string $key, float $mult, int $floor = 0): bool
+    {
+        if (!isset($stats[$key])) {
+            return false;
+        }
+
+        if (is_array($stats[$key])) {
+            $stats[$key] = [
+                (int) max($floor, round($stats[$key][0] * $mult)),
+                (int) max($floor, round($stats[$key][1] * $mult)),
+            ];
+        } else {
+            $stats[$key] = (int) max($floor, round($stats[$key] * $mult));
+        }
+
+        return true;
     }
 
     public function mount()
@@ -209,6 +221,16 @@ class ItemTemplates extends Component
         $this->calculatePreviewCP();
     }
 
+    public function updatedType()
+    {
+        $this->calculatePreviewCP();
+    }
+
+    private function isEquipmentType(): bool
+    {
+        return in_array($this->type, ['weapon', 'armor', 'accessory']);
+    }
+
     public function calculatePreviewCP()
     {
         $cp = 0;
@@ -227,12 +249,22 @@ class ItemTemplates extends Component
             'magic_burst_chance' => 1.5,
         ];
 
+        $isEquipment = $this->isEquipmentType();
+
         foreach ($this->selectedStats as $stat) {
-            if ($stat && isset($this->statValues[$stat])) {
-                $val = (float) $this->statValues[$stat];
-                $weight = $weights[$stat] ?? 1.0;
-                $cp += $val * $weight;
+            if (!$stat || !isset($this->statValues[$stat])) {
+                continue;
             }
+
+            $raw = $this->statValues[$stat];
+            if ($isEquipment && is_array($raw)) {
+                $val = ((float) ($raw['min'] ?? 0) + (float) ($raw['max'] ?? 0)) / 2;
+            } else {
+                $val = (float) $raw;
+            }
+
+            $weight = $weights[$stat] ?? 1.0;
+            $cp += $val * $weight;
         }
 
         // Default rarity multiplier for preview is 1.0 (common/base)
@@ -297,10 +329,20 @@ class ItemTemplates extends Component
 
         $this->validate();
 
+        $isEquipment = $this->isEquipmentType();
         $stats = [];
         foreach ($this->selectedStats as $stat) {
-            if ($stat && isset($this->statValues[$stat])) {
-                $stats[$stat] = (int) $this->statValues[$stat];
+            if (!$stat || !isset($this->statValues[$stat])) {
+                continue;
+            }
+
+            $raw = $this->statValues[$stat];
+            if ($isEquipment) {
+                $min = (int) ($raw['min'] ?? 0);
+                $max = (int) ($raw['max'] ?? $min);
+                $stats[$stat] = [$min, max($min, $max)];
+            } else {
+                $stats[$stat] = (int) $raw;
             }
         }
 
@@ -352,7 +394,14 @@ class ItemTemplates extends Component
         $this->level_requirement = $template->level_requirement;
         
         $this->selectedStats = array_keys($template->base_stats ?? []);
-        $this->statValues = $template->base_stats ?? [];
+        $this->statValues = [];
+        foreach ($template->base_stats ?? [] as $stat => $value) {
+            if (is_array($value)) {
+                $this->statValues[$stat] = ['min' => $value[0] ?? 0, 'max' => $value[1] ?? ($value[0] ?? 0)];
+            } else {
+                $this->statValues[$stat] = $value;
+            }
+        }
         if (isset($this->statValues['duration_minutes'])) {
             $this->duration_minutes = $this->statValues['duration_minutes'];
             // Remove duration_minutes from selectedStats so it doesn't show up in the checkboxes loop

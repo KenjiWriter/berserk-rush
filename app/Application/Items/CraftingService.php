@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 class CraftingService
 {
+    public function __construct(private ItemStatRoller $statRoller) {}
+
     public function craftItem(Character $character, ItemRecipe $recipe): array
     {
         return DB::transaction(function () use ($character, $recipe) {
@@ -62,10 +64,15 @@ class CraftingService
             $template = $recipe->resultItemTemplate;
             $rarity = 'common';
             $rollStats = [];
+            $rolledStats = null;
 
-            // If it's combat gear (weapon, armor or jewelry), determine rarity and stats
+            // If it's combat gear (weapon, armor or jewelry), roll its base stats
+            // within the template's ranges - rarity is derived from how close that
+            // roll landed to the maximum, then used to size the extra affix roll.
             if (in_array($template->type, ['weapon', 'armor', 'accessory'])) {
-                $rarity = $this->rollRarity();
+                $roll = $this->statRoller->roll($template);
+                $rarity = $roll['rarity'];
+                $rolledStats = $roll['rolled_stats'];
                 $rollStats = $this->generateBonusStats($template, $rarity);
             }
 
@@ -78,6 +85,7 @@ class CraftingService
                 'rarity' => $rarity,
                 'stack_size' => 1,
                 'roll_stats' => $rollStats,
+                'rolled_stats' => $rolledStats,
             ]);
 
             // Ledger
@@ -97,28 +105,6 @@ class CraftingService
                 'item' => $newItem,
             ];
         });
-    }
-
-    private function rollRarity(): string
-    {
-        $roll = mt_rand(1, 1000);
-        // Common 70% (1-700)
-        // Uncommon 20% (701-900)
-        // Rare 8% (901-980)
-        // Epic 1.9% (981-999)
-        // Legendary 0.1% (1000)
-
-        if ($roll <= 700) {
-            return 'common';
-        } elseif ($roll <= 900) {
-            return 'uncommon';
-        } elseif ($roll <= 980) {
-            return 'rare';
-        } elseif ($roll <= 999) {
-            return 'epic';
-        } else {
-            return 'legendary';
-        }
     }
 
     /**

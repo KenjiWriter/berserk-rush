@@ -75,7 +75,7 @@ test('ShopService buys materials into material_stash location', function () {
         'level_requirement' => 1,
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
     $result = $shopService->buyItem($character, $matTemplate, 3);
 
     expect($result['success'])->toBeTrue();

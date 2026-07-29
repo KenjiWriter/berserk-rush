@@ -38,7 +38,7 @@ test('ShopService sells partial stack when selling specific quantity', function 
         'stack_size' => 20,
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
     $unitPrice = $shopService->getSellPrice($item);
 
     $result = $shopService->sellItem($character, $item, 5);
@@ -80,7 +80,7 @@ test('ShopService sells all items when quantity is set to all or exceeds stack',
         'stack_size' => 8,
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
     $unitPrice = $shopService->getSellPrice($item);
 
     $result = $shopService->sellItem($character, $item, 'all');
@@ -140,7 +140,7 @@ test('ShopService sells multiple items in bulk', function () {
         'rarity' => 'common',
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
     $price1 = $shopService->getSellPrice($item1) * 1;
     $price2 = $shopService->getSellPrice($item2) * 3;
     $expectedTotal = $price1 + $price2;
@@ -167,7 +167,7 @@ test('ShopService sellMultipleItems returns error on empty or invalid selection'
         'gold' => 0,
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
 
     $resultEmpty = $shopService->sellMultipleItems($character, []);
     expect($resultEmpty['success'])->toBeFalse()
@@ -206,7 +206,7 @@ test('ShopService sells equipped item successfully', function () {
         'stack_size' => 1,
     ]);
 
-    $shopService = new ShopService();
+    $shopService = app(ShopService::class);
     $sellPrice = $shopService->getSellPrice($item);
 
     $result = $shopService->sellItem($character, $item);

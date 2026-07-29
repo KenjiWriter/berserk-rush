@@ -266,12 +266,19 @@
                                     'vit_bonus' => 'Witalność (VIT) - tylko biżuteria, +1..+5',
                                 ];
                             @endphp
+                            @php $isEquipmentType = in_array($type, ['weapon', 'armor', 'accessory']); @endphp
                             @foreach($availableStats as $key => $label)
                                 <div class="flex items-center space-x-2">
                                     <input type="checkbox" wire:model.live="selectedStats" value="{{ $key }}" id="stat_{{ $key }}" class="rounded bg-gray-700 border-gray-600 text-amber-500 focus:ring-amber-500">
                                     <label for="stat_{{ $key }}" class="text-xs text-gray-300 w-28 truncate" title="{{ $label }}">{{ $label }}</label>
                                     @if(in_array($key, $selectedStats))
-                                        <input type="number" wire:model.live="statValues.{{ $key }}" placeholder="0" class="w-16 p-1 text-xs bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-amber-500">
+                                        @if($isEquipmentType)
+                                            <input type="number" wire:model.live="statValues.{{ $key }}.min" placeholder="min" class="w-14 p-1 text-xs bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-amber-500">
+                                            <span class="text-gray-500 text-xs">-</span>
+                                            <input type="number" wire:model.live="statValues.{{ $key }}.max" placeholder="max" class="w-14 p-1 text-xs bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-amber-500">
+                                        @else
+                                            <input type="number" wire:model.live="statValues.{{ $key }}" placeholder="0" class="w-16 p-1 text-xs bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-amber-500">
+                                        @endif
                                     @endif
                                 </div>
                             @endforeach

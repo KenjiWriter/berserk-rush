@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Berserk Rush - Items Showcase</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+        }
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 200px rgba(0,0,0,0.9);
+            pointer-events: none;
+            z-index: 5;
+        }
+        .items-bg {
+            position: absolute;
+            top: -20%;
+            left: -20%;
+            width: 140%;
+            height: 140%;
+            background: #000;
+            overflow: hidden;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            opacity: 0.85;
+            transform: rotate(10deg);
+        }
+        .item-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .item-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-bottom: 20px;
+            animation: scroll-up 8s linear infinite;
+        }
+        .item-column:nth-child(even) .item-group {
+            animation: scroll-down 10s linear infinite;
+        }
+        .item-icon {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #555;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.8);
+            object-fit: contain;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+        @keyframes scroll-up {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100%); }
+        }
+        @keyframes scroll-down {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="vignette"></div>
+    <div class="items-bg" id="items-bg"></div>
+
+    <script>
+        const itemIcons = [
+            'Zatruty_Miecz_(zw.).png','amulet-czempiona.png','amulet-prastarego-debu.png','amulet-rycerza.png','amulet-skalnego-trolla.png','amulet-smoczego-oka.png','amulet-ucznia.png','amulet-weterana.png','amulet-zmutowanego-oka.png','bagienne-ziolo.png','blona-skrzydla.png','blotnisty-korzen.png','blyszczacy-grzyb.png','bojowe-trzewiki.png','bojowy-amulet.png','bojowy-helm.png','bojowy-miecz.png','bojowy-pancerz.png','bojowy-pierscien.png','bojowy-topor.png','buty-bagiennej-mgly.png','buty-burzy-piaskowej.png','buty-cichego-kroku.png','buty-deptania-swiatow.png','buty-kwasu.png','buty-lewitacji.png','buty-mgly.png','buty-orkowego-wojownika.png','buty-otchlani.png','buty-skoku.png','buty-sokolnika.png','buty-tropiacego.png','buty-z-mchu-jaskiniowego.png','buty-z-popiolu.png','buty-zgnilizny.png','buty-zywiolaka-plomieni.png','ciche-podeszwy-zmierzchu.png','ciche-podeszwy.png','ciezki-topor-enta.png','ciezkie-kamienne-buty.png','cmentarne-buty.png','czysta-mana.png','czysty-pergamin.png','drewniana-rozdzka.png','drewniany-luk.png','dzwon-gorskiego-echa.png','dzwon-krwawego-rytualu.png','dzwon-lesnego-szamana.png','dzwon-mistrza-iluzji.png','dzwon-nowicjusza.png','dzwon-oddechu-smoka.png','dzwon-ostatniego-tchnienia.png','dzwon-pokutny.png','dzwon-prastarych-drzew.png','dzwon-sadu-ostatecznego.png','dzwon-szamana-trolli.png','dzwon-utopcow.png','ektoplazma.png','epickie-jajo-chowanca.png','eteryczny-pyl.png','fragment-calunu.png','glewia-wodza-orkow.png','goblinski-sztylet.png','gorska-ruda-miedzi.png','gruba-skora-trolla.png','gruboskorny-pancerz-trolla.png','helm-krwawej-areny.png','helm-lesnego-straznika.png','helm-rekruta.png','helm-rycerza-skazy.png','helm-rycerza.png','helm-smoczej-strazy.png','helm-straznika-arkanow.png','helm-szlachcica.png','helm-weterana.png','helm-wodza-orkow.png','helm-z-czarnego-bazaltu.png','helm-z-czaszki-ogra.png','kamien-szlifierski.png','kamienny-pierscien.png','kaptur-arcymaga.png','kaptur-burzowych-chmur.png','kaptur-cienia-smoka.png','kaptur-krwawego-mchu.png','kaptur-pajaka-plagi.png','kaptur-pozeracza-dusz.png','kaptur-spleciony-z-mchu.png','kaptur-szamana-krwi.png','kaptur-wiedzmy-zgnilizny.png','kaptur-zjaw.png','kawalek-poroza.png','kolczuga-straznika-ruin.png','kolczuga.png','korona-pana-zniszczenia.png','kostur-arcymaga.png','kostur-szamana-krwi.png','kostur-wladcy-mroku.png','kostur-z-serca-suchodrzewu.png','krew-jaskiniowca.png','krysztal-cienia.png','let_armor.png','let_helmet.png','luk-apokalipsy.png','luk-krwawego-zwiadu.png','luk-mysliwski.png','luk-nocnego-mysliwego.png','luk-nowicjusza.png','luk-tkany-z-pajeczyny-plagi.png','luk-z-eterycznej-energii.png','luk-z-kosci-jaskiniowca.png','luk-z-kosci-zjaw.png','luk-z-pior-harpii.png','luk-z-pnia-suchodrzewu.png','luk-z-wierzby-placzacej.png','luska-hydry.png','luska-smoka-cienia.png','maczuga-ogra.png','magiczny-mech.png','magiczny-rdzen.png','maska-beztwarzowego-ducha.png','maska-bezwzglednego-zniszczenia.png','maska-cienia-skazy.png','maska-lowcy-ogrow.png','maska-mrocznego-zabojcy.png','maska-niewidzialnosci.png','maska-nocnego-drapieznika.png','maska-polcienia.png','maska-pustynnego-wiatru.png','maska-z-blota.png','maska-z-czaszki-wilka.png','masywne-buciska.png','metna-woda.png','miecz-lesnego-goblina.png','miecz-niezwyciezonego-gladiatora.png','miecz-nowicjusza.png','miecz-pana-zniszczenia.png','miecz-runicznego-gwardzisty.png','miecz-wykuty-z-bazaltu.png','miekkie-mokasyny.png','mistrzowski-amulet.png','mistrzowski-helm.png','mistrzowski-miecz.png','mistrzowski-pancerz.png','mistrzowski-pierscien.png','mistrzowskie-trzewiki.png','mokre-buty-bagienne.png','mroczne-futro.png','mroczne-ziolo.png','naszyjnik-orkowego-wodza.png','naszyjnik-runicznej-energii.png','naszyjnik-z-klow.png','naszyjnik-z-oka-hydry.png','naszyjnik-z-zimnej-stali.png','naszyjnik-ze-szponu-harpii.png','novice_sword.png','obsydianowe-trzewiki.png','obsydianowy-amulet.png','obsydianowy-helm.png','obsydianowy-miecz.png','obsydianowy-pancerz.png','obsydianowy-pierscien.png','odlamek-bazaltu.png','odlamek-kostura-arcymaga.png','odlamek-ruin.png','odlamek-skarbu.png','ogrzy-pazur.png','okute-buty-lesnika.png','ostrze-krola-lasu.png','ostrze-skazonego-rycerza.png','ostrze-szlacheckie.png','ostrze-weterana.png','ostrze-z-zeba-hydry.png','pancerz-absolutnego-chaosu.png','pancerz-skalnego-golema.png','pancerz-skazonej-stali.png','pancerz-weterana.png','pancerz-z-hartowanej-stali.png','pancerz-z-lusek-hydry.png','pancerz-z-wilczej-skory.png','pancerz-ze-smoczych-lusek.png','pancerz-zlotego-lwa.png','piekielny-miecz-smoka.png','pierscien-absolutu.png','pierscien-berserkera.png','pierscien-chwaly.png','pierscien-czarnego-krysztalu.png','pierscien-rycerza.png','pierscien-sily.png','pierscien-splecionych-korzeni.png','pierscien-ucznia.png','pierscien-weterana.png','pierscien-wiecznego-zalu.png','pierscien-wladcy-cienia.png','pierscien-zgnilego-mchu.png','pierscien-zgnilizny.png','pierscien-zrecznosci.png','pioro-harpii.png','plaszcz-gorskiego-cienia.png','plaszcz-konca-czasu.png','plaszcz-lisciastego-skrytobojcy.png','plaszcz-skalnego-cienia.png','podeszwy-bezdzwieku.png','podeszwy-smoczego-lotu.png','podeszwy-trucizny.png','podeszwy-z-eteru.png','popiol-wulkaniczny.png','popioly-miasta.png','prastara-kora.png','przeklety-onyks.png','pyl-grobowy.png','rozdzieracz-swiatow.png','rozdzka-nowicjusza.png','rozdzka-potepionych-dusz.png','rozdzka-smoczej-luski.png','rozdzka-wiedzmiej-strazy.png','rozdzka-z-cisa.png','rozdzka-z-gorskiego-krysztalu.png','rozdzka-ziemnej-magii.png','rozdzka-zmutowanego-czarownika.png','rozlupywacz-czaszek.png','ruda-zelaza.png','runiczne-trzewiki.png','runiczny-amulet.png','runiczny-helm.png','runiczny-kamien.png','runiczny-miecz.png','runiczny-pancerz.png','runiczny-pierscien.png','rusty sword.png','rycerski-miecz.png','sabatony-smoka.png','sabatony-triumfu.png','serce-pana-zniszczenia.png','skamienialy-torf.png','skora-pustynna.png','skorzane-buty.png','skorzany-helm.png','skorznia-lowcy-smokow.png','skorznia-nasaczona-magia.png','skorznia-nocnego-lowcy.png','skorznia-orkowego-zabojcy.png','skorznia-upadlego-zabojcy.png','skorznia-z-grobowca.png','skorznia-zmijowa.png','skrwawiony-totem.png','slaby-krysztal-many.png','sluz-jaskiniowy.png','smoczy-luk.png','stalowa-zbroja.png','stalowe-trzewiki.png','stalowy-miecz.png','strzaskana-kosc.png','sygnet-apokalipsy.png','symbol-wodza.png','szamanski-kaptur-trolli.png','szamanski-koralik.png','szata-lesnego-ducha.png','szata-mistrza-iluzji.png','szata-mrocznej-pustki.png','szata-nasaczona-krwia.png','szata-smoczego-ognia.png','szata-spaczonego-lasu.png','szata-tkana-z-zielska.png','szata-z-futer-nietoperzy.png','szata-z-pior-harpii.png','szata-z-przekletego-jedwabiu.png','szczatki-pancerza.png','szklo-iluzji.png','szlachecki-amulet.png','szlachecki-pierscien.png','sztylet-nowicjusza.png','sztylet.png','sztylety-jadu-pajaka-plagi.png','sztylety-ostatecznego-zniszczenia.png','sztylety-pustkowi.png','sztylety-skalnego-kla.png','sztylety-skrytobojcy-dusz.png','sztylety-z-cienia-smoka.png','sztylety-z-czystej-energii.png','sztylety-z-kosci-wilka.png','sztylety-z-zebow-nietoperza.png','toksyczny-sluz.png','topor-berserkera-orkow.png','topor-czarownicy-zgnilizny.png','topor-drwala-z-mrocznego-lasu.png','topor-kamiennego-golema.png','topor-magicznego-plomienia.png','topor-nowicjusza.png','topor-smoczego-gniewu.png','trzewiki-gorskiego-wiatru.png','trzewiki-korzeni.png','trzewiki-rycerza.png','trzewiki-rytualne.png','trzewiki-weterana.png','trzewiki-wzmocnione-zakleciem.png','twarde-rzemienie.png','tytanowe-trzewiki.png','tytanowy-amulet.png','tytanowy-helm.png','tytanowy-miecz.png','tytanowy-pancerz.png','tytanowy-pierscien.png','wiedzmi-amulet.png','wilcza-skora.png','wilczy-kiel.png','wyschniety-krzew.png','wzmocniona-stalowa-zbroja.png','wzmocnione-stalowe-trzewiki.png','wzmocniony-amulet.png','wzmocniony-helm-straznika.png','wzmocniony-pierscien.png','wzmocniony-stalowy-helm.png','wzmocniony-stalowy-miecz.png','zabkowany-topor-upiora.png','zar-plomieni.png','zardzewiala-moneta.png','zardzewialy-grot.png','zardzewialy-helm-rycerza.png','zardzewialy-helm-z-glebin.png','zardzewialy-klucz-do-lochow.png','zardzewialy-miecz-szkieletu.png','zardzewialy-miecz.png','zatrute-kly-hydry.png','zatrute-sztylety-goblina.png','zbroja-rekruta.png','zbroja-runiczna.png','zbroja-szlachcica.png','zbroja-z-twardej-kory.png','zbutwiala-szata-licza.png','zbutwialy-topor-topielca.png','zelazne-sabatony.png','zelazny-helm.png','zgnile-mieso.png','zlamany-kiel-orka.png','zniszczona-ksiega-magii.png'
+        ];
+
+        function createItemsScroll() {
+            const bg = document.getElementById('items-bg');
+
+            for (let i = 0; i < 10; i++) {
+                const col = document.createElement('div');
+                col.className = 'item-column';
+
+                const shuffled = [...itemIcons].sort(() => 0.5 - Math.random()).slice(0, 30);
+                const iconsHTML = shuffled
+                    .map(item => `<img src="../assets/items/${encodeURIComponent(item)}" class="item-icon" loading="lazy">`)
+                    .join('');
+
+                const group1 = document.createElement('div');
+                group1.className = 'item-group';
+                group1.innerHTML = iconsHTML;
+                group1.style.animationDuration = (7 + Math.random() * 5) + 's';
+
+                const group2 = document.createElement('div');
+                group2.className = 'item-group';
+                group2.innerHTML = iconsHTML;
+                group2.style.animationDuration = group1.style.animationDuration;
+
+                col.appendChild(group1);
+                col.appendChild(group2);
+                bg.appendChild(col);
+            }
+        }
+
+        createItemsScroll();
+    </script>
+</body>
+</html>

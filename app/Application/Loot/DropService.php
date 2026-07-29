@@ -18,7 +18,8 @@ class DropService
     public function __construct(
         private WeightedPicker $picker,
         private RandomProvider $rng,
-        private \App\Domain\Wizard\EnchantmentStrategy $enchantmentStrategy
+        private \App\Domain\Wizard\EnchantmentStrategy $enchantmentStrategy,
+        private \App\Application\Items\ItemStatRoller $statRoller
     ) {}
 
     public function rollLoot(Encounter $encounter): Result
@@ -326,15 +327,20 @@ class DropService
             return [];
         }
 
+        $isEquipment = $template && in_array($template->type, ['weapon', 'armor', 'accessory']);
+
         for ($i = 0; $i < $quantity; $i++) {
+            $rolled = $isEquipment ? $this->statRoller->roll($template) : null;
+
             $itemInstance = ItemInstance::create([
                 'id' => Str::ulid(),
                 'template_id' => $templateUlid,
                 'owner_character_id' => $character->id,
                 'location' => 'inventory',
                 'stack_size' => 1,
-                'rarity' => 'common', // Default rarity, could be enhanced later
+                'rarity' => $rolled['rarity'] ?? 'common',
                 'roll_stats' => [],
+                'rolled_stats' => $rolled['rolled_stats'] ?? null,
                 'upgrade_level' => 0
             ]);
 

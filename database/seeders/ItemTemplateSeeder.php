@@ -8,6 +8,29 @@ use Illuminate\Support\Str;
 
 class ItemTemplateSeeder extends Seeder
 {
+    /**
+     * Konwertuje pojedynczą, dotychczas stałą wartość statu na przedział
+     * [min, max] o wariancji +/-$variancePct wokół tej wartości - to z takiego
+     * przedziału ItemStatRoller losuje konkretną wartość dla każdego dropu/wykucia/
+     * zakupu (patrz app/Application/Items/ItemStatRoller.php). Tylko dla
+     * weapon/armor/accessory - reszta typów (consumable/material) zostaje skalarna.
+     */
+    private function statRange(float $value, float $variancePct = 0.25, ?float $cap = null): array
+    {
+        // Minimum to zawsze co najmniej 1 - stat, który przedmiot faktycznie
+        // posiada, nie może wylosować się jako "0" (czyli praktycznie brak statu).
+        $lo = max(1, (int) floor($value * (1 - $variancePct)));
+        $hi = (int) ceil($value * (1 + $variancePct));
+        if ($cap !== null) {
+            $hi = (int) min($cap, $hi);
+        }
+        if ($hi <= $lo) {
+            $hi = $lo + 1;
+        }
+
+        return [$lo, $hi];
+    }
+
     public function run(): void
     {
         $manualItems = [
@@ -18,10 +41,10 @@ class ItemTemplateSeeder extends Seeder
 
             // Keys & Tutorial / Starter Equipment
             ['id' => '01k4jpx94j70x2vv10b835key1', 'name' => 'Zardzewiały Klucz do Lochów', 'type' => 'material', 'sub_type' => null, 'slot' => null, 'level_requirement' => 8, 'base_stats' => [], 'description' => 'Tajemniczy stary klucz.', 'icon' => 'zardzewialy-klucz-do-lochow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
-            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 4, 'crit_chance' => 1], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => 2, 'attack_max' => 5, 'crit_chance' => 1], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => 2, 'hp_bonus' => 8], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
-            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => 4, 'hp_bonus' => 14], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835prm4', 'name' => 'Zardzewiały Miecz', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => $this->statRange(2), 'attack_max' => $this->statRange(4), 'crit_chance' => $this->statRange(1)], 'description' => 'Podstawowa broń.', 'icon' => 'zardzewialy-miecz.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835nov1', 'name' => 'Miecz Nowicjusza', 'type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'level_requirement' => 1, 'base_stats' => ['attack_min' => $this->statRange(2), 'attack_max' => $this->statRange(5), 'crit_chance' => $this->statRange(1)], 'description' => 'Solidny miecz treningowy dla nowicjuszy.', 'icon' => 'miecz-nowicjusza.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835hlm1', 'name' => 'Zardzewiały Hełm', 'type' => 'armor', 'sub_type' => null, 'slot' => 'head', 'level_requirement' => 1, 'base_stats' => ['defense' => $this->statRange(2), 'hp_bonus' => $this->statRange(8)], 'description' => 'Podstawowy hełm ochronny podarowany przez Kapitana.', 'icon' => 'helm-rekruta.png', 'rarity_weights' => ['common' => 100]],
+            ['id' => '01k4jpx94j70x2vv10b835arm1', 'name' => 'Skórzana Zbroja', 'type' => 'armor', 'sub_type' => null, 'slot' => 'chest', 'level_requirement' => 1, 'base_stats' => ['defense' => $this->statRange(4), 'hp_bonus' => $this->statRange(14)], 'description' => 'Solidna zbroja podarowana przez Kapitana na koniec wstępnego treningu.', 'icon' => 'zbroja-rekruta.png', 'rarity_weights' => ['common' => 100]],
         ];
 
         foreach ($manualItems as $item) {
@@ -290,15 +313,19 @@ class ItemTemplateSeeder extends Seeder
         foreach ($themes as $index => $theme) {
             foreach ($prototypes as $protoKey => $proto) {
                 
+                // UWAGA (itemizacja przedziałowa): każdy stat ekwipunku (weapon/armor/
+                // accessory - jedyne typy w $prototypes) to teraz przedział [min,max]
+                // zamiast stałej liczby - patrz statRange() powyżej. ItemStatRoller losuje
+                // konkretną wartość z tego przedziału przy dropie/wykuciu/zakupie.
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
                     if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
                         // Wartości procentowe - rosną liniowo z kolejnym tier'em zamiast
                         // mnożyć się przez skalę mocy, i mają sensowny sufit.
                         $cap = $statName === 'crit_chance' ? 50 : 70;
-                        $scaledStats[$statName] = min($cap, $baseValue + ($index * 2));
+                        $scaledStats[$statName] = $this->statRange(min($cap, $baseValue + ($index * 2)), 0.25, $cap);
                     } else {
-                        $scaledStats[$statName] = (int) round($baseValue * $theme['scale']);
+                        $scaledStats[$statName] = $this->statRange($baseValue * $theme['scale']);
                     }
                 }
 
@@ -309,7 +336,7 @@ class ItemTemplateSeeder extends Seeder
                 // wygenerowany szablon dostaje surowy atrybut.
                 if (isset($classArmorAttributes[$theme['level']][$protoKey])) {
                     foreach ($classArmorAttributes[$theme['level']][$protoKey] as $attrKey => $attrVal) {
-                        $scaledStats[$attrKey] = $attrVal;
+                        $scaledStats[$attrKey] = $this->statRange($attrVal);
                     }
                 }
 
@@ -319,7 +346,7 @@ class ItemTemplateSeeder extends Seeder
                 if (in_array($protoKey, ['amulet', 'ring'], true) && $index % 2 === 1) {
                     $flatAttrKeys = ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'];
                     $flatValues = [1, 4, 5];
-                    $scaledStats[$flatAttrKeys[$index % count($flatAttrKeys)]] = $flatValues[$index % count($flatValues)];
+                    $scaledStats[$flatAttrKeys[$index % count($flatAttrKeys)]] = $this->statRange($flatValues[$index % count($flatValues)]);
                 }
 
                 $name = $theme['names'][$protoKey] ?? ('Przedmiot ' . $protoKey);

@@ -7,10 +7,17 @@
 @php
     $template = $item->template ?? $item;
     $upgrade_level = $item->upgrade_level ?? 0;
-    
-    // Safety fallback for arrays (in case it's a model without json cast loaded properly)
-    $base_stats = is_array($template->base_stats ?? null) ? $template->base_stats : (json_decode($template->base_stats ?? '[]', true) ?? []);
-    
+
+    // Raw base_stats as defined on the template: for weapon/armor/accessory, each
+    // numeric value may be a [min, max] range rather than a fixed scalar.
+    $template_base_stats = is_array($template->base_stats ?? null) ? $template->base_stats : (json_decode($template->base_stats ?? '[]', true) ?? []);
+
+    // Real ItemInstance -> show the concrete rolled value per stat (falls back to
+    // the range midpoint if this instance never rolled it). Template-only preview
+    // (dummy/recipe/shop card, no instance yet) -> show the raw range as-is.
+    $isInstance = is_object($item) && method_exists($item, 'getResolvedBaseStats');
+    $base_stats = $isInstance ? $item->getResolvedBaseStats() : $template_base_stats;
+
     $roll_stats = [];
     if (isset($item->roll_stats)) {
         $roll_stats = is_array($item->roll_stats) ? $item->roll_stats : (json_decode($item->roll_stats, true) ?? []);
@@ -37,8 +44,10 @@
     
     if ($equippedItem) {
         $eq_template = $equippedItem->template ?? $equippedItem;
-        $equipped_base_stats = is_array($eq_template->base_stats ?? null) ? $eq_template->base_stats : (json_decode($eq_template->base_stats ?? '[]', true) ?? []);
-        
+        $eq_template_base_stats = is_array($eq_template->base_stats ?? null) ? $eq_template->base_stats : (json_decode($eq_template->base_stats ?? '[]', true) ?? []);
+        $eq_isInstance = is_object($equippedItem) && method_exists($equippedItem, 'getResolvedBaseStats');
+        $equipped_base_stats = $eq_isInstance ? $equippedItem->getResolvedBaseStats() : $eq_template_base_stats;
+
         $eq_roll_stats = [];
         if (isset($equippedItem->roll_stats)) {
             $eq_roll_stats = is_array($equippedItem->roll_stats) ? $equippedItem->roll_stats : (json_decode($equippedItem->roll_stats, true) ?? []);
@@ -198,28 +207,41 @@
                     @foreach($all_base_keys as $stat)
                         @php
                             $val = $base_stats[$stat] ?? 0;
-                            $up_val = $upgrade_bonus[$stat] ?? 0;
-                            $total_val = $val + $up_val;
-
-                            $eq_val = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
-                            $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
-                            $eq_total_val = $eq_val + $eq_up_val;
-
-                            $diff = $total_val - $eq_total_val;
+                            $isRange = is_array($val);
                             $suffix = $isPercentStat($stat) ? '%' : '';
                         @endphp
-                        <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
-                            <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                            <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-gray-200' : 'text-gray-500' }}">+{{ $val }}{{ $suffix }}</span>
-                                @if($up_val > 0)
-                                    <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }}{{ $suffix }})</span>
-                                @endif
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                    @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
-                                </span>
+                        @if($isRange)
+                            {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
+                            <div class="flex justify-between items-center">
+                                <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                <span class="font-bold text-gray-200">{{ $val[0] }}-{{ $val[1] }}{{ $suffix }}</span>
                             </div>
-                        </div>
+                        @else
+                            @php
+                                $up_val = $upgrade_bonus[$stat] ?? 0;
+                                $total_val = $val + $up_val;
+                                $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && $item->isStatMaxed($stat);
+
+                                $eq_val_raw = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
+                                $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
+                                $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
+                                $eq_total_val = $eq_val + $eq_up_val;
+
+                                $diff = $total_val - $eq_total_val;
+                            @endphp
+                            <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
+                                <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                <div class="flex items-center gap-1">
+                                    <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $val }}{{ $suffix }}</span>
+                                    @if($up_val > 0)
+                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }}{{ $suffix }})</span>
+                                    @endif
+                                    <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                        @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                     @foreach($all_enchant_keys as $stat)
                         @php
@@ -253,15 +275,17 @@
                 <div class="text-sm text-gray-300 space-y-1">
                     @foreach($all_base_keys as $stat)
                         @php
-                            $eq_val = $equipped_base_stats[$stat] ?? 0;
+                            $eq_val_raw = $equipped_base_stats[$stat] ?? 0;
+                            $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
                             $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
+                            $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && $equippedItem->isStatMaxed($stat);
                             $suffix = $isPercentStat($stat) ? '%' : '';
                         @endphp
                         @if($eq_val > 0 || $eq_up_val > 0)
                             <div class="flex justify-between">
                                 <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="font-bold text-gray-200">+{{ $eq_val }}{{ $suffix }}</span>
+                                    <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $eq_val }}{{ $suffix }}</span>
                                     @if($eq_up_val > 0)
                                         <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $eq_up_val }}{{ $suffix }})</span>
                                     @endif

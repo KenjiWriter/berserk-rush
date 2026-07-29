@@ -20,6 +20,7 @@ class ItemInstance extends Model
         'stack_size',
         'rarity',
         'roll_stats',
+        'rolled_stats',
         'upgrade_level',
         'bound_to_character',
         'version',
@@ -29,6 +30,7 @@ class ItemInstance extends Model
         'stack_size' => 'integer',
         'upgrade_level' => 'integer',
         'roll_stats' => 'array',
+        'rolled_stats' => 'array',
         'bound_to_character' => 'boolean',
         'version' => 'integer',
     ];
@@ -126,9 +128,45 @@ class ItemInstance extends Model
         return $this->upgrade_level < 9; // Max upgrade level
     }
 
-    public function getTotalStats(): array
+    /**
+     * Flattens the template's base_stats into concrete numbers: ranged stats
+     * ([min, max]) resolve to this instance's rolled_stats value (falling back
+     * to the range midpoint for legacy/incomplete data), scalars pass through
+     * unchanged.
+     */
+    public function getResolvedBaseStats(): array
     {
         $baseStats = $this->template->base_stats ?? [];
+        $resolved = [];
+
+        foreach ($baseStats as $stat => $value) {
+            if (is_array($value)) {
+                $min = $value[0] ?? 0;
+                $max = $value[1] ?? $min;
+                $resolved[$stat] = $this->rolled_stats[$stat] ?? (int) round(($min + $max) / 2);
+            } else {
+                $resolved[$stat] = $value;
+            }
+        }
+
+        return $resolved;
+    }
+
+    public function isStatMaxed(string $stat): bool
+    {
+        $range = $this->template->base_stats[$stat] ?? null;
+        if (!is_array($range) || count($range) < 2) {
+            return false;
+        }
+
+        $rolled = $this->rolled_stats[$stat] ?? null;
+
+        return $rolled !== null && $rolled >= $range[1];
+    }
+
+    public function getTotalStats(): array
+    {
+        $baseStats = $this->getResolvedBaseStats();
         $rollStats = $this->roll_stats ?? [];
 
         // Merge base stats with rolled stats
@@ -174,7 +212,7 @@ class ItemInstance extends Model
         $level = $level ?? $this->upgrade_level;
         if ($level <= 0) return [];
 
-        $base = $this->template->base_stats ?? [];
+        $base = $this->getResolvedBaseStats();
         $bonus = [];
 
         foreach ($base as $stat => $val) {

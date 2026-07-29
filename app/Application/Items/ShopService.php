@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 
 class ShopService
 {
+    public function __construct(private ItemStatRoller $statRoller) {}
+
     public function getBuyPrice(?ItemTemplate $template): int
     {
         if (!$template) {
@@ -106,14 +108,18 @@ class ShopService
             }
         }
 
+        $isEquipment = in_array($template->type, ['weapon', 'armor', 'accessory']);
+
         for ($i = 0; $i < $quantity; $i++) {
             $rollStats = [];
-            
+
             if ($isMerchantItem && $source->is_limited) {
                 $source->increment('sold_quantity');
                 $rollStats['mint'] = $source->sold_quantity;
                 $rollStats['max_mint'] = $source->max_quantity;
             }
+
+            $rolled = $isEquipment ? $this->statRoller->roll($template) : null;
 
             $itemInstance = ItemInstance::create([
                 'id' => Str::ulid(),
@@ -121,9 +127,10 @@ class ShopService
                 'owner_character_id' => $character->id,
                 'location' => $targetLocation,
                 'stack_size' => 1,
-                'rarity' => 'common',
+                'rarity' => $rolled['rarity'] ?? 'common',
                 'upgrade_level' => 0,
-                'roll_stats' => empty($rollStats) ? null : $rollStats
+                'roll_stats' => empty($rollStats) ? null : $rollStats,
+                'rolled_stats' => $rolled['rolled_stats'] ?? null,
             ]);
 
             ItemLedger::create([

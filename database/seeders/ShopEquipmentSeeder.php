@@ -9,6 +9,27 @@ use Illuminate\Support\Str;
 
 class ShopEquipmentSeeder extends Seeder
 {
+    /**
+     * Patrz ItemTemplateSeeder::statRange() - identyczna konwersja stałej wartości
+     * na przedział [min,max] o wariancji +/-$variancePct, z którego ItemStatRoller
+     * losuje konkretną wartość przy zakupie ekwipunku u kupca.
+     */
+    private function statRange(float $value, float $variancePct = 0.25, ?float $cap = null): array
+    {
+        // Minimum to zawsze co najmniej 1 - stat, który przedmiot faktycznie
+        // posiada, nie może wylosować się jako "0" (czyli praktycznie brak statu).
+        $lo = max(1, (int) floor($value * (1 - $variancePct)));
+        $hi = (int) ceil($value * (1 + $variancePct));
+        if ($cap !== null) {
+            $hi = (int) min($cap, $hi);
+        }
+        if ($hi <= $lo) {
+            $hi = $lo + 1;
+        }
+
+        return [$lo, $hi];
+    }
+
     public function run(): void
     {
         // Usunięcie starych przedmiotów kupców
@@ -137,18 +158,19 @@ class ShopEquipmentSeeder extends Seeder
                     continue;
                 }
 
+                // UWAGA (itemizacja przedziałowa): każdy stat to teraz przedział [min,max]
+                // zamiast stałej liczby - patrz statRange() powyżej i ItemStatRoller.
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
                     if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
                         // Wartości procentowe nie mnożą się przez skalę poziomu - rosną
                         // liniowo z kolejnym tier'em sklepu i mają sensowny sufit.
                         $cap = $statName === 'crit_chance' ? 40 : 60;
-                        $scaledStats[$statName] = min($cap, $baseValue + ($themeIndex * 2));
+                        $scaledStats[$statName] = $this->statRange(min($cap, $baseValue + ($themeIndex * 2)), 0.25, $cap);
                         continue;
                     }
                     $scaledValue = $baseValue * $theme['scale'];
-                    // Zaokrąglij w górę i upewnij się, że minimum to 1
-                    $scaledStats[$statName] = max(1, (int) ceil($scaledValue));
+                    $scaledStats[$statName] = $this->statRange(max(1, $scaledValue));
                 }
 
                 $name = $theme['names'][$protoKey];
