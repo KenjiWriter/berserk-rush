@@ -1409,12 +1409,13 @@
         }
     </script>
     {{-- Session Tracker --}}
-    <div wire:key="session-tracker-widget" class="fixed bottom-3 right-28 z-40 bg-slate-950/90 text-amber-100 px-3 py-1.5 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md transition-all hover:bg-slate-900/90 flex items-center gap-3 text-xs font-mono select-none"
-         x-data="{ 
+    <div wire:key="session-tracker-widget" class="fixed bottom-20 lg:bottom-3 left-3 z-40 flex flex-col items-start gap-2 text-xs font-mono select-none"
+         x-data="{
             startTime: {{ $sessionStartTime }},
             elapsed: '00:00:00',
             goldPerMin: 0,
             timer: null,
+            expanded: false,
             updateTime() {
                 if (!this.$el || !this.$el.isConnected) {
                     if (this.timer) {
@@ -1449,19 +1450,61 @@
             }
          }"
          x-init="updateTime(); timer = setInterval(() => updateTime(), 1000)">
-        <div class="flex items-center gap-1.5" title="Pokonani potwory">
-            <span class="text-amber-400 font-sans"><i class="fa-solid fa-swords"></i></span>
-            <span class="font-bold text-white">{{ $sessionMonstersDefeated }}</span>
+
+        {{-- Expanded Panel: items collected during this session --}}
+        <div x-show="expanded" x-transition.opacity.duration.150ms style="display: none;"
+             class="w-64 max-h-72 overflow-y-auto bg-slate-950/95 text-amber-100 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md p-3 custom-scrollbar">
+            <h4 class="font-bold text-amber-300 mb-2 medieval-font text-center text-sm border-b border-amber-800/50 pb-1.5">
+                Zdobycz z Sesji
+            </h4>
+
+            <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="text-amber-200"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Złoto</span>
+                <span class="font-bold text-yellow-300">{{ number_format($sessionGoldEarned) }}</span>
+            </div>
+
+            @if ($sessionGemsEarned > 0)
+                <div class="flex items-center justify-between text-[11px] mb-1.5">
+                    <span class="text-amber-200"><i class="fa-solid fa-gem text-blue-300 mr-1"></i>Klejnoty</span>
+                    <span class="font-bold text-blue-300">{{ number_format($sessionGemsEarned) }}</span>
+                </div>
+            @endif
+
+            @if (empty($sessionItemsCollected))
+                <p class="text-amber-700/70 text-[11px] italic text-center mt-2">Brak przedmiotów w tej sesji.</p>
+            @else
+                <div class="mt-2 pt-2 border-t border-amber-800/50 space-y-1">
+                    @foreach ($sessionItemsCollected as $item)
+                        <div class="flex items-center justify-between text-[11px]">
+                            <span class="{{ $item['type'] === 'material' ? 'text-emerald-300' : 'text-purple-300' }} truncate font-semibold">{{ $item['name'] }}</span>
+                            <span class="text-slate-300 shrink-0 ml-2">{{ $item['quantity'] }}x</span>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
-        <div class="h-3 w-px bg-amber-500/30"></div>
-        <div class="flex items-center gap-1.5" title="Złoto na minutę">
-            <span class="text-yellow-400 font-sans"><i class="fa-solid fa-coins"></i></span>
-            <span class="font-bold text-yellow-300" x-text="(goldPerMin || 0) + '/m'"></span>
-        </div>
-        <div class="h-3 w-px bg-amber-500/30"></div>
-        <div class="flex items-center gap-1.5" title="Czas sesji">
-            <span class="text-indigo-300 font-sans"><i class="fa-solid fa-stopwatch"></i></span>
-            <span class="font-bold text-slate-200" x-text="elapsed || '00:00:00'"></span>
+
+        {{-- Summary Bar --}}
+        <div @click="expanded = !expanded"
+             class="bg-slate-950/90 text-amber-100 px-3 py-1.5 rounded-xl shadow-2xl border border-amber-600/60 backdrop-blur-md transition-all hover:bg-slate-900/90 flex items-center gap-3 cursor-pointer">
+            <div class="flex items-center gap-1.5" title="Pokonani potwory">
+                <span class="text-amber-400 font-sans"><i class="fa-solid fa-swords"></i></span>
+                <span class="font-bold text-white">{{ $sessionMonstersDefeated }}</span>
+            </div>
+            <div class="h-3 w-px bg-amber-500/30"></div>
+            <div class="flex items-center gap-1.5" title="Złoto na minutę">
+                <span class="text-yellow-400 font-sans"><i class="fa-solid fa-coins"></i></span>
+                <span class="font-bold text-yellow-300" x-text="(goldPerMin || 0) + '/m'"></span>
+            </div>
+            <div class="h-3 w-px bg-amber-500/30"></div>
+            <div class="flex items-center gap-1.5" title="Czas sesji">
+                <span class="text-indigo-300 font-sans"><i class="fa-solid fa-stopwatch"></i></span>
+                <span class="font-bold text-slate-200" x-text="elapsed || '00:00:00'"></span>
+            </div>
+            <div class="h-3 w-px bg-amber-500/30"></div>
+            <span class="text-amber-400 transition-transform" :class="{ 'rotate-180': expanded }" title="Rozwiń statystyki sesji">
+                <i class="fa-solid fa-chevron-up text-[10px]"></i>
+            </span>
         </div>
     </div>
 </div>

@@ -174,7 +174,7 @@ class EncounterService
                             $monster = $map->monsters->find($firstMonsterId) ?? $monstersPool->random();
                         } else {
                             // Pity timer na bossa (ustalone z użytkownikiem, 2026-07-29): bazowo
-                            // 5% szansy na wylosowanie bossa zamiast zwykłego potwora, +0.5% za
+                            // 3% szansy na wylosowanie bossa zamiast zwykłego potwora, +0.5% za
                             // każde zwycięstwo nad nie-bossem na TEJ mapie od ostatniego pojawienia
                             // się bossa (patrz BossPityService::recordNonBossVictory() w simulate()
                             // poniżej). Licznik resetuje się, gdy boss faktycznie się pojawi - patrz

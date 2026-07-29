@@ -30,7 +30,9 @@ class MapStub extends Component
     // Session Tracking
     public int $sessionMonstersDefeated = 0;
     public int $sessionGoldEarned = 0;
+    public int $sessionGemsEarned = 0;
     public int $sessionStartTime = 0;
+    public array $sessionItemsCollected = [];
 
     // Playback controls
     public bool $isPlaying = false;
@@ -578,6 +580,7 @@ class MapStub extends Component
 
         if ($res->isOk()) {
             $this->sessionGoldEarned += $this->goldGained;
+            $this->trackSessionDrops();
             $this->character = $this->character->fresh();
 
             if ($this->character->level > $oldLevel) {
@@ -591,6 +594,33 @@ class MapStub extends Component
                 $this->dispatch('stats-updated', level: $this->character->level, xp: $this->character->xp, gold: $this->character->gold);
             } else {
                 $this->dispatch('stats-updated', level: $this->character->level, xp: $this->character->xp, gold: $this->character->gold);
+            }
+        }
+    }
+
+    private function trackSessionDrops(): void
+    {
+        if (!empty($this->drops['gems'])) {
+            $this->sessionGemsEarned += (int) $this->drops['gems'];
+        }
+
+        $typedDrops = array_merge(
+            array_map(fn ($item) => $item + ['type' => 'item'], $this->drops['items'] ?? []),
+            array_map(fn ($material) => $material + ['type' => 'material'], $this->drops['materials'] ?? [])
+        );
+
+        foreach ($typedDrops as $drop) {
+            $key = $drop['template_id'] ?? $drop['name'];
+
+            if (isset($this->sessionItemsCollected[$key])) {
+                $this->sessionItemsCollected[$key]['quantity'] += $drop['quantity'];
+            } else {
+                $this->sessionItemsCollected[$key] = [
+                    'name' => $drop['name'],
+                    'rarity' => $drop['rarity'] ?? 'common',
+                    'type' => $drop['type'],
+                    'quantity' => $drop['quantity'],
+                ];
             }
         }
     }
