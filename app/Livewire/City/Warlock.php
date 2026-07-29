@@ -13,10 +13,13 @@ class Warlock extends Component
 {
     public Character $character;
 
+    public string $weaponFilter = 'all';
+    public string $typeFilter = 'all';
+
     public function mount(Character $character)
     {
         $this->character = $character;
-        
+
         if (auth()->id() !== $character->user_id) {
             abort(403);
         }
@@ -25,6 +28,16 @@ class Warlock extends Component
     public function backToHub()
     {
         $this->redirect(route('city.hub', $this->character), navigate: true);
+    }
+
+    public function filterByWeapon(string $weaponType): void
+    {
+        $this->weaponFilter = $weaponType;
+    }
+
+    public function filterByType(string $skillType): void
+    {
+        $this->typeFilter = $skillType;
     }
 
     public function unlockSkill(string $skillId, UnlockSkill $unlockAction)
@@ -59,7 +72,17 @@ class Warlock extends Component
 
     public function render()
     {
-        $allSkills = CombatSkill::orderBy('required_level', 'asc')->get();
+        $query = CombatSkill::orderBy('required_level', 'asc');
+
+        if ($this->weaponFilter !== 'all') {
+            $query->where('required_weapon_type', $this->weaponFilter);
+        }
+
+        if ($this->typeFilter !== 'all') {
+            $query->where('type', $this->typeFilter);
+        }
+
+        $allSkills = $query->get();
         $mySkills = CharacterCombatSkill::with('skill')
             ->where('character_id', $this->character->id)
             ->get()

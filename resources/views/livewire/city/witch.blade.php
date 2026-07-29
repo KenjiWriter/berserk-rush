@@ -484,6 +484,26 @@
                                                 </div>
                                             </div>
                                         @endif
+
+                                        {{-- Możliwe zaklęcia dla tego typu przedmiotu --}}
+                                        @if(!empty($possibleBonuses))
+                                            <div class="mt-6 pt-4 border-t border-indigo-800/40">
+                                                <div class="text-center text-sm text-indigo-300 font-bold mb-3 flex items-center justify-center gap-2">
+                                                    <i class="fa-solid fa-list-ul"></i> Możliwe Zaklęcia dla tego typu przedmiotu
+                                                </div>
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                                    @foreach($possibleBonuses as $bonusKey => $range)
+                                                        @php
+                                                            $isPct = str_contains($bonusKey, 'chance') || str_contains($bonusKey, 'resist') || str_contains($bonusKey, 'strong_vs');
+                                                        @endphp
+                                                        <div class="flex justify-between items-center bg-black/30 rounded-lg px-3 py-1.5 border border-indigo-900/40">
+                                                            <span class="text-gray-300">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusKey) }}</span>
+                                                            <span class="text-indigo-300 font-mono font-bold">+{{ $range[0] }}-{{ $range[1] }}{{ $isPct ? '%' : '' }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             @else

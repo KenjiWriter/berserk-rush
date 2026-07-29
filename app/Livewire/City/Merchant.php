@@ -77,10 +77,13 @@ class Merchant extends Component
             ? $this->character->materialStashItems()
             : $this->character->inventoryItems();
 
-        $matchingItemIds = $query
-            ->where('rarity', $rarity)
-            ->pluck('id')
-            ->toArray();
+        $items = $query->where('rarity', $rarity)->get();
+
+        if ($this->playerItemFilter !== 'materials') {
+            $items = $items->filter(fn($item) => $this->matchesSlotFilter($item->template->slot ?? null));
+        }
+
+        $matchingItemIds = $items->pluck('id')->toArray();
 
         if (empty($matchingItemIds)) return;
 
@@ -105,7 +108,13 @@ class Merchant extends Component
             ? $this->character->materialStashItems()
             : $this->character->inventoryItems();
 
-        $allIds = $query->pluck('id')->toArray();
+        $items = $query->get();
+
+        if ($this->playerItemFilter !== 'materials') {
+            $items = $items->filter(fn($item) => $this->matchesSlotFilter($item->template->slot ?? null));
+        }
+
+        $allIds = $items->pluck('id')->toArray();
         if (count($this->selectedItemIds) === count($allIds)) {
             $this->selectedItemIds = [];
         } else {

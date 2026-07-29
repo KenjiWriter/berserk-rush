@@ -46,25 +46,32 @@
                             const tooltipRect = tooltipEl.getBoundingClientRect();
                             if (!triggerRect.width || !tooltipRect.width) return;
                             if (window.innerWidth < 640) { this.tooltipStyle = {}; return; }
-                            const style = {};
-                            const triggerCenter = triggerRect.left + triggerRect.width / 2;
-                            const halfWidth = tooltipRect.width / 2;
+
+                            // Pozycjonowanie liczone względem viewportu (position: fixed),
+                            // a nie rodzica (position: absolute) - dzięki temu tooltip nie
+                            // jest przycinany przez `overflow-y-auto`/`overflow-hidden` na
+                            // przewijalnych listach (np. plecak u Wiedźmy/Kowala), gdzie
+                            // element blisko góry listy potrafił renderować się ucięty.
                             const minMargin = 12;
-                            if (triggerCenter - halfWidth < minMargin) {
-                                style.left = (minMargin - triggerRect.left) + 'px';
-                                style.transform = 'none';
-                            } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
-                                style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
-                                style.transform = 'none';
-                            } else {
-                                style.left = '50%';
-                                style.transform = 'translateX(-50%)';
-                            }
+                            const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                            let left = triggerCenter - (tooltipRect.width / 2);
+                            left = Math.max(minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
+
+                            const style = {
+                                position: 'fixed',
+                                left: left + 'px',
+                                transform: 'none',
+                                margin: '0',
+                            };
+
                             if (triggerRect.top < tooltipRect.height + 16) {
-                                style.top = '100%'; style.bottom = 'auto'; style.marginTop = '8px'; style.marginBottom = '0';
+                                style.top = (triggerRect.bottom + 8) + 'px';
+                                style.bottom = 'auto';
                             } else {
-                                style.bottom = '100%'; style.top = 'auto'; style.marginBottom = '8px'; style.marginTop = '0';
+                                style.top = (triggerRect.top - tooltipRect.height - 8) + 'px';
+                                style.bottom = 'auto';
                             }
+
                             this.tooltipStyle = style;
                         });
                     },

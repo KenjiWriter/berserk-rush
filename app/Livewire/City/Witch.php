@@ -15,6 +15,7 @@ use App\Application\Items\CraftingService;
 use App\Application\Items\ShopService;
 use App\Application\Wizard\EnchantItem;
 use App\Application\Wizard\RerollEnchantments;
+use App\Domain\Wizard\EnchantmentStrategy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -350,6 +351,14 @@ class Witch extends Component
             $equipped[$eq->template->slot] = $eq;
         }
 
+        $activeItem = $this->activeItemId ? $enchantableItems->firstWhere('id', $this->activeItemId) : null;
+
+        // Lista możliwych zaklęć (klucz => [min, max]) dla typu wybranego przedmiotu -
+        // wyświetlana na dole karty "Stół do Zaklinania" (patrz witch.blade.php).
+        $possibleBonuses = $activeItem
+            ? app(EnchantmentStrategy::class)->getPossibleBonuses($activeItem)
+            : [];
+
         return view('livewire.city.witch', [
             'canBuySpecial' => $canBuySpecial,
             'specialCooldown' => $specialCooldown,
@@ -357,7 +366,8 @@ class Witch extends Component
             'shopPrices' => $shopPrices,
             'recipes' => $preparedRecipes,
             'enchantableItems' => $enchantableItems,
-            'activeItem' => $this->activeItemId ? $enchantableItems->firstWhere('id', $this->activeItemId) : null,
+            'activeItem' => $activeItem,
+            'possibleBonuses' => $possibleBonuses,
             'equipped' => $equipped,
         ]);
     }

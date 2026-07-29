@@ -58,7 +58,51 @@ class EnchantmentStrategy
         'agi_bonus' => [1, 5],
         'int_bonus' => [1, 5],
         'vit_bonus' => [1, 5],
+        // Kolejny wyjątek biżuterii (2026-07-29): szansa (%) na podwojenie nagrody
+        // ze zwycięskiej walki PvE - patrz EncounterService::calculateGoldReward()/
+        // calculateXpReward() (x2 złota/expa) oraz DropService (x2 ilość dropu
+        // materiałów/przedmiotów). Tylko naszyjnik/pierścień mogą je wylosować.
+        'double_exp_chance' => [1, 10],
+        'double_gold_chance' => [1, 10],
+        'double_drop_chance' => [1, 10],
     ];
+
+    // Etykiety bonusów używane w UI (np. lista "Możliwe Zaklęcia" u Wiedźmy) -
+    // scentralizowane tutaj, żeby nowe afiksy nie wymagały aktualizacji kilku
+    // niezależnych map w blade'ach.
+    private const BONUS_LABELS = [
+        'attack_power' => 'Obrażenia Fizyczne',
+        'magic_attack' => 'Obrażenia Magiczne',
+        'crit_chance' => 'Szansa na Trafienie Krytyczne',
+        'strong_vs_demons' => 'Silny vs Demony',
+        'strong_vs_undead' => 'Silny vs Nieumarli',
+        'strong_vs_animals' => 'Silny vs Zwierzęta',
+        'strong_vs_orcs' => 'Silny vs Orki',
+        'strong_vs_hero' => 'Silny vs Bohaterów',
+        'poison_chance' => 'Szansa na Otrucie',
+        'stun_chance' => 'Szansa na Ogłuszenie',
+        'hp_bonus' => 'Punkty Życia (HP)',
+        'defense' => 'Obrona',
+        'dodge_chance' => 'Szansa na Unik',
+        'resist_demons' => 'Odporność na Demony',
+        'resist_undead' => 'Odporność na Nieumarłe',
+        'resist_animals' => 'Odporność na Zwierzęta',
+        'resist_orcs' => 'Odporność na Orki',
+        'resist_poison' => 'Odporność na Otrucie',
+        'resist_stun' => 'Odporność na Ogłuszenie',
+        'str_bonus' => 'Siła (STR)',
+        'int_bonus' => 'Inteligencja (INT)',
+        'vit_bonus' => 'Witalność (VIT)',
+        'agi_bonus' => 'Zręczność (AGI)',
+        'double_exp_chance' => 'Szansa na Podwójne EXP',
+        'double_gold_chance' => 'Szansa na Podwójne Złoto',
+        'double_drop_chance' => 'Szansa na Podwójny Łup',
+    ];
+
+    public static function bonusLabel(string $key): string
+    {
+        return self::BONUS_LABELS[$key] ?? ucwords(str_replace('_', ' ', $key));
+    }
 
     public function __construct(private RandomProvider $rng)
     {}
@@ -73,6 +117,16 @@ class EnchantmentStrategy
 
         $isWeapon = in_array($type, ['sword', 'staff', 'bow', 'weapon']);
         return $isWeapon ? $this->weaponBonuses : $this->armorBonuses;
+    }
+
+    /**
+     * Zwraca pełną pulę możliwych bonusów (klucz => [min, max]) dla danego typu
+     * przedmiotu - używane w UI (lista dostępnych zaklęć u Wiedźmy), bez
+     * ujawniania szczegółów doboru puli (poolFor() zostaje prywatne).
+     */
+    public function getPossibleBonuses(ItemInstance $item): array
+    {
+        return $this->poolFor($item);
     }
 
     public function canEnchant(ItemInstance $item): bool

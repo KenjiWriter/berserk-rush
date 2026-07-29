@@ -52,6 +52,59 @@
                 </p>
             </div>
 
+            {{-- Filters: Weapon Type & Skill Type --}}
+            @php
+                $weaponFilterOptions = [
+                    'all' => ['label' => 'Wszystkie', 'icon' => 'fa-solid fa-shield-halved'],
+                    'sword' => ['label' => 'Miecz', 'icon' => 'fa-solid fa-khanda'],
+                    'axe' => ['label' => 'Topór', 'icon' => 'fa-solid fa-axe'],
+                    'bow' => ['label' => 'Łuk', 'icon' => 'fa-solid fa-bow-arrow'],
+                    'wand' => ['label' => 'Różdżka', 'icon' => 'fa-solid fa-wand-magic-sparkles'],
+                    'bell' => ['label' => 'Dzwon', 'icon' => 'fa-solid fa-bell'],
+                    'dagger' => ['label' => 'Sztylet', 'icon' => 'fa-solid fa-scissors'],
+                ];
+                $typeFilterOptions = [
+                    'all' => ['label' => 'Wszystkie', 'icon' => 'fa-solid fa-layer-group'],
+                    'active' => ['label' => 'Aktywne', 'icon' => 'fa-solid fa-bolt'],
+                    'passive' => ['label' => 'Pasywne', 'icon' => 'fa-solid fa-shield'],
+                ];
+            @endphp
+            <div class="mb-6 flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 bg-stone-950/70 border border-emerald-900/50 rounded-2xl p-4 shadow-inner">
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Typ Broni</span>
+                    <div class="flex flex-wrap justify-center gap-1.5">
+                        @foreach($weaponFilterOptions as $value => $opt)
+                            <button wire:click="filterByWeapon('{{ $value }}')"
+                                class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all duration-150 flex items-center gap-1.5 cursor-pointer
+                                {{ $weaponFilter === $value
+                                    ? 'bg-emerald-800 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.4)]'
+                                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-emerald-600 hover:text-emerald-200' }}">
+                                <i class="{{ $opt['icon'] }}"></i>
+                                <span>{{ $opt['label'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="hidden sm:block w-px self-stretch bg-emerald-900/50"></div>
+
+                <div class="flex flex-col items-center gap-2">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400/80">Typ Umiejętności</span>
+                    <div class="flex flex-wrap justify-center gap-1.5">
+                        @foreach($typeFilterOptions as $value => $opt)
+                            <button wire:click="filterByType('{{ $value }}')"
+                                class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all duration-150 flex items-center gap-1.5 cursor-pointer
+                                {{ $typeFilter === $value
+                                    ? 'bg-sky-800 border-sky-400 text-white shadow-[0_0_10px_rgba(56,189,248,0.4)]'
+                                    : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-sky-600 hover:text-sky-200' }}">
+                                <i class="{{ $opt['icon'] }}"></i>
+                                <span>{{ $opt['label'] }}</span>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             @php
                 // Character base attack parameters for simulations
                 $totalStr = $character->getTotalAttributes()['str'] ?? 1;
@@ -65,7 +118,7 @@
             @endphp
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                @foreach($allSkills as $skill)
+                @forelse($allSkills as $skill)
                     @php
                         $mySkill = $mySkills[$skill->id] ?? null;
                         $isUnlocked = $mySkill !== null;
@@ -354,7 +407,12 @@
                         </div>
 
                     </div>
-                @endforeach
+                @empty
+                    <div class="col-span-full text-center py-12 bg-black/40 rounded-2xl border border-emerald-900/40 backdrop-blur-sm">
+                        <i class="fa-solid fa-book-skull text-4xl text-emerald-400/40 mb-3 block"></i>
+                        <p class="text-emerald-300/70 font-medium font-sans">Brak umiejętności pasujących do wybranych filtrów.</p>
+                    </div>
+                @endforelse
             </div>
         </div>
     </div>

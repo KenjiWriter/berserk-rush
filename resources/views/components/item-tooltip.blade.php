@@ -137,6 +137,9 @@
             'resist_poison' => 'Odporność na Otrucie',
             'resist_stun' => 'Odporność na Ogłuszenie',
             'strong_vs_hero' => 'Silny vs Bohaterów',
+            'double_exp_chance' => 'Szansa na Podwójne EXP',
+            'double_gold_chance' => 'Szansa na Podwójne Złoto',
+            'double_drop_chance' => 'Szansa na Podwójny Łup',
         ];
         if (isset($map[$statKey])) {
             return $map[$statKey];

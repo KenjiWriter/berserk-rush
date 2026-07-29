@@ -78,6 +78,13 @@ class DropService
                 $gemsMult = $eventService->getGemsMultiplier();
                 $dropMult = $eventService->getDropMultiplier();
 
+                // Biżuteria - szansa (%) na podwojenie ilości wypadniętego przedmiotu/
+                // materiału, patrz EnchantmentStrategy::$accessoryBonuses['double_drop_chance'].
+                $doubleDropChance = $encounter->character->getEquipmentStats()['double_drop_chance'] ?? 0;
+                if ($doubleDropChance > 0 && $this->rng->int(1, 100) <= $doubleDropChance) {
+                    $dropMult *= 2;
+                }
+
                 switch ($selectedEntry['reward_type']) {
                     case 'gold':
                         $gold = $quantity;

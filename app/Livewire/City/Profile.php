@@ -588,6 +588,7 @@ class Profile extends Component
             'baseAttributes' => $this->character->getBaseAttributes(),
             'bonusAttributes' => $this->character->getBonusAttributes(),
             'derivedStats' => $derivedStats,
+            'eqStats' => $eqStats,
             'activeWeaponType' => $activeWeaponType,
             'activeScalingStats' => $activeScalingStats,
             'pets' => $pets,

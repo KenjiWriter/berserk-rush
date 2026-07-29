@@ -1282,8 +1282,16 @@ class EncounterService
 
         $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
         $multiplier = $multiplierService->getGoldMultiplier($character);
-        
+
         $total = (int)round($gold * $multiplier);
+
+        // Biżuteria (naszyjnik/pierścień) - szansa (%) na podwojenie zdobytego złota
+        // z tej walki, patrz EnchantmentStrategy::$accessoryBonuses['double_gold_chance'].
+        $doubleGoldChance = $character->getEquipmentStats()['double_gold_chance'] ?? 0;
+        if ($doubleGoldChance > 0 && mt_rand(1, 100) <= $doubleGoldChance) {
+            $total *= 2;
+        }
+
         $bonus = $total - $gold;
 
         return [
@@ -1309,8 +1317,16 @@ class EncounterService
 
         $multiplierService = app(\App\Application\Combat\RewardMultiplierService::class);
         $multiplier = $multiplierService->getExpMultiplier($character);
-        
+
         $total = (int)round($baseXp * $multiplier);
+
+        // Biżuteria - szansa (%) na podwojenie zdobytego expa z tej walki, patrz
+        // EnchantmentStrategy::$accessoryBonuses['double_exp_chance'].
+        $doubleExpChance = $character->getEquipmentStats()['double_exp_chance'] ?? 0;
+        if ($doubleExpChance > 0 && mt_rand(1, 100) <= $doubleExpChance) {
+            $total *= 2;
+        }
+
         $bonus = $total - $baseXp;
 
         return [
