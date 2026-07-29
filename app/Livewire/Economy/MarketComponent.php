@@ -24,7 +24,9 @@ class MarketComponent extends Component
     public $currency = '';
     public $slot = '';
     public $maxPrice = '';
+    public $minLevel = '';
     public $maxLevel = '';
+    public array $stats = [];
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
 
@@ -35,7 +37,9 @@ class MarketComponent extends Component
         'currency' => ['except' => ''],
         'slot' => ['except' => ''],
         'maxPrice' => ['except' => ''],
+        'minLevel' => ['except' => ''],
         'maxLevel' => ['except' => ''],
+        'stats' => ['except' => []],
         'sortBy' => ['except' => 'created_at'],
         'sortDir' => ['except' => 'desc'],
     ];
@@ -52,14 +56,14 @@ class MarketComponent extends Component
 
     public function updating($name, $value)
     {
-        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'maxLevel', 'sortBy', 'sortDir', 'activeTab'])) {
+        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'stats', 'sortBy', 'sortDir', 'activeTab'])) {
             $this->resetPage();
         }
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'rarity', 'currency', 'slot', 'maxPrice', 'maxLevel']);
+        $this->reset(['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'stats']);
         $this->resetPage();
     }
 
@@ -120,6 +124,22 @@ class MarketComponent extends Component
         return redirect()->route('city.hub', $this->character);
     }
 
+    public function statOptions(): array
+    {
+        return [
+            'str_bonus' => 'STR',
+            'agi_bonus' => 'AGI',
+            'int_bonus' => 'INT',
+            'vit_bonus' => 'VIT',
+            'attack_min' => 'Obrażenia Fizyczne',
+            'magic_attack_min' => 'Obrażenia Magiczne',
+            'defense' => 'Obrona',
+            'crit_chance' => 'Szansa Kryt.',
+            'hp_bonus' => 'Bonus HP',
+            'mana_bonus' => 'Bonus Many',
+        ];
+    }
+
     public function render(GetMarketListingsQuery $query)
     {
         $character = $this->character;
@@ -138,10 +158,18 @@ class MarketComponent extends Component
                 $filters['max_price'] = $this->maxPrice;
             }
 
+            if ($this->minLevel !== '' && $this->minLevel !== null) {
+                $filters['min_level'] = $this->minLevel;
+            }
+
             if ($this->maxLevel !== '' && $this->maxLevel !== null) {
                 $filters['max_level'] = $this->maxLevel;
             }
-            
+
+            if (!empty($this->stats)) {
+                $filters['stats'] = $this->stats;
+            }
+
             $listings = $query->execute($filters, $this->sortBy, $this->sortDir, 12);
         } else {
             $myListings = MarketListing::with('item.template')
@@ -161,6 +189,7 @@ class MarketComponent extends Component
             'listings' => $listings,
             'myListings' => $myListings,
             'equipped' => $equipped,
+            'statOptions' => $this->statOptions(),
         ]);
     }
 }

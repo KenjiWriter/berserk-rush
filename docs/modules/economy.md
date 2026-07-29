@@ -16,6 +16,12 @@ Moduł gospodarki w Berserk Rush obsługuje waluty (złoto, klejnoty) oraz hande
 ## Harmonogram zadań (Jobs)
 - **ExpireMarketListingsJob**: Uruchamiany co godzinę. Zmienia status przeterminowanych ofert i zwraca przedmioty sprzedawcom za pomocą poczty systemowej.
 
+## Filtrowanie Rynku (MarketComponent)
+Widok `livewire/economy/market.blade.php` (obsługiwany przez `GetMarketListingsQuery`) pozwala filtrować aktywne oferty po: nazwie, rzadkości, kategorii (slot), walucie, maks. cenie, **min./maks. poziomie przedmiotu** oraz **checkliście statystyk bonusowych** (STR/AGI/INT/VIT, obrażenia fizyczne/magiczne, obrona, szansa krytyczna, bonus HP/many).
+- Checklista statystyk działa w logice **AND** – oferta musi posiadać KAŻDĄ z zaznaczonych statystyk (sprawdzane zarówno w `roll_stats` przedmiotu, jak i `base_stats` szablonu).
+- Dozwolone klucze statystyk są zdefiniowane w białej liście `GetMarketListingsQuery::ALLOWED_STAT_FILTERS`, by bezpiecznie osadzać je w wyrażeniach SQL wyciągających wartość z kolumn JSON(B).
+- Wyrażenie SQL do odczytu wartości z JSON jest budowane w zależności od sterownika bazy (`GetMarketListingsQuery::jsonStatExpr`) – składnia PostgreSQL (`jsonb ->> 'klucz'`) różni się od MySQL (`json ->> '$.klucz'`), więc obie są obsługiwane.
+
 ## Zastosowane Wzorce
 Wszystkie ważne modyfikacje (zakup, wystawienie) wykorzystują:
 - Wzorzec **Result** (z obsługą błędów).

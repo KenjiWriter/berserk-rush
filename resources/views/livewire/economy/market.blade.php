@@ -130,11 +130,33 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Min. Poziom</label>
+                                    <div class="relative">
+                                        <input type="number" min="0" wire:model.live.debounce.400ms="minLevel" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="0">
+                                        <i class="fa-solid fa-ranking-star absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Maks. Poziom</label>
+                                    <div class="relative">
+                                        <input type="number" min="0" wire:model.live.debounce.400ms="maxLevel" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Bez limitu">
+                                        <i class="fa-solid fa-ranking-star absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div>
-                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Maks. Poziom Przedmiotu</label>
-                                <div class="relative">
-                                    <input type="number" min="0" wire:model.live.debounce.400ms="maxLevel" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Bez limitu">
-                                    <i class="fa-solid fa-ranking-star absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
+                                <label class="block font-bold text-amber-200/80 mb-2 uppercase tracking-wider text-[10px]">Statystyki Bonusowe</label>
+                                <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 bg-stone-900/60 border border-amber-900/60 rounded-lg p-2.5">
+                                    @foreach($statOptions as $statKey => $statLabel)
+                                        <label class="flex items-center gap-1.5 cursor-pointer group">
+                                            <input type="checkbox" wire:model.live="stats" value="{{ $statKey }}"
+                                                class="w-3.5 h-3.5 rounded border-amber-700 bg-stone-950 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer accent-amber-500">
+                                            <span class="text-[10px] text-amber-200/80 font-sans group-hover:text-amber-100 truncate">{{ $statLabel }}</span>
+                                        </label>
+                                    @endforeach
                                 </div>
                             </div>
 

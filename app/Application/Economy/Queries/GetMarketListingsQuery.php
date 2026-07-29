@@ -6,6 +6,29 @@ use App\Infrastructure\Persistence\MarketListing;
 
 class GetMarketListingsQuery
 {
+    /**
+     * Klucze statystyk bonusowych dostępne do filtrowania (checklista na rynku).
+     * Białą listę stosujemy, by bezpiecznie osadzić klucz w wyrażeniu JSON (whereRaw).
+     */
+    public const ALLOWED_STAT_FILTERS = [
+        'attack_min', 'attack_max', 'magic_attack_min', 'magic_attack_max',
+        'defense', 'hp_bonus', 'mana_bonus',
+        'str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus',
+        'crit_chance', 'dodge_chance',
+        'magic_burst_min', 'magic_burst_max', 'magic_burst_chance',
+    ];
+
+    /**
+     * Buduje przenośne (MySQL/PostgreSQL) wyrażenie SQL wyciągające liczbową wartość
+     * klucza z kolumny JSON(B), zwracające 0 gdy klucz nie istnieje.
+     */
+    private function jsonStatExpr(string $connection, string $column, string $key): string
+    {
+        return $connection === 'pgsql'
+            ? "COALESCE(({$column}->>'{$key}')::numeric, 0)"
+            : "COALESCE(CAST({$column}->>'\$.{$key}' AS DECIMAL(20,4)), 0)";
+    }
+
     public function execute(array $filters = [], string $sortBy = 'created_at', string $sortDir = 'desc', int $perPage = 20)
     {
         $query = MarketListing::query()
@@ -39,6 +62,25 @@ class GetMarketListingsQuery
             $query->whereHas('item.template', function ($q) use ($filters) {
                 $q->where('level_requirement', '<=', (int) $filters['max_level']);
             });
+        }
+
+        // Filter by required bonus stats (checklist - przedmiot musi posiadać KAŻDĄ z zaznaczonych statystyk)
+        if (!empty($filters['stats']) && is_array($filters['stats'])) {
+            $statKeys = array_values(array_intersect($filters['stats'], self::ALLOWED_STAT_FILTERS));
+            $driver = $query->getConnection()->getDriverName();
+
+            foreach ($statKeys as $statKey) {
+                $rollExpr = $this->jsonStatExpr($driver, 'roll_stats', $statKey);
+                $baseExpr = $this->jsonStatExpr($driver, 'base_stats', $statKey);
+
+                $query->where(function ($sub) use ($rollExpr, $baseExpr) {
+                    $sub->whereHas('item', function ($q) use ($rollExpr) {
+                        $q->whereRaw("{$rollExpr} <> 0");
+                    })->orWhereHas('item.template', function ($q) use ($baseExpr) {
+                        $q->whereRaw("{$baseExpr} <> 0");
+                    });
+                });
+            }
         }
 
         // Filter by currency
