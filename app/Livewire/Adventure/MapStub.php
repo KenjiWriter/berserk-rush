@@ -553,9 +553,11 @@ class MapStub extends Component
             $this->pendingNotifications = []; // clear after sending
         }
 
-        // Auto-chain next battle (not for worldboss 'finished')
-        if ($this->autoChain && $this->result === 'win' && empty($this->levelUps)) {
-            $this->dispatch('auto-chain-next-battle');
+        // Auto-chain next battle (not for worldboss 'finished').
+        // Przegrana: 3s kary zamiast zatrzymywania automatu, żeby bezpiecznie farmić AFK.
+        if ($this->autoChain && in_array($this->result, ['win', 'lose'], true) && empty($this->levelUps)) {
+            $delay = $this->result === 'lose' ? 3000 : 700;
+            $this->dispatch('auto-chain-next-battle', delay: $delay);
         } else {
             if (!empty($this->levelUps)) {
                 $this->autoChain = false; // Zatrzymaj automat na stałe

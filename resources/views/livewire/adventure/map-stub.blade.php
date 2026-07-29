@@ -1392,15 +1392,21 @@
                 }, 500);
             });
 
-            Livewire.on('auto-chain-next-battle', () => {
+            Livewire.on('auto-chain-next-battle', (event) => {
                 if (autoChainTimeout) clearTimeout(autoChainTimeout);
                 if (isPaused) return;
+
+                let delay = 700; // fast chain between battles after a win
+                const payload = (event && event[0]) ? event[0] : event;
+                if (payload && typeof payload.delay === 'number') {
+                    delay = payload.delay; // e.g. 3000ms penalty after a loss
+                }
 
                 autoChainTimeout = setTimeout(() => {
                     if (isPaused) return;
                     const component = getComponent();
                     if (component) component.call('startBattle');
-                }, 700); // 700ms fast chain between battles!
+                }, delay);
             });
 
             Livewire.on('encounter-finished', () => {

@@ -74,7 +74,14 @@ Podczas przebywania na mapie komponent `MapStub` śledzi statystyki pojedynczej 
 - **Czas sesji:** Czas przebywania na mapie mierzony od momentu wejścia.
 - **Złoto / min (`sessionGoldEarned` & `gold/min`):** Złoto zgromadzone w trakcie sesji przeliczane dynamicznie w czasie rzeczywistym na wskaźnik złota uzyskiwanego na minutę `(sessionGoldEarned / elapsed_seconds) * 60`, pozwalający porównać opłacalność farmowania na różnych mapach.
 
-### 5. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
+### 5. Auto-Chain (Automatyczne Powtarzanie Walk) i Kara za Przegraną
+Gdy `autoChain` jest włączony (`MapStub::completeBattle`), po zakończeniu walki losowany jest kolejny przeciwnik na mapie i walka startuje automatycznie:
+- **Wygrana:** kolejna walka startuje po ok. 700 ms (szybki chain).
+- **Przegrana (2026-07-29):** zamiast zatrzymywać automat (co wcześniej wymagało ręcznego kliknięcia "Kolejna Walka"), system czeka **3000 ms jako karę** za przegraną, po czym normalnie losuje nowego przeciwnika i wznawia walkę. Dzięki temu postać można bezpiecznie zostawić na farmie AFK bez ryzyka, że automat "utknie" na ekranie klęski.
+- Automat zatrzymuje się na stałe tylko, gdy postać zdobędzie poziom (`levelUps`) - wymaga to ręcznej reakcji gracza (przydział punktów atrybutów).
+- Zdarzenie `auto-chain-next-battle` niesie parametr `delay` (ms) konsumowany po stronie JS (`resources/views/livewire/adventure/map-stub.blade.php`), sterujący czasem oczekiwania przed wywołaniem `startBattle()`.
+
+### 6. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:
 1. **Frontend Session Lock (`MapStub`)**: Każdy zamontowany komponent `MapStub` generuje unikalny token sesji karty i rejestruje go w pamięci Cache (`adventure_active_tab:{character_id}`). W przypadku otwarcia nowej karty lub przełączenia, aktywna staje się tylko ostatnia karta. Nieaktywne karty wstrzymują automatyczne walki i wyświetlają banner z opcją przejęcia aktywnego statusu.
 2. **Backend Rate Limit (`EncounterService::start`)**: Serwis waliduje minimalny czas od rozpoczęcia ostatniej walki danej postaci (1300 ms) oraz nakłada blokadę transakcyjną `lockForUpdate()` na model postaci, odrzucając wszelkie próby symultanicznych żądań walki z błędem `COMBAT_IN_PROGRESS`.
