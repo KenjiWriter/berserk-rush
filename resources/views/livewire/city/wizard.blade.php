@@ -238,18 +238,20 @@
                                 @endif
                             </div>
 
-                            <!-- Infobox Przedmiotu -->
-                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                 :style="tooltipStyle"
-                                 class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
-                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                    <x-slot:actions>
-                                        <button wire:click.stop="selectItemToEnchant('{{ $item->id }}'); showInfo = false;" class="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold py-1.5 rounded transition">
-                                            Wybierz na Stół Zaklęć
-                                        </button>
-                                    </x-slot:actions>
-                                </x-item-tooltip>
-                            </div>
+                            <!-- Infobox Przedmiotu (teleportowany do <body>) -->
+                            <template x-teleport="body">
+                                <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                     :style="tooltipStyle"
+                                     class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                        <x-slot:actions>
+                                            <button wire:click.stop="selectItemToEnchant('{{ $item->id }}'); showInfo = false;" class="w-full bg-purple-700 hover:bg-purple-600 text-white text-xs font-bold py-1.5 rounded transition">
+                                                Wybierz na Stół Zaklęć
+                                            </button>
+                                        </x-slot:actions>
+                                    </x-item-tooltip>
+                                </div>
+                            </template>
                         </div>
                     @empty
                         <div class="text-center py-8 text-gray-500">

@@ -500,6 +500,16 @@ class Character extends Model
                 'magic_burst_max' => 0,
             ];
 
+            // 'attack_power'/'magic_attack' (2026-07-29): afiksy z Czarodzieja/Wiedźmy
+            // wyrażone teraz w % (nie płaskiej wartości) - patrz EnchantmentStrategy,
+            // gdzie wylosowanie wysokiego % jest celowo rzadkie (rozkład wykładniczy,
+            // wzorem Metin2 FMS/zatrutego miecza). Sumujemy je osobno i mnożymy przez
+            // całościowe attack_min/max/magic_attack_min/max PO zsumowaniu wkładu
+            // wszystkich przedmiotów (a nie jako płaski dodatek per-item), żeby "+30%
+            // obrażeń fizycznych" realnie skalowało już wyliczony atak z broni.
+            $attackPowerPct = 0;
+            $magicAttackPct = 0;
+
             foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $base = $item->getResolvedBaseStats();
                 $roll = $item->roll_stats ?? [];
@@ -519,18 +529,12 @@ class Character extends Model
 
                 if (isset($roll['enchants']) && is_array($roll['enchants'])) {
                     foreach ($roll['enchants'] as $enchantType => $enchantValue) {
-                        // 'attack_power'/'magic_attack' to płaskie afiksy z Czarodzieja -
-                        // rozbijamy je na parę min/max, żeby faktycznie liczyły się w
-                        // kalkulacji obrażeń (calculateDamage czyta *_min/*_max, nie
-                        // pojedynczą wartość).
                         if ($enchantType === 'attack_power') {
-                            $stats['attack_min'] += $enchantValue;
-                            $stats['attack_max'] += $enchantValue;
+                            $attackPowerPct += $enchantValue;
                             continue;
                         }
                         if ($enchantType === 'magic_attack') {
-                            $stats['magic_attack_min'] += $enchantValue;
-                            $stats['magic_attack_max'] += $enchantValue;
+                            $magicAttackPct += $enchantValue;
                             continue;
                         }
 
@@ -540,6 +544,15 @@ class Character extends Model
                         $stats[$enchantType] += $enchantValue;
                     }
                 }
+            }
+
+            if ($attackPowerPct > 0) {
+                $stats['attack_min'] = (int) round($stats['attack_min'] * (1 + $attackPowerPct / 100));
+                $stats['attack_max'] = (int) round($stats['attack_max'] * (1 + $attackPowerPct / 100));
+            }
+            if ($magicAttackPct > 0) {
+                $stats['magic_attack_min'] = (int) round($stats['magic_attack_min'] * (1 + $magicAttackPct / 100));
+                $stats['magic_attack_max'] = (int) round($stats['magic_attack_max'] * (1 + $magicAttackPct / 100));
             }
 
             // Add Active Buffs

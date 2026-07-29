@@ -152,45 +152,70 @@ class EnchantmentStrategy
         return $roll <= $chance;
     }
 
+    // Afiksy o rozkładzie "rzadkim na górze" (2026-07-29, na życzenie użytkownika,
+    // wzorem FMS/zatrutego miecza z Metin2): 'attack_power'/'magic_attack' są teraz
+    // procentowym bonusem do obrażeń fizycznych/magicznych (patrz
+    // Character::getEquipmentStats(), gdzie mnożą sumaryczne attack_min/max zamiast
+    // dodawać do nich płaską wartość), a losowanie wartości w ich zakresie ([10,50])
+    // NIE jest jednostajne jak reszta puli - wysoki wynik jest wykładniczo rzadszy,
+    // żeby np. +30% było spotykane, a +45-50% było prawdziwym rarytasem.
+    private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack'];
+    private const RARE_SCALING_SKEW = 3.0;
+
+    private function rollBonusValue(string $bonusKey, array $range): int
+    {
+        if (!in_array($bonusKey, self::RARE_SCALING_KEYS, true)) {
+            return $this->rng->int($range[0], $range[1]);
+        }
+
+        // roll^skew skupia wynik blisko 0 - np. przy skew=3 szansa na trafienie
+        // górnych 20% zakresu (tu: 40-50%) to ok. 9%, a samego maksimum (50%) to
+        // ułamek procenta - "prawie nieosiągalne, ale nie niemożliwe".
+        $roll = $this->rng->float(0.0, 1.0);
+        $skewed = $roll ** self::RARE_SCALING_SKEW;
+
+        return $range[0] + (int) round($skewed * ($range[1] - $range[0]));
+    }
+
     public function generateRandomEnchantment(ItemInstance $item): array
     {
         $pool = $this->poolFor($item);
 
         $currentEnchants = array_keys($item->getEnchantments());
         $availableBonuses = array_values(array_diff(array_keys($pool), $currentEnchants));
-        
+
         if (empty($availableBonuses)) {
             $availableBonuses = array_keys($pool);
         }
 
         $bonusKey = $availableBonuses[array_rand($availableBonuses)];
         $range = $pool[$bonusKey];
-        $value = $this->rng->int($range[0], $range[1]);
+        $value = $this->rollBonusValue($bonusKey, $range);
 
         return ['type' => $bonusKey, 'value' => $value];
     }
-    
+
     public function generateMultipleRandomEnchantments(ItemInstance $item, int $count): array
     {
         $pool = $this->poolFor($item);
 
         $availableBonuses = array_keys($pool);
         $enchants = [];
-        
+
         for ($i = 0; $i < $count; $i++) {
             if (empty($availableBonuses)) break;
-            
+
             $keyIndex = array_rand($availableBonuses);
             $bonusKey = $availableBonuses[$keyIndex];
             unset($availableBonuses[$keyIndex]);
             // Re-index array so array_rand works properly
             $availableBonuses = array_values($availableBonuses);
-            
+
             $range = $pool[$bonusKey];
-            $value = $this->rng->int($range[0], $range[1]);
+            $value = $this->rollBonusValue($bonusKey, $range);
             $enchants[$bonusKey] = $value;
         }
-        
+
         return $enchants;
     }
 }

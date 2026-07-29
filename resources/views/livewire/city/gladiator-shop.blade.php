@@ -58,20 +58,22 @@
                                 </div>
                             </div>
 
-                            <!-- Infobox Sklepu -->
-                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                 :style="tooltipStyle"
-                                 class="absolute z-[100] top-full left-1/2 -translate-x-1/2 mt-2 w-auto pointer-events-auto">
-                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                    <x-slot:actions>
-                                        <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" 
-                                            {{ $character->arena_tokens < $item->price ? 'disabled' : '' }}
-                                            class="w-full bg-amber-700 hover:bg-amber-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2 {{ $character->arena_tokens < $item->price ? 'opacity-50 cursor-not-allowed' : '' }}">
-                                            <span>Kup za {{ $item->price }} <i class="fa-solid fa-ticket text-amber-300"></i></span>
-                                        </button>
-                                    </x-slot:actions>
-                                </x-item-tooltip>
-                            </div>
+                            <!-- Infobox Sklepu (teleportowany do <body>) -->
+                            <template x-teleport="body">
+                                <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                     :style="tooltipStyle"
+                                     class="absolute z-[100] top-full left-1/2 -translate-x-1/2 mt-2 w-auto pointer-events-auto">
+                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                        <x-slot:actions>
+                                            <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled"
+                                                {{ $character->arena_tokens < $item->price ? 'disabled' : '' }}
+                                                class="w-full bg-amber-700 hover:bg-amber-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2 {{ $character->arena_tokens < $item->price ? 'opacity-50 cursor-not-allowed' : '' }}">
+                                                <span>Kup za {{ $item->price }} <i class="fa-solid fa-ticket text-amber-300"></i></span>
+                                            </button>
+                                        </x-slot:actions>
+                                    </x-item-tooltip>
+                                </div>
+                            </template>
                         </div>
                     @endforeach
                 </div>

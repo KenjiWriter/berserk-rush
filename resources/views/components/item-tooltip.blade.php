@@ -114,6 +114,8 @@
             'attack_max' => 'Attack Max',
             'magic_attack_min' => 'Magic Attack Min',
             'magic_attack_max' => 'Magic Attack Max',
+            'attack_power' => 'Obrażenia Fizyczne',
+            'magic_attack' => 'Obrażenia Magiczne',
             'str_bonus' => 'STR Bonus',
             'int_bonus' => 'INT Bonus',
             'vit_bonus' => 'VIT Bonus',
@@ -151,7 +153,7 @@
         if (str_contains($statKey, 'chance') || str_contains($statKey, 'strong_vs') || str_contains($statKey, 'resist') || str_contains($statKey, 'percent') || str_contains($statKey, 'rate')) {
             return true;
         }
-        if (in_array($statKey, ['exp_bonus', 'gold_bonus', 'crit_damage', 'life_steal', 'mana_steal'])) {
+        if (in_array($statKey, ['exp_bonus', 'gold_bonus', 'crit_damage', 'life_steal', 'mana_steal', 'attack_power', 'magic_attack'])) {
             return true;
         }
         return false;

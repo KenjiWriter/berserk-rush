@@ -635,48 +635,43 @@
                         </div>
 
                         @php
-                            // Dynamiczne modyfikatory bojowe z zaklęć ekwipunku (otrucie/ogłuszenie,
-                            // odporności, "silny przeciwko" rasie/bohaterom, podwójne nagrody) -
-                            // pokazujemy tylko te faktycznie > 0, żeby nie zaśmiecać widoku pustymi
-                            // wierszami. Etykiety scentralizowane w EnchantmentStrategy::bonusLabel().
-                            $combatModifierKeys = collect($eqStats ?? [])
-                                ->filter(function ($value, $key) {
-                                    if (!is_numeric($value) || $value <= 0) return false;
-                                    if (in_array($key, ['crit_chance', 'dodge_chance', 'magic_burst_chance', 'double_exp_chance', 'double_gold_chance', 'double_drop_chance'], true)) return false;
-                                    return str_contains($key, 'chance') || str_contains($key, 'resist') || str_contains($key, 'strong_vs');
-                                });
+                            // Pełna lista modyfikatorów bojowych z zaklęć ekwipunku (otrucie/
+                            // ogłuszenie, odporności, "silny przeciwko" rasie/bohaterom) -
+                            // pokazywana ZAWSZE (jak Crit/Dodge Chance wyżej), z wartością 0%
+                            // gdy postać nie ma jeszcze danego zaklęcia. Etykiety scentralizowane
+                            // w EnchantmentStrategy::bonusLabel().
+                            $combatModifierList = [
+                                'poison_chance', 'stun_chance', 'resist_poison', 'resist_stun',
+                                'strong_vs_demons', 'strong_vs_undead', 'strong_vs_animals', 'strong_vs_orcs', 'strong_vs_hero',
+                                'resist_demons', 'resist_undead', 'resist_animals', 'resist_orcs',
+                            ];
+                            $economyModifierList = ['double_exp_chance', 'double_gold_chance', 'double_drop_chance'];
                         @endphp
-                        @if($combatModifierKeys->isNotEmpty())
-                            <div class="col-span-1 md:col-span-2 mt-2">
-                                <div class="text-gray-400 font-semibold text-xs uppercase tracking-wide mb-2">Modyfikatory Bojowe (z Ekwipunku)</div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    @foreach($combatModifierKeys as $key => $value)
-                                        <div class="flex justify-between items-center bg-stone-900/60 border border-stone-700/50 rounded-lg px-3 py-1.5">
-                                            <span class="text-gray-300 text-xs">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($key) }}</span>
-                                            <span class="text-amber-300 font-bold text-sm">{{ $value }}%</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="col-span-1 md:col-span-2 mt-2">
+                            <div class="text-gray-400 font-semibold text-xs uppercase tracking-wide mb-2">Modyfikatory Bojowe (z Ekwipunku)</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                @foreach($combatModifierList as $key)
+                                    @php $value = $eqStats[$key] ?? 0; @endphp
+                                    <div class="flex justify-between items-center bg-stone-900/60 border border-stone-700/50 rounded-lg px-3 py-1.5">
+                                        <span class="text-gray-300 text-xs">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($key) }}</span>
+                                        <span class="font-bold text-sm {{ $value > 0 ? 'text-amber-300' : 'text-stone-500/80' }}">{{ $value }}%</span>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endif
+                        </div>
 
-                        @php
-                            $economyModifierKeys = collect($eqStats ?? [])
-                                ->filter(fn ($value, $key) => is_numeric($value) && $value > 0 && in_array($key, ['double_exp_chance', 'double_gold_chance', 'double_drop_chance'], true));
-                        @endphp
-                        @if($economyModifierKeys->isNotEmpty())
-                            <div class="col-span-1 md:col-span-2 mt-2">
-                                <div class="text-gray-400 font-semibold text-xs uppercase tracking-wide mb-2">Bonusy Ekonomiczne (z Ekwipunku)</div>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                    @foreach($economyModifierKeys as $key => $value)
-                                        <div class="flex justify-between items-center bg-stone-900/60 border border-stone-700/50 rounded-lg px-3 py-1.5">
-                                            <span class="text-gray-300 text-xs">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($key) }}</span>
-                                            <span class="text-emerald-300 font-bold text-sm">{{ $value }}%</span>
-                                        </div>
-                                    @endforeach
-                                </div>
+                        <div class="col-span-1 md:col-span-2 mt-2">
+                            <div class="text-gray-400 font-semibold text-xs uppercase tracking-wide mb-2">Bonusy Ekonomiczne (z Ekwipunku)</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                @foreach($economyModifierList as $key)
+                                    @php $value = $eqStats[$key] ?? 0; @endphp
+                                    <div class="flex justify-between items-center bg-stone-900/60 border border-stone-700/50 rounded-lg px-3 py-1.5">
+                                        <span class="text-gray-300 text-xs">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($key) }}</span>
+                                        <span class="font-bold text-sm {{ $value > 0 ? 'text-emerald-300' : 'text-stone-500/80' }}">{{ $value }}%</span>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endif
+                        </div>
                     </div>
                 @elseif($activeTab === 'pets')
                     <div class="mt-4">

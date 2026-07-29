@@ -107,12 +107,14 @@
                                 @if($selectedUpgradeItemId && $upgradeItem)
                                     <h4 class="text-2xl font-bold text-blue-300">{{ $upgradeItem->template->name }} <span class="text-yellow-400">+{{ $upgradeItem->upgrade_level }}</span></h4>
 
-                                    <!-- Infobox Obecnego Stanu -->
-                                    <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                         :style="tooltipStyle"
-                                         class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
-                                        <x-item-tooltip :item="$upgradeItem" :equippedItem="$equipped[$upgradeItem->template->slot ?? ''] ?? null" />
-                                    </div>
+                                    <!-- Infobox Obecnego Stanu (teleportowany do <body>, patrz witch.blade.php) -->
+                                    <template x-teleport="body">
+                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                             :style="tooltipStyle"
+                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                            <x-item-tooltip :item="$upgradeItem" :equippedItem="$equipped[$upgradeItem->template->slot ?? ''] ?? null" />
+                                        </div>
+                                    </template>
                                 @else
                                     <h4 class="text-lg font-bold text-gray-500">Brak przedmiotu</h4>
                                 @endif
@@ -257,18 +259,20 @@
                                                 @endif
                                             </div>
 
-                                            <!-- Infobox Przedmiotu w Kuźni -->
-                                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                                 :style="tooltipStyle"
-                                                 class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
-                                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                                    <x-slot:actions>
-                                                        <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">
-                                                            Wybierz do ulepszenia
-                                                        </button>
-                                                    </x-slot:actions>
-                                                </x-item-tooltip>
-                                            </div>
+                                            <!-- Infobox Przedmiotu w Kuźni (teleportowany do <body>) -->
+                                            <template x-teleport="body">
+                                                <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                     :style="tooltipStyle"
+                                                     class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                        <x-slot:actions>
+                                                            <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">
+                                                                Wybierz do ulepszenia
+                                                            </button>
+                                                        </x-slot:actions>
+                                                    </x-item-tooltip>
+                                                </div>
+                                            </template>
                                         </div>
                                     @endif
                                 @empty

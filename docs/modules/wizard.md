@@ -40,6 +40,18 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > niżej). Pełny opis mechaniki procków otrucia/ogłuszenia oraz `strong_vs_hero` -
 > `docs/modules/combat.md`, sekcje 7-8.
 
+> **Uwaga (obrażenia % z rzadkim rozkładem, 2026-07-29):** `attack_power`/`magic_attack`
+> to teraz **procentowy** bonus (nie płaska wartość) do obrażeń fizycznych/magicznych -
+> `Character::getEquipmentStats()` mnoży nim całościowe `attack_min`/`attack_max`
+> (odpowiednio `magic_attack_min`/`max`) wyliczone z bazowych statystyk broni, rzutów i
+> ulepszeń, zamiast dodawać go jako płaski dodatek. Zakres losowania (`[10, 50]`)
+> pozostał ten sam, ale **losowanie w tym konkretnym afiksie NIE jest już jednostajne**
+> jak reszta puli - `EnchantmentStrategy::rollBonusValue()` stosuje rozkład wykładniczy
+> (`roll^3`, wzorem rzadkiego "FMS"/zatrutego miecza z Metin2), przez co np. +30% trafia
+> się w ok. 21% losowań, +40% w ok. 10%, a +45-50% to prawdziwy rarytas (odpowiednio
+> ok. 5% i poniżej 0.5%). Reszta puli (crit_chance, str_bonus, resist_X itd.) losuje się
+> bez zmian, jednostajnie w swoim zakresie.
+
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od
 > tego, zestawy zbroi klasowej z dropu/craftingu (`_w`/`_m`/`_a` w

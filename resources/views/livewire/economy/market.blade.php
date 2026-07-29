@@ -204,12 +204,14 @@
                                       @resize.window.debounce.100ms="updatePosition()"
                                       @tooltip-updated.window="updatePosition()">
                                      
-                                    {{-- Item Tooltip --}}
-                                    <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                         :style="tooltipStyle"
-                                         class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-none">
-                                        <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
-                                    </div>
+                                    {{-- Item Tooltip (teleportowany do <body>) --}}
+                                    <template x-teleport="body">
+                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                             :style="tooltipStyle"
+                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-none">
+                                            <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
+                                        </div>
+                                    </template>
 
                                     <div class="flex items-start space-x-3 mb-3">
                                         {{-- Item Icon Frame --}}

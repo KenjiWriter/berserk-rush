@@ -106,18 +106,20 @@
                                                         <div class="mt-auto pt-2 text-yellow-400 text-sm font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $shopPrices[$item->id] }}</div>
                                                     </div>
 
-                                                    <!-- Infobox Sklepu -->
-                                                    <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                                         :style="tooltipStyle"
-                                                         class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
-                                                        <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                                            <x-slot:actions>
-                                                                <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2">
-                                                                    <span>Kup za <i class="fa-solid fa-coins text-yellow-400 mx-1"></i> {{ $shopPrices[$item->id] }}</span>
-                                                                </button>
-                                                            </x-slot:actions>
-                                                        </x-item-tooltip>
-                                                    </div>
+                                                    <!-- Infobox Sklepu (teleportowany do <body>) -->
+                                                    <template x-teleport="body">
+                                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                             :style="tooltipStyle"
+                                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                                            <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                                <x-slot:actions>
+                                                                    <button wire:click.stop="buyItem('{{ $item->id }}')" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2">
+                                                                        <span>Kup za <i class="fa-solid fa-coins text-yellow-400 mx-1"></i> {{ $shopPrices[$item->id] }}</span>
+                                                                    </button>
+                                                                </x-slot:actions>
+                                                            </x-item-tooltip>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             @endforeach
                                         </div>
@@ -242,7 +244,8 @@
                                             @endif
                                         </div>
 
-                                        <!-- Infobox Ekwipunku -->
+                                        <!-- Infobox Ekwipunku (teleportowany do <body>) -->
+                                        <template x-teleport="body">
                                         <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
                                              :style="tooltipStyle"
                                              class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
@@ -298,6 +301,7 @@
                                                 </x-slot:actions>
                                             </x-item-tooltip>
                                         </div>
+                                        </template>
                                     </div>
                                 @empty
                                     <div class="col-span-full text-center text-gray-500 py-12">Pusty ekwipunek</div>
