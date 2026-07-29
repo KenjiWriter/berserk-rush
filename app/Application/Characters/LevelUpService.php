@@ -62,6 +62,18 @@ class LevelUpService
                     $currentXp = min($currentXp, $maxXpAtMaxLevel);
                 }
 
+                // Automatyczna donacja EXP do gildii: gdy pasek doświadczenia
+                // przekroczy 50%, nadwyżka ponad ten próg trafia do skarbca
+                // gildii, a graczowi zostaje dokładnie połowa paska.
+                $autoDonatedXp = 0;
+                if ($currentLevel < self::MAX_LEVEL && $character->auto_donate_exp_guild && $character->guild_id) {
+                    $donateThreshold = (int) floor($this->xpToNext($currentLevel) * 0.5);
+                    if ($currentXp > $donateThreshold) {
+                        $autoDonatedXp = $currentXp - $donateThreshold;
+                        $currentXp = $donateThreshold;
+                    }
+                }
+
                 if (!empty($levelUps) || $currentLevel !== $character->level || $currentXp !== $character->xp) {
                     $pointsGained = count($levelUps) * 3;
 
@@ -81,6 +93,19 @@ class LevelUpService
                             $levelUp['from'],
                             $levelUp['to']
                         ));
+                    }
+                }
+
+                if ($autoDonatedXp > 0) {
+                    $guild = \App\Models\Guild::find($character->guild_id);
+                    if ($guild) {
+                        $guild->addXp($autoDonatedXp);
+                        \App\Models\GuildLog::create([
+                            'guild_id' => $guild->id,
+                            'character_id' => $character->id,
+                            'action' => 'donate_exp_auto',
+                            'amount' => $autoDonatedXp,
+                        ]);
                     }
                 }
 

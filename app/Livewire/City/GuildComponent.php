@@ -195,6 +195,18 @@ class GuildComponent extends Component
         $this->dispatch('notify', type: 'info', message: 'Wyzwanie wojenne zostało odrzucone.');
     }
 
+    public function toggleAutoDonateExp(): void
+    {
+        if (!$this->character->guild_id) return;
+
+        $this->character->auto_donate_exp_guild = !$this->character->auto_donate_exp_guild;
+        $this->character->save();
+
+        $this->dispatch('notify', type: 'success', message: $this->character->auto_donate_exp_guild
+            ? 'Automatyczna donacja EXP włączona - po przekroczeniu 50% paska doświadczenia nadwyżka trafi do gildii.'
+            : 'Automatyczna donacja EXP wyłączona.');
+    }
+
     public function toggleWarTeamPreview(string $guildId): void
     {
         if ($this->expandedWarTeamGuildId === $guildId) {

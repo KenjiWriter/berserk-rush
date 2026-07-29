@@ -431,6 +431,19 @@
                                     <span class="font-bold text-amber-200">{{ count($guild->war_team ?? []) }}/5 Członków</span>
                                 </div>
                             </div>
+
+                            <div class="mb-4 bg-stone-950/60 border border-amber-900/40 rounded-xl p-3 flex items-center justify-between gap-3">
+                                <div class="text-xs text-stone-300">
+                                    <span class="font-bold text-amber-300 medieval-font">Auto-dotacja EXP:</span>
+                                    po przekroczeniu 50% paska doświadczenia, nadwyżka automatycznie trafia do skarbca gildii.
+                                </div>
+                                <button wire:click="toggleAutoDonateExp"
+                                        wire:loading.attr="disabled" wire:target="toggleAutoDonateExp"
+                                        class="shrink-0 text-xs font-bold border px-3 py-1.5 rounded-lg transition {{ $character->auto_donate_exp_guild ? 'border-emerald-600/70 text-emerald-300 hover:bg-emerald-950/50' : 'border-stone-600/70 text-stone-400 hover:bg-stone-900/60' }}">
+                                    <i class="fa-solid {{ $character->auto_donate_exp_guild ? 'fa-toggle-on' : 'fa-toggle-off' }} mr-1"></i>
+                                    {{ $character->auto_donate_exp_guild ? 'Włączona' : 'Wyłączona' }}
+                                </button>
+                            </div>
                             <div class="overflow-x-auto">
                                 <table class="w-full text-left text-xs sm:text-sm text-stone-300">
                                     <thead class="text-[11px] uppercase bg-stone-950/80 text-amber-400/80 border-b border-amber-800/50">
@@ -517,6 +530,7 @@
                                                 <td class="px-3 py-2 font-bold text-amber-300">{{ $log->character->name }}</td>
                                                 <td class="px-3 py-2">
                                                     @if($log->action === 'donate_exp') <span class="text-emerald-400">Dotacja EXP</span>
+                                                    @elseif($log->action === 'donate_exp_auto') <span class="text-emerald-400">Auto-dotacja EXP (50%)</span>
                                                     @elseif($log->action === 'donate_gold') <span class="text-yellow-400">Wpłata Złota</span>
                                                     @elseif($log->action === 'donate_gems') <span class="text-cyan-400">Wpłata Diamentów</span>
                                                     @else {{ $log->action }} @endif
