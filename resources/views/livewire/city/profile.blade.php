@@ -15,26 +15,7 @@
             <livewire:global.tutorial-overlay :step="8" :rewardXp="50" />
         @endif
 
-        {{-- Header --}}
-        <div class="bg-gradient-to-r from-amber-950/90 via-stone-900/90 to-amber-950/90 border-2 border-amber-500/80 rounded-2xl p-3 sm:p-4 shadow-[0_0_30px_rgba(245,158,11,0.25)] backdrop-blur-md flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left mb-4 sm:mb-8 relative overflow-hidden">
-            <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/20 via-transparent to-transparent pointer-events-none"></div>
-            <div class="relative flex items-center gap-3">
-                <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-500/20 border border-amber-400/60 flex items-center justify-center text-amber-300 font-bold text-xl sm:text-2xl shadow-[0_0_15px_rgba(245,158,11,0.3)] shrink-0">
-                    <i class="fa-solid fa-user text-amber-300"></i>
-                </div>
-                <div>
-                    <h2 class="text-xl xs:text-2xl md:text-3xl font-bold text-amber-300 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] tracking-wide">Profil: {{ $character->name }}</h2>
-                    <p class="text-amber-200/80 text-xs sm:text-sm font-medium">Zarządzaj ekwipunkiem, atrybutami, statystykami i umiejętnościami bohatera</p>
-                </div>
-            </div>
-
-            <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })"
-                class="w-full sm:w-auto text-center bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2 sm:py-2.5 px-4 sm:px-6 text-xs sm:text-sm rounded-xl transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(245,158,11,0.5)] medieval-font border border-amber-200/60 flex items-center justify-center gap-1.5 {{ $gameStage == 8 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_25px_rgba(245,158,11,0.9)] relative z-10' : '' }}">
-                <i class="fa-solid fa-archway text-stone-950"></i> Powrót do miasta
-            </button>
-        </div>
-
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 items-start">
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-5 lg:gap-6 items-start mt-2">
         
         <div class="bg-gradient-to-b from-slate-900/90 via-stone-900/85 to-slate-950/90 border-2 border-amber-500/70 rounded-2xl sm:rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-md p-3 xs:p-4 sm:p-6 flex flex-col h-full relative overflow-visible">
             <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-400/10 via-transparent to-transparent pointer-events-none"></div>
@@ -412,182 +393,33 @@
 
             <!-- Stats -->
             <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
-                 wire:key="attributes-panel-{{ $character->id }}"
-                 @if($activeTab === 'attributes')
-                     x-data="{
-                         availablePoints: {{ $character->character_points }},
-                         buffered: { str: 0, int: 0, vit: 0, agi: 0 },
-                         baseAttributes: {
-                             str: {{ $baseAttributes['str'] ?? 0 }},
-                             int: {{ $baseAttributes['int'] ?? 0 }},
-                             vit: {{ $baseAttributes['vit'] ?? 0 }},
-                             agi: {{ $baseAttributes['agi'] ?? 0 }}
-                         },
-                         bonusAttributes: {
-                             str: {{ $bonusAttributes['str'] ?? 0 }},
-                             int: {{ $bonusAttributes['int'] ?? 0 }},
-                             vit: {{ $bonusAttributes['vit'] ?? 0 }},
-                             agi: {{ $bonusAttributes['agi'] ?? 0 }}
-                         },
-                         isSaving: false,
-                         hasQueuedSave: false,
-                         bufferTimer: null,
-                         syncInterval: null,
-                         syncProgress: 0,
-                         BUFFER_MS: 700,
-                         saveSeq: 0,
-                         lastAppliedSeq: 0,
-
-                         get hasPending() {
-                             return (this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi) > 0;
-                         },
-
-                         updatePointsFromEvent(detail) {
-                             let data = Array.isArray(detail) ? detail[0] : detail;
-                             if (!data || typeof data.points === 'undefined' || data.points === null) return;
-
-                             // 'stats-saved' jest też wysyłane przez equipItem/unequipItem (bez 'seq').
-                             // Jeśli w trakcie trwa zapis atrybutów (isSaving), taki event może dotyczyć
-                             // stanu sprzed tego zapisu - pomijamy go, żeby nie nadpisać świeższych danych,
-                             // które i tak zaraz przyjdą z własnym eventem zapisu atrybutów.
-                             if (typeof data.seq === 'undefined' && this.isSaving) return;
-
-                             // Odpowiedzi na saveAttributes mogą wrócić w innej kolejności niż zostały
-                             // wysłane (np. przy szybkim klikaniu / kolejkowaniu zapisów). Ignorujemy
-                             // każdą odpowiedź starszą niż już zastosowana, żeby atrybuty nigdy nie
-                             // cofnęły się do wcześniejszego stanu.
-                             if (typeof data.seq !== 'undefined' && data.seq !== null) {
-                                 if (data.seq < this.lastAppliedSeq) return;
-                                 this.lastAppliedSeq = data.seq;
-                             }
-
-                             let pendingTotal = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
-                             this.availablePoints = Math.max(0, data.points - pendingTotal);
-                             if (data.baseAttributes) {
-                                 this.baseAttributes = { ...data.baseAttributes };
-                             }
-                             if (data.bonusAttributes) {
-                                 this.bonusAttributes = { ...data.bonusAttributes };
-                             }
-                         },
-
-                         add(stat, amount) {
-                             let actual = Math.min(amount, this.availablePoints);
-                             if (actual > 0) {
-                                 this.buffered[stat] += actual;
-                                 this.availablePoints -= actual;
-
-                                 // Błyskawiczne odtworzenie dźwięku oraz mikroszybka animacja
-                                 window.dispatchEvent(new CustomEvent('play-audio', { detail: { type: 'hover' } }));
-
-                                 let el = document.getElementById('stat-flash-' + stat);
-                                 if (el) {
-                                     el.style.animation = 'none';
-                                     el.offsetHeight; // trigger reflow
-                                     el.style.animation = 'flashText 0.15s ease-out forwards';
-                                 }
-
-                                 this.restartSyncTimer();
-                             }
-                         },
-
-                         restartSyncTimer() {
-                             clearTimeout(this.bufferTimer);
-                             clearInterval(this.syncInterval);
-                             this.syncProgress = 0;
-                             const start = performance.now();
-                             this.syncInterval = setInterval(() => {
-                                 this.syncProgress = Math.min(100, ((performance.now() - start) / this.BUFFER_MS) * 100);
-                             }, 50);
-                             this.bufferTimer = setTimeout(() => {
-                                 clearInterval(this.syncInterval);
-                                 this.syncProgress = 100;
-                                 this.flushBuffer();
-                             }, this.BUFFER_MS);
-                         },
-
-                         // Natychmiastowe wysłanie bufora - używane przy zmianie zakładki / opuszczaniu widoku,
-                         // żeby niewysłane jeszcze punkty nigdy nie zostały utracone.
-                         forceFlush() {
-                             if (!this.hasPending) return;
-                             clearTimeout(this.bufferTimer);
-                             clearInterval(this.syncInterval);
-                             this.syncProgress = 100;
-                             this.flushBuffer();
-                         },
-
-                         async flushBuffer() {
-                             let totalBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
-                             if (totalBuffered === 0) return;
-
-                             if (this.isSaving) {
-                                 this.hasQueuedSave = true;
-                                 return;
-                             }
-
-                             let toSave = { ...this.buffered };
-                             this.buffered = { str: 0, int: 0, vit: 0, agi: 0 };
-                             this.isSaving = true;
-                             this.hasQueuedSave = false;
-                             this.saveSeq += 1;
-                             let seq = this.saveSeq;
-
-                             try {
-                                 await $wire.saveAttributes(toSave, seq);
-                             } finally {
-                                 this.isSaving = false;
-                                 let currentBuffered = this.buffered.str + this.buffered.int + this.buffered.vit + this.buffered.agi;
-                                 if (this.hasQueuedSave || currentBuffered > 0) {
-                                     this.syncProgress = 100;
-                                     this.flushBuffer();
-                                 } else {
-                                     this.syncProgress = 0;
-                                 }
-                             }
-                         }
-                     }"
-                     x-init="
-                         document.addEventListener('livewire:navigate', () => forceFlush());
-                     "
-                     @stats-saved.window="updatePointsFromEvent($event.detail)"
-                 @endif
-            >
+                 wire:key="attributes-panel-{{ $character->id }}">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
                     <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
-                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
-                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Statystyki
                         </button>
-                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Pety<span class="hidden xs:inline"> & Inkubator</span>
                         </button>
-                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Kolekcje<span class="hidden xs:inline"> & Tytuły</span>
                         </button>
-                        <button @if($activeTab === 'attributes') @click="forceFlush()" @endif wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
+                        <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
                         <div class="flex items-center gap-2 self-end sm:self-center">
-                            <span x-show="availablePoints > 0" class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap">Punkty: <span x-text="availablePoints"></span></span>
-                            <div x-show="isSaving || hasPending" class="flex items-center gap-1.5 bg-stone-900/90 border border-amber-700/50 rounded-xl px-2 py-1 whitespace-nowrap">
-                                <template x-if="isSaving">
-                                    <span class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-amber-300 font-semibold">
-                                        <i class="fa-solid fa-spinner fa-spin"></i> Zapisywanie...
-                                    </span>
-                                </template>
-                                <template x-if="!isSaving && hasPending">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="text-[10px] sm:text-[11px] text-stone-400 font-semibold">Synchronizacja</span>
-                                        <div class="w-10 sm:w-12 h-1.5 bg-stone-700 rounded-full overflow-hidden">
-                                            <div class="h-full bg-amber-400 transition-[width] duration-75 ease-linear" :style="'width:' + syncProgress + '%'"></div>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
+                            @if($character->character_points > 0)
+                                <span class="text-green-400 font-bold text-xs sm:text-sm animate-pulse bg-green-900/40 px-2.5 py-1 rounded-xl border border-green-700 whitespace-nowrap">Punkty: {{ $character->character_points }}</span>
+                            @endif
+                            <span wire:loading wire:target="addAttributePoints" class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-amber-300 font-semibold bg-stone-900/90 border border-amber-700/50 rounded-xl px-2 py-1 whitespace-nowrap">
+                                <i class="fa-solid fa-spinner fa-spin"></i> Zapisywanie...
+                            </span>
                         </div>
                     @endif
                 </div>
@@ -602,14 +434,8 @@
                         </span>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative">
-                    
-                        <style>
-                            @keyframes flashText {
-                                0% { color: #f59e0b; transform: scale(1.15); text-shadow: 0 0 8px rgba(245,158,11,0.8); }
-                                100% { color: #ffffff; transform: scale(1); text-shadow: none; }
-                            }
-                        </style>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4 text-xs sm:text-sm mt-3 sm:mt-4 relative"
+                         wire:loading.class="opacity-60 pointer-events-none" wire:target="addAttributePoints">
 
                         <!-- STR -->
                         <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('str', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
@@ -623,16 +449,20 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span id="stat-flash-str" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.str + buffered.str"></span>
-                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.str > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.str + ')'"></span>
+                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['str'] ?? 0 }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['str'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['str'] ?? 0 }})</span>
                                 </div>
-                                <div class="flex gap-1" x-show="availablePoints > 0">
-                                    <button @click="add('str', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="availablePoints >= 5" @click="add('str', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
-                                </div>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttributePoints('str', 1)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttributePoints('str', 5)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                        
+
                         <!-- INT -->
                         <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('int', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
                             <div class="flex items-center gap-1.5">
@@ -645,16 +475,20 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span id="stat-flash-int" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.int + buffered.int"></span>
-                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.int > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.int + ')'"></span>
+                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['int'] ?? 0 }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['int'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['int'] ?? 0 }})</span>
                                 </div>
-                                <div class="flex gap-1" x-show="availablePoints > 0">
-                                    <button @click="add('int', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="availablePoints >= 5" @click="add('int', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
-                                </div>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttributePoints('int', 1)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttributePoints('int', 5)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                        
+
                         <!-- VIT -->
                         <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('vit', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
                             <div class="flex items-center gap-1.5">
@@ -667,16 +501,20 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span id="stat-flash-vit" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.vit + buffered.vit"></span>
-                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.vit > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.vit + ')'"></span>
+                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['vit'] ?? 0 }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['vit'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['vit'] ?? 0 }})</span>
                                 </div>
-                                <div class="flex gap-1" x-show="availablePoints > 0">
-                                    <button @click="add('vit', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="availablePoints >= 5" @click="add('vit', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
-                                </div>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttributePoints('vit', 1)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttributePoints('vit', 5)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
-                        
+
                         <!-- AGI -->
                         <div class="flex justify-between items-center group p-2 rounded-xl transition-all duration-200 {{ in_array('agi', $activeScalingStats) ? 'bg-gradient-to-r from-amber-950/60 via-stone-900/60 to-amber-950/30 border border-amber-500/60 shadow-[0_0_12px_rgba(245,158,11,0.2)]' : 'border border-transparent' }}">
                             <div class="flex items-center gap-1.5">
@@ -689,13 +527,17 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span id="stat-flash-agi" class="text-amber-300 font-bold text-base transition-transform" x-text="baseAttributes.agi + buffered.agi"></span>
-                                    <span class="font-bold text-xs sm:text-sm" :class="bonusAttributes.agi > 0 ? 'text-emerald-400' : 'text-stone-500/80'" x-text="'(+' + bonusAttributes.agi + ')'"></span>
+                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['agi'] ?? 0 }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['agi'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['agi'] ?? 0 }})</span>
                                 </div>
-                                <div class="flex gap-1" x-show="availablePoints > 0">
-                                    <button @click="add('agi', 1)" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 1">+1</button>
-                                    <button x-show="availablePoints >= 5" @click="add('agi', 5)" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75" title="Dodaj 5">+5</button>
-                                </div>
+                                @if($character->character_points > 0)
+                                    <div class="flex gap-1">
+                                        <button wire:click="addAttributePoints('agi', 1)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 1">+1</button>
+                                        @if($character->character_points >= 5)
+                                            <button wire:click="addAttributePoints('agi', 5)" wire:loading.attr="disabled" wire:target="addAttributePoints" class="w-6 h-6 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 rounded-lg text-xs flex items-center justify-center font-extrabold shadow active:scale-90 transition-transform duration-75 disabled:opacity-50" title="Dodaj 5">+5</button>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>

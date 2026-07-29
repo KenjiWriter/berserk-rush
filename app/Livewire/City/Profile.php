@@ -36,6 +36,13 @@ class Profile extends Component
         $this->character->load('equippedSkills.skill');
     }
 
+    // Wysyłane np. przez panel admina na czacie, gdy ktoś przyzna punkty postaci z zewnątrz.
+    #[On('stats-saved')]
+    public function refreshAttributes(): void
+    {
+        $this->character->refresh();
+    }
+
     public function mount(Character $character)
     {
         $this->character = $character;
@@ -129,7 +136,6 @@ class Profile extends Component
             $this->character->clearStatsCache();
             $this->character->refresh();
             $this->character->load(['equippedItems.template', 'inventoryItems.template']);
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -157,7 +163,6 @@ class Profile extends Component
             $this->character->clearStatsCache();
             $this->character->refresh();
             $this->character->load(['equippedItems.template', 'inventoryItems.template']);
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes());
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
@@ -231,9 +236,19 @@ class Profile extends Component
     }
     // -----------------------------
 
-    public function saveAttributes(array $addedStats, int $seq, \App\Application\Characters\AllocateAttributesAction $action)
+    /**
+     * Dodaje punkty do jednego atrybutu w pojedynczym, natychmiastowym żądaniu -
+     * bez buforowania po stronie klienta. Każde kliknięcie to osobny round-trip,
+     * a przyciski są blokowane (wire:loading) na czas trwania żądania, więc nie
+     * ma lokalnej kopii stanu, która mogłaby rozjechać się z bazą danych.
+     */
+    public function addAttributePoints(string $stat, int $amount, \App\Application\Characters\AllocateAttributesAction $action)
     {
-        $result = $action->execute($this->character, $addedStats);
+        if (!in_array($stat, ['str', 'int', 'vit', 'agi'], true)) {
+            return;
+        }
+
+        $result = $action->execute($this->character, [$stat => $amount]);
 
         if ($result->isOk()) {
             /** @var Character $updatedCharacter */
@@ -246,14 +261,10 @@ class Profile extends Component
                 $user->save();
             }
 
-            $totalAllocated = array_sum(array_map('intval', $addedStats));
-            $this->dispatch('notify', type: 'success', message: "Rozdano punkty atrybutów: {$totalAllocated}.");
             $this->dispatch('play-audio', type: 'stat');
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes(), seq: $seq);
         } else {
             $this->character->refresh();
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            $this->dispatch('stats-saved', points: $this->character->character_points, baseAttributes: $this->character->getBaseAttributes(), bonusAttributes: $this->character->getBonusAttributes(), seq: $seq);
         }
     }
 
