@@ -974,7 +974,51 @@
             initMapStubComponent();
         });
 
+        let mapStubUserScrolledUp = false;
+
+        function scrollCombatLogToBottom(force = false) {
+            const container = document.getElementById('combat-log-container');
+            if (!container) return;
+
+            if (force) {
+                mapStubUserScrolledUp = false;
+            }
+
+            const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+            if (force || !mapStubUserScrolledUp || distanceFromBottom < 150) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+        // Rebinds the log auto-scroll on every mount/navigation. Livewire can swap out
+        // #combat-log-container for a fresh DOM node, which would leave a previously
+        // attached MutationObserver watching an already-detached element.
+        function bindCombatLogAutoScroll() {
+            const logContainer = document.getElementById('combat-log-container');
+            if (!logContainer) return;
+
+            if (window._combatLogObserver) {
+                window._combatLogObserver.disconnect();
+            }
+            window._combatLogObserver = new MutationObserver(() => {
+                scrollCombatLogToBottom();
+            });
+            window._combatLogObserver.observe(logContainer, { childList: true, subtree: true });
+
+            if (!logContainer.dataset.autoscrollBound) {
+                logContainer.dataset.autoscrollBound = '1';
+                logContainer.addEventListener('scroll', () => {
+                    const distanceFromBottom = logContainer.scrollHeight - logContainer.scrollTop - logContainer.clientHeight;
+                    mapStubUserScrolledUp = distanceFromBottom > 150;
+                }, { passive: true });
+            }
+
+            scrollCombatLogToBottom(true);
+        }
+
         function initMapStubComponent() {
+            bindCombatLogAutoScroll();
+
             if (window._mapStubListenersBound) return;
             window._mapStubListenersBound = true;
 
@@ -983,42 +1027,6 @@
             let isExecutingTurn = false;
             let isPaused = false;
             let currentSpeed = 1;
-
-            let userHasScrolledUp = false;
-
-            function scrollCombatLogToBottom(force = false) {
-                const container = document.getElementById('combat-log-container');
-                if (!container) return;
-
-                if (force) {
-                    userHasScrolledUp = false;
-                }
-
-                const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-                if (force || !userHasScrolledUp || distanceFromBottom < 150) {
-                    container.scrollTop = container.scrollHeight;
-                }
-            }
-
-            const logContainer = document.getElementById('combat-log-container');
-            if (logContainer) {
-                if (window._combatLogObserver) {
-                    window._combatLogObserver.disconnect();
-                }
-                window._combatLogObserver = new MutationObserver(() => {
-                    scrollCombatLogToBottom();
-                });
-                window._combatLogObserver.observe(logContainer, { childList: true, subtree: true });
-
-                logContainer.addEventListener('scroll', () => {
-                    const distanceFromBottom = logContainer.scrollHeight - logContainer.scrollTop - logContainer.clientHeight;
-                    if (distanceFromBottom > 150) {
-                        userHasScrolledUp = true;
-                    } else {
-                        userHasScrolledUp = false;
-                    }
-                }, { passive: true });
-            }
 
             function cleanUp() {
                 if (turnTimer) clearTimeout(turnTimer);
@@ -1085,7 +1093,7 @@
             Livewire.on('start-playback', (event) => {
                 cleanUp();
                 isPaused = false;
-                userHasScrolledUp = false;
+                mapStubUserScrolledUp = false;
                 let evtSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : null);
                 if (evtSpeed) {
                     currentSpeed = evtSpeed;
@@ -1467,6 +1475,11 @@
             <div class="flex items-center justify-between text-[11px] mb-1.5">
                 <span class="text-amber-200"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i>Złoto</span>
                 <span class="font-bold text-yellow-300">{{ number_format($sessionGoldEarned) }}</span>
+            </div>
+
+            <div class="flex items-center justify-between text-[11px] mb-1.5">
+                <span class="text-amber-200"><i class="fa-solid fa-star text-indigo-300 mr-1"></i>Exp</span>
+                <span class="font-bold text-indigo-300">{{ number_format($sessionXpEarned) }}</span>
             </div>
 
             @if ($sessionGemsEarned > 0)

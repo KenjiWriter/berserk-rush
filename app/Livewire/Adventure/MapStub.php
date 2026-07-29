@@ -30,6 +30,7 @@ class MapStub extends Component
     // Session Tracking
     public int $sessionMonstersDefeated = 0;
     public int $sessionGoldEarned = 0;
+    public int $sessionXpEarned = 0;
     public int $sessionGemsEarned = 0;
     public int $sessionStartTime = 0;
     public array $sessionItemsCollected = [];
@@ -582,6 +583,7 @@ class MapStub extends Component
 
         if ($res->isOk()) {
             $this->sessionGoldEarned += $this->goldGained;
+            $this->sessionXpEarned += $this->xpGained;
             $this->trackSessionDrops();
             $this->character = $this->character->fresh();
 

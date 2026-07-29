@@ -400,6 +400,7 @@ class Character extends Model
             foreach ($this->resolveEffectiveEquipment($setType) as $item) {
                 $templateStats = $item->getResolvedBaseStats();
                 $rollStats = $item->roll_stats ?? [];
+                $enchantStats = $rollStats['enchants'] ?? [];
                 $upgradeStats = $item->getUpgradeBonusStats();
 
                 // Add template stats
@@ -410,6 +411,9 @@ class Character extends Model
                     }
                     if (isset($rollStats[$bonusKey])) {
                         $total[$stat] += $rollStats[$bonusKey];
+                    }
+                    if (isset($enchantStats[$bonusKey])) {
+                        $total[$stat] += $enchantStats[$bonusKey];
                     }
                     if (isset($upgradeStats[$bonusKey])) {
                         $total[$stat] += $upgradeStats[$bonusKey];
