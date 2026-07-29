@@ -376,8 +376,13 @@
                                     $enchants = $activeItem->roll_stats['enchants'] ?? [];
                                     $enchantCount = count($enchants);
                                     $nextChance = [75, 50, 40, 30, 20][$enchantCount] ?? 0;
-                                    $rerollGoldCost = max(200, $enchantCount * 200);
-                                    $rerollGemCost = max(2, $enchantCount * 2);
+
+                                    // Zablokowane bonusy nie są przelosowywane (patrz RerollEnchantments) -
+                                    // koszt skaluje się wyłącznie z liczbą odblokowanych.
+                                    $enchantLocks = $activeItem->getEnchantLocks();
+                                    $unlockedCount = $enchantCount - count($enchantLocks);
+                                    $rerollGoldCost = max(200, $unlockedCount * 200);
+                                    $rerollGemCost = max(2, $unlockedCount * 2);
 
                                     // Jedyne płaskie (nie-procentowe) bonusy w całej puli zaklęć - reszta
                                     // (w tym attack_power/magic_attack/hp_bonus/defense) jest wyrażona w %.
@@ -462,13 +467,21 @@
                                                         $isPct = !in_array($bonusType, $flatBonusKeys, true);
                                                         $isNegative = $bonusValue < 0;
                                                         $displayValue = ($bonusValue > 0 ? '+' : '') . $bonusValue . ($isPct ? '%' : '');
+                                                        $isLocked = in_array($bonusType, $enchantLocks, true);
                                                     @endphp
-                                                    <div class="flex justify-between items-center rounded px-3 py-1.5 border {{ $isNegative ? 'bg-red-950/40 border-red-800/60' : 'bg-black/40 border-purple-900/50' }}">
+                                                    <div class="flex justify-between items-center rounded px-3 py-1.5 border {{ $isLocked ? 'bg-amber-950/30 border-amber-600/50' : ($isNegative ? 'bg-red-950/40 border-red-800/60' : 'bg-black/40 border-purple-900/50') }}">
                                                         <span class="flex items-center gap-2 {{ $isNegative ? 'text-red-200' : 'text-indigo-200' }}">
                                                             <i class="fa-solid {{ $bonusIcon($bonusType) }} {{ $isNegative ? 'text-red-400' : 'text-purple-400' }} w-4 text-center"></i>
                                                             {{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusType) }}
                                                         </span>
-                                                        <span class="font-bold text-lg {{ $isNegative ? 'text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]' : 'text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]' }}">{{ $displayValue }}</span>
+                                                        <div class="flex items-center gap-3">
+                                                            <span class="font-bold text-lg {{ $isNegative ? 'text-red-400 drop-shadow-[0_0_5px_rgba(248,113,113,0.5)]' : 'text-yellow-300 drop-shadow-[0_0_5px_rgba(253,224,71,0.5)]' }}">{{ $displayValue }}</span>
+                                                            <button wire:click="toggleEnchantLock('{{ $bonusType }}')"
+                                                                    title="{{ $isLocked ? 'Odblokuj - ten bonus będzie mógł zostać przelosowany' : 'Zablokuj - ten bonus zostanie pominięty przy przelosowaniu' }}"
+                                                                    class="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0 transition-colors border {{ $isLocked ? 'bg-amber-600/80 border-amber-400 text-amber-100 hover:bg-amber-500' : 'bg-black/40 border-gray-600 text-gray-500 hover:text-amber-300 hover:border-amber-500/60' }}">
+                                                                <i class="fa-solid {{ $isLocked ? 'fa-lock' : 'fa-lock-open' }}"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -501,17 +514,28 @@
 
                                         @if($enchantCount > 0)
                                             <div class="mt-4 pt-4 border-t border-purple-800/50">
-                                                <div class="text-center text-sm text-gray-400 mb-2">Przelosuj wszystkie bonusy od nowa:</div>
-                                                <div class="grid grid-cols-2 gap-4">
-                                                    <button wire:click="reroll('gold')" wire:loading.attr="disabled" class="bg-slate-800 hover:bg-slate-700 text-yellow-500 border border-slate-600 hover:border-yellow-600/50 font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-md">
-                                                        <span wire:loading.remove wire:target="reroll">Reroll ({{ $rerollGoldCost }} <i class="fa-solid fa-coins"></i>)</span>
-                                                        <span wire:loading wire:target="reroll">Przelosowywanie...</span>
-                                                    </button>
-                                                    <button wire:click="reroll('gems')" wire:loading.attr="disabled" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-600 hover:border-blue-600/50 font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-md">
-                                                        <span wire:loading.remove wire:target="reroll">Reroll ({{ $rerollGemCost }} <i class="fa-solid fa-gem"></i>)</span>
-                                                        <span wire:loading wire:target="reroll">Przelosowywanie...</span>
-                                                    </button>
-                                                </div>
+                                                @if($unlockedCount > 0)
+                                                    <div class="text-center text-sm text-gray-400 mb-2">
+                                                        Przelosuj odblokowane bonusy od nowa
+                                                        @if(count($enchantLocks) > 0)
+                                                            <span class="text-amber-400 font-semibold">({{ $unlockedCount }}/{{ $enchantCount }} odblokowanych - {{ count($enchantLocks) }} 🔒 zostanie bez zmian)</span>
+                                                        @endif:
+                                                    </div>
+                                                    <div class="grid grid-cols-2 gap-4">
+                                                        <button wire:click="reroll('gold')" wire:loading.attr="disabled" class="bg-slate-800 hover:bg-slate-700 text-yellow-500 border border-slate-600 hover:border-yellow-600/50 font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-md">
+                                                            <span wire:loading.remove wire:target="reroll">Reroll ({{ $rerollGoldCost }} <i class="fa-solid fa-coins"></i>)</span>
+                                                            <span wire:loading wire:target="reroll">Przelosowywanie...</span>
+                                                        </button>
+                                                        <button wire:click="reroll('gems')" wire:loading.attr="disabled" class="bg-slate-800 hover:bg-slate-700 text-blue-400 border border-slate-600 hover:border-blue-600/50 font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-md">
+                                                            <span wire:loading.remove wire:target="reroll">Reroll ({{ $rerollGemCost }} <i class="fa-solid fa-gem"></i>)</span>
+                                                            <span wire:loading wire:target="reroll">Przelosowywanie...</span>
+                                                        </button>
+                                                    </div>
+                                                @else
+                                                    <div class="text-center text-sm text-amber-300/90 bg-amber-950/30 border border-amber-700/40 rounded-lg py-2 px-3">
+                                                        <i class="fa-solid fa-lock mr-1"></i> Wszystkie bonusy są zablokowane - odblokuj przynajmniej jeden 🔓, żeby móc przelosować.
+                                                    </div>
+                                                @endif
                                             </div>
                                         @endif
 

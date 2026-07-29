@@ -209,11 +209,16 @@ class EnchantmentStrategy
         return ['type' => $bonusKey, 'value' => $value];
     }
 
-    public function generateMultipleRandomEnchantments(ItemInstance $item, int $count): array
+    /**
+     * $excludeTypes: typy do pominięcia przy losowaniu (np. zablokowane bonusy przy
+     * częściowym rerollu u Wiedźmy - patrz RerollEnchantments), żeby nowo wylosowany
+     * bonus nie zdublował typu, który zostaje nietknięty.
+     */
+    public function generateMultipleRandomEnchantments(ItemInstance $item, int $count, array $excludeTypes = []): array
     {
         $pool = $this->poolFor($item);
 
-        $availableBonuses = array_keys($pool);
+        $availableBonuses = array_values(array_diff(array_keys($pool), $excludeTypes));
         $enchants = [];
 
         for ($i = 0; $i < $count; $i++) {

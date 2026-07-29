@@ -172,6 +172,11 @@ class ItemInstance extends Model
         // Merge base stats with rolled stats
         $totalStats = $baseStats;
         foreach ($rollStats as $stat => $value) {
+            if ($stat === 'enchant_locks') {
+                // Metadane (lista zablokowanych typów zaklęć, patrz
+                // ItemInstance::toggleEnchantLock()) - nie jest to statystyka.
+                continue;
+            }
             if ($stat === 'enchants' && is_array($value)) {
                 foreach ($value as $enchantType => $enchantValue) {
                     $totalStats[$enchantType] = ($totalStats[$enchantType] ?? 0) + $enchantValue;

@@ -180,6 +180,19 @@ class Witch extends Component
         $this->actionType = null;
     }
 
+    public function toggleEnchantLock(string $bonusType)
+    {
+        if (!$this->activeItemId) return;
+
+        $item = ItemInstance::find($this->activeItemId);
+        if (!$item || $item->owner_character_id !== $this->character->id) {
+            return;
+        }
+
+        $item->toggleEnchantLock($bonusType);
+        $item->save();
+    }
+
     public function enchant(string $currencyType, EnchantItem $enchantItemAction)
     {
         $this->clearEnchantMessages();

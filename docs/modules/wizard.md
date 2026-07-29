@@ -79,8 +79,24 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 
 ### 4. Reroll (Przelosowanie)
 - Przedmioty, które posiadają już przypisane magiczne bonusy (minimum jeden), mogą zostać przelosowane.
-- Reroll powoduje wyczyszczenie **wszystkich** dotychczasowych bonusów na danym przedmiocie i wylosowanie ich na nowo w tej samej ilości.
-- Koszt rerolla skaluje się w zależności od liczby posiadanych bonusów na przedmiocie (np. 5 bonusów = 5x większy koszt bazowy).
+- Reroll domyślnie wyczyszcza **wszystkie** dotychczasowe bonusy na danym przedmiocie i losuje je na nowo w tej samej ilości, **z wyjątkiem zablokowanych** (patrz niżej).
+- Koszt rerolla skaluje się w zależności od liczby bonusów, które faktycznie mają zostać przelosowane (czyli **odblokowanych**), nie całkowitej liczby na przedmiocie.
+
+> **Uwaga (blokowanie zaklęć, 2026-07-29):** Każdy z 1-5 przypisanych bonusów na
+> przedmiocie można indywidualnie **zablokować** (ikona kłódki w sekcji "Magiczne Moce"
+> u Wiedźmy, `ItemInstance::toggleEnchantLock()`, zapisywane w
+> `roll_stats['enchant_locks']` - lista zablokowanych typów, osobno od samych bonusów w
+> `roll_stats['enchants']`). Zablokowany bonus **nie jest tykany** przez reroll (zostaje
+> 1:1, ten sam typ i ta sama wartość) - `RerollEnchantments::execute()` losuje od nowa
+> wyłącznie typy i wartości odblokowanych slotów (`EnchantmentStrategy::
+> generateMultipleRandomEnchantments()` przyjmuje teraz opcjonalny `$excludeTypes`, żeby
+> nowy rzut nie zdublował zablokowanego typu). **Cena rerolla widoczna w UI aktualizuje
+> się na żywo** wraz z (od)blokowaniem kolejnych bonusów (`200 zł`/`2 gemy` za każdy
+> odblokowany slot, minimum jak dla jednego). Jeśli wszystkie bonusy są zablokowane,
+> przycisk rerolla jest zablokowany z komunikatem - nie ma czego przelosować.
+> `ItemInstance::getEnchantLocks()` odfiltrowuje "osierocone" wpisy (typ zablokowany,
+> którego już nie ma wśród bonusów przedmiotu), więc stan nigdy nie rozjeżdża się z
+> rzeczywistą zawartością `roll_stats['enchants']`.
 
 ### 5. Ekonomia i Waluty
 - System Czarodzieja obsługuje mikropłatności dwuwalutowe: gracz zawsze ma wybór, by zapłacić zwykłym wewnątrzgrowym **Złotem (Gold)** lub walutą premium **Klejnotami (Gems)**.
