@@ -237,20 +237,31 @@
             dodge: 1,
             error: 1
         },
+        combatTypes: ['combat', 'victory', 'defeat', 'hit', 'crit', 'dodge'],
+        volumes: {
+            sfx: parseInt(localStorage.getItem('berserk_sfx_volume') ?? '50') / 100,
+            levelup: parseInt(localStorage.getItem('berserk_levelup_volume') ?? '50') / 100,
+            combat: parseInt(localStorage.getItem('berserk_combat_volume') ?? '50') / 100
+        },
+        categoryFor(type) {
+            if (type === 'levelup') return 'levelup';
+            if (this.combatTypes.includes(type)) return 'combat';
+            return 'sfx';
+        },
         activeSounds: {},
         playAudio(type) {
             if (!this.sounds[type]) return;
-            
+
             if (this.activeSounds[type]) {
                 this.activeSounds[type].pause();
                 this.activeSounds[type].currentTime = 0;
             }
-            
+
             let maxVariants = this.sounds[type];
             let variant = Math.floor(Math.random() * maxVariants) + 1;
             let audio = new Audio('/storage/sound/' + type + '-' + variant + '.mp3');
-            audio.volume = 0.5;
-            
+            audio.volume = this.volumes[this.categoryFor(type)];
+
             this.activeSounds[type] = audio;
             audio.play().catch(e => {
                 if (e.name !== 'AbortError') {
@@ -258,7 +269,9 @@
                 }
             });
         }
-    }" @play-audio.window="playAudio($event.detail.type)"></div>
+    }"
+         @play-audio.window="playAudio($event.detail.type)"
+         @settings-volume-changed.window="volumes[$event.detail.category] = $event.detail.value / 100"></div>
 
     {{-- ===== Toast Notification System ===== --}}
     <div
@@ -284,7 +297,10 @@
                 }
             }
         }"
-        x-on:notify.window="addToast($event.detail.type || 'info', $event.detail.message, $event.detail.duration || 4000)"
+        x-on:notify.window="
+            if ($event.detail.category === 'quest_achievement' && localStorage.getItem('berserk_notify_quest_achievement') === 'false') return;
+            addToast($event.detail.type || 'info', $event.detail.message, $event.detail.duration || 4000)
+        "
         class="fixed top-4 right-4 z-[9998] flex flex-col gap-3 pointer-events-none max-w-sm w-full"
         style="font-family: 'Cinzel', serif;"
     >

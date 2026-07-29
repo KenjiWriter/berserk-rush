@@ -89,6 +89,7 @@ Faza końcowa pierwszej wersji produkcyjnej, skupiająca się na płynności i w
 - [x] **Zwiększenie Immersji UI:** Dodanie płynnych przejść (nakładka ładowania) podczas poruszania się między mapami, tchnięcie życia w walkę (fizyczne uderzenia, potrząśnięcia paneli) i animacje ubywającego zdrowia.
 - [x] **Skalowalna Walka (Workery w tle):** Przeniesienie ciężkich obliczeń zapytań bitewnych do systemów kolejkowych. Główny proces HTTP zostaje odciążony, a walki są obliczane asynchronicznie, co pozwala na bezproblemową grę dla setek graczy naraz.
 - [x] **Optymalizacja DB:** Indeksy, optymalizacja zapytań i cachowanie często używanych statystyk w Redis.
+- [x] **Ustawienia Gry:** Nowa zakładka w nawigacji (`city.settings`) pozwalająca regulować głośność dźwięku (efekty, awans poziomu, walka) oraz włączać/wyłączać powiadomienia o postępie questów/osiągnięć. Ustawienia trzymane po stronie klienta (`localStorage`), patrz `docs/modules/settings.md`.
 
 ---
 

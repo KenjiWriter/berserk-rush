@@ -75,6 +75,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/arena/combat/gvg/{gvgId}', \App\Livewire\City\ArenaCombat::class)->name('arena.combat.gvg');
         Route::get('/gladiator', \App\Livewire\City\GladiatorShop::class)->name('gladiator');
         Route::get('/quests', \App\Livewire\City\Quests::class)->name('quests');
+        Route::get('/settings', \App\Livewire\City\GameSettings::class)->name('settings');
     });
 
     // Adventure map routes

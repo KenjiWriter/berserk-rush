@@ -548,6 +548,25 @@
                           class="truncate">SKLEP GEMÓW</span>
                 </a>
 
+                <a href="{{ route('city.settings', $charId) }}" wire:navigate
+                   @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                   @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Otwieranie Ustawień...', icon: 'fa-solid fa-gear', url: $el.href })"
+                   :title="collapsed ? 'Ustawienia gry' : ''"
+                   :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
+                   class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.settings') ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-800 text-stone-950 border-yellow-300 shadow-[0_0_20px_rgba(245,158,11,0.7),inset_0_1px_0_rgba(255,255,255,0.5)] scale-[1.02]' : 'bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 border-amber-600/60 text-amber-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.4)] shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]' }}">
+                    <span :class="collapsed ? 'w-full text-yellow-400' : 'w-5 text-yellow-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
+                        <i class="fa-solid fa-gear"></i>
+                    </span>
+                    <span x-show="!collapsed"
+                          x-transition:enter="transition-opacity ease-out duration-200 delay-100"
+                          x-transition:enter-start="opacity-0"
+                          x-transition:enter-end="opacity-100"
+                          x-transition:leave="transition-opacity ease-in duration-75"
+                          x-transition:leave-start="opacity-100"
+                          x-transition:leave-end="opacity-0"
+                          class="truncate">USTAWIENIA GRY</span>
+                </a>
+
                 <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer"
                    @mouseenter="$dispatch('play-audio', { type: 'hover' })"
                    :title="collapsed ? 'Discord' : ''"

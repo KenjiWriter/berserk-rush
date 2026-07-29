@@ -291,6 +291,12 @@
                         <span>SKLEP GEMÓW</span>
                     </a>
 
+                    <a href="{{ route('city.settings', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Ustawień...', icon: 'fa-solid fa-gear', url: $el.href })"
+                       class="flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg {{ request()->routeIs('city.settings') ? 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700 text-stone-950 font-black border border-yellow-300 shadow' : 'bg-gradient-to-b from-amber-950 via-stone-900 to-amber-950 text-amber-300 font-bold border border-amber-600/60 hover:border-amber-400' }} transition-all">
+                        <i class="fa-solid fa-gear text-sm {{ request()->routeIs('city.settings') ? 'text-stone-950' : 'text-yellow-400' }}"></i>
+                        <span>USTAWIENIA GRY</span>
+                    </a>
+
                     <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer" @click="mobileMenuOpen = false"
                        class="w-full flex items-center justify-center gap-2 p-2.5 min-h-[44px] rounded-lg bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-indigo-200 font-bold border border-indigo-600/60 hover:border-indigo-400 transition-all cursor-pointer">
                         <i class="fa-brands fa-discord text-indigo-400 text-sm"></i>

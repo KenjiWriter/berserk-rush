@@ -548,7 +548,7 @@ class MapStub extends Component
         // Emit pending notifications
         if (!empty($this->pendingNotifications)) {
             foreach ($this->pendingNotifications as $notification) {
-                $this->dispatch('notify', type: $notification['type'], message: $notification['message']);
+                $this->dispatch('notify', type: $notification['type'], message: $notification['message'], category: 'quest_achievement');
             }
             $this->pendingNotifications = []; // clear after sending
         }
