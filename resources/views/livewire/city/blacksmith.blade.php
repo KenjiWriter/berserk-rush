@@ -25,38 +25,48 @@
 
         <div class="bg-black/50 border border-amber-700/30 rounded-xl shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md flex-grow flex flex-col">
 
-            {{-- Tabs --}}
-            <div class="flex border-b border-amber-900/50 bg-black/40">
-                <button wire:click="setTab('forge')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
-                    <i class="fa-solid fa-fire-flame-curved text-amber-400/80"></i> Kuźnia Ulepszeń
-                </button>
-                <button wire:click="setTab('crafting')" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
-                    <i class="fa-solid fa-hammer text-amber-400/80"></i> Rzemiosło
-                </button>
-            </div>
+            <div wire:loading.class="opacity-60 pointer-events-none" wire:target="setTab, setItemFilter" class="transition-opacity">
+                {{-- Tabs --}}
+                <div class="flex border-b border-amber-900/50 bg-black/40">
+                    <button wire:click="setTab('forge')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'forge' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                        <i class="fa-solid fa-fire-flame-curved text-amber-400/80"></i> Kuźnia Ulepszeń
+                    </button>
+                    <button wire:click="setTab('crafting')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                        <i class="fa-solid fa-hammer text-amber-400/80"></i> Rzemiosło
+                    </button>
+                </div>
 
-            {{-- Filtr typu ekwipunku --}}
-            <div class="flex flex-wrap items-center gap-2 px-6 pt-4">
-                <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mr-1">Filtr:</span>
-                <button wire:click="setItemFilter('all')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'all' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
-                    <i class="fa-solid fa-list"></i> Wszystko
-                </button>
-                <button wire:click="setItemFilter('weapon')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'weapon' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
-                    <i class="fa-solid fa-khanda"></i> Broń
-                </button>
-                <button wire:click="setItemFilter('head')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'head' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
-                    <i class="fa-solid fa-crown"></i> Hełmy
-                </button>
-                <button wire:click="setItemFilter('chest')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'chest' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
-                    <i class="fa-solid fa-shield-halved"></i> Zbroje
-                </button>
-                <button wire:click="setItemFilter('feet')" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'feet' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
-                    <i class="fa-solid fa-shoe-prints"></i> Buty
-                </button>
+                {{-- Filtr typu ekwipunku --}}
+                <div class="flex flex-wrap items-center gap-2 px-6 pt-4">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest font-bold mr-1">Filtr:</span>
+                    <button wire:click="setItemFilter('all')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'all' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-list"></i> Wszystko
+                    </button>
+                    <button wire:click="setItemFilter('weapon')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'weapon' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-khanda"></i> Broń
+                    </button>
+                    <button wire:click="setItemFilter('head')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'head' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-crown"></i> Hełmy
+                    </button>
+                    <button wire:click="setItemFilter('chest')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'chest' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-shield-halved"></i> Zbroje
+                    </button>
+                    <button wire:click="setItemFilter('feet')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all border {{ $itemFilter === 'feet' ? 'bg-amber-600 border-amber-400 text-white' : 'bg-gray-900/60 border-gray-700 text-gray-400 hover:text-amber-200 hover:border-amber-600' }}">
+                        <i class="fa-solid fa-shoe-prints"></i> Buty
+                    </button>
+                </div>
             </div>
 
             {{-- Content --}}
-            <div class="p-6 flex-grow flex flex-col h-full">
+            <div class="p-6 flex-grow flex flex-col h-full relative">
+                {{-- Loading Overlay przy zmianie zakładki/filtra (przeliczanie kosztów i przepisów po stronie serwera) --}}
+                <div wire:loading.flex wire:target="setTab, setItemFilter" class="absolute inset-0 z-30 flex-col items-center justify-center bg-slate-950/90 backdrop-blur-md text-center rounded-b-xl">
+                    <div class="relative w-16 h-16 mb-3">
+                        <div class="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-[spin_1s_linear_infinite]"></div>
+                    </div>
+                    <p class="font-bold text-amber-200 tracking-wider medieval-font animate-pulse">Wczytywanie...</p>
+                </div>
+
                 @if($activeTab === 'forge')
                     <div class="h-full flex flex-col gap-6 relative" x-data="{ hammering: false }">
                         @php
