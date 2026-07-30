@@ -244,10 +244,12 @@ class DungeonSeeder extends Seeder
 
         foreach ($dungeonsConfig as $dConfig) {
             // 1. Create Loot Table for the Boss
-            $bossLootTable = LootTable::create([
+            $bossLootTable = LootTable::firstOrCreate([
                 'name' => 'boss_' . Str::slug($dConfig['name']) . '_loot',
+            ], [
                 'description' => 'Drop z Bossa lochu ' . $dConfig['name']
             ]);
+            LootTableEntry::where('loot_table_id', $bossLootTable->id)->delete();
 
             foreach ($dConfig['boss_loot'] as $lootItem) {
                 $refUlid = $getItemUlid($lootItem['ref_name']);
