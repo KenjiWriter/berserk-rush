@@ -113,6 +113,7 @@ class Adventure extends Component
         $topDamageDealers = [];
         $participatedBrackets = [];
         $nextResetAt = null;
+        $resetCountdownLabel = null;
 
         if ($this->tab === 'worldboss') {
             app(\App\Application\Combat\WorldBossService::class)->ensureBossesSpawned();
@@ -147,6 +148,7 @@ class Adventure extends Component
             }
 
             $nextResetAt = now()->copy()->addHour()->startOfHour();
+            $resetCountdownLabel = sprintf('%02d:%02d', intdiv(now()->diffInSeconds($nextResetAt), 60), now()->diffInSeconds($nextResetAt) % 60);
         }
 
         $activeQuestIds = $this->character->activeQuests()->pluck('quest_id')->toArray();
@@ -159,7 +161,7 @@ class Adventure extends Component
             'bracketLabels'     => self::BRACKET_LABELS,
             'participatedBrackets' => $participatedBrackets,
             'topDamageDealers'  => $topDamageDealers,
-            'nextResetAt'       => $nextResetAt,
+            'resetCountdownLabel' => $resetCountdownLabel,
             'activeQuestIds'    => $activeQuestIds,
         ]);
     }

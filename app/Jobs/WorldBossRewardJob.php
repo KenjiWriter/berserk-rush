@@ -34,6 +34,26 @@ class WorldBossRewardJob implements ShouldQueue
         'Pan Zniszczenia' => 'Klucz Otchłani',
     ];
 
+    /**
+     * Jedyne źródło prawdy dla tabeli nagród (miejsce -> gemy/klucze). Używane zarówno
+     * tutaj przy faktycznym rozdawaniu, jak i w UI (Adventure.php/adventure.blade.php)
+     * do pokazania graczowi, o co właściwie walczy, zanim nagrody zostaną rozdane.
+     *
+     * @return array{gems: int, keys: int}
+     */
+    public static function rewardForPlace(int $place): array
+    {
+        [$gems, $keys] = match(true) {
+            $place === 1 => [50, 5],
+            $place >= 2 && $place <= 3 => [30, 5],
+            $place >= 4 && $place <= 6 => [0, 3],
+            $place >= 7 && $place <= 9 => [0, 1],
+            default => [0, 0],
+        };
+
+        return ['gems' => $gems, 'keys' => $keys];
+    }
+
     public function handle(): void
     {
         Log::info('WorldBossRewardJob: Rozpoczynam rozdawanie nagród.');
@@ -73,13 +93,9 @@ class WorldBossRewardJob implements ShouldQueue
 
                 $place = 1;
                 foreach ($rankings as $rank) {
-                    [$gems, $keys] = match(true) {
-                        $place === 1 => [50, 5],
-                        $place >= 2 && $place <= 3 => [30, 5],
-                        $place >= 4 && $place <= 6 => [0, 3],
-                        $place >= 7 && $place <= 9 => [0, 1],
-                        default => [0, 0],
-                    };
+                    $reward = self::rewardForPlace($place);
+                    $gems = $reward['gems'];
+                    $keys = $reward['keys'];
 
                     if ($gems > 0 || $keys > 0) {
                         $attachments = [];

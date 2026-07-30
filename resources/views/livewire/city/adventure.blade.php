@@ -879,26 +879,15 @@
 
         {{-- WORLDBOSS TAB --}}
         @if($tab === 'worldboss')
-        <div class="w-full px-4 md:px-0" x-data="{
-                resetTimestamp: {{ $nextResetAt ? $nextResetAt->timestamp * 1000 : 'null' }},
-                timeLeftStr: '--:--',
-                init() {
-                    this.updateTimer();
-                    setInterval(() => this.updateTimer(), 1000);
-                },
-                updateTimer() {
-                    if (!this.resetTimestamp) return;
-                    let now = new Date().getTime();
-                    let diff = this.resetTimestamp - now;
-                    if (diff <= 0) { this.timeLeftStr = '00:00'; return; }
-                    let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                    this.timeLeftStr = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-                }
-            }">
+        {{-- Licznik resetu i cały panel są odświeżane co 10s przez wire:poll zamiast
+             klientowego setInterval-a spiętego z Alpine init() - po morphach Livewire (np.
+             kliknięcie w inny element strony) init() bywał niewywoływany ponownie, przez co
+             licznik czasami w ogóle nie renderował się na nowo. Serwerowe polling jest
+             bezstanowe i zawsze poprawne. --}}
+        <div class="w-full px-4 md:px-0" wire:poll.10s>
             <div class="text-center mb-8 max-w-2xl mx-auto">
                 <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Regenerują HP z każdym ciosem i nie da się ich pokonać - liczy się wyłącznie suma zadanych obrażeń. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od stanu HP bossa.</p>
-                <p class="text-sm text-purple-300 font-bold mt-3">Reset rankingu za: <span x-text="timeLeftStr" class="text-white"></span></p>
+                <p class="text-sm text-purple-300 font-bold mt-3">Reset rankingu za: <span class="text-white">{{ $resetCountdownLabel }}</span></p>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -944,17 +933,38 @@
                                 </div>
 
                                 <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                                    <p class="text-[11px] font-bold text-purple-300 uppercase tracking-wide mb-1">Top 10 wojowników</p>
+                                    <div class="flex items-center justify-between mb-1">
+                                        <p class="text-[11px] font-bold text-purple-300 uppercase tracking-wide">Top 10 wojowników</p>
+                                    </div>
+                                    <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-slate-400 bg-black/30 rounded-lg px-2 py-1.5 mb-1.5 border border-purple-900/40">
+                                        <span><b class="text-amber-400">#1</b> 50 <i class="fa-solid fa-gem text-purple-400"></i> + 5 <i class="fa-solid fa-key text-amber-400"></i></span>
+                                        <span><b class="text-slate-300">#2-3</b> 30 <i class="fa-solid fa-gem text-purple-400"></i> + 5 <i class="fa-solid fa-key text-amber-400"></i></span>
+                                        <span><b class="text-amber-700">#4-6</b> 3 <i class="fa-solid fa-key text-amber-400"></i></span>
+                                        <span><b class="text-slate-500">#7-9</b> 1 <i class="fa-solid fa-key text-amber-400"></i></span>
+                                    </div>
                                     @if($topDmg->isEmpty())
                                         <p class="text-slate-500 italic text-center py-3 text-xs">Brak uczestników. Bądź pierwszy!</p>
                                     @else
                                         @foreach($topDmg as $index => $log)
+                                            @php $reward = \App\Jobs\WorldBossRewardJob::rewardForPlace($index + 1); @endphp
                                             <div class="flex justify-between items-center text-xs {{ $log->character_id === $character->id ? 'bg-purple-950/80 border border-purple-500/60' : 'bg-slate-950/60' }} p-1.5 rounded-lg">
                                                 <div class="flex items-center gap-2">
                                                     <span class="font-bold {{ $index === 0 ? 'text-yellow-400' : ($index === 1 ? 'text-slate-300' : ($index === 2 ? 'text-amber-600' : 'text-slate-500')) }}">#{{ $index + 1 }}</span>
                                                     <span class="{{ $log->character_id === $character->id ? 'text-purple-200 font-bold' : 'text-slate-300' }}">{{ $log->character->name }}</span>
                                                 </div>
-                                                <span class="text-red-400 font-bold">{{ number_format($log->damage) }}</span>
+                                                <div class="flex items-center gap-2">
+                                                    @if($reward['gems'] > 0 || $reward['keys'] > 0)
+                                                        <span class="text-[10px] text-slate-400 flex items-center gap-1">
+                                                            @if($reward['gems'] > 0)
+                                                                {{ $reward['gems'] }}<i class="fa-solid fa-gem text-purple-400"></i>
+                                                            @endif
+                                                            @if($reward['keys'] > 0)
+                                                                {{ $reward['keys'] }}<i class="fa-solid fa-key text-amber-400"></i>
+                                                            @endif
+                                                        </span>
+                                                    @endif
+                                                    <span class="text-red-400 font-bold">{{ number_format($log->damage) }}</span>
+                                                </div>
                                             </div>
                                         @endforeach
                                     @endif
