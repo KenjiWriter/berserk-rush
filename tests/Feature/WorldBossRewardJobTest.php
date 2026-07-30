@@ -163,8 +163,11 @@ class WorldBossRewardJobTest extends TestCase
 
         // Mirror the regen-then-decrement logic used in EncounterService::simulate(): regen is
         // per-turn (multiplied by the number of turns actually fought), not a single flat tick
-        // per encounter (fix 2026-07-30, feedback from live testing).
-        $regenPerTurn = (int) ceil($boss->total_hp * 0.005);
+        // per encounter (fix 2026-07-30, feedback from live testing). 0.0005 (not 0.005) per
+        // EncounterService::WORLD_BOSS_REGEN_PCT_PER_TURN - the original 0.005 (0.5%/turn, up
+        // to 10% total_hp per full 20-turn fight) was tuned down after live testing showed it
+        // was eating most of the cumulative damage players dealt on high-HP bosses.
+        $regenPerTurn = (int) ceil($boss->total_hp * 0.0005);
         $turnsFought = 20;
         $regen = $regenPerTurn * $turnsFought;
         $damageDealt = 1000;

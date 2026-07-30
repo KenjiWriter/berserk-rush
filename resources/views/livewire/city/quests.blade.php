@@ -137,8 +137,7 @@
                             {{-- Unrolling parchment panel --}}
                             <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
                                 <div class="overflow-hidden">
-                                    <div x-show="open" x-transition:enter="transition ease-out duration-300 delay-150" x-transition:enter-start="opacity-0 -translate-y-3" x-transition:enter-end="opacity-100 translate-y-0"
-                                         class="px-5 pb-5 pt-1 border-t border-amber-900/50">
+                                    <div class="px-5 pb-5 pt-1 border-t border-amber-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
 
                                         {{-- Scroll rod divider --}}
                                         <div class="flex items-center gap-2 my-3 opacity-70">
@@ -256,8 +255,7 @@
                                 {{-- Unrolling parchment panel --}}
                                 <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
                                     <div class="overflow-hidden">
-                                        <div x-show="open" x-transition:enter="transition ease-out duration-300 delay-150" x-transition:enter-start="opacity-0 -translate-y-3" x-transition:enter-end="opacity-100 translate-y-0"
-                                             class="px-5 pb-5 pt-1 border-t border-sky-900/50">
+                                        <div class="px-5 pb-5 pt-1 border-t border-sky-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
 
                                             <div class="flex items-center gap-2 my-3 opacity-70">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-sky-700"></span>

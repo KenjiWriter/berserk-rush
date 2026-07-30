@@ -8,9 +8,17 @@
     $template = $item->template ?? $item;
     $upgrade_level = $item->upgrade_level ?? 0;
 
+    // Non-stat metadata sometimes stored alongside real stats in base_stats (e.g.
+    // 'loot_table' on chest consumables, see LootChestSeeder) - not a [min, max]
+    // range and not numeric, so it must never reach the +/- arithmetic below.
+    $stripNonStatEntries = function (array $stats): array {
+        return array_filter($stats, fn ($val) => is_array($val) || is_numeric($val));
+    };
+
     // Raw base_stats as defined on the template: for weapon/armor/accessory, each
     // numeric value may be a [min, max] range rather than a fixed scalar.
     $template_base_stats = is_array($template->base_stats ?? null) ? $template->base_stats : (json_decode($template->base_stats ?? '[]', true) ?? []);
+    $template_base_stats = $stripNonStatEntries($template_base_stats);
 
     // Real ItemInstance -> show the concrete rolled value per stat (falls back to
     // the range midpoint if this instance never rolled it). Template-only preview
@@ -45,6 +53,7 @@
     if ($equippedItem) {
         $eq_template = $equippedItem->template ?? $equippedItem;
         $eq_template_base_stats = is_array($eq_template->base_stats ?? null) ? $eq_template->base_stats : (json_decode($eq_template->base_stats ?? '[]', true) ?? []);
+        $eq_template_base_stats = $stripNonStatEntries($eq_template_base_stats);
         $eq_isInstance = is_object($equippedItem) && method_exists($equippedItem, 'getResolvedBaseStats');
         $equipped_base_stats = $eq_isInstance ? $equippedItem->getResolvedBaseStats() : $eq_template_base_stats;
 

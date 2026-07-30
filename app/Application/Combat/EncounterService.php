@@ -41,8 +41,14 @@ class EncounterService
     private const EQUIPMENT_STUN_DURATION = 1;
 
     // World boss: % z total_hp regenerowane co turę PODCZAS walki (mnożone przez liczbę
-    // faktycznie rozegranych tur, max 20) - patrz gałąź world boss w simulate().
-    private const WORLD_BOSS_REGEN_PCT_PER_TURN = 0.005;
+    // faktycznie rozegranych tur, max 20) - patrz gałąź world boss w simulate(). UWAGA (fix
+    // 2026-07-30): pierwotne 0.005 (0.5%/turę) dawało do 10% total_hp regeneracji za JEDNĄ
+    // pełną 20-turową walkę - przy bossach z pulą rzędu kilku/kilkunastu milionów HP to
+    // realnie "zjadało" większość sumy zadanych obrażeń z rankingu (zgłoszone jako "coś jest
+    // nie tak" - suma dmg graczy dużo wyższa niż realny ubytek HP). 0.0005 (0.05%/turę = 1%
+    // total_hp za pełną walkę) nadal spełnia "trudno wyzerować pulę", ale nie zjada
+    // większości wkładu graczy.
+    private const WORLD_BOSS_REGEN_PCT_PER_TURN = 0.0005;
 
     /**
      * Rzuca procki otrucia/ogłuszenia z ekwipunku po wylądowanym trafieniu.

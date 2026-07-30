@@ -144,9 +144,13 @@ class ItemInstance extends Model
                 $min = $value[0] ?? 0;
                 $max = $value[1] ?? $min;
                 $resolved[$stat] = $this->rolled_stats[$stat] ?? (int) round(($min + $max) / 2);
-            } else {
+            } elseif (is_numeric($value)) {
                 $resolved[$stat] = $value;
             }
+            // Non-numeric, non-range scalars (e.g. the 'loot_table' name stored on
+            // chest consumables, see LootChestSeeder) are metadata, not a stat - skip
+            // them so they don't reach the arithmetic below (getCombatPower(), the
+            // upgrade-bonus calc, and the tooltip's total/diff math).
         }
 
         return $resolved;
