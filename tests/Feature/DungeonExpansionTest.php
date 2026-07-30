@@ -110,4 +110,62 @@ class DungeonExpansionTest extends TestCase
         $this->assertNotNull($keyEntry);
         $this->assertEquals(3, $keyEntry->weight); // Small weight (3) vs materials (25)
     }
+
+    public function test_dungeon_completion_guarantees_1_to_3_chests(): void
+    {
+        $this->seed(\Database\Seeders\MaterialItemSeeder::class);
+        $this->seed(\Database\Seeders\LootChestSeeder::class);
+
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Testowy',
+            'level' => 50,
+            'xp' => 0,
+            'gold' => 500,
+            'attributes' => ['str' => 999, 'int' => 999, 'vit' => 999, 'agi' => 999],
+        ]);
+
+        $dungeon = Dungeon::where('name', 'Zapomniane Katakumby')->first();
+
+        // Give character key
+        ItemInstance::create([
+            'template_id' => $dungeon->entry_item_template_id,
+            'owner_character_id' => $character->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $service = app(DungeonService::class);
+        $startResult = $service->startRun($character, $dungeon);
+        $this->assertTrue($startResult->isOk());
+        $run = $startResult->getPayload();
+
+        // Run all stages until completion
+        while (!$run->is_completed && !$run->is_failed) {
+            $simResult = $service->simulateStage($run);
+            $this->assertTrue($simResult->isOk());
+            $run->refresh();
+        }
+
+        $this->assertTrue($run->is_completed);
+
+        // Verify accumulated loot contains the chest item with 1..3 quantity
+        $loot = $run->accumulated_loot;
+        $chestItems = array_filter($loot['items'], fn($it) => $it['name'] === 'Skrzynia Starych Ruin');
+        $this->assertNotEmpty($chestItems);
+
+        $chestItem = array_values($chestItems)[0];
+        $this->assertGreaterThanOrEqual(1, $chestItem['quantity']);
+        $this->assertLessThanOrEqual(3, $chestItem['quantity']);
+
+        // Verify character received the chest item in inventory
+        $chestInstance = ItemInstance::where('owner_character_id', $character->id)
+            ->where('template_id', $chestItem['ref_ulid'])
+            ->first();
+        $this->assertNotNull($chestInstance);
+        $this->assertGreaterThanOrEqual(1, $chestInstance->stack_size);
+        $this->assertLessThanOrEqual(3, $chestInstance->stack_size);
+    }
 }

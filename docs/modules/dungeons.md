@@ -27,6 +27,10 @@ Moduł lochów wprowadza do gry zaawansowaną zawartość PvE typu instancjonowa
    - Z bossów lochów wypadać mogą Zwoje Użytkowe (Zwój Resetu Umiejętności, Zwój Resetu Atrybutów, Zwój Pełnego Resetu oraz Zwój Areny Walki).
    - Szansa (waga) na wylosowanie Zwoju rośnie proporcjonalnie do trudności i wymaganego poziomu lochu (Zapomniane Katakumby: niska szansa -> Otchłań Zniszczenia: najwyższa szansa).
 
+6. **Gwarantowany Drop Skrzyń z Bossów (100% Drop Rate):**
+   - Pokonanie ostatecznego bossa w lochu (`boss` stage) gwarantuje w **100% drop skrzyń z łupami** (tych samych skrzyń, które wypadają z bossów map, np. Skrzynia Starych Ruin, Skrzynia Jaskini Trolli itp.).
+   - Jedynym losowanym parametrem jest ilość skrzyń: od **1 do 3 sztuk** (`mt_rand(1, 3)`), co zapewnia graczom pewny i satysfakcjonujący loot z każdego pomyślnie ukończonego lochu.
+
 ## Baza Danych
 
 - `dungeons`: Tablica główna opisująca dany loch (nazwa, minimalny level, przedmiot-klucz).
@@ -35,3 +39,4 @@ Moduł lochów wprowadza do gry zaawansowaną zawartość PvE typu instancjonowa
 
 ## Logika Aplikacji
 Logika instancjonowanych lochów jest sterowana głównie z poziomu **`DungeonService`**, do którego oddelegowano metody startowania ekspedycji, kalkulacji potencjalnego lootu (z mnożnikami) i ostatecznego jego dystrybuowania na koniec. Uzupełniane jest to asynchronicznym jobem **`SimulateDungeonStageJob`** zapewniającym generowanie wyników.
+

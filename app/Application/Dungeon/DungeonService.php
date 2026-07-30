@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Dungeon;
 use App\Infrastructure\Persistence\DungeonStage;
 use App\Infrastructure\Persistence\CharacterDungeonRun;
 use App\Infrastructure\Persistence\ItemInstance;
+use App\Infrastructure\Persistence\ItemTemplate;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\CurrencyLedger;
 use App\Application\Loot\WeightedPicker;
@@ -279,7 +280,7 @@ class DungeonService
         }
 
         // Przeciwnik pokonany - losujemy loot (przedmioty wykluczone dla nie-bossa)
-        $lootFromThisStage = $this->calculateStageLoot($character, $monster, $isBossStage);
+        $lootFromThisStage = $this->calculateStageLoot($character, $monster, $isBossStage, $run->dungeon);
         $accumulatedLoot['gold'] += $lootFromThisStage['gold'];
         $accumulatedLoot['xp'] += $lootFromThisStage['xp'];
         foreach ($lootFromThisStage['items'] as $item) {
@@ -405,7 +406,29 @@ class DungeonService
         return max(1, $baseDamage - ($defense * 0.2));
     }
 
-    private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false): array
+    public function getChestForDungeon(Dungeon $dungeon): ?ItemTemplate
+    {
+        $nameMap = [
+            'Zapomniane Katakumby' => 'Skrzynia Starych Ruin',
+            'Krypta Przeklętych' => 'Skrzynia Jaskini Trolli',
+            'Pustkowia Zarazy' => 'Skrzynia Bagien Grozy',
+            'Cytadela Cienia' => 'Skrzynia Gór Cienia',
+            'Otchłań Zniszczenia' => 'Skrzynia Skażonego Miasta',
+        ];
+
+        if (isset($nameMap[$dungeon->name])) {
+            $template = ItemTemplate::where('name', $nameMap[$dungeon->name])->first();
+            if ($template) return $template;
+        }
+
+        return ItemTemplate::where('type', 'consumable')
+            ->where('sub_type', 'chest')
+            ->where('level_requirement', '<=', $dungeon->min_level ?? 1)
+            ->orderBy('level_requirement', 'desc')
+            ->first() ?? ItemTemplate::where('type', 'consumable')->where('sub_type', 'chest')->first();
+    }
+
+    private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false, ?Dungeon $dungeon = null): array
     {
         $multiplierService = app(RewardMultiplierService::class);
         
@@ -425,33 +448,50 @@ class DungeonService
         $items = [];
         
         // Roll loot table ONLY for boss stages
-        if ($isBossStage && $monster->lootTable) {
-            $entries = $monster->lootTable->entries->toArray();
-            if (!empty($entries)) {
-                $picker = app(WeightedPicker::class);
-                $rng = app(RandomProvider::class);
-                
-                $selectedEntry = $picker->pick($entries);
-                if ($selectedEntry) {
-                    $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+        if ($isBossStage) {
+            // Gwarantowany drop skrzyń (100% szansy na 1-3 sztuki skrzyń z bossa)
+            if ($dungeon) {
+                $chestTemplate = $this->getChestForDungeon($dungeon);
+                if ($chestTemplate) {
+                    $chestQuantity = mt_rand(1, 3);
+                    $items[] = [
+                        'type' => 'item',
+                        'name' => $chestTemplate->name,
+                        'quantity' => $chestQuantity,
+                        'ref_ulid' => $chestTemplate->id,
+                    ];
+                }
+            }
+
+            // Dodatkowy drop z tabeli zrzutów bossa (jaja, zwoje, materiały)
+            if ($monster->lootTable) {
+                $entries = $monster->lootTable->entries->toArray();
+                if (!empty($entries)) {
+                    $picker = app(WeightedPicker::class);
+                    $rng = app(RandomProvider::class);
                     
-                    if ($selectedEntry['reward_type'] === 'gold') {
-                        $totalGold += $quantity;
-                    } elseif ($selectedEntry['reward_type'] === 'gems') {
-                        $items[] = [
-                            'type' => 'gems',
-                            'name' => 'Klejnoty',
-                            'quantity' => $quantity,
-                            'ref_ulid' => null,
-                        ];
-                    } elseif (in_array($selectedEntry['reward_type'], ['item', 'material'])) {
-                        $template = \App\Infrastructure\Persistence\ItemTemplate::find($selectedEntry['ref_ulid']);
-                        $items[] = [
-                            'type' => $selectedEntry['reward_type'],
-                            'name' => $template ? $template->name : 'Przedmiot',
-                            'quantity' => $quantity,
-                            'ref_ulid' => $selectedEntry['ref_ulid'],
-                        ];
+                    $selectedEntry = $picker->pick($entries);
+                    if ($selectedEntry) {
+                        $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+                        
+                        if ($selectedEntry['reward_type'] === 'gold') {
+                            $totalGold += $quantity;
+                        } elseif ($selectedEntry['reward_type'] === 'gems') {
+                            $items[] = [
+                                'type' => 'gems',
+                                'name' => 'Klejnoty',
+                                'quantity' => $quantity,
+                                'ref_ulid' => null,
+                            ];
+                        } elseif (in_array($selectedEntry['reward_type'], ['item', 'material'])) {
+                            $template = \App\Infrastructure\Persistence\ItemTemplate::find($selectedEntry['ref_ulid']);
+                            $items[] = [
+                                'type' => $selectedEntry['reward_type'],
+                                'name' => $template ? $template->name : 'Przedmiot',
+                                'quantity' => $quantity,
+                                'ref_ulid' => $selectedEntry['ref_ulid'],
+                            ];
+                        }
                     }
                 }
             }
