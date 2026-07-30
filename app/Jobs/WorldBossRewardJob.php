@@ -67,13 +67,13 @@ class WorldBossRewardJob
     {
         Log::info('WorldBossRewardJob: Rozpoczynam rozdawanie nagród.');
 
-        // UWAGA (rework world bossów): world boss regeneruje HP i teoretycznie nigdy nie
-        // da się go "zabić" - is_defeated nie istnieje już w schemacie. Rozliczenie jest
-        // więc czysto czasowe: co godzinę (ten job jest Schedule::job(...)->hourly())
-        // KAŻDY z 3 przedziałów resetuje się bezwarunkowo - jeśli ktoś zdążył zadać dmg,
-        // nagradzamy TOP 9 po zadanym DMG, po czym zawsze kasujemy instancję i losujemy
-        // nowego bossa na kolejną godzinę, niezależnie od aktywności - patrz
-        // docs/modules/world_boss.md.
+        // UWAGA (rework world bossów): rozliczenie jest czysto czasowe, niezależne od tego czy
+        // boss padł w międzyczasie - is_defeated nie istnieje już w schemacie, stan "pokonany"
+        // to zawsze current_hp <= 0. Co godzinę (ten job jest Schedule::job(...)->hourly(),
+        // celowo BEZ ShouldQueue - patrz komentarz nad klasą) KAŻDY z 3 przedziałów resetuje
+        // się bezwarunkowo - jeśli ktoś zdążył zadać dmg, nagradzamy TOP 9 po zadanym DMG, po
+        // czym zawsze kasujemy instancję i losujemy nowego bossa na kolejną godzinę,
+        // niezależnie od aktywności - patrz docs/modules/world_boss.md.
         $activeBosses = WorldBossInstance::with('monster')->get();
 
         if ($activeBosses->isEmpty()) {

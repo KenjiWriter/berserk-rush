@@ -40,15 +40,6 @@ class EncounterService
     private const EQUIPMENT_POISON_VALUE = 0.03;
     private const EQUIPMENT_STUN_DURATION = 1;
 
-    // World boss: % z total_hp regenerowane co turę PODCZAS walki (mnożone przez liczbę
-    // faktycznie rozegranych tur, max 20) - patrz gałąź world boss w simulate(). UWAGA (fix
-    // 2026-07-30): pierwotne 0.005 (0.5%/turę) dawało do 10% total_hp regeneracji za JEDNĄ
-    // pełną 20-turową walkę - przy bossach z pulą rzędu kilku/kilkunastu milionów HP to
-    // realnie "zjadało" większość sumy zadanych obrażeń z rankingu (zgłoszone jako "coś jest
-    // nie tak" - suma dmg graczy dużo wyższa niż realny ubytek HP). 0.0005 (0.05%/turę = 1%
-    // total_hp za pełną walkę) nadal spełnia "trudno wyzerować pulę", ale nie zjada
-    // większości wkładu graczy.
-    private const WORLD_BOSS_REGEN_PCT_PER_TURN = 0.0005;
 
     /**
      * Rzuca procki otrucia/ogłuszenia z ekwipunku po wylądowanym trafieniu.
@@ -534,16 +525,17 @@ class EncounterService
                             'damage' => $damageDealt
                         ]);
 
-                        // World boss regeneruje HP co turę PODCZAS samej walki (nie jednorazowo na
-                        // całe starcie) - stąd regen mnożony przez faktyczną liczbę rozegranych tur.
-                        // Dzięki temu trudno wyzerować wspólną pulę, ale nie jest to niemożliwe:
-                        // wystarczająco duży łączny (lub pojedynczy) dmg społeczności może go
-                        // realnie pokonać. Gdy current_hp spadnie do 0, zostaje tam zablokowane -
-                        // EncounterService::start() odrzuca kolejne ataki (WORLD_BOSS_DEFEATED) aż
-                        // do godzinowego resetu, patrz docs/modules/world_boss.md.
-                        $regenPerTurn = (int) ceil($activeBoss->total_hp * self::WORLD_BOSS_REGEN_PCT_PER_TURN);
-                        $regen = $regenPerTurn * count($turns);
-                        $newHp = max(0, min($activeBoss->total_hp, $activeBoss->current_hp + $regen) - $damageDealt);
+                        // UWAGA (fix 2026-07-30, doprecyzowane przez użytkownika): world boss NIE
+                        // regeneruje współdzielonej puli current_hp - żadna pojedyncza walka gracza
+                        // nie mogłaby jej i tak przypadkiem wyzerować, bo $damageDealt jest liczone
+                        // względem osobnej, fikcyjnej puli 999 999 999 (patrz $monsterMaxHp wyżej) -
+                        // to ona, a nie regeneracja, chroni przed "przypadkowym zabiciem w swojej
+                        // turze". current_hp to więc czysta, monotonicznie malejąca suma zadanych
+                        // obrażeń całej społeczności - gdy spadnie do 0 (wystarczająco duży łączny
+                        // lub pojedynczy dmg), boss zostaje zablokowany: EncounterService::start()
+                        // odrzuca kolejne ataki (WORLD_BOSS_DEFEATED) aż do godzinowego resetu,
+                        // patrz docs/modules/world_boss.md.
+                        $newHp = max(0, $activeBoss->current_hp - $damageDealt);
                         $activeBoss->update(['current_hp' => $newHp]);
                     } else {
                         $winner = $finalMonsterHp <= 0 ? 'player' : 'enemy';

@@ -148,8 +148,14 @@ class WorldBossRewardJobTest extends TestCase
         $this->assertNull(Mail::where('to_character_id', $characters[10]->id)->first());
     }
 
-    public function test_world_boss_regen_scales_with_turns_fought(): void
+    public function test_world_boss_shared_pool_never_regenerates(): void
     {
+        // UWAGA (fix 2026-07-30, doprecyzowane przez użytkownika): world boss NIE regeneruje
+        // współdzielonej puli current_hp - "regeneracja co turę" z pierwotnej prośby dotyczyła
+        // wyłącznie ochrony pojedynczej walki gracza przed przypadkowym wyzerowaniem (co i tak
+        // jest niemożliwe, bo damageDealt liczone jest względem osobnej, fikcyjnej puli
+        // 999 999 999 - patrz EncounterService::simulate()). current_hp musi być czystą,
+        // monotonicznie malejącą sumą zadanych obrażeń.
         $this->seedWorldBossMonsters();
 
         $monster = Monster::where('name', 'Król Lasu')->first();
@@ -157,25 +163,25 @@ class WorldBossRewardJobTest extends TestCase
             'monster_id' => $monster->id,
             'map_id' => $monster->map_id,
             'level_bracket' => 'low',
-            'total_hp' => 100000,
-            'current_hp' => 50000,
+            'total_hp' => 999999999,
+            'current_hp' => 999999999,
         ]);
 
-        // Mirror the regen-then-decrement logic used in EncounterService::simulate(): regen is
-        // per-turn (multiplied by the number of turns actually fought), not a single flat tick
-        // per encounter (fix 2026-07-30, feedback from live testing). 0.0005 (not 0.005) per
-        // EncounterService::WORLD_BOSS_REGEN_PCT_PER_TURN - the original 0.005 (0.5%/turn, up
-        // to 10% total_hp per full 20-turn fight) was tuned down after live testing showed it
-        // was eating most of the cumulative damage players dealt on high-HP bosses.
-        $regenPerTurn = (int) ceil($boss->total_hp * 0.0005);
-        $turnsFought = 20;
-        $regen = $regenPerTurn * $turnsFought;
-        $damageDealt = 1000;
-        $newHp = max(0, min($boss->total_hp, $boss->current_hp + $regen) - $damageDealt);
-        $boss->update(['current_hp' => $newHp]);
+        $character = $this->makeCharacter('RegenChecker');
+        $character->update(['level' => 20, 'attributes' => ['str' => 200, 'int' => 20, 'vit' => 200, 'agi' => 50]]);
 
-        $this->assertEquals(50000 + $regen - $damageDealt, $boss->fresh()->current_hp);
-        $this->assertGreaterThan(50000 - $damageDealt, $boss->fresh()->current_hp, 'A full 20-turn fight must regenerate meaningfully more than a single flat tick would.');
+        $service = app(EncounterService::class);
+        $startResult = $service->start($character, $monster->map, $monster);
+        $this->assertTrue($startResult->isOk());
+
+        $simResult = $service->simulate($startResult->getPayload());
+        $this->assertTrue($simResult->isOk());
+
+        $damageDealt = $simResult->getPayload()['rewards']['damage_dealt'];
+        $this->assertGreaterThan(0, $damageDealt);
+
+        // current_hp must have dropped by EXACTLY damageDealt - no regen added back.
+        $this->assertEquals(999999999 - $damageDealt, $boss->fresh()->current_hp);
     }
 
     public function test_world_boss_can_be_fully_depleted_and_locks_further_attacks(): void

@@ -919,7 +919,7 @@
              bezstanowe i zawsze poprawne. --}}
         <div class="w-full px-4 md:px-0" wire:poll.10s>
             <div class="text-center mb-8 max-w-2xl mx-auto">
-                <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Regenerują HP z każdą turą walki, ale wystarczająco duże wspólne obrażenia mogą ich realnie pokonać - wtedy ranking zamyka się do najbliższego resetu. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od tego czy boss padł.</p>
+                <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Ich pula HP jest wspólna dla całego serwera - liczy się suma wszystkich zadanych obrażeń, a wystarczająco duży łączny (lub pojedynczy) dmg może ich realnie pokonać - wtedy ranking zamyka się do najbliższego resetu. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od tego czy boss padł.</p>
                 <p class="text-sm text-purple-300 font-bold mt-3">Reset rankingu za: <span class="text-white">{{ $resetCountdownLabel }}</span></p>
             </div>
 
@@ -958,7 +958,7 @@
 
                                 <div>
                                     <div class="flex justify-between text-xs mb-1 font-bold">
-                                        <span class="text-slate-300">{{ $isDefeated ? 'HP' : 'HP (regeneruje się)' }}</span>
+                                        <span class="text-slate-300">HP (wspólna pula)</span>
                                         <span class="{{ $isDefeated ? 'text-amber-400' : 'text-red-400' }}">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
                                     </div>
                                     <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-700 overflow-hidden p-0.5">
