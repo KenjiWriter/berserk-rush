@@ -114,4 +114,34 @@ class LootChestTest extends TestCase
         $this->assertNotNull($entry);
         $this->assertEquals(15, $entry->weight);
     }
+
+    public function test_case_opening_modal_handles_open_case_modal_event(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Testowy',
+            'level' => 50,
+            'attributes' => ['str' => 50, 'int' => 10, 'vit' => 50, 'agi' => 30],
+        ]);
+
+        $chestTemplate = ItemTemplate::where('name', 'Skrzynia Mrocznego Lasu')->first();
+        $chestInstance = ItemInstance::create([
+            'id' => (string) Str::ulid(),
+            'owner_character_id' => $character->id,
+            'template_id' => $chestTemplate->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $this->actingAs($user->refresh());
+
+        \Livewire\Livewire::test(\App\Livewire\City\CaseOpeningModal::class)
+            ->dispatch('open-case-modal', itemInstanceId: $chestInstance->id, count: 1)
+            ->assertSet('errorMessage', null)
+            ->assertSet('isOpen', true)
+            ->assertSet('itemInstanceId', $chestInstance->id)
+            ->assertDispatched('start-case-spin');
+    }
 }

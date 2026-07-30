@@ -50,7 +50,7 @@ class CaseOpeningModal extends Component
     public function startOpening(int $count = 1): void
     {
         /** @var Character|null $character */
-        $character = auth()->user()?->character;
+        $character = auth()->user()?->character ?? auth()->user()?->characters()->first();
         if (!$character || !$this->itemInstanceId) {
             $this->errorMessage = 'Nie znaleziono aktywnej postaci.';
             return;

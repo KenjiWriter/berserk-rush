@@ -85,14 +85,7 @@ class OpenLootChestAction
 
                 $winningQty = mt_rand($winningEntry->min_qty, $winningEntry->max_qty);
 
-                // 2. Decrement chest item instance stack size
-                if ($chestInstance->stack_size > 1) {
-                    $chestInstance->decrement('stack_size');
-                } else {
-                    $chestInstance->delete();
-                }
-
-                // 3. Log consumption in ItemLedger
+                // 2. Log consumption in ItemLedger
                 ItemLedger::create([
                     'id' => (string) Str::ulid(),
                     'character_id' => $character->id,
@@ -102,6 +95,13 @@ class OpenLootChestAction
                     'quantity_change' => -1,
                     'idempotency_key' => 'open_chest_' . Str::ulid(),
                 ]);
+
+                // 3. Decrement chest item instance stack size
+                if ($chestInstance->stack_size > 1) {
+                    $chestInstance->decrement('stack_size');
+                } else {
+                    $chestInstance->delete();
+                }
 
                 // 4. Grant winning material to character
                 $targetLocation = in_array($winningTemplate->type, ['material', 'currency']) ? 'material_stash' : 'inventory';

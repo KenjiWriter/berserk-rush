@@ -76,6 +76,11 @@ class User extends Authenticatable
         return $this->hasMany(Character::class);
     }
 
+    public function character(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Character::class)->latestOfMany();
+    }
+
     public function getCharacterSlots(): array
     {
         $characters = $this->characters()->latest()->take(4)->get();
