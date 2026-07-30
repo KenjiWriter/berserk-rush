@@ -147,19 +147,25 @@ class EncounterService
                 $monster = $forcedMonster;
                 $monstersList = [];
 
+                // Pula potworów mapy do losowych spotkań. Wyklucza potwory przypisane do
+                // etapów lochów - patrz Map::explorationMonsters() (mają map_id ustawione
+                // tylko po to, by spełnić constraint NOT NULL, nie oznacza to że mają
+                // wypadać na zwykłej mapie - patrz DungeonSeeder).
+                $mapMonsters = $map->explorationMonsters;
+
                 if (!$monster) {
                     if ($isTutorial) {
                         // W samouczku zawsze losuj Wilka Leśnego
-                        $monster = $map->monsters->first(function ($m) {
+                        $monster = $mapMonsters->first(function ($m) {
                             return str_contains(mb_strtolower($m->name), 'wilk');
-                        }) ?? $map->monsters->sortBy('level')->first();
+                        }) ?? $mapMonsters->sortBy('level')->first();
                     } else {
                         // Get monsters for this map. Rank 'worldboss' ma osobny, dedykowany
                         // mechanizm spotkania (WorldBossInstance + ?world_boss= w MapStub) i
                         // NIE może wypaść z normalnej puli eksploracji. Rank 'boss' to zwykły,
                         // zabijalny boss mapy (patrz MonsterLootSeeder) - nie ma dla niego żadnej
                         // innej ścieżki spotkania, więc musi zostać w puli losowej tak jak 'elite'.
-                        $monstersPool = $map->monsters->whereNotIn('rank', [
+                        $monstersPool = $mapMonsters->whereNotIn('rank', [
                             \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS,
                         ]);
 
@@ -215,7 +221,7 @@ class EncounterService
                                 ];
                             }
                             $firstMonsterId = $monstersList[0]['id'];
-                            $monster = $map->monsters->find($firstMonsterId) ?? $monstersPool->random();
+                            $monster = $mapMonsters->find($firstMonsterId) ?? $monstersPool->random();
                         } else {
                             // Pity timer na bossa (ustalone z użytkownikiem, 2026-07-29): bazowo
                             // 3% szansy na wylosowanie bossa zamiast zwykłego potwora, +0.5% za

@@ -83,4 +83,14 @@ class Map extends Model
     {
         return $this->hasMany(Monster::class);
     }
+
+    /**
+     * Potwory dostępne w losowej puli eksploracji mapy - wyklucza potwory
+     * przypisane do etapów lochów (te mają map_id ustawione tylko po to,
+     * by spełnić constraint NOT NULL w tabeli monsters, patrz DungeonSeeder).
+     */
+    public function explorationMonsters()
+    {
+        return $this->monsters()->whereDoesntHave('dungeonStages');
+    }
 }

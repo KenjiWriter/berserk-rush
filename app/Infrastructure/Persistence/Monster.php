@@ -33,6 +33,11 @@ class Monster extends Model
         return $this->belongsTo(Map::class);
     }
 
+    public function dungeonStages()
+    {
+        return $this->hasMany(DungeonStage::class);
+    }
+
     public function lootTable()
     {
         return $this->belongsTo(LootTable::class);
