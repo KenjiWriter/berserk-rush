@@ -786,12 +786,15 @@
                         @php
                             $isRustySwordTutorial = $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
                         @endphp
-                        <div id="backpack-item-{{ $item->id }}" x-data="{ 
+                        <div id="backpack-item-{{ $item->id }}" wire:key="backpack-item-{{ $item->id }}" x-data="{ 
                             open: false, 
                             hoverTimeout: null,
                             isDraggingThis: false,
                             posClass: 'sm:bottom-full sm:mb-2',
                             tooltipStyle: {},
+                            init() {
+                                window.addEventListener('inventory-updated', () => { this.open = false; });
+                            },
                             checkPosition() { 
                                 if (window.innerWidth < 640) return;
                                 this.$nextTick(() => {
@@ -997,6 +1000,9 @@
                             hoverTimeout: null,
                             posClass: 'sm:bottom-full sm:mb-2',
                             tooltipStyle: {},
+                            init() {
+                                window.addEventListener('inventory-updated', () => { this.showInfo = false; });
+                            },
                             checkPosition() {
                                 if (window.innerWidth < 640) return;
                                 this.$nextTick(() => {
