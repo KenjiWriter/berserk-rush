@@ -78,13 +78,14 @@
                     openTooltip() { clearTimeout(this.timeout); this.showInfo = true; this.updatePosition(); },
                     closeTooltip(event) {
                         if (event && event.relatedTarget) {
-                            const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                            const tooltipEl = this.$refs.tooltipContainer || document.querySelector('[data-tooltip-container]');
                             const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
                             const movingIntoTrigger = this.$el.contains(event.relatedTarget);
-                            if (movingIntoTooltip || movingIntoTrigger) { return; }
+                            const movingIntoSubTooltip = event.relatedTarget.closest && event.relatedTarget.closest('[data-item-tooltip]');
+                            if (movingIntoTooltip || movingIntoTrigger || movingIntoSubTooltip) { return; }
                         }
                         clearTimeout(this.timeout);
-                        this.timeout = setTimeout(() => { this.showInfo = false; }, 350);
+                        this.timeout = setTimeout(() => { this.showInfo = false; }, 500);
                     },
                     toggleTooltip() { clearTimeout(this.timeout); this.showInfo = !this.showInfo; if (this.showInfo) { this.updatePosition(); } }
                 };
