@@ -17,7 +17,7 @@
         if (auth()->check()) {
             auth()->user()->checkAndRepairTutorialStage($character);
         }
-        $isQuestsLocked = auth()->check() && (auth()->user()->game_stage < 22);
+        $isQuestsLocked = auth()->check() && (!$character || $character->level < 5);
     @endphp
 
     <aside x-data="{ collapsed: localStorage.getItem('desktop_nav_collapsed') === 'true' }"

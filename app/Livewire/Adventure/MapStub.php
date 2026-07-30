@@ -162,6 +162,10 @@ class MapStub extends Component
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Ten World Boss nie jest przeznaczony dla Twojego poziomu.');
+                } elseif ($worldBossInstance->current_hp <= 0) {
+                    $this->isWorldBoss = false;
+                    $this->worldBossMonsterId = null;
+                    session()->flash('warning', 'Ten World Boss został już pokonany! Poczekaj na reset za pełną godzinę.');
                 } elseif ($hasParticipated) {
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;

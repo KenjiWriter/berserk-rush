@@ -145,6 +145,26 @@ class User extends Authenticatable
 
     public function checkAndRepairTutorialStage(?Character $character = null): void
     {
+        // Gracz sam rozdał więcej punktów niż daje start (10) + pierwszy poziom (3),
+        // czyli już wie jak działa panel atrybutów - pomijamy lekcję Kapitana o tym.
+        if (in_array($this->game_stage, [13, 14], true)) {
+            if (!$character) {
+                $activeCharacterId = session('active_character');
+                if ($activeCharacterId) {
+                    $character = $this->characters()->find($activeCharacterId);
+                }
+            }
+            if (!$character) {
+                $character = $this->characters()->orderBy('level', 'desc')->first();
+            }
+
+            if ($character && $character->getTotalAttributePoints() > 13) {
+                $this->game_stage = 15;
+                $this->save();
+                return;
+            }
+        }
+
         if ($this->game_stage == 21) {
             if (!$character) {
                 $activeCharacterId = session('active_character');

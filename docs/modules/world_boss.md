@@ -1,14 +1,14 @@
 # World Boss Module
 
-System World Bossów (Światowych Bossów) pozwala na globalne wyzwania, w których cała społeczność serwera walczy z potężnymi przeciwnikami o bardzo dużej puli punktów zdrowia (HP). W przeciwieństwie do zwykłych potworów, world boss jest **teoretycznie nie do zabicia** — regeneruje HP z każdym trafieniem — więc jedynym celem starcia jest zmaksymalizowanie zadanego DMG przed hourly rozliczeniem nagród.
+System World Bossów (Światowych Bossów) pozwala na globalne wyzwania, w których cała społeczność serwera walczy z potężnymi przeciwnikami o bardzo dużej puli punktów zdrowia (HP), która **regeneruje się co turę w trakcie walki**, przez co trudno ją wyzerować - ale nie jest to niemożliwe. Jeśli społeczność (lub pojedynczy silny gracz) zada wystarczająco dużo obrażeń, by realnie wyczerpać `current_hp`, boss zostaje **zablokowany** dla wszystkich do najbliższego godzinowego resetu.
 
-> **UWAGA (pełny rework 2026-07-30):** poprzednia wersja tego modułu trzymała 1 world bossa na każdej z 8 map, wystawiała go jako banner/modal na mapie w zakładce "Wyprawy", i rozdawała nagrody wyłącznie po realnym wyzerowaniu współdzielonego `current_hp` (flaga `is_defeated`). Ponieważ HP potrafiło być ogromne (do 2 000 000), a same statystyki world bossów nigdy nie zostały objęte rebalansem Monte Carlo reszty potworów, w praktyce boss nigdy realnie nie padał i **nagrody nie były przyznawane wcale**. Rework opisany niżej usuwa koncepcję "zabicia" bossa na rzecz czysto czasowego rozliczenia co godzinę.
+> **UWAGA (pełny rework 2026-07-30, dopracowany tego samego dnia po feedbacku z żywych testów):** poprzednia wersja tego modułu trzymała 1 world bossa na każdej z 8 map, wystawiała go jako banner/modal na mapie w zakładce "Wyprawy", i rozdawała nagrody wyłącznie po realnym wyzerowaniu współdzielonego `current_hp` (flaga `is_defeated`). Ponieważ HP potrafiło być ogromne (do 2 000 000), a same statystyki world bossów nigdy nie zostały objęte rebalansem Monte Carlo reszty potworów, w praktyce boss nigdy realnie nie padał i **nagrody nie były przyznawane wcale**. Pierwsza iteracja rework'u całkowicie usunęła koncepcję "zabicia" (stały floor na `current_hp = 1`), ale po testach na żywo okazało się, że mocni gracze i tak potrafią zejść z HP do symbolicznej wartości, co wyglądało na błąd. Ostateczna wersja (opisana niżej) świadomie pozwala na realne wyczerpanie puli - staje się to wtedy legalnym stanem "pokonany", blokującym dalsze ataki do resetu, zamiast bugiem do ukrywania.
 
 ## Kluczowe Cechy
 
 * **3 aktywni bossowie naraz, po jednym na przedział poziomowy**: zamiast 1 bossa na mapę, system utrzymuje dokładnie 3 żywe instancje - po jednej dla przedziałów `low` (poziom 0-35), `mid` (35-65) i `high` (65-99). Każda instancja jest losowana z ustalonej puli tych samych 8 potworów rangi `worldboss`, które istniały w grze od zawsze (patrz sekcja "Przydział bossów do przedziałów").
 * **Osobna zakładka w Wyprawach**: world boss nie pojawia się już na kartach map w zakładce "Mapy". Ma własną zakładkę **"Worldboss"** wewnątrz `app/Livewire/City/Adventure.php` (`resources/views/livewire/city/adventure.blade.php`), z 3 kartami (po jednej na przedział), paskiem HP, rankingiem Top 10 i przyciskiem ataku.
-* **Nie da się go zabić - regeneracja HP**: `EncounterService::simulate()` w gałęzi world bossa dolicza regenerację `+ceil(total_hp * 0.02)` do `current_hp` PRZED odjęciem zadanych obrażeń, a wynik zawsze przycina do `max(1, ...)`. Kolumna `is_defeated` została usunięta ze schematu - nie ma już stanu "pokonany".
+* **Regeneracja HP co turę, ale realna możliwość pokonania**: `EncounterService::simulate()` w gałęzi world bossa dolicza regenerację `ceil(total_hp * 0.005) * liczba_rozegranych_tur` do `current_hp` PRZED odjęciem zadanych obrażeń (regen skaluje się z długością walki, nie jest jednorazowym tickiem na całe starcie), a wynik przycina do `max(0, ...)`. Gdy `current_hp` osiągnie 0, zostaje tam zablokowane (żadna dalsza walka go nie rusza) aż do godzinowego resetu - patrz "Stan pokonany" niżej. Nie ma osobnej kolumny/flagi `is_defeated`; stan "pokonany" jest zawsze wyliczany bezpośrednio z `current_hp <= 0`, żeby nie mógł się rozjechać z rzeczywistym HP (to było źródłem historycznego bugu z 2026-07-28).
 * **Zadawanie Obrażeń**: walka z bossem korzysta z rdzennego systemu turowego, ograniczonego do max 20 tur. Gracz dołącza do walki i próbuje przeżyć jak najdłużej, by zmaksymalizować swój DMG - mechanika samej symulacji 1 na 1 (`$winner` zawsze `'enemy'`, `damageDealt` liczone względem fikcyjnej puli 999 999 999 HP) jest niezmieniona względem poprzedniej wersji.
 * **Jedna Próba (Single Attempt)**: gracz może zaatakować daną instancję World Bossa tylko raz - twarda blokada transakcyjna w `EncounterService::start()` (sprawdzenie istniejącego `WorldBossDamageLog` dla pary `character_id` + `world_boss_instance_id`).
 * **Globalny Ranking**: po każdym uderzeniu wynik gracza dopisywany jest do logów (`WorldBossDamageLog`). System grupuje logi po `character_id` i sumuje zadany DMG, układając Top 10 najlepszych wojowników na kartę danego przedziału.
@@ -49,8 +49,17 @@ Rejestruje każde uderzenie zadane przez gracza danej instancji bossa. Powiązuj
 
 ## Cykl Życia World Bossa
 1. **Pojawienie się (Spawn)**: `ensureBossesSpawned()` tworzy brakujące instancje dla przedziałów, które nie mają aktualnie żywego bossa.
-2. **Ataki Graczy**: z każdym atakiem `EncounterService::simulate()` dolicza regenerację, odejmuje zadane obrażenia i przycina wynik do `max(1, ...)` - `current_hp` nigdy nie osiąga faktycznego zera jako "koniec walki".
-3. **Rozliczenie (co godzinę)**: `WorldBossRewardJob` nagradza Top 9 graczy każdej instancji, kasuje ją i respawnuje nowy, losowy skład na kolejną godzinę.
+2. **Ataki Graczy**: z każdym atakiem `EncounterService::simulate()` dolicza regenerację (proporcjonalną do liczby tur), odejmuje zadane obrażenia i przycina wynik do `max(0, ...)`.
+3. **(Opcjonalnie) Pokonanie**: jeśli `current_hp` osiągnie 0, boss przechodzi w stan zablokowany - patrz "Stan pokonany" niżej. To NIE wyzwala żadnych natychmiastowych nagród (te i tak czekają na krok 4).
+4. **Rozliczenie (co godzinę)**: `WorldBossRewardJob` nagradza Top 9 graczy każdej instancji (pokonanej lub nie), kasuje ją i respawnuje nowy, losowy skład na kolejną godzinę.
+
+## Stan pokonany (`current_hp <= 0`)
+
+Gdy wspólna pula HP zostanie wyczerpana (przez jednego bardzo silnego gracza albo skumulowany dmg wielu graczy) w trakcie godziny:
+- `EncounterService::start()` odrzuca każdą kolejną próbę ataku na tę instancję błędem `WORLD_BOSS_DEFEATED`, zanim jeszcze powstanie `Encounter` - żaden dodatkowy `WorldBossDamageLog` nie może już powstać.
+- `MapStub::mount()` łapie ten sam przypadek wcześniej (przy wejściu z linku `?world_boss=...`) i pokazuje flash-warning zamiast wpuszczać gracza na ekran walki.
+- UI (`adventure.blade.php`) pokazuje kartę bossa ze złotym paskiem HP, ikoną trofeum i przyciskiem "Boss pokonany" zamiast "Atakuj" - stan ten ma pierwszeństwo przed sprawdzeniem przedziału poziomowego/uczestnictwa, bo to fakt globalny, a nie zależny od danego gracza.
+- Boss NIE jest usuwany ani respawnowany od razu - zostaje zablokowany aż do najbliższego uruchomienia `WorldBossRewardJob` (top godziny), które i tak rozda nagrody i wylosuje nowego.
 
 ## Nagrody
 

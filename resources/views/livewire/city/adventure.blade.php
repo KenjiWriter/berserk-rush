@@ -886,7 +886,7 @@
              bezstanowe i zawsze poprawne. --}}
         <div class="w-full px-4 md:px-0" wire:poll.10s>
             <div class="text-center mb-8 max-w-2xl mx-auto">
-                <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Regenerują HP z każdym ciosem i nie da się ich pokonać - liczy się wyłącznie suma zadanych obrażeń. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od stanu HP bossa.</p>
+                <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Regenerują HP z każdą turą walki, ale wystarczająco duże wspólne obrażenia mogą ich realnie pokonać - wtedy ranking zamyka się do najbliższego resetu. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od tego czy boss padł.</p>
                 <p class="text-sm text-purple-300 font-bold mt-3">Reset rankingu za: <span class="text-white">{{ $resetCountdownLabel }}</span></p>
             </div>
 
@@ -915,6 +915,7 @@
                                 // przedziału. Patrz też EncounterService::start() (ta sama walidacja
                                 // po stronie serwera).
                                 $bossAccessible = \App\Application\Combat\WorldBossService::bracketForLevel($character->level) === $bracket;
+                                $isDefeated = $boss->current_hp <= 0;
                             @endphp
                             <div class="p-5 flex flex-col flex-1 gap-4">
                                 <div>
@@ -924,12 +925,17 @@
 
                                 <div>
                                     <div class="flex justify-between text-xs mb-1 font-bold">
-                                        <span class="text-slate-300">HP (regeneruje się)</span>
-                                        <span class="text-red-400">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
+                                        <span class="text-slate-300">{{ $isDefeated ? 'HP' : 'HP (regeneruje się)' }}</span>
+                                        <span class="{{ $isDefeated ? 'text-amber-400' : 'text-red-400' }}">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
                                     </div>
                                     <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-700 overflow-hidden p-0.5">
-                                        <div class="h-full bg-gradient-to-r from-red-600 to-red-500 rounded-full transition-all duration-1000" style="width: {{ $hpPercent }}%"></div>
+                                        <div class="h-full {{ $isDefeated ? 'bg-gradient-to-r from-amber-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500' }} rounded-full transition-all duration-1000" style="width: {{ $isDefeated ? 100 : $hpPercent }}%"></div>
                                     </div>
+                                    @if($isDefeated)
+                                        <p class="text-[11px] text-amber-400 font-bold mt-1.5 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-trophy"></i> Pokonany! Ranking zamknięty do resetu.
+                                        </p>
+                                    @endif
                                 </div>
 
                                 <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
@@ -971,7 +977,11 @@
                                 </div>
 
                                 <div class="mt-auto pt-3 border-t border-purple-900/40">
-                                    @if(!$bossAccessible)
+                                    @if($isDefeated)
+                                        <button disabled class="w-full bg-amber-950/60 text-amber-500 font-bold py-3 rounded-xl cursor-not-allowed border border-amber-700/60 text-sm medieval-font flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-trophy"></i> Boss pokonany
+                                        </button>
+                                    @elseif(!$bossAccessible)
                                         <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-sm medieval-font flex items-center justify-center gap-2">
                                             <i class="fa-solid fa-lock text-amber-500"></i> Niedostępne dla Twojego poziomu
                                         </button>

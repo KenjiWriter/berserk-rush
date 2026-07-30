@@ -29,6 +29,32 @@ class GetMarketListingsQuery
             : "COALESCE(CAST({$column}->>'\$.{$key}' AS DECIMAL(20,4)), 0)";
     }
 
+    /**
+     * Jak jsonStatExpr, ale bezpieczna dla item_templates.base_stats, gdzie statystyki
+     * zakresowe (np. hp_bonus) trzymane są jako tablica [min, max] zamiast liczby
+     * (patrz ItemStatRoller). Rzutowanie takiej tablicy wprost na numeric wywala
+     * zapytanie (Postgres: "invalid input syntax for type numeric: [33,57]"),
+     * więc sprawdzamy typ wartości i dla tablicy bierzemy jej maksimum (indeks 1).
+     */
+    private function jsonRangeStatExpr(string $connection, string $column, string $key): string
+    {
+        if ($connection === 'pgsql') {
+            return "COALESCE(CASE json_typeof(({$column}->'{$key}'))"
+                . " WHEN 'array' THEN ({$column}->'{$key}'->>1)::numeric"
+                . " WHEN 'number' THEN ({$column}->>'{$key}')::numeric"
+                . " ELSE 0 END, 0)";
+        }
+
+        // UPPER() bo SQLite (używane w testach) zwraca małe litery ('array'),
+        // a MySQL wielkie ('ARRAY') - ujednolicamy porównanie.
+        return "COALESCE(CASE UPPER(JSON_TYPE(JSON_EXTRACT({$column}, '\$.{$key}')))"
+            . " WHEN 'ARRAY' THEN CAST(JSON_EXTRACT({$column}, '\$.{$key}[1]') AS DECIMAL(20,4))"
+            . " WHEN 'INTEGER' THEN CAST(JSON_EXTRACT({$column}, '\$.{$key}') AS DECIMAL(20,4))"
+            . " WHEN 'DOUBLE' THEN CAST(JSON_EXTRACT({$column}, '\$.{$key}') AS DECIMAL(20,4))"
+            . " WHEN 'REAL' THEN CAST(JSON_EXTRACT({$column}, '\$.{$key}') AS DECIMAL(20,4))"
+            . " ELSE 0 END, 0)";
+    }
+
     public function execute(array $filters = [], string $sortBy = 'created_at', string $sortDir = 'desc', int $perPage = 20)
     {
         $query = MarketListing::query()
@@ -71,7 +97,7 @@ class GetMarketListingsQuery
 
             foreach ($statKeys as $statKey) {
                 $rollExpr = $this->jsonStatExpr($driver, 'roll_stats', $statKey);
-                $baseExpr = $this->jsonStatExpr($driver, 'base_stats', $statKey);
+                $baseExpr = $this->jsonRangeStatExpr($driver, 'base_stats', $statKey);
 
                 $query->where(function ($sub) use ($rollExpr, $baseExpr) {
                     $sub->whereHas('item', function ($q) use ($rollExpr) {

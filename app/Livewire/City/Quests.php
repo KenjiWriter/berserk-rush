@@ -23,6 +23,12 @@ class Quests extends Component
         auth()->user()->checkAndRepairTutorialStage($character);
 
         if (auth()->user()->game_stage < 22) {
+            // Poziom 5 już osiągnięty - odpalamy etap questowy Kapitana zamiast trzymać gracza w miejscu.
+            if ($character->level >= 5) {
+                auth()->user()->update(['game_stage' => 22]);
+                return redirect()->route('city.hub', $character);
+            }
+
             session()->flash('error', 'Tablica Wyzwań jest zablokowana do momentu odblokowania jej przez Kapitana!');
             return redirect()->route('city.hub', $character);
         }

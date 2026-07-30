@@ -148,7 +148,34 @@ class WorldBossRewardJobTest extends TestCase
         $this->assertNull(Mail::where('to_character_id', $characters[10]->id)->first());
     }
 
-    public function test_world_boss_hp_never_reaches_zero_after_massive_damage(): void
+    public function test_world_boss_regen_scales_with_turns_fought(): void
+    {
+        $this->seedWorldBossMonsters();
+
+        $monster = Monster::where('name', 'Król Lasu')->first();
+        $boss = WorldBossInstance::create([
+            'monster_id' => $monster->id,
+            'map_id' => $monster->map_id,
+            'level_bracket' => 'low',
+            'total_hp' => 100000,
+            'current_hp' => 50000,
+        ]);
+
+        // Mirror the regen-then-decrement logic used in EncounterService::simulate(): regen is
+        // per-turn (multiplied by the number of turns actually fought), not a single flat tick
+        // per encounter (fix 2026-07-30, feedback from live testing).
+        $regenPerTurn = (int) ceil($boss->total_hp * 0.005);
+        $turnsFought = 20;
+        $regen = $regenPerTurn * $turnsFought;
+        $damageDealt = 1000;
+        $newHp = max(0, min($boss->total_hp, $boss->current_hp + $regen) - $damageDealt);
+        $boss->update(['current_hp' => $newHp]);
+
+        $this->assertEquals(50000 + $regen - $damageDealt, $boss->fresh()->current_hp);
+        $this->assertGreaterThan(50000 - $damageDealt, $boss->fresh()->current_hp, 'A full 20-turn fight must regenerate meaningfully more than a single flat tick would.');
+    }
+
+    public function test_world_boss_can_be_fully_depleted_and_locks_further_attacks(): void
     {
         $this->seedWorldBossMonsters();
 
@@ -158,15 +185,21 @@ class WorldBossRewardJobTest extends TestCase
             'map_id' => $monster->map_id,
             'level_bracket' => 'low',
             'total_hp' => 1000,
-            'current_hp' => 1000,
+            'current_hp' => 0, // A sufficiently strong hit (or combined community damage) can zero it out.
         ]);
 
-        // Simulate the regen-then-decrement logic used in EncounterService::simulate().
-        $regen = (int) ceil($boss->total_hp * 0.02);
-        $newHp = max(1, min($boss->total_hp, $boss->current_hp + $regen) - 999999999);
-        $boss->update(['current_hp' => $newHp]);
+        $character = $this->makeCharacter('LateAttacker');
+        $character->update(['level' => 20]);
 
-        $this->assertGreaterThanOrEqual(1, $boss->fresh()->current_hp);
+        $service = app(EncounterService::class);
+        $result = $service->start($character, $monster->map, $monster);
+
+        $this->assertTrue($result->isError());
+        $this->assertEquals('WORLD_BOSS_DEFEATED', $result->getErrorCode());
+        $this->assertDatabaseMissing('world_boss_damage_logs', [
+            'world_boss_instance_id' => $boss->id,
+            'character_id' => $character->id,
+        ]);
     }
 
     public function test_character_outside_bracket_cannot_attack_world_boss(): void

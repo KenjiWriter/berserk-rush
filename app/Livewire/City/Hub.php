@@ -37,6 +37,13 @@ class Hub extends Component
         Auth::user()->checkAndRepairTutorialStage($this->character);
 
         if ($building === 'quests' && auth()->user()->game_stage < 22) {
+            // Postać ma już wymagany poziom, ale utknęła wcześniej w łańcuchu samouczka -
+            // klik w zablokowaną Tablicę Wyzwań przeskakuje od razu do etapu z Kapitanem.
+            if ($this->character->level >= 5) {
+                Auth::user()->update(['game_stage' => 22]);
+                return;
+            }
+
             $this->dispatch('notify', type: 'error', message: 'Tablica Wyzwań jest zablokowana! Wbij 5 poziom postaci i wyczekuj rozkazów Kapitana.');
             return;
         }

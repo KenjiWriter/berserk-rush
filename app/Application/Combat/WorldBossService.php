@@ -45,10 +45,10 @@ class WorldBossService
         DB::beginTransaction();
         try {
             // Nagrody za world bossa są rozdawane WYŁĄCZNIE przez App\Jobs\WorldBossRewardJob,
-            // co godzinę, niezależnie od tego czy boss "padł" (world boss regeneruje HP i
-            // teoretycznie nie da się go zabić - patrz docs/modules/world_boss.md). Ten tick
-            // ma tylko jedno zadanie: dosiać brakujące instancje bossów (np. dla przedziałów,
-            // które aktualnie nie mają żywej instancji), bez ruszania walk w toku.
+            // co godzinę, niezależnie od tego czy boss "padł" w międzyczasie (regeneruje HP co
+            // turę walki, ale realnie można go wyczerpać - patrz docs/modules/world_boss.md).
+            // Ten tick ma tylko jedno zadanie: dosiać brakujące instancje bossów (np. dla
+            // przedziałów, które aktualnie nie mają żywej instancji), bez ruszania walk w toku.
             $this->ensureBossesSpawned();
 
             DB::commit();
