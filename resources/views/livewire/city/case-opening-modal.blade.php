@@ -2,22 +2,46 @@
     showModal: @entangle('isOpen'),
     isSpinning: @entangle('isSpinning'),
     isFinished: @entangle('isFinished'),
-    translateX: 0,
+    translates: [0, 0, 0],
     itemWidth: 144, // 132px width + 12px gap
-    targetIndex: 28,
 
     handleSpin(data) {
         let payload = data;
         if (data && data.payload) payload = data.payload;
         if (Array.isArray(payload)) payload = payload[0];
-        if (!payload || !payload.roulette_items) return;
+        if (!payload) return;
 
-        this.targetIndex = payload.winning_index || 28;
-        this.translateX = 0;
+        this.translates = [0, 0, 0];
         
         setTimeout(() => {
-            this.spinReel();
+            this.spinAllReels(payload);
         }, 100);
+    },
+
+    spinAllReels(payload) {
+        let spins = payload.spins || [payload];
+        let viewportEl = this.$refs.viewport0 || this.$refs.viewport;
+        let containerWidth = viewportEl ? viewportEl.offsetWidth : 600;
+
+        spins.forEach((spin, idx) => {
+            let targetIdx = spin.winning_index || 28;
+            let randomOffset = Math.floor(Math.random() * 36) - 18; // +/- 18px variation
+            let targetPos = (targetIdx * this.itemWidth) - (containerWidth / 2) + (this.itemWidth / 2) + randomOffset;
+            this.translates[idx] = targetPos;
+        });
+
+        let startTime = Date.now();
+        let duration = 6000;
+
+        let tickInterval = setInterval(() => {
+            let elapsed = Date.now() - startTime;
+            if (elapsed >= duration) {
+                clearInterval(tickInterval);
+                setTimeout(() => {
+                    this.$wire.call('onSpinCompleted');
+                }, 300);
+            }
+        }, 120);
     },
 
     init() {
@@ -32,29 +56,6 @@
     }
 }" @start-case-spin.window="handleSpin($event.detail)">
 
-    spinReel() {
-        let containerWidth = this.$refs.viewport ? this.$refs.viewport.offsetWidth : 600;
-        let randomOffset = Math.floor(Math.random() * 40) - 20; // +/- 20px variation inside winning card
-        let targetPos = (this.targetIndex * this.itemWidth) - (containerWidth / 2) + (this.itemWidth / 2) + randomOffset;
-        
-        this.translateX = targetPos;
-
-        // Play tick sound loop during spin
-        let startTime = Date.now();
-        let duration = 6000;
-
-        let tickInterval = setInterval(() => {
-            let elapsed = Date.now() - startTime;
-            if (elapsed >= duration) {
-                clearInterval(tickInterval);
-                setTimeout(() => {
-                    this.$wire.call('onSpinCompleted');
-                }, 300);
-            }
-        }, 120);
-    }
-}">
-
     <template x-teleport="body">
         <div x-show="showModal" 
              style="display: none;"
@@ -67,7 +68,7 @@
              class="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md overflow-y-auto">
 
             <div @click.outside="if(!isSpinning) $wire.call('closeModal')"
-                 class="relative w-full max-w-3xl bg-slate-900 border-2 border-amber-500/80 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.25)] p-6 sm:p-8 flex flex-col items-center overflow-hidden my-auto">
+                 class="relative w-full max-w-3xl bg-slate-900 border-2 border-amber-500/80 rounded-2xl shadow-[0_0_60px_rgba(245,158,11,0.25)] p-6 sm:p-8 flex flex-col items-center overflow-hidden my-auto max-h-[92vh] overflow-y-auto">
 
                 {{-- Gold Corners --}}
                 <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-amber-400 rounded-tl-xl pointer-events-none"></div>
@@ -83,8 +84,10 @@
                 </button>
 
                 {{-- Header --}}
-                <div class="text-center mb-6">
-                    <h3 class="text-xs uppercase tracking-widest text-amber-400/80 font-bold mb-1">Otwieranie Skrzyni</h3>
+                <div class="text-center mb-5">
+                    <h3 class="text-xs uppercase tracking-widest text-amber-400/80 font-bold mb-1">
+                        Otwieranie {{ ($chestData['count'] ?? 1) > 1 ? ($chestData['count'] . 'x Skrzyń Na Raz') : 'Skrzyni' }}
+                    </h3>
                     <h2 class="text-2xl sm:text-3xl font-black text-amber-100 medieval-font tracking-wide drop-shadow-md flex items-center justify-center gap-3">
                         <i class="fa-solid fa-box-open text-amber-400"></i>
                         <span>{{ $chestData['chest_template']['name'] ?? 'Skrzynia Łupów' }}</span>
@@ -101,100 +104,124 @@
                     </div>
                 @endif
 
-                @if($chestData && isset($chestData['roulette_items']))
-                    {{-- ROULETTE VIEWPORT CONTAINER --}}
-                    <div class="relative w-full max-w-2xl mb-6">
-                        
-                        {{-- Top & Bottom Center Selection Markers --}}
-                        <div class="absolute -top-3 left-1/2 -translate-x-1/2 z-30 text-amber-400 text-2xl filter drop-shadow-[0_0_8px_rgba(245,158,11,0.9)] animate-pulse">
-                            ▼
-                        </div>
-                        <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 z-30 text-amber-400 text-2xl filter drop-shadow-[0_0_8px_rgba(245,158,11,0.9)] animate-pulse">
-                            ▲
-                        </div>
+                @if($chestData && (isset($chestData['spins']) || isset($chestData['roulette_items'])))
+                    @php
+                        $spinsList = $chestData['spins'] ?? [[
+                            'spin_index' => 0,
+                            'winning_item' => $chestData['winning_item'] ?? null,
+                            'winning_index' => $chestData['winning_index'] ?? 28,
+                            'roulette_items' => $chestData['roulette_items'] ?? []
+                        ]];
+                    @endphp
 
-                        {{-- Vertical Center Target Line --}}
-                        <div class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-amber-400/80 z-20 shadow-[0_0_12px_#f59e0b] pointer-events-none"></div>
-
-                        {{-- Viewport Outer Box --}}
-                        <div x-ref="viewport" class="w-full h-44 bg-slate-950 rounded-xl border-2 border-amber-600/60 shadow-inner overflow-hidden relative">
-                            
-                            {{-- Vignette Glass Gradients --}}
-                            <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
-                            <div class="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
-
-                            {{-- Moving Reel Strip --}}
-                            <div class="flex gap-3 py-4 px-2 absolute top-0 bottom-0 left-0 items-center transition-transform"
-                                 :style="`transform: translateX(-${translateX}px); transition-duration: ${isSpinning ? '6000ms' : '0ms'}; transition-timing-function: cubic-bezier(0.12, 0.8, 0.15, 1.0);`">
-                                
-                                @foreach($chestData['roulette_items'] as $index => $item)
-                                    @php
-                                        $rarityBg = match($item['rarity']) {
-                                            'epic' => 'bg-gradient-to-b from-purple-950 via-slate-900 to-slate-950 border-purple-500/80 shadow-[0_0_15px_rgba(168,85,247,0.3)]',
-                                            'rare' => 'bg-gradient-to-b from-blue-950 via-slate-900 to-slate-950 border-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.3)]',
-                                            'uncommon' => 'bg-gradient-to-b from-emerald-950 via-slate-900 to-slate-950 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]',
-                                            default => 'bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-slate-600/80',
-                                        };
-                                        $rarityBadge = match($item['rarity']) {
-                                            'epic' => 'text-purple-400 border-purple-500/40 bg-purple-950/60',
-                                            'rare' => 'text-blue-400 border-blue-500/40 bg-blue-950/60',
-                                            'uncommon' => 'text-emerald-400 border-emerald-500/40 bg-emerald-950/60',
-                                            default => 'text-slate-400 border-slate-600/40 bg-slate-900/60',
-                                        };
-                                    @endphp
-
-                                    <div class="w-32 h-36 flex-shrink-0 rounded-xl border-2 {{ $rarityBg }} p-2.5 flex flex-col items-center justify-between relative shadow-lg group">
-                                        
-                                        {{-- Quantity Badge --}}
-                                        <div class="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-black bg-black/70 text-amber-300 border border-amber-500/30">
-                                            x{{ $item['quantity'] }}
-                                        </div>
-
-                                        {{-- Icon --}}
-                                        <div class="w-16 h-16 mt-2 flex items-center justify-center">
-                                            <img src="{{ asset('assets/items/' . $item['icon']) }}" 
-                                                 alt="{{ $item['name'] }}" 
-                                                 class="w-full h-full object-contain filter drop-shadow-md">
-                                        </div>
-
-                                        {{-- Name --}}
-                                        <div class="w-full text-center">
-                                            <span class="text-[11px] font-bold text-slate-200 line-clamp-1 block truncate">
-                                                {{ $item['name'] }}
-                                            </span>
-                                            <span class="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded border {{ $rarityBadge }} inline-block mt-0.5">
-                                                {{ $item['rarity'] }}
-                                            </span>
-                                        </div>
+                    {{-- MULTI-REEL STACKED CONTAINER --}}
+                    <div class="w-full max-w-2xl space-y-4 mb-4">
+                        @foreach($spinsList as $sIdx => $sData)
+                            <div class="relative w-full">
+                                {{-- Spin Label if multi --}}
+                                @if(count($spinsList) > 1)
+                                    <div class="text-[11px] font-extrabold text-amber-300 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-cube text-amber-400"></i> Losowanie #{{ $sIdx + 1 }}
                                     </div>
-                                @endforeach
+                                @endif
+
+                                {{-- Top & Bottom Center Markers --}}
+                                <div class="absolute -top-2.5 left-1/2 -translate-x-1/2 z-30 text-amber-400 text-xl filter drop-shadow-[0_0_8px_rgba(245,158,11,0.9)] animate-pulse">
+                                    ▼
+                                </div>
+                                <div class="absolute -bottom-2.5 left-1/2 -translate-x-1/2 z-30 text-amber-400 text-xl filter drop-shadow-[0_0_8px_rgba(245,158,11,0.9)] animate-pulse">
+                                    ▲
+                                </div>
+                                <div class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-amber-400/80 z-20 shadow-[0_0_12px_#f59e0b] pointer-events-none"></div>
+
+                                {{-- Viewport Box --}}
+                                <div x-ref="viewport{{ $sIdx }}" class="w-full h-36 bg-slate-950 rounded-xl border-2 border-amber-600/60 shadow-inner overflow-hidden relative">
+                                    
+                                    {{-- Vignette Gradients --}}
+                                    <div class="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
+                                    <div class="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
+
+                                    {{-- Moving Reel Strip --}}
+                                    <div class="flex gap-3 py-3 px-2 absolute top-0 bottom-0 left-0 items-center transition-transform"
+                                         :style="`transform: translateX(-${translates[{{ $sIdx }}] || 0}px); transition-duration: ${isSpinning ? '6000ms' : '0ms'}; transition-timing-function: cubic-bezier(0.12, 0.8, 0.15, 1.0);`">
+                                        
+                                        @foreach($sData['roulette_items'] as $item)
+                                            @php
+                                                $rarityBg = match($item['rarity']) {
+                                                    'epic' => 'bg-gradient-to-b from-purple-950 via-slate-900 to-slate-950 border-purple-500/80 shadow-[0_0_15px_rgba(168,85,247,0.3)]',
+                                                    'rare' => 'bg-gradient-to-b from-blue-950 via-slate-900 to-slate-950 border-blue-500/80 shadow-[0_0_15px_rgba(59,130,246,0.3)]',
+                                                    'uncommon' => 'bg-gradient-to-b from-emerald-950 via-slate-900 to-slate-950 border-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,0.3)]',
+                                                    default => 'bg-gradient-to-b from-slate-800 via-slate-900 to-slate-950 border-slate-600/80',
+                                                };
+                                                $rarityBadge = match($item['rarity']) {
+                                                    'epic' => 'text-purple-400 border-purple-500/40 bg-purple-950/60',
+                                                    'rare' => 'text-blue-400 border-blue-500/40 bg-blue-950/60',
+                                                    'uncommon' => 'text-emerald-400 border-emerald-500/40 bg-emerald-950/60',
+                                                    default => 'text-slate-400 border-slate-600/40 bg-slate-900/60',
+                                                };
+                                            @endphp
+
+                                            <div class="w-32 h-28 flex-shrink-0 rounded-xl border-2 {{ $rarityBg }} p-2 flex flex-col items-center justify-between relative shadow-lg">
+                                                <div class="absolute top-1 right-1 px-1.5 py-0.2 rounded text-[10px] font-black bg-black/70 text-amber-300 border border-amber-500/30">
+                                                    x{{ $item['quantity'] }}
+                                                </div>
+
+                                                <div class="w-12 h-12 mt-1 flex items-center justify-center">
+                                                    <img src="{{ asset('assets/items/' . $item['icon']) }}" 
+                                                         alt="{{ $item['name'] }}" 
+                                                         class="w-full h-full object-contain filter drop-shadow-md">
+                                                </div>
+
+                                                <div class="w-full text-center">
+                                                    <span class="text-[10px] font-bold text-slate-200 line-clamp-1 block truncate">
+                                                        {{ $item['name'] }}
+                                                    </span>
+                                                    <span class="text-[8px] uppercase font-bold tracking-wider px-1 py-0.2 rounded border {{ $rarityBadge }} inline-block">
+                                                        {{ $item['rarity'] }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        @endforeach
                     </div>
 
-                    {{-- WINNING REWARD ANNOUNCEMENT BOX (Shown after spin finishes) --}}
-                    @if($isFinished && isset($chestData['winning_item']))
+                    {{-- WINNING REWARDS RESULT SHOWCASE --}}
+                    @if($isFinished)
                         <div x-transition:enter="transition ease-out duration-500"
                              x-transition:enter-start="opacity-0 scale-90 translate-y-4"
                              x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                             class="w-full max-w-md bg-gradient-to-b from-amber-950/90 via-slate-900 to-slate-950 border-2 border-amber-500/80 rounded-2xl p-5 text-center shadow-[0_0_40px_rgba(245,158,11,0.3)] mb-4">
+                             class="w-full max-w-xl bg-gradient-to-b from-amber-950/90 via-slate-900 to-slate-950 border-2 border-amber-500/80 rounded-2xl p-5 text-center shadow-[0_0_40px_rgba(245,158,11,0.3)] mb-4">
                             
-                            <div class="text-xs uppercase tracking-widest text-amber-400 font-bold mb-1">🎉 Wygrany Łup!</div>
-                            
-                            <div class="w-24 h-24 mx-auto my-3 relative flex items-center justify-center bg-slate-950 rounded-2xl border-2 border-amber-400 shadow-2xl">
-                                <img src="{{ asset('assets/items/' . $chestData['winning_item']['icon']) }}" 
-                                     alt="{{ $chestData['winning_item']['name'] }}" 
-                                     class="w-20 h-20 object-contain animate-bounce">
+                            <div class="text-xs uppercase tracking-widest text-amber-400 font-bold mb-3 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-trophy text-amber-400"></i>
+                                <span>{{ count($spinsList) > 1 ? '🎉 Wygrane Łupy (' . count($spinsList) . 'x)!' : '🎉 Wygrany Łup!' }}</span>
                             </div>
 
-                            <h3 class="text-xl font-black text-amber-100 medieval-font mb-1">
-                                {{ $chestData['winning_item']['name'] }}
-                            </h3>
-                            <p class="text-sm font-bold text-amber-300 mb-2">
-                                Ilość: <span class="text-white font-extrabold text-base">x{{ $chestData['winning_item']['quantity'] }}</span>
-                            </p>
+                            <div class="grid {{ count($spinsList) > 1 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-1' }} gap-3 justify-center mb-3">
+                                @foreach($spinsList as $sData)
+                                    @php $wItem = $sData['winning_item']; @endphp
+                                    @if($wItem)
+                                        <div class="bg-slate-950/90 border border-amber-500/50 rounded-xl p-3 flex flex-col items-center shadow-lg">
+                                            <div class="w-16 h-16 relative flex items-center justify-center bg-slate-900 rounded-xl border border-amber-400/60 mb-2">
+                                                <img src="{{ asset('assets/items/' . $wItem['icon']) }}" 
+                                                     alt="{{ $wItem['name'] }}" 
+                                                     class="w-12 h-12 object-contain animate-bounce">
+                                                <span class="absolute -top-1.5 -right-1.5 px-1.5 py-0.5 rounded text-[10px] font-black bg-black text-amber-300 border border-amber-400">
+                                                    x{{ $wItem['quantity'] }}
+                                                </span>
+                                            </div>
+                                            <span class="text-xs font-bold text-amber-100 truncate w-full block">{{ $wItem['name'] }}</span>
+                                            <span class="text-[10px] font-extrabold text-amber-400">x{{ $wItem['quantity'] }}</span>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+
                             <p class="text-xs text-slate-400">
-                                Nagroda została automatycznie przekazana do Twojego magazynu materiałów!
+                                Przekazano automatycznie do Twojego magazynu materiałów!
                             </p>
                         </div>
                     @endif

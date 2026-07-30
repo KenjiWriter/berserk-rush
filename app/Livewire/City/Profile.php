@@ -206,11 +206,11 @@ class Profile extends Component
         }
     }
 
-    public function consumeItem(string $itemUlid)
+    public function consumeItem(string $itemUlid, int $count = 1)
     {
         $item = ItemInstance::with('template')->find($itemUlid);
         if ($item && $item->template && $item->template->sub_type === 'chest') {
-            $this->dispatch('open-case-modal', itemInstanceId: $itemUlid);
+            $this->dispatch('open-case-modal', itemInstanceId: $itemUlid, count: $count);
             return;
         }
 

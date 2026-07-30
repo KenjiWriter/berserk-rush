@@ -18,13 +18,16 @@ class CaseOpeningModal extends Component
     public ?string $errorMessage = null;
 
     #[On('open-case-modal')]
-    public function openCaseModal($payload = null): void
+    public function openCaseModal($payload = null, int $count = 1): void
     {
         $id = null;
         if (is_string($payload)) {
             $id = $payload;
         } elseif (is_array($payload)) {
             $id = $payload['itemInstanceId'] ?? $payload['id'] ?? $payload[0] ?? null;
+            if (isset($payload['count'])) {
+                $count = (int) $payload['count'];
+            }
         }
 
         if (!$id) {
@@ -33,10 +36,10 @@ class CaseOpeningModal extends Component
 
         $this->resetState();
         $this->itemInstanceId = $id;
-        $this->startOpening();
+        $this->startOpening($count);
     }
 
-    public function startOpening(): void
+    public function startOpening(int $count = 1): void
     {
         /** @var Character|null $character */
         $character = auth()->user()?->character;
@@ -46,7 +49,7 @@ class CaseOpeningModal extends Component
         }
 
         $action = app(OpenLootChestAction::class);
-        $result = $action->execute($character, $this->itemInstanceId);
+        $result = $action->execute($character, $this->itemInstanceId, $count);
 
         if ($result->isError()) {
             $this->errorMessage = $result->getErrorMessage();

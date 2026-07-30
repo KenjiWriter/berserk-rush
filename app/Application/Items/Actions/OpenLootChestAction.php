@@ -18,9 +18,11 @@ class OpenLootChestAction
         private WeightedPicker $picker
     ) {}
 
-    public function execute(Character $character, string $itemInstanceId): Result
+    public function execute(Character $character, string $itemInstanceId, int $count = 1): Result
     {
-        return DB::transaction(function () use ($character, $itemInstanceId) {
+        $count = max(1, min(3, $count)); // Clamp between 1 and 3
+
+        return DB::transaction(function () use ($character, $itemInstanceId, $count) {
             /** @var ItemInstance|null $chestInstance */
             $chestInstance = ItemInstance::where('id', $itemInstanceId)
                 ->where('owner_character_id', $character->id)
@@ -30,6 +32,10 @@ class OpenLootChestAction
 
             if (!$chestInstance || !$chestInstance->template) {
                 return Result::error('CHEST_NOT_FOUND', 'Nie znaleziono skrzyni w ekwipunku.');
+            }
+
+            if ($chestInstance->stack_size < $count) {
+                return Result::error('NOT_ENOUGH_CHESTS', "Nie posiadasz {$count} sztuk tej skrzyni (posiadasz: {$chestInstance->stack_size}).");
             }
 
             $chestTemplate = $chestInstance->template;
@@ -57,99 +63,115 @@ class OpenLootChestAction
                 return Result::error('EMPTY_LOOT_TABLE', 'Tabela nagród tej skrzyni jest pusta.');
             }
 
-            // 1. Pick winning entry using WeightedPicker
             $entriesArray = $entries->toArray();
-            $winningEntryArray = $this->picker->pick($entriesArray);
-            if (!$winningEntryArray) {
-                $winningEntryArray = $entriesArray[0];
-            }
-
-            /** @var LootTableEntry $winningEntry */
-            $winningEntry = $entries->firstWhere('id', $winningEntryArray['id']);
-            $winningTemplate = $winningEntry->itemTemplate;
-
-            if (!$winningTemplate) {
-                return Result::error('MISSING_TEMPLATE', 'Błąd szablonu nagrody.');
-            }
-
-            $winningQty = mt_rand($winningEntry->min_qty, $winningEntry->max_qty);
-
-            // 2. Decrement or remove chest item instance
-            if ($chestInstance->stack_size > 1) {
-                $chestInstance->decrement('stack_size');
-                $remainingChests = $chestInstance->stack_size;
-            } else {
-                $chestInstance->delete();
-                $remainingChests = 0;
-            }
-
-            // 3. Log consumption of chest in ItemLedger
-            ItemLedger::create([
-                'id' => (string) Str::ulid(),
-                'character_id' => $character->id,
-                'item_instance_id' => $itemInstanceId,
-                'action' => 'open_chest',
-                'ref_type' => 'manual',
-                'quantity_change' => -1,
-                'idempotency_key' => 'open_chest_' . Str::ulid(),
-            ]);
-
-            // 4. Grant winning material/item to character
-            $targetLocation = in_array($winningTemplate->type, ['material', 'currency']) ? 'material_stash' : 'inventory';
-
-            $existingItem = ItemInstance::where('owner_character_id', $character->id)
-                ->where('template_id', $winningTemplate->id)
-                ->where('location', $targetLocation)
-                ->first();
-
-            if ($existingItem && in_array($winningTemplate->type, ['material', 'consumable', 'currency'])) {
-                $existingItem->increment('stack_size', $winningQty);
-            } else {
-                ItemInstance::create([
-                    'id' => (string) Str::ulid(),
-                    'owner_character_id' => $character->id,
-                    'template_id' => $winningTemplate->id,
-                    'location' => $targetLocation,
-                    'stack_size' => $winningQty,
-                ]);
-            }
-
-            // 5. Build CS-style Roulette Reel items list (40 items total)
-            // Winning item will be placed at index 28 (target landing slot)
-            $rouletteItems = [];
-            $totalReelCount = 40;
-            $winningIndex = 28;
-
             $poolTemplates = $entries->pluck('itemTemplate')->filter()->values();
 
-            for ($i = 0; $i < $totalReelCount; $i++) {
-                if ($i === $winningIndex) {
-                    $rouletteItems[] = [
+            $spins = [];
+
+            for ($spin = 0; $spin < $count; $spin++) {
+                // 1. Pick winning entry using WeightedPicker
+                $winningEntryArray = $this->picker->pick($entriesArray);
+                if (!$winningEntryArray) {
+                    $winningEntryArray = $entriesArray[0];
+                }
+
+                /** @var LootTableEntry $winningEntry */
+                $winningEntry = $entries->firstWhere('id', $winningEntryArray['id']);
+                $winningTemplate = $winningEntry->itemTemplate;
+
+                if (!$winningTemplate) {
+                    continue;
+                }
+
+                $winningQty = mt_rand($winningEntry->min_qty, $winningEntry->max_qty);
+
+                // 2. Decrement chest item instance stack size
+                if ($chestInstance->stack_size > 1) {
+                    $chestInstance->decrement('stack_size');
+                } else {
+                    $chestInstance->delete();
+                }
+
+                // 3. Log consumption in ItemLedger
+                ItemLedger::create([
+                    'id' => (string) Str::ulid(),
+                    'character_id' => $character->id,
+                    'item_instance_id' => $itemInstanceId,
+                    'action' => 'open_chest',
+                    'ref_type' => 'manual',
+                    'quantity_change' => -1,
+                    'idempotency_key' => 'open_chest_' . Str::ulid(),
+                ]);
+
+                // 4. Grant winning material to character
+                $targetLocation = in_array($winningTemplate->type, ['material', 'currency']) ? 'material_stash' : 'inventory';
+
+                $existingItem = ItemInstance::where('owner_character_id', $character->id)
+                    ->where('template_id', $winningTemplate->id)
+                    ->where('location', $targetLocation)
+                    ->first();
+
+                if ($existingItem && in_array($winningTemplate->type, ['material', 'consumable', 'currency'])) {
+                    $existingItem->increment('stack_size', $winningQty);
+                } else {
+                    ItemInstance::create([
+                        'id' => (string) Str::ulid(),
+                        'owner_character_id' => $character->id,
+                        'template_id' => $winningTemplate->id,
+                        'location' => $targetLocation,
+                        'stack_size' => $winningQty,
+                    ]);
+                }
+
+                // 5. Build CS-style Roulette Reel items list (40 items total)
+                $rouletteItems = [];
+                $totalReelCount = 40;
+                $winningIndex = 28;
+
+                for ($i = 0; $i < $totalReelCount; $i++) {
+                    if ($i === $winningIndex) {
+                        $rouletteItems[] = [
+                            'id' => $winningTemplate->id,
+                            'name' => $winningTemplate->name,
+                            'icon' => $winningTemplate->icon,
+                            'type' => $winningTemplate->type,
+                            'rarity' => $this->resolveRarity($winningEntry->weight),
+                            'quantity' => $winningQty,
+                            'is_winner' => true,
+                        ];
+                    } else {
+                        $randomTpl = $poolTemplates->random();
+                        $randomEntry = $entries->firstWhere('ref_ulid', $randomTpl->id);
+                        $randQty = $randomEntry ? mt_rand($randomEntry->min_qty, $randomEntry->max_qty) : 1;
+                        $weight = $randomEntry ? $randomEntry->weight : 20;
+
+                        $rouletteItems[] = [
+                            'id' => $randomTpl->id,
+                            'name' => $randomTpl->name,
+                            'icon' => $randomTpl->icon,
+                            'type' => $randomTpl->type,
+                            'rarity' => $this->resolveRarity($weight),
+                            'quantity' => $randQty,
+                            'is_winner' => false,
+                        ];
+                    }
+                }
+
+                $spins[] = [
+                    'spin_index' => $spin,
+                    'winning_item' => [
                         'id' => $winningTemplate->id,
                         'name' => $winningTemplate->name,
                         'icon' => $winningTemplate->icon,
-                        'type' => $winningTemplate->type,
-                        'rarity' => $this->resolveRarity($winningEntry->weight),
                         'quantity' => $winningQty,
-                        'is_winner' => true,
-                    ];
-                } else {
-                    $randomTpl = $poolTemplates->random();
-                    $randomEntry = $entries->firstWhere('ref_ulid', $randomTpl->id);
-                    $randQty = $randomEntry ? mt_rand($randomEntry->min_qty, $randomEntry->max_qty) : 1;
-                    $weight = $randomEntry ? $randomEntry->weight : 20;
-
-                    $rouletteItems[] = [
-                        'id' => $randomTpl->id,
-                        'name' => $randomTpl->name,
-                        'icon' => $randomTpl->icon,
-                        'type' => $randomTpl->type,
-                        'rarity' => $this->resolveRarity($weight),
-                        'quantity' => $randQty,
-                        'is_winner' => false,
-                    ];
-                }
+                        'rarity' => $this->resolveRarity($winningEntry->weight),
+                    ],
+                    'winning_index' => $winningIndex,
+                    'roulette_items' => $rouletteItems,
+                ];
             }
+
+            $remainingChests = $chestInstance->exists ? $chestInstance->stack_size : 0;
 
             return Result::ok([
                 'chest_template' => [
@@ -157,15 +179,11 @@ class OpenLootChestAction
                     'name' => $chestTemplate->name,
                     'icon' => $chestTemplate->icon,
                 ],
-                'winning_item' => [
-                    'id' => $winningTemplate->id,
-                    'name' => $winningTemplate->name,
-                    'icon' => $winningTemplate->icon,
-                    'quantity' => $winningQty,
-                    'rarity' => $this->resolveRarity($winningEntry->weight),
-                ],
-                'winning_index' => $winningIndex,
-                'roulette_items' => $rouletteItems,
+                'count' => count($spins),
+                'spins' => $spins,
+                'winning_item' => $spins[0]['winning_item'] ?? null,
+                'winning_index' => $spins[0]['winning_index'] ?? 28,
+                'roulette_items' => $spins[0]['roulette_items'] ?? [],
                 'remaining_chests' => $remainingChests,
             ]);
         });
