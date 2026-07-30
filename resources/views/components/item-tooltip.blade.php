@@ -76,7 +76,29 @@
         }
     }
 
-    $all_base_keys = array_unique(array_merge(array_keys($base_stats), array_keys($equipped_base_stats)));
+    $all_raw_keys = array_unique(array_merge(array_keys($base_stats), array_keys($equipped_base_stats)));
+    $all_base_keys = [];
+
+    $hasPhysAttack = in_array('attack_min', $all_raw_keys) || in_array('attack_max', $all_raw_keys);
+    $hasMagicAttack = in_array('magic_attack_min', $all_raw_keys) || in_array('magic_attack_max', $all_raw_keys);
+    $hasMagicBurst = in_array('magic_burst_min', $all_raw_keys) || in_array('magic_burst_max', $all_raw_keys);
+
+    if ($hasPhysAttack) {
+        $all_base_keys[] = 'attack_range';
+    }
+    if ($hasMagicAttack) {
+        $all_base_keys[] = 'magic_attack_range';
+    }
+    if ($hasMagicBurst) {
+        $all_base_keys[] = 'magic_burst_range';
+    }
+
+    foreach ($all_raw_keys as $k) {
+        if (in_array($k, ['attack_min', 'attack_max', 'magic_attack_min', 'magic_attack_max', 'magic_burst_min', 'magic_burst_max'])) {
+            continue;
+        }
+        $all_base_keys[] = $k;
+    }
 
     // Przedmioty, które faktycznie mogą nosić zaklęcia Wiedźmy (patrz
     // EnchantmentStrategy::poolFor()) - tylko dla nich renderujemy 5 stałych
@@ -146,10 +168,13 @@
 
     $formatStatName = function(string $statKey): string {
         $map = [
-            'attack_min' => 'Attack Min',
-            'attack_max' => 'Attack Max',
-            'magic_attack_min' => 'Magic Attack Min',
-            'magic_attack_max' => 'Magic Attack Max',
+            'attack_range' => 'Atak',
+            'magic_attack_range' => 'Magiczny Atak',
+            'magic_burst_range' => 'Rozbłysk Magii',
+            'attack_min' => 'Atak Min',
+            'attack_max' => 'Atak Max',
+            'magic_attack_min' => 'Magiczny Atak Min',
+            'magic_attack_max' => 'Magiczny Atak Max',
             'attack_power' => 'Obrażenia Fizyczne',
             'magic_attack' => 'Obrażenia Magiczne',
             'str_bonus' => 'STR Bonus',
@@ -296,42 +321,123 @@
                 <div class="flex gap-3">
                     <div class="flex-1 min-w-0 text-sm text-gray-200 space-y-1">
                         @foreach($all_base_keys as $stat)
-                            @php
-                                $val = $base_stats[$stat] ?? 0;
-                                $isRange = is_array($val);
-                                $suffix = $isPercentStat($stat) ? '%' : '';
-                            @endphp
-                            @if($isRange)
-                                {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
-                                <div class="flex justify-between items-center">
-                                    <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                    <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
-                                </div>
-                            @else
+                            @if(in_array($stat, ['attack_range', 'magic_attack_range', 'magic_burst_range']))
                                 @php
-                                    $up_val = $upgrade_bonus[$stat] ?? 0;
-                                    $total_val = $val + $up_val;
-                                    $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && $item->isStatMaxed($stat);
+                                    $rangeConfigs = [
+                                        'attack_range' => ['min' => 'attack_min', 'max' => 'attack_max', 'label' => 'Atak'],
+                                        'magic_attack_range' => ['min' => 'magic_attack_min', 'max' => 'magic_attack_max', 'label' => 'Magiczny Atak'],
+                                        'magic_burst_range' => ['min' => 'magic_burst_min', 'max' => 'magic_burst_max', 'label' => 'Rozbłysk Magii'],
+                                    ];
+                                    $cfg = $rangeConfigs[$stat];
+                                    $minK = $cfg['min'];
+                                    $maxK = $cfg['max'];
 
-                                    $eq_val_raw = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
-                                    $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
-                                    $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
-                                    $eq_total_val = $eq_val + $eq_up_val;
+                                    $val_min = $base_stats[$minK] ?? 0;
+                                    $val_max = $base_stats[$maxK] ?? 0;
 
-                                    $diff = $total_val - $eq_total_val;
+                                    $isRangeMin = is_array($val_min);
+                                    $isRangeMax = is_array($val_max);
+
+                                    $up_min = $upgrade_bonus[$minK] ?? 0;
+                                    $up_max = $upgrade_bonus[$maxK] ?? 0;
+
+                                    $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && ($item->isStatMaxed($minK) || $item->isStatMaxed($maxK));
+
+                                    $eq_val_raw_min = $canCompare ? ($equipped_base_stats[$minK] ?? 0) : 0;
+                                    $eq_val_raw_max = $canCompare ? ($equipped_base_stats[$maxK] ?? 0) : 0;
+                                    $eq_val_min = is_array($eq_val_raw_min) ? 0 : $eq_val_raw_min;
+                                    $eq_val_max = is_array($eq_val_raw_max) ? 0 : $eq_val_raw_max;
+                                    $eq_up_min = $canCompare ? ($equipped_upgrade_bonus[$minK] ?? 0) : 0;
+                                    $eq_up_max = $canCompare ? ($equipped_upgrade_bonus[$maxK] ?? 0) : 0;
+
+                                    $tot_item_min = (is_array($val_min) ? 0 : $val_min) + $up_min;
+                                    $tot_item_max = (is_array($val_max) ? 0 : $val_max) + $up_max;
+                                    $tot_eq_min = $eq_val_min + $eq_up_min;
+                                    $tot_eq_max = $eq_val_max + $eq_up_max;
+
+                                    $diff_min = $tot_item_min - $tot_eq_min;
+                                    $diff_max = $tot_item_max - $tot_eq_max;
                                 @endphp
-                                <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
-                                    <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                    <div class="flex items-center gap-1">
-                                        <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
-                                        @if($up_val > 0)
-                                            <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
-                                        @endif
-                                        <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                            @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
+
+                                @if($isRangeMin || $isRangeMax)
+                                    <div class="flex justify-between items-center">
+                                        <span class="capitalize text-gray-200">{{ $cfg['label'] }}</span>
+                                        <span class="font-bold text-gray-200">
+                                            @if($isRangeMin && $isRangeMax)
+                                                {{ $formatNumber($val_min[0]) }}-{{ $formatNumber($val_min[1]) }} ~ {{ $formatNumber($val_max[0]) }}-{{ $formatNumber($val_max[1]) }}
+                                            @elseif($isRangeMin)
+                                                {{ $formatNumber($val_min[0]) }}-{{ $formatNumber($val_min[1]) }}
+                                            @else
+                                                {{ $formatNumber($val_min) }}-{{ $formatNumber($val_max) }}
+                                            @endif
                                         </span>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="space-y-0.5" x-show="compare || {{ ($val_min > 0 || $val_max > 0 || $up_min > 0 || $up_max > 0) ? 'true' : 'false' }}">
+                                        <div class="flex justify-between items-center">
+                                            <span class="capitalize text-gray-200">{{ $cfg['label'] }}</span>
+                                            <div class="flex items-center gap-1">
+                                                <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : (($val_min > 0 || $val_max > 0) ? 'text-gray-200' : 'text-gray-500') }}">
+                                                    {{ $formatNumber($val_min) }}-{{ $formatNumber($val_max) }}
+                                                </span>
+                                                <span x-show="compare" class="text-xs font-bold w-16 text-right ml-1 {{ ($diff_min > 0 || $diff_max > 0) ? 'text-green-400 font-extrabold' : (($diff_min < 0 || $diff_max < 0) ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                                    @if($diff_min > 0 && $diff_max > 0)
+                                                        (+{{ $formatNumber($diff_min) }}-+{{ $formatNumber($diff_max) }})
+                                                    @elseif($diff_min > 0 || $diff_max > 0)
+                                                        (+{{ $formatNumber($diff_min) }}/+{{ $formatNumber($diff_max) }})
+                                                    @elseif($diff_min < 0 || $diff_max < 0)
+                                                        ({{ $formatNumber($diff_min) }}-{{ $formatNumber($diff_max) }})
+                                                    @else
+                                                        (- )
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        </div>
+                                        @if($up_min > 0 || $up_max > 0)
+                                            <div class="flex justify-end text-amber-400 font-semibold text-xs leading-none">
+                                                (+{{ $formatNumber($up_min) }}-+{{ $formatNumber($up_max) }})
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
+                            @else
+                                @php
+                                    $val = $base_stats[$stat] ?? 0;
+                                    $isRange = is_array($val);
+                                    $suffix = $isPercentStat($stat) ? '%' : '';
+                                @endphp
+                                @if($isRange)
+                                    {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
+                                    <div class="flex justify-between items-center">
+                                        <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                        <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
+                                    </div>
+                                @else
+                                    @php
+                                        $up_val = $upgrade_bonus[$stat] ?? 0;
+                                        $total_val = $val + $up_val;
+                                        $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && $item->isStatMaxed($stat);
+
+                                        $eq_val_raw = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
+                                        $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
+                                        $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
+                                        $eq_total_val = $eq_val + $eq_up_val;
+
+                                        $diff = $total_val - $eq_total_val;
+                                    @endphp
+                                    <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
+                                        <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
+                                            @if($up_val > 0)
+                                                <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
+                                            @endif
+                                            <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                                @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
+                                            </span>
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
                         @endforeach
                     </div>
@@ -388,23 +494,60 @@
                 <div class="flex gap-3">
                     <div class="flex-1 min-w-0 text-sm text-gray-300 space-y-1">
                         @foreach($all_base_keys as $stat)
-                            @php
-                                $eq_val_raw = $equipped_base_stats[$stat] ?? 0;
-                                $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
-                                $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
-                                $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && $equippedItem->isStatMaxed($stat);
-                                $suffix = $isPercentStat($stat) ? '%' : '';
-                            @endphp
-                            @if($eq_val > 0 || $eq_up_val > 0)
-                                <div class="flex justify-between">
-                                    <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
-                                    <div class="flex items-center gap-1">
-                                        <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
-                                        @if($eq_up_val > 0)
-                                            <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
+                            @if(in_array($stat, ['attack_range', 'magic_attack_range', 'magic_burst_range']))
+                                @php
+                                    $rangeConfigs = [
+                                        'attack_range' => ['min' => 'attack_min', 'max' => 'attack_max', 'label' => 'Atak'],
+                                        'magic_attack_range' => ['min' => 'magic_attack_min', 'max' => 'magic_attack_max', 'label' => 'Magiczny Atak'],
+                                        'magic_burst_range' => ['min' => 'magic_burst_min', 'max' => 'magic_burst_max', 'label' => 'Rozbłysk Magii'],
+                                    ];
+                                    $cfg = $rangeConfigs[$stat];
+                                    $minK = $cfg['min'];
+                                    $maxK = $cfg['max'];
+
+                                    $eq_val_raw_min = $equipped_base_stats[$minK] ?? 0;
+                                    $eq_val_raw_max = $equipped_base_stats[$maxK] ?? 0;
+                                    $eq_val_min = is_array($eq_val_raw_min) ? 0 : $eq_val_raw_min;
+                                    $eq_val_max = is_array($eq_val_raw_max) ? 0 : $eq_val_raw_max;
+                                    $eq_up_min = $equipped_upgrade_bonus[$minK] ?? 0;
+                                    $eq_up_max = $equipped_upgrade_bonus[$maxK] ?? 0;
+
+                                    $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && ($equippedItem->isStatMaxed($minK) || $equippedItem->isStatMaxed($maxK));
+                                @endphp
+                                @if($eq_val_min > 0 || $eq_val_max > 0 || $eq_up_min > 0 || $eq_up_max > 0)
+                                    <div class="space-y-0.5">
+                                        <div class="flex justify-between items-center">
+                                            <span class="capitalize text-gray-400">{{ $cfg['label'] }}</span>
+                                            <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">
+                                                {{ $formatNumber($eq_val_min) }}-{{ $formatNumber($eq_val_max) }}
+                                            </span>
+                                        </div>
+                                        @if($eq_up_min > 0 || $eq_up_max > 0)
+                                            <div class="flex justify-end text-amber-400 font-semibold text-xs leading-none">
+                                                (+{{ $formatNumber($eq_up_min) }}-+{{ $formatNumber($eq_up_max) }})
+                                            </div>
                                         @endif
                                     </div>
-                                </div>
+                                @endif
+                            @else
+                                @php
+                                    $eq_val_raw = $equipped_base_stats[$stat] ?? 0;
+                                    $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
+                                    $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
+                                    $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && $equippedItem->isStatMaxed($stat);
+                                    $suffix = $isPercentStat($stat) ? '%' : '';
+                                @endphp
+                                @if($eq_val > 0 || $eq_up_val > 0)
+                                    <div class="flex justify-between">
+                                        <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
+                                        <div class="flex items-center gap-1">
+                                            <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
+                                            @if($eq_up_val > 0)
+                                                <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
                             @endif
                         @endforeach
                     </div>

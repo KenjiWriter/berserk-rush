@@ -34,8 +34,12 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
   - Możliwość powiększenia magazynu w profilu: koszt **50 gemów** za każdy dodatkowy slot (`stash_slots`).
   - Akcje `PlayerStashService`: `deposit()` (przeniesienie przedmiotu z plecaka do magazynu gracza) oraz `withdraw()` (wyciągnięcie przedmiotu z magazynu do plecaka).
 
-### 3a. Pochodzenie Materiałów w Plecaku/Magazynie
-Tooltip przedmiotu (`x-item-tooltip`) dla materiałów (`type === 'material'`) wyświetlanych w plecaku oraz w magazynie materiałów pokazuje sekcję "Wypada z" z listą potworów i krain, z których dany surowiec można zdobyć (np. "Wilk Leśny · Mroczny Las"). Źródła łupów są zbierane zbiorczo w `Profile::render()` (`$materialDropSources`, zapytanie do `LootTableEntry` z eager-loadem `lootTable.monsters.map`) i przekazywane do komponentu jako opcjonalny prop `dropSources` - inne widoki używające `x-item-tooltip` (Wiedźma, Rynek, Kowal itp.) nie przekazują tego propa i sekcja się tam nie renderuje.
+### 3a. Prezentacja Statystyk w Tooltipie Przedmiotu (Info Box)
+- **Prezentacja Ataku Broni:** W info boxie przedmiotu (`x-item-tooltip`) statystyki broni (fizyczne `attack_min`/`attack_max`, magiczne `magic_attack_min`/`magic_attack_max` oraz `magic_burst_min`/`magic_burst_max`) są skonsolidowane w pojedynczy wiersz: `Atak: <min>-<max>` (np. `120-180`).
+- **Bonus z Ulepszeń (Kowal):** Gdy przedmiot posiada poziom ulepszenia (`+1` do `+9`), dodatkowy bonus z ulepszenia dla wartości min/max jest wyświetlany w osobnej linii pod spodem w formacie `(+<up_min>-+<up_max>)` w kolorze bursztynowym.
+- **Porównywanie Sprzętu (Compare):** W trybie porównywania z założoną bronią wyświetlany jest zakres różnicy statystyk `(+<diff_min>-+<diff_max>)` lub straty, a prawa strona podglądu założonego przedmiotu stosuje ten sam spójny format.
+- **Pochodzenie Materiałów w Plecaku/Magazynie:** Tooltip przedmiotu (`x-item-tooltip`) dla materiałów (`type === 'material'`) wyświetlanych w plecaku oraz w magazynie materiałów pokazuje sekcję "Wypada z" z listą potworów i krain, z których dany surowiec można zdobyć (np. "Wilk Leśny · Mroczny Las"). Źródła łupów są zbierane zbiorczo w `Profile::render()` (`$materialDropSources`, zapytanie do `LootTableEntry` z eager-loadem `lootTable.monsters.map`) i przekazywane do komponentu jako opcjonalny prop `dropSources`.
+
 
 ### 4. Rozwój Atrybutów
 Postać zdobywa punkty postaci (`character_points`) za każdy zdobyty poziom (np. +3 punkty za każdy awans).
