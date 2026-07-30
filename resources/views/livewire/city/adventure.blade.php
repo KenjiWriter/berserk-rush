@@ -701,10 +701,22 @@
                         }
                     }" class="group bg-slate-900/80 backdrop-blur-md border border-slate-700 hover:border-amber-500/50 rounded-2xl overflow-hidden transition-all duration-300 flex flex-col hover:shadow-[0_0_30px_-5px_rgba(217,119,6,0.2)]">
 
+                        @php
+                            $dungeonImages = [
+                                'Zapomniane Katakumby' => 'img/dungeons/katakumby.png',
+                                'Krypta Przeklętych' => 'img/dungeons/krypta.png',
+                                'Pustkowia Zarazy' => 'img/dungeons/pustkowia.png',
+                                'Cytadela Cienia' => 'img/dungeons/cytadela.png',
+                                'Otchłań Zniszczenia' => 'img/dungeons/otchlan.png',
+                            ];
+                            $dungeonBg = $dungeonImages[$dungeon->name] ?? 'img/maps/old-ruins.png';
+                        @endphp
+
                         {{-- Dungeon Banner --}}
-                        <div class="h-32 bg-gradient-to-br from-slate-800 to-amber-950 relative border-b border-slate-700 flex items-center justify-center">
-                            <i class="fa-solid fa-dungeon text-5xl text-slate-700 group-hover:text-amber-500/40 transition-colors"></i>
-                            <div class="absolute bottom-3 left-3 bg-black/50 backdrop-blur-sm px-3 py-1 rounded-lg border border-white/10 text-xs font-bold text-white tracking-widest uppercase">
+                        <div class="h-44 relative border-b border-amber-900/40 overflow-hidden">
+                            <img src="{{ asset($dungeonBg) }}" alt="{{ $dungeon->name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 brightness-75">
+                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+                            <div class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-lg border border-amber-500/40 text-xs font-bold text-amber-200 tracking-widest uppercase">
                                 Wym. Lvl {{ $dungeon->min_level }}
                             </div>
                         </div>
