@@ -56,13 +56,8 @@
         this.$wire.on('start-case-spin', (data) => {
             this.handleSpin(data);
         });
-        if (typeof Livewire !== 'undefined') {
-            Livewire.on('start-case-spin', (data) => {
-                this.handleSpin(data);
-            });
-        }
     }
-}" @start-case-spin.window="handleSpin($event.detail)">
+}">
 
     <template x-teleport="body">
         <div x-show="showModal" 

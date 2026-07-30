@@ -794,7 +794,11 @@
                             posClass: 'sm:bottom-full sm:mb-2',
                             tooltipStyle: {},
                             init() {
-                                window.addEventListener('inventory-updated', () => { this.open = false; });
+                                this._onInventoryUpdated = () => { this.open = false; };
+                                window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                            },
+                            destroy() {
+                                window.removeEventListener('inventory-updated', this._onInventoryUpdated);
                             },
                             checkPosition() { 
                                 if (window.innerWidth < 640) return;
@@ -1002,7 +1006,11 @@
                             posClass: 'sm:bottom-full sm:mb-2',
                             tooltipStyle: {},
                             init() {
-                                window.addEventListener('inventory-updated', () => { this.showInfo = false; });
+                                this._onInventoryUpdated = () => { this.showInfo = false; };
+                                window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                            },
+                            destroy() {
+                                window.removeEventListener('inventory-updated', this._onInventoryUpdated);
                             },
                             checkPosition() {
                                 if (window.innerWidth < 640) return;
