@@ -1,11 +1,12 @@
 <div class="min-h-screen bg-stone-950 text-amber-100 relative overflow-hidden selection:bg-amber-500 selection:text-stone-950" style="font-family: 'Cinzel', serif;">
-    {{-- Dynamic Tiled Background with Overlay --}}
-    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20 pointer-events-none"
-        style="background-image: url('{{ asset('img/homepage-background.png') }}');">
+    {{-- Dynamic Background with Overlay --}}
+    <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-45 pointer-events-none filter brightness-90 contrast-105"
+        style="background-image: url('{{ asset('img/itemshop-bg.png') }}');">
     </div>
 
-    {{-- Dark Vignette & Gradients --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-stone-950 via-stone-950/95 to-stone-950 pointer-events-none"></div>
+    {{-- Dark Vignette & Atmospheric Gradients --}}
+    <div class="absolute inset-0 bg-gradient-to-b from-stone-950/85 via-stone-950/70 to-stone-950/95 pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-500/10 via-transparent to-stone-950/80 pointer-events-none"></div>
 
     {{-- Glowing Orbs Animations --}}
     <div class="absolute inset-0 pointer-events-none overflow-hidden">
