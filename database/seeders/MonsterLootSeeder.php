@@ -455,7 +455,7 @@ class MonsterLootSeeder extends Seeder
                     ]);
                 }
 
-                // 3. Przypisz BARDZO RADKIE wpisy ekwipunku przypisane DOKŁADNIE do tego potwora (Bardzo mała szansa: waga 1)
+                // 3. Przypisz wpisy ekwipunku przypisane DOKŁADNIE do tego potwora (waga 2 -> ~0.6% szansy na drop)
                 foreach ($specificEquipment as $itemName) {
                     $template = $itemTemplates->get($itemName);
 
@@ -464,16 +464,14 @@ class MonsterLootSeeder extends Seeder
                         continue;
                     }
 
-                    LootTableEntry::firstOrCreate([
+                    LootTableEntry::updateOrCreate([
                         'loot_table_id' => $lootTable->id,
                         'reward_type' => 'item',
                         'ref_ulid' => $template->id,
                     ], [
-                        // Balans ekonomii (2026-07-29): drop bezpośredni przedmiotów ekwipunku
-                        // zmniejszony globalnie o 100% (waga x0 - nigdy nie wypadnie, patrz
-                        // WeightedPicker::pick). Ekwipunek zdobywa się teraz wyłącznie przez
-                        // system rzemiosła z materiałów (patrz docs/modules/witch_and_crafting.md).
-                        'weight' => 0,
+                        // Balans ekonomii (2026-07-30): drop bezpośredni przedmiotów ekwipunku
+                        // na mapach ustawiony na wagę 2 (~0.6% szansy na drop).
+                        'weight' => 2,
                         'min_qty' => 1,
                         'max_qty' => 1
                     ]);
