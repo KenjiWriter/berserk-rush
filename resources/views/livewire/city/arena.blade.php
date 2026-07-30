@@ -141,7 +141,8 @@
                                             <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
                                                  :style="tooltipStyle"
                                                  style="display: none;"
-                                                 class="hidden sm:block fixed z-[99999] w-auto" @click.stop>
+                                                 class="hidden sm:block fixed z-[99999] w-auto"
+                                                 @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click.stop>
                                                 <x-arena-equipment-preview :slots="$opponentEquipment[$oppId] ?? []" />
                                             </div>
                                         </template>
@@ -248,7 +249,8 @@
                                                         <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
                                                              :style="tooltipStyle"
                                                              style="display: none;"
-                                                             class="hidden sm:block fixed z-[99999] w-auto" @click.stop>
+                                                             class="hidden sm:block fixed z-[99999] w-auto"
+                                                             @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click.stop>
                                                             <x-arena-equipment-preview :slots="$rankingEquipment[$rowChar->id] ?? []" />
                                                         </div>
                                                     </template>
