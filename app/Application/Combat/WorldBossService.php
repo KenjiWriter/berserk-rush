@@ -10,22 +10,45 @@ use Illuminate\Support\Facades\Log;
 
 class WorldBossService
 {
+    /**
+     * Pula 8 istniejących potworów rangi 'worldboss', przypisana do 3 przedziałów
+     * poziomowych (0-35 / 35-65 / 65-99). Co godzinę losowany jest jeden z każdej
+     * puli, jeśli dany przedział nie ma aktualnie żywej instancji - patrz
+     * docs/modules/world_boss.md.
+     */
+    public const BRACKET_POOLS = [
+        'low' => ['Król Lasu', 'Licz Cieni', 'Król Trolli'],
+        'mid' => ['Wódz Orków', 'Moczarowy Behemot'],
+        'high' => ['Smok Cienia', 'Arcymag', 'Pan Zniszczenia'],
+    ];
+
+    /**
+     * Fallback: wyznacza przedział poziomowy na podstawie samego poziomu potwora,
+     * używane gdy trzeba dosiać instancję ad-hoc (np. w EncounterService), a nie
+     * iterujemy po BRACKET_POOLS.
+     */
+    public static function bracketForLevel(int $level): string
+    {
+        if ($level <= 35) {
+            return 'low';
+        }
+
+        if ($level <= 65) {
+            return 'mid';
+        }
+
+        return 'high';
+    }
+
     public function tickHourly(): void
     {
         DB::beginTransaction();
         try {
-            // Nagrody za pokonanie world bossa są rozdawane WYŁĄCZNIE przez
-            // App\Jobs\WorldBossRewardJob (reaguje na realne zwycięstwo graczy,
-            // czyści instancję/logi i respawnuje danego bossa po fakcie - patrz
-            // docs/modules/world_boss.md). Wcześniej ten tick bezwarunkowo
-            // rozdawał nagrody i kasował WSZYSTKIE instancje co godzinę,
-            // niezależnie od tego czy boss faktycznie padł, przez co współdzielony
-            // pasek HP resetował się zanim gracze zdążyli go realnie wyzerować -
-            // to był główny powód, dla którego world bossy "nie dawało się zabić".
-            //
-            // Ten tick ma teraz jedno zadanie: dosiać brakujące instancje bossów
-            // (np. dla nowo dodanych map albo tych usuniętych przez
-            // WorldBossRewardJob po pokonaniu), bez ruszania walk w toku.
+            // Nagrody za world bossa są rozdawane WYŁĄCZNIE przez App\Jobs\WorldBossRewardJob,
+            // co godzinę, niezależnie od tego czy boss "padł" (world boss regeneruje HP i
+            // teoretycznie nie da się go zabić - patrz docs/modules/world_boss.md). Ten tick
+            // ma tylko jedno zadanie: dosiać brakujące instancje bossów (np. dla przedziałów,
+            // które aktualnie nie mają żywej instancji), bez ruszania walk w toku.
             $this->ensureBossesSpawned();
 
             DB::commit();
@@ -59,46 +82,40 @@ class WorldBossService
 
     public function ensureBossesSpawned(): void
     {
-        $worldBosses = Monster::where('rank', 'worldboss')->get();
-
-        foreach ($worldBosses as $boss) {
-            $exists = WorldBossInstance::where('monster_id', $boss->id)
-                ->where('is_defeated', false)
-                ->exists();
+        foreach (array_keys(self::BRACKET_POOLS) as $bracket) {
+            $exists = WorldBossInstance::where('level_bracket', $bracket)->exists();
 
             if (!$exists) {
-                WorldBossInstance::create([
-                    'monster_id' => $boss->id,
-                    'map_id' => $boss->map_id,
-                    'total_hp' => $boss->stats['hp'] ?? 10000,
-                    'current_hp' => $boss->stats['hp'] ?? 10000,
-                    'is_defeated' => false,
-                ]);
+                $this->spawnBracket($bracket);
             }
         }
     }
 
-    // UWAGA (fix 2026-07-28): dawniej istniała tu metoda distributeRewards(),
-    // wywoływana co godzinę z tickHourly() niezależnie od tego czy world boss
-    // faktycznie został pokonany. Rozdawanie nagród (kluczy) za pokonanie world
-    // bossa jest teraz WYŁĄCZNIE odpowiedzialnością App\Jobs\WorldBossRewardJob,
-    // który reaguje na realne zwycięstwo (is_defeated = true) zamiast siłowo
-    // rozstrzygać walki w toku. Metodę usunięto, żeby uniknąć dwóch
-    // konkurujących ze sobą systemów nagród - patrz docs/modules/world_boss.md.
-
     private function spawnWorldBosses(): void
     {
-        // Get all world boss monsters
-        $worldBosses = Monster::where('rank', 'worldboss')->get();
-
-        foreach ($worldBosses as $boss) {
-            WorldBossInstance::create([
-                'monster_id' => $boss->id,
-                'map_id' => $boss->map_id,
-                'total_hp' => $boss->stats['hp'] ?? 10000,
-                'current_hp' => $boss->stats['hp'] ?? 10000,
-                'is_defeated' => false,
-            ]);
+        foreach (array_keys(self::BRACKET_POOLS) as $bracket) {
+            $this->spawnBracket($bracket);
         }
+    }
+
+    private function spawnBracket(string $bracket): void
+    {
+        $names = self::BRACKET_POOLS[$bracket];
+        $pickedName = $names[array_rand($names)];
+
+        $boss = Monster::where('rank', 'worldboss')->where('name', $pickedName)->first();
+
+        if (!$boss) {
+            Log::warning("WorldBossService: nie znaleziono potwora '{$pickedName}' dla przedziału '{$bracket}'.");
+            return;
+        }
+
+        WorldBossInstance::create([
+            'monster_id' => $boss->id,
+            'map_id' => $boss->map_id,
+            'level_bracket' => $bracket,
+            'total_hp' => $boss->stats['hp'] ?? 10000,
+            'current_hp' => $boss->stats['hp'] ?? 10000,
+        ]);
     }
 }

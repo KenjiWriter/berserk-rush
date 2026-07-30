@@ -13,106 +13,123 @@ use App\Infrastructure\Persistence\Mail;
 use App\Application\Combat\WorldBossService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Str;
 
 class WorldBossRewardJob implements ShouldQueue
 {
     use Queueable;
 
     /**
-     * ID szablonu klucza do lochów (Zardzewiały Klucz do Lochów).
-     * Musi pasować do entry_item_template_id w tabeli dungeons.
+     * World boss (po nazwie potwora) -> nazwa ItemTemplate klucza do najbliższego
+     * poziomowo lochu (patrz database/seeders/DungeonSeeder.php). Trzymamy mapowanie
+     * po nazwie, żeby nie duplikować twardo zakodowanych ULID-ów kluczy.
      */
-    const DUNGEON_KEY_TEMPLATE_ID = '01k4jpx94j70x2vv10b835key1';
+    const MONSTER_KEY_MAP = [
+        'Król Lasu' => 'Klucz Katakumb',
+        'Licz Cieni' => 'Klucz Krypty',
+        'Król Trolli' => 'Klucz Krypty',
+        'Wódz Orków' => 'Klucz Pustkowi',
+        'Moczarowy Behemot' => 'Klucz Cytadeli',
+        'Smok Cienia' => 'Klucz Cytadeli',
+        'Arcymag' => 'Klucz Otchłani',
+        'Pan Zniszczenia' => 'Klucz Otchłani',
+    ];
 
     public function handle(): void
     {
         Log::info('WorldBossRewardJob: Rozpoczynam rozdawanie nagród.');
 
-        // Pobierz szablon klucza po stałym ID zdefiniowanym w ItemTemplateSeeder
-        $keyTemplate = ItemTemplate::find(self::DUNGEON_KEY_TEMPLATE_ID);
+        // UWAGA (rework world bossów): world boss regeneruje HP i teoretycznie nigdy nie
+        // da się go "zabić" - is_defeated nie istnieje już w schemacie. Rozliczenie jest
+        // więc czysto czasowe: co godzinę (ten job jest Schedule::job(...)->hourly())
+        // KAŻDY z 3 przedziałów resetuje się bezwarunkowo - jeśli ktoś zdążył zadać dmg,
+        // nagradzamy TOP 9 po zadanym DMG, po czym zawsze kasujemy instancję i losujemy
+        // nowego bossa na kolejną godzinę, niezależnie od aktywności - patrz
+        // docs/modules/world_boss.md.
+        $activeBosses = WorldBossInstance::with('monster')->get();
 
-        if (!$keyTemplate) {
-            Log::error('WorldBossRewardJob: Nie znaleziono szablonu klucza (ID: ' . self::DUNGEON_KEY_TEMPLATE_ID . '). Uruchom ItemTemplateSeeder.');
+        if ($activeBosses->isEmpty()) {
+            Log::info('WorldBossRewardJob: Brak aktywnych instancji world bossów.');
+            app(WorldBossService::class)->ensureBossesSpawned();
             return;
         }
 
-        // UWAGA (fix 2026-07-28): warunek był odwrócony - `is_defeated = false`
-        // oznaczał "jeszcze nie nagrodzony", więc ten job co godzinę siłowo
-        // rozstrzygał WSZYSTKIE toczące się walki (nawet gdy boss wciąż żył),
-        // rozdawał nagrody i resetował instancję, zanim gracze zdążyli go
-        // realnie pokonać. Teraz reagujemy wyłącznie na bossów faktycznie
-        // pokonanych (is_defeated = true, ustawiane przez walkę gracza po
-        // wyzerowaniu current_hp), zgodnie z docs/modules/world_boss.md.
-        $defeatedBosses = WorldBossInstance::where('is_defeated', true)
-            ->whereHas('damageLogs')
-            ->get();
+        foreach ($activeBosses as $boss) {
+            DB::transaction(function () use ($boss) {
+                $monsterName = $boss->monster->name ?? null;
+                $keyTemplateName = self::MONSTER_KEY_MAP[$monsterName] ?? null;
+                $keyTemplate = $keyTemplateName ? ItemTemplate::where('name', $keyTemplateName)->first() : null;
 
-        if ($defeatedBosses->isEmpty()) {
-            Log::info('WorldBossRewardJob: Brak pokonanych bossów oczekujących na nagrody.');
-            return;
-        }
+                if (!$keyTemplate) {
+                    Log::error("WorldBossRewardJob: Nie znaleziono szablonu klucza dla bossa '{$monsterName}'.");
+                }
 
-        foreach ($defeatedBosses as $boss) {
-            DB::transaction(function () use ($boss, $keyTemplate) {
-                // Oblicz ranking po łącznych obrażeniach
+                // Oblicz ranking po łącznych obrażeniach (jeśli nikt nie walczył, pusta kolekcja)
                 $rankings = WorldBossDamageLog::select('character_id', DB::raw('SUM(damage) as total_damage'))
                     ->where('world_boss_instance_id', $boss->id)
                     ->groupBy('character_id')
                     ->orderByDesc('total_damage')
-                    ->take(10)
+                    ->take(9)
                     ->get();
 
                 $place = 1;
                 foreach ($rankings as $rank) {
-                    $keysCount = match(true) {
-                        $place === 1              => 5,
-                        $place === 2              => 4,
-                        $place === 3              => 3,
-                        $place >= 4 && $place <= 10 => 1,
-                        default                   => 0,
+                    [$gems, $keys] = match(true) {
+                        $place === 1 => [50, 5],
+                        $place >= 2 && $place <= 3 => [30, 5],
+                        $place >= 4 && $place <= 6 => [0, 3],
+                        $place >= 7 && $place <= 9 => [0, 1],
+                        default => [0, 0],
                     };
 
-                    if ($keysCount > 0) {
-                        // Utwórz instancję klucza w lokalizacji "mail" (oczekuje na odebranie)
-                        $itemInstance = ItemInstance::create([
-                            'template_id'        => $keyTemplate->id,
-                            'owner_character_id' => $rank->character_id,
-                            'stack_size'         => $keysCount,
-                            'rarity'             => 'uncommon',
-                            'location'           => 'mail',
-                        ]);
+                    if ($gems > 0 || $keys > 0) {
+                        $attachments = [];
+                        $bodyParts = [];
 
-                        // Wyślij wiadomość systemową z załącznikiem
+                        if ($gems > 0) {
+                            $attachments[] = ['type' => 'gems', 'qty' => $gems];
+                            $bodyParts[] = "{$gems} gemów";
+                        }
+
+                        if ($keys > 0 && $keyTemplate) {
+                            $itemInstance = ItemInstance::create([
+                                'template_id'        => $keyTemplate->id,
+                                'owner_character_id' => $rank->character_id,
+                                'stack_size'         => $keys,
+                                'rarity'             => 'uncommon',
+                                'location'           => 'mail',
+                            ]);
+
+                            $attachments[] = ['type' => 'item', 'id' => $itemInstance->id];
+                            $bodyParts[] = "{$keys} " . ($keys === 1 ? 'klucz' : 'klucze') . " ({$keyTemplate->name})";
+                        }
+
                         $mapName = $boss->map->name ?? 'nieznanej mapie';
                         Mail::create([
                             'to_character_id' => $rank->character_id,
                             'subject'         => 'Nagroda za Worldbossa',
-                            'body'            => "Gratulacje! Zająłeś $place miejsce w walce z Worldbossem na mapie {$mapName}. Otrzymujesz {$keysCount} " . ($keysCount === 1 ? 'klucz' : 'klucze') . " do Lochów.",
-                            'attachments'     => [
-                                ['type' => 'item', 'id' => $itemInstance->id],
-                            ],
+                            'body'            => "Gratulacje! Zająłeś {$place} miejsce w walce z Worldbossem ({$monsterName}) na mapie {$mapName}. Otrzymujesz: " . implode(', ', $bodyParts) . '.',
+                            'attachments'     => $attachments,
                             'claimed'         => false,
                         ]);
 
-                        Log::info("WorldBossRewardJob: Wysłano {$keysCount} klucz(e) do postaci {$rank->character_id} (miejsce {$place}).");
+                        Log::info("WorldBossRewardJob: Nagroda wysłana do postaci {$rank->character_id} (miejsce {$place}): " . implode(', ', $bodyParts));
                     }
 
                     $place++;
                 }
 
-                // Nagrody rozdane - usuń logi obrażeń i samą instancję (a nie tylko flagę),
-                // żeby nie zostawiać martwych rekordów i żeby respawn poniżej zawsze stworzył
-                // dla tej mapy świeżą, w pełni żywą instancję z pełnym HP.
+                // Nagrody rozdane - usuń logi obrażeń i samą instancję, żeby respawn poniżej
+                // zawsze stworzył dla tego przedziału świeżą (być może inną, losowo wybraną)
+                // instancję z pełnym HP.
                 WorldBossDamageLog::where('world_boss_instance_id', $boss->id)->delete();
                 $boss->delete();
 
-                Log::info("WorldBossRewardJob: Boss {$boss->id} pokonany, nagrody rozdane, instancja i logi wyczyszczone.");
+                Log::info("WorldBossRewardJob: Boss {$boss->id} ({$monsterName}) rozliczony, nagrody rozdane, instancja i logi wyczyszczone.");
             });
         }
 
-        // Respawnuj bossów, których instancje właśnie usunęliśmy (i wszelkich innych
-        // brakujących), żeby mapa nie została bez world bossa.
+        // Respawnuj bossów dla przedziałów, których instancje właśnie usunęliśmy (i wszelkich
+        // innych brakujących), żeby żaden przedział nie został bez world bossa.
         app(WorldBossService::class)->ensureBossesSpawned();
 
         Log::info('WorldBossRewardJob: Zakończono rozdawanie nagród.');

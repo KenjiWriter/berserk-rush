@@ -23,8 +23,12 @@ class MonsterSeeder extends Seeder
     // UWAGA: cel 65% dla bossa to ŚREDNIA po 6 archetypach broni - realny winrate mocno
     // zależy od wybranej broni (np. na Skażonym Mieście różdżka ~99% vs miecz ~18%) -
     // to świadomy kompromis zaakceptowany przez projektanta, nie błąd kalibracji.
-    // 'worldboss' NIE został objęty (świadomie, na życzenie użytkownika - system walki
-    // z world bossem ma przejść osobny rework, więc nie ma sensu go teraz kalibrować).
+    // 'worldboss' NIE został objęty tym Monte Carlo (ma zupełnie inną mechanikę walki -
+    // regeneruje HP i nie da się go zabić, patrz docs/modules/world_boss.md). Statystyki
+    // atk/def zostały jednak ręcznie przeskalowane (rework 2026-07-30) względem
+    // najbliższego poziomowo, już skalibrowanego potwora rangi 'boss' (ATK x1.5, DEF
+    // x1.25) - wcześniej część world bossów miała ATK wyraźnie niższe niż zwykły boss
+    // mapy na zbliżonym poziomie, co czyniło ich nieadekwatnie słabymi jak na superbossów.
     public function run(): void
     {
         $monstersByMap = [
@@ -90,7 +94,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 10,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 14000, 'atk' => 42, 'def' => 22, 'agi' => 14, 'int' => 8, 'crit' => 0.4, 'dodge' => 0.08],
+                    'stats' => ['hp' => 14000, 'atk' => 48, 'def' => 8, 'agi' => 14, 'int' => 8, 'crit' => 0.4, 'dodge' => 0.08],
                     'abilities' => []
                 ]
             ],
@@ -156,7 +160,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 25,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 60000, 'atk' => 140, 'def' => 60, 'agi' => 40, 'int' => 80, 'crit' => 0.6, 'dodge' => 0.2],
+                    'stats' => ['hp' => 60000, 'atk' => 120, 'def' => 19, 'agi' => 40, 'int' => 80, 'crit' => 0.6, 'dodge' => 0.2],
                     'abilities' => []
                 ]
             ],
@@ -222,7 +226,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'troll',
                     'level' => 35,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 140000, 'atk' => 200, 'def' => 120, 'agi' => 20, 'int' => 20, 'crit' => 0.4, 'dodge' => 0.04],
+                    'stats' => ['hp' => 140000, 'atk' => 180, 'def' => 25, 'agi' => 20, 'int' => 20, 'crit' => 0.4, 'dodge' => 0.04],
                     'abilities' => []
                 ]
             ],
@@ -288,7 +292,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 50,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 240000, 'atk' => 320, 'def' => 140, 'agi' => 60, 'int' => 40, 'crit' => 0.6, 'dodge' => 0.2],
+                    'stats' => ['hp' => 240000, 'atk' => 300, 'def' => 41, 'agi' => 60, 'int' => 40, 'crit' => 0.6, 'dodge' => 0.2],
                     'abilities' => []
                 ]
             ],
@@ -354,7 +358,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 65,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 400000, 'atk' => 440, 'def' => 180, 'agi' => 40, 'int' => 60, 'crit' => 0.4, 'dodge' => 0.08],
+                    'stats' => ['hp' => 400000, 'atk' => 1000, 'def' => 70, 'agi' => 40, 'int' => 60, 'crit' => 0.4, 'dodge' => 0.08],
                     'abilities' => []
                 ]
             ],
@@ -420,7 +424,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 75,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 720000, 'atk' => 600, 'def' => 240, 'agi' => 100, 'int' => 200, 'crit' => 0.8, 'dodge' => 0.4],
+                    'stats' => ['hp' => 720000, 'atk' => 2100, 'def' => 220, 'agi' => 100, 'int' => 200, 'crit' => 0.8, 'dodge' => 0.4],
                     'abilities' => []
                 ]
             ],
@@ -486,7 +490,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 85,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 1000000, 'atk' => 480, 'def' => 200, 'agi' => 120, 'int' => 600, 'crit' => 1, 'dodge' => 0.6],
+                    'stats' => ['hp' => 1000000, 'atk' => 4800, 'def' => 500, 'agi' => 120, 'int' => 600, 'crit' => 1, 'dodge' => 0.6],
                     'abilities' => []
                 ]
             ],
@@ -550,9 +554,9 @@ class MonsterSeeder extends Seeder
                 [
                     'name' => 'Pan Zniszczenia',
                     'type' => 'demon',
-                    'level' => 100,
+                    'level' => 99,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 2000000, 'atk' => 1000, 'def' => 400, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
+                    'stats' => ['hp' => 2000000, 'atk' => 14500, 'def' => 1450, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
                     'abilities' => []
                 ]
             ]

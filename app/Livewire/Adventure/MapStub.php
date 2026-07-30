@@ -144,7 +144,6 @@ class MapStub extends Component
             // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss
             $worldBossInstance = \App\Infrastructure\Persistence\WorldBossInstance::where('map_id', $this->map->id)
                 ->where('monster_id', $worldBossId)
-                ->where('is_defeated', false)
                 ->first();
 
             if ($worldBossInstance) {

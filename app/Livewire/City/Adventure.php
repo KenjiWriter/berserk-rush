@@ -21,7 +21,13 @@ class Adventure extends Component
     public Collection $maps;
     
     #[Url]
-    public string $tab = 'maps'; // 'maps' or 'dungeons'
+    public string $tab = 'maps'; // 'maps', 'dungeons' or 'worldboss'
+
+    public const BRACKET_LABELS = [
+        'low' => '0-35',
+        'mid' => '35-65',
+        'high' => '65-99',
+    ];
 
     public function mount(Character $character): void
     {
@@ -77,7 +83,7 @@ class Adventure extends Component
 
     public function setTab(string $tab): void
     {
-        if (in_array($tab, ['maps', 'dungeons'])) {
+        if (in_array($tab, ['maps', 'dungeons', 'worldboss'])) {
             $this->tab = $tab;
         }
     }
@@ -101,39 +107,43 @@ class Adventure extends Component
                 ->first();
         }
 
-        // Ensure world bosses are spawned for maps if missing
-        app(\App\Application\Combat\WorldBossService::class)->ensureBossesSpawned();
-
-        // Get active world bosses for maps
-        $activeWorldBosses = WorldBossInstance::where('is_defeated', false)
-            ->with(['monster', 'map'])
-            ->get()
-            ->keyBy('map_id');
-            
-        // Get defeated world bosses to show when they respawn (next full hour)
-        $defeatedWorldBosses = WorldBossInstance::where('is_defeated', true)
-            ->where('updated_at', '>=', now()->startOfHour()) // Only those defeated this hour
-            ->get()
-            ->keyBy('map_id');
-
-        // Check if character participated in any active world boss
+        // Worldboss data jest potrzebna tylko na zakładce 'worldboss' - na mapach world
+        // boss nie pojawia się już wcale (patrz nowa zakładka w adventure.blade.php).
+        $worldBosses = collect();
         $topDamageDealers = [];
-        $participatedBosses = [];
-        if ($activeWorldBosses->isNotEmpty()) {
-            $participatedBosses = \App\Infrastructure\Persistence\WorldBossDamageLog::whereIn('world_boss_instance_id', $activeWorldBosses->pluck('id'))
-                ->where('character_id', $this->character->id)
-                ->pluck('world_boss_instance_id')
-                ->toArray();
-                
-            foreach ($activeWorldBosses as $boss) {
-                $topDamageDealers[$boss->id] = \App\Infrastructure\Persistence\WorldBossDamageLog::with('character')
-                    ->select('character_id', \Illuminate\Support\Facades\DB::raw('SUM(damage) as damage'))
-                    ->where('world_boss_instance_id', $boss->id)
-                    ->groupBy('character_id')
-                    ->orderByDesc('damage')
-                    ->limit(10)
-                    ->get();
+        $participatedBrackets = [];
+        $nextResetAt = null;
+
+        if ($this->tab === 'worldboss') {
+            app(\App\Application\Combat\WorldBossService::class)->ensureBossesSpawned();
+
+            $worldBosses = WorldBossInstance::with(['monster', 'map'])
+                ->get()
+                ->keyBy('level_bracket');
+
+            if ($worldBosses->isNotEmpty()) {
+                $participatedInstanceIds = \App\Infrastructure\Persistence\WorldBossDamageLog::whereIn('world_boss_instance_id', $worldBosses->pluck('id'))
+                    ->where('character_id', $this->character->id)
+                    ->pluck('world_boss_instance_id')
+                    ->toArray();
+
+                $participatedBrackets = $worldBosses
+                    ->filter(fn ($boss) => in_array($boss->id, $participatedInstanceIds))
+                    ->pluck('level_bracket')
+                    ->toArray();
+
+                foreach ($worldBosses as $boss) {
+                    $topDamageDealers[$boss->id] = \App\Infrastructure\Persistence\WorldBossDamageLog::with('character')
+                        ->select('character_id', \Illuminate\Support\Facades\DB::raw('SUM(damage) as damage'))
+                        ->where('world_boss_instance_id', $boss->id)
+                        ->groupBy('character_id')
+                        ->orderByDesc('damage')
+                        ->limit(10)
+                        ->get();
+                }
             }
+
+            $nextResetAt = now()->copy()->addHour()->startOfHour();
         }
 
         $activeQuestIds = $this->character->activeQuests()->pluck('quest_id')->toArray();
@@ -142,10 +152,11 @@ class Adventure extends Component
             'dungeons'          => $dungeons,
             'dungeonCount'      => $dungeonCount,
             'activeRun'         => $activeRun,
-            'activeWorldBosses' => $activeWorldBosses,
-            'defeatedWorldBosses' => $defeatedWorldBosses,
-            'participatedBosses' => $participatedBosses,
+            'worldBosses'       => $worldBosses,
+            'bracketLabels'     => self::BRACKET_LABELS,
+            'participatedBrackets' => $participatedBrackets,
             'topDamageDealers'  => $topDamageDealers,
+            'nextResetAt'       => $nextResetAt,
             'activeQuestIds'    => $activeQuestIds,
         ]);
     }

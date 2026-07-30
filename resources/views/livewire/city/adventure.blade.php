@@ -75,6 +75,12 @@
                     <span>Lochy</span>
                     <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'dungeons' ? 'bg-amber-950 text-amber-200' : 'bg-slate-800 text-slate-400' }}">{{ $dungeonCount }}</span>
                 </button>
+                <button wire:click="setTab('worldboss')"
+                    class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'worldboss' ? 'bg-gradient-to-r from-purple-700 to-purple-600 text-white shadow-lg border border-purple-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
+                    <i class="fa-solid fa-crown text-purple-400"></i>
+                    <span>Worldboss</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'worldboss' ? 'bg-purple-950 text-purple-200' : 'bg-slate-800 text-slate-400' }}">3</span>
+                </button>
             </div>
         </div>
 
@@ -129,9 +135,8 @@
                     $isFirstMapTutorial = $isAccessible && $gameStage == 10 && $map->level_min == 0;
                 @endphp
 
-                <div class="relative group h-full flex flex-col" x-data="{ 
-                    showBestiaryModal: false, 
-                    showBossModal: false, 
+                <div class="relative group h-full flex flex-col" x-data="{
+                    showBestiaryModal: false,
                     turningPage: false,
                     turnDirection: 'next',
                     monsterIds: [ @foreach($map->monsters as $m) '{{ $m->id }}', @endforeach ],
@@ -208,28 +213,6 @@
 
                         {{-- Card Body & Actions --}}
                         <div class="p-5 flex flex-col flex-1 justify-between gap-4">
-
-                            {{-- Active World Boss Banner if present --}}
-                            @if(isset($activeWorldBosses[$map->id]))
-                                <div class="bg-gradient-to-r from-purple-950/90 to-purple-900/90 border border-purple-600/80 rounded-xl p-3 shadow-lg shadow-purple-950/40 relative overflow-hidden">
-                                    <div class="flex items-center justify-between mb-1.5">
-                                        <span class="text-xs font-black text-purple-300 tracking-wider uppercase flex items-center gap-1">
-                                            <i class="fa-solid fa-crown text-amber-400"></i> World Boss
-                                        </span>
-                                        <span class="text-xs font-bold text-red-400 animate-pulse">Aktywny!</span>
-                                    </div>
-                                    <div class="text-sm font-bold text-amber-100 mb-2">
-                                        {{ $activeWorldBosses[$map->id]->monster->name }}
-                                    </div>
-                                    <button @click="showBossModal = true" class="w-full bg-purple-700 hover:bg-purple-600 text-white font-bold py-1.5 px-3 rounded-lg text-xs transition-colors medieval-font border border-purple-400 shadow-md flex items-center justify-center gap-1.5">
-                                        <i class="fa-solid fa-khanda text-purple-300"></i> Sprawdź & Dołącz do Walki
-                                    </button>
-                                </div>
-                            @elseif(isset($defeatedWorldBosses[$map->id]))
-                                <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-2.5 text-center">
-                                    <p class="text-slate-400 font-semibold text-xs"><i class="fa-solid fa-crown text-amber-500 mr-1"></i> Boss odnowi się o: <span class="text-amber-400 font-bold">{{ now()->addHour()->startOfHour()->format('H:i') }}</span></p>
-                                </div>
-                            @endif
 
                             {{-- Action buttons --}}
                             <div class="space-y-2.5 mt-auto">
@@ -401,7 +384,7 @@
                                                         {{-- Monster Frame & Avatar --}}
                                                         <div class="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden ring-4 ring-amber-900/70 shadow-2xl mb-4 bg-amber-950 flex-shrink-0">
                                                             @if(!empty($monster->avatar))
-                                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $monster->avatar]) }}"
+                                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $monster->avatar]) }}?v={{ @filemtime(public_path('assets/monsters/avatars/' . $monster->avatar)) }}"
                                                                     alt="{{ $monster->name }}"
                                                                     class="w-full h-full object-cover">
                                                             @else
@@ -532,121 +515,6 @@
                             </div>
                         </template>
 
-                        {{-- WORLD BOSS MODAL --}}
-                        @if(isset($activeWorldBosses[$map->id]))
-                            @php
-                                $boss = $activeWorldBosses[$map->id];
-                                $hpPercent = max(0, min(100, ($boss->current_hp / max(1, $boss->total_hp)) * 100));
-                                $hasParticipated = in_array($boss->id, $participatedBosses);
-                                $deadlineTimestamp = now()->endOfHour()->timestamp * 1000;
-                                $topDmg = $topDamageDealers[$boss->id] ?? collect();
-                            @endphp
-                            <template x-teleport="body">
-                                <div x-show="showBossModal" style="display: none;" 
-                                     x-data="{ 
-                                         timeLeftStr: 'Obliczanie...', 
-                                         deadline: {{ $deadlineTimestamp }},
-                                         init() {
-                                             this.updateTimer();
-                                             setInterval(() => this.updateTimer(), 1000);
-                                         },
-                                         updateTimer() {
-                                             let now = new Date().getTime();
-                                             let diff = this.deadline - now;
-                                             if (diff <= 0) {
-                                                 this.timeLeftStr = '00:00';
-                                                 return;
-                                             }
-                                             let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                                             let seconds = Math.floor((diff % (1000 * 60)) / 1000);
-                                             this.timeLeftStr = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-                                         }
-                                     }"
-                                     class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
-                                    <div @click.outside="showBossModal = false" class="bg-gradient-to-br from-slate-900 to-purple-950 border-2 border-purple-500 rounded-2xl max-w-4xl w-full p-6 shadow-2xl relative text-left my-auto">
-                                        <button @click="showBossModal = false" class="absolute top-4 right-4 text-slate-400 hover:text-white text-3xl font-bold">&times;</button>
-                                        
-                                        <h2 class="text-3xl font-bold text-center text-purple-300 medieval-font mb-6 border-b border-purple-700/50 pb-4 flex items-center justify-center gap-2">
-                                            <i class="fa-solid fa-crown text-amber-400"></i>
-                                            <span>Najeźdźca: {{ $boss->monster->name }}</span>
-                                        </h2>
-                                        
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {{-- Boss HP & Info --}}
-                                            <div class="space-y-4 bg-black/40 p-5 rounded-xl border border-purple-900/50">
-                                                <h3 class="text-lg font-bold text-purple-200">Stan Rajdu</h3>
-                                                <p class="text-red-300 font-bold text-sm">Pozostały czas: <span x-text="timeLeftStr" class="text-white"></span></p>
-                                            
-                                                <div class="mt-4">
-                                                    <div class="flex justify-between text-xs mb-1 font-bold">
-                                                        <span class="text-slate-300">Punkty Życia (HP)</span>
-                                                        <span class="text-red-400">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
-                                                    </div>
-                                                    <div class="w-full bg-slate-950 rounded-full h-4 border border-slate-700 overflow-hidden p-0.5">
-                                                        <div class="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-1000 rounded-full" style="width: {{ $hpPercent }}%"></div>
-                                                    </div>
-                                                    <div class="text-right text-xs text-red-400 font-bold mt-1">{{ round($hpPercent, 1) }}%</div>
-                                                </div>
-                                                
-                                                <div class="mt-4 pt-3 border-t border-purple-900/50 text-xs text-slate-300 leading-relaxed">
-                                                    Zadane obrażenia sumują się w skali całej serwera! Dołącz do starcia, by zgarnąć nagrody za miejsce w rankingu (Klucze do lochów dla TOP 10).
-                                                </div>
-                                            </div>
-                                            
-                                            {{-- Top DMG Leaderboard --}}
-                                            <div class="space-y-4 bg-black/40 p-5 rounded-xl border border-purple-900/50">
-                                                <h3 class="text-lg font-bold text-purple-200 flex items-center justify-between">
-                                                    <span>Top 10 Wojowników</span>
-                                                    <span class="text-xs text-purple-400 bg-purple-950/60 px-2 py-0.5 rounded border border-purple-800">Zadany DMG</span>
-                                                </h3>
-                                                <div class="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                                                    @if($topDmg->isEmpty())
-                                                        <p class="text-slate-500 italic text-center py-6 text-xs">Brak uczestników. Bądź pierwszy!</p>
-                                                    @else
-                                                        @foreach($topDmg as $index => $log)
-                                                            <div class="flex justify-between items-center text-xs {{ $log->character_id === $character->id ? 'bg-purple-950/80 border border-purple-500/60' : 'bg-slate-900/60' }} p-2 rounded-lg">
-                                                                <div class="flex items-center gap-2">
-                                                                    <span class="font-bold {{ $index === 0 ? 'text-yellow-400' : ($index === 1 ? 'text-slate-300' : ($index === 2 ? 'text-amber-600' : 'text-slate-500')) }}">
-                                                                        #{{ $index + 1 }}
-                                                                    </span>
-                                                                    <span class="{{ $log->character_id === $character->id ? 'text-purple-200 font-bold' : 'text-slate-300' }}">
-                                                                        {{ $log->character->name }}
-                                                                    </span>
-                                                                </div>
-                                                                <span class="text-red-400 font-bold">{{ number_format($log->damage) }}</span>
-                                                            </div>
-                                                        @endforeach
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        {{-- Action CTA --}}
-                                        <div class="mt-6 pt-4 border-t border-purple-800/50">
-                                            @if(!$isAccessible)
-                                                <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-sm medieval-font flex items-center justify-center gap-2">
-                                                    <i class="fa-solid fa-lock text-amber-500"></i>
-                                                    <span>Wymagany poziom: {{ $map->level_range }}</span>
-                                                </button>
-                                            @elseif($hasParticipated)
-                                                <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-base medieval-font">
-                                                    Już brałeś udział w tym starciu
-                                                </button>
-                                            @else
-                                                <a href="{{ route('adventure.map', ['character' => $character, 'map' => $map, 'world_boss' => $boss->monster_id]) }}" 
-                                                    wire:navigate 
-                                                    class="block w-full text-center bg-gradient-to-r from-red-700 via-purple-600 to-red-700 hover:from-red-600 hover:via-purple-500 hover:to-red-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-red-950/60 border border-red-500 transition-all transform hover:scale-[1.01] text-xl medieval-font flex items-center justify-center gap-3">
-                                                    <i class="fa-solid fa-khanda"></i>
-                                                    <span>DOŁĄCZ DO WALKI!</span>
-                                                    <i class="fa-solid fa-khanda"></i>
-                                                </a>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
-                        @endif
-
                     </div>
                 </div>
             @endforeach
@@ -685,6 +553,7 @@
                     @endphp
                     <div x-data="{
                         showBestiaryModal: false,
+                        showBossModal: false,
                         turningPage: false,
                         turnDirection: 'next',
                         monsterIds: [ @foreach($dungeonMonsters as $dm) '{{ $dm->id }}', @endforeach ],
@@ -719,6 +588,12 @@
                             <div class="absolute bottom-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-lg border border-amber-500/40 text-xs font-bold text-amber-200 tracking-widest uppercase">
                                 Wym. Lvl {{ $dungeon->min_level }}
                             </div>
+                            @if($dungeon->entryItemTemplate)
+                                <div class="absolute top-3 right-3 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg border {{ $hasKey ? 'border-amber-500/50 text-amber-300' : 'border-red-500/50 text-red-300' }} text-[11px] font-bold flex items-center gap-1.5 shadow-lg">
+                                    <i class="fa-solid fa-key {{ $hasKey ? 'text-amber-400' : 'text-red-400' }}"></i>
+                                    <span>{{ $dungeon->entryItemTemplate->name }}</span>
+                                </div>
+                            @endif
                         </div>
 
                         <div class="p-5 flex-grow">
@@ -737,6 +612,16 @@
                                 @if($dungeon->stages->count() > 3)
                                     <div class="text-[10px] text-amber-600 text-center font-bold pt-1 border-t border-slate-800">+ {{ $dungeon->stages->count() - 3 }} więcej...</div>
                                 @endif
+                                @if($dungeon->entryItemTemplate)
+                                    <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
+                                        <span class="text-slate-400 font-semibold flex items-center gap-1.5">
+                                            <i class="fa-solid fa-key text-amber-500/80"></i> Wymagany klucz:
+                                        </span>
+                                        <span class="font-bold {{ $hasKey ? 'text-amber-300' : 'text-red-400' }}">
+                                            {{ $dungeon->entryItemTemplate->name }}
+                                        </span>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -750,8 +635,9 @@
                                     Zbyt niski poziom
                                 </button>
                             @elseif(!$hasKey)
-                                <button disabled class="w-full bg-slate-800 text-red-400 py-3 rounded-xl font-bold medieval-font cursor-not-allowed border border-red-900/50">
-                                    Brak klucza
+                                <button disabled class="w-full bg-slate-900/90 text-red-400 py-3 px-2 rounded-xl font-bold medieval-font cursor-not-allowed border border-red-900/60 flex items-center justify-center gap-2 shadow-inner text-xs sm:text-sm">
+                                    <i class="fa-solid fa-lock text-red-400"></i>
+                                    <span>Brak: {{ $dungeon->entryItemTemplate?->name ?? 'Klucza' }}</span>
                                 </button>
                             @else
                                 <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-slate-800 text-amber-200 hover:text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-900/50 transition-all border border-slate-600 hover:border-amber-600">
@@ -858,7 +744,7 @@
                                                     <div class="w-full md:w-1/2 flex flex-col items-center border-b md:border-b-0 md:border-r border-amber-900/30 pb-6 md:pb-0 md:pr-6">
                                                         <div class="relative w-36 h-36 sm:w-48 sm:h-48 rounded-2xl overflow-hidden ring-4 ring-amber-900/70 shadow-2xl mb-4 bg-amber-950 flex-shrink-0">
                                                             @if(!empty($dm->avatar))
-                                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $dm->avatar]) }}" alt="{{ $dm->name }}" class="w-full h-full object-cover">
+                                                                <img src="{{ route('assets.monsters.avatars', ['filename' => $dm->avatar]) }}?v={{ @filemtime(public_path('assets/monsters/avatars/' . $dm->avatar)) }}" alt="{{ $dm->name }}" class="w-full h-full object-cover">
                                                             @else
                                                                 <img src="{{ asset('img/monsters/placeholder.png') }}" alt="{{ $dm->name }}" class="w-full h-full object-cover">
                                                             @endif
@@ -988,6 +874,108 @@
                     <p class="text-slate-600 text-sm">Wróć później, gdy pojawią się nowe wyzwania w krainie.</p>
                 </div>
             @endif
+        </div>
+        @endif
+
+        {{-- WORLDBOSS TAB --}}
+        @if($tab === 'worldboss')
+        <div class="w-full px-4 md:px-0" x-data="{
+                resetTimestamp: {{ $nextResetAt ? $nextResetAt->timestamp * 1000 : 'null' }},
+                timeLeftStr: '--:--',
+                init() {
+                    this.updateTimer();
+                    setInterval(() => this.updateTimer(), 1000);
+                },
+                updateTimer() {
+                    if (!this.resetTimestamp) return;
+                    let now = new Date().getTime();
+                    let diff = this.resetTimestamp - now;
+                    if (diff <= 0) { this.timeLeftStr = '00:00'; return; }
+                    let minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    let seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    this.timeLeftStr = (minutes < 10 ? '0' : '') + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+                }
+            }">
+            <div class="text-center mb-8 max-w-2xl mx-auto">
+                <p class="text-sm text-slate-300">Trzej najeźdźcy spustoszyli krainę - po jednym na każdy przedział poziomowy. Regenerują HP z każdym ciosem i nie da się ich pokonać - liczy się wyłącznie suma zadanych obrażeń. Ranking i nagrody (gemy oraz klucze do lochów) rozliczane są co godzinę, niezależnie od stanu HP bossa.</p>
+                <p class="text-sm text-purple-300 font-bold mt-3">Reset rankingu za: <span x-text="timeLeftStr" class="text-white"></span></p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                @foreach(['low', 'mid', 'high'] as $bracket)
+                    @php
+                        $boss = $worldBosses[$bracket] ?? null;
+                    @endphp
+                    <div class="bg-slate-900/90 border-2 border-purple-800/60 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden flex flex-col">
+                        <div class="p-4 border-b border-purple-900/50 bg-gradient-to-r from-purple-950/80 to-slate-900/80 flex items-center justify-between">
+                            <span class="text-xs font-black text-purple-300 uppercase tracking-wider">Poziom {{ $bracketLabels[$bracket] }}</span>
+                            <i class="fa-solid fa-crown text-amber-400"></i>
+                        </div>
+
+                        @if(!$boss)
+                            <div class="p-8 text-center text-slate-500 italic text-sm flex-1 flex items-center justify-center">Brak aktywnego bossa w tym przedziale.</div>
+                        @else
+                            @php
+                                $hpPercent = max(0, min(100, ($boss->current_hp / max(1, $boss->total_hp)) * 100));
+                                $hasParticipated = in_array($bracket, $participatedBrackets);
+                                $topDmg = $topDamageDealers[$boss->id] ?? collect();
+                                $bossAccessible = $boss->map ? $boss->map->isAccessibleBy($character) : true;
+                            @endphp
+                            <div class="p-5 flex flex-col flex-1 gap-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-100 medieval-font">{{ $boss->monster->name }}</h3>
+                                    <p class="text-xs text-slate-400">{{ $boss->map->name ?? '' }} &bull; Poziom {{ $boss->monster->level }}</p>
+                                </div>
+
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1 font-bold">
+                                        <span class="text-slate-300">HP (regeneruje się)</span>
+                                        <span class="text-red-400">{{ number_format($boss->current_hp) }} / {{ number_format($boss->total_hp) }}</span>
+                                    </div>
+                                    <div class="w-full bg-slate-950 rounded-full h-3 border border-slate-700 overflow-hidden p-0.5">
+                                        <div class="h-full bg-gradient-to-r from-red-600 to-red-500 rounded-full transition-all duration-1000" style="width: {{ $hpPercent }}%"></div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1.5 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                                    <p class="text-[11px] font-bold text-purple-300 uppercase tracking-wide mb-1">Top 10 wojowników</p>
+                                    @if($topDmg->isEmpty())
+                                        <p class="text-slate-500 italic text-center py-3 text-xs">Brak uczestników. Bądź pierwszy!</p>
+                                    @else
+                                        @foreach($topDmg as $index => $log)
+                                            <div class="flex justify-between items-center text-xs {{ $log->character_id === $character->id ? 'bg-purple-950/80 border border-purple-500/60' : 'bg-slate-950/60' }} p-1.5 rounded-lg">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="font-bold {{ $index === 0 ? 'text-yellow-400' : ($index === 1 ? 'text-slate-300' : ($index === 2 ? 'text-amber-600' : 'text-slate-500')) }}">#{{ $index + 1 }}</span>
+                                                    <span class="{{ $log->character_id === $character->id ? 'text-purple-200 font-bold' : 'text-slate-300' }}">{{ $log->character->name }}</span>
+                                                </div>
+                                                <span class="text-red-400 font-bold">{{ number_format($log->damage) }}</span>
+                                            </div>
+                                        @endforeach
+                                    @endif
+                                </div>
+
+                                <div class="mt-auto pt-3 border-t border-purple-900/40">
+                                    @if(!$bossAccessible)
+                                        <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-sm medieval-font flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-lock text-amber-500"></i> Niedostępne dla Twojego poziomu
+                                        </button>
+                                    @elseif($hasParticipated)
+                                        <button disabled class="w-full bg-slate-800 text-slate-400 font-bold py-3 rounded-xl cursor-not-allowed border border-slate-700 text-sm medieval-font">
+                                            Już walczyłeś w tej godzinie
+                                        </button>
+                                    @else
+                                        <a href="{{ route('adventure.map', ['character' => $character, 'map' => $boss->map, 'world_boss' => $boss->monster_id]) }}"
+                                            wire:navigate
+                                            class="block w-full text-center bg-gradient-to-r from-red-700 via-purple-600 to-red-700 hover:from-red-600 hover:via-purple-500 hover:to-red-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-red-950/60 border border-red-500 transition-all transform hover:scale-[1.01] text-sm medieval-font flex items-center justify-center gap-2">
+                                            <i class="fa-solid fa-khanda"></i> Atakuj
+                                        </a>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
         </div>
         @endif
     </div>

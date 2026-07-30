@@ -238,9 +238,9 @@ class BattleQueueingTest extends TestCase
         \App\Infrastructure\Persistence\WorldBossInstance::create([
             'monster_id' => $bossMonster->id,
             'map_id' => $map->id,
+            'level_bracket' => 'low',
             'total_hp' => 1000,
             'current_hp' => 1000,
-            'is_defeated' => false,
         ]);
 
         // When user opens map with ?world_boss={id}, mount() should NOT trigger startBattle() immediately.

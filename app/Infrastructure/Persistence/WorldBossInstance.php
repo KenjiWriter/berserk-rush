@@ -9,9 +9,9 @@ class WorldBossInstance extends Model
     protected $fillable = [
         'map_id',
         'monster_id',
+        'level_bracket',
         'total_hp',
         'current_hp',
-        'is_defeated',
     ];
 
     public function map()

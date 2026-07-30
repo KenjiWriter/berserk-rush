@@ -251,7 +251,6 @@ class EncounterService
                 // Check if this is an active world boss
                 $activeBoss = WorldBossInstance::where('map_id', $map->id)
                     ->where('monster_id', $monster->id)
-                    ->where('is_defeated', false)
                     ->first();
 
                 if ($activeBoss) {
@@ -439,16 +438,15 @@ class EncounterService
                         // Zapisz log damage
                         $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
                             ->where('monster_id', $monster->id)
-                            ->where('is_defeated', false)
                             ->first();
-                            
+
                         if (!$activeBoss) {
                             $activeBoss = WorldBossInstance::create([
                                 'map_id' => $encounter->map_id,
                                 'monster_id' => $monster->id,
+                                'level_bracket' => WorldBossService::bracketForLevel($monster->level),
                                 'total_hp' => $monster->stats['hp'] ?? 1000000,
                                 'current_hp' => $monster->stats['hp'] ?? 1000000,
-                                'is_defeated' => false
                             ]);
                         }
 
@@ -457,11 +455,14 @@ class EncounterService
                             'character_id' => $character->id,
                             'damage' => $damageDealt
                         ]);
-                        
-                        $activeBoss->decrement('current_hp', $damageDealt);
-                        if ($activeBoss->current_hp <= 0) {
-                            $activeBoss->update(['is_defeated' => true]);
-                        }
+
+                        // World boss regeneruje HP z każdym trafieniem i nigdy nie może zostać
+                        // realnie "zabity" - current_hp jest tylko wizualną/nagrodową miarą
+                        // aktywności, rozliczaną co godzinę przez WorldBossRewardJob niezależnie
+                        // od tego czy spadła do zera (patrz docs/modules/world_boss.md).
+                        $regen = (int) ceil($activeBoss->total_hp * 0.02);
+                        $newHp = max(1, min($activeBoss->total_hp, $activeBoss->current_hp + $regen) - $damageDealt);
+                        $activeBoss->update(['current_hp' => $newHp]);
                     } else {
                         $winner = $finalMonsterHp <= 0 ? 'player' : 'enemy';
 
