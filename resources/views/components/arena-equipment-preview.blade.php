@@ -21,7 +21,23 @@
     <div class="grid grid-cols-3 gap-2">
         @foreach($slotOrder as $slot)
             @php $item = $slots[$slot] ?? null; @endphp
-            <div x-data="{ itemOpen: false }" class="relative" @if($item) @mouseenter="itemOpen = true" @mouseleave="itemOpen = false" @endif>
+            <div x-data="{ 
+                itemOpen: false,
+                itemTimeout: null,
+                openItem() {
+                    clearTimeout(this.itemTimeout);
+                    this.itemOpen = true;
+                },
+                closeItem(e) {
+                    if (e && e.relatedTarget && $el.contains(e.relatedTarget)) {
+                        return;
+                    }
+                    clearTimeout(this.itemTimeout);
+                    this.itemTimeout = setTimeout(() => {
+                        this.itemOpen = false;
+                    }, 200);
+                }
+            }" class="relative" @if($item) @mouseenter="openItem()" @mouseleave="closeItem($event)" @endif>
                 <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? 'border-amber-500/70' : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden">
                     @if($item)
                         @if($item->template->icon ?? null)
@@ -35,7 +51,7 @@
                 </div>
 
                 @if($item)
-                    <div x-show="itemOpen" x-transition.opacity style="display:none" class="hidden sm:block absolute z-[100000] left-1/2 -translate-x-1/2 bottom-full mb-2">
+                    <div x-show="itemOpen" x-transition.opacity style="display:none" class="hidden sm:block absolute z-[100000] left-1/2 -translate-x-1/2 bottom-full mb-2 pointer-events-auto" @mouseenter="openItem()" @mouseleave="closeItem($event)">
                         <x-item-tooltip :item="$item" />
                     </div>
                 @endif

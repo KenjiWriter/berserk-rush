@@ -91,7 +91,7 @@ function createSmartTooltip() {
             clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
                 this.showInfo = false;
-            }, 250);
+            }, 350);
         },
         toggleTooltip() {
             clearTimeout(this.timeout);

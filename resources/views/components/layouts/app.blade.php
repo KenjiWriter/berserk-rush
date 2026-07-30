@@ -76,7 +76,16 @@
                         });
                     },
                     openTooltip() { clearTimeout(this.timeout); this.showInfo = true; this.updatePosition(); },
-                    closeTooltip() { clearTimeout(this.timeout); this.timeout = setTimeout(() => { this.showInfo = false; }, 250); },
+                    closeTooltip(event) {
+                        if (event && event.relatedTarget) {
+                            const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                            const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
+                            const movingIntoTrigger = this.$el.contains(event.relatedTarget);
+                            if (movingIntoTooltip || movingIntoTrigger) { return; }
+                        }
+                        clearTimeout(this.timeout);
+                        this.timeout = setTimeout(() => { this.showInfo = false; }, 350);
+                    },
                     toggleTooltip() { clearTimeout(this.timeout); this.showInfo = !this.showInfo; if (this.showInfo) { this.updatePosition(); } }
                 };
             };

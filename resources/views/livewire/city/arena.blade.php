@@ -87,7 +87,7 @@
 
             <div class="relative p-4 md:p-8">
                 {{-- Tabs navigation --}}
-                <div class="flex border-b border-amber-800/60 mb-6 gap-2">
+                <div class="flex border-b border-amber-800/60 mb-6 gap-2 flex-wrap sm:flex-nowrap">
                     <button wire:click="switchTab('opponents')" 
                         class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'opponents' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-shield-halved text-amber-400"></i> Dostępni Przeciwnicy
@@ -95,6 +95,10 @@
                     <button wire:click="switchTab('ranking')" 
                         class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'ranking' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-trophy text-amber-400"></i> Ranking Chwały
+                    </button>
+                    <button wire:click="switchTab('history')" 
+                        class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'history' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
+                        <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historia Walk
                     </button>
                 </div>
 
@@ -106,7 +110,7 @@
                             <p class="text-amber-300/80 text-xs md:text-sm mt-1 flex flex-wrap items-center gap-2">
                                 <span>Znajdź rywala w swojej lidze i walcz o chwałę oraz żetony areny!</span>
                                 <span class="px-2 py-0.5 rounded bg-amber-900/60 border border-amber-600/50 text-amber-200 font-semibold text-xs inline-flex items-center gap-1">
-                                    <i class="fa-solid fa-clock text-amber-400"></i> Dzienny limit: {{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }} (Reset 00:00)
+                                    <i class="fa-solid fa-clock text-amber-400"></i> Próby Areny: {{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }} (+1 próba co 1h)
                                 </span>
                             </p>
                         </div>
@@ -165,7 +169,7 @@
                                     @endphp
                                     <button wire:click="challengeOpponent('{{ $oppId }}')" 
                                         wire:loading.attr="disabled"
-                                        @if(!$hasDailyFights) disabled title="Wyczerpano dzienny limit 5 walk na Arenie. Limit odnawia się o 00:00." @endif
+                                        @if(!$hasDailyFights) disabled title="Wyczerpano limit 3 prób na Arenie (+1 próba odnawia się co 1h)." @endif
                                         class="w-full relative rounded-lg px-4 py-2 shadow-lg overflow-hidden group/btn mt-auto disabled:opacity-50 disabled:cursor-not-allowed">
                                         <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                                         <div class="absolute inset-0 {{ $hasDailyFights ? 'bg-red-900/60 group-hover/btn:bg-red-800/60' : 'bg-stone-800/80' }} transition-colors rounded-lg"></div>
@@ -306,7 +310,7 @@
                                                     @endphp
                                                     <button wire:click="challengeOpponent('{{ $rowChar->id }}')"
                                                         wire:loading.attr="disabled"
-                                                        @if(!$hasDailyFights) disabled title="Wyczerpano dzienny limit 5 walk na Arenie. Limit odnawia się o 00:00." @endif
+                                                        @if(!$hasDailyFights) disabled title="Wyczerpano limit 3 prób na Arenie (+1 próba odnawia się co 1h)." @endif
                                                         class="relative rounded-lg px-4 py-1.5 shadow overflow-hidden group/btn disabled:opacity-50 disabled:cursor-not-allowed">
                                                         <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
                                                         <div class="absolute inset-0 {{ $hasDailyFights ? 'bg-red-900/70 group-hover/btn:bg-red-800/70' : 'bg-stone-800/80' }} transition-colors rounded-lg"></div>
@@ -336,6 +340,146 @@
                         <div class="text-center py-12 bg-black/30 rounded-xl border border-amber-900/40">
                             <i class="fa-solid fa-trophy text-5xl mb-4 text-amber-500/30"></i>
                             <h3 class="text-xl font-bold text-amber-200/60 medieval-font">Brak wpisów w rankingu.</h3>
+                        </div>
+                    @endif
+
+                @elseif($activeTab === 'history')
+                    {{-- Section: Battle History --}}
+                    <div class="mb-6 border-b-2 border-amber-800/50 pb-4 text-center md:text-left">
+                        <h2 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font flex items-center justify-center md:justify-start gap-2">
+                            <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historia Walk Areny
+                        </h2>
+                        <p class="text-amber-300/80 text-xs md:text-sm mt-1">Rejestr ostatnich stoczonych pojedynków na Arenie. Możesz w dowolnym momencie odtworzyć powtórkę starcia.</p>
+                    </div>
+
+                    @if($history && $history->count() > 0)
+                        <div class="overflow-x-auto rounded-xl border border-amber-900/60 shadow-2xl bg-black/40 backdrop-blur-md">
+                            <table class="w-full text-left text-amber-100">
+                                <thead class="bg-amber-950/90 text-amber-300 uppercase text-xs medieval-font border-b border-amber-800/60">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4">Rola</th>
+                                        <th scope="col" class="px-6 py-4">Przeciwnik</th>
+                                        <th scope="col" class="px-6 py-4">Wynik</th>
+                                        <th scope="col" class="px-6 py-4">Ranking ELO</th>
+                                        <th scope="col" class="px-6 py-4">Żetony</th>
+                                        <th scope="col" class="px-6 py-4">Czas</th>
+                                        <th scope="col" class="px-6 py-4 text-right">Powtórka</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-amber-900/40 font-medium">
+                                    @foreach($history as $fight)
+                                        @php
+                                            $isAttacker = $fight->attacker_character_id === $character->id;
+                                            $oppChar = $isAttacker ? $fight->defender : $fight->attacker;
+                                            $iWon = $fight->winner_character_id === $character->id;
+                                            $eloChange = $isAttacker ? $fight->attacker_elo_change : $fight->defender_elo_change;
+                                            $tokens = $iWon ? $fight->arena_tokens_reward : 3;
+
+                                            $oppName = $oppChar ? $oppChar->name : 'Nieznany';
+                                            $oppLvl = $oppChar ? $oppChar->level : '?';
+                                            $oppId = $oppChar ? $oppChar->id : null;
+                                            $avatar = $oppChar->avatar ?? 'default.png';
+                                            if (!str_contains($avatar, '.')) { $avatar .= '.png'; }
+                                            $avatarSrc = asset('img/avatars/' . ltrim($avatar, '/'));
+                                        @endphp
+                                        <tr class="transition-colors hover:bg-amber-900/30">
+                                            {{-- Rola --}}
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($isAttacker)
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-300 bg-amber-950/80 border border-amber-700/60 px-2 py-1 rounded-md">
+                                                        <i class="fa-solid fa-swords text-amber-400"></i> Atak
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 text-xs font-bold text-sky-300 bg-sky-950/80 border border-sky-700/60 px-2 py-1 rounded-md">
+                                                        <i class="fa-solid fa-shield-halved text-sky-400"></i> Obrona
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            {{-- Przeciwnik --}}
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center gap-3 cursor-help" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
+                                                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-amber-700/80 bg-black shrink-0">
+                                                        <img src="{{ $avatarSrc }}" class="w-full h-full object-cover" alt="{{ $oppName }}">
+                                                    </div>
+                                                    @if($oppId && isset($historyEquipment[$oppId]))
+                                                        <template x-teleport="body">
+                                                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                                 :style="tooltipStyle"
+                                                                 style="display: none;"
+                                                                 class="hidden sm:block fixed z-[99999] w-auto"
+                                                                 @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click.stop>
+                                                                <x-arena-equipment-preview :slots="$historyEquipment[$oppId] ?? []" />
+                                                            </div>
+                                                        </template>
+                                                    @endif
+                                                    <div>
+                                                        <div class="font-bold text-amber-100 text-sm">{{ $oppName }}</div>
+                                                        <div class="text-[11px] text-amber-300/70">Lvl {{ $oppLvl }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {{-- Wynik --}}
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($iWon)
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-black bg-emerald-900/80 text-emerald-200 border border-emerald-500/50 shadow-md">
+                                                        <i class="fa-solid fa-trophy text-amber-400"></i> ZWYCIĘSTWO
+                                                    </span>
+                                                @else
+                                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-black bg-red-950/80 text-red-300 border border-red-500/50 shadow-md">
+                                                        <i class="fa-solid fa-skull text-red-400"></i> PORAŻKA
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            {{-- ELO --}}
+                                            <td class="px-6 py-4 whitespace-nowrap font-bold text-sm">
+                                                @if($eloChange > 0)
+                                                    <span class="text-emerald-400 font-mono">+{{ $eloChange }} ELO</span>
+                                                @elseif($eloChange < 0)
+                                                    <span class="text-rose-400 font-mono">{{ $eloChange }} ELO</span>
+                                                @else
+                                                    <span class="text-slate-400 font-mono">0 ELO</span>
+                                                @endif
+                                            </td>
+
+                                            {{-- Żetony --}}
+                                            <td class="px-6 py-4 whitespace-nowrap font-bold text-sm text-yellow-400 font-mono">
+                                                +{{ $tokens }}
+                                            </td>
+
+                                            {{-- Czas --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-xs text-amber-300/80">
+                                                {{ $fight->created_at ? $fight->created_at->diffForHumans() : '-' }}
+                                            </td>
+
+                                            {{-- Powtórka --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                <a href="{{ route('city.arena.combat.pvp', ['character' => $character->id, 'pvpId' => $fight->id]) }}"
+                                                    class="relative inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 shadow overflow-hidden group/btn hover:scale-105 transition-transform">
+                                                    <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
+                                                    <div class="absolute inset-0 bg-amber-900/70 group-hover/btn:bg-amber-800/70 transition-colors rounded-lg"></div>
+                                                    <span class="relative text-amber-100 text-xs font-bold medieval-font flex items-center gap-1.5">
+                                                        <i class="fa-solid fa-play text-amber-300 text-xs"></i> Odtwórz
+                                                    </span>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Pagination links --}}
+                        <div class="mt-6">
+                            {{ $history->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-12 bg-black/30 rounded-xl border border-amber-900/40">
+                            <i class="fa-solid fa-clock-rotate-left text-5xl mb-4 text-amber-500/30"></i>
+                            <h3 class="text-xl font-bold text-amber-200/60 medieval-font">Brak historii pojedynków.</h3>
+                            <p class="text-amber-300/40 mt-1 text-sm">Nie stoczyłeś jeszcze żadnej walki na Arenie.</p>
                         </div>
                     @endif
                 @endif

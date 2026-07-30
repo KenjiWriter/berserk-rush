@@ -14,7 +14,7 @@ class Character extends Model
 {
     use HasUlids;
 
-    public const MAX_DAILY_PVP_FIGHTS = 5;
+    public const MAX_DAILY_PVP_FIGHTS = 3;
 
     // UWAGA (rebalans obrażeń/HP, 2026-07-28): przedmioty dają teraz o 25% mniej
     // płaskich statystyk (attack_min/max, magic_attack_min/max, magic_burst_min/max,

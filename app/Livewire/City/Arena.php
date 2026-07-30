@@ -17,7 +17,7 @@ class Arena extends Component
     public Character $character;
     public array $opponents = [];
     public ?string $currentLeague = null;
-    public string $activeTab = 'opponents'; // 'opponents' or 'ranking'
+    public string $activeTab = 'opponents'; // 'opponents', 'ranking', or 'history'
 
     protected $queryString = [
         'activeTab' => ['except' => 'opponents'],
@@ -37,7 +37,7 @@ class Arena extends Component
 
     public function switchTab(string $tab)
     {
-        if (in_array($tab, ['opponents', 'ranking'])) {
+        if (in_array($tab, ['opponents', 'ranking', 'history'])) {
             $this->activeTab = $tab;
             $this->resetPage();
         }
@@ -125,6 +125,25 @@ class Arena extends Component
             }
         }
 
+        $history = null;
+        $historyEquipment = [];
+        if ($this->activeTab === 'history') {
+            $history = PvpEncounter::with(['attacker', 'defender', 'winner'])
+                ->forCharacter($this->character->id)
+                ->finished()
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+
+            foreach ($history as $fight) {
+                $oppChar = $fight->attacker_character_id === $this->character->id 
+                    ? $fight->defender 
+                    : $fight->attacker;
+                if ($oppChar) {
+                    $historyEquipment[$oppChar->id] = $oppChar->getEquipmentSlotsFor('pvp');
+                }
+            }
+        }
+
         $opponentEquipment = [];
         foreach ($this->opponents as $opponent) {
             if ($opponent instanceof Character) {
@@ -134,8 +153,10 @@ class Arena extends Component
 
         return view('livewire.city.arena', [
             'ranking' => $ranking,
+            'history' => $history,
             'opponentEquipment' => $opponentEquipment,
             'rankingEquipment' => $rankingEquipment,
+            'historyEquipment' => $historyEquipment,
         ]);
     }
 }
