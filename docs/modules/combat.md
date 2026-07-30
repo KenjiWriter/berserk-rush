@@ -132,3 +132,25 @@ redukcji obrony przeciwnika.
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:
 1. **Frontend Session Lock (`MapStub`)**: Każdy zamontowany komponent `MapStub` generuje unikalny token sesji karty i rejestruje go w pamięci Cache (`adventure_active_tab:{character_id}`). W przypadku otwarcia nowej karty lub przełączenia, aktywna staje się tylko ostatnia karta. Nieaktywne karty wstrzymują automatyczne walki i wyświetlają banner z opcją przejęcia aktywnego statusu.
 2. **Backend Rate Limit (`EncounterService::start`)**: Serwis waliduje minimalny czas od rozpoczęcia ostatniej walki danej postaci (1300 ms) oraz nakłada blokadę transakcyjną `lockForUpdate()` na model postaci, odrzucając wszelkie próby symultanicznych żądań walki z błędem `COMBAT_IN_PROGRESS`.
+
+### 10. Nagrody i Postęp za Walkę Grupową (fix 2026-07-30)
+Zgłoszony bug: po wygraniu walki grupowej (over-level, 3-4 potworów naraz - patrz
+sekcja 6/pkt "Rasy Potworów" wyżej i `Map::isOverLevel()`) gracz dostawał złoto, exp,
+postęp Bestiariusza/Osiągnięć oraz łup **tak, jakby pokonał tylko jednego, pojedynczego
+potwora** - `EncounterService::simulate()` liczył nagrodę tylko dla jednego
+"reprezentanta" grupy (`$monster` wylosowany w `start()`), zamiast sumować nagrodę za
+każdą z 3-4 faktycznie pokonanych sztuk. Kara -66% (`0.33x`) za over-level była więc
+stosowana do nagrody za JEDNEGO potwora, a nie do sumy nagród za całą grupę - efektywnie
+walka grupowa opłacała się kilkukrotnie gorzej niż zwykła walka 1 na 1, mimo że wymagała
+pokonania kilku przeciwników naraz.
+
+Naprawa (`EncounterService::simulate()`):
+- Gold/XP liczone jest teraz osobno dla **każdego** potwora w grupie (`combat_data.monsters`),
+  sumowane, i dopiero na sumie stosowana jest kara -66%.
+- Event `MonsterDefeated` (Bestiariusz, patrz `docs/modules/achievements.md`) oraz progres
+  questa `hunting` (patrz `docs/modules/quests.md`) emitowane są raz **na każdego**
+  pokonanego potwora w grupie, a nie raz na całe starcie - zabicie 3 potworów faktycznie
+  liczy się jako 3 zabicia w Bestiariuszu/Osiągnięciach.
+- Łup (`DropService::rollLoot()`) losowany jest niezależnie dla każdego z 3-4 potworów z
+  jego WŁASNEJ tabeli zrzutów (z tą samą karą 66% szansy na brak dropu per sztuka jak
+  wcześniej dla całego starcia) - patrz `docs/modules/loot.md`, sekcja "Walka Grupowa".

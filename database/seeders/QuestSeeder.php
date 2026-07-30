@@ -460,6 +460,6 @@ class QuestSeeder extends Seeder
             );
         }
 
-        $this->command->info('QuestSeeder zakończony - zasilono 31 fabularnych questów (lvl 5 - 90).');
+        $this->command->info('QuestSeeder zakończony - zasilono 32 fabularne questy (lvl 5 - 90).');
     }
 }

@@ -77,9 +77,21 @@ class QuestService
         foreach ($activeQuests as $cq) {
             $quest = $cq->quest;
 
-            // Sprawdzanie celu (target_id)
-            if ($quest->target_id !== null && !in_array($quest->target_id, $targets)) {
-                continue;
+            // Sprawdzanie celu (target_id). Dla 'hunting' targets to mapa asocjacyjna
+            // ['monster' => id, 'map' => id] - musimy porównywać w przestrzeni ID
+            // właściwej dla target_type questa, bo id potwora i id mapy to niezależne
+            // liczniki i mogą się przypadkiem pokrywać (np. Wilk Leśny id=1 == Mroczny
+            // Las id=1). Płaskie in_array() na obu id na raz powodowało, że quest na
+            // konkretnego potwora zaliczał się za zabicie DOWOLNEGO stwora na tej mapie.
+            if ($quest->target_id !== null) {
+                if ($quest->type === QuestType::HUNTING) {
+                    $expected = $targets[$quest->target_type] ?? null;
+                    if ($expected === null || (string)$expected !== (string)$quest->target_id) {
+                        continue;
+                    }
+                } elseif (!in_array($quest->target_id, $targets)) {
+                    continue;
+                }
             }
 
             // Aktualizacja progresu (dla 'gathering' progres może być liczony dynamicznie, ale tu robimy sztywny licznik dla hunting i action)

@@ -68,9 +68,13 @@
     }
 
     $all_base_keys = array_unique(array_merge(array_keys($base_stats), array_keys($equipped_base_stats)));
-    $all_enchant_keys = array_unique(array_merge(array_keys($enchants), array_keys($equipped_enchants)));
-    
-    $hasAnyStats = count($all_base_keys) > 0 || count($all_enchant_keys) > 0;
+
+    // Przedmioty, które faktycznie mogą nosić zaklęcia Wiedźmy (patrz
+    // EnchantmentStrategy::poolFor()) - tylko dla nich renderujemy 5 stałych
+    // slotów zaczarowań po prawej stronie tooltipa.
+    $isEnchantable = in_array($template->type ?? null, ['weapon', 'armor', 'accessory']);
+
+    $hasAnyStats = count($all_base_keys) > 0 || count($enchants) > 0 || count($equipped_enchants) > 0 || $isEnchantable;
     
     // Determine weapon subtype label
     $subTypeLabel = null;
@@ -99,6 +103,29 @@
             $subTypeLabel = $subTypeNames[$subTypeKey];
         }
     }
+
+    // Etykiety/ikony slotu i typu przedmiotu - dla czytelnych "chipów" w nagłówku
+    // tooltipa (zamiast surowego "Slot: main_hand | Typ: weapon").
+    $slotMeta = [
+        'head' => ['label' => 'Głowa', 'icon' => 'fa-helmet-safety'],
+        'chest' => ['label' => 'Klatka', 'icon' => 'fa-shield-halved'],
+        'main_hand' => ['label' => 'Główna Ręka', 'icon' => 'fa-khanda'],
+        'neck' => ['label' => 'Szyja', 'icon' => 'fa-gem'],
+        'ring' => ['label' => 'Pierścień', 'icon' => 'fa-ring'],
+        'feet' => ['label' => 'Stopy', 'icon' => 'fa-shoe-prints'],
+    ];
+    $typeLabels = [
+        'weapon' => 'Broń',
+        'armor' => 'Zbroja',
+        'accessory' => 'Biżuteria',
+        'material' => 'Materiał',
+        'consumable' => 'Eliksir',
+        'egg' => 'Jajko',
+    ];
+    $slotKey = $template->slot ?? null;
+    $slotLabel = $slotMeta[$slotKey]['label'] ?? ($slotKey ? ucfirst($slotKey) : null);
+    $slotIcon = $slotMeta[$slotKey]['icon'] ?? 'fa-circle-dot';
+    $typeLabel = $typeLabels[$template->type ?? ''] ?? ucfirst($template->type ?? 'Nieznany');
 
     // Check if slot matches to allow compare
     $canCompare = false;
@@ -193,7 +220,19 @@
                 {{ $template->name }} 
                 @if($upgrade_level > 0)<span class="text-amber-500 text-sm ml-1">+{{ $upgrade_level }}</span>@endif
             </h4>
-            <p class="text-xs text-gray-400">Slot: {{ ucfirst($template->slot ?? 'Brak') }} | Typ: {{ ucfirst($template->type ?? 'Nieznany') }}@if($subTypeLabel) ({{ $subTypeLabel }})@endif | Poz: {{ $template->level_requirement ?? 1 }}</p>
+            <div class="flex flex-wrap items-center gap-1 mt-1 mb-0.5">
+                @if($slotLabel)
+                    <span class="inline-flex items-center gap-1 bg-slate-800/80 border border-slate-600/60 rounded px-1.5 py-0.5 text-[10px] font-semibold text-gray-300">
+                        <i class="fa-solid {{ $slotIcon }} text-amber-400/80"></i> {{ $slotLabel }}
+                    </span>
+                @endif
+                <span class="inline-flex items-center gap-1 bg-slate-800/80 border border-slate-600/60 rounded px-1.5 py-0.5 text-[10px] font-semibold text-gray-300">
+                    {{ $typeLabel }}@if($subTypeLabel) <span class="text-gray-500">·</span> {{ $subTypeLabel }}@endif
+                </span>
+                <span class="inline-flex items-center gap-1 bg-slate-800/80 border border-slate-600/60 rounded px-1.5 py-0.5 text-[10px] font-semibold text-amber-300/90">
+                    <i class="fa-solid fa-arrow-up-right-dots"></i> Poz. {{ $template->level_requirement ?? 1 }}
+                </span>
+            </div>
             @if(isset($roll_stats['mint']))
                 <p class="text-red-400 font-bold text-xs uppercase animate-pulse border-b border-red-500/50 pb-1 w-max">
                     <i class="fa-solid fa-fire text-red-500 mr-1"></i> Nakład: {{ $roll_stats['mint'] }} / {{ $roll_stats['max_mint'] }}
@@ -234,67 +273,90 @@
         </div>
     @endif
 
-    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[340px] md:min-w-[440px]' : 'w-full sm:min-w-[200px]'">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[420px] md:min-w-[520px]' : 'w-full sm:min-w-[260px]'">
         <!-- Ten przedmiot -->
         <div class="flex-1">
             @if($hasAnyStats)
-                <div class="text-sm text-gray-200 space-y-1">
-                    @foreach($all_base_keys as $stat)
-                        @php
-                            $val = $base_stats[$stat] ?? 0;
-                            $isRange = is_array($val);
-                            $suffix = $isPercentStat($stat) ? '%' : '';
-                        @endphp
-                        @if($isRange)
-                            {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
-                            <div class="flex justify-between items-center">
-                                <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
-                            </div>
-                        @else
+                <div class="flex gap-3">
+                    <div class="flex-1 min-w-0 text-sm text-gray-200 space-y-1">
+                        @foreach($all_base_keys as $stat)
                             @php
-                                $up_val = $upgrade_bonus[$stat] ?? 0;
-                                $total_val = $val + $up_val;
-                                $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && $item->isStatMaxed($stat);
-
-                                $eq_val_raw = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
-                                $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
-                                $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
-                                $eq_total_val = $eq_val + $eq_up_val;
-
-                                $diff = $total_val - $eq_total_val;
+                                $val = $base_stats[$stat] ?? 0;
+                                $isRange = is_array($val);
+                                $suffix = $isPercentStat($stat) ? '%' : '';
                             @endphp
-                            <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
-                                <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
-                                    @if($up_val > 0)
-                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
-                                    @endif
-                                    <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                        @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
-                                    </span>
+                            @if($isRange)
+                                {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
+                                <div class="flex justify-between items-center">
+                                    <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                    <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
                                 </div>
-                            </div>
-                        @endif
-                    @endforeach
-                    @foreach($all_enchant_keys as $stat)
-                        @php
-                            $val = $enchants[$stat] ?? 0;
-                            $eq_val = $canCompare ? ($equipped_enchants[$stat] ?? 0) : 0;
-                            $diff = $val - $eq_val;
-                            $suffix = $isPercentStat($stat, true) ? '%' : '';
-                        @endphp
-                        <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
-                            <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
-                            <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
-                                <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                    @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
-                                </span>
-                            </div>
+                            @else
+                                @php
+                                    $up_val = $upgrade_bonus[$stat] ?? 0;
+                                    $total_val = $val + $up_val;
+                                    $isMaxed = $isInstance && method_exists($item, 'isStatMaxed') && $item->isStatMaxed($stat);
+
+                                    $eq_val_raw = $canCompare ? ($equipped_base_stats[$stat] ?? 0) : 0;
+                                    $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
+                                    $eq_up_val = $canCompare ? ($equipped_upgrade_bonus[$stat] ?? 0) : 0;
+                                    $eq_total_val = $eq_val + $eq_up_val;
+
+                                    $diff = $total_val - $eq_total_val;
+                                @endphp
+                                <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
+                                    <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
+                                        @if($up_val > 0)
+                                            <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
+                                        @endif
+                                        <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                            @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
+                                        </span>
+                                    </div>
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($isEnchantable)
+                        <div class="w-px self-stretch bg-slate-600/60"></div>
+
+                        <div class="w-[152px] shrink-0 space-y-1.5">
+                            <p class="text-[10px] uppercase tracking-wider text-purple-300/70 font-bold mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-sparkles"></i> Zaczarowania
+                            </p>
+                            @php $enchantKeys = array_keys($enchants); @endphp
+                            @for ($i = 0; $i < 5; $i++)
+                                @php
+                                    $stat = $enchantKeys[$i] ?? null;
+                                    $val = $stat ? ($enchants[$stat] ?? 0) : 0;
+                                    $eq_val = ($canCompare && $stat) ? ($equipped_enchants[$stat] ?? 0) : 0;
+                                    $diff = $val - $eq_val;
+                                    $suffix = $stat ? ($isPercentStat($stat, true) ? '%' : '') : '';
+                                @endphp
+                                @if($stat)
+                                    <div class="flex items-center justify-between gap-1 text-purple-400 text-xs">
+                                        <span class="flex items-center gap-1 truncate">
+                                            <i class="fa-solid fa-star text-purple-400 text-[10px] shrink-0"></i>
+                                            <span class="truncate">{{ $formatStatName($stat) }}</span>
+                                        </span>
+                                        <span class="flex items-center gap-1 shrink-0">
+                                            <span class="font-bold text-purple-300">+{{ $formatNumber($val) }}{{ $suffix }}</span>
+                                            <span x-show="compare" class="text-[10px] font-bold {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
+                                                @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
+                                            </span>
+                                        </span>
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-1.5 text-gray-600 italic text-xs">
+                                        <i class="fa-solid fa-slash text-[9px] shrink-0"></i> - brak -
+                                    </div>
+                                @endif
+                            @endfor
                         </div>
-                    @endforeach
+                    @endif
                 </div>
             @endif
         </div>
@@ -304,39 +366,62 @@
             @if($canCompare)
                 <h5 class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Obecnie założone ({{ $equippedItem->template->slot }}):</h5>
                 <p class="font-bold text-sm text-yellow-400 mb-2">
-                    {{ $equippedItem->template->name }} 
+                    {{ $equippedItem->template->name }}
                     @if(($equippedItem->upgrade_level ?? 0) > 0)<span class="text-amber-500">+{{ $equippedItem->upgrade_level }}</span>@endif
                 </p>
-                <div class="text-sm text-gray-300 space-y-1">
-                    @foreach($all_base_keys as $stat)
-                        @php
-                            $eq_val_raw = $equipped_base_stats[$stat] ?? 0;
-                            $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
-                            $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
-                            $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && $equippedItem->isStatMaxed($stat);
-                            $suffix = $isPercentStat($stat) ? '%' : '';
-                        @endphp
-                        @if($eq_val > 0 || $eq_up_val > 0)
-                            <div class="flex justify-between">
-                                <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
-                                    @if($eq_up_val > 0)
-                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
-                                    @endif
+                <div class="flex gap-3">
+                    <div class="flex-1 min-w-0 text-sm text-gray-300 space-y-1">
+                        @foreach($all_base_keys as $stat)
+                            @php
+                                $eq_val_raw = $equipped_base_stats[$stat] ?? 0;
+                                $eq_val = is_array($eq_val_raw) ? 0 : $eq_val_raw;
+                                $eq_up_val = $equipped_upgrade_bonus[$stat] ?? 0;
+                                $eq_isMaxed = $eq_isInstance && method_exists($equippedItem, 'isStatMaxed') && $equippedItem->isStatMaxed($stat);
+                                $suffix = $isPercentStat($stat) ? '%' : '';
+                            @endphp
+                            @if($eq_val > 0 || $eq_up_val > 0)
+                                <div class="flex justify-between">
+                                    <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
+                                        @if($eq_up_val > 0)
+                                            <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
+                                        @endif
+                                    </div>
                                 </div>
-                            </div>
-                        @endif
-                    @endforeach
-                    @foreach($all_enchant_keys as $stat)
-                        @php $suffix = $isPercentStat($stat, true) ? '%' : ''; @endphp
-                        @if(($equipped_enchants[$stat] ?? 0) > 0)
-                            <div class="flex justify-between text-purple-400/80">
-                                <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
-                                <span class="font-bold">+{{ $formatNumber($equipped_enchants[$stat]) }}{{ $suffix }}</span>
-                            </div>
-                        @endif
-                    @endforeach
+                            @endif
+                        @endforeach
+                    </div>
+
+                    @if($isEnchantable)
+                        <div class="w-px self-stretch bg-slate-700"></div>
+
+                        <div class="w-[152px] shrink-0 space-y-1.5">
+                            <p class="text-[10px] uppercase tracking-wider text-purple-300/50 font-bold mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-sparkles"></i> Zaczarowania
+                            </p>
+                            @php $eqEnchantKeys = array_keys($equipped_enchants); @endphp
+                            @for ($i = 0; $i < 5; $i++)
+                                @php
+                                    $stat = $eqEnchantKeys[$i] ?? null;
+                                    $suffix = $stat ? ($isPercentStat($stat, true) ? '%' : '') : '';
+                                @endphp
+                                @if($stat)
+                                    <div class="flex items-center justify-between gap-1 text-purple-400/80 text-xs">
+                                        <span class="flex items-center gap-1 truncate">
+                                            <i class="fa-solid fa-star text-purple-400 text-[10px] shrink-0"></i>
+                                            <span class="truncate">{{ $formatStatName($stat) }}</span>
+                                        </span>
+                                        <span class="font-bold shrink-0">+{{ $formatNumber($equipped_enchants[$stat]) }}{{ $suffix }}</span>
+                                    </div>
+                                @else
+                                    <div class="flex items-center gap-1.5 text-gray-600 italic text-xs">
+                                        <i class="fa-solid fa-slash text-[9px] shrink-0"></i> - brak -
+                                    </div>
+                                @endif
+                            @endfor
+                        </div>
+                    @endif
                 </div>
                 @if(is_object($equippedItem) && method_exists($equippedItem, 'getCombatPower'))
                     <div class="mt-2 pt-2 border-t border-slate-700 text-xs text-indigo-300 flex items-center gap-1">

@@ -26,112 +26,20 @@ class DropService
     {
         try {
             $isOverLevel = $encounter->combat_data['is_overlevel'] ?? false;
-            if ($isOverLevel && $this->rng->int(1, 100) > 33) {
-                // 66% chance penalty to drop no items/materials on over-level farming
-                return Result::ok(new DropResult(0, 0, [], [], false));
+            $groupMonsters = $encounter->combat_data['monsters'] ?? [];
+
+            // Walka grupowa (over-level, 3-4 potworów naraz): każdy pokonany potwór losuje
+            // NIEZALEŻNIE ze swojej własnej tabeli zrzutów (z tą samą karą 66% szansy na
+            // brak dropu per sztuka jak poniżej dla walki 1 na 1) - inaczej zabicie 3-4
+            // potworów dawało dokładnie tyle samo łupu co zabicie jednego, patrz
+            // docs/modules/loot.md.
+            if ($isOverLevel && !empty($groupMonsters)) {
+                return $this->rollGroupLoot($encounter, $groupMonsters);
             }
 
-            $monster = $encounter->monster;
-            if (!$monster || !$monster->loot_table_id) {
-                return Result::ok(new DropResult(0, 0, [], [], false));
-            }
+            $rolled = $this->rollForMonster($encounter, $encounter->monster);
 
-            $lootTable = $monster->lootTable;
-            if (!$lootTable) {
-                return Result::ok(new DropResult(0, 0, [], [], false));
-            }
-
-            $activeQuestIds = $encounter->character->activeQuests()->pluck('quest_id')->toArray();
-            $entriesCollection = $lootTable->entries()->with('itemTemplate')->get();
-            
-            $filteredEntries = $entriesCollection->filter(function($entry) use ($activeQuestIds) {
-                if (in_array($entry->reward_type, ['item', 'material'])) {
-                    $template = $entry->itemTemplate;
-                    if ($template && $template->type === 'quest_item') {
-                        if (!$template->quest_id || !in_array($template->quest_id, $activeQuestIds)) {
-                            return false;
-                        }
-                    }
-                }
-                return true;
-            });
-
-            $entries = array_values($filteredEntries->toArray());
-            if (empty($entries)) {
-                return Result::ok(new DropResult(0, 0, [], [], false));
-            }
-
-            $selectedEntry = $this->picker->pick($entries);
-
-            $gold = 0;
-            $gems = 0;
-            $items = [];
-            $materials = [];
-
-            if ($selectedEntry) {
-                $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
-                $templateUlid = $selectedEntry['ref_ulid'] ?? null;
-                $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
-                $itemName = $template ? $template->name : "Przedmiot";
-
-                $eventService = app(\App\Application\Events\WeekendEventService::class);
-                $gemsMult = $eventService->getGemsMultiplier();
-                $dropMult = $eventService->getDropMultiplier();
-
-                // Biżuteria - szansa (%) na podwojenie ilości wypadniętego przedmiotu/
-                // materiału, patrz EnchantmentStrategy::$accessoryBonuses['double_drop_chance'].
-                $doubleDropChance = $encounter->character->getEquipmentStats()['double_drop_chance'] ?? 0;
-                if ($doubleDropChance > 0 && $this->rng->int(1, 100) <= $doubleDropChance) {
-                    $dropMult *= 2;
-                }
-
-                switch ($selectedEntry['reward_type']) {
-                    case 'gold':
-                        $gold = $quantity;
-                        break;
-
-                    case 'gems':
-                        $gems = (int) round($quantity * $gemsMult);
-                        break;
-
-                    case 'item':
-                        $finalQty = (int) round($quantity * $dropMult);
-                        $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency']);
-                        $hasExisting = $isStackable && ItemInstance::where('owner_character_id', $encounter->character_id)
-                            ->where('template_id', $templateUlid)
-                            ->where('location', 'inventory')
-                            ->exists();
-
-                        if ($hasExisting || !$encounter->character->isBackpackFull()) {
-                            $items[] = [
-                                'template_id' => $templateUlid,
-                                'name' => $itemName,
-                                'rarity' => 'common',
-                                'quantity' => $finalQty,
-                            ];
-                        }
-                        break;
-
-                    case 'material':
-                        $finalQty = (int) round($quantity * $dropMult);
-                        $hasExisting = ItemInstance::where('owner_character_id', $encounter->character_id)
-                            ->where('template_id', $templateUlid)
-                            ->where('location', 'material_stash')
-                            ->exists();
-
-                        if ($hasExisting || !$encounter->character->isMaterialStashFull()) {
-                            $materials[] = [
-                                'template_id' => $templateUlid,
-                                'name' => $itemName,
-                                'rarity' => 'common',
-                                'quantity' => $finalQty,
-                            ];
-                        }
-                        break;
-                }
-            }
-
-            $dropResult = new DropResult($gold, $gems, $items, $materials, true);
+            $dropResult = new DropResult($rolled['gold'], $rolled['gems'], $rolled['items'], $rolled['materials'], $rolled['hadDrops']);
             $this->updateEncounterResult($encounter, $dropResult);
 
             return Result::ok($dropResult);
@@ -142,6 +50,163 @@ class DropService
             ]);
             return Result::error('DROP_FAILED', 'Nie udało się wylosować łupu');
         }
+    }
+
+    private function rollGroupLoot(Encounter $encounter, array $groupMonsters): Result
+    {
+        try {
+            $monsterIds = collect($groupMonsters)->pluck('id')->unique()->all();
+            $monsterModels = \App\Infrastructure\Persistence\Monster::whereIn('id', $monsterIds)->get()->keyBy('id');
+
+            $totalGold = 0;
+            $totalGems = 0;
+            $allItems = [];
+            $allMaterials = [];
+            $hadDrops = false;
+
+            foreach ($groupMonsters as $entry) {
+                $monster = $monsterModels->get($entry['id'] ?? null);
+                $rolled = $this->rollForMonster($encounter, $monster);
+
+                $totalGold += $rolled['gold'];
+                $totalGems += $rolled['gems'];
+                $allItems = array_merge($allItems, $rolled['items']);
+                $allMaterials = array_merge($allMaterials, $rolled['materials']);
+                $hadDrops = $hadDrops || $rolled['hadDrops'];
+            }
+
+            $dropResult = new DropResult($totalGold, $totalGems, $allItems, $allMaterials, $hadDrops);
+            $this->updateEncounterResult($encounter, $dropResult);
+
+            return Result::ok($dropResult);
+        } catch (\Exception $e) {
+            Log::error('Failed to roll group loot', [
+                'encounter_id' => $encounter->id,
+                'error' => $e->getMessage()
+            ]);
+            return Result::error('DROP_FAILED', 'Nie udało się wylosować łupu grupowego');
+        }
+    }
+
+    /**
+     * @return array{gold: int, gems: int, items: array, materials: array, hadDrops: bool}
+     */
+    private function rollForMonster(Encounter $encounter, ?\App\Infrastructure\Persistence\Monster $monster): array
+    {
+        $empty = ['gold' => 0, 'gems' => 0, 'items' => [], 'materials' => [], 'hadDrops' => false];
+
+        // 66% chance penalty to drop no items/materials for this monster
+        if ($this->rng->int(1, 100) > 33) {
+            return $empty;
+        }
+
+        if (!$monster || !$monster->loot_table_id) {
+            return $empty;
+        }
+
+        $lootTable = $monster->lootTable;
+        if (!$lootTable) {
+            return $empty;
+        }
+
+        $activeQuestIds = $encounter->character->activeQuests()->pluck('quest_id')->toArray();
+        $entriesCollection = $lootTable->entries()->with('itemTemplate')->get();
+
+        $filteredEntries = $entriesCollection->filter(function ($entry) use ($activeQuestIds) {
+            if (in_array($entry->reward_type, ['item', 'material'])) {
+                $template = $entry->itemTemplate;
+                if ($template && $template->type === 'quest_item') {
+                    if (!$template->quest_id || !in_array($template->quest_id, $activeQuestIds)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        });
+
+        $entries = array_values($filteredEntries->toArray());
+        if (empty($entries)) {
+            return $empty;
+        }
+
+        $selectedEntry = $this->picker->pick($entries);
+        if (!$selectedEntry) {
+            return $empty;
+        }
+
+        $gold = 0;
+        $gems = 0;
+        $items = [];
+        $materials = [];
+
+        $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+        $templateUlid = $selectedEntry['ref_ulid'] ?? null;
+        $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
+        $itemName = $template ? $template->name : "Przedmiot";
+
+        $eventService = app(\App\Application\Events\WeekendEventService::class);
+        $gemsMult = $eventService->getGemsMultiplier();
+        $dropMult = $eventService->getDropMultiplier();
+
+        // Biżuteria - szansa (%) na podwojenie ilości wypadniętego przedmiotu/
+        // materiału, patrz EnchantmentStrategy::$accessoryBonuses['double_drop_chance'].
+        $doubleDropChance = $encounter->character->getEquipmentStats()['double_drop_chance'] ?? 0;
+        if ($doubleDropChance > 0 && $this->rng->int(1, 100) <= $doubleDropChance) {
+            $dropMult *= 2;
+        }
+
+        switch ($selectedEntry['reward_type']) {
+            case 'gold':
+                $gold = $quantity;
+                break;
+
+            case 'gems':
+                $gems = (int) round($quantity * $gemsMult);
+                break;
+
+            case 'item':
+                $finalQty = (int) round($quantity * $dropMult);
+                $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency']);
+                $hasExisting = $isStackable && ItemInstance::where('owner_character_id', $encounter->character_id)
+                    ->where('template_id', $templateUlid)
+                    ->where('location', 'inventory')
+                    ->exists();
+
+                if ($hasExisting || !$encounter->character->isBackpackFull()) {
+                    $items[] = [
+                        'template_id' => $templateUlid,
+                        'name' => $itemName,
+                        'rarity' => 'common',
+                        'quantity' => $finalQty,
+                    ];
+                }
+                break;
+
+            case 'material':
+                $finalQty = (int) round($quantity * $dropMult);
+                $hasExisting = ItemInstance::where('owner_character_id', $encounter->character_id)
+                    ->where('template_id', $templateUlid)
+                    ->where('location', 'material_stash')
+                    ->exists();
+
+                if ($hasExisting || !$encounter->character->isMaterialStashFull()) {
+                    $materials[] = [
+                        'template_id' => $templateUlid,
+                        'name' => $itemName,
+                        'rarity' => 'common',
+                        'quantity' => $finalQty,
+                    ];
+                }
+                break;
+        }
+
+        return [
+            'gold' => $gold,
+            'gems' => $gems,
+            'items' => $items,
+            'materials' => $materials,
+            'hadDrops' => true,
+        ];
     }
 
     public function applyLoot(Encounter $encounter): Result

@@ -2,9 +2,6 @@
 
 namespace App\Jobs;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-
 use App\Infrastructure\Persistence\WorldBossInstance;
 use App\Infrastructure\Persistence\WorldBossDamageLog;
 use App\Infrastructure\Persistence\ItemTemplate;
@@ -14,9 +11,21 @@ use App\Application\Combat\WorldBossService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class WorldBossRewardJob implements ShouldQueue
+/**
+ * UWAGA (fix 2026-07-30): ta klasa CELOWO NIE implementuje ShouldQueue. Wcześniej
+ * `Schedule::job(new WorldBossRewardJob())->hourly()` (routes/console.php) kolejkował ten job,
+ * co wymagało DZIAŁAJĄCEGO, OSOBNEGO procesu queue workera (`php artisan queue:work`), żeby w
+ * ogóle się wykonał. Jeśli worker nie działał/padł, harmonogram i tak "odpalał się" punktualnie
+ * co godzinę, ale zadanie tylko trafiało do kolejki i nigdy się nie wykonywało - dokładnie tak
+ * zgłosił użytkownik (mimo upływu godziny bossy się nie resetowały, nagrody nie przyszły). Bez
+ * ShouldQueue, `Schedule::job()` wykonuje handle() synchronicznie w samym procesie schedulera,
+ * więc jedyną zależnością infrastrukturalną zostaje działający cron (`php artisan
+ * schedule:run`), bez potrzeby utrzymywania osobnego workera. Praca tego joba jest lekka (max 3
+ * instancje world bossów na wywołanie), więc kolejkowanie nie dawało tu realnej korzyści
+ * wydajnościowej, za to dodawało ryzyko cichej awarii.
+ */
+class WorldBossRewardJob
 {
-    use Queueable;
 
     /**
      * World boss (po nazwie potwora) -> nazwa ItemTemplate klucza do najbliższego

@@ -47,3 +47,21 @@ Naprawa: `database/seeders/MonsterLootSeeder.php` przenosi teraz materiały/prze
 | Skażone Miasto | Pan Zniszczenia | Książę Zniszczenia |
 
 Przy dodawaniu nowego world bossa w przyszłości **nie przypisuj mu unikalnych materiałów/przedmiotów w `MonsterLootSeeder`** — trafi na tę samą martwą ścieżkę. Zamiast tego przypisz je zwykłemu potworowi rangi `boss` tej samej mapy, tak jak w tabeli powyżej.
+
+### 5. Walka Grupowa (over-level) - Łup per Potwór (fix 2026-07-30)
+W starciach over-level (3-4 potwory naraz, patrz `docs/modules/combat.md`, sekcja
+"Rozpoczynanie Walki") `DropService::rollLoot()` losował łup **tylko raz dla całego
+starcia** - z tabeli zrzutów jednego, przypadkowego "reprezentanta" grupy, z karą 66%
+szansy na całkowity brak dropu. Efekt: pokonanie 3-4 potworów dawało dokładnie tyle samo
+łupu (średnio) co pokonanie jednego pojedynczego potwora - kara miała sens tylko przy
+założeniu, że i tak nastąpi mnożenie przez liczbę potworów w grupie, a to mnożenie nigdy
+nie miało miejsca.
+
+Naprawa: `DropService::rollLoot()` wykrywa walkę grupową (`combat_data.is_overlevel` +
+niepusta `combat_data.monsters`) i deleguje do `rollGroupLoot()`, które losuje **osobno
+dla każdego z 3-4 pokonanych potworów** z jego WŁASNEJ tabeli zrzutów (`rollForMonster()`)
+- każda sztuka ma niezależną karę 66% szansy na brak dropu (ta sama wartość co
+poprzednio dla całego starcia, teraz per potwór), po czym wyniki (złoto, gemy, materiały,
+przedmioty) sumowane są w jeden `DropResult` dla encountera. Walka 1 na 1 (i world boss)
+korzystają z tej samej logiki roll'a (`rollForMonster()`), więc zachowanie pojedynczych
+starć się nie zmieniło.

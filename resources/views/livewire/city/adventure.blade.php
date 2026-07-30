@@ -133,14 +133,15 @@
                     }
 
                     $isFirstMapTutorial = $isAccessible && $gameStage == 10 && $map->level_min == 0;
+                    $sortedMapMonsters = $map->monsters->sortBy('level')->values();
                 @endphp
 
                 <div class="relative group h-full flex flex-col" x-data="{
                     showBestiaryModal: false,
                     turningPage: false,
                     turnDirection: 'next',
-                    monsterIds: [ @foreach($map->monsters as $m) '{{ $m->id }}', @endforeach ],
-                    selectedMonsterId: '{{ $map->monsters->first()->id ?? '' }}',
+                    monsterIds: [ @foreach($sortedMapMonsters as $m) '{{ $m->id }}', @endforeach ],
+                    selectedMonsterId: '{{ $sortedMapMonsters->first()->id ?? '' }}',
                     selectMonster(id) {
                         if (this.selectedMonsterId === id || this.turningPage) return;
                         let currIdx = this.monsterIds.indexOf(this.selectedMonsterId);
@@ -276,15 +277,15 @@
                                         <div class="text-right hidden sm:block w-24"></div>
                                     </div>
 
-                                    @if($map->monsters->isEmpty())
+                                    @if($sortedMapMonsters->isEmpty())
                                         <div class="flex items-center justify-center py-16 bg-[#f4e4bc] rounded-xl text-amber-950">
                                             <p class="italic font-bold text-lg">Brak informacji o przeciwnikach na tej mapie...</p>
                                         </div>
                                     @else
                                         {{-- Monster Bookmark Tabs --}}
                                         <div class="relative z-20 flex overflow-x-auto gap-1.5 mb-2 pb-2 custom-scrollbar">
-                                            @foreach($map->monsters as $monster)
-                                                <button @click="selectMonster('{{ $monster->id }}')" 
+                                            @foreach($sortedMapMonsters as $monster)
+                                                <button @click="selectMonster('{{ $monster->id }}')"
                                                     :class="selectedMonsterId == '{{ $monster->id }}' ? 'bg-[#f4e4bc] text-amber-950 border-amber-700 shadow-lg -translate-y-1 font-black' : 'bg-amber-900/80 text-amber-200 hover:bg-amber-800 hover:-translate-y-0.5 font-bold'"
                                                     class="px-3 py-1.5 rounded-t-xl text-xs sm:text-sm border-t-2 border-x-2 border-amber-800/60 whitespace-nowrap transition-all duration-200 flex items-center gap-1.5 medieval-font">
                                                     @if($monster->type && $monster->type->value === 'undead') <i class="fa-solid fa-skull text-stone-900"></i>
@@ -294,6 +295,11 @@
                                                     @else <i class="fa-solid fa-skull text-stone-900"></i> @endif
                                                     <span>{{ $monster->name }}</span>
                                                     <span class="text-[10px] opacity-75">(Lvl {{ $monster->level }})</span>
+                                                    @if($monster->rank && $monster->rank->value === 'worldboss')
+                                                        <span class="px-1.5 py-0.5 rounded bg-purple-700 text-white text-[9px] font-black uppercase tracking-wide">World Boss</span>
+                                                    @elseif($monster->rank && $monster->rank->value === 'boss')
+                                                        <span class="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-black uppercase tracking-wide">Boss</span>
+                                                    @endif
                                                 </button>
                                             @endforeach
                                         </div>
@@ -374,8 +380,8 @@
                                                 <div class="hidden md:block absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-12 bg-gradient-to-r from-amber-950/60 via-amber-950/10 to-amber-950/60 animate-book-shadow-pulse"></div>
                                             </div>
 
-                                            @foreach($map->monsters as $monster)
-                                                <div x-show="selectedMonsterId == '{{ $monster->id }}'" 
+                                            @foreach($sortedMapMonsters as $monster)
+                                                <div x-show="selectedMonsterId == '{{ $monster->id }}'"
                                                      class="flex flex-col md:flex-row w-full gap-6 sm:gap-8 h-full">
                                                     
                                                     {{-- LEFT PAGE: MONSTER CODEX & STATS --}}
@@ -401,12 +407,23 @@
                                                         <h3 class="text-2xl sm:text-3xl font-black text-amber-950 medieval-font mb-2 text-center tracking-wide">
                                                             {{ $monster->name }}
                                                         </h3>
-                                                        
-                                                        @if($monster->type)
-                                                            <div class="bg-amber-900 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md mb-4 border border-amber-700">
-                                                                Rasa: {{ $monster->type->label() }}
-                                                            </div>
-                                                        @endif
+
+                                                        <div class="flex items-center gap-2 flex-wrap justify-center mb-4">
+                                                            @if($monster->type)
+                                                                <div class="bg-amber-900 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md border border-amber-700">
+                                                                    Rasa: {{ $monster->type->label() }}
+                                                                </div>
+                                                            @endif
+                                                            @if($monster->rank && $monster->rank->value === 'worldboss')
+                                                                <div class="bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-black uppercase shadow-md border border-purple-500 flex items-center gap-1">
+                                                                    <i class="fa-solid fa-crown"></i> World Boss
+                                                                </div>
+                                                            @elseif($monster->rank && $monster->rank->value === 'boss')
+                                                                <div class="bg-red-700 text-white px-3 py-1 rounded-full text-xs font-black uppercase shadow-md border border-red-500 flex items-center gap-1">
+                                                                    <i class="fa-solid fa-crown"></i> Boss
+                                                                </div>
+                                                            @endif
+                                                        </div>
 
                                                         {{-- Monster Combat Attributes Box --}}
                                                         <div class="w-full bg-amber-100/70 rounded-xl p-4 border border-amber-900/40 shadow-sm mt-auto">
@@ -549,7 +566,7 @@
                         $canEnter = $dungeon->canCharacterEnter($character);
                         $hasKey = $dungeon->entry_item_template_id ? $character->items()->whereIn('location', ['inventory', 'material_stash'])->where('template_id', $dungeon->entry_item_template_id)->where('stack_size', '>=', 1)->exists() : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
-                        $dungeonMonsters = $dungeon->stages->filter(fn($s) => $s->monster)->map(fn($s) => $s->monster)->unique('id')->values();
+                        $dungeonMonsters = $dungeon->stages->filter(fn($s) => $s->monster)->map(fn($s) => $s->monster)->unique('id')->sortBy('level')->values();
                     @endphp
                     <div x-data="{
                         showBestiaryModal: false,
@@ -707,6 +724,11 @@
                                                     @else <i class="fa-solid fa-skull text-stone-900"></i> @endif
                                                     <span>{{ $dm->name }}</span>
                                                     <span class="text-[10px] opacity-75">(Lvl {{ $dm->level }})</span>
+                                                    @if($dm->rank && $dm->rank->value === 'worldboss')
+                                                        <span class="px-1.5 py-0.5 rounded bg-purple-700 text-white text-[9px] font-black uppercase tracking-wide">World Boss</span>
+                                                    @elseif($dm->rank && $dm->rank->value === 'boss')
+                                                        <span class="px-1.5 py-0.5 rounded bg-red-700 text-white text-[9px] font-black uppercase tracking-wide">Boss</span>
+                                                    @endif
                                                 </button>
                                             @endforeach
                                         </div>
@@ -756,11 +778,22 @@
 
                                                         <h3 class="text-2xl sm:text-3xl font-black text-amber-950 medieval-font mb-2 text-center tracking-wide">{{ $dm->name }}</h3>
 
-                                                        @if($dm->type)
-                                                            <div class="bg-amber-900 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md mb-4 border border-amber-700">
-                                                                Rasa: {{ $dm->type->label() }}
-                                                            </div>
-                                                        @endif
+                                                        <div class="flex items-center gap-2 flex-wrap justify-center mb-4">
+                                                            @if($dm->type)
+                                                                <div class="bg-amber-900 text-amber-100 px-3 py-1 rounded-full text-xs font-bold shadow-md border border-amber-700">
+                                                                    Rasa: {{ $dm->type->label() }}
+                                                                </div>
+                                                            @endif
+                                                            @if($dm->rank && $dm->rank->value === 'worldboss')
+                                                                <div class="bg-purple-700 text-white px-3 py-1 rounded-full text-xs font-black uppercase shadow-md border border-purple-500 flex items-center gap-1">
+                                                                    <i class="fa-solid fa-crown"></i> World Boss
+                                                                </div>
+                                                            @elseif($dm->rank && $dm->rank->value === 'boss')
+                                                                <div class="bg-red-700 text-white px-3 py-1 rounded-full text-xs font-black uppercase shadow-md border border-red-500 flex items-center gap-1">
+                                                                    <i class="fa-solid fa-crown"></i> Boss
+                                                                </div>
+                                                            @endif
+                                                        </div>
 
                                                         {{-- Stage badge --}}
                                                         @php $dmStage = $dungeon->stages->firstWhere('monster_id', $dm->id); @endphp

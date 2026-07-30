@@ -418,10 +418,20 @@ class EncounterService
                 $goldRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
                 $xpRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
 
-                if ($isOverLevel && !empty($encounter->combat_data['monsters'])) {
+                $isGroupFight = $isOverLevel && !empty($encounter->combat_data['monsters']);
+                $groupMonsterModels = null;
+
+                if ($isGroupFight) {
                     $monstersData = $encounter->combat_data['monsters'];
                     $tactic = $encounter->combat_data['target_strategy'] ?? 'random';
                     $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic, $playerMaxHp);
+
+                    // Modele potworów grupy (do nagród, dropu i eventów bestiariusza per-sztuka
+                    // poniżej) - zbierane raz i cache'owane po id, bo ta sama sztuka potwora
+                    // może wystąpić w grupie do 2 razy (patrz selectedCounts w start()).
+                    $groupMonsterModels = Monster::whereIn('id', collect($monstersData)->pluck('id')->unique())
+                        ->get()
+                        ->keyBy('id');
 
                     $lastTurn = end($turns);
                     $finalPlayerHp = $lastTurn ? ($lastTurn['playerHp'] ?? 0) : $playerHp;
@@ -438,8 +448,29 @@ class EncounterService
                     $winner = ($finalPlayerHp > 0 && $allDead) ? 'player' : 'enemy';
 
                     if ($winner === 'player') {
-                        $goldRewardData = $this->calculateGoldReward($monster, $character);
-                        $xpRewardData = $this->calculateXpReward($monster, $character);
+                        // Suma nagród za KAŻDEGO z 3-4 potworów faktycznie pokonanych w grupie
+                        // (wcześniej liczono tylko jednego "reprezentanta" grupy, więc zabicie 3-4
+                        // potworów naraz dawało nagrodę jak za jednego - patrz docs/modules/combat.md).
+                        // Dopiero na zsumowanej nagrodzie stosowana jest kara -66% za over-level.
+                        $goldRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
+                        $xpRewardData = ['base' => 0, 'bonus' => 0, 'total' => 0, 'multiplier' => 1.0];
+
+                        foreach ($monstersData as $mData) {
+                            $mModel = $groupMonsterModels->get($mData['id'] ?? null);
+                            if (!$mModel) {
+                                continue;
+                            }
+
+                            $g = $this->calculateGoldReward($mModel, $character);
+                            $x = $this->calculateXpReward($mModel, $character);
+
+                            $goldRewardData['base'] += $g['base'];
+                            $goldRewardData['total'] += $g['total'];
+                            $xpRewardData['base'] += $x['base'];
+                            $xpRewardData['total'] += $x['total'];
+                            $goldRewardData['multiplier'] = $g['multiplier'];
+                            $xpRewardData['multiplier'] = $x['multiplier'];
+                        }
 
                         // Apply Over-Level Penalty (-66% rewards, so 0.33x multiplier)
                         $goldRewardData['base'] = (int)ceil($goldRewardData['base'] * 0.33);
@@ -544,12 +575,29 @@ class EncounterService
                     $dropService = app(DropService::class);
                     $dropResult = $dropService->rollLoot($encounter);
 
-                    // Update hunting quests
                     $questService = app(\App\Application\Quests\QuestService::class);
-                    $questService->progressQuest($character, 'hunting', [(string)$monster->id, (string)$encounter->map_id]);
 
-                    // Fire MonsterDefeated event for Bestiary and Achievements
-                    event(new \App\Domain\Collections\Events\MonsterDefeated($character, $monster, $encounter->map_id));
+                    if ($isGroupFight) {
+                        // Progres misji i eventy bestiariusza/osiągnięć MUSZĄ polecieć raz na
+                        // KAŻDEGO faktycznie pokonanego potwora w grupie (3-4 sztuki), inaczej
+                        // bestiariusz/achievementy liczą walkę grupową jak zabicie jednego potwora
+                        // - patrz docs/modules/achievements.md i docs/modules/combat.md.
+                        foreach ($monstersData as $mData) {
+                            $mModel = $groupMonsterModels->get($mData['id'] ?? null);
+                            if (!$mModel) {
+                                continue;
+                            }
+
+                            $questService->progressQuest($character, 'hunting', ['monster' => (string)$mModel->id, 'map' => (string)$encounter->map_id]);
+                            event(new \App\Domain\Collections\Events\MonsterDefeated($character, $mModel, $encounter->map_id));
+                        }
+                    } else {
+                        // Update hunting quests
+                        $questService->progressQuest($character, 'hunting', ['monster' => (string)$monster->id, 'map' => (string)$encounter->map_id]);
+
+                        // Fire MonsterDefeated event for Bestiary and Achievements
+                        event(new \App\Domain\Collections\Events\MonsterDefeated($character, $monster, $encounter->map_id));
+                    }
 
                     if ($dropResult->isError()) {
                         Log::warning('Failed to apply loot drops', [

@@ -107,56 +107,85 @@
                     </div>
                     
                     @forelse($availableQuests as $quest)
-                        {{-- Quest Parchment Flyer Card --}}
-                        <div class="relative bg-gradient-to-b from-[#241a13] to-[#18110b] border-2 border-amber-800/70 hover:border-amber-500/80 rounded-xl p-5 mb-5 shadow-xl transition-all duration-300 hover:scale-[1.01] group overflow-hidden">
+                        {{-- Quest Ticket: pinned note, collapsed to name + level until opened --}}
+                        <div x-data="{ open: {{ $gameStage == 24 ? 'true' : 'false' }} }"
+                             class="relative bg-[#1c140d] border-2 border-amber-900/60 rounded-xl mb-4 shadow-lg transition-colors duration-300 overflow-hidden"
+                             :class="open ? 'border-amber-500/80' : 'hover:border-amber-700/80'">
                             {{-- Brass pin header decoration --}}
-                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 via-amber-600 to-stone-900 border border-amber-900 shadow-md z-10"></div>
-                            
-                            <div class="flex justify-between items-start mb-3 pt-1">
-                                <h3 class="text-xl font-bold text-amber-200 group-hover:text-amber-100 transition-colors medieval-font">
-                                    {{ $quest->name }}
-                                </h3>
-                                <span class="text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60 px-2.5 py-1 rounded-md shadow-inner shrink-0 ml-2">
-                                    Poziom {{ $quest->required_level }}
-                                </span>
-                            </div>
-                            
-                            <p class="text-sm text-amber-200/80 mb-4 leading-relaxed font-serif italic">
-                                "{{ $quest->description }}"
-                            </p>
-                            
-                            {{-- Requirement Box --}}
-                            <div class="text-sm text-amber-100 bg-stone-950/80 p-3 rounded-lg mb-3 border border-amber-900/60 font-semibold flex items-center gap-2 shadow-inner">
-                                <i class="fa-solid fa-bullseye text-amber-400 text-base"></i>
-                                <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
-                            </div>
+                            <div class="absolute -top-1 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-stone-800 border border-amber-900 shadow-md z-10"></div>
 
-                            {{-- Hint Box --}}
-                            @if($hint = $this->getQuestHint($quest))
-                                <div class="text-xs text-amber-300/90 bg-amber-950/50 p-2.5 rounded-lg mb-3 border border-amber-800/40 flex items-center gap-2">
-                                    <i class="fa-solid fa-lightbulb text-amber-300"></i>
-                                    <span>{{ $hint }}</span>
+                            {{-- Collapsed row: name + level only --}}
+                            <button type="button" @click="open = !open" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                                    class="w-full flex items-center justify-between gap-3 px-5 py-4 text-left">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <span class="shrink-0 w-9 h-9 rounded-lg bg-stone-950 border border-amber-800/60 flex items-center justify-center text-amber-500">
+                                        <i class="fa-solid fa-scroll"></i>
+                                    </span>
+                                    <h3 class="truncate text-lg font-bold text-amber-200 medieval-font">{{ $quest->name }}</h3>
                                 </div>
-                            @endif
-
-                            {{-- Rewards Badges --}}
-                            <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
-                                @if($quest->reward_gold > 0)
-                                    <span class="bg-amber-950/80 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-600/50 flex items-center gap-1 shadow">
-                                        <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
+                                <div class="flex items-center gap-2.5 shrink-0">
+                                    <span class="text-xs font-bold bg-stone-950 text-amber-300 border border-amber-700/60 px-2.5 py-1 rounded-md">
+                                        Poziom {{ $quest->required_level }}
                                     </span>
-                                @endif
-                                @if($quest->reward_exp > 0)
-                                    <span class="bg-blue-950/80 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-600/50 flex items-center gap-1 shadow">
-                                        <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
+                                    <span class="hidden sm:flex items-center gap-1.5 text-xs font-bold text-amber-300/90 bg-stone-800 border border-amber-700/50 px-3 py-1.5 rounded-md">
+                                        <span x-text="open ? 'Zwiń' : 'Otwórz'"></span>
+                                        <i class="fa-solid fa-chevron-down text-[10px] transition-transform duration-300" :class="open ? '-rotate-180' : ''"></i>
                                     </span>
-                                @endif
-                            </div>
-
-                            <button wire:click="acceptQuest('{{ $quest->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                                    class="w-full bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-600 hover:from-amber-600 hover:to-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl shadow-lg transition-all duration-200 medieval-font flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] border border-amber-400/40 {{ $gameStage == 24 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
-                                <i class="fa-solid fa-scroll text-amber-200"></i> Przyjmij Wyzwanie
+                                </div>
                             </button>
+
+                            {{-- Unrolling parchment panel --}}
+                            <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+                                <div class="overflow-hidden">
+                                    <div x-show="open" x-transition:enter="transition ease-out duration-300 delay-150" x-transition:enter-start="opacity-0 -translate-y-3" x-transition:enter-end="opacity-100 translate-y-0"
+                                         class="px-5 pb-5 pt-1 border-t border-amber-900/50">
+
+                                        {{-- Scroll rod divider --}}
+                                        <div class="flex items-center gap-2 my-3 opacity-70">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-700"></span>
+                                            <span class="flex-1 h-px bg-amber-800/60"></span>
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-700"></span>
+                                        </div>
+
+                                        <p class="text-sm text-amber-200/80 mb-4 leading-relaxed font-serif italic">
+                                            "{{ $quest->description }}"
+                                        </p>
+
+                                        {{-- Requirement Box --}}
+                                        <div class="text-sm text-amber-100 bg-stone-950/80 p-3 rounded-lg mb-3 border border-amber-900/60 font-semibold flex items-center gap-2 shadow-inner">
+                                            <i class="fa-solid fa-bullseye text-amber-400 text-base"></i>
+                                            <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
+                                        </div>
+
+                                        {{-- Hint Box --}}
+                                        @if($hint = $this->getQuestHint($quest))
+                                            <div class="text-xs text-amber-300/90 bg-amber-950/50 p-2.5 rounded-lg mb-3 border border-amber-800/40 flex items-center gap-2">
+                                                <i class="fa-solid fa-lightbulb text-amber-300"></i>
+                                                <span>{{ $hint }}</span>
+                                            </div>
+                                        @endif
+
+                                        {{-- Rewards Badges --}}
+                                        <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
+                                            @if($quest->reward_gold > 0)
+                                                <span class="bg-stone-950 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-700/50 flex items-center gap-1">
+                                                    <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
+                                                </span>
+                                            @endif
+                                            @if($quest->reward_exp > 0)
+                                                <span class="bg-stone-950 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-700/50 flex items-center gap-1">
+                                                    <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        <button wire:click="acceptQuest('{{ $quest->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                                                class="w-full bg-amber-700 hover:bg-amber-600 active:bg-amber-800 text-amber-50 font-bold py-2.5 px-4 rounded-xl transition-colors duration-200 medieval-font flex items-center justify-center gap-2 border border-amber-400/40 {{ $gameStage == 24 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
+                                            <i class="fa-solid fa-scroll text-amber-200"></i> Przyjmij Wyzwanie
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     @empty
                         <div class="text-center py-12 px-4 bg-stone-950/40 rounded-xl border border-amber-900/30">
@@ -181,77 +210,111 @@
                         </div>
                         
                         @forelse($activeQuests as $cq)
-                            @php 
-                                $quest = $cq->quest; 
+                            @php
+                                $quest = $cq->quest;
                                 $currentProgress = $this->getQuestProgress($cq);
                                 $isReadyToClaim = $this->isQuestReadyToClaim($cq);
+                                $percent = min(100, ($currentProgress / max(1, $quest->target_amount)) * 100);
                             @endphp
-                            <div class="relative bg-gradient-to-b from-[#101a26] to-[#0c131d] border-2 border-sky-700/60 hover:border-sky-400/80 rounded-xl p-5 mb-5 shadow-xl transition-all duration-300 hover:scale-[1.01] group overflow-hidden">
-                                <div class="flex justify-between items-start mb-3">
-                                    <h3 class="text-xl font-bold text-sky-200 group-hover:text-sky-100 transition-colors medieval-font">
-                                        {{ $quest->name }}
-                                    </h3>
-                                    @if($isReadyToClaim)
-                                        <span class="text-xs font-bold bg-emerald-900/90 text-emerald-200 border border-emerald-500/70 px-3 py-1 rounded-md shadow-md animate-pulse flex items-center gap-1.5">
-                                            <i class="fa-solid fa-check text-emerald-400"></i> {{ $quest->type->value === 'gathering' ? 'Gotowe do oddania' : 'Ukończone' }}
-                                        </span>
-                                    @else
-                                        <span class="text-xs font-bold bg-sky-950 text-sky-300 border border-sky-700/60 px-2.5 py-1 rounded-md shadow-inner">
-                                            {{ $currentProgress }} / {{ $quest->target_amount }}
-                                        </span>
-                                    @endif
-                                </div>
-                                
-                                <p class="text-sm text-sky-200/80 mb-4 leading-relaxed font-serif italic">
-                                    "{{ $quest->description }}"
-                                </p>
-                                
-                                <div class="text-sm text-white bg-stone-950/80 p-3 rounded-lg mb-3 border border-sky-900/60 font-semibold flex items-center gap-2 shadow-inner">
-                                    <i class="fa-solid fa-bullseye text-sky-400 text-base"></i>
-                                    <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
-                                </div>
+                            <div x-data="{ open: {{ $gameStage == 27 ? 'true' : 'false' }} }"
+                                 class="relative bg-[#0e1620] border-2 border-sky-900/60 rounded-xl mb-4 shadow-lg transition-colors duration-300 overflow-hidden"
+                                 :class="open ? 'border-sky-400/80' : 'hover:border-sky-700/80'">
 
-                                @if($hint = $this->getQuestHint($quest))
-                                    <div class="text-xs text-sky-300/90 bg-sky-950/50 p-2.5 rounded-lg mb-3 border border-sky-800/40 flex items-center gap-2">
-                                        <i class="fa-solid fa-lightbulb text-sky-300"></i>
-                                        <span>{{ $hint }}</span>
+                                {{-- Collapsed row: name + level + status only --}}
+                                <button type="button" @click="open = !open" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                                        class="w-full flex items-center justify-between gap-3 px-5 py-4 text-left">
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <span class="shrink-0 w-9 h-9 rounded-lg bg-stone-950 border border-sky-800/60 flex items-center justify-center text-sky-400">
+                                            <i class="fa-solid fa-khanda"></i>
+                                        </span>
+                                        <h3 class="truncate text-lg font-bold text-sky-200 medieval-font">{{ $quest->name }}</h3>
                                     </div>
-                                @endif
-                                
-                                <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
-                                    @if($quest->reward_gold > 0)
-                                        <span class="bg-amber-950/80 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-600/50 flex items-center gap-1 shadow">
-                                            <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
+                                    <div class="flex items-center gap-2.5 shrink-0">
+                                        <span class="text-xs font-bold bg-stone-950 text-sky-300 border border-sky-700/60 px-2.5 py-1 rounded-md">
+                                            Poziom {{ $quest->required_level }}
                                         </span>
-                                    @endif
-                                    @if($quest->reward_exp > 0)
-                                        <span class="bg-blue-950/80 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-600/50 flex items-center gap-1 shadow">
-                                            <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
-                                        </span>
-                                    @endif
-                                </div>
-                                
-                                @if($isReadyToClaim)
-                                    <button wire:click="claimReward('{{ $cq->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
-                                            class="w-full bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-extrabold py-2.5 px-4 rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all duration-200 medieval-font flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] uppercase tracking-wider {{ $gameStage == 27 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
-                                        @if($quest->type->value === 'gathering')
-                                            <i class="fa-solid fa-box text-stone-950"></i> Oddaj przedmioty
+                                        @if($isReadyToClaim)
+                                            <span class="hidden sm:flex items-center gap-1.5 text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-600/60 px-2.5 py-1 rounded-md animate-pulse">
+                                                <i class="fa-solid fa-check"></i> Gotowe
+                                            </span>
                                         @else
-                                            <i class="fa-solid fa-gift text-stone-950"></i> Odbierz Nagrodę
+                                            <span class="hidden sm:inline text-xs font-bold bg-stone-950 text-sky-300/90 border border-sky-800/50 px-2.5 py-1 rounded-md">
+                                                {{ $currentProgress }} / {{ $quest->target_amount }}
+                                            </span>
                                         @endif
-                                    </button>
-                                @else
-                                    {{-- Progress Bar --}}
-                                    <div class="mt-3">
-                                        <div class="flex justify-between text-xs text-sky-300/80 font-bold mb-1">
-                                            <span>Postęp {{ $quest->type->value === 'gathering' ? 'zbierania' : 'misji' }}</span>
-                                            <span>{{ round(($currentProgress / max(1, $quest->target_amount)) * 100) }}%</span>
-                                        </div>
-                                        <div class="w-full bg-stone-950 rounded-full h-3 border border-sky-900/80 shadow-inner overflow-hidden">
-                                            <div class="bg-gradient-to-r from-sky-600 to-cyan-400 h-full rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(56,189,248,0.5)]" style="width: {{ min(100, ($currentProgress / max(1, $quest->target_amount)) * 100) }}%"></div>
+                                        <i class="fa-solid fa-chevron-down text-sky-500 text-[10px] transition-transform duration-300" :class="open ? '-rotate-180' : ''"></i>
+                                    </div>
+                                </button>
+
+                                {{-- Slim progress strip, visible even collapsed --}}
+                                @unless($isReadyToClaim)
+                                    <div class="h-1 bg-stone-950 mx-5 mb-3 rounded-full overflow-hidden">
+                                        <div class="bg-sky-500 h-full rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
+                                    </div>
+                                @endunless
+
+                                {{-- Unrolling parchment panel --}}
+                                <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
+                                    <div class="overflow-hidden">
+                                        <div x-show="open" x-transition:enter="transition ease-out duration-300 delay-150" x-transition:enter-start="opacity-0 -translate-y-3" x-transition:enter-end="opacity-100 translate-y-0"
+                                             class="px-5 pb-5 pt-1 border-t border-sky-900/50">
+
+                                            <div class="flex items-center gap-2 my-3 opacity-70">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-sky-700"></span>
+                                                <span class="flex-1 h-px bg-sky-800/60"></span>
+                                                <span class="w-1.5 h-1.5 rounded-full bg-sky-700"></span>
+                                            </div>
+
+                                            <p class="text-sm text-sky-200/80 mb-4 leading-relaxed font-serif italic">
+                                                "{{ $quest->description }}"
+                                            </p>
+
+                                            <div class="text-sm text-white bg-stone-950/80 p-3 rounded-lg mb-3 border border-sky-900/60 font-semibold flex items-center gap-2 shadow-inner">
+                                                <i class="fa-solid fa-bullseye text-sky-400 text-base"></i>
+                                                <span>Cel: {{ $this->getQuestRequirement($quest) }}</span>
+                                            </div>
+
+                                            @if($hint = $this->getQuestHint($quest))
+                                                <div class="text-xs text-sky-300/90 bg-sky-950/50 p-2.5 rounded-lg mb-3 border border-sky-800/40 flex items-center gap-2">
+                                                    <i class="fa-solid fa-lightbulb text-sky-300"></i>
+                                                    <span>{{ $hint }}</span>
+                                                </div>
+                                            @endif
+
+                                            <div class="flex flex-wrap gap-2.5 mb-4 text-xs font-bold">
+                                                @if($quest->reward_gold > 0)
+                                                    <span class="bg-stone-950 text-yellow-300 px-3 py-1.5 rounded-lg border border-yellow-700/50 flex items-center gap-1">
+                                                        <i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($quest->reward_gold) }} złota
+                                                    </span>
+                                                @endif
+                                                @if($quest->reward_exp > 0)
+                                                    <span class="bg-stone-950 text-sky-300 px-3 py-1.5 rounded-lg border border-sky-700/50 flex items-center gap-1">
+                                                        <i class="fa-solid fa-sparkles text-sky-300"></i> {{ number_format($quest->reward_exp) }} XP
+                                                    </span>
+                                                @endif
+                                            </div>
+
+                                            @if($isReadyToClaim)
+                                                <button wire:click="claimReward('{{ $cq->id }}')" @mouseenter="$dispatch('play-audio', { type: 'hover' })"
+                                                        class="w-full bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-stone-950 font-extrabold py-2.5 px-4 rounded-xl transition-colors duration-200 medieval-font flex items-center justify-center gap-2 uppercase tracking-wider border border-amber-300/60 {{ $gameStage == 27 ? 'ring-4 ring-amber-500 animate-pulse relative z-20' : '' }}">
+                                                    @if($quest->type->value === 'gathering')
+                                                        <i class="fa-solid fa-box text-stone-950"></i> Oddaj przedmioty
+                                                    @else
+                                                        <i class="fa-solid fa-gift text-stone-950"></i> Odbierz Nagrodę
+                                                    @endif
+                                                </button>
+                                            @else
+                                                <div class="flex justify-between text-xs text-sky-300/80 font-bold mb-1">
+                                                    <span>Postęp {{ $quest->type->value === 'gathering' ? 'zbierania' : 'misji' }}</span>
+                                                    <span>{{ round($percent) }}%</span>
+                                                </div>
+                                                <div class="w-full bg-stone-950 rounded-full h-3 border border-sky-900/80 shadow-inner overflow-hidden">
+                                                    <div class="bg-sky-500 h-full rounded-full transition-all duration-500" style="width: {{ $percent }}%"></div>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
-                                @endif
+                                </div>
                             </div>
                         @empty
                             <div class="text-center py-8 px-4 bg-stone-950/40 rounded-xl border border-sky-900/30">
@@ -267,12 +330,13 @@
                         </h2>
                         <div class="max-h-56 overflow-y-auto pr-2 space-y-2.5 custom-scrollbar">
                             @forelse($completedQuests as $cq)
-                                <div class="bg-stone-950/70 border border-stone-800/70 rounded-xl p-3 flex justify-between items-center transition-colors hover:border-amber-900/50">
-                                    <div class="flex items-center gap-2.5">
-                                        <i class="fa-solid fa-check text-emerald-400 text-sm"></i>
-                                        <span class="text-stone-300 font-bold text-sm medieval-font">{{ $cq->quest->name }}</span>
+                                <div class="bg-stone-950/70 border border-stone-800/70 rounded-xl p-3 flex justify-between items-center gap-3 transition-colors hover:border-amber-900/50">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <i class="fa-solid fa-check text-emerald-400 text-sm shrink-0"></i>
+                                        <span class="text-stone-300 font-bold text-sm medieval-font truncate">{{ $cq->quest->name }}</span>
+                                        <span class="hidden sm:inline text-[10px] font-bold text-stone-500 border border-stone-800 px-1.5 py-0.5 rounded shrink-0">Poz. {{ $cq->quest->required_level }}</span>
                                     </div>
-                                    <span class="text-stone-500 text-xs font-semibold px-2 py-0.5 bg-stone-900 rounded border border-stone-800">Ukończono</span>
+                                    <span class="text-stone-500 text-xs font-semibold px-2 py-0.5 bg-stone-900 rounded border border-stone-800 shrink-0">Ukończono</span>
                                 </div>
                             @empty
                                 <p class="text-center text-stone-500 italic py-4 text-sm">Brak ukończonych misji w kronice.</p>

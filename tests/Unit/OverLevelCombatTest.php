@@ -8,6 +8,7 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Map;
 use App\Models\User;
 use App\Application\Combat\EncounterService;
+use App\Infrastructure\Persistence\CharacterBestiary;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class OverLevelCombatTest extends TestCase
@@ -134,6 +135,73 @@ class OverLevelCombatTest extends TestCase
             $this->assertArrayHasKey('stats', $mState);
             $this->assertGreaterThan(0, $mState['stats']['atk'] ?? 0);
         }
+    }
+
+    public function test_group_victory_rewards_and_bestiary_scale_with_monster_count()
+    {
+        // Regression test: previously a group fight (3-4 monsters) only ever granted
+        // gold/xp/bestiary progress as if a single monster had been defeated, because
+        // the reward calculation and MonsterDefeated event were only run once for the
+        // group's "representative" monster instead of once per monster actually killed.
+        $user = User::factory()->create(['game_stage' => 20]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'GroupRewardHero',
+            'class' => 'warrior',
+            'level' => 30,
+            'experience' => 0,
+            'gold' => 0,
+            'attributes' => ['str' => 80, 'int' => 10, 'vit' => 80, 'agi' => 50],
+        ]);
+
+        $map = Map::create([
+            'id' => (string) \Illuminate\Support\Str::ulid(),
+            'name' => 'Mroczny Las',
+            'level_min' => 0,
+            'level_max' => 15,
+            'tier' => 1,
+        ]);
+
+        $monster = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Wilk Leśny',
+            'level' => 3,
+            'rank' => 'regular',
+            'stats' => ['hp' => 30, 'atk' => 5, 'def' => 1, 'agi' => 2],
+        ]);
+
+        $service = app(EncounterService::class);
+        $startRes = $service->start($character, $map);
+        $this->assertTrue($startRes->isOk());
+        $encounter = $startRes->getPayload();
+
+        $monsterCount = count($encounter->combat_data['monsters']);
+        $this->assertGreaterThanOrEqual(3, $monsterCount);
+
+        $simRes = $service->simulate($encounter);
+        $this->assertTrue($simRes->isOk());
+
+        $encounter->refresh();
+
+        // With a single, weak monster type and a much stronger character, the fight
+        // must be won for the assertions below to be meaningful.
+        $this->assertEquals('win', $encounter->state);
+
+        // Reward for a single monster of this level, after the -66% over-level
+        // penalty, tops out at 7 gold / 4 xp. If the fix regresses back to
+        // "one representative monster only", totals would sit at/below that ceiling
+        // regardless of how many monsters were actually in the group.
+        $this->assertGreaterThan(7, $encounter->gold_reward);
+        $this->assertGreaterThan(4, $encounter->xp_reward);
+
+        // Bestiary kill count must reflect every monster actually defeated in the
+        // group, not just one.
+        $bestiary = CharacterBestiary::where('character_id', $character->id)
+            ->where('monster_id', $monster->id)
+            ->first();
+
+        $this->assertNotNull($bestiary);
+        $this->assertEquals($monsterCount, $bestiary->kills);
     }
 
     public function test_max_two_duplicates_per_group()
