@@ -227,22 +227,9 @@
         return false;
     };
 
-    // Skraca duże liczby do formy "9k" / "31,5k" / "1,2M" (przecinek jako separator
-    // dziesiętny, jak w reszcie polskiego UI). Liczby < 1000 wracają bez zmian.
+    // Skraca duże liczby do formy "1k" / "1.5k" / "1M". Liczby < 1000 wracają bez zmian.
     $formatNumber = function ($value) {
-        $num = (float) $value;
-        $sign = $num < 0 ? '-' : '';
-        $abs = abs($num);
-
-        if ($abs < 1000) {
-            return $sign . (fmod($abs, 1.0) === 0.0 ? (string) (int) $abs : rtrim(rtrim(number_format($abs, 2, ',', ''), '0'), ','));
-        }
-
-        $unit = $abs >= 1000000 ? 'M' : 'k';
-        $short = round($abs / ($unit === 'M' ? 1000000 : 1000), 1);
-        $formatted = ((float) (int) $short === $short) ? (string) (int) $short : number_format($short, 1, ',', '');
-
-        return $sign . $formatted . $unit;
+        return \App\Support\NumberHelper::formatShort($value);
     };
 @endphp
 

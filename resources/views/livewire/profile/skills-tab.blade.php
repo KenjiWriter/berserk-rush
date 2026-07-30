@@ -170,7 +170,7 @@
                                 <span>Szacowany Wpływ w Walce</span>
                             </span>
                             <span class="text-[9px] text-stone-400 bg-stone-900 px-2 py-0.5 rounded border border-stone-800 font-mono">
-                                Atak Bazowy: {{ $baseMin }}-{{ $baseMax }}
+                                Atak Bazowy: {{ \App\Support\NumberHelper::formatShort($baseMin) }}-{{ \App\Support\NumberHelper::formatShort($baseMax) }}
                             </span>
                         </div>
 

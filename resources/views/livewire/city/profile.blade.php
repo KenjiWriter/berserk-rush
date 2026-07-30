@@ -283,7 +283,7 @@
                     <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
                     <p class="text-amber-200/70 font-semibold text-xs sm:text-sm">Poziom {{ $character->level }}</p>
                     <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1 sm:my-1.5 medieval-font text-center truncate max-w-full flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-bolt text-yellow-400"></i> Moc Bojowa: {{ number_format($character->getTotalCombatPower()) }}
+                        <i class="fa-solid fa-bolt text-yellow-400"></i> Moc Bojowa: {{ \App\Support\NumberHelper::formatShort($character->getTotalCombatPower()) }}
                     </div>
                     
                     @php 
@@ -293,7 +293,7 @@
                     <div class="w-full bg-gray-900 rounded-full h-4 sm:h-5 relative border border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
                         <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
                         <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
-                            XP: {{ number_format($character->xp) }} / {{ number_format($xpRequired) }}
+                            XP: {{ \App\Support\NumberHelper::formatShort($character->xp) }} / {{ \App\Support\NumberHelper::formatShort($xpRequired) }}
                         </span>
                     </div>
                     <div class="w-full mt-2.5 sm:mt-3 border-t border-stone-800 pt-2 sm:pt-2.5">
@@ -511,8 +511,8 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['str'] ?? 0 }}</span>
-                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['str'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['str'] ?? 0 }})</span>
+                                    <span class="text-amber-300 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($baseAttributes['str'] ?? 0) }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['str'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ \App\Support\NumberHelper::formatShort($bonusAttributes['str'] ?? 0) }})</span>
                                 </div>
                                 @if($character->character_points > 0)
                                     <div class="flex gap-1">
@@ -537,8 +537,8 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['int'] ?? 0 }}</span>
-                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['int'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['int'] ?? 0 }})</span>
+                                    <span class="text-amber-300 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($baseAttributes['int'] ?? 0) }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['int'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ \App\Support\NumberHelper::formatShort($bonusAttributes['int'] ?? 0) }})</span>
                                 </div>
                                 @if($character->character_points > 0)
                                     <div class="flex gap-1">
@@ -563,8 +563,8 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['vit'] ?? 0 }}</span>
-                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['vit'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['vit'] ?? 0 }})</span>
+                                    <span class="text-amber-300 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($baseAttributes['vit'] ?? 0) }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['vit'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ \App\Support\NumberHelper::formatShort($bonusAttributes['vit'] ?? 0) }})</span>
                                 </div>
                                 @if($character->character_points > 0)
                                     <div class="flex gap-1">
@@ -589,8 +589,8 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <div class="flex items-center gap-1">
-                                    <span class="text-amber-300 font-bold text-base">{{ $baseAttributes['agi'] ?? 0 }}</span>
-                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['agi'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ $bonusAttributes['agi'] ?? 0 }})</span>
+                                    <span class="text-amber-300 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($baseAttributes['agi'] ?? 0) }}</span>
+                                    <span class="font-bold text-xs sm:text-sm {{ ($bonusAttributes['agi'] ?? 0) > 0 ? 'text-emerald-400' : 'text-stone-500/80' }}">(+{{ \App\Support\NumberHelper::formatShort($bonusAttributes['agi'] ?? 0) }})</span>
                                 </div>
                                 @if($character->character_points > 0)
                                     <div class="flex gap-1">
@@ -607,19 +607,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-sm mt-4 text-gray-300">
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Maksymalna liczba punktów życia w walce.">Max HP:</span>
-                            <span class="text-green-400 font-bold text-base">{{ $derivedStats['max_hp'] }}</span>
+                            <span class="text-green-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['max_hp']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia ataków fizycznych.">Base Damage:</span>
-                            <span class="text-red-400 font-bold text-base">{{ $derivedStats['base_damage_min'] }} - {{ $derivedStats['base_damage_max'] }}</span>
+                            <span class="text-red-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_min']) }} - {{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_max']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia z umiejętności magicznych.">Magic Damage:</span>
-                            <span class="text-purple-400 font-bold text-base">{{ $derivedStats['magic_damage_min'] }} - {{ $derivedStats['magic_damage_max'] }}</span>
+                            <span class="text-purple-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['magic_damage_min']) }} - {{ \App\Support\NumberHelper::formatShort($derivedStats['magic_damage_max']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Redukuje nadchodzące obrażenia w walce.">Damage Reduction:</span>
-                            <span class="text-blue-400 font-bold text-base">{{ $derivedStats['damage_reduction'] }}</span>
+                            <span class="text-blue-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['damage_reduction']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50 group relative">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Szansa na zadanie ataku krytycznego (1.5x obrażeń). Zależy od Zręczności (AGI) oraz założonych przedmiotów. Pamiętaj: im więcej AGI ma przeciwnik, tym Twoja szansa na kryt i unik maleje.">Crit Chance:</span>
