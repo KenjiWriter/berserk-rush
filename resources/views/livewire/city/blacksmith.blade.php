@@ -264,13 +264,7 @@
                                                 <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
                                                      :style="tooltipStyle"
                                                      class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
-                                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                                        <x-slot:actions>
-                                                            <button wire:click.stop="selectItemForUpgrade('{{ $item->id }}'); showInfo = false;" class="w-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold py-1.5 rounded transition">
-                                                                Wybierz do ulepszenia
-                                                            </button>
-                                                        </x-slot:actions>
-                                                    </x-item-tooltip>
+                                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" />
                                                 </div>
                                             </template>
                                         </div>
