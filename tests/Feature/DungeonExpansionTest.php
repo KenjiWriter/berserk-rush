@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Application\Dungeon\DungeonService;
+use App\Infrastructure\Persistence\Monster;
 use Database\Seeders\DungeonSeeder;
 
 class DungeonExpansionTest extends TestCase
@@ -88,5 +89,25 @@ class DungeonExpansionTest extends TestCase
         $this->assertGreaterThan(0, $loot1['gold']);
         $this->assertGreaterThan(0, $loot1['xp']);
         $this->assertEmpty($loot1['items']);
+    }
+
+    public function test_map_bosses_have_dungeon_key_drops_with_small_weight(): void
+    {
+        $this->seed(\Database\Seeders\MonsterSeeder::class);
+        $this->seed(\Database\Seeders\MonsterLootSeeder::class);
+
+        $boss = Monster::where('name', 'Strażnik Puszczy')->first();
+        $this->assertNotNull($boss);
+        $this->assertNotNull($boss->lootTable);
+
+        $keyTemplate = ItemTemplate::where('name', 'Klucz Katakumb')->first();
+        $this->assertNotNull($keyTemplate);
+
+        $keyEntry = $boss->lootTable->entries()
+            ->where('ref_ulid', $keyTemplate->id)
+            ->first();
+
+        $this->assertNotNull($keyEntry);
+        $this->assertEquals(3, $keyEntry->weight); // Small weight (3) vs materials (25)
     }
 }

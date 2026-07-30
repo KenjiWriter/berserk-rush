@@ -478,6 +478,35 @@ class MonsterLootSeeder extends Seeder
                         'max_qty' => 1
                     ]);
                 }
+
+                // 4. Mała szansa na drop Klucza do Lochu z Bossa mapy (Waga 3 vs materiały 25)
+                $bossKeyMapping = [
+                    'Strażnik Puszczy' => 'Klucz Katakumb',
+                    'Władca Krypty' => 'Klucz Krypty',
+                    'Starożytny Ogr' => 'Klucz Krypty',
+                    'Niszczyciel Pustkowi' => 'Klucz Pustkowi',
+                    'Królowa Wiedźm' => 'Klucz Cytadeli',
+                    'Władca Cieni' => 'Klucz Cytadeli',
+                    'Wielki Inkwizytor' => 'Klucz Otchłani',
+                    'Książę Zniszczenia' => 'Klucz Otchłani',
+                ];
+
+                if ($isBoss && isset($bossKeyMapping[$monsterName])) {
+                    $keyName = $bossKeyMapping[$monsterName];
+                    $template = $itemTemplates->get($keyName);
+
+                    if ($template) {
+                        LootTableEntry::firstOrCreate([
+                            'loot_table_id' => $lootTable->id,
+                            'reward_type' => 'material',
+                            'ref_ulid' => $template->id,
+                        ], [
+                            'weight' => 3, // Niska szansa na klucz (znacznie mniejsza niż na materiały)
+                            'min_qty' => 1,
+                            'max_qty' => 1
+                        ]);
+                    }
+                }
             }
         }
 
