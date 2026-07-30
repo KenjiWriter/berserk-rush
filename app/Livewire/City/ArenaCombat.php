@@ -277,31 +277,75 @@ class ArenaCombat extends Component
         $mySideName = $this->isAttackerView ? 'challenger' : 'defender';
         $targetSideName = ($side === 'player') ? $mySideName : ($mySideName === 'challenger' ? 'defender' : 'challenger');
 
-        if (!empty($this->visibleTurns)) {
-            $lastTurn = end($this->visibleTurns);
-            if (!empty($lastTurn['team_state'])) {
-                $members = [];
-                foreach ($lastTurn['team_state'] as $m) {
-                    if ($m['side'] === $targetSideName) {
-                        $members[] = $m;
-                    }
+        $teamSnaps = ($side === 'player') ? ($this->player['team'] ?? []) : ($this->enemy['team'] ?? []);
+
+        $lastTurn = !empty($this->visibleTurns) ? end($this->visibleTurns) : null;
+        $teamStateMap = [];
+        if ($lastTurn && !empty($lastTurn['team_state'])) {
+            foreach ($lastTurn['team_state'] as $m) {
+                if ($m['side'] === $targetSideName) {
+                    $teamStateMap[$m['idx']] = $m;
                 }
-                return $members;
             }
         }
 
-        $teamSnaps = ($side === 'player') ? ($this->player['team'] ?? []) : ($this->enemy['team'] ?? []);
-        return array_map(function ($snap, $idx) use ($targetSideName) {
-            return [
+        $activeActorIdx = null;
+        $activeTargetIdx = null;
+        if ($lastTurn) {
+            if (($lastTurn['actor_side'] ?? null) === $targetSideName) {
+                $activeActorIdx = $lastTurn['actor_idx'] ?? null;
+            }
+            if (($lastTurn['target_side'] ?? null) === $targetSideName) {
+                $activeTargetIdx = $lastTurn['target_idx'] ?? null;
+            }
+        }
+
+        $result = [];
+        foreach ($teamSnaps as $idx => $snap) {
+            $charId = $snap['id'] ?? $snap['character_id'] ?? null;
+            $char = $charId ? Character::find($charId) : null;
+            $avatarUrl = ($char && $char->avatar)
+                ? asset("img/avatars/{$char->avatar}.png")
+                : (isset($snap['avatar']) && $snap['avatar'] ? asset("img/avatars/{$snap['avatar']}.png") : asset('img/avatars/default.png'));
+
+            $hpState = $teamStateMap[$idx] ?? null;
+            $currentHp = $hpState ? $hpState['hp'] : ($snap['max_hp'] ?? 100);
+            $maxHp = $hpState ? $hpState['maxHp'] : ($snap['max_hp'] ?? 100);
+            $isAlive = $hpState ? $hpState['alive'] : ($currentHp > 0);
+
+            $result[] = [
                 'side' => $targetSideName,
                 'idx' => $idx,
-                'name' => $snap['name'] ?? 'Brak name',
+                'id' => $charId,
+                'name' => $snap['name'] ?? "Bohater #" . ($idx + 1),
                 'level' => $snap['level'] ?? 1,
-                'hp' => $snap['max_hp'] ?? 100,
-                'maxHp' => $snap['max_hp'] ?? 100,
-                'alive' => true,
+                'avatar' => $avatarUrl,
+                'hp' => max(0, $currentHp),
+                'maxHp' => max(1, $maxHp),
+                'hpPercent' => max(0, min(100, ($currentHp / max(1, $maxHp)) * 100)),
+                'alive' => $isAlive,
+                'stats' => $snap['attributes'] ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
+                'equipment_stats' => $snap['equipment_stats'] ?? [],
+                'weapon_type' => $snap['weapon_type'] ?? 'barehands',
+                'skills' => $snap['skills'] ?? [],
+                'is_active_actor' => ($activeActorIdx !== null && (int)$activeActorIdx === (int)$idx),
+                'is_active_target' => ($activeTargetIdx !== null && (int)$activeTargetIdx === (int)$idx),
             ];
-        }, $teamSnaps, array_keys($teamSnaps));
+        }
+
+        // Sort so the currently attacking actor (or active target) goes to the TOP OF THE STACK (index 0)
+        usort($result, function ($a, $b) {
+            if ($a['is_active_actor']) return -1;
+            if ($b['is_active_actor']) return 1;
+            if ($a['is_active_target']) return -1;
+            if ($b['is_active_target']) return 1;
+            if ($a['alive'] !== $b['alive']) {
+                return $a['alive'] ? -1 : 1;
+            }
+            return $a['idx'] <=> $b['idx'];
+        });
+
+        return $result;
     }
 
     public function getSkillsWithIcons(array $participant): array
