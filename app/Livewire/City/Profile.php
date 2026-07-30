@@ -32,6 +32,7 @@ class Profile extends Component
 
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
+    #[On('inventory-updated')]
     public function refreshProfile()
     {
         $this->character->refresh();
