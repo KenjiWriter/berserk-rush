@@ -206,13 +206,13 @@
 
         {{-- TAB 2: KONTO VIP --}}
         @if($activeTab === 'premium')
-            <div class="mb-12 max-w-4xl mx-auto">
+            <div class="mb-12 max-w-5xl mx-auto">
                 <div class="text-center mb-8">
                     <h2 class="text-2xl sm:text-3xl font-black text-amber-200 mb-2">Przywileje Konta VIP</h2>
                     <p class="text-stone-400 text-sm">Aktywuj konto VIP za pomocą Gemów i przyspiesz swój rozwój w królestwie</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
                         <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
                             ⚔️
@@ -230,6 +230,26 @@
                         <div>
                             <h4 class="font-bold text-amber-200 text-sm">+20% Szybszy Exp</h4>
                             <p class="text-xs text-stone-400">Przyspiesza awansowanie na wyższe poziomy</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
+                        <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
+                            🎒
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-amber-200 text-sm">Większy Plecak (64 Sloty)</h4>
+                            <p class="text-xs text-stone-400">Podwojona pojemność ekwipunku (+32 miejsca)</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
+                        <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
+                            🛡️
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-amber-200 text-sm">2 Sety na Zapis Ekwipunku</h4>
+                            <p class="text-xs text-stone-400">Dodatkowe zestawy uzbrojenia II i III na profilu</p>
                         </div>
                     </div>
 

@@ -14,6 +14,8 @@ The Item Shop is a premium feature allowing players to purchase Gems via real-wo
 Players can spend Gems to activate or extend their **Premium Account**. Premium status provides the following perks:
 - **Golden Nickname**: The player's name is highlighted in gold in the global and guild chats, making them stand out.
 - **Bonus EXP & Gold**: Premium users receive a +20% bonus to both Experience and Gold gained from all PvE battles.
+- **Expanded Backpack Capacity**: Inventory size is doubled from 32 to 64 slots (`Character::getBackpackCapacity()`).
+- **Extra Equipment Loadout Sets**: Access to 2 additional saved equipment loadout sets (Set II and Set III) in the character profile.
 
 ### 3. Stripe Webhooks Integration
 - Webhooks are used to asynchronously verify successful payments and credit Gems to the player's account.
