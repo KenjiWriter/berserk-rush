@@ -63,6 +63,8 @@
         <livewire:global.tutorial-overlay :step="23" />
     @elseif($gameStage == 30)
         <livewire:global.tutorial-overlay :step="31" />
+    @elseif($gameStage == 35)
+        <livewire:global.tutorial-overlay :step="36" />
     @endif
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
@@ -257,11 +259,17 @@
             </div>
 
             {{-- GUILD (3 cols, 1 row) --}}
-            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-red-900/50 shadow-lg transition-all duration-300 hover:border-red-500/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)]"
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-red-900/50 shadow-lg transition-all duration-300 hover:border-red-500/80 hover:shadow-[0_0_20px_rgba(239,68,68,0.2)] {{ $character->level < 10 ? 'opacity-60 grayscale' : ($gameStage == 36 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '') }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'; $dispatch('play-audio', { type: 'hover' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                <button wire:click="goTo('guild')" @click="{{ $character->level >= 10 ? "travelingTo = 'Gildia'; \$dispatch('play-audio', { type: 'hover' })" : "" }}" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/guild-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+                    @if($character->level < 10)
+                        <div class="absolute top-3 right-3 z-20 bg-stone-950/90 border border-amber-600/50 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+                            <i class="fa-solid fa-lock text-amber-500 text-xs"></i>
+                            <span class="text-[10px] text-amber-300 font-bold uppercase tracking-wider">Zablokowane (Poz. 10)</span>
+                        </div>
+                    @endif
                     <div class="relative z-10 text-center">
                         <div wire:loading wire:target="goTo('guild')" class="mb-1"><svg class="animate-spin h-7 w-7 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         <h3 class="text-xl font-bold text-red-400 medieval-font group-hover:text-red-300 drop-shadow">Gildia</h3>
@@ -388,9 +396,15 @@
 
                 {{-- Guild --}}
                 <div class="col-span-1">
-                    <button wire:click="goTo('guild')" @click="travelingTo = 'Gildia'" class="w-full h-36 rounded-3xl border-2 border-red-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                    <button wire:click="goTo('guild')" @click="{{ $character->level >= 10 ? "travelingTo = 'Gildia'" : "" }}" class="w-full h-36 rounded-3xl border-2 border-red-800/50 overflow-hidden relative shadow-lg {{ $character->level < 10 ? 'opacity-60 grayscale' : ($gameStage == 36 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '') }}" wire:loading.attr="disabled">
                         <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/guild-bg.png') }}');"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        @if($character->level < 10)
+                            <div class="absolute top-2 right-2 z-20 bg-stone-950/90 border border-amber-600/50 px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-lock text-amber-500 text-[10px]"></i>
+                                <span class="text-[9px] text-amber-300 font-bold">Poz. 10</span>
+                            </div>
+                        @endif
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="font-bold text-red-500 medieval-font text-lg">Gildia</div>
                         </div>

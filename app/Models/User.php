@@ -186,5 +186,22 @@ class User extends Authenticatable
                 $this->save();
             }
         }
+
+        if ($this->game_stage == 34) {
+            if (!$character) {
+                $activeCharacterId = session('active_character');
+                if ($activeCharacterId) {
+                    $character = $this->characters()->find($activeCharacterId);
+                }
+            }
+            if (!$character) {
+                $character = $this->characters()->orderBy('level', 'desc')->first();
+            }
+
+            if ($character && $character->level >= 10) {
+                $this->game_stage = 35;
+                $this->save();
+            }
+        }
     }
 }

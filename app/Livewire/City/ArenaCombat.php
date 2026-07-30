@@ -121,63 +121,187 @@ class ArenaCombat extends Component
         }
     }
 
+    public bool $isAttackerView = true;
+
     private function loadGvGData(): void
     {
-        $fight = GuildWarFight::findOrFail($this->guildWarFightId);
+        $fight = GuildWarFight::with(['guildWar.challengerGuild', 'guildWar.defenderGuild'])->findOrFail($this->guildWarFightId);
+        $war = $fight->guildWar;
         
-        // Determine view perspective.
-        // If the viewer is one of the fighters, they are "player". Otherwise, challenger is "player".
-        if ($this->character->id === $fight->defender_character_id) {
-            $isAttacker = false;
-            $mySnap = $fight->defender_snapshot;
-            $enemySnap = $fight->challenger_snapshot;
-            $myChar = Character::find($fight->defender_character_id);
-            $enemyChar = Character::find($fight->challenger_character_id);
-        } else {
-            $isAttacker = true;
-            $mySnap = $fight->challenger_snapshot;
-            $enemySnap = $fight->defender_snapshot;
-            $myChar = Character::find($fight->challenger_character_id);
-            $enemyChar = Character::find($fight->defender_character_id);
+        $challengerSnaps = $fight->challenger_snapshot ?? [];
+        $defenderSnaps = $fight->defender_snapshot ?? [];
+
+        // Normalize single snapshot vs array of snapshots
+        if (isset($challengerSnaps['name'])) {
+            $challengerSnaps = [$challengerSnaps];
+        }
+        if (isset($defenderSnaps['name'])) {
+            $defenderSnaps = [$defenderSnaps];
         }
 
+        // Determine view perspective
+        $isAttacker = true;
+        $inDefenderRoster = false;
+        foreach ($defenderSnaps as $snap) {
+            if (($snap['id'] ?? $snap['character_id'] ?? null) === $this->character->id) {
+                $inDefenderRoster = true;
+                break;
+            }
+        }
+
+        if ($inDefenderRoster || ($war && $this->character->guild_id === $war->defender_guild_id) || ($fight->defender_character_id && $this->character->id === $fight->defender_character_id)) {
+            $isAttacker = false;
+        }
+
+        $this->isAttackerView = $isAttacker;
+
+        $mySnaps = $isAttacker ? $challengerSnaps : $defenderSnaps;
+        $enemySnaps = $isAttacker ? $defenderSnaps : $challengerSnaps;
+
+        // Representative snapshot
+        $primaryMySnap = $mySnaps[0] ?? [
+            'name' => 'Drużyna',
+            'level' => 1,
+            'max_hp' => 100,
+            'attributes' => ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
+        ];
+
+        foreach ($mySnaps as $snap) {
+            if (($snap['id'] ?? $snap['character_id'] ?? null) === $this->character->id) {
+                $primaryMySnap = $snap;
+                break;
+            }
+        }
+
+        $primaryEnemySnap = $enemySnaps[0] ?? [
+            'name' => 'Wroga Drużyna',
+            'level' => 1,
+            'max_hp' => 100,
+            'attributes' => ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
+        ];
+
+        $myCharId = $primaryMySnap['id'] ?? $primaryMySnap['character_id'] ?? null;
+        $enemyCharId = $primaryEnemySnap['id'] ?? $primaryEnemySnap['character_id'] ?? null;
+
+        $myChar = $myCharId ? Character::find($myCharId) : null;
+        $enemyChar = $enemyCharId ? Character::find($enemyCharId) : null;
+
+        $myGuild = $war ? ($isAttacker ? $war->challengerGuild : $war->defenderGuild) : null;
+        $enemyGuild = $war ? ($isAttacker ? $war->defenderGuild : $war->challengerGuild) : null;
+
+        $myTotalMaxHp = array_sum(array_map(fn($s) => $s['max_hp'] ?? 0, $mySnaps)) ?: ($primaryMySnap['max_hp'] ?? 100);
+        $enemyTotalMaxHp = array_sum(array_map(fn($s) => $s['max_hp'] ?? 0, $enemySnaps)) ?: ($primaryEnemySnap['max_hp'] ?? 100);
+
         $this->player = [
-            'name' => $mySnap['name'],
-            'level' => $mySnap['level'],
+            'name' => $myGuild ? $myGuild->name : ($primaryMySnap['name'] ?? 'Drużyna'),
+            'level' => $primaryMySnap['level'] ?? 1,
             'avatar' => ($myChar && $myChar->avatar) ? asset("img/avatars/{$myChar->avatar}.png") : asset('img/avatars/default.png'),
-            'maxHp' => $mySnap['max_hp'],
-            'hp' => $mySnap['max_hp'],
-            'stats' => $mySnap['attributes'],
-            'equipment_stats' => $mySnap['equipment_stats'] ?? [],
-            'weapon_type' => $mySnap['weapon_type'] ?? 'barehands',
-            'skills' => $mySnap['skills'] ?? []
+            'maxHp' => $myTotalMaxHp,
+            'hp' => $myTotalMaxHp,
+            'stats' => $primaryMySnap['attributes'] ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
+            'equipment_stats' => $primaryMySnap['equipment_stats'] ?? [],
+            'weapon_type' => $primaryMySnap['weapon_type'] ?? 'barehands',
+            'skills' => $primaryMySnap['skills'] ?? [],
+            'team' => $mySnaps,
         ];
 
         $this->enemy = [
-            'name' => $enemySnap['name'],
-            'level' => $enemySnap['level'],
+            'name' => $enemyGuild ? $enemyGuild->name : ($primaryEnemySnap['name'] ?? 'Wroga Drużyna'),
+            'level' => $primaryEnemySnap['level'] ?? 1,
             'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
-            'maxHp' => $enemySnap['max_hp'],
-            'hp' => $enemySnap['max_hp'],
-            'stats' => $enemySnap['attributes'],
-            'equipment_stats' => $enemySnap['equipment_stats'] ?? [],
-            'weapon_type' => $enemySnap['weapon_type'] ?? 'barehands',
-            'skills' => $enemySnap['skills'] ?? []
+            'maxHp' => $enemyTotalMaxHp,
+            'hp' => $enemyTotalMaxHp,
+            'stats' => $primaryEnemySnap['attributes'] ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
+            'equipment_stats' => $primaryEnemySnap['equipment_stats'] ?? [],
+            'weapon_type' => $primaryEnemySnap['weapon_type'] ?? 'barehands',
+            'skills' => $primaryEnemySnap['skills'] ?? [],
+            'team' => $enemySnaps,
         ];
 
         $this->isCalculating = false;
 
-        if ($fight->turns) {
-            $this->allTurns = $this->transformTurnsToPerspective($fight->turns, $isAttacker);
-            $this->playerFirst = $fight->combat_data['attacker_first'] ?? true;
-            if (!$isAttacker) $this->playerFirst = !$this->playerFirst;
+        if (!empty($fight->turns)) {
+            $this->allTurns = $this->transformGvGTurnsToPerspective($fight->turns, $isAttacker);
+            $this->playerFirst = true;
             
-            $iAmWinner = ($fight->winner_character_id === ($isAttacker ? $fight->challenger_character_id : $fight->defender_character_id));
+            if ($war && $war->winner_guild_id) {
+                $iAmWinner = ($war->winner_guild_id === $this->character->guild_id || ($isAttacker && $war->winner_guild_id === $war->challenger_guild_id));
+            } else {
+                $challengerSurvivors = $fight->challenger_survivors ?? 0;
+                $defenderSurvivors = $fight->defender_survivors ?? 0;
+                $iAmWinner = $isAttacker ? ($challengerSurvivors >= $defenderSurvivors) : ($defenderSurvivors >= $challengerSurvivors);
+            }
+
             $this->result = $iAmWinner ? 'win' : 'lose';
-            
-            // Auto start playback for GvG - triggered via wire:init
             $this->isPlaying = true;
         }
+    }
+
+    private function transformGvGTurnsToPerspective(array $turns, bool $isAttackerView): array
+    {
+        $mySideName = $isAttackerView ? 'challenger' : 'defender';
+
+        return array_map(function ($turn) use ($mySideName) {
+            $newTurn = $turn;
+            
+            $actorSide = $turn['actor_side'] ?? (($turn['actor'] ?? '') === 'attacker' ? 'challenger' : 'defender');
+            $newTurn['actor'] = ($actorSide === $mySideName) ? 'player' : 'enemy';
+
+            if (!empty($turn['team_state'])) {
+                $myTeamHp = 0;
+                $enemyTeamHp = 0;
+                foreach ($turn['team_state'] as $member) {
+                    if ($member['side'] === $mySideName) {
+                        $myTeamHp += max(0, $member['hp']);
+                    } else {
+                        $enemyTeamHp += max(0, $member['hp']);
+                    }
+                }
+                $newTurn['playerHp'] = $myTeamHp;
+                $newTurn['enemyHp'] = $enemyTeamHp;
+            } else {
+                $newTurn['playerHp'] = $turn['playerHp'] ?? ($newTurn['actor'] === 'player' ? ($turn['attackerHp'] ?? 0) : ($turn['defenderHp'] ?? 0));
+                $newTurn['enemyHp'] = $turn['enemyHp'] ?? ($newTurn['actor'] === 'enemy' ? ($turn['attackerHp'] ?? 0) : ($turn['defenderHp'] ?? 0));
+            }
+
+            return $newTurn;
+        }, $turns);
+    }
+
+    public function getCurrentTeamMembers(string $side): array
+    {
+        if ($this->type !== 'gvg') {
+            return [];
+        }
+
+        $mySideName = $this->isAttackerView ? 'challenger' : 'defender';
+        $targetSideName = ($side === 'player') ? $mySideName : ($mySideName === 'challenger' ? 'defender' : 'challenger');
+
+        if (!empty($this->visibleTurns)) {
+            $lastTurn = end($this->visibleTurns);
+            if (!empty($lastTurn['team_state'])) {
+                $members = [];
+                foreach ($lastTurn['team_state'] as $m) {
+                    if ($m['side'] === $targetSideName) {
+                        $members[] = $m;
+                    }
+                }
+                return $members;
+            }
+        }
+
+        $teamSnaps = ($side === 'player') ? ($this->player['team'] ?? []) : ($this->enemy['team'] ?? []);
+        return array_map(function ($snap, $idx) use ($targetSideName) {
+            return [
+                'side' => $targetSideName,
+                'idx' => $idx,
+                'name' => $snap['name'] ?? 'Brak name',
+                'level' => $snap['level'] ?? 1,
+                'hp' => $snap['max_hp'] ?? 100,
+                'maxHp' => $snap['max_hp'] ?? 100,
+                'alive' => true,
+            ];
+        }, $teamSnaps, array_keys($teamSnaps));
     }
 
     public function getSkillsWithIcons(array $participant): array

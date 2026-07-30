@@ -4,6 +4,15 @@
 
 System gildii pozwala graczom łączyć się w grupy, współpracować, zbierać surowce (EXP, złoto, klejnoty) do wspólnego skarbca i budować społeczność. Każda gildia posiada własny skarbiec, poziom, system ról oraz wbudowany dedykowany kanał czatu.
 
+### Blokada dostępu (10 poziom postaci) i wątek samouczka
+
+Cały moduł Gildii wymaga **10 poziomu postaci** (`Character::level >= 10`) - próg globalny, niezależny od `Guild::min_level` ustawianego przez lidera dla konkretnej gildii. Blokada jest wyegzekwowana w trzech miejscach, wzorem Tablicy Wyzwań (próg 5 poziomu):
+- kafel Gildii w Hubie (`resources/views/livewire/city/hub.blade.php`, desktop i mobile) - szary, z badge `fa-lock` "Zablokowane (Poz. 10)" poniżej progu,
+- link "Gildia" w nawigacji bocznej/mobilnej (`desktop-nav.blade.php`, `mobile-nav.blade.php`, zmienna `$isGuildLocked`) - poniżej progu zamieniony na toast błędu zamiast nawigacji,
+- `GuildComponent::mount()` - twarda blokada przy bezpośrednim wejściu pod `/guild`.
+
+Odblokowanie modułu jest wpięte w samouczek Kapitana (`User::game_stage` 34→37) - patrz `docs/modules/tutorial.md`, sekcja "Gildia". Gracz, który osiągnie 10 poziom zanim dotrze tu w normalnym toku samouczka, po kliknięciu zablokowanej ikony/kafla Gildii zostaje odbity do Hubu, gdzie automatycznie odpala się odpowiedni etap dialogu Kapitana (ten sam mechanizm anti-softlock co przy Tablicy Wyzwań).
+
 ---
 
 ## Zakres funkcjonalności

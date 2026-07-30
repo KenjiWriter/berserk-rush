@@ -86,6 +86,10 @@
                                 Witaj w zakładce Zaczarowania! To tutaj możesz nasycać swoje bronie, pancerze i biżuterię magicznymi właściwościami. Każde udane zaklinanie dodaje nową potężną statystykę do Twojego przedmiotu. Wybierz przedmiot ze swojego ekwipunku i zaklnij go z sukcesem!
                             @elseif($step == 33 || $step == 34)
                                 Niesamowite! Przedmiot został pomyślnie nasycony magią! Jak widzisz, czary potrafią znacząco zwiększyć Twoją moc bojową. Przyjmij tę nagrodę i wykorzystuj wiedzę Wiedźmy w swoich kolejnych przygodach!
+                            @elseif($step == 36)
+                                Wojowniku, osiągnąłeś już dziesiąty poziom - jesteś gotów, by przyłączyć się do większej sprawy! W naszym królestwie działają Gildie - zrzeszenia wojowników, którzy razem stają się silniejsi. Możesz oddawać część zdobywanego doświadczenia oraz zasobów do skarbca swojej Gildii, by wspólnie ulepszać jej poziom i zdobywać potężne bonusy dla wszystkich członków. Silne Gildie mogą również wypowiadać sobie nawzajem wojny i walczyć o chwałę oraz łupy! Odwiedź teraz siedzibę Gildii, by dowiedzieć się więcej.
+                            @elseif($step == 37)
+                                Witaj w siedzibie Gildii! Stąd możesz założyć własną Gildię i zostać jej dowódcą, albo dołączyć do jednej z istniejących załóg i razem z innymi wojownikami budować wspólną potęgę. Wybór należy do Ciebie!
                             @endif
                         </div>
 

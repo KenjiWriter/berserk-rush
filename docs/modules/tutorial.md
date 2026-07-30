@@ -34,6 +34,7 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Zakończenie (game_stage 20 -> 21)**: Powrót do miasta i otrzymanie nagrody finałowej – Skórzanej Zbroi. Po tym etapie gracz jest wolny od samouczka pierwszego etapu.
 - **Tablica Wyzwań i Osiągnięcia (game_stage 22-30)**: Aktywowane po wbiciu 5 poziomu postaci. Do etapu 22 Tablica Wyzwań jest zablokowana. Dopiero po awansie na 5 poziom Kapitan ponownie wita gracza w obozie, zachęca do odwiedzenia Tablicy Wyzwań i instruuje jak odbierać misje, wykonuje się przykładową misję, odbiera nagrodę, po czym Kapitan przedstawia system Osiągnięć.
 - **Czarodziej i Zaklinanie Przedmiotów (game_stage 30-34)**: Po powrocie do Głównego Obozu Kapitan informuje gracza, że kolejnym mieszkańcem jest Czarodziej. Kafel Czarodzieja w Hubie zostaje podświetlony. Po przejściu do Czarodzieja Kapitan oprowadza gracza po mechanice zaklinania (dodawanie bonusów) i zleca pomyślne zaklecie dowolnego przedmiotu. Po wykonaniu zadania z sukcesem gracz otrzymuje nagrodę 200 EXP oraz 250 Golda.
+- **Gildia (game_stage 34-37)**: Aktywowane po wbiciu 10 poziomu postaci (analogicznie do Tablicy Wyzwań na 5 poziomie). Moduł Gildii (`city.guild`) jest zablokowany (kafel w Hubie i link w nawigacji wygaszone, badge `fa-lock`) dopóki postać nie osiągnie 10 poziomu. Po spełnieniu warunku, w Hubie pojawia się dymek Kapitana (etap 35→36) tłumaczący mechaniki gildii: oddawanie doświadczenia i zasobów do skarbca, ulepszanie poziomu gildii oraz wojny między gildiami. Po zamknięciu dymku podświetla się kafel Gildii; wejście do widoku listy gildii pokazuje kolejny dymek (etap 36→37), w którym Kapitan informuje, że można założyć własną gildię lub dołączyć do istniejącej. Etap kończy się na 37, bez nagrody rzeczowej.
 
 ## Automatyczne Pomijanie Etapów (Anti-Softlock)
 
@@ -44,6 +45,10 @@ Samouczek liniowy oparty o ścisłe porównania `game_stage == X` potrafił blok
    - w Hubie (`Hub::goTo('quests')`) ustawia `game_stage` na 22 i pozostaje w Hubie, dzięki czemu od razu pojawia się dymek Kapitana rozpoczynający wątek questowy (etap 22 -> 23),
    - przy bezpośrednim wejściu na `/quests` (`Quests::mount`) robi to samo i przekierowuje z powrotem do Hubu, żeby ten sam dymek Kapitana mógł się pokazać.
    Gracze poniżej 5 poziomu nadal widzą kafel jako zablokowany (szary, z komunikatem błędu) i nie przechodzą dalej.
+3. **Natychmiastowe odblokowanie Gildii po 10 poziomie**: Analogiczny mechanizm dla progu 10 poziomu i modułu Gildii. `User::checkAndRepairTutorialStage()` automatycznie przeskakuje z `game_stage == 34` na `35`, gdy postać ma już 10 poziom. Dodatkowo, jeśli gracz kliknie zablokowany (poniżej progu wizualnie, ale odblokowany poziomem) kafel/link Gildii zanim samouczek dotrze tam sam:
+   - w Hubie (`Hub::goTo('guild')`) ustawia `game_stage` na 35 i pozostaje w Hubie, pokazując od razu dymek Kapitana (etap 35 -> 36),
+   - przy bezpośrednim wejściu na `/guild` (`GuildComponent::mount`) robi to samo i przekierowuje z powrotem do Hubu.
+   Gracze poniżej 10 poziomu nadal widzą kafel/link jako zablokowany.
 
 ## Implementacja na przyszłość
 

@@ -48,6 +48,18 @@ class Hub extends Component
             return;
         }
 
+        if ($building === 'guild' && auth()->user()->game_stage < 35) {
+            // Postać ma już wymagany poziom, ale utknęła wcześniej w łańcuchu samouczka -
+            // klik w zablokowaną Gildię przeskakuje od razu do etapu z Kapitanem.
+            if ($this->character->level >= 10) {
+                Auth::user()->update(['game_stage' => 35]);
+                return;
+            }
+
+            $this->dispatch('notify', type: 'error', message: 'Gildia jest zablokowana! Wbij 10 poziom postaci i wyczekuj rozkazów Kapitana.');
+            return;
+        }
+
         $route = match ($building) {
             'profile' => route('city.profile', $this->character),
             'merchant' => route('city.merchant', $this->character),

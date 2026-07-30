@@ -17,6 +17,7 @@
             auth()->user()->checkAndRepairTutorialStage($character);
         }
         $isQuestsLocked = auth()->check() && (!$character || $character->level < 5);
+        $isGuildLocked = auth()->check() && (!$character || $character->level < 10);
 
         $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount;
     @endphp
@@ -266,11 +267,20 @@
                             <span class="truncate text-[11px] sm:text-xs">Gladiator</span>
                         </a>
 
-                        <a href="{{ route('city.guild', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
-                            <i class="fa-solid fa-flag text-amber-400 text-sm shrink-0"></i>
-                            <span class="truncate text-[11px] sm:text-xs">Gildia</span>
-                        </a>
+                        @if($isGuildLocked)
+                            <a href="javascript:void(0)" @click="$dispatch('notify', { type: 'error', message: 'Gildia jest zablokowana! Wbij 10 poziom postaci i wyczekuj rozkazów Kapitana.' })"
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-stone-800 bg-stone-950/80 text-stone-500 opacity-60 grayscale cursor-not-allowed relative min-w-0">
+                                <i class="fa-solid fa-flag text-amber-500/40 text-sm shrink-0"></i>
+                                <span class="truncate text-[11px] sm:text-xs">Gildia</span>
+                                <i class="fa-solid fa-lock text-amber-500 text-xs ml-auto shrink-0"></i>
+                            </a>
+                        @else
+                            <a href="{{ route('city.guild', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag', url: $el.href })"
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                                <i class="fa-solid fa-flag text-amber-400 text-sm shrink-0"></i>
+                                <span class="truncate text-[11px] sm:text-xs">Gildia</span>
+                            </a>
+                        @endif
 
                         <a href="{{ route('city.mailbox', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Skrzynka Pocztowa...', icon: 'fa-solid fa-envelope', url: $el.href })"
                            class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">

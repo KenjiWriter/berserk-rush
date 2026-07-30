@@ -266,6 +266,26 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($type === 'gvg')
+                            <div class="mt-2.5 pt-2 border-t border-amber-900/40">
+                                <h4 class="text-[11px] sm:text-xs font-bold text-amber-200/90 mb-1.5 medieval-font tracking-wide text-center">
+                                    Skład Drużyny
+                                </h4>
+                                <div class="space-y-1">
+                                    @foreach($this->getCurrentTeamMembers('player') as $member)
+                                        <div class="flex items-center justify-between text-xs px-2 py-1 bg-slate-900/80 rounded-lg border border-amber-500/20">
+                                            <span class="font-semibold text-xs {{ $member['alive'] ? 'text-amber-200' : 'text-slate-500 line-through' }}">
+                                                {{ $member['name'] }} <span class="text-[10px] text-amber-400/70">(Lvl {{ $member['level'] }})</span>
+                                            </span>
+                                            <span class="font-mono text-[11px] font-bold {{ $member['alive'] ? 'text-emerald-400' : 'text-red-400' }}">
+                                                {{ $member['hp'] }}/{{ $member['maxHp'] }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -314,12 +334,13 @@
                                     @foreach ($visibleTurns as $index => $turn)
                                         <li class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
                                             <span class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-amber-900/80 text-amber-200 rounded-md border border-amber-600/40 px-1 py-0.5 mr-1.5 font-mono">
-                                                T{{ $index + 1 }}
+                                                T{{ $turn['round'] ?? ($index + 1) }}
                                             </span>
                                             @if ($turn['type'] == 'miss')
                                                 <span class="text-slate-300 italic font-semibold">
-                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    pudłuje atak!
+                                                    <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
+                                                    pudłuje atak
+                                                    @if(!empty($turn['target_name'])) w <strong>{{ $turn['target_name'] }}</strong>@endif!
                                                     @if (!empty($turn['dotDamage']))
                                                         <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
@@ -328,10 +349,22 @@
                                                 <span class="text-purple-300 font-semibold italic">
                                                     Zadano <strong class="text-purple-200 font-mono">{{ $turn['value'] }}</strong> obrażeń od statusów.
                                                 </span>
+                                            @elseif ($turn['type'] == 'crowd_controlled')
+                                                <span class="text-amber-300 font-semibold italic">
+                                                    <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
+                                                    jest ogłuszony/a i traci turę!
+                                                </span>
+                                            @elseif ($turn['type'] == 'skill_heal')
+                                                <span class="text-emerald-300 font-semibold">
+                                                    <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
+                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Leczenie' }}</span> i odnawia <strong class="text-emerald-400 font-mono">{{ $turn['value'] }}</strong> HP!
+                                                </span>
                                             @elseif ($turn['type'] == 'skill')
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
-                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                    <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
+                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span>
+                                                    @if(!empty($turn['target_name'])) na <strong>{{ $turn['target_name'] }}</strong>@endif
+                                                    i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
                                                     @if (!empty($turn['dotDamage']))
                                                         <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
@@ -340,12 +373,12 @@
                                                 </span>
                                             @else
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
-                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                    <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
                                                     zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                    @if(!empty($turn['target_name'])) obrażeń w <strong>{{ $turn['target_name'] }}</strong>@else obrażeń@endif
                                                     @if (!empty($turn['dotDamage']))
                                                         <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
-                                                    obrażeń
                                                     @if (!empty($turn['crit']))
                                                         <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span>
                                                     @endif
@@ -611,6 +644,26 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($type === 'gvg')
+                            <div class="mt-2.5 pt-2 border-t border-red-900/40">
+                                <h4 class="text-[11px] sm:text-xs font-bold text-red-200/90 mb-1.5 medieval-font tracking-wide text-center">
+                                    Wrogi Skład
+                                </h4>
+                                <div class="space-y-1">
+                                    @foreach($this->getCurrentTeamMembers('enemy') as $member)
+                                        <div class="flex items-center justify-between text-xs px-2 py-1 bg-slate-900/80 rounded-lg border border-red-500/20">
+                                            <span class="font-semibold text-xs {{ $member['alive'] ? 'text-red-200' : 'text-slate-500 line-through' }}">
+                                                {{ $member['name'] }} <span class="text-[10px] text-red-400/70">(Lvl {{ $member['level'] }})</span>
+                                            </span>
+                                            <span class="font-mono text-[11px] font-bold {{ $member['alive'] ? 'text-emerald-400' : 'text-red-400' }}">
+                                                {{ $member['hp'] }}/{{ $member['maxHp'] }}
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

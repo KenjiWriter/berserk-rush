@@ -42,10 +42,24 @@ class GuildComponent extends Component
     public array $warTeamMembersCache = [];
     public array $memberTooltipData = [];
 
-    public function mount(Character $character): void
+    public function mount(Character $character)
     {
         if (Auth::user()->id !== $character->user_id) {
             abort(403);
+        }
+
+        Auth::user()->checkAndRepairTutorialStage($character);
+
+        if (Auth::user()->game_stage < 35) {
+            // Postać ma już wymagany poziom, ale utknęła wcześniej w łańcuchu samouczka -
+            // wejście wprost pod /guild odbija do Hubu, gdzie pojawia się dymek Kapitana.
+            if ($character->level >= 10) {
+                Auth::user()->update(['game_stage' => 35]);
+                return redirect()->route('city.hub', $character);
+            }
+
+            session()->flash('error', 'Gildia jest zablokowana do momentu osiągnięcia 10 poziomu postaci!');
+            return redirect()->route('city.hub', $character);
         }
 
         $this->character = $character;

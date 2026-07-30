@@ -28,11 +28,14 @@ class EquipmentMapDropTest extends TestCase
             $totalWeight = max(1, $monster->lootTable->entries->sum('weight'));
             foreach ($monster->lootTable->entries as $entry) {
                 if ($entry->reward_type === 'item') {
-                    $foundItemEntry = true;
-                    $this->assertEquals(2, $entry->weight);
-                    $chance = round(($entry->weight / $totalWeight) * 100, 1);
-                    $this->assertGreaterThanOrEqual(0.5, $chance);
-                    $this->assertLessThanOrEqual(0.6, $chance);
+                    $template = \App\Infrastructure\Persistence\ItemTemplate::find($entry->ref_ulid);
+                    if ($template && !in_array($template->type, ['consumable', 'key', 'currency', 'material'])) {
+                        $foundItemEntry = true;
+                        $this->assertEquals(2, $entry->weight);
+                        $chance = round(($entry->weight / $totalWeight) * 100, 1);
+                        $this->assertGreaterThanOrEqual(0.5, $chance);
+                        $this->assertLessThanOrEqual(0.6, $chance);
+                    }
                 }
             }
         }

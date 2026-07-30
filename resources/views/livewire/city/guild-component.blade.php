@@ -39,6 +39,10 @@
             </div>
         </div>
 
+        @if(auth()->user()->game_stage == 36)
+            <livewire:global.tutorial-overlay :step="37" />
+        @endif
+
         @if($viewMode === 'list')
             {{-- GUILDS DIRECTORY LIST --}}
             <div class="bg-gradient-to-b from-stone-900/95 via-amber-950/30 to-stone-900/95 border-2 border-amber-800/60 rounded-2xl p-5 sm:p-7 shadow-2xl backdrop-blur-md relative">
