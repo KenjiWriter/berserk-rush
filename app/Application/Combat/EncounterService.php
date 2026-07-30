@@ -437,7 +437,11 @@ class EncounterService
 
                     if ($isWorldBoss) {
                         $winner = 'enemy'; // Worldboss always wins/survives
-                        $damageDealt = max(0, $monsterMaxHp - $finalMonsterHp);
+                        // Cast do int: $finalMonsterHp może wyjść jako float (np. z procentowych
+                        // efektów %HP naliczanych w trakcie tur), a "damage" w
+                        // world_boss_damage_logs jest kolumną bigint - PostgreSQL (produkcja),
+                        // w przeciwieństwie do MySQL, odrzuca wtedy insert błędem 22P02.
+                        $damageDealt = (int) round(max(0, $monsterMaxHp - $finalMonsterHp));
                         
                         // Skalowanie nagród używając spłaszczonej krzywej (np. pierwiastek) by zapobiec nieskończonemu wzrostowi
                         $baseGold = max(10, (int)ceil(pow($damageDealt, 0.7)));

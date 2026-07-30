@@ -105,5 +105,14 @@ class WorldBossSkillDamageTest extends TestCase
                 $this->assertLessThan(10000, $turn['dotDamage'], "Individual DoT tick ({$turn['dotDamage']}) was not capped");
             }
         }
+
+        // world_boss_damage_logs.damage is a bigint column. Percent-HP skills can leave
+        // $finalMonsterHp as a float, which produces a non-integer $damageDealt - this passes
+        // silently on MySQL/SQLite (they coerce it) but PostgreSQL rejects it outright with a
+        // 22P02 error (fix 2026-07-30). Assert the persisted value is a clean integer so this
+        // regression can't sneak back in.
+        $log = \App\Infrastructure\Persistence\WorldBossDamageLog::where('character_id', $character->id)->first();
+        $this->assertNotNull($log);
+        $this->assertEquals((int) $log->damage, $log->damage, 'damage must be a whole number for PostgreSQL bigint compatibility');
     }
 }
