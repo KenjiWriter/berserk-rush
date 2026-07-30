@@ -113,6 +113,40 @@ class EnchantmentStrategy
         return self::BONUS_LABELS[$key] ?? ucwords(str_replace('_', ' ', $key));
     }
 
+    public static function getMaxBonusForType(string $itemType, string $statKey): ?int
+    {
+        $weaponMax = [
+            'attack_power' => 50, 'magic_attack' => 50, 'crit_chance' => 10,
+            'strong_vs_demons' => 20, 'strong_vs_undead' => 20, 'strong_vs_animals' => 20,
+            'strong_vs_orcs' => 20, 'poison_chance' => 7, 'stun_chance' => 7, 'strong_vs_hero' => 20,
+        ];
+        $armorMax = [
+            'hp_bonus' => 50, 'defense' => 15, 'dodge_chance' => 5,
+            'resist_demons' => 10, 'resist_undead' => 10, 'resist_animals' => 10,
+            'resist_orcs' => 10, 'resist_poison' => 7, 'resist_stun' => 7,
+        ];
+        $accessoryMax = [
+            'hp_bonus' => 120, 'defense' => 10, 'crit_chance' => 5,
+            'str_bonus' => 5, 'agi_bonus' => 5, 'int_bonus' => 5, 'vit_bonus' => 5,
+            'double_exp_chance' => 10, 'double_gold_chance' => 10, 'double_drop_chance' => 10,
+        ];
+
+        if ($itemType === 'accessory') {
+            return $accessoryMax[$statKey] ?? null;
+        }
+
+        $isWeapon = in_array($itemType, ['sword', 'staff', 'bow', 'weapon'], true);
+        $pool = $isWeapon ? $weaponMax : $armorMax;
+
+        return $pool[$statKey] ?? null;
+    }
+
+    public static function isEnchantMaxed(string $itemType, string $statKey, int $value): bool
+    {
+        $max = self::getMaxBonusForType($itemType, $statKey);
+        return $max !== null && $value >= $max;
+    }
+
     public function __construct(private RandomProvider $rng)
     {}
 

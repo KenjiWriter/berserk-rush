@@ -433,10 +433,13 @@
                         <div class="w-px self-stretch bg-slate-600/60"></div>
 
                         <div class="w-[152px] shrink-0 space-y-1.5">
-                            <p class="text-[10px] uppercase tracking-wider text-purple-300/70 font-bold mb-1 flex items-center gap-1">
-                                <i class="fa-solid fa-wand-sparkles"></i> Zaczarowania
+                            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-sparkles text-gray-400"></i> Zaczarowania
                             </p>
-                            @php $enchantKeys = array_keys($enchants); @endphp
+                            @php
+                                $enchantKeys = array_keys($enchants);
+                                $itemType = $template->type ?? '';
+                            @endphp
                             @for ($i = 0; $i < 5; $i++)
                                 @php
                                     $stat = $enchantKeys[$i] ?? null;
@@ -444,15 +447,13 @@
                                     $eq_val = ($canCompare && $stat) ? ($equipped_enchants[$stat] ?? 0) : 0;
                                     $diff = $val - $eq_val;
                                     $suffix = $stat ? ($isPercentStat($stat, true) ? '%' : '') : '';
+                                    $isMaxed = $stat ? \App\Domain\Wizard\EnchantmentStrategy::isEnchantMaxed($itemType, $stat, $val) : false;
                                 @endphp
                                 @if($stat)
-                                    <div class="flex items-center justify-between gap-1 text-purple-400 text-xs">
-                                        <span class="flex items-center gap-1 truncate">
-                                            <i class="fa-solid fa-star text-purple-400 text-[10px] shrink-0"></i>
-                                            <span class="truncate">{{ $formatStatName($stat) }}</span>
-                                        </span>
+                                    <div class="flex items-center justify-between gap-1 text-xs">
+                                        <span class="truncate text-gray-200">{{ $formatStatName($stat) }}</span>
                                         <span class="flex items-center gap-1 shrink-0">
-                                            <span class="font-bold text-purple-300">+{{ $formatNumber($val) }}{{ $suffix }}</span>
+                                            <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">{{ $val > 0 ? '+' : '' }}{{ $formatNumber($val) }}{{ $suffix }}</span>
                                             <span x-show="compare" class="text-[10px] font-bold {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
                                                 @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
                                             </span>
@@ -543,22 +544,24 @@
                         <div class="w-px self-stretch bg-slate-700"></div>
 
                         <div class="w-[152px] shrink-0 space-y-1.5">
-                            <p class="text-[10px] uppercase tracking-wider text-purple-300/50 font-bold mb-1 flex items-center gap-1">
-                                <i class="fa-solid fa-wand-sparkles"></i> Zaczarowania
+                            <p class="text-[10px] uppercase tracking-wider text-gray-400 font-bold mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-wand-sparkles text-gray-400"></i> Zaczarowania
                             </p>
-                            @php $eqEnchantKeys = array_keys($equipped_enchants); @endphp
+                            @php
+                                $eqEnchantKeys = array_keys($equipped_enchants);
+                                $eqType = $equippedItem->template->type ?? $template->type ?? '';
+                            @endphp
                             @for ($i = 0; $i < 5; $i++)
                                 @php
                                     $stat = $eqEnchantKeys[$i] ?? null;
+                                    $val = $stat ? ($equipped_enchants[$stat] ?? 0) : 0;
                                     $suffix = $stat ? ($isPercentStat($stat, true) ? '%' : '') : '';
+                                    $isMaxed = $stat ? \App\Domain\Wizard\EnchantmentStrategy::isEnchantMaxed($eqType, $stat, $val) : false;
                                 @endphp
                                 @if($stat)
-                                    <div class="flex items-center justify-between gap-1 text-purple-400/80 text-xs">
-                                        <span class="flex items-center gap-1 truncate">
-                                            <i class="fa-solid fa-star text-purple-400 text-[10px] shrink-0"></i>
-                                            <span class="truncate">{{ $formatStatName($stat) }}</span>
-                                        </span>
-                                        <span class="font-bold shrink-0">+{{ $formatNumber($equipped_enchants[$stat]) }}{{ $suffix }}</span>
+                                    <div class="flex items-center justify-between gap-1 text-xs">
+                                        <span class="truncate text-gray-200">{{ $formatStatName($stat) }}</span>
+                                        <span class="font-bold shrink-0 {{ $isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">{{ $val > 0 ? '+' : '' }}{{ $formatNumber($val) }}{{ $suffix }}</span>
                                     </div>
                                 @else
                                     <div class="flex items-center gap-1.5 text-gray-600 italic text-xs">

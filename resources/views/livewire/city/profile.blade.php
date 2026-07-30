@@ -305,6 +305,7 @@
                                 @endphp
                                 <div x-data="{ open: false, hoverTimeout: null }" @click.outside="open = false"
                                      class="w-11 h-11 xs:w-13 xs:h-13 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl border-2 border-stone-700 bg-stone-900/90 flex flex-col items-center justify-center relative shadow-md transition-all duration-200 {{ $equippedSkill ? 'border-amber-500/80 hover:border-amber-400 bg-gradient-to-br from-amber-950/60 via-stone-900 to-amber-900/40 cursor-pointer shadow-[0_0_12px_rgba(245,158,11,0.25)] hover:scale-105' : 'border-dashed border-stone-700/80' }}"
+                                     :class="{ '!z-[99999] relative': open }"
                                      @if($equippedSkill) 
                                         @mouseenter="clearTimeout(hoverTimeout); open = true" 
                                         @mouseleave="hoverTimeout = setTimeout(() => { open = false }, 250)" 
