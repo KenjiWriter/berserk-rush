@@ -50,14 +50,11 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > Metin2). Reszta puli (crit_chance, str_bonus, resist_X itd.) losuje się bez zmian,
 > jednostajnie w swoim zakresie.
 >
-> **Zakres `[-20, 50]` - prawdziwy hazard (rozszerzenie z tego samego dnia):** na
-> życzenie użytkownika zakres objął też wyniki UJEMNE - zaklęcie może więc realnie
-> **osłabić** broń. Rozkład jest silnie przechylony w stronę dołu zakresu (nie w stronę
-> zera) - empirycznie (20k prób): wynik ujemny ~34% szans, `>= +30%` ~11%, `>= +45%` ~2%,
-> a samo maksimum `+50%` poniżej 1%. UI (`witch.blade.php`) oznacza ten afiks ikoną
-> kostki i czerwoną ramką na liście "Możliwe Zaklęcia", a już rzucony wynik ujemny
-> wyświetla się na czerwono w sekcji "Magiczne Moce" - w przeciwieństwie do reszty puli,
-> gdzie każdy wynik jest z definicji korzystny dla gracza.
+> **Zakres `[-20, 50]` - prawdziwy hazard (rozszerzenie 2026-07-30):** na
+> życzenie użytkownika afiks `hp_bonus` na wszystkich przedmiotach (w tym biżuterii)
+> również został ujednolicony do zakresu procentowego **`[-20, 50]`** (od -20% do +50%).
+> Rozkład jest silnie przechylony w stronę dołu zakresu za pomocą rozkładu wykładniczego (`roll^4`).
+> Wyniki `>= +40%` są wyjątkowo rzadkie (< 3.8% szansy), a maksimum `+50%` poniżej 0.5% szansy.
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od

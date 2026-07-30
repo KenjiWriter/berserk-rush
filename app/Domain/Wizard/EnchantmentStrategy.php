@@ -60,7 +60,7 @@ class EnchantmentStrategy
     // dodają atrybutów" - zaklinanie może sporadycznie trafić w niewielki, płaski
     // bonus do jednego atrybutu (+1..+5), obok zwykłych bonusów obronnych/HP.
     private array $accessoryBonuses = [
-        'hp_bonus' => [20, 120],
+        'hp_bonus' => [-20, 50],
         'defense' => [2, 10],
         'crit_chance' => [1, 5],
         'str_bonus' => [1, 5],
@@ -126,7 +126,7 @@ class EnchantmentStrategy
             'resist_orcs' => 10, 'resist_poison' => 7, 'resist_stun' => 7,
         ];
         $accessoryMax = [
-            'hp_bonus' => 120, 'defense' => 10, 'crit_chance' => 5,
+            'hp_bonus' => 50, 'defense' => 10, 'crit_chance' => 5,
             'str_bonus' => 5, 'agi_bonus' => 5, 'int_bonus' => 5, 'vit_bonus' => 5,
             'double_exp_chance' => 10, 'double_gold_chance' => 10, 'double_drop_chance' => 10,
         ];
@@ -208,7 +208,7 @@ class EnchantmentStrategy
     // przeniesiony na pancerz - procentowe wzmocnienie/osłabienie sumarycznego HP/Obrony
     // z ekwipunku (patrz Character::getEquipmentStats()).
     private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack', 'hp_bonus', 'defense'];
-    private const RARE_SCALING_SKEW = 3.0;
+    private const RARE_SCALING_SKEW = 4.0;
 
     private function rollBonusValue(string $bonusKey, array $range): int
     {
