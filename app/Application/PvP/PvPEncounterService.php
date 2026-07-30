@@ -553,7 +553,7 @@ class PvPEncounterService
         $defVit = $targetSnapshot['attributes']['vit'] ?? 1;
         $defEq = $targetSnapshot['equipment_stats'] ?? [];
         $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
-        $damage = max(1, $damage - ($defense / 2));
+        $damage = max(1, $damage - ($defense * 0.2));
 
         // "Silny vs Bohaterów": w PvE ten bonus nie ma zastosowania (potwór to nie
         // bohater) - liczy się wyłącznie tutaj i w Wojnie Gildii, bezwarunkowo (obie

@@ -24,7 +24,7 @@ Wewnątrz tury występują 3 stany ataku:
 
 **Kalkulacja Obrażeń i Skalowanie Statystyk Potworów:**
 - **Progresywne Skalowanie Potworów (`getScaledStats`):** Statystyki bazowe potworów (`hp`, `atk`, `def`, `agi`) skalują się z poziomem gracza, jeśli poziom gracza jest wyższy niż poziom bazowy potwora. Za każdy poziom różnicy statystyki potwora wzrastają o 10% (`multiplier = 1 + (player_level - monster_level) * 0.10`).
-- Obrażenia zadawane przez gracza to suma: `10 + BonusAtrybutówBroni + Poziom + AtakEkwipunku`. Zmniejszane są one następnie o `Przeskalowana Obrona / 2` przeciwnika.
+- Obrażenia zadawane przez gracza to suma: `10 + BonusAtrybutówBroni + Poziom + AtakEkwipunku`. Zmniejszane są one następnie o `Obrona * 0.2` przeciwnika (1 pkt obrony = 0,2 dmg redukcji).
   - **Przeliczniki atrybutów broni (`getAttributeAttackBonus`):**
     - **Łuk (`bow`)**: `STR + AGI`
     - **Dzwon (`bell`)**: `STR + INT`

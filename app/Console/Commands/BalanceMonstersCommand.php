@@ -590,14 +590,14 @@ class BalanceMonstersCommand extends Command
 
             if ($isPlayerTurn) {
                 $roll = mt_rand((int) round($a['baseDamageMin'] * 100), (int) round($a['baseDamageMax'] * 100)) / 100;
-                $baseDmg = max(1, $roll - $monster['def'] / 2);
+                $baseDmg = max(1, $roll - $monster['def'] * 0.2);
 
                 $magicBurstDmg = 0;
                 if ($a['magicBurstChance'] > 0 && (mt_rand(1, 10000) / 100) <= $a['magicBurstChance']) {
                     $burstRoll = $a['magicBurstMax'] > $a['magicBurstMin']
                         ? mt_rand((int) round($a['magicBurstMin'] * 100), (int) round($a['magicBurstMax'] * 100)) / 100
                         : $a['magicBurstMin'];
-                    $magicBurstDmg = max(1, round($burstRoll - $monster['def'] / 2));
+                    $magicBurstDmg = max(1, round($burstRoll - $monster['def'] * 0.2));
                 }
 
                 $totalDmg = $baseDmg + $magicBurstDmg;
@@ -621,7 +621,7 @@ class BalanceMonstersCommand extends Command
                 $monsterHp = max(0, $monsterHp - $dmgDealt);
             } else {
                 $rawDmg = $monster['atk'];
-                $dmg = max(1, $rawDmg - $a['playerDefBase'] / 2);
+                $dmg = max(1, $rawDmg - $a['playerDefBase'] * 0.2);
 
                 $monsterCrit = max(0.02, min(0.30, 0.03 + $monsterAgi * 0.003 - max(0, ($playerAgi - $monsterAgi) * 0.0008)));
                 $isCrit = (mt_rand(1, 1000000) / 1000000) < $monsterCrit;
@@ -699,10 +699,10 @@ class BalanceMonstersCommand extends Command
             'agi' => max(1, (int) round($avgPlayerAgi * 0.75)),
             'def' => max(0, (int) round($avgRawDmg * 0.15)),
         ];
-        $monster['hp'] = max(10, (int) round(max(1, $avgRawDmg - $monster['def'] / 2) * $targetHitsMid));
+        $monster['hp'] = max(10, (int) round(max(1, $avgRawDmg - $monster['def'] * 0.2) * $targetHitsMid));
 
         $perHitDmgTarget = ($targetDmgFraction * $avgMaxHp) / $targetHitsMid;
-        $monster['atk'] = max(1, (int) round($perHitDmgTarget + $avgPlayerDef / 2));
+        $monster['atk'] = max(1, (int) round($perHitDmgTarget + $avgPlayerDef * 0.2));
 
         for ($iter = 0; $iter < $iterations; $iter++) {
             $agg = ['winRate' => 0, 'avgHits' => 0, 'avgDmgFraction' => 0];

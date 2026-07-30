@@ -391,7 +391,7 @@ class DungeonService
         $scaledStats = $monster->getScaledStats($character->level);
         $defense = $scaledStats['def'];
 
-        return max(1, $damage - ($defense / 2));
+        return max(1, $damage - ($defense * 0.2));
     }
 
     private function calculateMonsterDamage($monster, Character $character): int
@@ -402,7 +402,7 @@ class DungeonService
         $eq = $character->getEquipmentStats();
         $defense = $vitality + ($character->level / 2) + $eq['defense'];
 
-        return max(1, $baseDamage - ($defense / 2));
+        return max(1, $baseDamage - ($defense * 0.2));
     }
 
     private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false): array

@@ -676,7 +676,7 @@ class GuildWarService
         $defVit = $targetSnap['attributes']['vit'] ?? 1;
         $defEq = $targetSnap['equipment_stats'] ?? [];
         $defense = $defVit + ($targetSnap['level'] / 2) + ($defEq['defense'] ?? 0);
-        $damage = max(1, $damage - ($defense / 2));
+        $damage = max(1, $damage - ($defense * 0.2));
 
         // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
         // Tarczy") - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.

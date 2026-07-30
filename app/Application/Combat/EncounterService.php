@@ -1278,7 +1278,7 @@ class EncounterService
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
         $defense = $scaledMonsterStats['def'];
 
-        $baseDamage = max(1, $damage - ($defense / 2));
+        $baseDamage = max(1, $damage - ($defense * 0.2));
         $bonusDamage = 0;
 
         if (isset($monster->type)) {
@@ -1304,7 +1304,7 @@ class EncounterService
             $burstMax = max($burstMin, $eq['magic_burst_max'] ?? 0);
             if ($burstMax > 0) {
                 $rawBurst = mt_rand((int) $burstMin, (int) $burstMax);
-                $magicBurstDamage = max(1, (int) round($rawBurst - ($defense / 2)));
+                $magicBurstDamage = max(1, (int) round($rawBurst - ($defense * 0.2)));
             }
         }
 
@@ -1325,7 +1325,7 @@ class EncounterService
         $eq = $character->getEquipmentStats();
         $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
 
-        $damage = max(1, $baseDamage - ($defense / 2));
+        $damage = max(1, $baseDamage - ($defense * 0.2));
         $resistDamage = 0;
 
         if (isset($monster->type)) {
