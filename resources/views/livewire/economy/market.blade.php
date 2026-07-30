@@ -125,9 +125,14 @@
                             <div>
                                 <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Maks. Cena</label>
                                 <div class="relative">
-                                    <input type="number" min="0" wire:model.live.debounce.400ms="maxPrice" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Bez limitu">
+                                    <input type="text" wire:model.live.debounce.400ms="maxPrice" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="np. 2kk, 500k">
                                     <i class="fa-solid fa-coins absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
                                 </div>
+                                @if($maxPrice !== '' && $maxPrice !== null && \App\Support\PriceParser::parse($maxPrice) > 0)
+                                    <span class="text-[10px] text-amber-400/90 font-mono mt-0.5 block">
+                                        Do: {{ \App\Support\PriceParser::format(\App\Support\PriceParser::parse($maxPrice)) }}
+                                    </span>
+                                @endif
                             </div>
 
                             <div class="grid grid-cols-2 gap-2">

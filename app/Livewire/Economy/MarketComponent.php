@@ -155,7 +155,7 @@ class MarketComponent extends Component
             ];
 
             if ($this->maxPrice !== '' && $this->maxPrice !== null) {
-                $filters['max_price'] = $this->maxPrice;
+                $filters['max_price'] = \App\Support\PriceParser::parse($this->maxPrice);
             }
 
             if ($this->minLevel !== '' && $this->minLevel !== null) {

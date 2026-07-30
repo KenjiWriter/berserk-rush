@@ -1277,11 +1277,30 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-300 mb-1">Cena @if($isStackable)<span class="text-amber-400/70 font-normal text-xs">(za całą wybraną ilość)</span>@endif
-                            <span class="text-stone-500 font-normal text-xs ml-1">(max: 999 999 999)</span>
+                            <span class="text-amber-500/80 font-normal text-xs ml-1">(np. 2k, 2kk, 1.5kk, 2m)</span>
                         </label>
-                        <input type="number" wire:model="sellPrice" min="1" max="999999999" maxlength="9"
-                               oninput="if(this.value.length > 9) this.value = this.value.slice(0,9); if(parseInt(this.value) > 999999999) this.value = 999999999;"
-                               class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white" placeholder="Wpisz cenę...">
+                        <input type="text" wire:model.live.debounce.150ms="sellPrice"
+                               class="w-full bg-gray-800 border border-gray-600 rounded p-2 text-white font-mono text-base focus:border-amber-500 focus:outline-none"
+                               placeholder="np. 100, 2.5k, 2kk, 10m">
+                        @php
+                            $parsedSellPrice = \App\Support\PriceParser::parse($sellPrice ?? '');
+                        @endphp
+                        @if($parsedSellPrice > 0)
+                            <div class="mt-1.5 text-xs text-amber-300 font-semibold flex items-center justify-between bg-amber-950/50 border border-amber-600/40 rounded px-3 py-1.5 shadow-sm">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="fa-solid fa-calculator text-amber-400"></i>
+                                    <span>Przeliczona cena:</span>
+                                </span>
+                                <span class="font-bold text-yellow-300 text-sm tracking-wide">
+                                    {{ \App\Support\PriceParser::format($parsedSellPrice) }} 
+                                    @if(($sellCurrency ?? 'gold') === 'gems')
+                                        <i class="fa-solid fa-gem text-cyan-400 ml-1"></i>
+                                    @else
+                                        <i class="fa-solid fa-coins text-yellow-400 ml-1"></i>
+                                    @endif
+                                </span>
+                            </div>
+                        @endif
                     </div>
                     
                     <div>

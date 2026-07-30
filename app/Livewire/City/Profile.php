@@ -334,7 +334,7 @@ class Profile extends Component
     {
         if (!$this->sellingItemUlid) return;
 
-        $price = (int) $this->sellPrice;
+        $price = \App\Support\PriceParser::parse($this->sellPrice);
         if ($price < 1) {
             $this->dispatch('notify', type: 'error', message: 'Cena musi być większa od zera.');
             return;
