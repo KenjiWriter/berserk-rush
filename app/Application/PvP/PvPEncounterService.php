@@ -75,14 +75,20 @@ class PvPEncounterService
             return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater bierze obecnie udział w walce PvE.');
         }
 
-        // Check daily limit of 5 PvP fights per day
+        // Check limit of Arena fights (max 3, +1 per 1h)
         if ($attacker->getRemainingDailyPvpFights() <= 0) {
-            return Result::error('DAILY_LIMIT_REACHED', 'Wykorzystałeś już swój dzienny limit 5 walk na Arenie. Limit odnawia się o godzinie 00:00.');
+            $mins = $attacker->getMinutesToNextPvpFight();
+            $regenText = $mins ? "Kolejna próba odnowi się za {$mins} min." : "Użyj Zwoju Areny Walki, aby odnowić próbę.";
+            return Result::error('DAILY_LIMIT_REACHED', "Wykorzystałeś wszystkie próby na Arenie Walk (0/3). {$regenText}");
         }
 
         try {
             return DB::transaction(function () use ($attacker, $defender) {
+                if (($attacker->daily_pvp_fights_used ?? 0) <= 0 || !$attacker->daily_pvp_fights_last_reset_at) {
+                    $attacker->daily_pvp_fights_last_reset_at = now();
+                }
                 $attacker->increment('daily_pvp_fights_used');
+                $attacker->save();
 
                 $pvpEncounter = PvpEncounter::create([
                     'attacker_character_id' => $attacker->id,

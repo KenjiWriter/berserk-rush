@@ -75,16 +75,44 @@ class Character extends Model
         'last_active_at' => 'datetime',
     ];
 
+    public const MAX_DAILY_PVP_FIGHTS = 3;
+
     public function checkAndResetDailyPvpFights(): void
     {
-        $todayStart = now()->startOfDay();
+        $used = $this->daily_pvp_fights_used ?? 0;
+        if ($used <= 0) {
+            return;
+        }
 
-        if (!$this->daily_pvp_fights_last_reset_at || $this->daily_pvp_fights_last_reset_at->lt($todayStart)) {
+        if (!$this->daily_pvp_fights_last_reset_at) {
             $this->update([
-                'daily_pvp_fights_used' => 0,
                 'daily_pvp_fights_last_reset_at' => now(),
             ]);
+            return;
         }
+
+        $hoursPassed = $this->daily_pvp_fights_last_reset_at->diffInHours(now());
+        if ($hoursPassed >= 1) {
+            $recovered = min($used, (int) $hoursPassed);
+            $newUsed = $used - $recovered;
+            $newResetAt = $this->daily_pvp_fights_last_reset_at->copy()->addHours($recovered);
+
+            $this->update([
+                'daily_pvp_fights_used' => $newUsed,
+                'daily_pvp_fights_last_reset_at' => $newUsed > 0 ? $newResetAt : null,
+            ]);
+        }
+    }
+
+    public function getMinutesToNextPvpFight(): ?int
+    {
+        $this->checkAndResetDailyPvpFights();
+        if (($this->daily_pvp_fights_used ?? 0) <= 0 || !$this->daily_pvp_fights_last_reset_at) {
+            return null;
+        }
+
+        $nextRegenAt = $this->daily_pvp_fights_last_reset_at->copy()->addHour();
+        return max(1, (int) now()->diffInMinutes($nextRegenAt, false));
     }
 
     public function getRemainingDailyPvpFights(): int

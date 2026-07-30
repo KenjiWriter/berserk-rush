@@ -51,8 +51,15 @@
                     <div class="font-bold text-lg">{{ $character->name }}</div>
                     <div class="text-amber-300">Ranking: {{ $character->elo }} ({{ ucfirst($currentLeague) }})</div>
                     <div class="text-yellow-400">Żetony: {{ $character->arena_tokens }}</div>
-                    <div class="text-red-400 font-semibold text-xs mt-0.5 flex items-center justify-center sm:justify-end gap-1">
-                        <i class="fa-solid fa-swords text-red-400"></i> Walki dzisiaj: <span class="text-amber-200 font-bold">{{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }}</span>
+                    <div class="text-red-400 font-semibold text-xs mt-0.5 flex flex-col sm:items-end justify-center items-center gap-0.5">
+                        <div class="flex items-center gap-1">
+                            <i class="fa-solid fa-swords text-red-400"></i> Próby Areny: <span class="text-amber-200 font-bold">{{ $character->getRemainingDailyPvpFights() }}/{{ \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS }}</span>
+                        </div>
+                        @if($character->getRemainingDailyPvpFights() < \App\Infrastructure\Persistence\Character::MAX_DAILY_PVP_FIGHTS)
+                            <div class="text-[10px] text-amber-400/90 font-normal">
+                                (+1 próba za: {{ $character->getMinutesToNextPvpFight() }} min)
+                            </div>
+                        @endif
                     </div>
                 </div>
                 <button wire:click="goTo('gladiator')" @click="travelingTo = 'Gladiator'" 

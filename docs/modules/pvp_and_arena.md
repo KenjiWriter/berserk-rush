@@ -17,10 +17,10 @@ per-slot na aktualny gear, gdy dany slot zestawu nie jest skonfigurowany.
 Atakujący zawsze walczy tym, co ma aktualnie na sobie w momencie ataku
 (`$attacker->createSnapshot()` bez argumentu).
 
-### System ELO, Ligi i Dzienny Limit Walk
+### System ELO, Ligi i Pojemność Prób Areny
 Arena posiada własny system matchmakingu, rangowania oraz limitowania pojedynków:
-- **Dzienny limit walk:** Każdy gracz posiada limit 5 walk na Arenie dziennie w roli atakującego,
-- **Reset o 0:00 i Zwój Areny Walki:** Dzienny limit 5 walk odnawia się automatycznie o godzinie 00:00. Użycie **Zwoju Areny Walki** w ekwipunku pozwala przywrócić 1 wykorzystaną próbę danego dnia (zwój można kupić w Sklepie Premium za Gemy lub wygrać z bossów lochów).
+- **Pojemność prób Areny:** Gracze mogą gromadzić maksymalnie **3 próby** walk na Arenie jednocześnie (`MAX_DAILY_PVP_FIGHTS = 3`),
+- **Regeneracja +1 próba na 1h:** Nowa próba walki regeneruje się automatycznie co 1 godzinę (do limitu 3/3). Użycie **Zwoju Areny Walki** w ekwipunku natychmiastowo przywraca +1 próbę (do zdobycia w Sklepie Premium lub z bossów lochów),
 - Wygrana powoduje kradzież pewnej puli ELO na rzecz Atakującego,
 - Gracze rywalizują o jak najwyższe miejsca w Lidze, co generuje stałą rotację rankingową,
 - Na podstawie ELO wyznaczana jest aktualna ranga gracza (Brąz, Srebro, Złoto, Platyna).

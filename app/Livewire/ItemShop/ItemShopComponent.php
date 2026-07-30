@@ -230,7 +230,7 @@ class ItemShopComponent extends Component
             ]);
         });
 
-        $this->dispatch('notify', message: "Zakupiono {$template->name}! Przedmiot trafił do plecaka postaci {$character->name}.", type: 'success');
+        $this->dispatch('notify', message: "Pomyślnie zakupiono {$template->name}! Przedmiot dodano do plecaka postaci {$character->name}. Możesz go tam użyć w dowolnym momencie.", type: 'success');
     }
 
     public function resetSkills()

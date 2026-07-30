@@ -287,6 +287,10 @@
                 <div class="text-center mb-8">
                     <h2 class="text-3xl font-bold text-amber-300 mb-2">Zwoje i Resety</h2>
                     <p class="text-amber-500/80">Zakupione Zwoje trafiają bezpośrednio do plecaka aktywnej postaci. Możesz ich użyć w dowolnym momencie z poziomu ekwipunku.</p>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 mt-4 rounded-xl bg-amber-950/70 border border-amber-500/40 text-amber-300 text-sm font-semibold shadow-md">
+                        <i class="fa-solid fa-bag-shopping text-amber-400 text-lg"></i>
+                        <span>Wszystkie zakupione Zwoje znajdziesz w zakładce: <strong>Profil &rarr; Plecak</strong></span>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -294,8 +298,13 @@
                     <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
-                                    📜
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(217,119,6,0.3)] shrink-0 overflow-hidden">
+                                    <img 
+                                        src="{{ asset('assets/items/zwoj-resetu-umiejetnosci.png') }}" 
+                                        alt="Zwój Resetu Umiejętności" 
+                                        class="w-full h-full object-contain drop-shadow-md"
+                                        onerror="this.onerror=null; this.src='{{ asset('assets/items/czysty-pergamin.png') }}';"
+                                    />
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-bold text-amber-200">Zwój Resetu Umiejętności</h3>
@@ -321,8 +330,13 @@
                     <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
-                                    ⚡
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(217,119,6,0.3)] shrink-0 overflow-hidden">
+                                    <img 
+                                        src="{{ asset('assets/items/zwoj-resetu-atrybutow.png') }}" 
+                                        alt="Zwój Resetu Atrybutów" 
+                                        class="w-full h-full object-contain drop-shadow-md"
+                                        onerror="this.onerror=null; this.src='{{ asset('assets/items/czysty-pergamin.png') }}';"
+                                    />
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-bold text-amber-200">Zwój Resetu Atrybutów</h3>
@@ -348,8 +362,13 @@
                     <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
-                                    ✨
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(217,119,6,0.3)] shrink-0 overflow-hidden">
+                                    <img 
+                                        src="{{ asset('assets/items/zwoj-pelnego-resetu.png') }}" 
+                                        alt="Zwój Pełnego Resetu" 
+                                        class="w-full h-full object-contain drop-shadow-md"
+                                        onerror="this.onerror=null; this.src='{{ asset('assets/items/czysty-pergamin.png') }}';"
+                                    />
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-bold text-amber-200">Zwój Pełnego Resetu</h3>
@@ -375,8 +394,13 @@
                     <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
                         <div>
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
-                                    ⚔️
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center p-1 shadow-[0_0_15px_rgba(217,119,6,0.3)] shrink-0 overflow-hidden">
+                                    <img 
+                                        src="{{ asset('assets/items/zwoj-areny-walki.png') }}" 
+                                        alt="Zwój Areny Walki" 
+                                        class="w-full h-full object-contain drop-shadow-md"
+                                        onerror="this.onerror=null; this.src='{{ asset('assets/items/czysty-pergamin.png') }}';"
+                                    />
                                 </div>
                                 <div>
                                     <h3 class="text-xl font-bold text-amber-200">Zwój Areny Walki</h3>

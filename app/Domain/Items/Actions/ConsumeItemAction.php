@@ -76,11 +76,15 @@ class ConsumeItemAction
                 } elseif ($effect === 'arena_attempt') {
                     $character->checkAndResetDailyPvpFights();
                     if (($character->daily_pvp_fights_used ?? 0) <= 0) {
-                        return ['success' => false, 'message' => 'Posiadasz już pełny limit prób na Arenie Walk (5/5).'];
+                        return ['success' => false, 'message' => 'Posiadasz już maksymalną liczbę prób na Arenie Walk (3/3).'];
                     }
                     $character->decrement('daily_pvp_fights_used');
+                    if ($character->daily_pvp_fights_used <= 0) {
+                        $character->daily_pvp_fights_last_reset_at = null;
+                        $character->save();
+                    }
                     $remaining = $character->getRemainingDailyPvpFights();
-                    $message = "Przywrócono 1 próbę na Arenie Walk! Pozostało: {$remaining}/5 prób dzisiaj.";
+                    $message = "Przywrócono 1 próbę na Arenie Walk! Dostępne próby: {$remaining}/3.";
                 } else {
                     return ['success' => false, 'message' => 'Nieznany efekt zwoju.'];
                 }
