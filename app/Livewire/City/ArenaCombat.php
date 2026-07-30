@@ -491,32 +491,32 @@ class ArenaCombat extends Component
 
     public function startPlayback(): void
     {
-        if ($this->isPlaying && $this->currentTurnIndex < count($this->allTurns)) {
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        if ($this->currentTurnIndex >= count($this->allTurns)) {
+            $this->completeBattle();
         }
     }
 
     public function togglePlayback(): void
     {
-        $this->isPlaying = !$this->isPlaying;
-        if ($this->isPlaying && $this->currentTurnIndex < count($this->allTurns)) {
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
-        } else {
-            $this->dispatch('stop-playback');
+        if ($this->currentTurnIndex >= count($this->allTurns)) {
+            $this->completeBattle();
+            return;
         }
+        $this->isPlaying = !$this->isPlaying;
     }
 
     public function setPlaybackSpeed(int $speed): void
     {
         $this->playbackSpeed = $speed;
         session(['combat_playback_speed' => $speed]);
-        if ($this->isPlaying) {
-            $this->dispatch('update-playback-speed', speed: $speed);
-        }
     }
 
     public function nextTurn(): void
     {
+        if (!$this->isPlaying) {
+            return;
+        }
+
         if ($this->currentTurnIndex < count($this->allTurns)) {
             $turn = $this->allTurns[$this->currentTurnIndex];
             $this->visibleTurns[] = $turn;
@@ -539,6 +539,8 @@ class ArenaCombat extends Component
             if ($this->currentTurnIndex >= count($this->allTurns)) {
                 $this->completeBattle();
             }
+        } else {
+            $this->completeBattle();
         }
     }
 

@@ -1,65 +1,11 @@
 <div id="arena-combat-component" 
      class="min-h-screen relative overflow-hidden" 
-     x-data="{ 
-         travelingTo: null,
-         playbackTimer: null,
-         speed: @entangle('playbackSpeed'),
-         isPlaying: @entangle('isPlaying'),
-         userHasScrolledUp: false,
-
-         initPlayback() {
-             this.stopTimer();
-             if (this.isPlaying) {
-                 this.startTimer();
-             }
-         },
-
-         startTimer() {
-             this.stopTimer();
-             if (!this.isPlaying) return;
-
-             const ms = (this.speed == 2) ? 800 : 1500;
-             this.playbackTimer = setTimeout(() => {
-                 if (this.isPlaying) {
-                     $wire.nextTurn().then(() => {
-                         this.scrollLog();
-                         if (this.isPlaying) {
-                             this.startTimer();
-                         }
-                     }).catch(() => {
-                         this.stopTimer();
-                     });
-                 }
-             }, ms);
-         },
-
-         stopTimer() {
-             if (this.playbackTimer) {
-                 clearTimeout(this.playbackTimer);
-                 this.playbackTimer = null;
-             }
-         },
-
-         scrollLog(force = false) {
-             const container = document.getElementById('arena-combat-log-container');
-             if (!container) return;
-             if (force) this.userHasScrolledUp = false;
-             const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
-             if (force || !this.userHasScrolledUp || distanceFromBottom < 150) {
-                 container.scrollTop = container.scrollHeight;
-             }
-         }
-     }"
-     x-init="
-         $watch('isPlaying', value => {
-             if (value) { startTimer(); } else { stopTimer(); }
-         });
-         $watch('speed', value => {
-             if (isPlaying) { startTimer(); }
-         });
-         setTimeout(() => { initPlayback(); }, 200);
-     "
-     wire:init="startPlayback">
+     x-data="{ travelingTo: null }"
+     @if($isPlaying && !$battleCompleted && !$isCalculating)
+         wire:poll.{{ $playbackSpeed == 2 ? '800ms' : '1500ms' }}="nextTurn"
+     @elseif($isCalculating)
+         wire:poll.1000ms="checkCombatStatus"
+     @endif>
     {{-- Dynamic background --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('img/maps/shadow-mountains.png') }}');">
     </div>
@@ -323,7 +269,7 @@
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
-                    <div id="arena-combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
+                    <div id="arena-combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar">
                         @if($isCalculating)
                             <div class="h-full flex flex-col items-center justify-center text-center">
                                 <div class="relative w-24 h-24 sm:w-28 sm:h-28 mb-4">
