@@ -6,20 +6,31 @@
     itemWidth: 144, // 132px width + 12px gap
     targetIndex: 28,
 
+    handleSpin(data) {
+        let payload = data;
+        if (data && data.payload) payload = data.payload;
+        if (Array.isArray(payload)) payload = payload[0];
+        if (!payload || !payload.roulette_items) return;
+
+        this.targetIndex = payload.winning_index || 28;
+        this.translateX = 0;
+        
+        setTimeout(() => {
+            this.spinReel();
+        }, 100);
+    },
+
     init() {
         this.$wire.on('start-case-spin', (data) => {
-            let payload = Array.isArray(data) ? data[0] : data;
-            if (!payload || !payload.roulette_items) return;
-
-            this.targetIndex = payload.winning_index || 28;
-            this.translateX = 0;
-            
-            // Allow DOM render then trigger animation
-            setTimeout(() => {
-                this.spinReel();
-            }, 100);
+            this.handleSpin(data);
         });
-    },
+        if (typeof Livewire !== 'undefined') {
+            Livewire.on('start-case-spin', (data) => {
+                this.handleSpin(data);
+            });
+        }
+    }
+}" @start-case-spin.window="handleSpin($event.detail)">
 
     spinReel() {
         let containerWidth = this.$refs.viewport ? this.$refs.viewport.offsetWidth : 600;

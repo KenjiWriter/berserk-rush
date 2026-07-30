@@ -939,7 +939,7 @@
                                                                 Załóż sprzęt
                                                             </button>
                                                         @elseif($item->template->type === 'consumable')
-                                                            <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5">
+                                                            <button @click.stop="forceClose(); $wire.consumeItem('{{ $item->id }}')" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer">
                                                                 <i class="fa-solid fa-box-open"></i> {{ ($item->template->sub_type ?? '') === 'chest' ? 'Otwórz Skrzynię' : 'Użyj przedmiotu' }}
                                                             </button>
                                                         @endif

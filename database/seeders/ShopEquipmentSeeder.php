@@ -179,6 +179,14 @@ class ShopEquipmentSeeder extends Seeder
                     $scaledStats[$statName] = $this->statRange(max(1, $scaledValue));
                 }
 
+                if ($merchantTarget === 'gladiator') {
+                    // Zestaw Gladiatora to ekwipunek pod Arenę PvP - dokłada stały
+                    // afiks "Silny przeciwko Bohaterom" (patrz docs/modules/combat.md,
+                    // sekcja 8), który poza tym da się zdobyć tylko losowo z zaklęć
+                    // Czarownicy (`EnchantmentStrategy::strong_vs_hero`, 5-20%).
+                    $scaledStats['strong_vs_hero'] = [10, 10];
+                }
+
                 $name = $theme['names'][$protoKey];
                 $iconName = Str::slug($name);
 
@@ -218,6 +226,8 @@ class ShopEquipmentSeeder extends Seeder
                     ],
                     [
                         'required_level' => $theme['level'],
+                        'currency_type' => $merchantTarget === 'gladiator' ? 'arena_tokens' : 'gold',
+                        'price' => $merchantTarget === 'gladiator' ? 400 : 0,
                     ]
                 );
 

@@ -62,6 +62,8 @@
                             <template x-teleport="body">
                                 <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
                                      :style="tooltipStyle"
+                                     @mouseenter="clearTimeout(timeout)"
+                                     @mouseleave="closeTooltip()"
                                      class="absolute z-[100] top-full left-1/2 -translate-x-1/2 mt-2 w-auto pointer-events-auto">
                                     <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
                                         <x-slot:actions>

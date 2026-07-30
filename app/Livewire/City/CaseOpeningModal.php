@@ -18,10 +18,21 @@ class CaseOpeningModal extends Component
     public ?string $errorMessage = null;
 
     #[On('open-case-modal')]
-    public function openCaseModal(string $itemInstanceId): void
+    public function openCaseModal($payload = null): void
     {
+        $id = null;
+        if (is_string($payload)) {
+            $id = $payload;
+        } elseif (is_array($payload)) {
+            $id = $payload['itemInstanceId'] ?? $payload['id'] ?? $payload[0] ?? null;
+        }
+
+        if (!$id) {
+            return;
+        }
+
         $this->resetState();
-        $this->itemInstanceId = $itemInstanceId;
+        $this->itemInstanceId = $id;
         $this->startOpening();
     }
 

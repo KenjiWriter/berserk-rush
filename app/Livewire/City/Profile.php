@@ -206,7 +206,7 @@ class Profile extends Component
         }
     }
 
-    public function consumeItem(string $itemUlid, \App\Domain\Items\Actions\ConsumeItemAction $consumeAction)
+    public function consumeItem(string $itemUlid)
     {
         $item = ItemInstance::with('template')->find($itemUlid);
         if ($item && $item->template && $item->template->sub_type === 'chest') {
@@ -214,11 +214,12 @@ class Profile extends Component
             return;
         }
 
+        $consumeAction = app(\App\Domain\Items\Actions\ConsumeItemAction::class);
         $result = $consumeAction->execute($this->character, $itemUlid);
 
         if ($result['success']) {
             $this->dispatch('notify', type: 'success', message: $result['message']);
-            $this->dispatch('play-audio', type: 'equip'); // Or some consume sound
+            $this->dispatch('play-audio', type: 'equip');
             $this->dispatch('buff-applied');
             $this->character->refresh();
         } else {
