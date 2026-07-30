@@ -18,12 +18,10 @@ Uruchamiana jest logika losująca nagrody ze zwycięskiej walki. Główne typy z
 - **Złoto (Gold) i Gemy (Gems):** Generowane w losowych ilościach. Serwis loguje dopływ waluty za pomocą `CurrencyLedger`. Złoto (gold) przypisywane jest bezpośrednio do walczącej postaci (`characters`), a waluta premium (gems) współdzielona jest na całe konto gracza (`users`). Jest to księga audytowa zapewniająca, że historia zasilania konta i jego obecne saldo (zapisywane w locie) pokrywają się ze stanem wirtualnego portfela, a `idempotency_key` eliminuje ryzyko zdublowania dopływu gotówki po stronie serwera.
 - **Przedmioty i Materiały (Item / Material):** Z potworów wypadają materiały rzemieślnicze (do schowka materiałów). **Bezpośredni drop unikalnego ekwipunku przypisanego do gatunku potwora (`reward_type = 'item'`) jest od 2026-07-29 wyzerowany globalnie na mapach przygód (waga 0 na każdym wpisie, patrz balans niżej)** — cały ekwipunek gracze zdobywają wyłącznie przez system rzemiosła z zebranych surowców (patrz `docs/modules/witch_and_crafting.md`). Jedynymi wyjątkami od typu `item` na tabelach zrzutów są jajka chowańców oraz Zwoje Użytkowe (`scroll_reset_skills`, `scroll_reset_attributes`, `scroll_reset_full`, `scroll_arena_attempt`) wypadające z bossów instancjonowanych lochów z szansą skalowaną trudnością lochu. Gdy przedmiot/materiał zostanie wylosowany, serwis tworzy fizyczną instancję w bazie (`ItemInstance`), ustala ilość (`stack_size`) oraz rejestruje fakt zdobyczy w `ItemLedger`.
 
-### 1a. Balans Ekonomii Łupów (fix 2026-07-29)
-W odpowiedzi na zgłoszenie o trudnościach w craftowaniu (Esencja Zniszczenia / Czarny Kamień Dusz z mapy Skażone Miasto), globalna waga wpisów we **wszystkich** seederach łupów (`MonsterLootSeeder`, `LootTableSeeder`, `PetSeeder`, łącznie z jajkami chowańców z `boss_dungeon_loot`) została przeskalowana:
-- **Materiały (`reward_type = 'material'`): waga x5 (+400%)** względem poprzednich wartości — ułatwia zbieranie surowców pod crafting.
-- **Przedmioty (`reward_type = 'item'`): waga 0 (-100%)** — bezpośredni drop ekwipunku (i jajek chowańców) jest całkowicie wyłączony; `WeightedPicker::pick()` nigdy nie wylosuje wpisu o wadze 0.
-
-`PetSeeder` zmieniono z `firstOrCreate` na `updateOrCreate` dla wpisów `boss_dungeon_loot`, żeby ponowne odpalenie seedera faktycznie nadpisywało wagę istniejących wierszy zamiast ich ignorować.
+### 1a. Balans Ekonomii Łupów (fix 2026-07-30)
+W odpowiedzi na zgłoszenie dotyczące szansy na drop ekwipunku na mapach:
+- **Materiały (`reward_type = 'material'`): waga x5 (+400%)** — ułatwia zbieranie surowców pod crafting.
+- **Przedmioty ekwipunku (`reward_type = 'item'`): waga 2 (szansa ~0.6%)** — ustawiono bezpośredni drop ekwipunku z potworów na mapach przygód na stałe 0.6% szansy.
 
 ### 3. Zabezpieczenia Ekonomiczne
 Aby zapobiec dublowaniu łupów z jednej i tej samej walki wskutek problemów z siecią lub ataków typu *Replay*, serwis przed wygenerowaniem zasobów weryfikuje istnienie `idempotency_key` zbudowanego na bazie ID spotkania `encounter:{encounter_id}:drop`. Wszystko przebiega we wspólnej transakcji bazodanowej, z naciskiem na zachowanie pełnej historii ekonomii (Ledgerów) celem łatwiejszego wykrywania exploitów u graczy.
