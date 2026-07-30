@@ -147,11 +147,16 @@ class MapStub extends Component
                 ->first();
 
             if ($worldBossInstance) {
+                $characterBracket = \App\Application\Combat\WorldBossService::bracketForLevel($this->character->level);
                 $hasParticipated = \App\Infrastructure\Persistence\WorldBossDamageLog::where('world_boss_instance_id', $worldBossInstance->id)
                     ->where('character_id', $this->character->id)
                     ->exists();
 
-                if ($hasParticipated) {
+                if ($characterBracket !== $worldBossInstance->level_bracket) {
+                    $this->isWorldBoss = false;
+                    $this->worldBossMonsterId = null;
+                    session()->flash('warning', 'Ten World Boss nie jest przeznaczony dla Twojego poziomu.');
+                } elseif ($hasParticipated) {
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Już brałeś udział w walce z tym World Bossem!');

@@ -919,7 +919,13 @@
                                 $hpPercent = max(0, min(100, ($boss->current_hp / max(1, $boss->total_hp)) * 100));
                                 $hasParticipated = in_array($bracket, $participatedBrackets);
                                 $topDmg = $topDamageDealers[$boss->id] ?? collect();
-                                $bossAccessible = $boss->map ? $boss->map->isAccessibleBy($character) : true;
+                                // Map::isAccessibleBy() sprawdza tylko dolny próg poziomu (przekroczenie
+                                // level_max na zwykłej mapie to kara "over-level", nie blokada) - dla
+                                // world bossów trzeba twardo dopasować przedział do poziomu postaci,
+                                // inaczej wysoko-poziomowa postać zdominowałaby ranking niskiego
+                                // przedziału. Patrz też EncounterService::start() (ta sama walidacja
+                                // po stronie serwera).
+                                $bossAccessible = \App\Application\Combat\WorldBossService::bracketForLevel($character->level) === $bracket;
                             @endphp
                             <div class="p-5 flex flex-col flex-1 gap-4">
                                 <div>

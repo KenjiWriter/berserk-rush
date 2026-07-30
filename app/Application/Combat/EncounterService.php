@@ -254,6 +254,16 @@ class EncounterService
                     ->first();
 
                 if ($activeBoss) {
+                    // Map::isAccessibleBy() celowo sprawdza tylko dolny próg poziomu (przekroczenie
+                    // level_max na zwykłej mapie to "over-level" z karą, a nie blokada - patrz
+                    // Map::isOverLevel()). World bossowie MUSZĄ jednak być twardo ograniczeni do
+                    // swojego przedziału (inaczej wysoko-poziomowa postać mogłaby zdominować
+                    // ranking niskiego przedziału), więc walidujemy to osobno, tutaj po stronie
+                    // serwera (żeby nie dało się tego obejść pomijając UI/link z blade).
+                    if (WorldBossService::bracketForLevel($character->level) !== $activeBoss->level_bracket) {
+                        return Result::error('WRONG_LEVEL_BRACKET', 'Ten World Boss nie jest przeznaczony dla Twojego poziomu.');
+                    }
+
                     $hasParticipated = WorldBossDamageLog::where('world_boss_instance_id', $activeBoss->id)
                         ->where('character_id', $character->id)
                         ->exists();

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Application\Combat\EncounterService;
 use App\Application\Combat\WorldBossService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\ItemTemplate;
@@ -166,5 +167,38 @@ class WorldBossRewardJobTest extends TestCase
         $boss->update(['current_hp' => $newHp]);
 
         $this->assertGreaterThanOrEqual(1, $boss->fresh()->current_hp);
+    }
+
+    public function test_character_outside_bracket_cannot_attack_world_boss(): void
+    {
+        $this->seedWorldBossMonsters();
+        app(WorldBossService::class)->ensureBossesSpawned();
+
+        $lowBoss = WorldBossInstance::with('monster.map')->where('level_bracket', 'low')->first();
+        $this->assertNotNull($lowBoss);
+
+        // A level 95 character must not be able to attack a 'low' bracket (0-35) world boss,
+        // even though Map::isAccessibleBy() would allow it (it only enforces the lower bound -
+        // see EncounterService::start() comment).
+        $highLevelCharacter = $this->makeCharacter('HighLevelHero');
+        $highLevelCharacter->update(['level' => 95]);
+
+        $service = app(EncounterService::class);
+        $result = $service->start($highLevelCharacter, $lowBoss->monster->map, $lowBoss->monster);
+
+        $this->assertTrue($result->isError());
+        $this->assertEquals('WRONG_LEVEL_BRACKET', $result->getErrorCode());
+        $this->assertDatabaseMissing('world_boss_damage_logs', [
+            'world_boss_instance_id' => $lowBoss->id,
+            'character_id' => $highLevelCharacter->id,
+        ]);
+
+        // A level within the bracket must still be allowed through (sanity check the fix
+        // isn't overly strict).
+        $inBracketCharacter = $this->makeCharacter('InBracketHero');
+        $inBracketCharacter->update(['level' => 20]);
+
+        $okResult = $service->start($inBracketCharacter, $lowBoss->monster->map, $lowBoss->monster);
+        $this->assertTrue($okResult->isOk());
     }
 }
