@@ -20,13 +20,21 @@
 
     spinAllReels(payload) {
         let spins = payload.spins || [payload];
-        let viewportEl = this.$refs.viewport0 || this.$refs.viewport;
-        let containerWidth = viewportEl ? viewportEl.offsetWidth : 600;
 
         spins.forEach((spin, idx) => {
-            let targetIdx = spin.winning_index || 28;
-            let randomOffset = Math.floor(Math.random() * 36) - 18; // +/- 18px variation
-            let targetPos = (targetIdx * this.itemWidth) - (containerWidth / 2) + (this.itemWidth / 2) + randomOffset;
+            let viewportEl = this.$refs['viewport' + idx] || this.$refs.viewport0 || this.$refs.viewport;
+            let containerWidth = viewportEl ? viewportEl.offsetWidth : 600;
+            let targetIdx = spin.winning_index !== undefined ? spin.winning_index : 28;
+
+            let itemCardWidth = 128; // w-32 = 8rem = 128px
+            let gap = 12;            // gap-3 = 0.75rem = 12px
+            let paddingLeft = 8;     // px-2 = 0.5rem = 8px
+            let stride = itemCardWidth + gap; // 140px
+
+            let randomOffset = Math.floor(Math.random() * 40) - 20; // +/- 20px variation within the card
+            let targetCenter = paddingLeft + (targetIdx * stride) + (itemCardWidth / 2); // targetIdx * 140 + 72
+            let targetPos = targetCenter - (containerWidth / 2) + randomOffset;
+
             this.translates[idx] = targetPos;
         });
 
