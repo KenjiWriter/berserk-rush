@@ -318,166 +318,176 @@
             </div>
         @endauth
 
-        {{-- Three-column grid --}}
+        {{-- Three-column grid: each column is an independent stack so a tall
+             news feed in the middle column never pushes the side columns down --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-            {{-- Ogłoszenia Królewskie --}}
-            <div class="order-1 lg:col-start-2 rpg-panel rpg-panel-feature">
-                <div class="rpg-panel-header">
-                    <i class="fa-solid fa-scroll"></i>
-                    <span>Ogłoszenia Królewskie</span>
-                </div>
-                <div class="p-5 sm:p-6 space-y-5">
-                    @foreach ($adminMessages as $message)
-                        <article class="rpg-news-item">
-                            <h3 class="text-lg font-bold rpg-ink mb-1.5 medieval-font">{{ $message['title'] }}</h3>
-                            <p class="rpg-ink-soft leading-relaxed text-sm mb-1.5">{{ $message['content'] }}</p>
-                            <p class="text-xs rpg-ink-faint italic">
-                                {{ date('j F Y', strtotime($message['date'])) }}
-                            </p>
-                        </article>
-                    @endforeach
-                </div>
-            </div>
-
-            {{-- Top 10 Bohaterów --}}
-            <div class="order-2 lg:col-start-1 lg:row-start-1 rpg-panel">
-                <div class="rpg-panel-header">
-                    <i class="fa-solid fa-trophy"></i>
-                    <span>Top 10 Bohaterów</span>
-                </div>
-                <div class="p-4">
-                    @forelse ($topCharacters as $index => $character)
-                        <div class="rpg-row">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
-                                <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $character['name'] }}</span>
-                            </div>
-                            <span class="rpg-level-tag">{{ $character['level'] }}</span>
-                        </div>
-                    @empty
-                        <div class="rpg-empty-state">
-                            <i class="fa-solid fa-crown"></i>
-                            <span>Bądź pierwszym bohaterem w rankingu!</span>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-            {{-- Top 10 Gildii --}}
-            <div class="order-3 lg:col-start-3 lg:row-start-1 rpg-panel">
-                <div class="rpg-panel-header">
-                    <i class="fa-solid fa-shield-cat"></i>
-                    <span>Top 10 Gildii</span>
-                </div>
-                <div class="p-4">
-                    @forelse ($topGuilds as $index => $guild)
-                        <div class="rpg-row rpg-row-stacked">
-                            <div class="flex items-center justify-between w-full">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
-                                    <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $guild['name'] }}</span>
-                                </div>
-                                <span class="rpg-level-tag">{{ $guild['avgLevel'] }}</span>
-                            </div>
-                            <div class="text-xs rpg-ink-faint ml-7 font-medium">{{ $guild['members'] }} członków</div>
-                        </div>
-                    @empty
-                        <div class="rpg-empty-state">
-                            <i class="fa-solid fa-flag"></i>
-                            <span>Załóż pierwszą gildię i zapisz się w historii!</span>
-                        </div>
-                    @endforelse
-                </div>
-            </div>
-
-            {{-- Sklep Premium (auth only) --}}
-            @auth
-                <div class="order-4 lg:col-start-3 rpg-panel rpg-panel-gold">
-                    <div class="flex flex-col items-center text-center px-4 py-5">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg mb-2 rpg-avatar-badge">
-                            <i class="fa-solid fa-gem"></i>
-                        </div>
-                        <h3 class="text-lg font-bold rpg-ink medieval-font">Sklep Premium</h3>
-                        @if(Auth::user()->hasPremium())
-                            <p class="text-[11px] font-bold rpg-ink rpg-badge-inline mt-1.5">
-                                <i class="fa-solid fa-crown mr-1"></i> Premium ({{ Auth::user()->premium_until->diffForHumans() }})
-                            </p>
-                        @else
-                            <p class="text-xs rpg-ink-soft font-semibold mt-1">
-                                Zdobądź unikalne ulepszenia oraz Gemy!
-                            </p>
-                        @endif
-
-                        <a href="{{ route('itemshop') }}" wire:navigate class="rpg-btn rpg-btn-gold w-full mt-3">
-                            <i class="fa-solid fa-crown"></i> Przejdź do Sklepu
-                        </a>
-                    </div>
-                </div>
-            @endauth
-
-            {{-- O Grze --}}
-            <div class="order-5 lg:col-start-1 lg:row-start-2 rpg-panel">
-                <div class="rpg-panel-header">
-                    <i class="fa-solid fa-gamepad"></i>
-                    <span>O Grze</span>
-                </div>
-                <div class="p-4 space-y-2.5 text-sm">
-                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
-                        <i class="fa-solid fa-dice-d20 w-4 text-center opacity-70"></i>
-                        <span>Walki turowe</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
-                        <i class="fa-solid fa-wand-magic-sparkles w-4 text-center opacity-70"></i>
-                        <span>Ulepszanie przedmiotów</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
-                        <i class="fa-solid fa-users-rays w-4 text-center opacity-70"></i>
-                        <span>System gildii</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
-                        <i class="fa-solid fa-coins w-4 text-center opacity-70"></i>
-                        <span>Ekonomia graczy</span>
-                    </div>
-                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
-                        <i class="fa-solid fa-hammer w-4 text-center opacity-70"></i>
-                        <span>Crafting</span>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Galeria Gry --}}
-            @if(isset($galleryImages) && $galleryImages->isNotEmpty())
-                <div class="order-6 lg:col-start-3 rpg-panel">
+            {{-- Column 1 --}}
+            <div class="contents lg:flex lg:flex-col lg:gap-6">
+                {{-- Top 10 Bohaterów --}}
+                <div class="order-2 lg:order-none mb-6 lg:mb-0 rpg-panel">
                     <div class="rpg-panel-header">
-                        <i class="fa-solid fa-images"></i>
-                        <span>Galeria Gry</span>
+                        <i class="fa-solid fa-trophy"></i>
+                        <span>Top 10 Bohaterów</span>
                     </div>
                     <div class="p-4">
-                        <div class="grid grid-cols-2 gap-2">
-                            @foreach($galleryImages->take(4) as $image)
-                                <div class="relative group cursor-pointer rounded overflow-hidden aspect-video rpg-thumb" @click="openGallerySlider({{ $loop->index }})">
-                                    <img src="{{ asset($image->image_path) }}" alt="{{ $image->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
-                                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <span class="text-white text-xs font-bold">Powiększ</span>
-                                    </div>
+                        @forelse ($topCharacters as $index => $character)
+                            <div class="rpg-row">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
+                                    <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $character['name'] }}</span>
                                 </div>
-                            @endforeach
-                        </div>
+                                <span class="rpg-level-tag">{{ $character['level'] }}</span>
+                            </div>
+                        @empty
+                            <div class="rpg-empty-state">
+                                <i class="fa-solid fa-crown"></i>
+                                <span>Bądź pierwszym bohaterem w rankingu!</span>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
 
-                        <div class="mt-3 text-center">
-                            <button @click="openGalleryGrid()" class="rpg-btn rpg-btn-dark w-full">
-                                <i class="fa-solid fa-images"></i>
-                                @if($galleryImages->count() > 4)
-                                    Cała galeria ({{ $galleryImages->count() }})
-                                @else
-                                    Galeria
-                                @endif
-                            </button>
+                {{-- O Grze --}}
+                <div class="order-5 lg:order-none mb-6 lg:mb-0 rpg-panel">
+                    <div class="rpg-panel-header">
+                        <i class="fa-solid fa-gamepad"></i>
+                        <span>O Grze</span>
+                    </div>
+                    <div class="p-4 space-y-2.5 text-sm">
+                        <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                            <i class="fa-solid fa-dice-d20 w-4 text-center opacity-70"></i>
+                            <span>Walki turowe</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                            <i class="fa-solid fa-wand-magic-sparkles w-4 text-center opacity-70"></i>
+                            <span>Ulepszanie przedmiotów</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                            <i class="fa-solid fa-users-rays w-4 text-center opacity-70"></i>
+                            <span>System gildii</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                            <i class="fa-solid fa-coins w-4 text-center opacity-70"></i>
+                            <span>Ekonomia graczy</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                            <i class="fa-solid fa-hammer w-4 text-center opacity-70"></i>
+                            <span>Crafting</span>
                         </div>
                     </div>
                 </div>
-            @endif
+            </div>
+
+            {{-- Column 2 --}}
+            <div class="contents lg:flex lg:flex-col lg:gap-6">
+                {{-- Ogłoszenia Królewskie --}}
+                <div class="order-1 lg:order-none mb-6 lg:mb-0 rpg-panel rpg-panel-feature">
+                    <div class="rpg-panel-header">
+                        <i class="fa-solid fa-scroll"></i>
+                        <span>Ogłoszenia Królewskie</span>
+                    </div>
+                    <div class="p-5 sm:p-6 space-y-5">
+                        @foreach ($adminMessages as $message)
+                            <article class="rpg-news-item">
+                                <h3 class="text-lg font-bold rpg-ink mb-1.5 medieval-font">{{ $message['title'] }}</h3>
+                                <p class="rpg-ink-soft leading-relaxed text-sm mb-1.5">{{ $message['content'] }}</p>
+                                <p class="text-xs rpg-ink-faint italic">
+                                    {{ date('j F Y', strtotime($message['date'])) }}
+                                </p>
+                            </article>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
+            {{-- Column 3 --}}
+            <div class="contents lg:flex lg:flex-col lg:gap-6">
+                {{-- Top 10 Gildii --}}
+                <div class="order-3 lg:order-none mb-6 lg:mb-0 rpg-panel">
+                    <div class="rpg-panel-header">
+                        <i class="fa-solid fa-shield-cat"></i>
+                        <span>Top 10 Gildii</span>
+                    </div>
+                    <div class="p-4">
+                        @forelse ($topGuilds as $index => $guild)
+                            <div class="rpg-row rpg-row-stacked">
+                                <div class="flex items-center justify-between w-full">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
+                                        <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $guild['name'] }}</span>
+                                    </div>
+                                    <span class="rpg-level-tag">{{ $guild['avgLevel'] }}</span>
+                                </div>
+                                <div class="text-xs rpg-ink-faint ml-7 font-medium">{{ $guild['members'] }} członków</div>
+                            </div>
+                        @empty
+                            <div class="rpg-empty-state">
+                                <i class="fa-solid fa-flag"></i>
+                                <span>Załóż pierwszą gildię i zapisz się w historii!</span>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                {{-- Sklep Premium (auth only) --}}
+                @auth
+                    <div class="order-4 lg:order-none mb-6 lg:mb-0 rpg-panel rpg-panel-gold">
+                        <div class="flex flex-col items-center text-center px-4 py-5">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg mb-2 rpg-avatar-badge">
+                                <i class="fa-solid fa-gem"></i>
+                            </div>
+                            <h3 class="text-lg font-bold rpg-ink medieval-font">Sklep Premium</h3>
+                            @if(Auth::user()->hasPremium())
+                                <p class="text-[11px] font-bold rpg-ink rpg-badge-inline mt-1.5">
+                                    <i class="fa-solid fa-crown mr-1"></i> Premium ({{ Auth::user()->premium_until->diffForHumans() }})
+                                </p>
+                            @else
+                                <p class="text-xs rpg-ink-soft font-semibold mt-1">
+                                    Zdobądź unikalne ulepszenia oraz Gemy!
+                                </p>
+                            @endif
+
+                            <a href="{{ route('itemshop') }}" wire:navigate class="rpg-btn rpg-btn-gold w-full mt-3">
+                                <i class="fa-solid fa-crown"></i> Przejdź do Sklepu
+                            </a>
+                        </div>
+                    </div>
+                @endauth
+
+                {{-- Galeria Gry --}}
+                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
+                    <div class="order-6 lg:order-none mb-6 lg:mb-0 rpg-panel">
+                        <div class="rpg-panel-header">
+                            <i class="fa-solid fa-images"></i>
+                            <span>Galeria Gry</span>
+                        </div>
+                        <div class="p-4">
+                            <div class="grid grid-cols-2 gap-2">
+                                @foreach($galleryImages->take(4) as $image)
+                                    <div class="relative group cursor-pointer rounded overflow-hidden aspect-video rpg-thumb" @click="openGallerySlider({{ $loop->index }})">
+                                        <img src="{{ asset($image->image_path) }}" alt="{{ $image->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <span class="text-white text-xs font-bold">Powiększ</span>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <button @click="openGalleryGrid()" class="rpg-btn rpg-btn-dark w-full">
+                                    <i class="fa-solid fa-images"></i>
+                                    @if($galleryImages->count() > 4)
+                                        Cała galeria ({{ $galleryImages->count() }})
+                                    @else
+                                        Galeria
+                                    @endif
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </div>
 
