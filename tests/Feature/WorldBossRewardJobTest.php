@@ -201,4 +201,49 @@ class WorldBossRewardJobTest extends TestCase
         $okResult = $service->start($inBracketCharacter, $lowBoss->monster->map, $lowBoss->monster);
         $this->assertTrue($okResult->isOk());
     }
+
+    public function test_orphaned_null_bracket_instance_does_not_shadow_active_bracketed_one(): void
+    {
+        $this->seedWorldBossMonsters();
+
+        $monster = Monster::where('name', 'Król Trolli')->first();
+
+        // Simulate a leftover row from before the bracket rework (migration does not backfill
+        // level_bracket on pre-existing rows) sharing the same map_id + monster_id as a fresh,
+        // properly-bracketed instance created afterwards.
+        $orphan = WorldBossInstance::create([
+            'monster_id' => $monster->id,
+            'map_id' => $monster->map_id,
+            'level_bracket' => null,
+            'total_hp' => 140000,
+            'current_hp' => 140000,
+        ]);
+
+        $activeInstance = WorldBossInstance::create([
+            'monster_id' => $monster->id,
+            'map_id' => $monster->map_id,
+            'level_bracket' => 'low',
+            'total_hp' => 140000,
+            'current_hp' => 140000,
+        ]);
+
+        $character = $this->makeCharacter('BracketVictim');
+        $character->update(['level' => 33]);
+
+        $service = app(EncounterService::class);
+        $startResult = $service->start($character, $monster->map, $monster);
+
+        $this->assertTrue($startResult->isOk(), 'A level-33 character must be allowed to attack a low-bracket boss even if an orphaned null-bracket row exists for the same monster/map.');
+
+        $simResult = $service->simulate($startResult->getPayload());
+        $this->assertTrue($simResult->isOk());
+
+        $this->assertDatabaseHas('world_boss_damage_logs', [
+            'world_boss_instance_id' => $activeInstance->id,
+            'character_id' => $character->id,
+        ]);
+        $this->assertDatabaseMissing('world_boss_damage_logs', [
+            'world_boss_instance_id' => $orphan->id,
+        ]);
+    }
 }

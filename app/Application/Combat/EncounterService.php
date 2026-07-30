@@ -248,9 +248,14 @@ class EncounterService
                     'tier_multiplier' => $tierMultiplier,
                 ]);
 
-                // Check if this is an active world boss
+                // Check if this is an active world boss. whereNotNull('level_bracket') odsiewa
+                // ewentualne osierocone rekordy sprzed rework'u przedziałów (level_bracket =
+                // null, migracja go nie backfilluje) - patrz analogiczny komentarz w
+                // MapStub::mount().
                 $activeBoss = WorldBossInstance::where('map_id', $map->id)
                     ->where('monster_id', $monster->id)
+                    ->whereNotNull('level_bracket')
+                    ->latest('id')
                     ->first();
 
                 if ($activeBoss) {
@@ -448,6 +453,8 @@ class EncounterService
                         // Zapisz log damage
                         $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
                             ->where('monster_id', $monster->id)
+                            ->whereNotNull('level_bracket')
+                            ->latest('id')
                             ->first();
 
                         if (!$activeBoss) {

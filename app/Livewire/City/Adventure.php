@@ -117,7 +117,10 @@ class Adventure extends Component
         if ($this->tab === 'worldboss') {
             app(\App\Application\Combat\WorldBossService::class)->ensureBossesSpawned();
 
+            // whereNotNull('level_bracket') odsiewa ewentualne osierocone rekordy sprzed
+            // rework'u przedziałów (migracja nie robi backfillu istniejących wierszy).
             $worldBosses = WorldBossInstance::with(['monster', 'map'])
+                ->whereNotNull('level_bracket')
                 ->get()
                 ->keyBy('level_bracket');
 

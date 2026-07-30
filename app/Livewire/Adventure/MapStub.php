@@ -141,9 +141,15 @@ class MapStub extends Component
         if (request()->has('world_boss')) {
             $worldBossId = (int)request()->query('world_boss');
             
-            // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss
+            // Sprawdź czy boss w ogóle istnieje na tej mapie jako aktywny boss. Filtrujemy
+            // whereNotNull('level_bracket'), żeby ewentualne osierocone rekordy sprzed
+            // rework'u przedziałów (level_bracket = null, migracja go nie backfilluje) nie
+            // zostały omyłkowo dopasowane zamiast właściwej, aktywnej instancji - w razie
+            // takich śmieci w bazie uruchom `php artisan app:world-boss-reset`.
             $worldBossInstance = \App\Infrastructure\Persistence\WorldBossInstance::where('map_id', $this->map->id)
                 ->where('monster_id', $worldBossId)
+                ->whereNotNull('level_bracket')
+                ->latest('id')
                 ->first();
 
             if ($worldBossInstance) {
