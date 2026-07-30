@@ -220,8 +220,13 @@ class ArenaCombat extends Component
 
         $this->isCalculating = false;
 
-        if (!empty($fight->turns)) {
-            $this->allTurns = $this->transformGvGTurnsToPerspective($fight->turns, $isAttacker);
+        $rawTurns = $fight->turns;
+        if (is_string($rawTurns)) {
+            $rawTurns = json_decode($rawTurns, true);
+        }
+
+        if (!empty($rawTurns) && is_array($rawTurns)) {
+            $this->allTurns = $this->transformGvGTurnsToPerspective($rawTurns, $isAttacker);
             $this->playerFirst = true;
             
             if ($war && $war->winner_guild_id) {
@@ -233,7 +238,9 @@ class ArenaCombat extends Component
             }
 
             $this->result = $iAmWinner ? 'win' : 'lose';
-            $this->isPlaying = true;
+            $this->isPlaying = !empty($this->allTurns);
+        } else {
+            $this->isPlaying = false;
         }
     }
 

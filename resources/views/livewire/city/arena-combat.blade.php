@@ -1,4 +1,65 @@
-<div id="arena-combat-component" class="min-h-screen relative overflow-hidden" x-data="{ travelingTo: null }" wire:init="startPlayback">
+<div id="arena-combat-component" 
+     class="min-h-screen relative overflow-hidden" 
+     x-data="{ 
+         travelingTo: null,
+         playbackTimer: null,
+         speed: @entangle('playbackSpeed'),
+         isPlaying: @entangle('isPlaying'),
+         userHasScrolledUp: false,
+
+         initPlayback() {
+             this.stopTimer();
+             if (this.isPlaying) {
+                 this.startTimer();
+             }
+         },
+
+         startTimer() {
+             this.stopTimer();
+             if (!this.isPlaying) return;
+
+             const ms = (this.speed == 2) ? 800 : 1500;
+             this.playbackTimer = setTimeout(() => {
+                 if (this.isPlaying) {
+                     $wire.nextTurn().then(() => {
+                         this.scrollLog();
+                         if (this.isPlaying) {
+                             this.startTimer();
+                         }
+                     }).catch(() => {
+                         this.stopTimer();
+                     });
+                 }
+             }, ms);
+         },
+
+         stopTimer() {
+             if (this.playbackTimer) {
+                 clearTimeout(this.playbackTimer);
+                 this.playbackTimer = null;
+             }
+         },
+
+         scrollLog(force = false) {
+             const container = document.getElementById('arena-combat-log-container');
+             if (!container) return;
+             if (force) this.userHasScrolledUp = false;
+             const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+             if (force || !this.userHasScrolledUp || distanceFromBottom < 150) {
+                 container.scrollTop = container.scrollHeight;
+             }
+         }
+     }"
+     x-init="
+         $watch('isPlaying', value => {
+             if (value) { startTimer(); } else { stopTimer(); }
+         });
+         $watch('speed', value => {
+             if (isPlaying) { startTimer(); }
+         });
+         setTimeout(() => { initPlayback(); }, 200);
+     "
+     wire:init="startPlayback">
     {{-- Dynamic background --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('img/maps/shadow-mountains.png') }}');">
     </div>
@@ -584,8 +645,7 @@
     </div>
 
     <script>
-        document.addEventListener('livewire:initialized', () => {
-            let playbackTimeout;
+        (function() {
             let userHasScrolledUp = false;
 
             function scrollArenaLogToBottom(force = false) {
@@ -622,67 +682,51 @@
                 }, { passive: true });
             }
 
-            Livewire.on('start-playback', (data) => {
-                clearTimeout(playbackTimeout);
-                userHasScrolledUp = false;
-                const speed = data.speed || (data[0] && data[0].speed) || 1;
-                setTimeout(() => scrollArenaLogToBottom(true), 10);
-                setTimeout(() => scrollArenaLogToBottom(true), 50);
-                setTimeout(() => scrollArenaLogToBottom(true), 150);
-                playNextTurn(speed);
-            });
-
-            Livewire.on('stop-playback', () => {
-                clearTimeout(playbackTimeout);
-            });
-
-            Livewire.on('update-playback-speed', (data) => {
-                clearTimeout(playbackTimeout);
-                const speed = data.speed || (data[0] && data[0].speed) || 1;
-                playNextTurn(speed);
-            });
-
-            Livewire.on('turn-played', (event) => {
-                scrollArenaLogToBottom();
-                const data = (event && event[0]) ? event[0] : event;
-                const actor = data.actor;
-                const type = data.type;
-                const dotDamage = data.dotDamage || 0;
-                const isPlayer = actor === 'player';
-                const playerPanel = document.getElementById('player-panel');
-                const enemyPanel = document.getElementById('enemy-panel');
-                
-                if (isPlayer) {
-                    playerPanel.classList.add('anim-attack-player');
-                    setTimeout(() => playerPanel.classList.remove('anim-attack-player'), 300);
-                    
-                    if (type !== 'miss' || dotDamage > 0) {
-                        setTimeout(() => {
-                            enemyPanel.classList.add('anim-damage');
-                            setTimeout(() => enemyPanel.classList.remove('anim-damage'), 400);
-                        }, 150);
-                    }
-                } else {
-                    enemyPanel.classList.add('anim-attack-enemy');
-                    setTimeout(() => enemyPanel.classList.remove('anim-attack-enemy'), 300);
-                    
-                    if (type !== 'miss' || dotDamage > 0) {
-                        setTimeout(() => {
-                            playerPanel.classList.add('anim-damage');
-                            setTimeout(() => playerPanel.classList.remove('anim-damage'), 400);
-                        }, 150);
-                    }
+            const registerTurnPlayed = () => {
+                if (typeof Livewire !== 'undefined') {
+                    Livewire.on('turn-played', (event) => {
+                        scrollArenaLogToBottom();
+                        const data = (event && event[0]) ? event[0] : event;
+                        const actor = data.actor;
+                        const type = data.type;
+                        const dotDamage = data.dotDamage || 0;
+                        const isPlayer = actor === 'player';
+                        const playerPanel = document.getElementById('player-panel');
+                        const enemyPanel = document.getElementById('enemy-panel');
+                        
+                        if (playerPanel && enemyPanel) {
+                            if (isPlayer) {
+                                playerPanel.classList.add('anim-attack-player');
+                                setTimeout(() => playerPanel.classList.remove('anim-attack-player'), 300);
+                                
+                                if (type !== 'miss' || dotDamage > 0) {
+                                    setTimeout(() => {
+                                        enemyPanel.classList.add('anim-damage');
+                                        setTimeout(() => enemyPanel.classList.remove('anim-damage'), 400);
+                                    }, 150);
+                                }
+                            } else {
+                                enemyPanel.classList.add('anim-attack-enemy');
+                                setTimeout(() => enemyPanel.classList.remove('anim-attack-enemy'), 300);
+                                
+                                if (type !== 'miss' || dotDamage > 0) {
+                                    setTimeout(() => {
+                                        playerPanel.classList.add('anim-damage');
+                                        setTimeout(() => playerPanel.classList.remove('anim-damage'), 400);
+                                    }, 150);
+                                }
+                            }
+                        }
+                    });
                 }
-            });
+            };
 
-            function playNextTurn(speed) {
-                const ms = speed === 2 ? 800 : 1500;
-                playbackTimeout = setTimeout(() => {
-                    @this.nextTurn();
-                    playNextTurn(speed);
-                }, ms);
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                registerTurnPlayed();
+            } else {
+                document.addEventListener('DOMContentLoaded', registerTurnPlayed);
             }
-        });
+        })();
     </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
