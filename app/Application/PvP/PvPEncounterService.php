@@ -568,19 +568,25 @@ class PvPEncounterService
         $actingAgi = $actingSnapshot['attributes']['agi'] ?? 1;
         $targetAgi = $targetSnapshot['attributes']['agi'] ?? 1;
 
-        // UWAGA (fix 2026-07-28): usunięto górne sufity - krytyk był capowany na 50%,
-        // unik na 18%. W PvP obie strony to gracze, więc zdjęcie capa dotyczy ich
-        // symetrycznie (patrz identyczna zmiana + wyjaśnienie w
-        // EncounterService::rollCritical()/rollDodge()). Dolny próg 0.03 dla krytyka
-        // zostaje, żeby szansa nigdy nie spadła do zera przy dużej przewadze AGI
-        // przeciwnika.
+        // UWAGA (fix 2026-07-28): usunięto górny sufit krytyka (był capowany na 50%).
+        // W PvP obie strony to gracze, więc zdjęcie capa dotyczy ich symetrycznie
+        // (patrz identyczna zmiana w EncounterService::rollCritical()). Dolny próg
+        // 0.03 dla krytyka zostaje, żeby szansa nigdy nie spadła do zera przy dużej
+        // przewadze AGI przeciwnika.
         $baseCrit = 0.05 + ($actingAgi * 0.004) + (($eqStats['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.0008);
         $critChance = max(0.03, $baseCrit - $agiCritPenalty);
         $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
 
+        // UWAGA (fix 2026-07-30): zdjęcie capa z uniku w tym samym commicie z
+        // 2026-07-28 (patrz historia wyżej) okazało się błędem - w PvP obie strony
+        // mogą mocno stackować AGI, co przy mnożniku 0.0015/pkt szybko wpychało unik
+        // w okolice 50% i walka stawała się w praktyce niegrywalna (permanentne
+        // "miss"). Łagodzimy narastanie (0.0006/pkt zamiast 0.0015/pkt) i przywracamy
+        // twardy sufit na 30%, żeby przewaga AGI dawała wyraźny, ale nie dominujący
+        // unik.
         $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015);
+        $dodgeChance = min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006));
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

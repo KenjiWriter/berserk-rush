@@ -165,6 +165,24 @@
         }
         return false;
     };
+
+    // Skraca duże liczby do formy "9k" / "31,5k" / "1,2M" (przecinek jako separator
+    // dziesiętny, jak w reszcie polskiego UI). Liczby < 1000 wracają bez zmian.
+    $formatNumber = function ($value) {
+        $num = (float) $value;
+        $sign = $num < 0 ? '-' : '';
+        $abs = abs($num);
+
+        if ($abs < 1000) {
+            return $sign . (fmod($abs, 1.0) === 0.0 ? (string) (int) $abs : rtrim(rtrim(number_format($abs, 2, ',', ''), '0'), ','));
+        }
+
+        $unit = $abs >= 1000000 ? 'M' : 'k';
+        $short = round($abs / ($unit === 'M' ? 1000000 : 1000), 1);
+        $formatted = ((float) (int) $short === $short) ? (string) (int) $short : number_format($short, 1, ',', '');
+
+        return $sign . $formatted . $unit;
+    };
 @endphp
 
 <div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
@@ -231,7 +249,7 @@
                             {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
                             <div class="flex justify-between items-center">
                                 <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                <span class="font-bold text-gray-200">{{ $val[0] }}-{{ $val[1] }}{{ $suffix }}</span>
+                                <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
                             </div>
                         @else
                             @php
@@ -249,12 +267,12 @@
                             <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
                                 <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $val }}{{ $suffix }}</span>
+                                    <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
                                     @if($up_val > 0)
-                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $up_val }}{{ $suffix }})</span>
+                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
                                     @endif
                                     <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                        @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
+                                        @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
                                     </span>
                                 </div>
                             </div>
@@ -270,9 +288,9 @@
                         <div class="flex justify-between items-center text-purple-400" x-show="compare || {{ $val }} > 0">
                             <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
                             <div class="flex items-center gap-1">
-                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $val }}{{ $suffix }}</span>
+                                <span class="font-bold {{ $val > 0 ? 'text-purple-300' : 'text-gray-600' }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
                                 <span x-show="compare" class="text-xs font-bold w-12 text-right ml-1 {{ $diff > 0 ? 'text-green-400 font-extrabold' : ($diff < 0 ? 'text-red-400 font-extrabold' : 'text-gray-500') }}">
-                                    @if($diff > 0)(+{{ $diff }}{{ $suffix }})@elseif($diff < 0)({{ $diff }}{{ $suffix }})@else(- )@endif
+                                    @if($diff > 0)(+{{ $formatNumber($diff) }}{{ $suffix }})@elseif($diff < 0)({{ $formatNumber($diff) }}{{ $suffix }})@else(- )@endif
                                 </span>
                             </div>
                         </div>
@@ -302,9 +320,9 @@
                             <div class="flex justify-between">
                                 <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $eq_val }}{{ $suffix }}</span>
+                                    <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
                                     @if($eq_up_val > 0)
-                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $eq_up_val }}{{ $suffix }})</span>
+                                        <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
                                     @endif
                                 </div>
                             </div>
@@ -315,7 +333,7 @@
                         @if(($equipped_enchants[$stat] ?? 0) > 0)
                             <div class="flex justify-between text-purple-400/80">
                                 <span class="capitalize flex items-center gap-1"><i class="fa-solid fa-star text-purple-400 text-xs"></i> {{ $formatStatName($stat) }}</span>
-                                <span class="font-bold">+{{ $equipped_enchants[$stat] }}{{ $suffix }}</span>
+                                <span class="font-bold">+{{ $formatNumber($equipped_enchants[$stat]) }}{{ $suffix }}</span>
                             </div>
                         @endif
                     @endforeach

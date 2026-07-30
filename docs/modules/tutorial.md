@@ -35,6 +35,16 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Tablica Wyzwań i Osiągnięcia (game_stage 22-30)**: Aktywowane po wbiciu 5 poziomu postaci. Do etapu 22 Tablica Wyzwań jest zablokowana. Dopiero po awansie na 5 poziom Kapitan ponownie wita gracza w obozie, zachęca do odwiedzenia Tablicy Wyzwań i instruuje jak odbierać misje, wykonuje się przykładową misję, odbiera nagrodę, po czym Kapitan przedstawia system Osiągnięć.
 - **Czarodziej i Zaklinanie Przedmiotów (game_stage 30-34)**: Po powrocie do Głównego Obozu Kapitan informuje gracza, że kolejnym mieszkańcem jest Czarodziej. Kafel Czarodzieja w Hubie zostaje podświetlony. Po przejściu do Czarodzieja Kapitan oprowadza gracza po mechanice zaklinania (dodawanie bonusów) i zleca pomyślne zaklecie dowolnego przedmiotu. Po wykonaniu zadania z sukcesem gracz otrzymuje nagrodę 200 EXP oraz 250 Golda.
 
+## Automatyczne Pomijanie Etapów (Anti-Softlock)
+
+Samouczek liniowy oparty o ścisłe porównania `game_stage == X` potrafił blokować doświadczonych/szybkich graczy w krokach, które stały się dla nich zbędne. `User::checkAndRepairTutorialStage()` (wywoływana m.in. w `Hub::mount/goTo`, `Quests::mount`, `TutorialOverlay::mount/nextStep`, nawigacji bocznej oraz przy każdym levelupie w `LevelUpService`) naprawia dwa takie przypadki:
+
+1. **Pomijanie lekcji o rozdawaniu punktów (game_stage 13/14 -> 15)**: Jeśli gracz samodzielnie rozdał już więcej niż 13 punktów statystyk łącznie (`Character::getTotalAttributePoints()`, czyli więcej niż 10 startowych + 3 z pierwszego levelu), oznacza to, że zna już panel atrybutów. Etapy 13-14 ("wróć do miasta i rozdaj punkty") są wtedy pomijane automatycznie, a gracz od razu ląduje na etapie 15, gdzie w Hubie czeka nagroda 150 złota.
+2. **Natychmiastowe odblokowanie Tablicy Wyzwań po 5 poziomie**: Blokada Tablicy Wyzwań (`Zablokowane (Poz. 5)`) w Hubie oraz w nawigacji bocznej opiera się teraz na poziomie postaci (`Character::level < 5`), a nie na etapie samouczka. Dzięki temu gracz, który wbije 5 poziom zanim skończy wcześniejsze etapy samouczka (np. utknął gdzieś w Handlarzu, etap 17-20), widzi kafel/link do Tablicy Wyzwań jako aktywny. Kliknięcie w niego:
+   - w Hubie (`Hub::goTo('quests')`) ustawia `game_stage` na 22 i pozostaje w Hubie, dzięki czemu od razu pojawia się dymek Kapitana rozpoczynający wątek questowy (etap 22 -> 23),
+   - przy bezpośrednim wejściu na `/quests` (`Quests::mount`) robi to samo i przekierowuje z powrotem do Hubu, żeby ten sam dymek Kapitana mógł się pokazać.
+   Gracze poniżej 5 poziomu nadal widzą kafel jako zablokowany (szary, z komunikatem błędu) i nie przechodzą dalej.
+
 ## Implementacja na przyszłość
 
 Aby w przyszłości rozszerzyć samouczek (np. o system Chowańców/Petów), wystarczy:
