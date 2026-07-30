@@ -295,6 +295,7 @@ class DungeonRun extends Component
 
         return view('livewire.city.dungeon-run', [
             'run' => $run,
+            'currentStageModel' => $currentStageModel,
             'monster' => $monster,
             'currentHp' => $currentHp,
             'maxHp' => $maxHp,

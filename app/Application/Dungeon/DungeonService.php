@@ -121,30 +121,27 @@ class DungeonService
 
         // Symuluj walkę z aktualnym HP gracza (brak regeneracji!)
         $playerHp = $run->current_hp;
-        $monsterHp = $monster->stats['hp'] ?? $monster->level * 20;
-        $monsterMaxHp = $monsterHp;
+        $startPlayerHp = $playerHp;
 
-        $encounterService = app(EncounterService::class);
-
-        // Używamy wewnętrznej symulacji walki
-        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
-        $monsterAgi = $monster->stats['agi'] ?? $monster->level;
-        $playerFirst = $playerAgi >= $monsterAgi;
+        $totalStages = $run->dungeon->stages()->count();
+        $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
+        $stageType = $stage->stage_type ?? 'single_mob';
+        $monsterCount = max(1, $stage->monster_count ?? 1);
+        $maxTurns = $stage->max_turns ?? 50;
 
         $turns = [];
         $turnCount = 0;
-        $maxTurns = 50;
-        $monsterHp = $monsterMaxHp;
-        
-        $startPlayerHp = $playerHp;
 
-        while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
-            $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
+        if ($stageType === 'gate') {
+            $maxTurns = $stage->max_turns ?? 10;
+            $monsterHp = $monster->stats['hp'] ?? ($monster->level * 40);
+            $monsterMaxHp = $monsterHp;
 
-            if ($isPlayerTurn) {
+            while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
+                // Gracz atakuje wrota (wrota nie zadają obrażeń, atk = 0)
                 $damage = $this->calculatePlayerDamage($character, $monster);
                 $isCrit = mt_rand(1, 100) <= 10;
-                $isMiss = mt_rand(1, 100) <= 5;
+                $isMiss = mt_rand(1, 100) <= 2; // wrota rzadko robią unik
 
                 if ($isMiss) {
                     $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
@@ -153,23 +150,113 @@ class DungeonService
                     $monsterHp = max(0, $monsterHp - $damage);
                     $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
                 }
-            } else {
-                $damage = $this->calculateMonsterDamage($monster, $character);
-                $isCrit = mt_rand(1, 100) <= 8;
-                $isMiss = mt_rand(1, 100) <= 5;
-
-                if ($isMiss) {
-                    $turns[] = ['actor' => 'enemy', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
-                } else {
-                    if ($isCrit) $damage = (int)($damage * 1.5);
-                    $playerHp = max(0, $playerHp - $damage);
-                    $turns[] = ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
-                }
+                $turnCount++;
             }
-            $turnCount++;
-        }
 
-        $won = $monsterHp <= 0;
+            $won = $monsterHp <= 0;
+        } elseif ($stageType === 'group_mob' && $monsterCount > 1) {
+            $singleMaxHp = $monster->stats['hp'] ?? ($monster->level * 20);
+            $mobs = [];
+            for ($m = 0; $m < $monsterCount; $m++) {
+                $mobs[] = [
+                    'id' => $m + 1,
+                    'hp' => $singleMaxHp,
+                    'maxHp' => $singleMaxHp
+                ];
+            }
+            $monsterMaxHp = $singleMaxHp * $monsterCount;
+
+            $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+            $monsterAgi = $monster->stats['agi'] ?? $monster->level;
+            $playerFirst = $playerAgi >= $monsterAgi;
+
+            while ($playerHp > 0 && count(array_filter($mobs, fn($mb) => $mb['hp'] > 0)) > 0 && $turnCount < $maxTurns) {
+                $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
+                $aliveMobs = array_values(array_filter($mobs, fn($mb) => $mb['hp'] > 0));
+                $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
+
+                if ($isPlayerTurn && !empty($aliveMobs)) {
+                    $targetMobId = $aliveMobs[0]['id'];
+                    $damage = $this->calculatePlayerDamage($character, $monster);
+                    $isCrit = mt_rand(1, 100) <= 10;
+                    $isMiss = mt_rand(1, 100) <= 5;
+
+                    if ($isMiss) {
+                        $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                    } else {
+                        if ($isCrit) $damage = (int)($damage * 1.5);
+                        foreach ($mobs as &$mb) {
+                            if ($mb['id'] === $targetMobId) {
+                                $mb['hp'] = max(0, $mb['hp'] - $damage);
+                                break;
+                            }
+                        }
+                        unset($mb);
+                        $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
+                        $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                    }
+                } else {
+                    foreach ($aliveMobs as $aliveMob) {
+                        if ($playerHp <= 0) break;
+                        $damage = $this->calculateMonsterDamage($monster, $character);
+                        $isCrit = mt_rand(1, 100) <= 8;
+                        $isMiss = mt_rand(1, 100) <= 5;
+
+                        if ($isMiss) {
+                            $turns[] = ['actor' => 'enemy', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                        } else {
+                            if ($isCrit) $damage = (int)($damage * 1.5);
+                            $playerHp = max(0, $playerHp - $damage);
+                            $turns[] = ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                        }
+                    }
+                }
+                $turnCount++;
+            }
+
+            $monsterHp = array_sum(array_column($mobs, 'hp'));
+            $won = $monsterHp <= 0;
+        } else {
+            $monsterHp = $monster->stats['hp'] ?? $monster->level * 20;
+            $monsterMaxHp = $monsterHp;
+
+            $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+            $monsterAgi = $monster->stats['agi'] ?? $monster->level;
+            $playerFirst = $playerAgi >= $monsterAgi;
+
+            while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
+                $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
+
+                if ($isPlayerTurn) {
+                    $damage = $this->calculatePlayerDamage($character, $monster);
+                    $isCrit = mt_rand(1, 100) <= 10;
+                    $isMiss = mt_rand(1, 100) <= 5;
+
+                    if ($isMiss) {
+                        $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    } else {
+                        if ($isCrit) $damage = (int)($damage * 1.5);
+                        $monsterHp = max(0, $monsterHp - $damage);
+                        $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    }
+                } else {
+                    $damage = $this->calculateMonsterDamage($monster, $character);
+                    $isCrit = mt_rand(1, 100) <= 8;
+                    $isMiss = mt_rand(1, 100) <= 5;
+
+                    if ($isMiss) {
+                        $turns[] = ['actor' => 'enemy', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    } else {
+                        if ($isCrit) $damage = (int)($damage * 1.5);
+                        $playerHp = max(0, $playerHp - $damage);
+                        $turns[] = ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    }
+                }
+                $turnCount++;
+            }
+
+            $won = $monsterHp <= 0;
+        }
 
         // Zapisz stan HP po walce
         $run->current_hp = $playerHp;
@@ -191,8 +278,8 @@ class DungeonService
             ]);
         }
 
-        // Przeciwnik pokonany - losujemy loot
-        $lootFromThisStage = $this->calculateStageLoot($character, $monster);
+        // Przeciwnik pokonany - losujemy loot (przedmioty wykluczone dla nie-bossa)
+        $lootFromThisStage = $this->calculateStageLoot($character, $monster, $isBossStage);
         $accumulatedLoot['gold'] += $lootFromThisStage['gold'];
         $accumulatedLoot['xp'] += $lootFromThisStage['xp'];
         foreach ($lootFromThisStage['items'] as $item) {
@@ -318,7 +405,7 @@ class DungeonService
         return max(1, $baseDamage - ($defense / 2));
     }
 
-    private function calculateStageLoot(Character $character, $monster): array
+    private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false): array
     {
         $multiplierService = app(RewardMultiplierService::class);
         
@@ -337,8 +424,8 @@ class DungeonService
 
         $items = [];
         
-        // Roll loot table
-        if ($monster->lootTable) {
+        // Roll loot table ONLY for boss stages
+        if ($isBossStage && $monster->lootTable) {
             $entries = $monster->lootTable->entries->toArray();
             if (!empty($entries)) {
                 $picker = app(WeightedPicker::class);

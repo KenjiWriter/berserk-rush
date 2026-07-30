@@ -150,7 +150,7 @@
                     </div>
 
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
-                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
+                        <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
                              @if(isset($equipped[$slot])) 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
@@ -371,7 +371,7 @@
                 <!-- Right Slots -->
                 <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
-                        <div id="equip-slot-{{ $slot }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false" 
+                        <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
                              @if(isset($equipped[$slot])) 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
@@ -974,13 +974,69 @@
                 @elseif($inventoryTab === 'materials')
                     {{-- Material Stash View --}}
                     @foreach($materialStashItems as $item)
-                        <div id="material-item-{{ $item->id }}" x-data="smartTooltip()"
+                        <div id="material-item-{{ $item->id }}" wire:key="material-item-{{ $item->id }}" x-data="{
+                            showInfo: false,
+                            hoverTimeout: null,
+                            posClass: 'sm:bottom-full sm:mb-2',
+                            tooltipStyle: {},
+                            checkPosition() {
+                                if (window.innerWidth < 640) return;
+                                this.$nextTick(() => {
+                                    const triggerRect = this.$el.getBoundingClientRect();
+                                    const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                                    if (!triggerRect.width || !tooltipEl) return;
+                                    const tooltipRect = tooltipEl.getBoundingClientRect();
+                                    const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                                    const halfWidth = tooltipRect.width / 2;
+                                    const minMargin = 12;
+                                    let style = {};
+                                    if (triggerCenter - halfWidth < minMargin) {
+                                        style.left = (minMargin - triggerRect.left) + 'px';
+                                        style.transform = 'none';
+                                    } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
+                                        style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
+                                        style.transform = 'none';
+                                    } else {
+                                        style.left = '50%';
+                                        style.transform = 'translateX(-50%)';
+                                    }
+                                    if (triggerRect.top < tooltipRect.height + 16) {
+                                        style.top = '100%';
+                                        style.bottom = 'auto';
+                                        style.marginTop = '8px';
+                                        style.marginBottom = '0';
+                                        this.posClass = 'sm:top-full sm:mt-2';
+                                    } else {
+                                        style.bottom = '100%';
+                                        style.top = 'auto';
+                                        style.marginBottom = '8px';
+                                        style.marginTop = '0';
+                                        this.posClass = 'sm:bottom-full sm:mb-2';
+                                    }
+                                    this.tooltipStyle = style;
+                                });
+                            },
+                            openTooltip() {
+                                clearTimeout(this.hoverTimeout);
+                                this.showInfo = true;
+                                this.checkPosition();
+                            },
+                            closeTooltip() {
+                                clearTimeout(this.hoverTimeout);
+                                this.hoverTimeout = setTimeout(() => { this.showInfo = false; }, 120);
+                            },
+                            toggleTooltip() {
+                                clearTimeout(this.hoverTimeout);
+                                this.showInfo = !this.showInfo;
+                                if (this.showInfo) this.checkPosition();
+                            }
+                        }"
                              :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
                              @click="toggleTooltip()"
-                             @resize.window.debounce.100ms="updatePosition()"
-                             @tooltip-updated.window="updatePosition()"
+                             @resize.window.debounce.100ms="checkPosition()"
+                             @tooltip-updated.window="checkPosition()"
                              class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
                             
                             <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">

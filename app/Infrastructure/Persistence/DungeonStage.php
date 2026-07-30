@@ -10,6 +10,9 @@ class DungeonStage extends Model
         'dungeon_id',
         'stage_order',
         'monster_id',
+        'stage_type',
+        'monster_count',
+        'max_turns',
     ];
 
     public function dungeon()

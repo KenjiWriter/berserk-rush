@@ -1,0 +1,92 @@
+<?php
+
+namespace Tests\Feature;
+
+use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Infrastructure\Persistence\Dungeon;
+use App\Infrastructure\Persistence\Character;
+use App\Models\User;
+use App\Infrastructure\Persistence\ItemTemplate;
+use App\Infrastructure\Persistence\ItemInstance;
+use App\Application\Dungeon\DungeonService;
+use Database\Seeders\DungeonSeeder;
+
+class DungeonExpansionTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(DungeonSeeder::class);
+    }
+
+    public function test_five_dungeons_seeded_successfully(): void
+    {
+        $this->assertEquals(5, Dungeon::count());
+
+        $dungeons = Dungeon::orderBy('min_level')->get();
+        $this->assertEquals(12, $dungeons[0]->min_level);
+        $this->assertEquals(30, $dungeons[1]->min_level);
+        $this->assertEquals(50, $dungeons[2]->min_level);
+        $this->assertEquals(70, $dungeons[3]->min_level);
+        $this->assertEquals(88, $dungeons[4]->min_level);
+    }
+
+    public function test_dungeon_stages_types_and_limits(): void
+    {
+        $dungeon = Dungeon::where('min_level', 12)->first();
+        $stages = $dungeon->stages()->orderBy('stage_order')->get();
+
+        $this->assertCount(4, $stages);
+        $this->assertEquals('single_mob', $stages[0]->stage_type);
+        $this->assertEquals('group_mob', $stages[1]->stage_type);
+        $this->assertEquals(2, $stages[1]->monster_count);
+        $this->assertEquals('gate', $stages[2]->stage_type);
+        $this->assertEquals(10, $stages[2]->max_turns);
+        $this->assertEquals('boss', $stages[3]->stage_type);
+    }
+
+    public function test_dungeon_run_execution_and_loot_accumulation(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Testowy',
+            'level' => 20,
+            'xp' => 0,
+            'gold' => 500,
+            'attributes' => ['str' => 200, 'int' => 50, 'vit' => 200, 'agi' => 100],
+        ]);
+
+        $dungeon = Dungeon::where('min_level', 12)->first();
+
+        // Give character key
+        ItemInstance::create([
+            'template_id' => $dungeon->entry_item_template_id,
+            'owner_character_id' => $character->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $service = app(DungeonService::class);
+        $startResult = $service->startRun($character, $dungeon);
+        $this->assertTrue($startResult->isOk());
+
+        $run = $startResult->getPayload();
+        $this->assertEquals(1, $run->current_stage);
+
+        // Stage 1 (single_mob)
+        $simResult1 = $service->simulateStage($run);
+        $this->assertTrue($simResult1->isOk());
+        $run->refresh();
+
+        // Check non-boss stage accumulated loot has NO items
+        $loot1 = $run->accumulated_loot;
+        $this->assertGreaterThan(0, $loot1['gold']);
+        $this->assertGreaterThan(0, $loot1['xp']);
+        $this->assertEmpty($loot1['items']);
+    }
+}

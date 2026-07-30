@@ -326,11 +326,45 @@
                             @endif
                         </ul>
                     @elseif($monster && !$showBattle)
-                        <div class="h-full flex flex-col items-center justify-center text-center">
-                            <div class="text-5xl mb-4">🚪</div>
-                            <h3 class="text-lg text-amber-400/80 uppercase tracking-widest mb-2 font-bold medieval-font">Wyzwanie Etapu</h3>
-                            <h2 class="text-3xl font-bold text-amber-200 mb-3 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
-                            <p class="text-slate-400 italic text-sm">Z mroku wyłania się kolejny przeciwnik. Przygotuj się do walki!</p>
+                        <div class="h-full flex flex-col items-center justify-center text-center p-4">
+                            @if(($currentStageModel->stage_type ?? '') === 'gate')
+                                <div class="text-6xl mb-3 animate-pulse">🚪</div>
+                                <span class="px-3 py-1 bg-amber-500/20 border border-amber-500/50 rounded-full text-amber-300 text-xs font-bold medieval-font uppercase tracking-widest mb-2">
+                                    🛡️ Wrota Lochu
+                                </span>
+                                <h2 class="text-2xl font-bold text-amber-200 mb-2 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                                <div class="p-3 bg-red-950/60 border border-red-500/40 rounded-xl max-w-sm mb-3">
+                                    <p class="text-xs text-red-200 font-semibold">
+                                        ⚠️ Gracz musi zniszczyć wrota w <strong>{{ $currentStageModel->max_turns ?? 10 }}</strong> tur! Wrota nie zadają obrażeń, ale posiadają potężny pancerz i zdrowie.
+                                    </p>
+                                </div>
+                            @elseif(($currentStageModel->stage_type ?? '') === 'group_mob')
+                                <div class="text-6xl mb-3">⚔️</div>
+                                <span class="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-red-300 text-xs font-bold medieval-font uppercase tracking-widest mb-2">
+                                    ⚔️ Grupa Przeciwników (x{{ $currentStageModel->monster_count ?? 2 }})
+                                </span>
+                                <h2 class="text-2xl font-bold text-amber-200 mb-2 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                                <p class="text-slate-400 italic text-sm">Przed Tobą stoi grupa niebezpiecznych wrogów. Przygotuj się do walki z wieloma przeciwnikami naraz!</p>
+                            @elseif(($currentStageModel->stage_type ?? '') === 'boss')
+                                <div class="text-6xl mb-3">👑</div>
+                                <span class="px-3 py-1 bg-amber-500/30 border border-amber-400 rounded-full text-amber-200 text-xs font-bold medieval-font uppercase tracking-widest mb-2 animate-bounce">
+                                    👑 Władca Lochu (Boss)
+                                </span>
+                                <h2 class="text-2xl font-bold text-amber-200 mb-2 medieval-font">Ostatni Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                                <p class="text-slate-300 italic text-sm">Finałowe starcie! Tylko pokonanie Bossa gwarantuje otrzymanie zebranego łupu, Jajka Chowańca i materiałów!</p>
+                            @elseif(($currentStageModel->stage_type ?? '') === 'miniboss')
+                                <div class="text-6xl mb-3">🔥</div>
+                                <span class="px-3 py-1 bg-orange-500/20 border border-orange-500/50 rounded-full text-orange-300 text-xs font-bold medieval-font uppercase tracking-widest mb-2">
+                                    🔥 Mini-Boss Etapu
+                                </span>
+                                <h2 class="text-2xl font-bold text-amber-200 mb-2 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                                <p class="text-slate-400 italic text-sm">Potężniejszy strażnik lochu zagraża Twojej ekspedycji. Bądź ostrożny!</p>
+                            @else
+                                <div class="text-5xl mb-4">🚪</div>
+                                <h3 class="text-lg text-amber-400/80 uppercase tracking-widest mb-2 font-bold medieval-font">Wyzwanie Etapu</h3>
+                                <h2 class="text-3xl font-bold text-amber-200 mb-3 medieval-font">Etap {{ $currentStage }} z {{ $totalStages }}</h2>
+                                <p class="text-slate-400 italic text-sm">Z mroku wyłania się kolejny przeciwnik. Przygotuj się do walki!</p>
+                            @endif
                         </div>
                     @endif
 
