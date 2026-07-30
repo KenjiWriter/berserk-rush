@@ -23,6 +23,10 @@ Moduł lochów wprowadza do gry zaawansowaną zawartość PvE typu instancjonowa
    - Dopiero po pomyślnym oczyszczeniu **ostatniego etapu** (zabiciu ostatecznego bossa lochu), cały zmagazynowany zysk zostaje automatycznie rozpakowany i dodany do walut oraz ekwipunku postaci (zostają stworzone odpowiednie logi w `CurrencyLedger` i `ItemLedger`).
    - Śmierć postaci lub nieudane przejście lochu skutkuje utratą wszystkich dotychczas zebranych w tym lochu nagród. Wnosi to element ryzyka.
 
+5. **Drop Zwojów Użytkowych (Scrolls):**
+   - Z bossów lochów wypadać mogą Zwoje Użytkowe (Zwój Resetu Umiejętności, Zwój Resetu Atrybutów, Zwój Pełnego Resetu oraz Zwój Areny Walki).
+   - Szansa (waga) na wylosowanie Zwoju rośnie proporcjonalnie do trudności i wymaganego poziomu lochu (Zapomniane Katakumby: niska szansa -> Otchłań Zniszczenia: najwyższa szansa).
+
 ## Baza Danych
 
 - `dungeons`: Tablica główna opisująca dany loch (nazwa, minimalny level, przedmiot-klucz).

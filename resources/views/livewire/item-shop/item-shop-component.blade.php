@@ -97,20 +97,11 @@
                 @endif
             </button>
             <button 
-                wire:click="setTab('skills')" 
-                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'skills' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
+                wire:click="setTab('scrolls')" 
+                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ in_array($activeTab, ['scrolls', 'skills', 'attributes']) ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
             >
-                Umiejętności
-                @if($activeTab === 'skills')
-                    <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
-                @endif
-            </button>
-            <button 
-                wire:click="setTab('attributes')" 
-                class="px-4 sm:px-6 py-3 min-h-[44px] font-bold text-sm sm:text-lg uppercase tracking-wider transition-all duration-300 relative shrink-0 whitespace-nowrap {{ $activeTab === 'attributes' ? 'text-amber-300' : 'text-amber-700/60 hover:text-amber-500' }}"
-            >
-                Atrybuty
-                @if($activeTab === 'attributes')
+                Zwoje i Resety
+                @if(in_array($activeTab, ['scrolls', 'skills', 'attributes']))
                     <div class="absolute bottom-0 left-0 w-full h-1 bg-amber-400 shadow-[0_0_10px_rgba(250,204,21,0.8)] rounded-t-full"></div>
                 @endif
             </button>
@@ -290,48 +281,122 @@
             @endif
         @endif
 
-        {{-- Tab Content: Skills --}}
-        @if($activeTab === 'skills')
-            <div class="max-w-2xl mx-auto text-center">
-                <h2 class="text-3xl font-bold text-amber-300 mb-6">Reset Umiejętności</h2>
-                <p class="text-amber-500/80 mb-8">Czy dokonałeś złego wyboru? Możesz zresetować swoje umiejętności dla wszystkich postaci i odzyskać zainwestowane punkty umiejętności (Skill Points). Umiejętności zostaną zapomniane.</p>
-                
-                <div class="bg-black/50 border border-amber-900/50 p-8 rounded-2xl shadow-xl flex flex-col items-center">
-                    <div class="text-5xl mb-6">🔄</div>
-                    <div class="text-3xl font-bold text-amber-300 flex items-center justify-center gap-2 mb-8">
-                        50 <span class="text-xl">💎</span>
-                    </div>
-                    
-                    <button 
-                        wire:click="resetSkills"
-                        wire:confirm="Czy na pewno chcesz zresetować wszystkie umiejętności? Ta operacja jest nieodwracalna!"
-                        class="px-8 py-4 rounded-lg bg-gradient-to-r from-red-700 to-red-500 hover:from-red-600 hover:to-red-400 text-white font-bold tracking-wider shadow-[0_0_20px_rgba(220,38,38,0.4)] transition-all transform hover:scale-105"
-                    >
-                        Zresetuj Umiejętności
-                    </button>
+        {{-- Tab Content: Scrolls & Resets --}}
+        @if(in_array($activeTab, ['scrolls', 'skills', 'attributes']))
+            <div class="max-w-5xl mx-auto">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-amber-300 mb-2">Zwoje i Resety</h2>
+                    <p class="text-amber-500/80">Zakupione Zwoje trafiają bezpośrednio do plecaka aktywnej postaci. Możesz ich użyć w dowolnym momencie z poziomu ekwipunku.</p>
                 </div>
-            </div>
-        @endif
 
-        {{-- Tab Content: Attributes --}}
-        @if($activeTab === 'attributes')
-            <div class="max-w-2xl mx-auto text-center">
-                <h2 class="text-3xl font-bold text-amber-300 mb-6">Reset Atrybutów</h2>
-                <p class="text-amber-500/80 mb-8">Chcesz inaczej zbalansować statystyki swoich postaci? Zresetuj rozdane atrybuty (Siła, Inteligencja, Witalność, Zręczność) dla wszystkich postaci i odzyskaj wszystkie punkty postaci (Character Points) do ponownego rozdania.</p>
-                
-                <div class="bg-black/50 border border-amber-900/50 p-8 rounded-2xl shadow-xl flex flex-col items-center">
-                    <div class="text-5xl mb-6">⚡</div>
-                    <div class="text-3xl font-bold text-amber-300 flex items-center justify-center gap-2 mb-8">
-                        50 <span class="text-xl">💎</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {{-- Zwój Resetu Umiejętności --}}
+                    <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
+                                    📜
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-200">Zwój Resetu Umiejętności</h3>
+                                    <p class="text-xs text-amber-500/70 font-semibold uppercase tracking-wider">Przedmiot Zużywalny (Consumable)</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-amber-400/80 mb-6">Pozwala zresetować umiejętności bojowe aktywnej postaci i odzyskać wszystkie zainwestowane Punkty Umiejętności (Skill Points) do ponownego przydzielenia.</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-amber-900/40">
+                            <div class="text-2xl font-bold text-amber-300 flex items-center gap-1">
+                                50 <span class="text-lg">💎</span>
+                            </div>
+                            <button 
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr1', 50)"
+                                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold tracking-wider shadow-[0_0_15px_rgba(217,119,6,0.4)] transition-all"
+                            >
+                                Kup Zwój
+                            </button>
+                        </div>
                     </div>
-                    
-                    <button 
-                        wire:click="resetAttributes"
-                        wire:confirm="Czy na pewno chcesz zresetować wszystkie atrybuty postaci? Ta operacja jest nieodwracalna!"
-                        class="px-8 py-4 rounded-lg bg-gradient-to-r from-amber-700 to-amber-500 hover:from-amber-600 hover:to-amber-400 text-white font-bold tracking-wider shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all transform hover:scale-105"
-                    >
-                        Zresetuj Atrybuty
-                    </button>
+
+                    {{-- Zwój Resetu Atrybutów --}}
+                    <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
+                                    ⚡
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-200">Zwój Resetu Atrybutów</h3>
+                                    <p class="text-xs text-amber-500/70 font-semibold uppercase tracking-wider">Przedmiot Zużywalny (Consumable)</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-amber-400/80 mb-6">Pozwala zresetować przydzielone punkty atrybutów (Siła, Inteligencja, Witalność, Zręczność) aktywnej postaci i odzyskać Punkty Postaci do ponownego rozdania.</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-amber-900/40">
+                            <div class="text-2xl font-bold text-amber-300 flex items-center gap-1">
+                                50 <span class="text-lg">💎</span>
+                            </div>
+                            <button 
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr2', 50)"
+                                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold tracking-wider shadow-[0_0_15px_rgba(217,119,6,0.4)] transition-all"
+                            >
+                                Kup Zwój
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Zwój Pełnego Resetu --}}
+                    <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
+                                    ✨
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-200">Zwój Pełnego Resetu</h3>
+                                    <p class="text-xs text-amber-500/70 font-semibold uppercase tracking-wider">Przedmiot Zużywalny (Consumable)</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-amber-400/80 mb-6">Pozwala zresetować zarówno przydzielone atrybuty, jak i umiejętności bojowe aktywnej postaci za jednym razem.</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-amber-900/40">
+                            <div class="text-2xl font-bold text-amber-300 flex items-center gap-1">
+                                90 <span class="text-lg">💎</span>
+                            </div>
+                            <button 
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr3', 90)"
+                                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold tracking-wider shadow-[0_0_15px_rgba(217,119,6,0.4)] transition-all"
+                            >
+                                Kup Zwój
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Zwój Areny Walki --}}
+                    <div class="bg-gradient-to-b from-stone-900/90 to-black border border-amber-800/40 rounded-2xl p-6 shadow-xl hover:border-amber-500/60 transition-all flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-14 h-14 rounded-xl bg-amber-950/80 border border-amber-500/50 flex items-center justify-center text-3xl shadow-[0_0_15px_rgba(217,119,6,0.3)]">
+                                    ⚔️
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-amber-200">Zwój Areny Walki</h3>
+                                    <p class="text-xs text-amber-500/70 font-semibold uppercase tracking-wider">Przedmiot Zużywalny (Consumable)</p>
+                                </div>
+                            </div>
+                            <p class="text-sm text-amber-400/80 mb-6">Przywraca 1 wykorzystaną próbę na Arenie Walk w danym dniu dla aktywnej postaci.</p>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-amber-900/40">
+                            <div class="text-2xl font-bold text-amber-300 flex items-center gap-1">
+                                30 <span class="text-lg">💎</span>
+                            </div>
+                            <button 
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr4', 30)"
+                                class="px-6 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold tracking-wider shadow-[0_0_15px_rgba(217,119,6,0.4)] transition-all"
+                            >
+                                Kup Zwój
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         @endif

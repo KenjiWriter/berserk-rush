@@ -31,6 +31,81 @@ class ConsumeItemAction
             }
 
             $stats = $item->template->base_stats ?? [];
+            $effect = $stats['effect'] ?? null;
+
+            if ($effect) {
+                $message = '';
+                if ($effect === 'reset_skills') {
+                    $spentPoints = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+                        ->where('character_id', $character->id)
+                        ->get()
+                        ->sum(function ($cs) {
+                            return ($cs->skill->unlock_cost ?? 1) + max(0, $cs->level - 1);
+                        });
+
+                    \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $character->id)->delete();
+                    if ($spentPoints > 0) {
+                        $character->skill_points += $spentPoints;
+                    }
+                    $character->save();
+                    $message = "Pomyślnie zresetowano umiejętności bojowe! Odzyskano {$spentPoints} pkt. umiejętności.";
+                } elseif ($effect === 'reset_attributes') {
+                    $character->attributes = ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
+                    $character->character_points = 10 + max(0, ($character->level - 1) * 3);
+                    $character->clearStatsCache();
+                    $character->save();
+                    $message = "Pomyślnie zresetowano atrybuty postaci! Odzyskano punkty postaci do ponownego rozdania.";
+                } elseif ($effect === 'reset_full') {
+                    $spentPoints = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
+                        ->where('character_id', $character->id)
+                        ->get()
+                        ->sum(function ($cs) {
+                            return ($cs->skill->unlock_cost ?? 1) + max(0, $cs->level - 1);
+                        });
+
+                    \App\Infrastructure\Persistence\CharacterCombatSkill::where('character_id', $character->id)->delete();
+                    if ($spentPoints > 0) {
+                        $character->skill_points += $spentPoints;
+                    }
+
+                    $character->attributes = ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
+                    $character->character_points = 10 + max(0, ($character->level - 1) * 3);
+                    $character->clearStatsCache();
+                    $character->save();
+                    $message = "Pomyślnie zresetowano atrybuty oraz umiejętności bojowe postaci!";
+                } elseif ($effect === 'arena_attempt') {
+                    $character->checkAndResetDailyPvpFights();
+                    if (($character->daily_pvp_fights_used ?? 0) <= 0) {
+                        return ['success' => false, 'message' => 'Posiadasz już pełny limit prób na Arenie Walk (5/5).'];
+                    }
+                    $character->decrement('daily_pvp_fights_used');
+                    $remaining = $character->getRemainingDailyPvpFights();
+                    $message = "Przywrócono 1 próbę na Arenie Walk! Pozostało: {$remaining}/5 prób dzisiaj.";
+                } else {
+                    return ['success' => false, 'message' => 'Nieznany efekt zwoju.'];
+                }
+
+                // Log consume
+                ItemLedger::create([
+                    'id' => (string) Str::ulid(),
+                    'character_id' => $character->id,
+                    'item_instance_id' => $itemInstanceId,
+                    'action' => 'consume',
+                    'ref_type' => 'manual',
+                    'quantity_change' => -1,
+                    'idempotency_key' => 'consume_' . Str::ulid(),
+                ]);
+
+                // Update stack or delete
+                if ($item->stack_size > 1) {
+                    $item->decrement('stack_size');
+                } else {
+                    $item->delete();
+                }
+
+                return ['success' => true, 'message' => $message];
+            }
+
             if (empty($stats) || !isset($stats['duration_minutes'])) {
                 return ['success' => false, 'message' => 'Ten przedmiot nie posiada właściwości do skonsumowania.'];
             }

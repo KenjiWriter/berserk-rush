@@ -20,7 +20,7 @@ Atakujący zawsze walczy tym, co ma aktualnie na sobie w momencie ataku
 ### System ELO, Ligi i Dzienny Limit Walk
 Arena posiada własny system matchmakingu, rangowania oraz limitowania pojedynków:
 - **Dzienny limit walk:** Każdy gracz posiada limit 5 walk na Arenie dziennie w roli atakującego,
-- **Reset o 0:00:** Dzienny limit 5 walk odnawia się automatycznie dla wszystkich graczy każdego dnia o godzinie 00:00,
+- **Reset o 0:00 i Zwój Areny Walki:** Dzienny limit 5 walk odnawia się automatycznie o godzinie 00:00. Użycie **Zwoju Areny Walki** w ekwipunku pozwala przywrócić 1 wykorzystaną próbę danego dnia (zwój można kupić w Sklepie Premium za Gemy lub wygrać z bossów lochów).
 - Wygrana powoduje kradzież pewnej puli ELO na rzecz Atakującego,
 - Gracze rywalizują o jak najwyższe miejsca w Lidze, co generuje stałą rotację rankingową,
 - Na podstawie ELO wyznaczana jest aktualna ranga gracza (Brąz, Srebro, Złoto, Platyna).

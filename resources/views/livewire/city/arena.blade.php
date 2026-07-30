@@ -133,7 +133,7 @@
                                 <div class="absolute inset-0 bg-gradient-to-b from-amber-900/80 to-slate-900/90"></div>
                                 
                                 <div class="relative p-6 text-center flex flex-col items-center">
-                                    <div class="relative" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
+                                    <div class="relative" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
                                         <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-amber-700 shadow-xl mb-4 bg-black cursor-help">
                                             <img src="{{ $avatarSrc }}" class="w-full h-full object-cover" alt="{{ $oppName }}">
                                         </div>
@@ -142,7 +142,7 @@
                                                  :style="tooltipStyle"
                                                  style="display: none;"
                                                  class="hidden sm:block fixed z-[99999] w-auto"
-                                                 @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click.stop>
+                                                 @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click.stop>
                                                 <x-arena-equipment-preview :slots="$opponentEquipment[$oppId] ?? []" />
                                             </div>
                                         </template>
@@ -241,7 +241,7 @@
 
                                             {{-- Gracz --}}
                                             <td class="px-6 py-4 whitespace-nowrap">
-                                                <div class="flex items-center gap-3 cursor-help" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
+                                                <div class="flex items-center gap-3 cursor-help" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
                                                     <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-amber-700/80 bg-black shrink-0">
                                                         <img src="{{ $avatarSrc }}" class="w-full h-full object-cover" alt="{{ $rowChar->name }}">
                                                     </div>
@@ -250,7 +250,7 @@
                                                              :style="tooltipStyle"
                                                              style="display: none;"
                                                              class="hidden sm:block fixed z-[99999] w-auto"
-                                                             @mouseenter="openTooltip()" @mouseleave="closeTooltip()" @click.stop>
+                                                             @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click.stop>
                                                             <x-arena-equipment-preview :slots="$rankingEquipment[$rowChar->id] ?? []" />
                                                         </div>
                                                     </template>

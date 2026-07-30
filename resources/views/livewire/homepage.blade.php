@@ -1,5 +1,5 @@
-<div x-data="{ 
-        teleporting: false, 
+<div x-data="{
+        teleporting: false,
         startTeleport(url) {
             this.teleporting = true;
             setTimeout(() => {
@@ -41,155 +41,433 @@
             }
         }
     }"
-    @keydown.right.window="if(gallerySliderOpen) nextImage()" 
-    @keydown.left.window="if(gallerySliderOpen) prevImage()" 
+    @keydown.right.window="if(gallerySliderOpen) nextImage()"
+    @keydown.left.window="if(gallerySliderOpen) prevImage()"
     @keydown.escape.window="gallerySliderOpen = false; galleryGridOpen = false; trailerOpen = false"
-    class="min-h-screen bg-gradient-to-b from-slate-800/90 via-slate-700/90 to-slate-800/90 text-amber-100 relative overflow-hidden">
+    class="rpg-home min-h-screen relative overflow-hidden">
     {{-- Background image --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style="background-image: url('{{ asset('img/homepage-background.png') }}');">
     </div>
 
-    {{-- Dark overlay for readability --}}
-    <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-800/70 to-slate-900/60"></div>
+    {{-- Readability wash --}}
+    <div class="absolute inset-0" style="background: linear-gradient(180deg, rgba(13,10,7,.80) 0%, rgba(13,10,7,.62) 22%, rgba(13,10,7,.72) 100%);"></div>
+    <div class="absolute inset-0 pointer-events-none" style="box-shadow: inset 0 0 220px rgba(0,0,0,.65);"></div>
 
-    {{-- Floating particles --}}
-    <div class="particles-container absolute inset-0 pointer-events-none">
-        <div class="particle particle-1"></div>
-        <div class="particle particle-2"></div>
-        <div class="particle particle-3"></div>
-        <div class="particle particle-4"></div>
-        <div class="particle particle-5"></div>
-        <div class="particle particle-6"></div>
-        <div class="particle particle-7"></div>
-        <div class="particle particle-8"></div>
-        <div class="particle particle-9"></div>
-        <div class="particle particle-10"></div>
+    {{-- Ambient embers --}}
+    <div class="rpg-embers absolute inset-0 pointer-events-none overflow-hidden">
+        <span class="rpg-ember rpg-ember-1"></span>
+        <span class="rpg-ember rpg-ember-2"></span>
+        <span class="rpg-ember rpg-ember-3"></span>
+        <span class="rpg-ember rpg-ember-4"></span>
+        <span class="rpg-ember rpg-ember-5"></span>
+        <span class="rpg-ember rpg-ember-6"></span>
     </div>
 
-    {{-- Glowing orbs --}}
-    <div class="absolute inset-0 pointer-events-none">
-        <div class="glow-orb glow-orb-1"></div>
-        <div class="glow-orb glow-orb-2"></div>
-        <div class="glow-orb glow-orb-3"></div>
-    </div>
+    <div class="relative container mx-auto px-4 py-10">
+        {{-- Title --}}
+        <div class="text-center mb-6 relative">
+            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[220px] pointer-events-none" style="background: radial-gradient(ellipse, rgba(220,177,91,.28) 0%, transparent 70%); filter: blur(10px);"></div>
 
-    {{-- Background pattern overlay --}}
-    <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml,%3Csvg width="60" height="60"
-        viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg
-        fill="%23d97706" fill-opacity="0.3"%3E%3Cpath d="M30 30c0-16.569 13.431-30 30-30v60c-16.569 0-30-13.431-30-30z"
-        /%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+            <div class="relative inline-flex items-center justify-center w-14 h-14 rounded-full rpg-crest mb-2">
+                <i class="fa-solid fa-fire-flame-curved"></i>
+            </div>
 
-    <div class="relative container mx-auto px-4 py-8">
-        {{-- Game title & Compact Online Counter Badge --}}
-        <div class="text-center mb-6">
-            <h1 class="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent medieval-font drop-shadow-2xl animate-pulse">
-                Berserk Rush
-            </h1>
-            <p class="text-lg sm:text-xl text-amber-200 mt-2 font-semibold drop-shadow-lg">
-                Średniowieczne RPG przeglądarowe
-            </p>
-            
-            {{-- Compact Live Online Counter Badge --}}
-            <div wire:poll.30s class="mt-4 inline-flex items-center gap-2.5 px-4 py-1.5 bg-slate-900/85 border border-amber-500/40 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.6)] backdrop-blur-md text-xs sm:text-sm font-bold text-amber-200">
-                <span class="relative flex h-3 w-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <i class="fa-solid fa-users text-amber-400"></i>
-                <span><strong class="text-green-400 font-extrabold text-sm sm:text-base">{{ number_format($activePlayers) }}</strong> graczy online</span>
+            <div class="relative inline-block px-2">
+                <div class="rpg-rule"></div>
+                <h1 class="rpg-title">Berserk Rush</h1>
+                <p class="rpg-subtitle">Średniowieczne RPG przeglądarowe</p>
+                <div class="rpg-rule"></div>
+            </div>
+
+            <div class="relative mt-5 flex flex-wrap items-center justify-center gap-3">
+                <div wire:poll.30s class="inline-flex items-center gap-2.5 px-4 py-1.5 rpg-badge text-xs sm:text-sm">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span>{{ number_format($activePlayers) }} graczy online</span>
+                </div>
+
+                <button @click="trailerOpen = true" class="rpg-badge rpg-badge-link inline-flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm">
+                    <i class="fa-solid fa-clapperboard"></i> Zwiastun
+                </button>
+
+                <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer" class="rpg-badge rpg-badge-link inline-flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm">
+                    <i class="fa-brands fa-discord"></i> Discord
+                </a>
             </div>
         </div>
 
         <livewire:auth.login-modal :hide-button="true" />
 
-        <div class="flex flex-col lg:grid lg:grid-cols-6 lg:gap-6">
-            {{-- Left Sidebar (Desktop 1 col / Mobile order 2, 5 & 8) --}}
-            <div class="contents lg:block lg:col-span-1 lg:space-y-6 lg:order-1">
-                {{-- Top 10 Bohaterów --}}
-                <div class="order-5 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+        @guest
+            <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
+                <defs>
+                    <clipPath id="clip-yin-left" clipPathUnits="objectBoundingBox">
+                        <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,1 0.5,0 Z" />
+                    </clipPath>
+                    <clipPath id="clip-yin-right" clipPathUnits="objectBoundingBox">
+                        <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,0 0.5,0 Z" />
+                    </clipPath>
+                </defs>
+            </svg>
 
-                    <div class="relative">
-                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-trophy text-amber-600"></i> Top 10 Bohaterów
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach ($topCharacters as $index => $character)
-                                <div class="flex items-center justify-between text-sm {{ $index < 3 ? 'text-yellow-700 font-bold' : 'text-amber-800' }}">
-                                    <div class="flex items-center">
-                                        <span class="w-5 text-amber-900 font-semibold">{{ $index + 1 }}.</span>
-                                        <span class="truncate max-w-[85px] sm:max-w-none">{{ $character['name'] }}</span>
-                                    </div>
-                                    <span class="font-bold text-amber-950 bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-500/40 text-xs">{{ $character['level'] }}</span>
-                                </div>
-                            @endforeach
+            {{-- Hero row: promo tile / medallion / promo tile --}}
+            <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-5 md:gap-6 items-center mb-10 relative z-30">
+
+                {{-- Left promo tile: Trailer --}}
+                <button @click="trailerOpen = true" class="rpg-promo-tile group text-left order-2 md:order-1">
+                    <div class="rpg-promo-tile-bg" style="background-image: url('{{ asset('img/homepage-background.png') }}');"></div>
+                    <div class="rpg-promo-tile-overlay"></div>
+                    <div class="relative flex flex-col items-center justify-center h-full gap-2 p-5 text-center">
+                        <div class="w-12 h-12 rounded-full flex items-center justify-center rpg-crest text-lg group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-play"></i>
                         </div>
+                        <span class="rpg-medallion-title text-sm">Zobacz Zwiastun</span>
+                        <span class="rpg-medallion-sub">Poznaj świat gry</span>
+                    </div>
+                </button>
+
+                {{-- Central Yin-Yang Auth Medallion --}}
+                <div class="flex flex-col items-center justify-center order-1 md:order-2">
+                    <div class="absolute w-[260px] h-[260px] sm:w-[320px] sm:h-[320px] rounded-full" style="background: radial-gradient(circle, rgba(220,177,91,.3) 0%, transparent 70%); filter: blur(18px);"></div>
+
+                    <div class="relative w-64 h-64 sm:w-[300px] sm:h-[300px] rounded-full rpg-medallion-frame overflow-hidden bg-stone-950 pointer-events-auto">
+                        <img src="{{ asset('img/yin_yang_auth.png') }}" alt="Berserk Rush Portal" class="absolute inset-0 w-full h-full object-cover select-none opacity-90">
+
+                        <svg class="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30" viewBox="0 0 100 100">
+                            <path d="M 50,0 A 25,25 0 0,1 50,50 A 25,25 0 0,0 50,100"
+                                  fill="none"
+                                  stroke="#e8cd8a"
+                                  stroke-width="0.6" />
+                        </svg>
+
+                        {{-- Top-Left Half (Stwórz Konto) --}}
+                        <a href="{{ route('register') }}"
+                           class="absolute inset-0 group/left transition-colors duration-300 hover:bg-amber-100/10 z-20 flex flex-col items-start justify-start pt-6 sm:pt-8 pl-5 sm:pl-7 w-full h-full"
+                           style="clip-path: url(#clip-yin-left); -webkit-clip-path: url(#clip-yin-left);">
+                            <div class="transform transition-transform duration-300 group-hover/left:scale-105 rpg-medallion-label flex flex-col items-center text-center max-w-[120px] sm:max-w-[150px]">
+                                <span class="rpg-medallion-title">Stwórz Konto</span>
+                                <span class="rpg-medallion-sub">Dołącz teraz</span>
+                            </div>
+                        </a>
+
+                        {{-- Bottom-Right Half (Zaloguj się) --}}
+                        <div @click="$dispatch('open-login-modal')"
+                             class="absolute inset-0 group/right cursor-pointer transition-colors duration-300 hover:bg-slate-100/10 z-20 flex flex-col items-end justify-end pb-6 sm:pb-8 pr-5 sm:pr-7 w-full h-full"
+                             style="clip-path: url(#clip-yin-right); -webkit-clip-path: url(#clip-yin-right);">
+                            <div class="transform transition-transform duration-300 group-hover/right:scale-105 rpg-medallion-label flex flex-col items-center text-center max-w-[120px] sm:max-w-[150px]">
+                                <span class="rpg-medallion-title">Zaloguj się</span>
+                                <span class="rpg-medallion-sub">Wróć do gry</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Direct Auth Buttons (mobile-first clarity, hidden once the medallion is comfortably tappable) --}}
+                    <div class="mt-5 flex sm:hidden items-center justify-center gap-3 w-full max-w-xs px-2">
+                        <a href="{{ route('register') }}" class="rpg-btn rpg-btn-gold flex-1">Rejestracja</a>
+                        <button @click="$dispatch('open-login-modal')" class="rpg-btn rpg-btn-dark flex-1">Logowanie</button>
                     </div>
                 </div>
 
-                {{-- Sklep Premium (Only shown for authenticated users) --}}
-                @auth
-                    <div class="order-2 lg:order-none mb-6 lg:mb-0 bg-gradient-to-r from-amber-100/95 via-yellow-100/95 to-amber-100/95 border-4 border-yellow-500 rounded-lg p-4 shadow-[0_0_20px_rgba(250,204,21,0.4)] backdrop-blur-sm relative overflow-hidden transition-all duration-300 hover:shadow-[0_0_30px_rgba(250,204,21,0.6)]">
-                        <div class="absolute top-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                        <div class="absolute top-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-yellow-600 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-yellow-600 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                        <div class="relative flex flex-col items-center text-center">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-yellow-600 to-amber-400 border-2 border-yellow-200 flex items-center justify-center text-yellow-950 shadow-md text-lg mb-2">
-                                <i class="fa-solid fa-gem"></i>
+                {{-- Right promo tile: Gallery or Discord --}}
+                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
+                    <button @click="openGalleryGrid()" class="rpg-promo-tile group text-left order-3">
+                        <div class="rpg-promo-tile-bg" style="background-image: url('{{ asset($galleryImages->first()->image_path) }}');"></div>
+                        <div class="rpg-promo-tile-overlay"></div>
+                        <div class="relative flex flex-col items-center justify-center h-full gap-2 p-5 text-center">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center rpg-crest text-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-images"></i>
                             </div>
-                            <h3 class="text-lg font-bold text-amber-950 medieval-font flex items-center gap-1.5 justify-center">
-                                Sklep Premium
-                            </h3>
-                            @if(Auth::user()->hasPremium())
-                                <p class="text-[11px] font-bold text-yellow-800 bg-yellow-400/30 rounded py-0.5 px-2 mt-1 inline-block border border-yellow-500/40">
-                                    <i class="fa-solid fa-crown text-yellow-600 mr-1"></i> Premium ({{ Auth::user()->premium_until->diffForHumans() }})
-                                </p>
-                            @else
-                                <p class="text-xs text-amber-800 font-semibold mt-1">
-                                    Zdobądź unikalne ulepszenia oraz Gemy!
-                                </p>
-                            @endif
+                            <span class="rpg-medallion-title text-sm">Galeria Gry</span>
+                            <span class="rpg-medallion-sub">{{ $galleryImages->count() }} zrzutów ekranu</span>
+                        </div>
+                    </button>
+                @else
+                    <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer" class="rpg-promo-tile group text-left order-3">
+                        <div class="rpg-promo-tile-bg" style="background-image: url('{{ asset('img/homepage-background.png') }}');"></div>
+                        <div class="rpg-promo-tile-overlay"></div>
+                        <div class="relative flex flex-col items-center justify-center h-full gap-2 p-5 text-center">
+                            <div class="w-12 h-12 rounded-full flex items-center justify-center rpg-crest text-lg group-hover:scale-110 transition-transform">
+                                <i class="fa-brands fa-discord"></i>
+                            </div>
+                            <span class="rpg-medallion-title text-sm">Dołącz na Discord</span>
+                            <span class="rpg-medallion-sub">Społeczność graczy</span>
+                        </div>
+                    </a>
+                @endif
+            </div>
+        @endguest
 
-                            <a href="{{ route('itemshop') }}" wire:navigate
-                                class="w-full mt-3 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2 px-3 rounded-lg transition-all duration-200 shadow-md text-center block medieval-font tracking-wider border border-yellow-300 text-xs transform hover:scale-105">
-                                <i class="fa-solid fa-crown mr-1.5 text-yellow-200"></i> PRZEJDŹ DO SKLEPU
-                            </a>
+        @auth
+            {{-- Account bar --}}
+            <div class="mb-6 rpg-panel">
+                <div class="flex flex-col lg:flex-row items-center justify-between gap-4 px-5 py-4">
+                    <div class="flex items-center gap-3 text-center sm:text-left">
+                        <div class="w-11 h-11 rounded-full flex items-center justify-center text-lg rpg-avatar-badge">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold rpg-ink medieval-font">
+                                {{ Auth::user()->name }}
+                            </h3>
+                            <p class="text-xs sm:text-sm rpg-ink-soft font-semibold">
+                                Witaj z powrotem, wojowniku!
+                            </p>
                         </div>
                     </div>
-                @endauth
 
-                {{-- Galeria Gry --}}
-                @if(isset($galleryImages) && $galleryImages->isNotEmpty())
-                <div class="order-8 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
+                    <div class="flex items-center gap-2">
+                        <button @click="trailerOpen = true" class="rpg-btn rpg-btn-dark">
+                            <i class="fa-solid fa-clapperboard"></i> Zwiastun
+                        </button>
+                        <a href="https://discord.gg/YJa68KK9hC" target="_blank" rel="noopener noreferrer" class="rpg-btn rpg-btn-dark">
+                            <i class="fa-brands fa-discord"></i> Discord
+                        </a>
+                    </div>
 
-                    <div class="relative">
-                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-images text-amber-700"></i> Galeria Gry
-                        </h3>
+                    <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
+                        <livewire:auth.profile-management-modal />
+                        <livewire:auth.logout-modal />
+                    </div>
+                </div>
+            </div>
+
+            {{-- Character roster --}}
+            <div class="mb-8 rpg-panel">
+                <div class="rpg-panel-header">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span>Twój Oddział Bohaterów</span>
+                    <span class="ml-auto normal-case tracking-normal text-[11px] font-sans font-semibold opacity-80">Wybierz postać, aby ruszyć na szlak</span>
+                </div>
+
+                <div class="p-4 sm:p-5">
+                    @php
+                        $shouldHighlightNewCharacter = Auth::check() && Auth::user()->game_stage == 1 && collect($myCharacters)->filter()->count() == 0;
+                        $shouldHighlightPlayButton = Auth::check() && Auth::user()->game_stage == 3 && collect($myCharacters)->filter()->count() > 0;
+                    @endphp
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                        @foreach ($myCharacters as $index => $character)
+                            <div class="rpg-slot {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'rpg-slot-highlight' : '' }}">
+                                @if ($character)
+                                    <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full p-3">
+                                        <div class="flex items-center space-x-2.5 h-full">
+                                            <div class="relative flex-shrink-0">
+                                                <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center rpg-avatar-badge">
+                                                    @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                                        <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
+                                                    @else
+                                                        <i class="fa-solid fa-user-ninja text-lg"></i>
+                                                    @endif
+                                                </div>
+                                                <span class="absolute -bottom-1 -right-1 rpg-level-pin">
+                                                    {{ $character->level }}
+                                                </span>
+                                            </div>
+
+                                            <div class="flex-1 min-w-0">
+                                                <div class="font-bold rpg-ink text-xs sm:text-sm truncate medieval-font">
+                                                    {{ $character->name }}
+                                                </div>
+                                                <div class="text-[10px] sm:text-[11px] rpg-ink-soft font-medium truncate">
+                                                    Poziom {{ $character->level }}
+                                                    @if ($character->attributes)
+                                                        • {{ $character->getTotalAttributePoints() }} pkt
+                                                    @endif
+                                                </div>
+                                                @php
+                                                    $activeCharId = session('active_character');
+                                                @endphp
+                                                @if ($activeCharId && $activeCharId === $character->id)
+                                                    <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] rpg-ink font-bold">
+                                                        <i class="fa-solid fa-circle-play text-[9px]"></i> <span>AKTYWNA (Wróć)</span>
+                                                    </div>
+                                                @elseif ($activeCharId)
+                                                    <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] rpg-ink-soft font-bold">
+                                                        <i class="fa-solid fa-lock text-[8px]"></i> <span>ZABLOKOWANA</span>
+                                                    </div>
+                                                @else
+                                                    <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-emerald-800 font-bold">
+                                                        <i class="fa-solid fa-play text-[8px]"></i> <span>GRAJ teraz</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </a>
+                                @else
+                                    @if ($canCreateCharacter ?? true)
+                                        <a href="{{ route('characters.create') }}" class="block h-full min-h-[50px] p-2.5">
+                                            <div class="text-center rpg-ink-soft transition-colors flex flex-col items-center justify-center h-full rpg-slot-empty rounded p-1.5">
+                                                <i class="fa-solid fa-plus text-base mb-0.5"></i>
+                                                <div class="text-[11px] font-bold medieval-font">Stwórz Postać</div>
+                                            </div>
+                                        </a>
+                                    @else
+                                        <div class="text-center rpg-ink-soft opacity-50 flex flex-col items-center justify-center h-full min-h-[50px] rpg-slot-empty rounded p-2.5">
+                                            <i class="fa-solid fa-lock text-base mb-0.5"></i>
+                                            <div class="text-[11px] font-bold medieval-font">Slot Zablokowany</div>
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        @endauth
+
+        {{-- Three-column grid --}}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
+            {{-- Ogłoszenia Królewskie --}}
+            <div class="order-1 lg:col-start-2 rpg-panel rpg-panel-feature">
+                <div class="rpg-panel-header">
+                    <i class="fa-solid fa-scroll"></i>
+                    <span>Ogłoszenia Królewskie</span>
+                </div>
+                <div class="p-5 sm:p-6 space-y-5">
+                    @foreach ($adminMessages as $message)
+                        <article class="rpg-news-item">
+                            <h3 class="text-lg font-bold rpg-ink mb-1.5 medieval-font">{{ $message['title'] }}</h3>
+                            <p class="rpg-ink-soft leading-relaxed text-sm mb-1.5">{{ $message['content'] }}</p>
+                            <p class="text-xs rpg-ink-faint italic">
+                                {{ date('j F Y', strtotime($message['date'])) }}
+                            </p>
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+
+            {{-- Top 10 Bohaterów --}}
+            <div class="order-2 lg:col-start-1 lg:row-start-1 rpg-panel">
+                <div class="rpg-panel-header">
+                    <i class="fa-solid fa-trophy"></i>
+                    <span>Top 10 Bohaterów</span>
+                </div>
+                <div class="p-4">
+                    @forelse ($topCharacters as $index => $character)
+                        <div class="rpg-row">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
+                                <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $character['name'] }}</span>
+                            </div>
+                            <span class="rpg-level-tag">{{ $character['level'] }}</span>
+                        </div>
+                    @empty
+                        <div class="rpg-empty-state">
+                            <i class="fa-solid fa-crown"></i>
+                            <span>Bądź pierwszym bohaterem w rankingu!</span>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Top 10 Gildii --}}
+            <div class="order-3 lg:col-start-3 lg:row-start-1 rpg-panel">
+                <div class="rpg-panel-header">
+                    <i class="fa-solid fa-shield-cat"></i>
+                    <span>Top 10 Gildii</span>
+                </div>
+                <div class="p-4">
+                    @forelse ($topGuilds as $index => $guild)
+                        <div class="rpg-row rpg-row-stacked">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <span class="rpg-rank {{ $index < 3 ? 'rpg-rank-top' : '' }}">{{ $index + 1 }}</span>
+                                    <span class="truncate {{ $index < 3 ? 'font-bold rpg-ink' : 'rpg-ink-soft' }}">{{ $guild['name'] }}</span>
+                                </div>
+                                <span class="rpg-level-tag">{{ $guild['avgLevel'] }}</span>
+                            </div>
+                            <div class="text-xs rpg-ink-faint ml-7 font-medium">{{ $guild['members'] }} członków</div>
+                        </div>
+                    @empty
+                        <div class="rpg-empty-state">
+                            <i class="fa-solid fa-flag"></i>
+                            <span>Załóż pierwszą gildię i zapisz się w historii!</span>
+                        </div>
+                    @endforelse
+                </div>
+            </div>
+
+            {{-- Sklep Premium (auth only) --}}
+            @auth
+                <div class="order-4 lg:col-start-3 rpg-panel rpg-panel-gold">
+                    <div class="flex flex-col items-center text-center px-4 py-5">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-lg mb-2 rpg-avatar-badge">
+                            <i class="fa-solid fa-gem"></i>
+                        </div>
+                        <h3 class="text-lg font-bold rpg-ink medieval-font">Sklep Premium</h3>
+                        @if(Auth::user()->hasPremium())
+                            <p class="text-[11px] font-bold rpg-ink rpg-badge-inline mt-1.5">
+                                <i class="fa-solid fa-crown mr-1"></i> Premium ({{ Auth::user()->premium_until->diffForHumans() }})
+                            </p>
+                        @else
+                            <p class="text-xs rpg-ink-soft font-semibold mt-1">
+                                Zdobądź unikalne ulepszenia oraz Gemy!
+                            </p>
+                        @endif
+
+                        <a href="{{ route('itemshop') }}" wire:navigate class="rpg-btn rpg-btn-gold w-full mt-3">
+                            <i class="fa-solid fa-crown"></i> Przejdź do Sklepu
+                        </a>
+                    </div>
+                </div>
+            @endauth
+
+            {{-- O Grze --}}
+            <div class="order-5 lg:col-start-1 lg:row-start-2 rpg-panel">
+                <div class="rpg-panel-header">
+                    <i class="fa-solid fa-gamepad"></i>
+                    <span>O Grze</span>
+                </div>
+                <div class="p-4 space-y-2.5 text-sm">
+                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                        <i class="fa-solid fa-dice-d20 w-4 text-center opacity-70"></i>
+                        <span>Walki turowe</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                        <i class="fa-solid fa-wand-magic-sparkles w-4 text-center opacity-70"></i>
+                        <span>Ulepszanie przedmiotów</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                        <i class="fa-solid fa-users-rays w-4 text-center opacity-70"></i>
+                        <span>System gildii</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                        <i class="fa-solid fa-coins w-4 text-center opacity-70"></i>
+                        <span>Ekonomia graczy</span>
+                    </div>
+                    <div class="flex items-center gap-2.5 rpg-ink-soft font-semibold">
+                        <i class="fa-solid fa-hammer w-4 text-center opacity-70"></i>
+                        <span>Crafting</span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Galeria Gry --}}
+            @if(isset($galleryImages) && $galleryImages->isNotEmpty())
+                <div class="order-6 lg:col-start-3 rpg-panel">
+                    <div class="rpg-panel-header">
+                        <i class="fa-solid fa-images"></i>
+                        <span>Galeria Gry</span>
+                    </div>
+                    <div class="p-4">
                         <div class="grid grid-cols-2 gap-2">
                             @foreach($galleryImages->take(4) as $image)
-                                <div class="relative group cursor-pointer border-2 border-amber-600 rounded overflow-hidden aspect-video shadow-md" @click="openGallerySlider({{ $loop->index }})">
+                                <div class="relative group cursor-pointer rounded overflow-hidden aspect-video rpg-thumb" @click="openGallerySlider({{ $loop->index }})">
                                     <img src="{{ asset($image->image_path) }}" alt="{{ $image->title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
                                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                        <span class="text-white text-xs font-bold drop-shadow-md">Powiększ</span>
+                                        <span class="text-white text-xs font-bold">Powiększ</span>
                                     </div>
                                 </div>
                             @endforeach
                         </div>
-                        
-                        <div class="mt-4 text-center">
-                            <button @click="openGalleryGrid()" class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold py-2 px-3 rounded w-full border border-amber-500 shadow-md transition-all duration-300 transform hover:scale-[1.02] text-xs">
-                                <i class="fa-solid fa-images mr-1"></i>
+
+                        <div class="mt-3 text-center">
+                            <button @click="openGalleryGrid()" class="rpg-btn rpg-btn-dark w-full">
+                                <i class="fa-solid fa-images"></i>
                                 @if($galleryImages->count() > 4)
                                     Cała galeria ({{ $galleryImages->count() }})
                                 @else
@@ -199,493 +477,309 @@
                         </div>
                     </div>
                 </div>
-                @endif
-            </div>
-
-            {{-- Main Center Area (Desktop 4 cols / Mobile order 1, 3, 4) --}}
-            <div class="contents lg:block lg:col-span-4 lg:order-2 lg:space-y-6">
-                @guest
-                    <svg class="absolute w-0 h-0 pointer-events-none" aria-hidden="true">
-                        <defs>
-                            <clipPath id="clip-yin-left" clipPathUnits="objectBoundingBox">
-                                <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,1 0.5,0 Z" />
-                            </clipPath>
-                            <clipPath id="clip-yin-right" clipPathUnits="objectBoundingBox">
-                                <path d="M 0.5,0 A 0.25,0.25 0 0,1 0.5,0.5 A 0.25,0.25 0 0,0 0.5,1 A 0.5,0.5 0 0,0 0.5,0 Z" />
-                            </clipPath>
-                        </defs>
-                    </svg>
-
-                    {{-- Central Yin-Yang Auth Medallion --}}
-                    <div class="flex flex-col items-center justify-center my-6 lg:-mb-16 relative z-30">
-                        <div class="absolute w-[280px] h-[280px] sm:w-[360px] sm:h-[360px] rounded-full bg-gradient-to-r from-amber-500/30 via-yellow-400/25 to-slate-900/40 blur-3xl animate-pulse"></div>
-
-                        <div class="relative w-72 h-72 sm:w-88 sm:h-88 sm:w-[340px] sm:h-[340px] rounded-full border-4 border-amber-500/90 shadow-[0_0_50px_rgba(245,158,11,0.6)] overflow-hidden bg-slate-950 transition-transform duration-500 hover:scale-[1.02] pointer-events-auto">
-                            <img src="{{ asset('img/yin_yang_auth.png') }}" alt="Berserk Rush Portal" class="absolute inset-0 w-full h-full object-cover select-none">
-
-                            <svg class="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-35" viewBox="0 0 100 100">
-                                <path d="M 50,0 A 25,25 0 0,1 50,50 A 25,25 0 0,0 50,100" 
-                                      fill="none" 
-                                      stroke="#fef08a" 
-                                      stroke-width="0.8" 
-                                      class="drop-shadow-[0_0_6px_rgba(250,204,21,0.6)]" />
-                            </svg>
-
-                            {{-- Top-Left Half (Stwórz Konto) --}}
-                            <a href="{{ route('register') }}" 
-                               class="absolute inset-0 group/left transition-all duration-300 hover:bg-amber-500/25 z-20 flex flex-col items-start justify-start pt-6 sm:pt-9 pl-5 sm:pl-8 w-full h-full"
-                               style="clip-path: url(#clip-yin-left); -webkit-clip-path: url(#clip-yin-left);">
-                                <div class="transform transition-transform duration-300 group-hover/left:scale-105 bg-slate-950/85 border border-amber-400/80 rounded-2xl px-3 py-2 shadow-[0_0_20px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col items-center text-center max-w-[130px] sm:max-w-[160px]">
-                                    <i class="fa-solid fa-user-plus text-amber-400 text-xl sm:text-2xl drop-shadow-md mb-0.5"></i>
-                                    <span class="text-[11px] sm:text-xs font-extrabold text-amber-200 medieval-font tracking-wider border-b border-amber-400/50 pb-0.5 whitespace-nowrap">
-                                        STWÓRZ KONTO
-                                    </span>
-                                    <span class="text-[9px] sm:text-[10px] text-amber-300 font-sans font-bold tracking-wider uppercase mt-0.5">
-                                        Dołącz teraz
-                                    </span>
-                                </div>
-                            </a>
-
-                            {{-- Bottom-Right Half (Zaloguj się) --}}
-                            <div @click="$dispatch('open-login-modal')" 
-                                 class="absolute inset-0 group/right cursor-pointer transition-all duration-300 hover:bg-purple-900/35 z-20 flex flex-col items-end justify-end pb-6 sm:pb-9 pr-5 sm:pr-8 w-full h-full"
-                                 style="clip-path: url(#clip-yin-right); -webkit-clip-path: url(#clip-yin-right);">
-                                <div class="transform transition-transform duration-300 group-hover/right:scale-105 bg-slate-950/85 border border-purple-400/80 rounded-2xl px-3 py-2 shadow-[0_0_20px_rgba(0,0,0,0.9)] backdrop-blur-md flex flex-col items-center text-center max-w-[130px] sm:max-w-[160px]">
-                                    <i class="fa-solid fa-key text-purple-300 text-xl sm:text-2xl drop-shadow-md mb-0.5"></i>
-                                    <span class="text-[11px] sm:text-xs font-extrabold text-purple-100 medieval-font tracking-wider border-b border-purple-400/50 pb-0.5 whitespace-nowrap">
-                                        ZALOGUJ SIĘ
-                                    </span>
-                                    <span class="text-[9px] sm:text-[10px] text-purple-300 font-sans font-bold tracking-wider uppercase mt-0.5">
-                                        Wróć do gry
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Mobile / Direct Auth Buttons for Instant Clarity --}}
-                        <div class="mt-4 flex items-center justify-center gap-3 w-full max-w-xs px-2">
-                            <a href="{{ route('register') }}" class="flex-1 bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-600 hover:from-amber-500 hover:to-yellow-500 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-yellow-400 shadow-[0_4px_15px_rgba(245,158,11,0.4)] text-center text-xs sm:text-sm medieval-font tracking-wider flex items-center justify-center gap-1.5 transition-transform active:scale-95">
-                                <i class="fa-solid fa-user-plus text-amber-200"></i> REJESTRACJA
-                            </a>
-                            <button @click="$dispatch('open-login-modal')" class="flex-1 bg-gradient-to-r from-purple-900 via-indigo-900 to-purple-900 hover:from-purple-800 hover:to-indigo-800 text-white font-bold py-2.5 px-3 rounded-xl border-2 border-purple-400 shadow-[0_4px_15px_rgba(147,51,234,0.4)] text-center text-xs sm:text-sm medieval-font tracking-wider flex items-center justify-center gap-1.5 transition-transform active:scale-95">
-                                <i class="fa-solid fa-key text-purple-300"></i> LOGOWANIE
-                            </button>
-                        </div>
-                    </div>
-                @endguest
-
-                @auth
-                    {{-- 1. Moduł z wylogowaniem konta (Shown on Mobile as 1, in Center Grid on Desktop) --}}
-                    <div class="order-1 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 sm:p-5 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                        <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                        <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                            <div class="flex items-center gap-3 text-center sm:text-left">
-                                <div class="w-12 h-12 rounded-full bg-gradient-to-tr from-amber-700 to-amber-500 border-2 border-amber-300 flex items-center justify-center text-amber-100 shadow-md text-xl">
-                                    <i class="fa-solid fa-user-shield"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-xl font-bold text-amber-900 medieval-font">
-                                        {{ Auth::user()->name }}
-                                    </h3>
-                                    <p class="text-xs sm:text-sm text-amber-800 font-semibold">
-                                        Witaj z powrotem, wojowniku!
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="w-full sm:w-auto flex flex-col sm:flex-row items-center gap-2">
-                                <livewire:auth.profile-management-modal />
-                                <livewire:auth.logout-modal />
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- 3. Wybieranie postaci (Twój Oddział Bohaterów) --}}
-                    <div class="order-3 lg:order-none mb-6 lg:mb-0 relative bg-gradient-to-br from-amber-50/95 via-amber-100/95 to-amber-50/95 border-4 border-amber-700 rounded-lg p-4 sm:p-5 shadow-2xl backdrop-blur-sm overflow-hidden">
-                        <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                        <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                        <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                        <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                        <div class="relative">
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 border-b-2 border-amber-700/60 pb-2.5 gap-2">
-                                <h3 class="text-xl font-bold text-amber-900 medieval-font flex items-center gap-2">
-                                    <i class="fa-solid fa-shield-halved text-amber-700"></i> Twój Oddział Bohaterów
-                                </h3>
-                                <span class="text-xs text-amber-900 font-semibold bg-amber-200/90 px-3 py-1 rounded-full border border-amber-600/40 shadow-sm">
-                                    Wybierz postać, aby ruszyć na szlak
-                                </span>
-                            </div>
-
-                            @php
-                                $shouldHighlightNewCharacter = Auth::check() && Auth::user()->game_stage == 1 && collect($myCharacters)->filter()->count() == 0;
-                                $shouldHighlightPlayButton = Auth::check() && Auth::user()->game_stage == 3 && collect($myCharacters)->filter()->count() > 0;
-                            @endphp
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
-                                @foreach ($myCharacters as $index => $character)
-                                    <div class="bg-gradient-to-b from-amber-100/90 to-amber-200/90 border-2 border-amber-600/80 rounded-xl hover:bg-amber-200/95 transition-all duration-300 shadow-md hover:shadow-xl relative group {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_20px_rgba(245,158,11,0.6)] z-10' : '' }}">
-                                        @if ($character)
-                                            <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full p-2.5 sm:p-3">
-                                                <div class="flex items-center space-x-2.5 h-full">
-                                                    <div class="relative flex-shrink-0">
-                                                        <div class="w-10 h-10 border-2 border-amber-700 rounded-full overflow-hidden bg-gradient-to-b from-amber-200 to-amber-400 shadow-md group-hover:scale-105 transition-transform flex items-center justify-center">
-                                                            @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
-                                                                <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
-                                                            @else
-                                                                <i class="fa-solid fa-user-ninja text-lg text-amber-800"></i>
-                                                            @endif
-                                                        </div>
-                                                        <span class="absolute -bottom-1 -right-1 bg-amber-800 text-amber-100 text-[9px] font-bold px-1 py-0.2 rounded-full border border-amber-400">
-                                                            {{ $character->level }} lvl
-                                                        </span>
-                                                    </div>
-
-                                                    <div class="flex-1 min-w-0">
-                                                        <div class="font-bold text-amber-950 text-xs sm:text-sm truncate medieval-font group-hover:text-amber-700 transition-colors">
-                                                            {{ $character->name }}
-                                                        </div>
-                                                        <div class="text-[10px] sm:text-[11px] text-amber-800/90 font-medium truncate">
-                                                            Poziom {{ $character->level }}
-                                                            @if ($character->attributes)
-                                                                • {{ $character->getTotalAttributePoints() }} pkt
-                                                            @endif
-                                                        </div>
-                                                        @php
-                                                            $activeCharId = session('active_character');
-                                                        @endphp
-                                                        @if ($activeCharId && $activeCharId === $character->id)
-                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-amber-900 font-bold">
-                                                                <i class="fa-solid fa-circle-play text-amber-700 text-[9px]"></i> <span>AKTYWNA (Wróć)</span>
-                                                            </div>
-                                                        @elseif ($activeCharId)
-                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-stone-600 font-bold">
-                                                                <i class="fa-solid fa-lock text-[8px] text-amber-800"></i> <span>ZABLOKOWANA</span>
-                                                            </div>
-                                                        @else
-                                                            <div class="mt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-green-700 font-bold">
-                                                                <i class="fa-solid fa-play text-[8px]"></i> <span>GRAJ teraz</span>
-                                                            </div>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </a>
-                                        @else
-                                            @if ($canCreateCharacter ?? true)
-                                                <a href="{{ route('characters.create') }}" class="block h-full min-h-[50px] p-2.5">
-                                                    <div class="text-center text-amber-800 hover:text-amber-950 transition-colors flex flex-col items-center justify-center h-full border-2 border-dashed border-amber-600/60 rounded-lg p-1.5 hover:bg-amber-300/30">
-                                                        <i class="fa-solid fa-plus text-base mb-0.5 text-amber-700"></i>
-                                                        <div class="text-[11px] font-bold medieval-font">STWÓRZ POSTAĆ</div>
-                                                    </div>
-                                                </a>
-                                            @else
-                                                <div class="text-center text-amber-700/50 flex flex-col items-center justify-center h-full min-h-[50px] border-2 border-dashed border-amber-400/40 rounded-lg p-2.5">
-                                                    <i class="fa-solid fa-lock text-base mb-0.5 text-amber-600/50"></i>
-                                                    <div class="text-[11px] font-bold medieval-font">SLOT ZABLOKOWANY</div>
-                                                </div>
-                                            @endif
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                @endauth
-
-                {{-- 4. Aktualności (Ogłoszenia Królewskie) --}}
-                <div class="order-4 lg:order-none mb-6 lg:mb-0 relative">
-                    <div class="bg-gradient-to-br from-amber-50/95 to-amber-100/95 rounded-lg border-4 border-amber-700 shadow-2xl relative overflow-hidden backdrop-blur-sm">
-                        <div class="absolute top-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 -translate-y-4"></div>
-                        <div class="absolute top-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 -translate-y-4"></div>
-                        <div class="absolute bottom-0 left-0 w-8 h-8 bg-amber-800 transform rotate-45 -translate-x-4 translate-y-4"></div>
-                        <div class="absolute bottom-0 right-0 w-8 h-8 bg-amber-800 transform rotate-45 translate-x-4 translate-y-4"></div>
-
-                        <div class="relative px-6 sm:px-8 pb-8 @guest pt-16 lg:pt-20 @else pt-8 @endguest">
-                            <h2 class="text-2xl sm:text-3xl font-bold text-amber-900 mb-6 text-center medieval-font border-b-2 border-amber-700 pb-3 flex items-center justify-center gap-3">
-                                <i class="fa-solid fa-scroll text-amber-700"></i> Ogłoszenia Królewskie <i class="fa-solid fa-scroll text-amber-700"></i>
-                            </h2>
-
-                            <div class="space-y-6">
-                                @foreach ($adminMessages as $message)
-                                    <div class="border-l-4 border-amber-700 pl-4">
-                                        <h3 class="text-xl font-bold text-amber-900 mb-2">{{ $message['title'] }}</h3>
-                                        <p class="text-amber-800 leading-relaxed mb-2">{{ $message['content'] }}</p>
-                                        <p class="text-sm text-amber-600 italic">
-                                            {{ date('j F Y', strtotime($message['date'])) }}
-                                        </p>
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Right Sidebar (Desktop 1 col / Mobile order 6 & 7) --}}
-            <div class="contents lg:block lg:col-span-1 lg:space-y-6 lg:order-3">
-                {{-- 6. Top 10 Gildii --}}
-                <div class="order-6 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                    <div class="relative">
-                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-shield-cat text-amber-700"></i> Top 10 Gildii
-                        </h3>
-                        <div class="space-y-2">
-                            @foreach ($topGuilds as $index => $guild)
-                                <div class="text-sm {{ $index < 3 ? 'text-yellow-700 font-bold' : 'text-amber-800' }}">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <span class="w-5 text-amber-900 font-semibold">{{ $index + 1 }}.</span>
-                                            <span class="truncate max-w-[85px] sm:max-w-none">{{ $guild['name'] }}</span>
-                                        </div>
-                                        <span class="font-bold text-amber-950 bg-amber-200/80 px-1.5 py-0.5 rounded border border-amber-500/40 text-xs">{{ $guild['avgLevel'] }}</span>
-                                    </div>
-                                    <div class="text-xs text-amber-700/90 ml-5 font-medium">{{ $guild['members'] }} członków</div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 7. O Grze --}}
-                <div class="order-7 lg:order-none mb-6 lg:mb-0 bg-gradient-to-br from-amber-50/95 to-amber-100/95 border-4 border-amber-700 rounded-lg p-4 shadow-2xl backdrop-blur-sm relative overflow-hidden">
-                    <div class="absolute top-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 -translate-y-3"></div>
-                    <div class="absolute top-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 -translate-y-3"></div>
-                    <div class="absolute bottom-0 left-0 w-6 h-6 bg-amber-800 transform rotate-45 -translate-x-3 translate-y-3"></div>
-                    <div class="absolute bottom-0 right-0 w-6 h-6 bg-amber-800 transform rotate-45 translate-x-3 translate-y-3"></div>
-
-                    <div class="relative">
-                        <h3 class="text-lg font-bold text-amber-900 mb-3 text-center border-b-2 border-amber-700 pb-2 medieval-font flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-gamepad text-amber-700"></i> O Grze
-                        </h3>
-                        <div class="space-y-2 text-sm text-amber-800">
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-dice-d20 text-amber-700 w-4 text-center"></i>
-                                <span class="font-semibold">Walki turowe</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-wand-magic-sparkles text-amber-700 w-4 text-center"></i>
-                                <span class="font-semibold">Ulepszanie przedmiotów</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-users-rays text-amber-700 w-4 text-center"></i>
-                                <span class="font-semibold">System gildii</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-coins text-amber-700 w-4 text-center"></i>
-                                <span class="font-semibold">Ekonomia graczy</span>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <i class="fa-solid fa-hammer text-amber-700 w-4 text-center"></i>
-                                <span class="font-semibold">Crafting</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
     </div>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
 
-        .medieval-font {
+        .medieval-font { font-family: 'Cinzel', serif; }
+
+        .rpg-home {
+            --ink: #2c2013;
+            --ink-soft: #5a4630;
+            --ink-faint: #7a6748;
+            --parchment: #f1e4c4;
+            --parchment-2: #e7d7ac;
+            --wood: #201812;
+            --wood-light: #3b2c1c;
+            --gold: #b8862f;
+            --gold-bright: #dcb15b;
+            color: var(--parchment);
+            background-color: #0d0a07;
+        }
+
+        .rpg-ink { color: var(--ink); }
+        .rpg-ink-soft { color: var(--ink-soft); }
+        .rpg-ink-faint { color: var(--ink-faint); }
+
+        .rpg-rule {
+            width: 120px;
+            height: 2px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, var(--gold) 50%, transparent);
+        }
+
+        .rpg-title {
             font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: clamp(2.25rem, 5vw, 3.25rem);
+            color: var(--gold-bright);
+            letter-spacing: .03em;
+            text-shadow: 0 2px 10px rgba(0,0,0,.6);
+            margin: .35rem 0;
         }
 
-        /* Floating particles */
-        .particle {
+        .rpg-subtitle {
+            color: #d8c9a8;
+            font-size: .95rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            margin-bottom: .35rem;
+        }
+
+        .rpg-badge {
+            background: rgba(20, 15, 10, .78);
+            border: 1px solid rgba(184,134,47,.4);
+            border-radius: 999px;
+            color: #e8d5a8;
+            font-weight: 600;
+        }
+        .rpg-badge-link { cursor: pointer; transition: background-color .2s ease, border-color .2s ease; }
+        .rpg-badge-link:hover { background: rgba(184,134,47,.2); border-color: rgba(184,134,47,.7); }
+
+        .rpg-crest {
+            background: radial-gradient(circle, var(--wood-light), var(--wood));
+            color: var(--gold-bright);
+            border: 2px solid rgba(184,134,47,.6);
+            box-shadow: 0 0 24px rgba(220,177,91,.35), inset 0 0 10px rgba(0,0,0,.5);
+        }
+
+        /* Ambient embers */
+        .rpg-ember {
             position: absolute;
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.8) 0%, rgba(251, 191, 36, 0.4) 50%, transparent 100%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float 15s infinite linear;
-        }
-
-        .particle-1 {
-            width: 4px;
-            height: 4px;
-            left: 10%;
-            animation-delay: 0s;
-            animation-duration: 20s;
-        }
-
-        .particle-2 {
-            width: 6px;
-            height: 6px;
-            left: 20%;
-            animation-delay: 2s;
-            animation-duration: 18s;
-        }
-
-        .particle-3 {
+            bottom: -10px;
             width: 3px;
             height: 3px;
-            left: 30%;
-            animation-delay: 4s;
-            animation-duration: 22s;
-        }
-
-        .particle-4 {
-            width: 5px;
-            height: 5px;
-            left: 40%;
-            animation-delay: 6s;
-            animation-duration: 16s;
-        }
-
-        .particle-5 {
-            width: 4px;
-            height: 4px;
-            left: 50%;
-            animation-delay: 8s;
-            animation-duration: 19s;
-        }
-
-        .particle-6 {
-            width: 7px;
-            height: 7px;
-            left: 60%;
-            animation-delay: 10s;
-            animation-duration: 21s;
-        }
-
-        .particle-7 {
-            width: 3px;
-            height: 3px;
-            left: 70%;
-            animation-delay: 12s;
-            animation-duration: 17s;
-        }
-
-        .particle-8 {
-            width: 5px;
-            height: 5px;
-            left: 80%;
-            animation-delay: 14s;
-            animation-duration: 23s;
-        }
-
-        .particle-9 {
-            width: 4px;
-            height: 4px;
-            left: 90%;
-            animation-delay: 16s;
-            animation-duration: 15s;
-        }
-
-        .particle-10 {
-            width: 6px;
-            height: 6px;
-            left: 25%;
-            animation-delay: 18s;
-            animation-duration: 20s;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(100vh) translateX(0px) rotate(0deg);
-                opacity: 0;
-            }
-
-            10% {
-                opacity: 1;
-            }
-
-            90% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(-100px) translateX(100px) rotate(360deg);
-                opacity: 0;
-            }
-        }
-
-        /* Glowing orbs */
-        .glow-orb {
-            position: absolute;
             border-radius: 50%;
-            pointer-events: none;
-            filter: blur(1px);
+            background: radial-gradient(circle, rgba(220,177,91,.95) 0%, rgba(184,134,47,.5) 60%, transparent 100%);
+            animation: rpg-ember-rise linear infinite;
+            opacity: 0;
+        }
+        .rpg-ember-1 { left: 8%;  width: 4px; height: 4px; animation-duration: 16s; animation-delay: 0s; }
+        .rpg-ember-2 { left: 22%; width: 2px; height: 2px; animation-duration: 13s; animation-delay: 2s; }
+        .rpg-ember-3 { left: 45%; width: 3px; height: 3px; animation-duration: 19s; animation-delay: 4s; }
+        .rpg-ember-4 { left: 63%; width: 2px; height: 2px; animation-duration: 15s; animation-delay: 1s; }
+        .rpg-ember-5 { left: 80%; width: 4px; height: 4px; animation-duration: 21s; animation-delay: 6s; }
+        .rpg-ember-6 { left: 92%; width: 2px; height: 2px; animation-duration: 17s; animation-delay: 3s; }
+        @keyframes rpg-ember-rise {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            8% { opacity: .8; }
+            85% { opacity: .5; }
+            100% { transform: translateY(-92vh) translateX(24px); opacity: 0; }
         }
 
-        .glow-orb-1 {
-            width: 200px;
-            height: 200px;
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
-            top: 20%;
-            left: 80%;
-            animation: glow-pulse 8s infinite ease-in-out;
-        }
-
-        .glow-orb-2 {
-            width: 150px;
-            height: 150px;
-            background: radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 70%);
-            top: 60%;
-            left: 15%;
-            animation: glow-pulse 6s infinite ease-in-out reverse;
-        }
-
-        .glow-orb-3 {
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.2) 0%, transparent 70%);
-            top: 10%;
-            left: 30%;
-            animation: glow-pulse 10s infinite ease-in-out;
-        }
-
-        @keyframes glow-pulse {
-
-            0%,
-            100% {
-                opacity: 0.3;
-                transform: scale(1);
-            }
-
-            50% {
-                opacity: 0.6;
-                transform: scale(1.1);
-            }
-        }
-
-        /* Additional sparkle effect */
-        .particles-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+        /* Panels */
+        .rpg-panel {
+            position: relative;
+            background-color: var(--parchment);
             background-image:
-                radial-gradient(2px 2px at 20px 30px, rgba(251, 191, 36, 0.4), transparent),
-                radial-gradient(2px 2px at 40px 70px, rgba(245, 158, 11, 0.3), transparent),
-                radial-gradient(1px 1px at 90px 40px, rgba(251, 191, 36, 0.5), transparent),
-                radial-gradient(1px 1px at 130px 80px, rgba(245, 158, 11, 0.4), transparent),
-                radial-gradient(2px 2px at 160px 30px, rgba(251, 191, 36, 0.3), transparent);
-            background-repeat: repeat;
-            background-size: 200px 100px;
-            animation: sparkle 20s linear infinite;
+                radial-gradient(circle, rgba(184,134,47,.9) 0%, transparent 70%),
+                radial-gradient(circle, rgba(184,134,47,.9) 0%, transparent 70%),
+                radial-gradient(circle, rgba(184,134,47,.9) 0%, transparent 70%),
+                radial-gradient(circle, rgba(184,134,47,.9) 0%, transparent 70%),
+                linear-gradient(180deg, rgba(255,255,255,.15), rgba(0,0,0,.02) 40%);
+            background-size: 7px 7px, 7px 7px, 7px 7px, 7px 7px, auto;
+            background-position: 6px 6px, calc(100% - 6px) 6px, 6px calc(100% - 6px), calc(100% - 6px) calc(100% - 6px), 0 0;
+            background-repeat: no-repeat;
+            border: 1px solid rgba(32,24,18,.4);
+            border-radius: 4px;
+            box-shadow: 0 8px 20px -10px rgba(0,0,0,.6), inset 0 0 0 1px rgba(220,177,91,.25);
+            overflow: hidden;
         }
 
-        @keyframes sparkle {
-            0% {
-                transform: translateY(0px);
-            }
-
-            100% {
-                transform: translateY(-200px);
-            }
+        .rpg-panel-header {
+            display: flex;
+            align-items: center;
+            gap: .55rem;
+            background: linear-gradient(180deg, var(--wood-light), var(--wood));
+            color: var(--gold-bright);
+            padding: .6rem 1rem;
+            font-family: 'Cinzel', serif;
+            font-size: .74rem;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+            border-bottom: 2px solid rgba(184,134,47,.45);
         }
+
+        .rpg-panel-gold {
+            border-color: rgba(184,134,47,.65);
+            box-shadow: 0 8px 24px -10px rgba(184,134,47,.35), 0 8px 20px -10px rgba(0,0,0,.6);
+        }
+
+        .rpg-panel-feature .rpg-panel-header { font-size: .85rem; padding: .8rem 1.1rem; }
+
+        /* Rows / rankings */
+        .rpg-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .4rem 0;
+            border-bottom: 1px solid rgba(32,24,18,.1);
+            font-size: .85rem;
+        }
+        .rpg-row:last-child { border-bottom: none; }
+        .rpg-row-stacked { flex-direction: column; align-items: stretch; gap: .15rem; }
+
+        .rpg-rank {
+            width: 1.4rem;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+            color: var(--ink-faint);
+        }
+        .rpg-rank-top { color: var(--gold); font-weight: 800; }
+
+        .rpg-level-tag {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--wood);
+            background: rgba(184,134,47,.22);
+            border: 1px solid rgba(184,134,47,.4);
+            border-radius: 3px;
+            padding: .1rem .4rem;
+        }
+
+        .rpg-badge-inline {
+            background: rgba(184,134,47,.18);
+            border: 1px solid rgba(184,134,47,.4);
+            border-radius: 3px;
+            padding: .15rem .5rem;
+            display: inline-block;
+        }
+
+        /* News */
+        .rpg-news-item { border-left: 3px solid var(--gold); padding-left: 1rem; }
+
+        /* Buttons */
+        .rpg-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: .45rem;
+            padding: .6rem .9rem;
+            font-family: 'Cinzel', serif;
+            font-size: .72rem;
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,.3);
+            transition: filter .15s ease, transform .15s ease;
+        }
+        .rpg-btn:active { transform: scale(.97); }
+        .rpg-btn-gold { background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: var(--wood); }
+        .rpg-btn-gold:hover { filter: brightness(1.08); }
+        .rpg-btn-dark { background: var(--wood); color: var(--gold-bright); border-color: rgba(184,134,47,.4); }
+        .rpg-btn-dark:hover { filter: brightness(1.3); }
+
+        /* Character slots */
+        .rpg-slot {
+            position: relative;
+            background: rgba(255,255,255,.35);
+            border: 1px solid rgba(32,24,18,.25);
+            border-radius: 4px;
+            transition: background-color .2s ease, border-color .2s ease;
+        }
+        .rpg-slot:hover { background: rgba(255,255,255,.55); }
+        .rpg-slot-empty { border: 1px dashed rgba(32,24,18,.35); }
+        .rpg-slot-highlight {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 2px rgba(184,134,47,.35);
+            animation: rpg-slot-pulse 1.8s ease-in-out infinite;
+        }
+        @keyframes rpg-slot-pulse {
+            0%, 100% { box-shadow: 0 0 0 2px rgba(184,134,47,.25); }
+            50% { box-shadow: 0 0 0 4px rgba(184,134,47,.5); }
+        }
+
+        .rpg-avatar-badge {
+            background: linear-gradient(180deg, var(--wood-light), var(--wood));
+            color: var(--gold-bright);
+            border: 1px solid rgba(184,134,47,.4);
+        }
+
+        .rpg-level-pin {
+            background: var(--wood);
+            color: var(--gold-bright);
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 999px;
+            border: 1px solid rgba(184,134,47,.5);
+        }
+
+        .rpg-thumb { border: 1px solid rgba(32,24,18,.3); }
+
+        /* Yin-Yang medallion */
+        .rpg-medallion-frame {
+            border: 3px solid rgba(184,134,47,.7);
+            box-shadow: 0 10px 40px -12px rgba(0,0,0,.7);
+        }
+        .rpg-medallion-label {
+            background: rgba(13,10,7,.82);
+            border: 1px solid rgba(184,134,47,.5);
+            border-radius: 6px;
+            padding: .5rem .65rem;
+        }
+        .rpg-medallion-title {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: .78rem;
+            color: #f0e0b8;
+            letter-spacing: .04em;
+            white-space: nowrap;
+        }
+        .rpg-medallion-sub {
+            font-size: .62rem;
+            color: #c7b285;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            margin-top: .1rem;
+        }
+
+        /* Promo tiles flanking the auth medallion */
+        .rpg-promo-tile {
+            position: relative;
+            display: block;
+            width: 100%;
+            max-width: 260px;
+            height: 160px;
+            margin: 0 auto;
+            border-radius: 6px;
+            border: 2px solid rgba(184,134,47,.55);
+            overflow: hidden;
+            box-shadow: 0 10px 30px -14px rgba(0,0,0,.75);
+            transition: border-color .2s ease, transform .2s ease;
+        }
+        .rpg-promo-tile:hover { border-color: rgba(220,177,91,.9); transform: translateY(-2px); }
+        .rpg-promo-tile-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: saturate(1.05);
+            transition: transform .4s ease;
+        }
+        .rpg-promo-tile:hover .rpg-promo-tile-bg { transform: scale(1.06); }
+        .rpg-promo-tile-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(13,10,7,.35), rgba(13,10,7,.85));
+        }
+
+        /* Empty-state filler for rankings */
+        .rpg-empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .5rem;
+            padding: 1.5rem .5rem;
+            text-align: center;
+            color: var(--ink-faint);
+            font-size: .8rem;
+            font-style: italic;
+        }
+        .rpg-empty-state i { font-size: 1.4rem; color: var(--gold); opacity: .7; }
     </style>
 
     @auth
@@ -697,24 +791,24 @@
     @endauth
 
     {{-- Teleport Animation Overlay --}}
-    <div x-show="teleporting" 
+    <div x-show="teleporting"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100"
          class="fixed inset-0 z-[100] bg-slate-950 flex flex-col items-center justify-center"
          style="display: none;">
-         
+
         <div class="relative flex flex-col items-center justify-center"
              x-show="teleporting"
              x-transition:enter="transition ease-in duration-700 delay-100"
              x-transition:enter-start="scale-50 opacity-0"
              x-transition:enter-end="scale-100 opacity-100">
-             
+
             {{-- Magical Portal effect --}}
             <div class="absolute w-64 h-64 border-t-4 border-l-4 border-amber-500 rounded-full animate-[spin_1.5s_linear_infinite] shadow-[0_0_50px_rgba(245,158,11,0.5)]"></div>
             <div class="absolute w-48 h-48 border-b-4 border-r-4 border-yellow-400 rounded-full animate-[spin_1s_linear_infinite_reverse] shadow-[0_0_30px_rgba(250,204,21,0.6)]"></div>
             <div class="absolute w-24 h-24 bg-gradient-to-tr from-amber-400 to-yellow-200 rounded-full animate-pulse shadow-[0_0_60px_rgba(251,191,36,1)]"></div>
-            
+
             <div class="mt-80 text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500 medieval-font drop-shadow-[0_0_10px_rgba(251,191,36,0.8)] animate-pulse text-center">
                 Wkraczanie do świata gry...<br>
                 <span class="text-sm text-amber-600/80 font-sans tracking-widest uppercase mt-3 block">Przygotuj się do walki</span>
@@ -723,12 +817,12 @@
     </div>
 
     {{-- Trailer Modal --}}
-    <div x-show="trailerOpen" 
+    <div x-show="trailerOpen"
          style="display: none;"
          class="fixed inset-0 z-[100] flex items-center justify-center p-4">
-         
+
          <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" @click="trailerOpen = false"></div>
-         
+
          <div class="relative bg-gradient-to-b from-slate-900 to-black border-4 border-amber-600 rounded-xl shadow-[0_0_50px_rgba(217,119,6,0.5)] p-2 w-full max-w-4xl"
               x-transition:enter="transition ease-out duration-500"
               x-transition:enter-start="opacity-0 scale-90 translate-y-8"
@@ -736,18 +830,18 @@
               x-transition:leave="transition ease-in duration-300"
               x-transition:leave-start="opacity-100 scale-100"
               x-transition:leave-end="opacity-0 scale-95">
-              
+
              <button @click="trailerOpen = false" class="absolute -top-4 -right-4 w-10 h-10 bg-amber-600 hover:bg-amber-500 text-white rounded-full border-2 border-amber-200 shadow-lg flex items-center justify-center font-bold text-xl z-10 transition-colors">✕</button>
-             
+
              <h2 class="text-2xl font-bold text-amber-400 mb-4 text-center medieval-font mt-4">Zobacz zwiastun</h2>
-             
+
              <div class="relative pt-[56.25%] w-full bg-black rounded border border-amber-800 overflow-hidden">
                  <template x-if="trailerOpen">
-                     <iframe class="absolute inset-0 w-full h-full" 
-                             src="https://www.youtube.com/embed/GuD7lisUF3E?autoplay=1" 
-                             title="YouTube video player" 
-                             frameborder="0" 
-                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                     <iframe class="absolute inset-0 w-full h-full"
+                             src="https://www.youtube.com/embed/GuD7lisUF3E?autoplay=1"
+                             title="YouTube video player"
+                             frameborder="0"
+                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                              allowfullscreen>
                      </iframe>
                  </template>
@@ -756,12 +850,12 @@
     </div>
 
     {{-- Gallery Grid Modal --}}
-    <div x-show="galleryGridOpen" 
+    <div x-show="galleryGridOpen"
          style="display: none;"
          class="fixed inset-0 z-[105] flex items-center justify-center p-4">
-         
+
          <div class="absolute inset-0 bg-black/90 backdrop-blur-md" @click="galleryGridOpen = false"></div>
-         
+
          <div class="relative w-full max-w-6xl flex flex-col items-center bg-slate-900 border-4 border-amber-700 rounded-xl shadow-[0_0_50px_rgba(217,119,6,0.3)] p-6 max-h-[90vh] overflow-hidden"
               x-transition:enter="transition ease-out duration-300"
               x-transition:enter-start="opacity-0 scale-95"
@@ -769,17 +863,17 @@
               x-transition:leave="transition ease-in duration-200"
               x-transition:leave-start="opacity-100 scale-100"
               x-transition:leave-end="opacity-0 scale-95">
-              
+
              <button @click="galleryGridOpen = false" class="absolute top-4 right-4 text-amber-500 hover:text-white font-bold text-xl flex items-center gap-2 transition-colors z-10">
                  <span class="text-3xl drop-shadow-md">✕</span>
              </button>
-             
+
              <h2 class="text-3xl font-bold text-amber-400 mb-6 text-center medieval-font w-full border-b border-amber-800 pb-4">Wszystkie Zdjęcia</h2>
-             
+
              <div class="w-full overflow-y-auto pr-2" style="scrollbar-width: thin; scrollbar-color: #b45309 #1e293b;">
                  <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                      <template x-for="(image, index) in images" :key="index">
-                         <div class="relative group cursor-pointer border-2 border-amber-700 rounded-lg overflow-hidden aspect-video shadow-lg hover:border-amber-400 transition-colors" 
+                         <div class="relative group cursor-pointer border-2 border-amber-700 rounded-lg overflow-hidden aspect-video shadow-lg hover:border-amber-400 transition-colors"
                               @click="openGallerySlider(index)">
                              <img :src="image.path" :alt="image.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
                              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
@@ -793,12 +887,12 @@
     </div>
 
     {{-- Gallery Slider Modal --}}
-    <div x-show="gallerySliderOpen" 
+    <div x-show="gallerySliderOpen"
          style="display: none;"
          class="fixed inset-0 z-[110] flex items-center justify-center p-4 group/slider">
-         
+
          <div class="absolute inset-0 bg-black/95 backdrop-blur-md" @click="gallerySliderOpen = false"></div>
-         
+
          <div class="relative w-full max-w-6xl flex flex-col items-center"
               x-transition:enter="transition ease-out duration-300"
               x-transition:enter-start="opacity-0 scale-95"
@@ -806,16 +900,16 @@
               x-transition:leave="transition ease-in duration-200"
               x-transition:leave-start="opacity-100 scale-100"
               x-transition:leave-end="opacity-0 scale-95">
-              
+
              <button @click="gallerySliderOpen = false" class="absolute -top-12 right-0 text-amber-500 hover:text-white font-bold text-xl flex items-center gap-2 transition-colors">
                  <span>ZAMKNIJ</span> <span class="text-3xl">✕</span>
              </button>
-             
+
              {{-- Prev Arrow --}}
              <button @click.stop="prevImage()" class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-amber-600 border border-amber-600/50 hover:border-amber-400 rounded-full text-white flex items-center justify-center text-2xl transition-all opacity-50 group-hover/slider:opacity-100 z-20">
                  &#10094;
              </button>
-             
+
              {{-- Next Arrow --}}
              <button @click.stop="nextImage()" class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/50 hover:bg-amber-600 border border-amber-600/50 hover:border-amber-400 rounded-full text-white flex items-center justify-center text-2xl transition-all opacity-50 group-hover/slider:opacity-100 z-20">
                  &#10095;

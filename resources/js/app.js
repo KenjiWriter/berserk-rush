@@ -71,7 +71,23 @@ function createSmartTooltip() {
             this.showInfo = true;
             this.updatePosition();
         },
-        closeTooltip() {
+        closeTooltip(event) {
+            // Gdy tooltip jest teleportowany (x-teleport="body"), nie jest już
+            // potomkiem triggera w DOM - opuszczenie triggera w stronę samego
+            // tooltipa (albo odwrotnie) normalnie wywołałoby mouseleave i
+            // zaplanowało zamknięcie, które wygrywałoby wyścig z czasem potrzebnym
+            // na najechanie kursorem na tooltip. Sprawdzenie relatedTarget
+            // (dokładnie tego, dokąd realnie zmierza kursor) eliminuje ten wyścig
+            // zamiast polegać wyłącznie na opóźnieniu poniżej.
+            if (event && event.relatedTarget) {
+                const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
+                const movingIntoTrigger = this.$el.contains(event.relatedTarget);
+                if (movingIntoTooltip || movingIntoTrigger) {
+                    return;
+                }
+            }
+
             clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
                 this.showInfo = false;

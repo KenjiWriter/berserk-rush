@@ -20,14 +20,18 @@ Players can spend Gems to activate or extend their **Premium Account**. Premium 
 - The `StripeWebhookController` listens for the `checkout.session.completed` event.
 - Secure processing ensures players only receive Gems after the payment is fully authorized.
 
-### 5. Resety Atrybutów i Umiejętności
-- **Reset Umiejętności (50 Gemów):** Pozwala zresetować umiejętności bojowe dla wszystkich postaci gracza i zwrócić zainwestowane punkty umiejętności (`skill_points`).
-- **Reset Atrybutów (50 Gemów):** Pozwala zresetować przydzielone punkty atrybutów (STR, INT, VIT, AGI) do 0 dla wszystkich postaci przypisanych do konta i zwraca całą pulę punktów postaci (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdania.
+### 5. Zwoje Użytkowe i Resety
+Zamiast bezpośredniego natychmiastowego resetu konta, gracze mogą kupować w Sklepie Premium fizyczne Zwoje Użytkowe (`consumable`), które trafiają do ekwipunku aktywnej postaci:
+- **Zwój Resetu Umiejętności (50 Gemów):** Pozwala zresetować umiejętności bojowe aktywnej postaci i zwrócić zainwestowane punkty umiejętności (`skill_points`).
+- **Zwój Resetu Atrybutów (50 Gemów):** Pozwala zresetować przydzielone punkty atrybutów (STR, INT, VIT, AGI) do 0 dla aktywnej postaci i zwraca całą pulę punktów postaci (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdania.
+- **Zwój Pełnego Resetu (90 Gemów):** Pozwala zresetować zarówno atrybuty, jak i umiejętności bojowe aktywnej postaci za jednym razem.
+- **Zwój Areny Walki (30 Gemów):** Przywraca 1 wykorzystaną próbę na Arenie Walk w danym dniu dla aktywnej postaci.
 
 ## Technical Implementation
-- **Livewire Components**: Managed via `ItemShopComponent` for the user interface (obsługuje zakupy Gemów, VIP, avatarów oraz operacje `resetSkills()` i `resetAttributes()`), and `Admin\ItemShopPackages` for backend management.
+- **Livewire Components**: Managed via `ItemShopComponent` for the user interface (obsługuje zakupy Gemów, VIP, avatarów oraz zakupy zwojów przez `buyScroll()`), and `Admin\ItemShopPackages` for backend management.
+- **Consumables Logic**: `ConsumeItemAction` realizuje efekt użycia przedmiotu po kliknięciu w ekwipunku postaci na podstawie pola `effect` w `base_stats` przedmiotu.
 - **Database Models**: 
   - `ItemShopPackage` tracks available packages (price, gems, name).
   - `User` model tracks `gems` balance and `premium_until` datetime.
-  - `Character` model updates `attributes` array and recalculates `character_points` during attribute reset.
+  - `Character` model updates `attributes` array and recalculates `character_points` or `skill_points` during scroll consumption.
 - **Combat Integration**: `RewardMultiplierService` checks `$user->hasPremium()` and applies the 1.2x multipliers to base rewards.

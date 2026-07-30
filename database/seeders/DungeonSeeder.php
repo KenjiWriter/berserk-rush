@@ -69,6 +69,10 @@ class DungeonSeeder extends Seeder
                     // Eggs: ~35% chance for common, rare 5%
                     ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
+                    // Scrolls (consumables)
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
                     // Upgrade materials
                     ['reward_type' => 'material', 'ref_name' => 'Wilczy Kieł', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 200],
                     ['reward_type' => 'material', 'ref_name' => 'Prastara Kora', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 150],
@@ -102,6 +106,11 @@ class DungeonSeeder extends Seeder
                     // Eggs: ~42% overall chance
                     ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 280],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
+                    // Scrolls (consumables)
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 15],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
                     // Upgrade materials
                     ['reward_type' => 'material', 'ref_name' => 'Ektoplazma', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 200],
                     ['reward_type' => 'material', 'ref_name' => 'Gruba Skóra Trolla', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 180],
@@ -136,6 +145,11 @@ class DungeonSeeder extends Seeder
                     ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 250],
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
+                    // Scrolls (consumables)
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 80],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 80],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 90],
                     // Upgrade materials
                     ['reward_type' => 'material', 'ref_name' => 'Skrwawiony Totem', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 180],
                     ['reward_type' => 'material', 'ref_name' => 'Łuska Hydry', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 150],
@@ -174,6 +188,11 @@ class DungeonSeeder extends Seeder
                     ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 100],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 130],
+                    // Scrolls (consumables)
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 90],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 150],
                     // Upgrade materials
                     ['reward_type' => 'material', 'ref_name' => 'Kryształ Cienia', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 180],
                     ['reward_type' => 'material', 'ref_name' => 'Pióro Harpii', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 120],
@@ -211,6 +230,11 @@ class DungeonSeeder extends Seeder
                     // Eggs: ~65% total drop chance, high Epic chance
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 300],
+                    // Scrolls (consumables)
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 160],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 240],
                     // Upgrade materials
                     ['reward_type' => 'material', 'ref_name' => 'Skażona Kość', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 150],
                     ['reward_type' => 'material', 'ref_name' => 'Przeklęta Stal', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 100],

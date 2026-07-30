@@ -160,6 +160,79 @@ class ItemShopComponent extends Component
         return redirect($checkout_session->url);
     }
 
+    public function buyScroll(string $templateId, int $gemCost)
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        if ($user->gems < $gemCost) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
+        $activeCharacterId = session('active_character');
+        $character = $activeCharacterId 
+            ? $user->characters()->where('id', $activeCharacterId)->first() 
+            : $user->characters()->first();
+
+        if (!$character) {
+            $this->dispatch('notify', message: 'Musisz posiadać utworzoną postać, aby zakupić ten przedmiot.', type: 'error');
+            return;
+        }
+
+        if ($character->isBackpackFull()) {
+            $this->dispatch('notify', message: 'Plecak aktywnej postaci jest pełny!', type: 'error');
+            return;
+        }
+
+        $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateId);
+        if (!$template) {
+            $template = \App\Infrastructure\Persistence\ItemTemplate::where('name', $templateId)->first();
+        }
+
+        if (!$template) {
+            $this->dispatch('notify', message: 'Nie odnaleziono szablonu przedmiotu.', type: 'error');
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $character, $template, $gemCost) {
+            $user->gems -= $gemCost;
+            $user->save();
+
+            $existing = \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $character->id)
+                ->where('template_id', $template->id)
+                ->where('location', 'inventory')
+                ->first();
+
+            if ($existing) {
+                $existing->increment('stack_size');
+                $itemInstance = $existing;
+            } else {
+                $itemInstance = \App\Infrastructure\Persistence\ItemInstance::create([
+                    'id' => (string) \Illuminate\Support\Str::ulid(),
+                    'template_id' => $template->id,
+                    'owner_character_id' => $character->id,
+                    'location' => 'inventory',
+                    'stack_size' => 1,
+                    'rarity' => 'common',
+                    'upgrade_level' => 0,
+                ]);
+            }
+
+            \App\Infrastructure\Persistence\ItemLedger::create([
+                'id' => (string) \Illuminate\Support\Str::ulid(),
+                'character_id' => $character->id,
+                'item_instance_id' => $itemInstance->id,
+                'action' => 'buy',
+                'ref_type' => 'item_shop',
+                'quantity_change' => 1,
+                'idempotency_key' => 'shop_' . \Illuminate\Support\Str::ulid(),
+            ]);
+        });
+
+        $this->dispatch('notify', message: "Zakupiono {$template->name}! Przedmiot trafił do plecaka postaci {$character->name}.", type: 'success');
+    }
+
     public function resetSkills()
     {
         $user = Auth::user();

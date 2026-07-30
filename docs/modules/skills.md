@@ -21,7 +21,7 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 - Punkty wykorzystuje się u Czarnoksiężnika do odblokowywania nowych skilli (koszt odblokowania zależy od skilla) oraz podnoszenia ich poziomu (1 punkt za poziom).
 - **Maksymalny poziom umiejętności wynosi 5 (Max Lv. 5).**
 - Synchronizacja punktów (`syncMissingPoints`) automatycznie wylicza pozostałe nieprzydzielone punkty na podstawie zdobytych punktów minus koszty odblokowanych i ulepszonych skilli.
-- Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest w Sklepie (ItemShop).
+- Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest poprzez użycie w ekwipunku **Zwoju Resetu Umiejętności** lub **Zwoju Pełnego Resetu**, które można kupić w Sklepie (ItemShop) lub zdobyć w lochach.
 
 ### 2. Deck Umiejętności i Wyposażanie
 - Postać może posiadać **maksymalnie 3 aktywne skille** wyposażone jednocześnie w swoim Decku.

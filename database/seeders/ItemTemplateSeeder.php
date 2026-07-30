@@ -39,6 +39,12 @@ class ItemTemplateSeeder extends Seeder
             ['id' => Str::ulid(), 'name' => 'Eliksir Many', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 2, 'base_stats' => ['mana_amount' => 30], 'description' => 'Niebieska mikstura.', 'icon' => 'czysta-mana.png', 'rarity_weights' => ['common' => 75, 'uncommon' => 20, 'rare' => 5]],
             ['id' => Str::ulid(), 'name' => 'Wielka Mikstura Leczenia', 'type' => 'consumable', 'slot' => null, 'level_requirement' => 5, 'base_stats' => ['heal_amount' => 150], 'description' => 'Potężna mikstura.', 'icon' => 'metna-woda.png', 'rarity_weights' => ['common' => 60, 'uncommon' => 30, 'rare' => 10]],
 
+            // Consumable Scrolls
+            ['id' => '01k4jpx94j70x2vv10b835scr1', 'name' => 'Zwój Resetu Umiejętności', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'reset_skills'], 'description' => 'Pozwala zresetować umiejętności bojowe aktywnej postaci i odzyskać zainwestowane Punkty Umiejętności.', 'icon' => 'zwoj-resetu-umiejetnosci.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 60, 'rare' => 40]],
+            ['id' => '01k4jpx94j70x2vv10b835scr2', 'name' => 'Zwój Resetu Atrybutów', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'reset_attributes'], 'description' => 'Pozwala zresetować przydzielone punkty atrybutów (STR, INT, VIT, AGI) aktywnej postaci i odzyskać Punkty Postaci.', 'icon' => 'zwoj-resetu-atrybutow.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 60, 'rare' => 40]],
+            ['id' => '01k4jpx94j70x2vv10b835scr3', 'name' => 'Zwój Pełnego Resetu', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'reset_full'], 'description' => 'Pozwala zresetować zarówno atrybuty, jak i umiejętności bojowe aktywnej postaci za jednym razem.', 'icon' => 'zwoj-pelnego-resetu.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 40, 'rare' => 60]],
+            ['id' => '01k4jpx94j70x2vv10b835scr4', 'name' => 'Zwój Areny Walki', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'arena_attempt'], 'description' => 'Przywraca 1 wykorzystaną próbę na Arenie Walk w danym dniu.', 'icon' => 'zwoj-areny-walki.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
+
             // Keys & Tutorial / Starter Equipment
             // UWAGA (bound_to_character -> tylko equip-state, 2026-07-29): te 3 przedmioty
             // (rozdawane raz na zawsze przez CreateCharacter/TutorialOverlay) mają
@@ -53,7 +59,14 @@ class ItemTemplateSeeder extends Seeder
         ];
 
         foreach ($manualItems as $item) {
-            $existing = ItemTemplate::where('name', $item['name'])->first();
+            $existing = null;
+            if (isset($item['id'])) {
+                $existing = ItemTemplate::find($item['id']);
+            }
+            if (!$existing) {
+                $existing = ItemTemplate::where('name', $item['name'])->first();
+            }
+
             if ($existing) {
                 unset($item['id']);
                 $existing->update($item);
