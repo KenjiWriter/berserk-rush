@@ -184,7 +184,8 @@ class Blacksmith extends Component
                 if ($entry->lootTable && $entry->lootTable->monsters) {
                     foreach ($entry->lootTable->monsters as $m) {
                         if ($m->name) {
-                            $monsterDropsMap[$entry->ref_ulid][$m->name] = [
+                            $key = $m->name . '_' . ($m->map->name ?? '');
+                            $monsterDropsMap[$entry->ref_ulid][$key] = [
                                 'monster' => $m->name,
                                 'map' => $m->map->name ?? null,
                             ];

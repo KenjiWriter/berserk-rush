@@ -306,9 +306,18 @@
                                                             Do zdobycia z potworów
                                                         </div>
                                                         @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
+                                                            @php
+                                                                $uniqueDrops = collect($ing['dropped_by'])->unique(fn($d) => is_array($d) ? (($d['monster'] ?? '') . '_' . ($d['map'] ?? '')) : $d)->values();
+                                                            @endphp
                                                             <div class="flex flex-wrap justify-center gap-1.5 mt-2">
-                                                                @foreach(array_unique($ing['dropped_by']) as $monsterName)
-                                                                    <span class="bg-stone-900 border border-stone-700 text-emerald-200 text-[10px] px-2 py-0.5 rounded-md">{{ $monsterName }}</span>
+                                                                @foreach($uniqueDrops as $drop)
+                                                                    <span class="bg-stone-900 border border-stone-700 text-emerald-200 text-[10px] px-2 py-0.5 rounded-md">
+                                                                        @if(is_array($drop))
+                                                                            {{ $drop['monster'] }}@if(!empty($drop['map']))<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                        @else
+                                                                            {{ $drop }}
+                                                                        @endif
+                                                                    </span>
                                                                 @endforeach
                                                             </div>
                                                         @else

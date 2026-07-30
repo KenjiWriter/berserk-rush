@@ -251,10 +251,17 @@
                 <div class="mt-1.5 pt-1.5 border-t border-slate-700/70">
                     <p class="text-[10px] uppercase tracking-wider text-gray-400 mb-1">Wypada z</p>
                     @if(count($dropSources) > 0)
+                        @php
+                            $uniqueDropSources = collect($dropSources)->unique(fn($d) => (is_array($d) ? (($d['monster'] ?? '') . '_' . ($d['map'] ?? '')) : $d))->values();
+                        @endphp
                         <div class="flex flex-wrap gap-1">
-                            @foreach($dropSources as $drop)
+                            @foreach($uniqueDropSources as $drop)
                                 <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
-                                    {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                    @if(is_array($drop))
+                                        {{ $drop['monster'] }}@if(!empty($drop['map']))<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                    @else
+                                        {{ $drop }}
+                                    @endif
                                 </span>
                             @endforeach
                         </div>

@@ -560,7 +560,8 @@ class Profile extends Component
                 if ($entry->lootTable && $entry->lootTable->monsters) {
                     foreach ($entry->lootTable->monsters as $m) {
                         if ($m->name) {
-                            $materialDropSources[$entry->ref_ulid][$m->name] = [
+                            $key = $m->name . '_' . ($m->map->name ?? '');
+                            $materialDropSources[$entry->ref_ulid][$key] = [
                                 'monster' => $m->name,
                                 'map' => $m->map->name ?? null,
                             ];

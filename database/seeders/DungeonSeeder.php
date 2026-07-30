@@ -303,19 +303,21 @@ class DungeonSeeder extends Seeder
             foreach ($dConfig['stages'] as $stgData) {
                 $mStats = $stgData['monster'];
 
+                $existingMonster = Monster::where('name', $mStats['name'])->first();
+
                 $monster = Monster::updateOrCreate(
                     [
                         'name' => $mStats['name'],
                     ],
                     [
-                        'map_id' => $defaultMapId,
+                        'map_id' => $existingMonster?->map_id ?? $defaultMapId,
                         'type' => ($stgData['type'] === 'gate' ? 'mystical' : 'demon'),
                         'level' => $mStats['level'],
                         'rank' => $mStats['rank'],
                         'stats' => $mStats['stats'],
                         'abilities' => [],
                         'avatar' => $mStats['avatar'],
-                        'loot_table_id' => ($stgData['type'] === 'boss' ? $bossLootTable->id : null)
+                        'loot_table_id' => ($stgData['type'] === 'boss' ? $bossLootTable->id : $existingMonster?->loot_table_id)
                     ]
                 );
 

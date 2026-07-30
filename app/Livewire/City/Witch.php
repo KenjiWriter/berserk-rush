@@ -324,9 +324,25 @@ class Witch extends Component
 
                 $dropMonsters = [];
                 if ($mat) {
-                    $dropMonsters = \App\Infrastructure\Persistence\Monster::whereHas('lootTable.entries', function($q) use ($mat) {
-                        $q->where('ref_ulid', $mat->id);
-                    })->pluck('name')->toArray();
+                    $entries = \App\Infrastructure\Persistence\LootTableEntry::where('ref_ulid', $mat->id)
+                        ->whereHas('lootTable.monsters')
+                        ->with('lootTable.monsters.map')
+                        ->get();
+                    $mMap = [];
+                    foreach ($entries as $entry) {
+                        if ($entry->lootTable && $entry->lootTable->monsters) {
+                            foreach ($entry->lootTable->monsters as $m) {
+                                if ($m->name) {
+                                    $key = $m->name . '_' . ($m->map->name ?? '');
+                                    $mMap[$key] = [
+                                        'monster' => $m->name,
+                                        'map' => $m->map->name ?? null,
+                                    ];
+                                }
+                            }
+                        }
+                    }
+                    $dropMonsters = array_values($mMap);
                 }
 
                 $preparedIngredients[] = [

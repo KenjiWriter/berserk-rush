@@ -160,10 +160,17 @@
                                                             <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-52 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-[9999] shadow-2xl backdrop-blur-sm pointer-events-none">
                                                                 <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
                                                                 @if(isset($reqMat['dropped_by']) && count($reqMat['dropped_by']) > 0)
+                                                                    @php
+                                                                        $uniqueDrops = collect($reqMat['dropped_by'])->unique(fn($d) => is_array($d) ? (($d['monster'] ?? '') . '_' . ($d['map'] ?? '')) : $d)->values();
+                                                                    @endphp
                                                                     <div class="flex flex-wrap justify-center gap-1 mt-2">
-                                                                        @foreach($reqMat['dropped_by'] as $drop)
+                                                                        @foreach($uniqueDrops as $drop)
                                                                             <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
-                                                                                {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                                @if(is_array($drop))
+                                                                                    {{ $drop['monster'] }}@if(!empty($drop['map']))<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                                @else
+                                                                                    {{ $drop }}
+                                                                                @endif
                                                                             </span>
                                                                         @endforeach
                                                                     </div>
@@ -341,10 +348,17 @@
                                                 <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-48 bg-black/95 border border-amber-900/50 rounded-lg p-3 text-sm text-gray-300 hidden group-hover:block z-50 shadow-2xl backdrop-blur-sm pointer-events-none">
                                                     <div class="font-bold text-amber-500 mb-1 border-b border-gray-700/50 pb-1 text-center text-xs tracking-wider uppercase">Do zdobycia z</div>
                                                     @if(isset($ing['dropped_by']) && count($ing['dropped_by']) > 0)
+                                                        @php
+                                                            $uniqueDrops = collect($ing['dropped_by'])->unique(fn($d) => is_array($d) ? (($d['monster'] ?? '') . '_' . ($d['map'] ?? '')) : $d)->values();
+                                                        @endphp
                                                         <div class="flex flex-wrap justify-center gap-1 mt-2">
-                                                            @foreach($ing['dropped_by'] as $drop)
+                                                            @foreach($uniqueDrops as $drop)
                                                                 <span class="bg-gray-800 border border-gray-600 text-gray-300 text-[10px] px-1.5 py-0.5 rounded">
-                                                                    {{ $drop['monster'] }}@if($drop['map'])<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                    @if(is_array($drop))
+                                                                        {{ $drop['monster'] }}@if(!empty($drop['map']))<span class="text-amber-400/80"> · {{ $drop['map'] }}</span>@endif
+                                                                    @else
+                                                                        {{ $drop }}
+                                                                    @endif
                                                                 </span>
                                                             @endforeach
                                                         </div>

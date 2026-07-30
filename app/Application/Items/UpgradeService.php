@@ -52,7 +52,7 @@ class UpgradeService
                             'monster' => $monster->name,
                             'map' => $monster->map->name ?? null,
                         ];
-                    })->toArray();
+                    })->unique(fn($m) => $m['monster'] . '_' . ($m['map'] ?? ''))->values()->toArray();
 
                     $materials[] = [
                         'template_id' => $template->id,

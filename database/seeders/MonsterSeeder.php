@@ -586,10 +586,10 @@ class MonsterSeeder extends Seeder
 
                 Monster::updateOrCreate(
                     [
-                        'map_id' => $map->id,
                         'name' => $monsterData['name'],
                     ],
                     [
+                        'map_id' => $map->id,
                         'type' => $monsterData['type'],
                         'level' => $monsterData['level'],
                         'rank' => $monsterData['rank'],
