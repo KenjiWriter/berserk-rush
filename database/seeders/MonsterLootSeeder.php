@@ -507,6 +507,35 @@ class MonsterLootSeeder extends Seeder
                         ]);
                     }
                 }
+
+                // 5. Drop Skrzynek z łupami z Bossów map (waga 15 vs materiały 25)
+                $bossChestMapping = [
+                    'Strażnik Puszczy' => 'Skrzynia Mrocznego Lasu',
+                    'Władca Krypty' => 'Skrzynia Starych Ruin',
+                    'Starożytny Ogr' => 'Skrzynia Jaskini Trolli',
+                    'Niszczyciel Pustkowi' => 'Skrzynia Pustkowi Orków',
+                    'Królowa Wiedźm' => 'Skrzynia Bagien Grozy',
+                    'Władca Cieni' => 'Skrzynia Gór Cienia',
+                    'Wielki Inkwizytor' => 'Skrzynia Wieży Magów',
+                    'Książę Zniszczenia' => 'Skrzynia Skażonego Miasta',
+                ];
+
+                if ($isBoss && isset($bossChestMapping[$monsterName])) {
+                    $chestName = $bossChestMapping[$monsterName];
+                    $template = $itemTemplates->get($chestName);
+
+                    if ($template) {
+                        LootTableEntry::firstOrCreate([
+                            'loot_table_id' => $lootTable->id,
+                            'reward_type' => 'item',
+                            'ref_ulid' => $template->id,
+                        ], [
+                            'weight' => 15,
+                            'min_qty' => 1,
+                            'max_qty' => 1
+                        ]);
+                    }
+                }
             }
         }
 

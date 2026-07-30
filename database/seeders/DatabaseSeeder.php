@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             MonsterSeeder::class,
             ItemTemplateSeeder::class,
             MaterialItemSeeder::class,
+            LootChestSeeder::class,
             UpgradeRuleSeeder::class,
             DungeonSeeder::class,
             LootTableSeeder::class,

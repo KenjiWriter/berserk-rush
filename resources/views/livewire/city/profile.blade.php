@@ -1461,4 +1461,7 @@
             }
         }
     </script>
+
+    {{-- Case Opening CS-style Modal --}}
+    <livewire:city.case-opening-modal />
 </div>

@@ -208,6 +208,12 @@ class Profile extends Component
 
     public function consumeItem(string $itemUlid, \App\Domain\Items\Actions\ConsumeItemAction $consumeAction)
     {
+        $item = ItemInstance::with('template')->find($itemUlid);
+        if ($item && $item->template && $item->template->sub_type === 'chest') {
+            $this->dispatch('open-case-modal', itemInstanceId: $itemUlid);
+            return;
+        }
+
         $result = $consumeAction->execute($this->character, $itemUlid);
 
         if ($result['success']) {
