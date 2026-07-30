@@ -119,13 +119,6 @@ class MapStub extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
-        // Hard block level requirement
-        if (!$map->isAccessibleBy($character)) {
-            session()->flash('error', "Twój poziom ({$character->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
-            $this->redirect(route('city.adventure', $character), navigate: true);
-            return;
-        }
-
         $this->character = $character;
         $this->character->syncMissingPoints();
         $this->map = $map;
@@ -138,6 +131,7 @@ class MapStub extends Component
             session(['combat_auto_chain' => false]);
         }
 
+        $isValidWorldBossRequest = false;
         if (request()->has('world_boss')) {
             $worldBossId = (int)request()->query('world_boss');
             
@@ -162,23 +156,39 @@ class MapStub extends Component
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Ten World Boss nie jest przeznaczony dla Twojego poziomu.');
+                    $this->redirect(route('city.adventure', $this->character), navigate: true);
+                    return;
                 } elseif ($worldBossInstance->current_hp <= 0) {
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Ten World Boss został już pokonany! Poczekaj na reset za pełną godzinę.');
+                    $this->redirect(route('city.adventure', $this->character), navigate: true);
+                    return;
                 } elseif ($hasParticipated) {
                     $this->isWorldBoss = false;
                     $this->worldBossMonsterId = null;
                     session()->flash('warning', 'Już brałeś udział w walce z tym World Bossem!');
+                    $this->redirect(route('city.adventure', $this->character), navigate: true);
+                    return;
                 } else {
                     $this->isWorldBoss = true;
                     $this->worldBossMonsterId = $worldBossId;
+                    $isValidWorldBossRequest = true;
                 }
             } else {
                 $this->isWorldBoss = false;
                 $this->worldBossMonsterId = null;
                 session()->flash('warning', 'Ten World Boss nie jest obecnie aktywny na tej mapie.');
+                $this->redirect(route('city.adventure', $this->character), navigate: true);
+                return;
             }
+        }
+
+        // Hard block level requirement for normal map exploration (World Boss accessibility is governed by level bracket)
+        if (!$isValidWorldBossRequest && !$map->isAccessibleBy($character)) {
+            session()->flash('error', "Twój poziom ({$character->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
+            $this->redirect(route('city.adventure', $character), navigate: true);
+            return;
         }
     }
 

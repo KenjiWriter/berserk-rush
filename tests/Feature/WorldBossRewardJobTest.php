@@ -288,4 +288,72 @@ class WorldBossRewardJobTest extends TestCase
             'world_boss_instance_id' => $orphan->id,
         ]);
     }
+
+    public function test_character_within_world_boss_bracket_can_attack_even_if_map_min_level_is_higher(): void
+    {
+        // High bracket is 65-99. Map 'Wieża Magów' has level_min 75, level_max 85.
+        // A character of level 66 is in 'high' bracket (65-99) and should be allowed to attack Arcymag.
+        $map = Map::create(['name' => 'Wieża Magów', 'level_min' => 75, 'level_max' => 85]);
+        $monster = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Arcymag',
+            'type' => 'animal',
+            'level' => 85,
+            'rank' => 'worldboss',
+            'stats' => ['hp' => 100000, 'atk' => 10, 'def' => 5, 'agi' => 2],
+        ]);
+
+        $boss = WorldBossInstance::create([
+            'monster_id' => $monster->id,
+            'map_id' => $map->id,
+            'level_bracket' => 'high',
+            'total_hp' => 1000000,
+            'current_hp' => 1000000,
+        ]);
+
+        $char66 = $this->makeCharacter('HeroLevel66');
+        $char66->update(['level' => 66]);
+
+        $service = app(EncounterService::class);
+        $result = $service->start($char66, $map, $monster);
+
+        $this->assertTrue($result->isOk(), 'Level 66 character must be allowed to fight Arcymag (bracket high: 65-99) even on a level 75-85 map.');
+    }
+
+    public function test_claim_mail_action_preserves_item_stack_size(): void
+    {
+        $this->seedKeyTemplates();
+        $char = $this->makeCharacter('Claimer');
+        $template = ItemTemplate::where('name', 'Klucz Otchłani')->first();
+
+        $itemInstance = \App\Infrastructure\Persistence\ItemInstance::create([
+            'template_id' => $template->id,
+            'owner_character_id' => $char->id,
+            'stack_size' => 5,
+            'rarity' => 'uncommon',
+            'location' => 'mail',
+        ]);
+
+        $mail = Mail::create([
+            'to_character_id' => $char->id,
+            'subject' => 'Nagroda',
+            'body' => 'Otrzymujesz: 5 klucze (Klucz Otchłani).',
+            'attachments' => [
+                ['type' => 'item', 'id' => $itemInstance->id],
+            ],
+            'claimed' => false,
+        ]);
+
+        $action = new \App\Application\Mail\Actions\ClaimMailAction();
+        $result = $action->execute($char, $mail);
+
+        $this->assertTrue($result->isOk());
+        $this->assertTrue($mail->fresh()->claimed);
+
+        $this->assertDatabaseHas('item_ledgers', [
+            'character_id' => $char->id,
+            'action' => 'mail_claim',
+            'quantity_change' => 5,
+        ]);
+    }
 }

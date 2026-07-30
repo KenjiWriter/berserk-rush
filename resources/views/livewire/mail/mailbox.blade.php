@@ -95,7 +95,7 @@
                                                                     @endif
                                                                 @endif
                                                             </div>
-                                                            <div class="text-sm font-semibold 
+                                                            <div class="text-sm font-semibold flex items-center gap-1.5
                                                                 @if($item->rarity === 'common') text-slate-300
                                                                 @elseif($item->rarity === 'uncommon') text-green-400
                                                                 @elseif($item->rarity === 'rare') text-blue-400
@@ -103,7 +103,10 @@
                                                                 @elseif($item->rarity === 'legendary') text-orange-400
                                                                 @endif
                                                             ">
-                                                                {{ $item->template->name }} 
+                                                                <span>{{ $item->template->name }}</span>
+                                                                @if(($item->stack_size ?? 1) > 1)
+                                                                    <span class="text-xs font-bold text-amber-400 bg-amber-950/80 border border-amber-600/50 px-1.5 py-0.5 rounded">x{{ $item->stack_size }}</span>
+                                                                @endif
                                                                 @if($item->level > 1) <span class="text-xs opacity-70">+{{ $item->level - 1 }}</span> @endif
                                                             </div>
                                                         </div>

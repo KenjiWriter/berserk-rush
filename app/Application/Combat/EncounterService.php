@@ -127,8 +127,21 @@ class EncounterService
                     return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater bierze obecnie udział w pojedynku PvP.');
                 }
 
-                // Check map level requirement
-                if (!$map->isAccessibleBy($char)) {
+                // Check map level requirement (bypassed if attacking a World Boss appropriate for character's level bracket)
+                $isWorldBossFight = false;
+                if ($forcedMonster) {
+                    $activeBoss = WorldBossInstance::where('map_id', $map->id)
+                        ->where('monster_id', $forcedMonster->id)
+                        ->whereNotNull('level_bracket')
+                        ->latest('id')
+                        ->first();
+
+                    if ($activeBoss && WorldBossService::bracketForLevel($char->level) === $activeBoss->level_bracket) {
+                        $isWorldBossFight = true;
+                    }
+                }
+
+                if (!$isWorldBossFight && !$map->isAccessibleBy($char)) {
                     return Result::error('LEVEL_OUT_OF_RANGE', "Twój poziom ({$char->level}) wykracza poza przedział tej mapy (wymagany poziom: {$map->level_range}).");
                 }
 

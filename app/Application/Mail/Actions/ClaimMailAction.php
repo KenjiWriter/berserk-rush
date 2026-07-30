@@ -48,6 +48,37 @@ class ClaimMailAction
                         if ($itemId) {
                             $item = ItemInstance::find($itemId);
                             if ($item) {
+                                $qty = max(1, $item->stack_size ?? 1);
+                                $template = $item->template;
+                                if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+                                    $existingItem = ItemInstance::where('owner_character_id', $character->id)
+                                        ->where('template_id', $item->template_id)
+                                        ->where('location', 'inventory')
+                                        ->where('id', '!=', $item->id)
+                                        ->first();
+
+                                    if ($existingItem) {
+                                        $existingItem->stack_size += $qty;
+                                        $existingItem->save();
+
+                                        ItemLedger::create([
+                                            'id'               => Str::ulid(),
+                                            'character_id'     => $character->id,
+                                            'item_instance_id' => $existingItem->id,
+                                            'action'           => 'mail_claim',
+                                            'ref_type'         => 'mail',
+                                            'ref_id'           => $mail->id,
+                                            'quantity_change'  => $qty,
+                                            'idempotency_key'  => 'mail_item_' . $mail->id . '_' . $item->id . '_' . Str::ulid(),
+                                            'created_at'       => now(),
+                                        ]);
+
+                                        $claimedItems[] = $existingItem;
+                                        $item->delete();
+                                        continue;
+                                    }
+                                }
+
                                 $item->update([
                                     'owner_character_id' => $character->id,
                                     'location' => 'inventory',
@@ -60,7 +91,7 @@ class ClaimMailAction
                                     'action'           => 'mail_claim',
                                     'ref_type'         => 'mail',
                                     'ref_id'           => $mail->id,
-                                    'quantity_change'  => 1,
+                                    'quantity_change'  => $qty,
                                     'idempotency_key'  => 'mail_item_' . $mail->id . '_' . $item->id . '_' . Str::ulid(),
                                     'created_at'       => now(),
                                 ]);
