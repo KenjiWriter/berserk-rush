@@ -43,15 +43,11 @@
                             const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
                             if (!triggerEl || !tooltipEl) return;
                             const triggerRect = triggerEl.getBoundingClientRect();
-                            const tooltipRect = tooltipEl.getBoundingClientRect();
+                            const targetBoxEl = tooltipEl.firstElementChild || tooltipEl;
+                            const tooltipRect = targetBoxEl.getBoundingClientRect();
                             if (!triggerRect.width || !tooltipRect.width) return;
                             if (window.innerWidth < 640) { this.tooltipStyle = {}; return; }
 
-                            // Pozycjonowanie liczone względem viewportu (position: fixed),
-                            // a nie rodzica (position: absolute) - dzięki temu tooltip nie
-                            // jest przycinany przez `overflow-y-auto`/`overflow-hidden` na
-                            // przewijalnych listach (np. plecak u Wiedźmy/Kowala), gdzie
-                            // element blisko góry listy potrafił renderować się ucięty.
                             const minMargin = 12;
                             const triggerCenter = triggerRect.left + triggerRect.width / 2;
                             let left = triggerCenter - (tooltipRect.width / 2);

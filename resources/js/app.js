@@ -30,7 +30,9 @@ function createSmartTooltip() {
                 if (!triggerEl || !tooltipEl) return;
 
                 const triggerRect = triggerEl.getBoundingClientRect();
-                const tooltipRect = tooltipEl.getBoundingClientRect();
+                const targetBoxEl = tooltipEl.firstElementChild || tooltipEl;
+                const tooltipRect = targetBoxEl.getBoundingClientRect();
+
                 if (!triggerRect.width || !tooltipRect.width) return;
 
                 // Mobile screens (< 640px) use modal overlay or standard layout
@@ -39,10 +41,6 @@ function createSmartTooltip() {
                     return;
                 }
 
-                // Pozycjonowanie liczone względem viewportu (position: fixed), a nie
-                // rodzica (position: absolute) - tooltip jest teleportowany do <body>
-                // (x-teleport="body"), więc offsety liczone względem trigger elementu
-                // nie mają odniesienia do jego rzeczywistego kontekstu pozycjonowania.
                 const minMargin = 12;
                 const triggerCenter = triggerRect.left + triggerRect.width / 2;
                 let left = triggerCenter - (tooltipRect.width / 2);
