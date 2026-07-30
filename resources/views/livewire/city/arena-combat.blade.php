@@ -6,6 +6,9 @@
     {{-- Dark overlay for depth --}}
     <div class="absolute inset-0 bg-black/60"></div>
 
+    {{-- Dynamic Attack FX Layer --}}
+    <div id="combat-fx-overlay" class="fixed inset-0 pointer-events-none z-[150] overflow-hidden"></div>
+
     {{-- Transition Overlay --}}
     <div x-show="$data.travelingTo" 
          x-transition:enter="transition ease-out duration-300"
@@ -46,16 +49,16 @@
         </div>
     @enderror
 
-    <div class="relative z-10 container mx-auto px-4 py-6 min-h-screen">
+    <div class="relative z-10 container mx-auto px-4 py-2 lg:py-3 min-h-screen">
         {{-- Header with navigation --}}
-        <div class="flex flex-col md:flex-row items-center md:justify-between mb-6 gap-4 text-center md:text-left">
-            <h1 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-2">
+        <div class="flex items-center justify-between mb-2 lg:mb-3">
+            <h1 class="text-2xl sm:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-2">
                 <i class="fa-solid fa-hand-fist text-amber-400"></i> Odtwarzacz Walki {{ $type === 'pvp' ? 'PvP' : 'GvG' }}
             </h1>
 
-            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-3">
+            <div class="flex items-center space-x-3">
                 {{-- Character info --}}
-                <div class="text-amber-100 text-sm medieval-font sm:mr-4">
+                <div class="text-amber-100 text-sm medieval-font">
                     <div>{{ $character->name }}</div>
                 </div>
 
@@ -84,218 +87,303 @@
         </div>
 
         {{-- Classic RPG Battle Layout --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-8 max-w-7xl mx-auto pb-24 lg:pb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 max-w-[1600px] w-full mx-auto pb-24 lg:pb-6">
 
             {{-- Left Side - Player Panel --}}
             <div class="col-span-1 md:col-span-1 lg:col-span-1 order-2 lg:order-1" id="player-panel-container">
                 <div id="player-panel"
-                    class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isPlayerTurn() ? 'ring-4 ring-amber-300 shadow-[0_0_30px_rgba(255,200,60,.4)]' : '' }}">
-                    <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-amber-900/25"></div>
+                    class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 transition-all duration-300 {{ $this->isPlayerTurn() ? 'ring-2 ring-amber-400/80 shadow-[0_0_35px_rgba(245,158,11,0.4)] scale-[1.01]' : '' }}">
+                    
+                    {{-- Glossy Inner Ambient Glow --}}
+                    <div class="absolute inset-0 bg-gradient-to-b from-amber-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
-                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
+                    <div class="relative p-3 sm:p-3.5 lg:p-3.5 xl:p-5 space-y-2.5 lg:space-y-3 xl:space-y-4">
+                        {{-- Player Header & Avatar --}}
                         <div class="text-center">
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-amber-800/80 shadow-xl">
-                                @if (!empty($player) && $player['avatar'])
-                                    <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}" class="w-full h-full object-cover">
-                                @else
-                                    <div class="w-full h-full bg-gradient-to-b from-amber-200 to-amber-300 flex items-center justify-center text-4xl text-amber-800">👤</div>
-                                @endif
+                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-20 lg:h-20 xl:w-24 xl:h-24 2xl:w-28 2xl:h-28 mx-auto">
+                                <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-amber-500/80 shadow-[0_0_25px_rgba(245,158,11,0.35)] bg-slate-900">
+                                    @if (!empty($player) && !empty($player['avatar']))
+                                        <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}"
+                                            class="w-full h-full object-cover">
+                                    @else
+                                        <img src="{{ asset('img/avatars/default.png') }}" alt="{{ $player['name'] ?? 'Gracz' }}"
+                                            class="w-full h-full object-cover">
+                                    @endif
+                                </div>
+                                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-500 text-amber-950 text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300 shadow-lg medieval-font">
+                                    Lvl {{ $player['level'] ?? '?' }}
+                                </span>
                             </div>
-                            <h3 class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-amber-100 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
+
+                            {{-- Player Name --}}
+                            <h3 class="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl font-extrabold text-amber-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] tracking-wide">
                                 {{ $player['name'] ?? '?' }}
                             </h3>
-                            <p class="text-[10px] lg:text-sm text-amber-200 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Poziom {{ $player['level'] ?? '?' }}
+                            <p class="text-[11px] sm:text-xs text-amber-400/80 tracking-wider">
+                                Gracz
                             </p>
                         </div>
 
-                        @if (!empty($player))
-                            @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
-                            <div class="space-y-1 lg:space-y-2">
-                                <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                    <span><i class="fa-solid fa-heart text-red-500"></i> Życie</span>
-                                    <span>{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] }}</span>
-                                </div>
-                                <div class="h-4 w-full rounded-full bg-black/40 ring-2 ring-amber-800/60 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 shadow-sm transition-all duration-500"
-                                        style="width: {{ $this->getPlayerHpPercent() }}%"></div>
-                                </div>
+                        {{-- Player HP Bar --}}
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-amber-200 medieval-font drop-shadow">
+                                <span>Życie</span>
+                                <span class="font-mono text-emerald-300 text-xs sm:text-sm">{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] ?? 1 }}</span>
                             </div>
-                            @if($currentState && !empty($currentState['buffs']))
-                                <div class="flex flex-wrap gap-2 justify-center mt-2">
-                                    @foreach($currentState['buffs'] as $key => $buff)
-                                        <div class="group relative bg-slate-900/90 border border-blue-400/70 hover:border-blue-300 rounded-xl px-2.5 py-1 text-xs text-blue-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
-                                            @if(!empty($buff['icon']))
-                                                <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $buff['name'] ?? 'Wzmocnienie' }}">
-                                            @else
-                                                <span class="text-xs">⚔️</span>
-                                            @endif
-                                            <span class="font-bold font-mono text-blue-300 text-xs">{{ $buff['duration'] }}T</span>
+                            <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
+                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
+                                    style="width: {{ $this->getPlayerHpPercent() }}%"></div>
+                            </div>
+                        </div>
 
-                                            {{-- Interactive Hover Infobox --}}
-                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-blue-400/80 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
-                                                <div class="flex items-center gap-2 mb-1.5 border-b border-blue-500/30 pb-1.5">
-                                                    @if(!empty($buff['icon']))
-                                                        <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-5 h-5 object-contain" alt="">
-                                                    @else
-                                                        <span class="text-sm">⚔️</span>
-                                                    @endif
-                                                    <span class="text-xs font-bold text-blue-200 medieval-font tracking-wide">{{ $buff['name'] ?? 'Wzmocnienie' }}</span>
-                                                    <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/90 text-blue-200 border border-blue-400/50 font-mono">{{ $buff['duration'] }}T</span>
-                                                </div>
-                                                <div class="text-[11px] text-slate-300 leading-snug space-y-1">
-                                                    <div class="text-blue-300/90 font-semibold">Status: Wzmocnienie</div>
-                                                    <p class="text-slate-200">{{ $buff['description'] ?? 'Aktywne wzmocnienie postaci.' }}</p>
-                                                </div>
+                        {{-- Active Buffs --}}
+                        @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
+                        @if($currentState && !empty($currentState['buffs']))
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                @foreach($currentState['buffs'] as $key => $buff)
+                                    <div class="group relative bg-slate-900/90 border border-blue-400/70 hover:border-blue-300 rounded-xl px-2.5 py-1 text-xs text-blue-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                        @if(!empty($buff['icon']))
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $buff['name'] ?? 'Wzmocnienie' }}">
+                                        @else
+                                            <i class="fa-solid fa-swords text-xs text-blue-300"></i>
+                                        @endif
+                                        <span class="font-bold font-mono text-blue-300 text-xs">{{ $buff['duration'] }}T</span>
+
+                                        {{-- Interactive Hover Infobox --}}
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-blue-400/80 rounded-xl shadow-[0_0_20px_rgba(59,130,246,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                            <div class="flex items-center gap-2 mb-1.5 border-b border-blue-500/30 pb-1.5">
+                                                @if(!empty($buff['icon']))
+                                                    <img src="{{ route('assets.skills.icons', ['filename' => $buff['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                @else
+                                                    <i class="fa-solid fa-swords text-sm text-blue-300"></i>
+                                                @endif
+                                                <span class="text-xs font-bold text-blue-200 medieval-font tracking-wide">{{ $buff['name'] ?? 'Wzmocnienie' }}</span>
+                                                <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-900/90 text-blue-200 border border-blue-400/50 font-mono">{{ $buff['duration'] }}T</span>
                                             </div>
+                                            <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                <div class="text-blue-300/90 font-semibold">Status: Wzmocnienie</div>
+                                                <p class="text-slate-200">{{ $buff['description'] ?? 'Aktywne wzmocnienie postaci.' }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Equipped Active Skills --}}
+                        @php
+                            $playerSkills = $this->getSkillsWithIcons($this->player);
+                        @endphp
+                        @if(!empty($playerSkills))
+                            <div class="bg-black/60 rounded-2xl p-1.5 lg:p-2 border border-amber-500/20 shadow-inner">
+                                <div class="text-[10px] sm:text-[11px] font-bold text-amber-200/90 mb-1 medieval-font text-center tracking-wide">
+                                    Wyposażone Umiejętności
+                                </div>
+                                <div class="flex gap-2 justify-center flex-wrap">
+                                    @foreach($playerSkills as $skill)
+                                        @php 
+                                            $skillId = $skill['id'] ?? null;
+                                            $cd = ($currentState && isset($currentState['cooldowns'][$skillId])) ? $currentState['cooldowns'][$skillId] : 0; 
+                                        @endphp
+                                        <div class="relative w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl border {{ $cd > 0 ? 'border-slate-700 bg-slate-900' : 'border-amber-500/80 bg-amber-950/80 shadow-[0_0_12px_rgba(245,158,11,0.4)]' }} flex items-center justify-center overflow-hidden transition-transform hover:scale-105" title="{{ $skill['name'] ?? 'Umiejętność' }}">
+                                            @if($cd > 0)
+                                                <div class="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                                                    <span class="text-white font-extrabold text-xs drop-shadow font-mono">{{ $cd }}</span>
+                                                </div>
+                                            @endif
+                                            @if(!empty($skill['icon']))
+                                                <img src="{{ route('assets.skills.icons', ['filename' => $skill['icon']]) }}" class="w-full h-full object-contain p-1 {{ $cd > 0 ? 'opacity-30' : 'opacity-100' }}" alt="{{ $skill['name'] ?? 'Umiejętność' }}">
+                                            @else
+                                                <span class="text-[10px] font-bold text-amber-200 {{ $cd > 0 ? 'opacity-40' : 'opacity-100' }}">{{ mb_substr($skill['name'] ?? 'S', 0, 3) }}</span>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
-                            @endif
-
-                            @php
-                                $playerCombatStats = $this->getCombatStats($this->player, $this->enemy);
-                            @endphp
-                            <div class="mt-3 pt-2.5 border-t border-amber-800/40">
-                                <div class="text-xs font-bold text-amber-200 mb-1.5 medieval-font flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-swords text-amber-400"></i> Statystyki w Walce</span>
-                                </div>
-                                <div class="grid grid-cols-2 gap-1.5 text-center">
-                                    <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-yellow-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-bolt text-yellow-400"></i> Krytyk
-                                        </div>
-                                        <div class="text-xs font-bold text-yellow-200 font-mono">{{ $playerCombatStats['crit_chance'] ?? 0 }}%</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-emerald-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-emerald-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Unik
-                                        </div>
-                                        <div class="text-xs font-bold text-emerald-200 font-mono">{{ $playerCombatStats['dodge_chance'] ?? 0 }}%</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-red-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-red-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-crosshairs text-red-400"></i> Atak
-                                        </div>
-                                        <div class="text-xs font-bold text-red-200 font-mono">{{ $playerCombatStats['atk_min'] ?? 0 }} - {{ $playerCombatStats['atk_max'] ?? 0 }}</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-blue-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-blue-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-shield text-blue-400"></i> Obrona
-                                        </div>
-                                        <div class="text-xs font-bold text-blue-200 font-mono">{{ $playerCombatStats['defense'] ?? 0 }}</div>
-                                    </div>
-                                </div>
                             </div>
                         @endif
+
+                        {{-- Player Attributes Grid --}}
+                        <div>
+                            <h4 class="text-[11px] sm:text-xs font-bold text-amber-200/90 mb-1.5 medieval-font tracking-wide">
+                                Atrybuty Bojowe
+                            </h4>
+                            @php
+                                $pStats = $player['stats'] ?? [];
+                            @endphp
+                            <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
+                                <div class="bg-slate-900/90 border border-red-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-red-300 tracking-wider">STR (Siła)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['str'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-blue-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-blue-300 tracking-wider">INT (Wiedza)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['int'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-emerald-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-emerald-300 tracking-wider">VIT (Witalność)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['vit'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-amber-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-amber-300 tracking-wider">AGI (Zręczność)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['agi'] ?? 0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Player Effective Combat Stats --}}
+                        @php
+                            $playerCombatStats = $this->getCombatStats($this->player, $this->enemy);
+                        @endphp
+                        <div class="mt-2.5 pt-2 border-t border-amber-900/40">
+                            <h4 class="text-[11px] sm:text-xs font-bold text-amber-200/90 mb-1.5 medieval-font tracking-wide flex items-center justify-between">
+                                <span>Statystyki podczas Walki</span>
+                                <span class="text-[9px] text-amber-400/80 font-normal">Bieżące wartości</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
+                                <div class="bg-amber-950/60 border border-yellow-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-yellow-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-bolt text-yellow-400"></i> Szansa na Kryt
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-yellow-300 font-mono">{{ $playerCombatStats['crit_chance'] ?? 0 }}%</div>
+                                </div>
+                                <div class="bg-amber-950/60 border border-emerald-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-emerald-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-shield-halved text-emerald-400"></i> Szansa na Unik
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-emerald-300 font-mono">{{ $playerCombatStats['dodge_chance'] ?? 0 }}%</div>
+                                </div>
+                                <div class="bg-amber-950/60 border border-red-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-red-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-crosshairs text-red-400"></i> Atak (DMG)
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ $playerCombatStats['atk_min'] ?? 0 }} - {{ $playerCombatStats['atk_max'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-amber-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-blue-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-shield text-blue-400"></i> Obrona (DEF)
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-blue-200 font-mono">{{ $playerCombatStats['defense'] ?? 0 }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Center - Parchment Battle Log --}}
-            <div class="col-span-1 md:col-span-2 lg:col-span-1 order-1 lg:order-2 mb-4 lg:mb-0">
-                <section class="relative rounded-2xl shadow-2xl overflow-hidden h-[400px] lg:h-[500px] flex flex-col">
-                    <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-amber-100/80"></div>
-
-                    <header class="relative p-4 text-center border-b-2 border-amber-800/30">
-                        <h3 class="font-serif text-2xl text-amber-900 tracking-wider medieval-font drop-shadow-sm">
-                            ⚔️ Przebieg Starcia
+            {{-- Center - Battle Log --}}
+            <div class="col-span-1 md:col-span-2 lg:col-span-1 order-1 lg:order-2 mb-2 lg:mb-0">
+                <section class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-amber-500/30 h-[340px] sm:h-[370px] md:h-[400px] lg:h-[420px] xl:h-[480px] 2xl:h-[540px] flex flex-col">
+                    
+                    {{-- Header --}}
+                    <header class="relative p-2 text-center bg-amber-950/40 border-b border-amber-500/20 backdrop-blur-md">
+                        <h3 class="font-serif text-base sm:text-lg lg:text-xl text-amber-200 tracking-wider medieval-font drop-shadow flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-swords text-amber-400"></i> Kronika Bitwy
                         </h3>
                     </header>
 
-                    <div id="arena-combat-log-container" class="relative flex-1 overflow-y-auto p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
+                    {{-- Battle Log Scroll Area --}}
+                    <div id="arena-combat-log-container" class="relative flex-1 overflow-y-auto p-3 lg:p-4 custom-scrollbar" wire:poll.500ms="checkCombatStatus">
                         @if($isCalculating)
                             <div class="h-full flex flex-col items-center justify-center text-center">
-                                <div class="relative w-32 h-32 mb-6">
-                                    <div class="absolute inset-0 flex items-center justify-center transform transition-transform duration-500 animate-[spin_2s_ease-in-out_infinite_alternate]">
-                                        <div class="text-6xl drop-shadow-xl" style="transform: rotate(45deg);">⚔️</div>
-                                    </div>
-                                    <div class="absolute inset-0 rounded-full border-4 border-amber-600/30 border-t-amber-600 animate-spin"></div>
+                                <div class="relative w-24 h-24 sm:w-28 sm:h-28 mb-4">
+                                    <div class="absolute inset-0 rounded-full border-4 border-amber-500/30 border-t-amber-400 animate-spin"></div>
+                                    <div class="absolute inset-2 rounded-full border-4 border-amber-700/30 border-b-amber-600 animate-[spin_1.5s_linear_infinite_reverse]"></div>
                                 </div>
-                                <h3 class="font-serif text-3xl text-amber-900 tracking-wider medieval-font drop-shadow-sm animate-pulse">
+                                <h3 class="font-serif text-2xl sm:text-3xl text-amber-200 tracking-wider medieval-font drop-shadow animate-pulse">
                                     Oczekiwanie na wynik...
                                 </h3>
+                                <p class="text-amber-300/80 italic mt-2 font-semibold text-sm">Krzyżowanie mieczy...</p>
                             </div>
                         @else
-                            <ul class="space-y-3 text-amber-900">
+                            <ul class="space-y-2 text-amber-100">
                                 @if (empty($visibleTurns))
                                     @if ($isPlaying)
-                                        <li class="text-center py-8 animate-pulse">
-                                            <div class="text-4xl mb-3">⚔️</div>
-                                            <div class="text-amber-800 font-serif italic text-lg">Przygotowanie do starcia...</div>
+                                        <li class="text-center py-10 animate-pulse">
+                                            <div class="text-amber-300/80 font-serif italic text-lg sm:text-xl flex items-center justify-center gap-2">
+                                                <i class="fa-solid fa-swords text-amber-400 animate-bounce"></i> Rozpoczynanie bitwy...
+                                            </div>
                                         </li>
                                     @else
-                                        <li class="text-center py-8">
-                                            <div class="text-4xl mb-3">⚔️</div>
-                                            <div class="text-amber-800 font-serif italic text-lg">Pauza...</div>
+                                        <li class="text-center py-10">
+                                            <div class="text-amber-300/80 font-serif italic text-lg sm:text-xl">
+                                                Pauza odtwarzacza...
+                                            </div>
                                         </li>
                                     @endif
                                 @else
                                     @foreach ($visibleTurns as $index => $turn)
-                                        <li class="leading-relaxed bg-white/30 rounded-lg px-3 py-2 shadow-sm">
-                                            <span class="inline-block w-8 text-center text-xs font-bold bg-amber-800 text-amber-100 rounded px-1 mr-2">
+                                        <li class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
+                                            <span class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-amber-900/80 text-amber-200 rounded-md border border-amber-600/40 px-1 py-0.5 mr-1.5 font-mono">
                                                 T{{ $index + 1 }}
                                             </span>
                                             @if ($turn['type'] == 'miss')
-                                                <span class="text-slate-700 italic font-semibold">
-                                                    <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                <span class="text-slate-300 italic font-semibold">
+                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
                                                     pudłuje atak!
                                                     @if (!empty($turn['dotDamage']))
-                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
                                                 </span>
                                             @elseif ($turn['type'] == 'dot')
-                                                <span class="text-purple-700 font-semibold italic">
-                                                    Zadano <strong class="text-purple-900">{{ $turn['value'] }}</strong> obrażeń od statusów.
+                                                <span class="text-purple-300 font-semibold italic">
+                                                    Zadano <strong class="text-purple-200 font-mono">{{ $turn['value'] }}</strong> obrażeń od statusów.
                                                 </span>
                                             @elseif ($turn['type'] == 'skill')
-                                                <span class="{{ $turn['actor'] == 'player' ? 'text-blue-800' : 'text-red-800' }} font-semibold">
-                                                    <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    używa <span class="text-indigo-600 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong>
+                                                <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
+                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
                                                     @if (!empty($turn['dotDamage']))
-                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
                                                     obrażeń
-                                                    @if ($turn['crit']) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
+                                                    @if (!empty($turn['crit'])) <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span> @endif
                                                 </span>
                                             @else
-                                                <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-800' : 'text-red-800' }} font-semibold">
-                                                    <strong>{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
-                                                    zadaje <strong class="text-amber-900">{{ $turn['value'] }}</strong>
+                                                <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
+                                                    <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $enemy['name'] }}</strong>
+                                                    zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
                                                     @if (!empty($turn['dotDamage']))
-                                                        <span class="text-emerald-600 font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
                                                     @endif
                                                     obrażeń
-                                                    @if ($turn['crit']) <span class="font-bold text-red-900">✨ KRYTYK!</span> @endif
+                                                    @if (!empty($turn['crit']))
+                                                        <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span>
+                                                    @endif
                                                 </span>
                                             @endif
                                         </li>
                                     @endforeach
-                                @endif
 
+                                    {{-- Battle Result & Rewards --}}
                                     @if ($battleCompleted)
-                                        <li class="text-center mt-6 p-4 rounded-xl {{ $result == 'win' ? 'bg-green-200/90 border-2 border-green-600 text-green-800' : 'bg-red-200/90 border-2 border-red-600 text-red-800' }} shadow-lg">
-                                            <div class="text-4xl mb-2">{{ $result == 'win' ? '🏆' : '💀' }}</div>
-                                            <div class="text-2xl font-bold medieval-font">
-                                                {{ $result == 'win' ? 'ZWYCIĘSTWO!' : 'PORAŻKA!' }}
+                                        <li class="text-center mt-4 p-4 rounded-2xl {{ $result == 'win' ? 'bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 shadow-[0_0_25px_rgba(16,185,129,0.2)]' : 'bg-red-950/80 border border-red-500/40 text-red-200 shadow-[0_0_25px_rgba(239,68,68,0.2)]' }} backdrop-blur-md">
+                                            <div class="mb-2">
+                                                @if ($result == 'win')
+                                                    <i class="fa-solid fa-trophy text-amber-400 text-3xl drop-shadow-[0_0_15px_rgba(245,158,11,0.6)]"></i>
+                                                @else
+                                                    <i class="fa-solid fa-skull text-red-500 text-3xl drop-shadow-[0_0_15px_rgba(239,68,68,0.6)]"></i>
+                                                @endif
+                                            </div>
+                                            <div class="text-xl sm:text-2xl font-bold medieval-font tracking-wide">
+                                                {{ $result == 'win' ? 'TRIUMF!' : 'KLĘSKA!' }}
                                             </div>
                                             
                                             @if($type === 'pvp')
-                                                <div class="mt-4 p-3 bg-amber-100/90 border-2 border-amber-600 rounded-lg text-left">
-                                                    <h4 class="font-bold text-amber-900 mb-2">🎁 Podsumowanie PvP:</h4>
-                                                    <div class="space-y-1 text-sm">
+                                                <div class="mt-3 p-3 bg-slate-900/90 border border-amber-500/30 rounded-xl text-left">
+                                                    <h4 class="font-bold text-amber-300 mb-2 medieval-font text-center text-sm sm:text-base flex items-center justify-center gap-2">
+                                                        <i class="fa-solid fa-gift text-amber-400"></i> Podsumowanie PvP:
+                                                    </h4>
+                                                    <div class="space-y-1.5 text-xs sm:text-sm">
                                                         <div class="flex items-center space-x-2">
-                                                            <span class="text-blue-600">📈</span>
-                                                            <span class="text-amber-800 font-bold">
-                                                                Ranking ELO: {{ $eloChange > 0 ? '+'.$eloChange : $eloChange }}
+                                                            <i class="fa-solid fa-chart-line text-blue-400 w-4 text-center"></i>
+                                                            <span class="text-amber-200">
+                                                                Ranking ELO: <span class="font-bold text-blue-300 font-mono">{{ $eloChange > 0 ? '+'.$eloChange : $eloChange }}</span>
                                                             </span>
                                                         </div>
                                                         <div class="flex items-center space-x-2">
-                                                            <span class="text-yellow-600">🪙</span>
-                                                            <span class="text-amber-800 font-bold">
-                                                                Żetony Areny: +{{ $tokensReward }}
+                                                            <i class="fa-solid fa-coins text-yellow-400 w-4 text-center"></i>
+                                                            <span class="text-amber-200">
+                                                                Żetony Areny: <span class="font-bold text-yellow-300 font-mono">+{{ $tokensReward }}</span>
                                                             </span>
                                                         </div>
                                                     </div>
@@ -303,36 +391,37 @@
                                             @endif
                                         </li>
                                     @endif
+                                @endif
                             </ul>
                         @endif
                     </div>
 
                     {{-- Battle Controls --}}
-                    <footer class="relative p-4 border-t-2 border-amber-800/30">
-                        <div class="flex flex-col gap-3">
-                            <div class="flex items-center justify-center gap-3">
+                    <footer class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md">
+                        <div class="flex flex-col gap-2.5">
+                            <div class="flex items-center justify-center gap-2.5">
                                 @if (!$battleCompleted && !$isCalculating)
                                     <button wire:click="togglePlayback"
-                                        class="relative rounded-lg px-6 py-3 shadow-lg overflow-hidden">
-                                        <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-emerald-800/40"></div>
-                                        <span class="relative text-white font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                            {{ $isPlaying ? '⏸️ Pauza' : '▶️ Odtwarzaj' }}
-                                        </span>
+                                        class="rounded-xl px-5 py-2.5 {{ $isPlaying ? 'bg-amber-950/80 border-amber-500/40 text-amber-200 hover:bg-amber-900/80' : 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200 hover:bg-emerald-900/80' }} border font-bold transition-all medieval-font shadow-lg text-xs sm:text-sm flex items-center gap-2">
+                                        @if ($isPlaying)
+                                            <i class="fa-solid fa-pause text-amber-400"></i>
+                                            <span>Pauza</span>
+                                        @else
+                                            <i class="fa-solid fa-play text-emerald-400"></i>
+                                            <span>Odtwarzaj</span>
+                                        @endif
                                     </button>
                                 @endif
 
                                 @if (!empty($visibleTurns))
                                     <div class="flex gap-2">
-                                        <button wire:click="setPlaybackSpeed(1)" class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden">
-                                            <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                                            <div class="absolute inset-0 {{ $playbackSpeed == 1 ? 'bg-amber-700/60' : 'bg-amber-900/40' }}"></div>
-                                            <span class="relative {{ $playbackSpeed == 1 ? 'text-amber-100' : 'text-amber-200' }} font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">⏯️ x1</span>
+                                        <button wire:click="setPlaybackSpeed(1)" 
+                                            class="rounded-xl px-3.5 py-2 {{ $playbackSpeed == 1 ? 'bg-amber-900/90 text-amber-200 border-amber-400/80 font-black' : 'bg-slate-900/80 text-amber-300/70 border-slate-700 hover:bg-slate-800' }} border font-mono text-xs flex items-center gap-1.5 transition-all shadow-md">
+                                            <i class="fa-solid fa-play text-[10px]"></i> x1
                                         </button>
-                                        <button wire:click="setPlaybackSpeed(2)" class="relative rounded-lg px-4 py-2 shadow-lg overflow-hidden">
-                                            <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                                            <div class="absolute inset-0 {{ $playbackSpeed == 2 ? 'bg-amber-700/60' : 'bg-amber-900/40' }}"></div>
-                                            <span class="relative {{ $playbackSpeed == 2 ? 'text-amber-100' : 'text-amber-200' }} font-bold medieval-font drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">⏩ x2</span>
+                                        <button wire:click="setPlaybackSpeed(2)" 
+                                            class="rounded-xl px-3.5 py-2 {{ $playbackSpeed == 2 ? 'bg-amber-900/90 text-amber-200 border-amber-400/80 font-black' : 'bg-slate-900/80 text-amber-300/70 border-slate-700 hover:bg-slate-800' }} border font-mono text-xs flex items-center gap-1.5 transition-all shadow-md">
+                                            <i class="fa-solid fa-forward text-[10px]"></i> x2
                                         </button>
                                     </div>
                                 @endif
@@ -345,112 +434,183 @@
             {{-- Right Side - Enemy Panel --}}
             <div class="col-span-1 md:col-span-1 lg:col-span-1 order-3 lg:order-3" id="enemy-panel-container">
                 <div id="enemy-panel"
-                    class="relative rounded-xl shadow-2xl overflow-hidden {{ $this->isEnemyTurn() ? 'ring-4 ring-red-300 shadow-[0_0_30px_rgba(255,100,100,.4)]' : '' }}">
-                    <img src="{{ asset('img/avatars/plate.png') }}" alt="" class="absolute inset-0 w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-red-900/20"></div>
+                    class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30 transition-all duration-300 {{ $this->isEnemyTurn() ? 'ring-2 ring-red-400/80 shadow-[0_0_35px_rgba(239,68,68,0.4)] scale-[1.01]' : '' }}">
+                    
+                    {{-- Glossy Inner Ambient Glow --}}
+                    <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
 
-                    <div class="relative p-3 lg:p-6 space-y-2 lg:space-y-4">
+                    <div class="relative p-3 sm:p-3.5 lg:p-3.5 xl:p-5 space-y-2.5 lg:space-y-3 xl:space-y-4">
+                        {{-- Enemy Header & Avatar --}}
                         <div class="text-center">
-                            {{-- WIDMO GRACZA EFEKT --}}
-                            <div class="w-16 h-16 sm:w-20 sm:h-20 lg:w-28 lg:h-28 mx-auto rounded-xl overflow-hidden ring-4 ring-red-800/80 shadow-xl bg-black">
-                                <img src="{{ $enemy['avatar'] ?? asset('img/avatars/default.png') }}"
-                                    alt="{{ $enemy['name'] ?? '?' }}"
-                                    class="w-full h-full object-cover opacity-70 mix-blend-luminosity filter sepia hue-rotate-180 drop-shadow-[0_0_15px_rgba(255,50,50,0.8)]">
+                            <div class="relative w-16 h-16 sm:w-20 sm:h-20 lg:w-20 lg:h-20 xl:w-24 xl:h-24 2xl:w-28 2xl:h-28 mx-auto">
+                                <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-red-500/80 shadow-[0_0_25px_rgba(239,68,68,0.35)] bg-slate-900">
+                                    <img src="{{ $enemy['avatar'] ?? asset('img/avatars/default.png') }}"
+                                        alt="{{ $enemy['name'] ?? '?' }}"
+                                        class="w-full h-full object-cover">
+                                </div>
+                                <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-red-600 text-red-100 text-[10px] sm:text-xs font-black px-2.5 py-0.5 rounded-full border border-red-400 shadow-lg medieval-font">
+                                    Lvl {{ $enemy['level'] ?? '?' }}
+                                </span>
                             </div>
-                            <h3 class="mt-2 lg:mt-3 text-base lg:text-xl font-bold text-red-200 medieval-font drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] leading-tight">
+
+                            {{-- Enemy Name --}}
+                            <h3 class="mt-2 text-sm sm:text-base lg:text-lg xl:text-xl font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)] tracking-wide">
                                 {{ $enemy['name'] ?? '?' }}
                             </h3>
-                            <p class="text-[10px] lg:text-sm text-red-300 tracking-wide drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                Poziom {{ $enemy['level'] ?? '?' }}
+                            <p class="text-[11px] sm:text-xs text-red-400/80 tracking-wider">
+                                Przeciwnik (Widmo)
                             </p>
                         </div>
 
-                        @if (!empty($enemy))
-                            <div class="space-y-1 lg:space-y-2">
-                                <div class="flex justify-between text-[10px] lg:text-sm font-semibold text-amber-100 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                                    <span><i class="fa-solid fa-heart text-red-500"></i> Życie</span>
-                                    <span>{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] }}</span>
-                                </div>
-                                <div class="h-4 w-full rounded-full bg-black/40 ring-2 ring-red-800/60 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-red-500 via-red-600 to-red-500 shadow-sm transition-all duration-500"
-                                        style="width: {{ $this->getEnemyHpPercent() }}%"></div>
-                                </div>
+                        {{-- Enemy HP Bar --}}
+                        <div class="space-y-1">
+                            <div class="flex justify-between text-xs font-bold text-red-200 medieval-font drop-shadow">
+                                <span>Życie</span>
+                                <span class="font-mono text-emerald-300 text-xs sm:text-sm">{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] ?? 1 }}</span>
                             </div>
-                            @if(isset($currentState) && $currentState && !empty($currentState['dots']))
-                                <div class="flex flex-wrap gap-2 justify-center mt-2">
-                                    @foreach($currentState['dots'] as $dot)
-                                        <div class="group relative bg-slate-900/90 border border-purple-400/70 hover:border-purple-300 rounded-xl px-2.5 py-1 text-xs text-purple-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
-                                            @if(!empty($dot['icon']))
-                                                <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $dot['name'] ?? 'Status' }}">
-                                            @elseif(($dot['type'] ?? '') === 'poison')
-                                                <span class="text-xs">🐍</span>
-                                            @elseif(($dot['type'] ?? '') === 'fire')
-                                                <span class="text-xs">🔥</span>
-                                            @else
-                                                <span class="text-xs">✨</span>
-                                            @endif
-                                            <span class="font-bold font-mono text-purple-300 text-xs">{{ $dot['duration'] }}T</span>
+                            <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
+                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
+                                    style="width: {{ $this->getEnemyHpPercent() }}%"></div>
+                            </div>
+                        </div>
 
-                                            {{-- Interactive Hover Infobox --}}
-                                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-purple-400/80 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
-                                                <div class="flex items-center gap-2 mb-1.5 border-b border-purple-500/30 pb-1.5">
-                                                    @if(!empty($dot['icon']))
-                                                        <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-5 h-5 object-contain" alt="">
-                                                    @elseif(($dot['type'] ?? '') === 'poison')
-                                                        <span class="text-sm">🐍</span>
-                                                    @elseif(($dot['type'] ?? '') === 'fire')
-                                                        <span class="text-sm">🔥</span>
-                                                    @else
-                                                        <span class="text-sm">✨</span>
-                                                    @endif
-                                                    <span class="text-xs font-bold text-purple-200 medieval-font tracking-wide">{{ $dot['name'] ?? (($dot['type'] ?? '') === 'poison' ? 'Otrucie' : 'Ogień') }}</span>
-                                                    <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-900/90 text-purple-200 border border-purple-400/50 font-mono">{{ $dot['duration'] }}T</span>
-                                                </div>
-                                                <div class="text-[11px] text-slate-300 leading-snug space-y-1">
-                                                    <div class="text-purple-300/90 font-semibold">Status: Osłabienie / DoT</div>
-                                                    <p class="text-slate-200">{{ $dot['description'] ?? ((($dot['type'] ?? '') === 'poison') ? 'Zadaje obrażenia od otrucia co turę.' : 'Zadaje obrażenia od ognia co turę.') }}</p>
-                                                </div>
+                        {{-- Active Debuffs / DoTs --}}
+                        @if(isset($currentState) && $currentState && !empty($currentState['dots']))
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                @foreach($currentState['dots'] as $dot)
+                                    <div class="group relative bg-slate-900/90 border border-purple-400/70 hover:border-purple-300 rounded-xl px-2.5 py-1 text-xs text-purple-200 flex items-center gap-1.5 shadow-lg cursor-pointer transition-all hover:scale-105">
+                                        @if(!empty($dot['icon']))
+                                            <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-4 h-4 object-contain" alt="{{ $dot['name'] ?? 'Status' }}">
+                                        @elseif(($dot['type'] ?? '') === 'poison')
+                                            <i class="fa-solid fa-vial text-xs text-emerald-400"></i>
+                                        @elseif(($dot['type'] ?? '') === 'fire')
+                                            <i class="fa-solid fa-fire text-xs text-orange-400"></i>
+                                        @else
+                                            <i class="fa-solid fa-sparkles text-xs text-purple-300"></i>
+                                        @endif
+                                        <span class="font-bold font-mono text-purple-300 text-xs">{{ $dot['duration'] }}T</span>
+
+                                        {{-- Interactive Hover Infobox --}}
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-3 bg-slate-950/95 border border-purple-400/80 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.35)] backdrop-blur-md opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-200 z-50 text-left">
+                                            <div class="flex items-center gap-2 mb-1.5 border-b border-purple-500/30 pb-1.5">
+                                                @if(!empty($dot['icon']))
+                                                    <img src="{{ route('assets.skills.icons', ['filename' => $dot['icon']]) }}" class="w-5 h-5 object-contain" alt="">
+                                                @elseif(($dot['type'] ?? '') === 'poison')
+                                                    <i class="fa-solid fa-vial text-sm text-emerald-400"></i>
+                                                @elseif(($dot['type'] ?? '') === 'fire')
+                                                    <i class="fa-solid fa-fire text-sm text-orange-400"></i>
+                                                @else
+                                                    <i class="fa-solid fa-sparkles text-sm text-purple-300"></i>
+                                                @endif
+                                                <span class="text-xs font-bold text-purple-200 medieval-font tracking-wide">{{ $dot['name'] ?? (($dot['type'] ?? '') === 'poison' ? 'Otrucie' : 'Ogień') }}</span>
+                                                <span class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-900/90 text-purple-200 border border-purple-400/50 font-mono">{{ $dot['duration'] }}T</span>
                                             </div>
+                                            <div class="text-[11px] text-slate-300 leading-snug space-y-1">
+                                                <div class="text-purple-300/90 font-semibold">Status: Osłabienie / DoT</div>
+                                                <p class="text-slate-200">{{ $dot['description'] ?? ((($dot['type'] ?? '') === 'poison') ? 'Zadaje obrażenia od otrucia co turę.' : 'Zadaje obrażenia od ognia co turę.') }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Equipped Active Skills for Enemy --}}
+                        @php
+                            $enemySkills = $this->getSkillsWithIcons($this->enemy);
+                        @endphp
+                        @if(!empty($enemySkills))
+                            <div class="bg-black/60 rounded-2xl p-1.5 lg:p-2 border border-red-500/20 shadow-inner">
+                                <div class="text-[10px] sm:text-[11px] font-bold text-red-200/90 mb-1 medieval-font text-center tracking-wide">
+                                    Umiejętności Przeciwnika
+                                </div>
+                                <div class="flex gap-2 justify-center flex-wrap">
+                                    @foreach($enemySkills as $skill)
+                                        @php 
+                                            $skillId = $skill['id'] ?? null;
+                                            $cd = ($currentState && isset($currentState['cooldowns'][$skillId])) ? $currentState['cooldowns'][$skillId] : 0; 
+                                        @endphp
+                                        <div class="relative w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl border {{ $cd > 0 ? 'border-slate-700 bg-slate-900' : 'border-red-500/80 bg-red-950/80 shadow-[0_0_12px_rgba(239,68,68,0.4)]' }} flex items-center justify-center overflow-hidden transition-transform hover:scale-105" title="{{ $skill['name'] ?? 'Umiejętność' }}">
+                                            @if($cd > 0)
+                                                <div class="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
+                                                    <span class="text-white font-extrabold text-xs drop-shadow font-mono">{{ $cd }}</span>
+                                                </div>
+                                            @endif
+                                            @if(!empty($skill['icon']))
+                                                <img src="{{ route('assets.skills.icons', ['filename' => $skill['icon']]) }}" class="w-full h-full object-contain p-1 {{ $cd > 0 ? 'opacity-30' : 'opacity-100' }}" alt="{{ $skill['name'] ?? 'Umiejętność' }}">
+                                            @else
+                                                <span class="text-[10px] font-bold text-red-200 {{ $cd > 0 ? 'opacity-40' : 'opacity-100' }}">{{ mb_substr($skill['name'] ?? 'S', 0, 3) }}</span>
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
-                            @endif
-
-                            @php
-                                $enemyCombatStats = $this->getCombatStats($this->enemy, $this->player);
-                            @endphp
-                            <div class="mt-3 pt-2.5 border-t border-red-800/40">
-                                <div class="text-xs font-bold text-red-200 mb-1.5 medieval-font flex items-center justify-between">
-                                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-swords text-red-400"></i> Statystyki Przeciwnika</span>
-                                </div>
-                                <div class="grid grid-cols-2 gap-1.5 text-center">
-                                    <div class="bg-black/50 border border-yellow-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-yellow-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-bolt text-yellow-400"></i> Krytyk
-                                        </div>
-                                        <div class="text-xs font-bold text-yellow-200 font-mono">{{ $enemyCombatStats['crit_chance'] ?? 0 }}%</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-emerald-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-emerald-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Unik
-                                        </div>
-                                        <div class="text-xs font-bold text-emerald-200 font-mono">{{ $enemyCombatStats['dodge_chance'] ?? 0 }}%</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-red-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-red-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-crosshairs text-red-400"></i> Atak
-                                        </div>
-                                        <div class="text-xs font-bold text-red-200 font-mono">{{ $enemyCombatStats['atk_min'] ?? 0 }} - {{ $enemyCombatStats['atk_max'] ?? 0 }}</div>
-                                    </div>
-                                    <div class="bg-black/50 border border-blue-500/30 rounded-lg p-1.5">
-                                        <div class="text-[10px] text-blue-300 font-semibold flex items-center justify-center gap-1">
-                                            <i class="fa-solid fa-shield text-blue-400"></i> Obrona
-                                        </div>
-                                        <div class="text-xs font-bold text-blue-200 font-mono">{{ $enemyCombatStats['defense'] ?? 0 }}</div>
-                                    </div>
-                                </div>
                             </div>
                         @endif
+
+                        {{-- Enemy Attributes Grid --}}
+                        <div>
+                            <h4 class="text-[11px] sm:text-xs font-bold text-red-200/90 mb-1.5 medieval-font tracking-wide">
+                                Atrybuty Przeciwnika
+                            </h4>
+                            @php
+                                $eStats = $enemy['stats'] ?? [];
+                            @endphp
+                            <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
+                                <div class="bg-slate-900/90 border border-red-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-red-300 tracking-wider">STR (Siła)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $eStats['str'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-blue-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-blue-300 tracking-wider">INT (Wiedza)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $eStats['int'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-emerald-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-emerald-300 tracking-wider">VIT (Witalność)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $eStats['vit'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-slate-900/90 border border-amber-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
+                                    <div class="text-[10px] sm:text-[11px] font-semibold text-amber-300 tracking-wider">AGI (Zręczność)</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $eStats['agi'] ?? 0 }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Enemy Effective Combat Stats --}}
+                        @php
+                            $enemyCombatStats = $this->getCombatStats($this->enemy, $this->player);
+                        @endphp
+                        <div class="mt-2.5 pt-2 border-t border-red-900/40">
+                            <h4 class="text-[11px] sm:text-xs font-bold text-red-200/90 mb-1.5 medieval-font tracking-wide flex items-center justify-between">
+                                <span>Statystyki Przeciwnika</span>
+                                <span class="text-[9px] text-red-400/80 font-normal">Bieżące wartości</span>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
+                                <div class="bg-red-950/60 border border-yellow-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-yellow-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-bolt text-yellow-400"></i> Szansa na Kryt
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-yellow-300 font-mono">{{ $enemyCombatStats['crit_chance'] ?? 0 }}%</div>
+                                </div>
+                                <div class="bg-red-950/60 border border-emerald-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-emerald-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-shield-halved text-emerald-400"></i> Szansa na Unik
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-emerald-300 font-mono">{{ $enemyCombatStats['dodge_chance'] ?? 0 }}%</div>
+                                </div>
+                                <div class="bg-red-950/60 border border-red-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-red-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-crosshairs text-red-400"></i> Atak (DMG)
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ $enemyCombatStats['atk_min'] ?? 0 }} - {{ $enemyCombatStats['atk_max'] ?? 0 }}</div>
+                                </div>
+                                <div class="bg-red-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-blue-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-shield text-blue-400"></i> Obrona (DEF)
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-blue-200 font-mono">{{ $enemyCombatStats['defense'] ?? 0 }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

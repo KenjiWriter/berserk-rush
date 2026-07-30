@@ -75,8 +75,6 @@ class Character extends Model
         'last_active_at' => 'datetime',
     ];
 
-    public const MAX_DAILY_PVP_FIGHTS = 3;
-
     public function checkAndResetDailyPvpFights(): void
     {
         $used = $this->daily_pvp_fights_used ?? 0;
@@ -760,6 +758,7 @@ class Character extends Model
                 'scaling_value' => $charSkill->skill->scaling_value,
                 'level' => $charSkill->level,
                 'required_weapon_type' => $charSkill->skill->required_weapon_type,
+                'icon' => $charSkill->skill->icon,
             ];
         })->toArray();
 

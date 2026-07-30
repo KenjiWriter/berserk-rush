@@ -180,6 +180,30 @@ class ArenaCombat extends Component
         }
     }
 
+    public function getSkillsWithIcons(array $participant): array
+    {
+        $skills = $participant['skills'] ?? [];
+        if (empty($skills)) return [];
+
+        $missingIconIds = [];
+        foreach ($skills as $s) {
+            if (empty($s['icon']) && !empty($s['id'])) {
+                $missingIconIds[] = $s['id'];
+            }
+        }
+
+        if (!empty($missingIconIds)) {
+            $skillModels = \App\Infrastructure\Persistence\CombatSkill::whereIn('id', array_unique($missingIconIds))->pluck('icon', 'id');
+            foreach ($skills as &$s) {
+                if (empty($s['icon']) && !empty($s['id']) && isset($skillModels[$s['id']])) {
+                    $s['icon'] = $skillModels[$s['id']];
+                }
+            }
+        }
+
+        return $skills;
+    }
+
     public function getCombatStats(array $participant, array $opponent = []): array
     {
         if (empty($participant)) return [];
