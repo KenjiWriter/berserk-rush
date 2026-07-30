@@ -939,8 +939,8 @@
                                                                 Załóż sprzęt
                                                             </button>
                                                         @elseif($item->template->type === 'consumable')
-                                                            <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded transition-colors shadow">
-                                                                Użyj przedmiotu
+                                                            <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5">
+                                                                <i class="fa-solid fa-box-open"></i> {{ ($item->template->sub_type ?? '') === 'chest' ? 'Otwórz Skrzynię' : 'Użyj przedmiotu' }}
                                                             </button>
                                                         @endif
                                                     @endif
@@ -1063,6 +1063,11 @@
                                     <x-item-tooltip :item="$item" :dropSources="$materialDropSources[$item->template_id] ?? []">
                                         <x-slot:actions>
                                             <div class="flex flex-col gap-2 w-full">
+                                                @if(($item->template->type ?? '') === 'consumable')
+                                                    <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font">
+                                                        <i class="fa-solid fa-box-open"></i> {{ ($item->template->sub_type ?? '') === 'chest' ? 'Otwórz Skrzynię' : 'Użyj przedmiotu' }}
+                                                    </button>
+                                                @endif
                                                 <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-1.5 rounded transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
                                                     <i class="fa-solid fa-vault"></i> Przenieś do magazynu
                                                 </button>

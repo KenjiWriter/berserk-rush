@@ -37,6 +37,22 @@ Rozbudowano system zrzeszania się do walk grupowych:
 - Gildia z wyższym procentem wygranych "gier" wygrywa potyczkę. 
 - Członkowie wygranej ekipy, którzy brali udział (top 5 graczy) otrzymują dodatkowe żetony areny w nagrodę.
 
+### Podgląd Ekwipunku Areny (UI)
+Na widoku Areny (`Livewire\City\Arena`), zarówno w zakładce "Dostępni Przeciwnicy",
+jak i w "Rankingu Chwały", najechanie (desktop) lub kliknięcie (mobile) na
+awatar gracza pokazuje panel z jego 6 slotami ekwipunku:
+- Dane pochodzą z `Character::getEquipmentSlotsFor('pvp')` - publicznego wrappera
+  na `resolveEffectiveEquipment('pvp')`, czyli **dokładnie tego samego** zestawu
+  "Arena PvP" (z fallbackiem per-slot na aktualnie założony gear), którego użyje
+  `PvPEncounterService::startEncounter()` przy liczeniu Widma obrońcy - podgląd w
+  UI jest więc wiarygodny względem realnej walki.
+- Komponent Blade: `x-arena-equipment-preview` (props: `slots` - mapa
+  slot => `ItemInstance|null`), każdy slot ma własny zagnieżdżony `x-item-tooltip`
+  ze szczegółowymi statystykami po najechaniu.
+- Panel jest teleportowany do `<body>` (Alpine `x-teleport` + globalny helper
+  `smartTooltip()` z `resources/js/app.js`), by uniknąć przycięcia przez
+  `overflow-hidden`/`overflow-x-auto` na kartach przeciwników i w tabeli rankingu.
+
 ## Realizacja Techniczna
 - `PvPEncounterService` / `GuildWarService`: Główne klasy realizujące symulację mechanik i rzucania kośćmi.
 - Zabezpieczenie Kolejkowania: `PvPEncounterService` oraz `EncounterService` weryfikują stan postaci przed rozpoczęciem pojedynku (blokada symultanicznych walk w trakcie trwania innej potyczki oraz 5-sekundowy cooldown między wyzwaniami Areny).

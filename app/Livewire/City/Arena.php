@@ -113,15 +113,29 @@ class Arena extends Component
     public function render()
     {
         $ranking = null;
+        $rankingEquipment = [];
         if ($this->activeTab === 'ranking') {
             $ranking = Character::query()
                 ->orderBy('elo', 'desc')
                 ->orderBy('level', 'desc')
                 ->paginate(10);
+
+            foreach ($ranking as $rowChar) {
+                $rankingEquipment[$rowChar->id] = $rowChar->getEquipmentSlotsFor('pvp');
+            }
+        }
+
+        $opponentEquipment = [];
+        foreach ($this->opponents as $opponent) {
+            if ($opponent instanceof Character) {
+                $opponentEquipment[$opponent->id] = $opponent->getEquipmentSlotsFor('pvp');
+            }
         }
 
         return view('livewire.city.arena', [
             'ranking' => $ranking,
+            'opponentEquipment' => $opponentEquipment,
+            'rankingEquipment' => $rankingEquipment,
         ]);
     }
 }

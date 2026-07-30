@@ -135,9 +135,8 @@
                             </button>
 
                             {{-- Unrolling parchment panel --}}
-                            <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
-                                <div class="overflow-hidden">
-                                    <div class="px-5 pb-5 pt-1 border-t border-amber-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
+                            <div class="overflow-hidden transition-[max-height] duration-500 ease-out" :class="open ? 'max-h-[900px]' : 'max-h-0'">
+                                <div class="px-5 pb-5 pt-1 border-t border-amber-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
 
                                         {{-- Scroll rod divider --}}
                                         <div class="flex items-center gap-2 my-3 opacity-70">
@@ -184,7 +183,6 @@
                                         </button>
                                     </div>
                                 </div>
-                            </div>
                         </div>
                     @empty
                         <div class="text-center py-12 px-4 bg-stone-950/40 rounded-xl border border-amber-900/30">
@@ -253,9 +251,8 @@
                                 @endunless
 
                                 {{-- Unrolling parchment panel --}}
-                                <div class="grid transition-[grid-template-rows] duration-500 ease-out" :class="open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'">
-                                    <div class="overflow-hidden">
-                                        <div class="px-5 pb-5 pt-1 border-t border-sky-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
+                                <div class="overflow-hidden transition-[max-height] duration-500 ease-out" :class="open ? 'max-h-[900px]' : 'max-h-0'">
+                                    <div class="px-5 pb-5 pt-1 border-t border-sky-900/50 transition-opacity duration-300" :class="open ? 'opacity-100 delay-150' : 'opacity-0'">
 
                                             <div class="flex items-center gap-2 my-3 opacity-70">
                                                 <span class="w-1.5 h-1.5 rounded-full bg-sky-700"></span>
@@ -313,7 +310,6 @@
                                         </div>
                                     </div>
                                 </div>
-                            </div>
                         @empty
                             <div class="text-center py-8 px-4 bg-stone-950/40 rounded-xl border border-sky-900/30">
                                 <p class="text-sky-400/70 italic font-medium">Obecnie nie wykonujesz żadnych misji. Wybierz wyzwanie z listy po lewej stronie!</p>

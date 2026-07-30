@@ -385,6 +385,19 @@ class Character extends Model
             ->values();
     }
 
+    /**
+     * Wersja `resolveEffectiveEquipment()` do wyświetlania w UI (np. podgląd
+     * "ekwipunku areny" przeciwnika na Arenie po najechaniu kursorem) - zwraca
+     * mapę slot => ItemInstance|null zamiast płaskiej kolekcji, z tym samym
+     * fallbackiem per-slot na aktualnie założony przedmiot.
+     */
+    public function getEquipmentSlotsFor(?string $setType = null): array
+    {
+        return $this->resolveEffectiveEquipment($setType)
+            ->keyBy(fn ($item) => $item->template->slot)
+            ->all();
+    }
+
     public function getTotalAttributes(?string $setType = null): array
     {
         $compute = function () use ($setType) {
