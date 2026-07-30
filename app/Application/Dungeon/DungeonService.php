@@ -459,6 +459,7 @@ class DungeonService
                         'name' => $chestTemplate->name,
                         'quantity' => $chestQuantity,
                         'ref_ulid' => $chestTemplate->id,
+                        'icon' => $chestTemplate->icon,
                     ];
                 }
             }
@@ -482,6 +483,7 @@ class DungeonService
                                 'name' => 'Klejnoty',
                                 'quantity' => $quantity,
                                 'ref_ulid' => null,
+                                'icon' => null,
                             ];
                         } elseif (in_array($selectedEntry['reward_type'], ['item', 'material'])) {
                             $template = \App\Infrastructure\Persistence\ItemTemplate::find($selectedEntry['ref_ulid']);
@@ -490,6 +492,7 @@ class DungeonService
                                 'name' => $template ? $template->name : 'Przedmiot',
                                 'quantity' => $quantity,
                                 'ref_ulid' => $selectedEntry['ref_ulid'],
+                                'icon' => $template?->icon,
                             ];
                         }
                     }

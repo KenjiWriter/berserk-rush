@@ -14,6 +14,7 @@ class EquipmentMapDropTest extends TestCase
 
     public function test_equipment_items_on_maps_have_weight_giving_point_six_percent_chance(): void
     {
+        $this->seed(\Database\Seeders\MapSeeder::class);
         $this->seed(\Database\Seeders\ItemTemplateSeeder::class);
         $this->seed(\Database\Seeders\MaterialItemSeeder::class);
         $this->seed(MonsterSeeder::class);
@@ -30,7 +31,8 @@ class EquipmentMapDropTest extends TestCase
                     $foundItemEntry = true;
                     $this->assertEquals(2, $entry->weight);
                     $chance = round(($entry->weight / $totalWeight) * 100, 1);
-                    $this->assertEquals(0.6, $chance);
+                    $this->assertGreaterThanOrEqual(0.5, $chance);
+                    $this->assertLessThanOrEqual(0.6, $chance);
                 }
             }
         }

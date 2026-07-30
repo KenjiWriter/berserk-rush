@@ -248,7 +248,7 @@ class DungeonSeeder extends Seeder
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Plagowy Kat', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 22000, 'atk' => 4800, 'def' => 400, 'agi' => 42], 'avatar' => 'plagowy-kat-dung.png']
+                        'monster' => ['name' => 'Kat Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 22000, 'atk' => 4800, 'def' => 400, 'agi' => 42], 'avatar' => 'plagowy-kat-dung.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 12,
@@ -256,14 +256,22 @@ class DungeonSeeder extends Seeder
                     ],
                     [
                         'order' => 4, 'type' => 'miniboss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Książę Skazy', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 55000, 'atk' => 8500, 'def' => 600, 'agi' => 52], 'avatar' => 'ksiaze-skazy.png']
+                        'monster' => ['name' => 'Książę Otchłani', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 55000, 'atk' => 8500, 'def' => 600, 'agi' => 52], 'avatar' => 'ksiaze-skazy.png']
                     ],
                     [
                         'order' => 5, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Pan Zniszczenia', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 95000, 'atk' => 12000, 'def' => 800, 'agi' => 60], 'avatar' => 'pan-zniszczenia-dung.png']
+                        'monster' => ['name' => 'Pan Zniszczenia (Loch)', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 95000, 'atk' => 12000, 'def' => 800, 'agi' => 60], 'avatar' => 'pan-zniszczenia-dung.png']
                     ],
                 ]
             ]
+        ];
+
+        $mapIdMap = [
+            'Zapomniane Katakumby' => Map::where('name', 'Stare Ruiny')->first()?->id ?? 2,
+            'Krypta Przeklętych' => Map::where('name', 'Jaskinia Trolli')->first()?->id ?? 3,
+            'Pustkowia Zarazy' => Map::where('name', 'Bagna Grozy')->first()?->id ?? 5,
+            'Cytadela Cienia' => Map::where('name', 'Góry Cienia')->first()?->id ?? 6,
+            'Otchłań Zniszczenia' => Map::where('name', 'Skażone Miasto')->first()?->id ?? 8,
         ];
 
         foreach ($dungeonsConfig as $dConfig) {
@@ -303,6 +311,7 @@ class DungeonSeeder extends Seeder
             foreach ($dConfig['stages'] as $stgData) {
                 $mStats = $stgData['monster'];
 
+                $targetMapId = $mapIdMap[$dConfig['name']] ?? 2;
                 $existingMonster = Monster::where('name', $mStats['name'])->first();
 
                 $monster = Monster::updateOrCreate(
@@ -310,7 +319,7 @@ class DungeonSeeder extends Seeder
                         'name' => $mStats['name'],
                     ],
                     [
-                        'map_id' => $existingMonster?->map_id ?? $defaultMapId,
+                        'map_id' => $existingMonster?->map_id ?? $targetMapId,
                         'type' => ($stgData['type'] === 'gate' ? 'mystical' : 'demon'),
                         'level' => $mStats['level'],
                         'rank' => $mStats['rank'],

@@ -76,56 +76,103 @@
                 <p class="text-slate-400 mb-6">Przetrwałeś wszystkie {{ $totalStages }} etapów.</p>
                 
                 @if(isset($battleResult['total_loot']))
-                    <div class="max-w-md mx-auto bg-gray-900/80 border-2 border-amber-600/50 rounded-lg p-5 mb-8 text-left shadow-inner">
-                        <h4 class="font-bold text-amber-500 mb-3 text-center uppercase tracking-widest text-sm">🎁 Zgromadzony Łup</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                    <div class="max-w-lg mx-auto bg-slate-950/90 border-2 border-amber-500/60 rounded-2xl p-5 mb-8 text-left shadow-2xl backdrop-blur-md">
+                        <h4 class="font-bold text-amber-400 mb-4 text-center uppercase tracking-widest text-sm medieval-font flex items-center justify-center gap-2">
+                            <span>🎁</span> Zgromadzony Łup
+                        </h4>
+                        
+                        {{-- Currencies --}}
+                        <div class="grid grid-cols-2 gap-3 mb-5">
+                            <div class="bg-indigo-950/50 border border-indigo-500/30 rounded-xl p-3 flex items-center justify-between shadow-inner">
                                 <div class="flex items-center space-x-2">
-                                    <span class="text-blue-500">✨</span>
-                                    <span class="text-gray-300 font-semibold">Doświadczenie</span>
+                                    <span class="text-xl">✨</span>
+                                    <span class="text-indigo-200 font-bold text-xs sm:text-sm medieval-font">Doświadczenie</span>
                                 </div>
-                                <span class="text-amber-400 font-bold">+{{ $battleResult['total_loot']['xp'] ?? 0 }}</span>
+                                <span class="text-indigo-300 font-extrabold text-sm sm:text-base font-mono">+{{ number_format($battleResult['total_loot']['xp'] ?? 0) }}</span>
                             </div>
-                            <div class="flex items-center justify-between border-b border-gray-800 pb-2">
+                            <div class="bg-amber-950/50 border border-amber-500/30 rounded-xl p-3 flex items-center justify-between shadow-inner">
                                 <div class="flex items-center space-x-2">
-                                    <span class="text-yellow-500">💰</span>
-                                    <span class="text-gray-300 font-semibold">Złoto</span>
+                                    <span class="text-xl">💰</span>
+                                    <span class="text-amber-200 font-bold text-xs sm:text-sm medieval-font">Złoto</span>
                                 </div>
-                                <span class="text-amber-400 font-bold">+{{ $battleResult['total_loot']['gold'] ?? 0 }}</span>
+                                <span class="text-amber-400 font-extrabold text-sm sm:text-base font-mono">+{{ number_format($battleResult['total_loot']['gold'] ?? 0) }}</span>
                             </div>
-                            
-                            @if(isset($battleResult['total_loot']['items']) && count($battleResult['total_loot']['items']) > 0)
-                                @php
-                                    // Group items by name to display stacks properly
-                                    $groupedItems = [];
-                                    foreach ($battleResult['total_loot']['items'] as $item) {
-                                        $name = $item['name'];
-                                        if (!isset($groupedItems[$name])) {
-                                            $groupedItems[$name] = [
-                                                'type' => $item['type'],
-                                                'quantity' => 0,
-                                            ];
-                                        }
-                                        $groupedItems[$name]['quantity'] += $item['quantity'];
-                                    }
-                                @endphp
-                                
-                                @foreach($groupedItems as $name => $data)
-                                    <div class="flex items-center justify-between pb-1 pt-1">
-                                        <div class="flex items-center space-x-2">
-                                            <span>
-                                                @if($data['type'] === 'gems') 💎
-                                                @elseif($data['type'] === 'material') 🌿
-                                                @else ⚔️
-                                                @endif
-                                            </span>
-                                            <span class="text-gray-300">{{ $name }}</span>
-                                        </div>
-                                        <span class="text-amber-500 font-bold">{{ $data['quantity'] }}x</span>
-                                    </div>
-                                @endforeach
-                            @endif
                         </div>
+
+                        {{-- Acquired Items & Chests Grid --}}
+                        @if(isset($battleResult['total_loot']['items']) && count($battleResult['total_loot']['items']) > 0)
+                            @php
+                                $groupedItems = [];
+                                foreach ($battleResult['total_loot']['items'] as $item) {
+                                    $name = $item['name'];
+                                    if (!isset($groupedItems[$name])) {
+                                        $icon = $item['icon'] ?? null;
+                                        if (!$icon && !empty($item['ref_ulid'])) {
+                                            $icon = \App\Infrastructure\Persistence\ItemTemplate::where('id', $item['ref_ulid'])->value('icon');
+                                        }
+                                        if (!$icon) {
+                                            $icon = \App\Infrastructure\Persistence\ItemTemplate::where('name', $name)->value('icon');
+                                        }
+                                        $isChest = (str_contains(mb_strtolower($name), 'skrzyn') || ($item['type'] ?? '') === 'chest');
+                                        $groupedItems[$name] = [
+                                            'name' => $name,
+                                            'type' => $item['type'] ?? 'item',
+                                            'quantity' => 0,
+                                            'icon' => $icon,
+                                            'is_chest' => $isChest,
+                                        ];
+                                    }
+                                    $groupedItems[$name]['quantity'] += $item['quantity'];
+                                }
+                            @endphp
+
+                            <div class="border-t border-amber-900/40 pt-4">
+                                <h5 class="text-xs font-extrabold text-amber-300 uppercase tracking-wider mb-3 medieval-font text-center flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-box-open text-amber-400"></i> Zdobyte Przedmioty i Skrzynie
+                                </h5>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    @foreach($groupedItems as $name => $data)
+                                        <div class="relative bg-slate-900/90 border-2 {{ $data['is_chest'] ? 'border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.35)] bg-gradient-to-b from-amber-950/40 via-slate-900/90 to-slate-950/95 ring-1 ring-amber-400/40' : 'border-slate-700/80 hover:border-amber-500/40' }} rounded-xl p-3 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-105 group">
+                                            
+                                            {{-- Chest badge indicator --}}
+                                            @if($data['is_chest'])
+                                                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-500 text-amber-950 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300 shadow-md uppercase tracking-wider medieval-font whitespace-nowrap">
+                                                    Skrzynia
+                                                </span>
+                                            @endif
+
+                                            {{-- Quantity Badge --}}
+                                            <span class="absolute -top-2 -right-2 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-xs px-2 py-0.5 rounded-full border border-yellow-200 shadow-lg font-mono z-10">
+                                                {{ $data['quantity'] }}x
+                                            </span>
+
+                                            {{-- Item Icon --}}
+                                            <div class="w-14 h-14 my-1 flex items-center justify-center relative">
+                                                @if($data['icon'])
+                                                    <img src="{{ route('assets.items', ['filename' => $data['icon']]) }}"
+                                                         class="w-full h-full object-contain drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transition-transform duration-300 group-hover:scale-110"
+                                                         alt="{{ $name }}">
+                                                @else
+                                                    <div class="text-3xl">
+                                                        @if($data['is_chest']) 📦
+                                                        @elseif($data['type'] === 'gems') 💎
+                                                        @elseif($data['type'] === 'material') 🌿
+                                                        @else ⚔️
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+
+                                            {{-- Item Name --}}
+                                            <h6 class="text-xs font-bold {{ $data['is_chest'] ? 'text-amber-200' : 'text-slate-300' }} line-clamp-2 leading-tight medieval-font mt-1">
+                                                {{ $name }}
+                                            </h6>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
 
@@ -471,12 +518,12 @@
                                 </div>
 
                                 {{-- Accumulated Loot Preview --}}
-                                @if($run && $run->accumulated_loot && (($run->accumulated_loot['xp'] ?? 0) > 0 || ($run->accumulated_loot['gold'] ?? 0) > 0))
+                                @if($run && $run->accumulated_loot && (($run->accumulated_loot['xp'] ?? 0) > 0 || ($run->accumulated_loot['gold'] ?? 0) > 0 || !empty($run->accumulated_loot['items'])))
                                     <div class="border-t border-amber-900/40 pt-3">
                                         <h4 class="text-xs font-bold text-amber-200/90 mb-2 medieval-font flex items-center gap-1.5">
                                             <i class="fa-solid fa-bag-shopping text-amber-400"></i> Skumulowany Łup
                                         </h4>
-                                        <div class="grid grid-cols-2 gap-1.5">
+                                        <div class="grid grid-cols-2 gap-1.5 mb-2">
                                             @if(($run->accumulated_loot['xp'] ?? 0) > 0)
                                                 <div class="bg-slate-900/80 border border-indigo-900/40 rounded-xl p-1.5 text-center">
                                                     <div class="text-[10px] text-indigo-400">XP</div>
@@ -490,6 +537,48 @@
                                                 </div>
                                             @endif
                                         </div>
+
+                                        @if(!empty($run->accumulated_loot['items']))
+                                            @php
+                                                $previewGrouped = [];
+                                                foreach ($run->accumulated_loot['items'] as $item) {
+                                                    $name = $item['name'];
+                                                    if (!isset($previewGrouped[$name])) {
+                                                        $icon = $item['icon'] ?? null;
+                                                        if (!$icon && !empty($item['ref_ulid'])) {
+                                                            $icon = \App\Infrastructure\Persistence\ItemTemplate::where('id', $item['ref_ulid'])->value('icon');
+                                                        }
+                                                        if (!$icon) {
+                                                            $icon = \App\Infrastructure\Persistence\ItemTemplate::where('name', $name)->value('icon');
+                                                        }
+                                                        $previewGrouped[$name] = [
+                                                            'name' => $name,
+                                                            'quantity' => 0,
+                                                            'icon' => $icon,
+                                                            'is_chest' => (str_contains(mb_strtolower($name), 'skrzyn') || ($item['type'] ?? '') === 'chest'),
+                                                        ];
+                                                    }
+                                                    $previewGrouped[$name]['quantity'] += $item['quantity'];
+                                                }
+                                            @endphp
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-1.5 pt-1">
+                                                @foreach($previewGrouped as $pData)
+                                                    <div class="relative bg-slate-900/90 border {{ $pData['is_chest'] ? 'border-amber-500/80 shadow-[0_0_12px_rgba(245,158,11,0.3)] bg-amber-950/20' : 'border-slate-800' }} rounded-lg p-1.5 flex flex-col items-center justify-center text-center">
+                                                        <span class="absolute -top-1.5 -right-1 bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-black text-[9px] px-1 rounded-full border border-yellow-200 font-mono z-10">
+                                                            {{ $pData['quantity'] }}x
+                                                        </span>
+                                                        <div class="w-8 h-8 my-0.5 flex items-center justify-center">
+                                                            @if($pData['icon'])
+                                                                <img src="{{ route('assets.items', ['filename' => $pData['icon']]) }}" class="w-full h-full object-contain drop-shadow" alt="{{ $pData['name'] }}">
+                                                            @else
+                                                                <span class="text-xs">{{ $pData['is_chest'] ? '📦' : '⚔️' }}</span>
+                                                            @endif
+                                                        </div>
+                                                        <span class="text-[9px] {{ $pData['is_chest'] ? 'text-amber-300 font-bold' : 'text-slate-300 font-semibold' }} truncate w-full px-0.5 medieval-font">{{ $pData['name'] }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
