@@ -30,13 +30,14 @@
                 },
                 closeItem(e) {
                     if (e && e.relatedTarget) {
-                        if ($el.contains(e.relatedTarget)) return;
+                        if ($el && $el.contains(e.relatedTarget)) return;
                         if (e.relatedTarget.closest && e.relatedTarget.closest('[data-item-tooltip]')) return;
+                        if (e.relatedTarget.closest && e.relatedTarget.closest('[data-tooltip-container]')) return;
                     }
                     clearTimeout(this.itemTimeout);
                     this.itemTimeout = setTimeout(() => {
                         this.itemOpen = false;
-                    }, 400);
+                    }, 500);
                 }
             }" class="relative" @if($item) @mouseenter="openItem()" @mouseleave="closeItem($event)" @endif>
                 <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? 'border-amber-500/70 hover:border-amber-400' : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden transition-colors cursor-pointer">
@@ -52,7 +53,7 @@
                 </div>
 
                 @if($item)
-                    <div x-show="itemOpen" data-item-tooltip x-transition.opacity style="display:none" class="hidden sm:block absolute z-[100000] left-1/2 -translate-x-1/2 bottom-full mb-1 pointer-events-auto" @mouseenter="openItem()" @mouseleave="closeItem($event)">
+                    <div x-show="itemOpen" data-item-tooltip x-transition.opacity style="display:none" class="hidden sm:block absolute z-[100000] left-1/2 -translate-x-1/2 bottom-full pb-3 pointer-events-auto" @mouseenter="openItem()" @mouseleave="closeItem($event)">
                         <x-item-tooltip :item="$item" />
                     </div>
                 @endif

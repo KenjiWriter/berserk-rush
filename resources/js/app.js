@@ -72,17 +72,12 @@ function createSmartTooltip() {
             this.updatePosition();
         },
         closeTooltip(event) {
-            // Gdy tooltip jest teleportowany (x-teleport="body"), nie jest już
-            // potomkiem triggera w DOM - opuszczenie triggera w stronę samego
-            // tooltipa (albo odwrotnie) normalnie wywołałoby mouseleave i
-            // zaplanowało zamknięcie, które wygrywałoby wyścig z czasem potrzebnym
-            // na najechanie kursorem na tooltip. Sprawdzenie relatedTarget
-            // (dokładnie tego, dokąd realnie zmierza kursor) eliminuje ten wyścig
-            // zamiast polegać wyłącznie na opóźnieniu poniżej.
             if (event && event.relatedTarget) {
-                const tooltipEl = this.$refs.tooltipContainer || document.querySelector('[data-tooltip-container]');
-                const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
-                const movingIntoTrigger = this.$el.contains(event.relatedTarget);
+                const tooltipEl = this.$refs.tooltipContainer;
+                const movingIntoTooltip = (tooltipEl && tooltipEl.contains(event.relatedTarget)) ||
+                                          (event.relatedTarget.closest && event.relatedTarget.closest('[data-tooltip-container]'));
+                const movingIntoTrigger = (this.$el && this.$el.contains(event.relatedTarget)) ||
+                                          (event.relatedTarget.closest && event.relatedTarget.closest('.smart-tooltip-trigger'));
                 const movingIntoSubTooltip = event.relatedTarget.closest && event.relatedTarget.closest('[data-item-tooltip]');
                 if (movingIntoTooltip || movingIntoTrigger || movingIntoSubTooltip) {
                     return;
@@ -92,7 +87,7 @@ function createSmartTooltip() {
             clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
                 this.showInfo = false;
-            }, 500);
+            }, 600);
         },
         toggleTooltip() {
             clearTimeout(this.timeout);

@@ -301,7 +301,7 @@
         </div>
     @endif
 
-    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[420px] md:min-w-[520px]' : 'w-full sm:min-w-[260px]'">
+    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[580px] md:min-w-[640px]' : 'w-full sm:min-w-[340px] md:min-w-[380px]'">
         <!-- Ten przedmiot -->
         <div class="flex-1">
             @if($hasAnyStats)
@@ -347,9 +347,9 @@
                                 @endphp
 
                                 @if($isRangeMin || $isRangeMax)
-                                    <div class="flex justify-between items-center">
-                                        <span class="capitalize text-gray-200">{{ $cfg['label'] }}</span>
-                                        <span class="font-bold text-gray-200">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="capitalize text-gray-200 shrink-0 whitespace-nowrap">{{ $cfg['label'] }}</span>
+                                        <span class="font-bold text-gray-200 shrink-0 whitespace-nowrap">
                                             @if($isRangeMin && $isRangeMax)
                                                 {{ $formatNumber($val_min[0]) }}-{{ $formatNumber($val_min[1]) }} ~ {{ $formatNumber($val_max[0]) }}-{{ $formatNumber($val_max[1]) }}
                                             @elseif($isRangeMin)
@@ -361,9 +361,9 @@
                                     </div>
                                 @else
                                     <div class="space-y-0.5" x-show="compare || {{ ($val_min > 0 || $val_max > 0 || $up_min > 0 || $up_max > 0) ? 'true' : 'false' }}">
-                                        <div class="flex justify-between items-center">
-                                            <span class="capitalize text-gray-200">{{ $cfg['label'] }}</span>
-                                            <div class="flex items-center gap-1">
+                                        <div class="flex justify-between items-center gap-2">
+                                            <span class="capitalize text-gray-200 shrink-0 whitespace-nowrap">{{ $cfg['label'] }}</span>
+                                            <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
                                                 <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : (($val_min > 0 || $val_max > 0) ? 'text-gray-200' : 'text-gray-500') }}">
                                                     {{ $formatNumber($val_min) }}-{{ $formatNumber($val_max) }}
                                                 </span>
@@ -395,9 +395,9 @@
                                 @endphp
                                 @if($isRange)
                                     {{-- Template-only preview (no instance rolled yet): show the raw min-max range. --}}
-                                    <div class="flex justify-between items-center">
-                                        <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                        <span class="font-bold text-gray-200">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="capitalize text-gray-200 shrink-0 whitespace-nowrap">{{ $formatStatName($stat) }}</span>
+                                        <span class="font-bold text-gray-200 shrink-0 whitespace-nowrap">{{ $formatNumber($val[0]) }}-{{ $formatNumber($val[1]) }}{{ $suffix }}</span>
                                     </div>
                                 @else
                                     @php
@@ -412,9 +412,9 @@
 
                                         $diff = $total_val - $eq_total_val;
                                     @endphp
-                                    <div class="flex justify-between items-center" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
-                                        <span class="capitalize text-gray-200">{{ $formatStatName($stat) }}</span>
-                                        <div class="flex items-center gap-1">
+                                    <div class="flex justify-between items-center gap-2" x-show="compare || {{ ($val > 0 || $up_val > 0) ? 'true' : 'false' }}">
+                                        <span class="capitalize text-gray-200 shrink-0 whitespace-nowrap">{{ $formatStatName($stat) }}</span>
+                                        <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
                                             <span class="font-bold {{ $isMaxed ? 'text-yellow-400 font-extrabold' : ($val > 0 ? 'text-gray-200' : 'text-gray-500') }}">+{{ $formatNumber($val) }}{{ $suffix }}</span>
                                             @if($up_val > 0)
                                                 <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($up_val) }}{{ $suffix }})</span>
@@ -503,9 +503,9 @@
                                 @endphp
                                 @if($eq_val_min > 0 || $eq_val_max > 0 || $eq_up_min > 0 || $eq_up_max > 0)
                                     <div class="space-y-0.5">
-                                        <div class="flex justify-between items-center">
-                                            <span class="capitalize text-gray-400">{{ $cfg['label'] }}</span>
-                                            <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">
+                                        <div class="flex justify-between items-center gap-2">
+                                            <span class="capitalize text-gray-400 shrink-0 whitespace-nowrap">{{ $cfg['label'] }}</span>
+                                            <span class="font-bold shrink-0 whitespace-nowrap {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">
                                                 {{ $formatNumber($eq_val_min) }}-{{ $formatNumber($eq_val_max) }}
                                             </span>
                                         </div>
@@ -525,9 +525,9 @@
                                     $suffix = $isPercentStat($stat) ? '%' : '';
                                 @endphp
                                 @if($eq_val > 0 || $eq_up_val > 0)
-                                    <div class="flex justify-between">
-                                        <span class="capitalize text-gray-400">{{ $formatStatName($stat) }}</span>
-                                        <div class="flex items-center gap-1">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="capitalize text-gray-400 shrink-0 whitespace-nowrap">{{ $formatStatName($stat) }}</span>
+                                        <div class="flex items-center gap-1 shrink-0 whitespace-nowrap">
                                             <span class="font-bold {{ $eq_isMaxed ? 'text-yellow-400 font-extrabold' : 'text-gray-200' }}">+{{ $formatNumber($eq_val) }}{{ $suffix }}</span>
                                             @if($eq_up_val > 0)
                                                 <span class="text-amber-400 font-semibold text-xs ml-0.5">(+{{ $formatNumber($eq_up_val) }}{{ $suffix }})</span>
