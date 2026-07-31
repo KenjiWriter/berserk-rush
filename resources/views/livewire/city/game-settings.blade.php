@@ -139,6 +139,135 @@
                     </span>
                 </label>
             </div>
+
+            {{-- Section: Skrót do Ekranu Głównego (tylko widok mobilny) --}}
+            <div class="sm:hidden"
+                 x-data="{
+                    showModal: false,
+                    isStandalone: false,
+                    platform: 'other', // 'ios' | 'android' | 'other'
+                    browserOk: true,   // false = np. Chrome/Firefox na iOS (trzeba otworzyć w Safari)
+                    deferredPrompt: null,
+                    canNativeInstall: false,
+                    init() {
+                        const ua = navigator.userAgent || '';
+                        const isIos = /iphone|ipad|ipod/i.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                        const isAndroid = /android/i.test(ua);
+
+                        this.isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+
+                        if (isIos) {
+                            this.platform = 'ios';
+                            this.browserOk = /safari/i.test(ua) && !/crios|fxios|edgios|opios/i.test(ua);
+                        } else if (isAndroid) {
+                            this.platform = 'android';
+                        }
+
+                        window.addEventListener('beforeinstallprompt', (e) => {
+                            e.preventDefault();
+                            this.deferredPrompt = e;
+                            this.canNativeInstall = true;
+                        });
+                    },
+                    async installNative() {
+                        if (!this.deferredPrompt) return;
+                        this.deferredPrompt.prompt();
+                        await this.deferredPrompt.userChoice;
+                        this.deferredPrompt = null;
+                        this.canNativeInstall = false;
+                        this.showModal = false;
+                    }
+                 }"
+                 x-show="!isStandalone" x-cloak>
+                <div class="border-t border-amber-900/40 mb-8"></div>
+
+                <h2 class="text-lg font-bold text-amber-300 mb-5 medieval-font flex items-center gap-2">
+                    <i class="fa-solid fa-mobile-screen-button text-amber-400"></i> Skrót na Ekranie Głównym
+                </h2>
+
+                <div class="p-4 rounded-xl bg-stone-900/80 border border-amber-900/50 space-y-3">
+                    <p class="text-xs text-amber-400/70">
+                        Dodaj Berserk Rush do ekranu głównego telefonu, aby uruchamiać grę jednym dotknięciem, jak zwykłą aplikację.
+                    </p>
+                    <button type="button" @click="showModal = true" @click.stop="$dispatch('play-audio', { type: 'hover' })"
+                            class="w-full bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-stone-950 font-bold py-2.5 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2 medieval-font text-sm active:scale-95">
+                        <i class="fa-solid fa-square-plus"></i> Dodaj skrót do ekranu głównego
+                    </button>
+                </div>
+
+                {{-- Modal z instrukcją --}}
+                <div x-show="showModal" x-cloak x-transition.opacity
+                     class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-0 sm:p-4"
+                     @click.self="showModal = false">
+                    <div class="w-full sm:max-w-sm bg-gradient-to-b from-stone-900 to-stone-950 border-t-2 sm:border-2 border-amber-800/70 rounded-t-2xl sm:rounded-2xl p-5 shadow-2xl">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-base font-bold text-amber-300 medieval-font flex items-center gap-2">
+                                <i class="fa-solid fa-square-plus text-amber-400"></i> Dodaj skrót
+                            </h3>
+                            <button type="button" @click="showModal = false" class="text-amber-400/70 hover:text-amber-200 text-lg leading-none">✕</button>
+                        </div>
+
+                        {{-- iOS + Safari --}}
+                        <template x-if="platform === 'ios' && browserOk">
+                            <ol class="space-y-3 text-sm text-amber-100">
+                                <li class="flex items-start gap-3">
+                                    <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">1</span>
+                                    <span>Stuknij ikonę <i class="fa-solid fa-arrow-up-from-bracket text-amber-400 mx-1"></i> <strong>Udostępnij</strong> na dolnym pasku Safari.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">2</span>
+                                    <span>Przewiń listę i wybierz <strong>„Dodaj do ekranu początkowego”</strong>.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">3</span>
+                                    <span>Stuknij <strong>„Dodaj”</strong> w prawym górnym rogu.</span>
+                                </li>
+                            </ol>
+                        </template>
+
+                        {{-- iOS + inna przeglądarka (Chrome/Firefox/Edge na iOS) --}}
+                        <template x-if="platform === 'ios' && !browserOk">
+                            <p class="text-sm text-amber-100">
+                                Na iOS dodawanie skrótu do ekranu głównego działa tylko w przeglądarce <strong>Safari</strong>.
+                                Otwórz tę stronę w Safari, a następnie skorzystaj z ikony <i class="fa-solid fa-arrow-up-from-bracket text-amber-400 mx-1"></i> <strong>Udostępnij</strong> → <strong>„Dodaj do ekranu początkowego”</strong>.
+                            </p>
+                        </template>
+
+                        {{-- Android --}}
+                        <template x-if="platform === 'android'">
+                            <div class="space-y-3">
+                                <template x-if="canNativeInstall">
+                                    <button type="button" @click="installNative()"
+                                            class="w-full bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white font-bold py-2.5 rounded-xl shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm active:scale-95 mb-1">
+                                        <i class="fa-solid fa-download"></i> Zainstaluj jednym dotknięciem
+                                    </button>
+                                </template>
+                                <ol class="space-y-3 text-sm text-amber-100">
+                                    <li class="flex items-start gap-3">
+                                        <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">1</span>
+                                        <span>Stuknij ikonę menu <i class="fa-solid fa-ellipsis-vertical text-amber-400 mx-1"></i> w prawym górnym rogu przeglądarki.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">2</span>
+                                        <span>Wybierz <strong>„Dodaj do ekranu głównego”</strong> lub <strong>„Zainstaluj aplikację”</strong>.</span>
+                                    </li>
+                                    <li class="flex items-start gap-3">
+                                        <span class="shrink-0 w-6 h-6 rounded-full bg-amber-600 text-stone-950 font-bold text-xs flex items-center justify-center">3</span>
+                                        <span>Potwierdź, stukając <strong>„Dodaj”</strong>.</span>
+                                    </li>
+                                </ol>
+                            </div>
+                        </template>
+
+                        {{-- Inne / nierozpoznane --}}
+                        <template x-if="platform === 'other'">
+                            <p class="text-sm text-amber-100">
+                                Otwórz menu swojej przeglądarki i poszukaj opcji <strong>„Dodaj do ekranu głównego”</strong> lub <strong>„Zainstaluj aplikację”</strong>.
+                            </p>
+                        </template>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
