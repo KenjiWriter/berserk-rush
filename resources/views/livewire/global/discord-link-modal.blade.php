@@ -39,6 +39,13 @@
 
         {{-- Code display --}}
         <div class="font-sans space-y-5">
+            @if ($rewardEligible)
+                <div class="bg-gradient-to-r from-amber-900/40 to-amber-800/20 border border-amber-500/60 rounded-xl px-4 py-3 flex items-center gap-3">
+                    <span class="text-2xl shrink-0">🎁</span>
+                    <p class="text-sm text-amber-200">Połącz konto po raz pierwszy, a dostaniesz <span class="font-black text-amber-300">200 diamentów</span> pocztą w grze!</p>
+                </div>
+            @endif
+
             <div class="bg-stone-950 border-2 border-dashed border-indigo-500/60 rounded-xl py-5 px-4 flex items-center justify-between gap-3">
                 <span class="text-3xl sm:text-4xl font-mono font-black tracking-[0.3em] text-indigo-200 select-all">{{ $code }}</span>
 

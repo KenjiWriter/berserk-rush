@@ -18,12 +18,14 @@ class DiscordLinkModal extends Component
     public bool $isOpen = false;
     public string $code = '';
     public string $expiresAt = '';
+    public bool $rewardEligible = true;
 
     #[On('open-discord-link-modal')]
-    public function openModal(string $code, string $expiresAt): void
+    public function openModal(string $code, string $expiresAt, bool $rewardEligible = true): void
     {
         $this->code = $code;
         $this->expiresAt = $expiresAt;
+        $this->rewardEligible = $rewardEligible;
         $this->isOpen = true;
     }
 

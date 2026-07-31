@@ -1029,6 +1029,11 @@ class GlobalChatComponent extends Component
 
         // Shown as a persistent centered modal (not a toast) so the player
         // has time to read and copy the code - see DiscordLinkModal.
-        $this->dispatch('open-discord-link-modal', code: $code, expiresAt: $expiresAt->toDateTimeString());
+        $this->dispatch(
+            'open-discord-link-modal',
+            code: $code,
+            expiresAt: $expiresAt->toDateTimeString(),
+            rewardEligible: ! $character->hasClaimedDiscordLinkReward(),
+        );
     }
 }

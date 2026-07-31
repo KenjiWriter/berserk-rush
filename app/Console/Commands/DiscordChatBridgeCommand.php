@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Application\Mail\Actions\SendMailAction;
 use App\Domain\Social\Events\MessageSent;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\DiscordLinkCode;
@@ -10,6 +11,7 @@ use Discord\Parts\Channel\Message;
 use Discord\WebSockets\Event;
 use Discord\WebSockets\Intents;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -169,6 +171,51 @@ class DiscordChatBridgeCommand extends Command
 
         $linkCode->delete();
 
-        $message->reply("✅ {$message->author}, połączono z postacią **{$character->name}**! Twoje wiadomości na tym kanale będą teraz widoczne na czacie globalnym w grze.");
+        $rewardGranted = $this->grantLinkRewardIfEligible($character);
+
+        $replyText = "✅ {$message->author}, połączono z postacią **{$character->name}**! Twoje wiadomości na tym kanale będą teraz widoczne na czacie globalnym w grze.";
+
+        if ($rewardGranted) {
+            $replyText .= "\n🎁 Wysłaliśmy Ci **200 diamentów** pocztą w grze - odbierz je ze skrzynki!";
+        }
+
+        $message->reply($replyText);
+    }
+
+    /**
+     * One-time reward for linking a Discord account for the first time.
+     * Delivered via in-game mail (same mechanism as guild invites etc.),
+     * so it works whether the player is online or not, and shows up in
+     * their mailbox regardless of the Discord bot's own connection state.
+     * Guarded by characters.discord_link_reward_claimed_at so unlinking
+     * and relinking the same character can't be used to farm it again.
+     */
+    private function grantLinkRewardIfEligible(Character $character): bool
+    {
+        $rewardGems = 200;
+
+        return DB::transaction(function () use ($character, $rewardGems) {
+            // Lock the row so two near-simultaneous !link attempts for the
+            // same character can't both slip past the claimed_at check.
+            $fresh = Character::whereKey($character->id)->lockForUpdate()->first();
+
+            if (! $fresh || $fresh->discord_link_reward_claimed_at !== null) {
+                return false;
+            }
+
+            $fresh->discord_link_reward_claimed_at = now();
+            $fresh->save();
+
+            app(SendMailAction::class)->execute(
+                toCharacterId: $fresh->id,
+                subject: 'Nagroda za połączenie z Discordem',
+                body: "Dzięki za połączenie postaci z naszym serwerem Discord! W załączniku {$rewardGems} diamentów.",
+                attachments: [
+                    ['type' => 'gems', 'qty' => $rewardGems],
+                ],
+            );
+
+            return true;
+        });
     }
 }

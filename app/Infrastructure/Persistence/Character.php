@@ -58,6 +58,7 @@ class Character extends Model
         'current_location',
         'last_active_at',
         'discord_user_id',
+        'discord_link_reward_claimed_at',
     ];
 
     protected $casts = [
@@ -76,7 +77,13 @@ class Character extends Model
         'daily_pvp_fights_used' => 'integer',
         'daily_pvp_fights_last_reset_at' => 'datetime',
         'last_active_at' => 'datetime',
+        'discord_link_reward_claimed_at' => 'datetime',
     ];
+
+    public function hasClaimedDiscordLinkReward(): bool
+    {
+        return $this->discord_link_reward_claimed_at !== null;
+    }
 
     public function checkAndResetDailyPvpFights(): void
     {

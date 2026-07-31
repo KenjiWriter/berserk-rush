@@ -120,14 +120,18 @@ Osobny, długo działający proces bota (biblioteka `team-reflex/discord-php`, o
 | `app/Console/Commands/DiscordChatBridgeCommand.php` | Komenda `php artisan discord:bridge` — długo działający proces bota (uruchamiany pod Supervisorem, tak jak `reverb:start`/`queue:work`) |
 | `app/Infrastructure/Persistence/DiscordLinkCode.php` | Model jednorazowych kodów łączenia postaci z kontem Discord (tabela `discord_link_codes`) |
 | `characters.discord_user_id` | Kolumna z ID (snowflake) połączonego konta Discord — jedna postać na jedno konto Discord |
+| `characters.discord_link_reward_claimed_at` | Znacznik czasu przyznania jednorazowej nagrody za połączenie (patrz niżej) — chroni przed farmieniem przez unlink/relink |
+| `app/Livewire/Global/DiscordLinkModal.php` | Stały modal na środku ekranu z kodem (zamiast znikającej notyfikacji), otwierany eventem `open-discord-link-modal` |
 
 **Łączenie konta (linking):**
-1. Gracz wpisuje `/discord` na czacie w grze → dostaje jednorazowy kod (np. `ABC123`, ważny 10 min).
+1. Gracz wpisuje `/discord` na czacie w grze → dostaje jednorazowy kod (np. `ABC123`, ważny 10 min) w modalu na środku ekranu, z przyciskiem do skopiowania.
 2. Na kanale `#in-game-chat` na Discordzie wpisuje `!link ABC123`.
 3. Bot zapisuje `discord_user_id` gracza na jego postaci i potwierdza połączenie na Discordzie.
 4. Od tej pory wiadomości tego gracza na Discordzie pojawiają się na czacie globalnym w grze pod nazwą jego postaci (poziom, tytuł, odznaki premium/moda/admina — jak przy normalnej wiadomości).
 
 Wiadomości od niepołączonych kont Discorda są ignorowane, a bot odpowiada z instrukcją jak wykonać `/link`.
+
+**Nagroda za połączenie:** Przy pierwszym udanym `!link` dla danej postaci bot wysyła jej pocztą w grze (`SendMailAction`, załącznik `{type: 'gems', qty: 200}`) jednorazową nagrodę **200 diamentów** — gracz odbiera ją normalnie ze skrzynki pocztowej. Znacznik `discord_link_reward_claimed_at` gwarantuje, że nagroda jest przyznawana tylko raz na postać, nawet po `/discord unlink` i ponownym połączeniu (ewentualnie z innym kontem Discord).
 
 **Wymagana konfiguracja (`.env`):**
 ```
