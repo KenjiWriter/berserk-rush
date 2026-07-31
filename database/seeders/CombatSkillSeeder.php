@@ -503,7 +503,7 @@ class CombatSkillSeeder extends Seeder
             ],
 
             // ==========================================
-            // PRZEDZIAŁ 6: POZIOM 95 - 100 (LEGENDARNY)
+            // PRZEDZIAŁ 6: POZIOM 95 - 99 (LEGENDARNY)
             // ==========================================
             [
                 'id' => Str::ulid(),
@@ -547,7 +547,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 5,
                 'base_value' => 0.09,
                 'scaling_value' => 0.02,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'elemental-apocalypse.png',
             ],
@@ -563,7 +563,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 1,
                 'base_value' => 6.00,
                 'scaling_value' => 0.60,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'divine-light.png',
             ],
@@ -578,7 +578,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 1,
                 'base_value' => 5.80,
                 'scaling_value' => 0.55,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'god-shot.png',
             ],
@@ -593,7 +593,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 5,
                 'base_value' => 0.15,
                 'scaling_value' => 0.025,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'void-blade.png',
             ],
@@ -826,8 +826,8 @@ class CombatSkillSeeder extends Seeder
             // PRZEDZIAŁ DODATKOWY 2: RÓWNOWAGA TYPÓW (2026-07-29)
             // Dobudowuje słabo obsadzone kategorie bez ruszania istniejących
             // skilli: leczenie na każdym przedziale poziomowym (nie tylko
-            // 25/60), AOE tam gdzie go dotąd zabrakło (10/60/95-100),
-            // crowd control (freeze/stun) na 10/60/80/100, trucizna/podpalenie
+            // 25/60), AOE tam gdzie go dotąd zabrakło (10/60/95-99),
+            // crowd control (freeze/stun) na 10/60/80/99, trucizna/podpalenie
             // na poziomie 60 oraz zupełnie nowa kategoria Obrony
             // (`buff_defense` - redukcja obrażeń przychodzących o % na X tur,
             // patrz docs/modules/skills.md pkt. 5).
@@ -894,7 +894,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 1,
                 'base_value' => 0.65,
                 'scaling_value' => 0.08,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => null,
             ],
@@ -978,7 +978,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 1,
                 'base_value' => 2.60,
                 'scaling_value' => 0.25,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 80,
                 'icon' => null,
             ],
@@ -994,7 +994,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 1,
                 'base_value' => 2.70,
                 'scaling_value' => 0.25,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => null,
             ],
@@ -1058,7 +1058,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 2,
                 'base_value' => 3.00,
                 'scaling_value' => 0.30,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => null,
             ],
@@ -1214,7 +1214,7 @@ class CombatSkillSeeder extends Seeder
                 'base_duration' => 5,
                 'base_value' => 0.45,
                 'scaling_value' => 0.06,
-                'required_level' => 100,
+                'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => null,
             ],
@@ -1227,6 +1227,6 @@ class CombatSkillSeeder extends Seeder
             ]));
         }
 
-        $this->command->info('Seeded ' . count($skills) . ' combat skills across levels 10 to 100.');
+        $this->command->info('Seeded ' . count($skills) . ' combat skills across levels 10 to 99.');
     }
 }
