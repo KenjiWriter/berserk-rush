@@ -1020,16 +1020,14 @@
                              @mouseleave="closeTooltip()"
                              @click="activeItemId = null; openTooltip()">
 
-                            @if($bulkStashMode)
-                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
-                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
-                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
-                                        @if(in_array($item->id, $selectedStashItemIds))
-                                            <i class="fa-solid fa-check"></i>
-                                        @endif
-                                    </div>
+                            <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                    @if(in_array($item->id, $selectedStashItemIds))
+                                        <i class="fa-solid fa-check"></i>
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
 
                             @if($item->template->icon)
                                 <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
@@ -1201,16 +1199,14 @@
                              @tooltip-updated.window="checkPosition()"
                              class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
 
-                            @if($bulkStashMode)
-                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
-                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
-                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
-                                        @if(in_array($item->id, $selectedStashItemIds))
-                                            <i class="fa-solid fa-check"></i>
-                                        @endif
-                                    </div>
+                            <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                    @if(in_array($item->id, $selectedStashItemIds))
+                                        <i class="fa-solid fa-check"></i>
+                                    @endif
                                 </div>
-                            @endif
+                            </div>
 
                             <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
                                 @if($item->template->icon)
