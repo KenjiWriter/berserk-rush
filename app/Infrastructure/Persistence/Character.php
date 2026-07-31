@@ -34,6 +34,7 @@ class Character extends Model
     protected $fillable = [
         'user_id',
         'name',
+        'name_changes_count',
         'level',
         'xp',
         'auto_donate_exp_guild',
@@ -59,6 +60,7 @@ class Character extends Model
     ];
 
     protected $casts = [
+        'name_changes_count' => 'integer',
         'attributes' => 'array',
         'proficiencies' => 'array',
         'level' => 'integer',

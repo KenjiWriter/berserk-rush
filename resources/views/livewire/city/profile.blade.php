@@ -280,7 +280,71 @@
                             {{ $character->activeTitle->prefix }}
                         </div>
                     @endif
-                    <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
+                    <div class="flex items-center justify-center gap-1.5">
+                        <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
+                        <button wire:click="openNameChangeModal" class="text-amber-400/70 hover:text-amber-200 transition-colors p-0.5 cursor-pointer" title="Zmień nick postaci">
+                            <i class="fa-solid fa-pen-to-square text-xs sm:text-sm"></i>
+                        </button>
+                    </div>
+
+                    <!-- Name Change Modal -->
+                    @if($showNameChangeModal)
+                        <div class="fixed inset-0 z-[160] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
+                            <div class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-amber-500/80 p-5 sm:p-6 rounded-2xl w-full max-w-md shadow-[0_0_30px_rgba(245,158,11,0.25)] relative overflow-hidden" @click.outside="$wire.closeNameChangeModal()">
+                                <button wire:click="closeNameChangeModal" class="absolute top-3 right-3 text-stone-400 hover:text-white text-xl font-bold cursor-pointer">✕</button>
+                                
+                                <h3 class="text-xl font-bold text-amber-300 mb-2 medieval-font flex items-center gap-2 border-b border-amber-500/30 pb-3">
+                                    <i class="fa-solid fa-pen-to-square text-amber-400"></i> Zmień Nick Postaci
+                                </h3>
+
+                                <div class="space-y-4 my-4">
+                                    <div class="bg-stone-950/80 p-3 rounded-xl border border-stone-800 flex items-center justify-between">
+                                        <span class="text-xs text-stone-400">Obecny nick:</span>
+                                        <span class="text-sm font-bold text-amber-200 medieval-font">{{ $character->name }}</span>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-xs font-bold text-stone-300 mb-1.5 uppercase tracking-wider">Nowy nick (3-20 znaków):</label>
+                                        <input type="text" wire:model="newName" wire:keydown.enter="changeCharacterName"
+                                            class="w-full bg-stone-950 border-2 border-amber-500/40 rounded-xl py-2.5 px-3 text-amber-100 text-sm font-semibold focus:outline-none focus:border-amber-400 transition shadow-inner placeholder-stone-600"
+                                            placeholder="Wprowadź nowy nick..." maxlength="20" autofocus />
+                                    </div>
+
+                                    {{-- Price Banner --}}
+                                    <div class="p-3 rounded-xl border flex items-center justify-between {{ ($character->name_changes_count ?? 0) === 0 ? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300' : 'bg-amber-950/40 border-amber-500/40 text-amber-300' }}">
+                                        <div class="flex items-center gap-2 text-xs font-bold">
+                                            @if(($character->name_changes_count ?? 0) === 0)
+                                                <i class="fa-solid fa-gift text-emerald-400 text-base"></i>
+                                                <span>Pierwsza zmiana: <strong class="text-emerald-200 uppercase tracking-wider">ZA DARMO!</strong></span>
+                                            @else
+                                                <i class="fa-solid fa-gem text-cyan-400 text-base"></i>
+                                                <span>Koszt zmiany: <strong class="text-yellow-400">200 Gemów</strong></span>
+                                            @endif
+                                        </div>
+                                        @if(($character->name_changes_count ?? 0) > 0)
+                                            <span class="text-[11px] text-stone-400 font-medium">Posiadasz: <strong class="text-cyan-300">{{ auth()->user()->gems }}</strong></span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center justify-end gap-3 border-t border-amber-500/20 pt-4">
+                                    <button wire:click="closeNameChangeModal" type="button" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 font-bold rounded-xl text-xs transition cursor-pointer">
+                                        Anuluj
+                                    </button>
+                                    <button wire:click="changeCharacterName" type="button"
+                                        class="px-5 py-2.5 bg-gradient-to-r from-amber-600 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-400 text-stone-950 font-black rounded-xl text-xs transition shadow-lg flex items-center gap-1.5 uppercase tracking-wider medieval-font cursor-pointer"
+                                        wire:loading.attr="disabled" wire:target="changeCharacterName">
+                                        <span wire:loading.remove wire:target="changeCharacterName" class="flex items-center gap-1">
+                                            <i class="fa-solid fa-check"></i> Potwierdź zmianę
+                                        </span>
+                                        <span wire:loading wire:target="changeCharacterName" class="flex items-center gap-1">
+                                            <i class="fa-solid fa-spinner animate-spin"></i> Zapisywanie...
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                     <p class="text-amber-200/70 font-semibold text-xs sm:text-sm">Poziom {{ $character->level }}</p>
                     <div class="bg-amber-950/80 border border-amber-500/60 text-amber-300 px-2.5 sm:px-4 py-0.5 sm:py-1 rounded-full text-[10px] xs:text-xs font-bold shadow-[0_0_10px_rgba(245,158,11,0.2)] my-1 sm:my-1.5 medieval-font text-center truncate max-w-full flex items-center justify-center gap-1">
                         <i class="fa-solid fa-bolt text-yellow-400"></i> Moc Bojowa: {{ \App\Support\NumberHelper::formatShort($character->getTotalCombatPower()) }}

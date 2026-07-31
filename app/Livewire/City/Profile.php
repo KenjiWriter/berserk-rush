@@ -30,6 +30,10 @@ class Profile extends Component
     public $sellQuantity = 1;
     public $sellItemStackSize = 1;
 
+    // Name Change
+    public string $newName = '';
+    public bool $showNameChangeModal = false;
+
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
     #[On('inventory-updated')]
@@ -282,6 +286,75 @@ class Profile extends Component
         $this->character->refresh();
     }
     // -----------------------------
+
+    // --- NAME CHANGE LOGIC ---
+    public function openNameChangeModal(): void
+    {
+        $this->newName = $this->character->name;
+        $this->showNameChangeModal = true;
+    }
+
+    public function closeNameChangeModal(): void
+    {
+        $this->showNameChangeModal = false;
+        $this->newName = '';
+    }
+
+    public function changeCharacterName(): void
+    {
+        $this->newName = trim($this->newName);
+
+        if (mb_strlen($this->newName) < 3 || mb_strlen($this->newName) > 20) {
+            $this->dispatch('notify', type: 'error', message: 'Nick postaci musi zawierać od 3 do 20 znaków.');
+            return;
+        }
+
+        if (!preg_match('/^[a-zA-Z0-9_\-\s]+$/u', $this->newName)) {
+            $this->dispatch('notify', type: 'error', message: 'Nick zawiera niedozwolone znaki (używaj tylko liter, cyfr, myślników i spacji).');
+            return;
+        }
+
+        if (strcasecmp($this->newName, $this->character->name) === 0) {
+            $this->dispatch('notify', type: 'error', message: 'Nowy nick jest taki sam jak Twój obecny nick.');
+            return;
+        }
+
+        // Check if name is taken by another character
+        $exists = Character::where('name', $this->newName)
+            ->where('id', '!=', $this->character->id)
+            ->exists();
+
+        if ($exists) {
+            $this->dispatch('notify', type: 'error', message: 'Nazwa postaci "' . $this->newName . '" jest już zajęta.');
+            return;
+        }
+
+        $cost = ($this->character->name_changes_count ?? 0) > 0 ? 200 : 0;
+
+        $user = auth()->user();
+        if ($cost > 0 && ($user->gems < $cost)) {
+            $this->dispatch('notify', type: 'error', message: 'Nie posiadasz wystarczającej liczby Gemów (wymagane: 200 Gemów).');
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost) {
+            if ($cost > 0) {
+                $user->decrement('gems', $cost);
+            }
+
+            $this->character->name = $this->newName;
+            $this->character->name_changes_count = ($this->character->name_changes_count ?? 0) + 1;
+            $this->character->save();
+        });
+
+        $this->dispatch('notify', type: 'success', message: "Twój nick został pomyślnie zmieniony na {$this->newName}!");
+        $this->dispatch('stats-updated', gold: $this->character->gold, gems: auth()->user()->refresh()->gems);
+        $this->dispatch('play-audio', type: 'level-up');
+        $this->showNameChangeModal = false;
+        $this->character->refresh();
+    }
+    // -------------------------
 
     /**
      * Dodaje punkty do jednego atrybutu w pojedynczym, natychmiastowym żądaniu -
