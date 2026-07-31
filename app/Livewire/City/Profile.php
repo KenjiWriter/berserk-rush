@@ -212,7 +212,7 @@ class Profile extends Component
     {
         $item = ItemInstance::with('template')->find($itemUlid);
         if ($item && $item->template && $item->template->sub_type === 'chest') {
-            $this->dispatch('open-case-modal', itemInstanceId: $itemUlid, count: $count);
+            $this->dispatch('open-case-modal', itemInstanceId: $itemUlid, count: $count, characterId: $this->character->id);
             return;
         }
 

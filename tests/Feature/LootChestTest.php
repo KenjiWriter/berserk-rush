@@ -144,4 +144,42 @@ class LootChestTest extends TestCase
             ->assertSet('itemInstanceId', $chestInstance->id)
             ->assertDispatched('start-case-spin');
     }
+
+    public function test_case_opening_modal_resolves_correct_character_for_multi_character_user(): void
+    {
+        $user = User::factory()->create();
+        $char1 = Character::create([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Pierwsza Postać',
+            'level' => 30,
+            'attributes' => ['str' => 30, 'int' => 10, 'vit' => 30, 'agi' => 20],
+        ]);
+        $char2 = Character::create([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Druga Postać (Nowsza)',
+            'level' => 50,
+            'attributes' => ['str' => 50, 'int' => 10, 'vit' => 50, 'agi' => 30],
+        ]);
+
+        $chestTemplate = ItemTemplate::where('name', 'Skrzynia Mrocznego Lasu')->first();
+        // Chest belongs to char1 (the older character)
+        $chestInstance = ItemInstance::create([
+            'id' => (string) Str::ulid(),
+            'owner_character_id' => $char1->id,
+            'template_id' => $chestTemplate->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $this->actingAs($user->refresh());
+        session(['active_character' => $char1->id]);
+
+        \Livewire\Livewire::test(\App\Livewire\City\CaseOpeningModal::class)
+            ->dispatch('open-case-modal', itemInstanceId: $chestInstance->id, count: 1, characterId: $char1->id)
+            ->assertSet('errorMessage', null)
+            ->assertSet('isOpen', true)
+            ->assertDispatched('start-case-spin');
+    }
 }

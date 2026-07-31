@@ -25,13 +25,21 @@ class OpenLootChestAction
         return DB::transaction(function () use ($character, $itemInstanceId, $count) {
             /** @var ItemInstance|null $chestInstance */
             $chestInstance = ItemInstance::where('id', $itemInstanceId)
-                ->where('owner_character_id', $character->id)
                 ->whereIn('location', ['inventory', 'material_stash'])
                 ->lockForUpdate()
                 ->first();
 
             if (!$chestInstance || !$chestInstance->template) {
                 return Result::error('CHEST_NOT_FOUND', 'Nie znaleziono skrzyni w ekwipunku.');
+            }
+
+            if ($chestInstance->owner_character_id !== $character->id) {
+                $ownerChar = Character::find($chestInstance->owner_character_id);
+                if ($ownerChar && $ownerChar->user_id === $character->user_id) {
+                    $character = $ownerChar;
+                } else {
+                    return Result::error('CHEST_NOT_FOUND', 'Nie znaleziono skrzyni w ekwipunku.');
+                }
             }
 
             if ($chestInstance->stack_size < $count) {
