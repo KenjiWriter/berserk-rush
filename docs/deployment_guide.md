@@ -174,7 +174,7 @@ Czat globalny synchronizuje się z kanałem `#in-game-chat` na Discordzie w obie
 3. Skopiuj **token bota** -> `.env` jako `DISCORD_BOT_TOKEN`.
 4. Zaproś bota na serwer (OAuth2 -> URL Generator -> scope `bot`, uprawnienia `View Channel` + `Send Messages`) i upewnij się, że widzi kanał `#in-game-chat`.
 5. Włącz w Discordzie tryb developerski (User Settings -> Advanced -> Developer Mode), kliknij PPM na `#in-game-chat` -> **Copy Channel ID** -> `.env` jako `DISCORD_CHAT_CHANNEL_ID`.
-6. Dodaj zależność do projektu (jeśli jeszcze nie ma jej w `composer.json`/`composer.lock` z repo): `composer require team-reflex/discord-php`.
+6. Bot działa przez odpytywanie REST API Discorda (nie Gateway/WebSocket), więc **nie jest potrzebna żadna dodatkowa paczka Composera** — wystarczy `php artisan migrate` (patrz Krok 4).
 7. Proces bota (`php artisan discord:bridge`) uruchamiany jest przez Supervisor — patrz konfiguracja `berserk-discord-bridge` w Kroku 7.
 
 ---

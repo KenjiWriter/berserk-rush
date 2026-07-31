@@ -6,12 +6,9 @@ use App\Application\Mail\Actions\SendMailAction;
 use App\Domain\Social\Events\MessageSent;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\DiscordLinkCode;
-use Discord\Discord;
-use Discord\Parts\Channel\Message;
-use Discord\WebSockets\Event;
-use Discord\WebSockets\Intents;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -19,6 +16,16 @@ use Illuminate\Support\Facades\Log;
  * channel with the in-game global chat (two-way, alongside the one-way
  * webhook relay in ForwardGlobalChatMessageToDiscord which handles
  * game -> Discord).
+ *
+ * Implementation note: this polls the Discord REST API every few seconds
+ * instead of using a Gateway/WebSocket library (e.g. team-reflex/discord-php).
+ * That library's dependency tree (react/promise, guzzle, carbon, discord-php/http)
+ * conflicts hard with versions already locked by this project (Reverb and
+ * friends), and isn't resolvable without forcing risky downgrades across the
+ * whole app. Polling needs zero new Composer packages - it's just
+ * Illuminate\Support\Facades\Http, the same client already used by
+ * ForwardGlobalChatMessageToDiscord. The trade-off is a ~2 second delay
+ * instead of instant delivery, which is a fine trade for a chat bridge.
  *
  * Run it under Supervisor exactly like `reverb:start` / `queue:work`:
  *
@@ -36,20 +43,30 @@ use Illuminate\Support\Facades\Log;
  * Setup required before this does anything:
  *  1. Discord Developer Portal (https://discord.com/developers/applications)
  *     -> New Application -> Bot -> enable "MESSAGE CONTENT INTENT" under
- *     Privileged Gateway Intents -> copy the bot token.
+ *     Privileged Gateway Intents -> copy the bot token. (Still required even
+ *     though we use REST, not the Gateway - Discord strips message content
+ *     from API responses too without it.)
  *  2. Invite the bot to your server with "View Channel" + "Send Messages"
  *     permissions in #in-game-chat.
  *  3. Set DISCORD_BOT_TOKEN and DISCORD_CHAT_CHANNEL_ID in .env
  *     (channel ID: right-click #in-game-chat in Discord with Developer Mode
  *     enabled -> "Copy Channel ID").
- *  4. composer require team-reflex/discord-php
- *  5. php artisan migrate (adds characters.discord_user_id + discord_link_codes)
+ *  4. php artisan migrate (adds characters.discord_user_id/discord_link_reward_claimed_at
+ *     + discord_link_codes)
+ *
+ * No "composer require" needed for this feature.
  */
 class DiscordChatBridgeCommand extends Command
 {
     protected $signature = 'discord:bridge';
 
-    protected $description = 'Runs the Discord bot that bridges #in-game-chat with the in-game global chat';
+    protected $description = 'Polls #in-game-chat on Discord and bridges it with the in-game global chat';
+
+    private const POLL_INTERVAL_SECONDS = 2;
+    private const API_BASE = 'https://discord.com/api/v10';
+
+    private string $token;
+    private string $channelId;
 
     public function handle(): int
     {
@@ -61,63 +78,154 @@ class DiscordChatBridgeCommand extends Command
             return self::FAILURE;
         }
 
-        $discord = new Discord([
-            'token' => $token,
-            // MESSAGE_CONTENT is a privileged intent - must be enabled for
-            // the bot in the Discord Developer Portal or messages arrive empty.
-            'intents' => Intents::getDefaultIntents() | Intents::MESSAGE_CONTENT,
-        ]);
+        $this->token = $token;
+        $this->channelId = $channelId;
 
-        $discord->on('ready', function (Discord $discord) use ($channelId) {
-            $this->info('Discord chat bridge connected as ' . $discord->user->username);
+        $lastMessageId = $this->fetchLatestMessageId();
 
-            $discord->on(Event::MESSAGE_CREATE, function (Message $message) use ($channelId) {
-                try {
-                    $this->handleIncomingMessage($message, $channelId);
-                } catch (\Throwable $e) {
-                    Log::warning('Discord chat bridge: error handling incoming message', [
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-            });
-        });
-
-        $discord->run();
-
-        return self::SUCCESS;
-    }
-
-    private function handleIncomingMessage(Message $message, string $channelId): void
-    {
-        // Only listen in the configured channel.
-        if ((string) $message->channel_id !== (string) $channelId) {
-            return;
+        if ($lastMessageId === null) {
+            $this->error(
+                'Could not reach Discord (bad token, wrong channel ID, or bot missing '.
+                '"View Channel"/"Read Message History" permission on that channel). Check storage/logs/laravel.log.'
+            );
+            return self::FAILURE;
         }
 
+        $this->info("Discord chat bridge polling channel {$channelId} every ".self::POLL_INTERVAL_SECONDS.'s...');
+
+        while (true) {
+            try {
+                $messages = $this->fetchNewMessages($lastMessageId);
+
+                // Discord returns newest-first; replay oldest-first so
+                // ordering in the game chat matches the order they were sent.
+                foreach (array_reverse($messages) as $message) {
+                    $lastMessageId = $message['id'];
+
+                    try {
+                        $this->handleIncomingMessage($message);
+                    } catch (\Throwable $e) {
+                        Log::warning('Discord chat bridge: error handling incoming message', [
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Discord chat bridge: poll error', ['error' => $e->getMessage()]);
+            }
+
+            sleep(self::POLL_INTERVAL_SECONDS);
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function fetchNewMessages(string $afterId): array
+    {
+        $response = $this->discordGet("/channels/{$this->channelId}/messages", [
+            'after' => $afterId,
+            'limit' => 100,
+        ]);
+
+        if ($response === null || $response->failed()) {
+            return [];
+        }
+
+        return $response->json() ?? [];
+    }
+
+    private function fetchLatestMessageId(): ?string
+    {
+        $response = $this->discordGet("/channels/{$this->channelId}/messages", ['limit' => 1]);
+
+        if ($response === null || $response->failed()) {
+            return null;
+        }
+
+        $messages = $response->json() ?? [];
+
+        // Empty channel history is still a "successful" connection - start
+        // from "no messages seen yet" rather than treating it as an error.
+        return $messages[0]['id'] ?? '0';
+    }
+
+    private function discordGet(string $path, array $query = []): ?\Illuminate\Http\Client\Response
+    {
+        $response = Http::withToken($this->token, 'Bot')
+            ->timeout(10)
+            ->get(self::API_BASE.$path, $query);
+
+        if ($response->status() === 429) {
+            $retryAfter = (float) ($response->json('retry_after') ?? 1);
+            Log::warning('Discord chat bridge: rate limited, backing off', ['retry_after' => $retryAfter]);
+            usleep((int) ($retryAfter * 1_000_000));
+            return null;
+        }
+
+        if ($response->failed()) {
+            Log::warning('Discord chat bridge: GET failed', [
+                'path' => $path,
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
+
+        return $response;
+    }
+
+    private function replyToDiscord(string $content): void
+    {
+        $response = Http::withToken($this->token, 'Bot')
+            ->timeout(10)
+            ->post(self::API_BASE."/channels/{$this->channelId}/messages", [
+                'content' => $content,
+                'allowed_mentions' => ['parse' => ['users']],
+            ]);
+
+        if ($response->failed()) {
+            Log::warning('Discord chat bridge: failed to send reply', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $message Raw Discord API message object.
+     */
+    private function handleIncomingMessage(array $message): void
+    {
         // Ignore the bot's own messages and anything posted by a webhook -
         // that's how the game -> Discord relay posts messages into this same
         // channel, and we must not treat those as new incoming chat.
-        if ($message->author->bot || $message->webhook_id) {
+        if (($message['author']['bot'] ?? false) || !empty($message['webhook_id'])) {
             return;
         }
 
-        $content = trim($message->content);
+        $content = trim($message['content'] ?? '');
 
         if ($content === '') {
             return;
         }
 
+        $authorId = $message['author']['id'] ?? null;
+        $authorMention = $authorId ? "<@{$authorId}>" : 'Hej';
+
         if (str_starts_with(strtolower($content), '!link ')) {
-            $this->handleLinkCommand($message, $content);
+            $this->handleLinkCommand($authorId, $authorMention, $content);
             return;
         }
 
-        $discordUserId = (string) $message->author->id;
-        $character = Character::where('discord_user_id', $discordUserId)->first();
+        if (! $authorId) {
+            return;
+        }
+
+        $character = Character::where('discord_user_id', (string) $authorId)->first();
 
         if (! $character) {
-            $message->reply(
-                "{$message->author}, nie masz jeszcze połączonej postaci z tym kontem Discord.\n".
+            $this->replyToDiscord(
+                "{$authorMention}, nie masz jeszcze połączonej postaci z tym kontem Discord.\n".
                 "Wpisz **/discord** na czacie w grze, żeby dostać kod, a potem tutaj: `!link KOD`."
             );
             return;
@@ -143,8 +251,12 @@ class DiscordChatBridgeCommand extends Command
         ));
     }
 
-    private function handleLinkCommand(Message $message, string $content): void
+    private function handleLinkCommand(?string $authorId, string $authorMention, string $content): void
     {
+        if (! $authorId) {
+            return;
+        }
+
         $code = strtoupper(trim(substr($content, strlen('!link '))));
 
         $linkCode = DiscordLinkCode::where('code', $code)
@@ -152,34 +264,32 @@ class DiscordChatBridgeCommand extends Command
             ->first();
 
         if (! $linkCode) {
-            $message->reply(
-                "{$message->author}, ten kod jest nieprawidłowy albo wygasł. ".
+            $this->replyToDiscord(
+                "{$authorMention}, ten kod jest nieprawidłowy albo wygasł. ".
                 "Wpisz **/discord** na czacie w grze, żeby wygenerować nowy."
             );
             return;
         }
 
-        $discordUserId = (string) $message->author->id;
-
         // One character per Discord account - drop any previous link.
-        Character::where('discord_user_id', $discordUserId)
+        Character::where('discord_user_id', (string) $authorId)
             ->update(['discord_user_id' => null]);
 
         $character = $linkCode->character;
-        $character->discord_user_id = $discordUserId;
+        $character->discord_user_id = (string) $authorId;
         $character->save();
 
         $linkCode->delete();
 
         $rewardGranted = $this->grantLinkRewardIfEligible($character);
 
-        $replyText = "✅ {$message->author}, połączono z postacią **{$character->name}**! Twoje wiadomości na tym kanale będą teraz widoczne na czacie globalnym w grze.";
+        $replyText = "✅ {$authorMention}, połączono z postacią **{$character->name}**! Twoje wiadomości na tym kanale będą teraz widoczne na czacie globalnym w grze.";
 
         if ($rewardGranted) {
             $replyText .= "\n🎁 Wysłaliśmy Ci **200 diamentów** pocztą w grze - odbierz je ze skrzynki!";
         }
 
-        $message->reply($replyText);
+        $this->replyToDiscord($replyText);
     }
 
     /**

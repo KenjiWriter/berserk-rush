@@ -113,7 +113,9 @@ Konfiguracja: Discord → Ustawienia kanału `#in-game-chat` → Integracje → 
 
 ### Kierunek: Discord → gra (bot bridge)
 
-Osobny, długo działający proces bota (biblioteka `team-reflex/discord-php`, oparta o ReactPHP) nasłuchuje wiadomości na kanale `#in-game-chat` i rozgłasza je do gry jako `MessageSent` z flagą `fromDiscord: true` (dzięki czemu `ForwardGlobalChatMessageToDiscord` ich nie odbija z powrotem na Discorda).
+Osobny, długo działający proces bota **odpytuje REST API Discorda co ~2 sekundy** (`GET /channels/{id}/messages`, przez zwykły `Illuminate\Support\Facades\Http` — bez żadnej dodatkowej paczki Composera) i rozgłasza nowe wiadomości do gry jako `MessageSent` z flagą `fromDiscord: true` (dzięki czemu `ForwardGlobalChatMessageToDiscord` ich nie odbija z powrotem na Discorda).
+
+Świadomie **nie** użyto biblioteki gateway/WebSocket (`team-reflex/discord-php`) — jej drzewo zależności (react/promise, guzzle, carbon, discord-php/http) koliduje z wersjami już zablokowanymi przez ten projekt (m.in. przez Reverb) i nie da się tego rozwiązać bez ryzykownego wymuszania downgrade'ów w całej aplikacji. Odpytywanie REST co kilka sekund kosztuje tyle, że wiadomość z Discorda pojawia się w grze z opóźnieniem rzędu ~2s zamiast natychmiast — akceptowalny kompromis jak na most czatu.
 
 | Plik | Rola |
 |------|------|
