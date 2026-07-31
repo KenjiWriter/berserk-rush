@@ -116,6 +116,62 @@ class MailboxComponent extends Component
         $mail->delete();
     }
 
+    public function claimAll(ClaimMailAction $action)
+    {
+        $character = $this->character;
+        $unclaimedMails = Mail::where('to_character_id', $character->id)
+            ->where('claimed', false)
+            ->get();
+
+        if ($unclaimedMails->isEmpty()) {
+            $this->dispatch('notify', message: 'Brak nieodebranych wiadomości.', type: 'info');
+            return;
+        }
+
+        $claimedCount = 0;
+        foreach ($unclaimedMails as $mail) {
+            // Check if guild invite - skip auto claim for invites
+            $isGuildInvite = false;
+            if (!empty($mail->attachments)) {
+                foreach ($mail->attachments as $att) {
+                    if (($att['type'] ?? '') === 'guild_invite') {
+                        $isGuildInvite = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($isGuildInvite) {
+                continue;
+            }
+
+            $result = $action->execute($character, $mail);
+            if ($result->isSuccess()) {
+                $claimedCount++;
+            }
+        }
+
+        if ($claimedCount > 0) {
+            $this->dispatch('notify', message: "Odebrano załączniki z {$claimedCount} wiadomości!", type: 'success');
+            $this->dispatch('character-updated');
+        } else {
+            $this->dispatch('notify', message: 'Nie odebrano żadnych załączników.', type: 'info');
+        }
+    }
+
+    public function deleteAllClaimed()
+    {
+        $deleted = Mail::where('to_character_id', $this->characterId)
+            ->where('claimed', true)
+            ->delete();
+
+        if ($deleted > 0) {
+            $this->dispatch('notify', message: "Usunięto {$deleted} odebranych wiadomości.", type: 'success');
+        } else {
+            $this->dispatch('notify', message: 'Brak odebranych wiadomości do usunięcia.', type: 'info');
+        }
+    }
+
     public function render()
     {
         $character = $this->character;
@@ -134,3 +190,4 @@ class MailboxComponent extends Component
         ]);
     }
 }
+
