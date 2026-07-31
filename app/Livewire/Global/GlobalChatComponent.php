@@ -4,8 +4,10 @@ namespace App\Livewire\Global;
 
 use App\Domain\Social\Events\MessageSent;
 use App\Infrastructure\Persistence\Character;
+use App\Infrastructure\Persistence\DiscordLinkCode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Session;
 use Livewire\Component;
@@ -240,6 +242,12 @@ class GlobalChatComponent extends Component
 
         if (str_starts_with($lowerMsg, '/stage') || str_starts_with($lowerMsg, '/gamestage') || str_starts_with($lowerMsg, '/checkstage')) {
             $this->handleStageCommand($message, $character);
+            $this->newMessage = '';
+            return;
+        }
+
+        if (str_starts_with($lowerMsg, '/discord')) {
+            $this->handleDiscordCommand($message, $character);
             $this->newMessage = '';
             return;
         }
@@ -971,5 +979,56 @@ class GlobalChatComponent extends Component
 
         $msg = "Postać: {$target->name} (Lvl {$target->level}) | Konto: {$userStr} | Game Stage: {$stage}";
         $this->dispatch('notify', message: $msg, type: 'info');
+    }
+
+    /**
+     * "/discord" - generates a one-time code the player pastes into Discord
+     * (as "!link CODE" in the bridged channel) to link their Discord account
+     * to this character, so messages they send on Discord show up in-game.
+     * "/discord unlink" removes an existing link.
+     */
+    private function handleDiscordCommand(string $command, Character $character): void
+    {
+        $parts = explode(' ', trim($command), 2);
+        $sub = strtolower(trim($parts[1] ?? ''));
+
+        if ($sub === 'unlink') {
+            if (! $character->discord_user_id) {
+                $this->dispatch('notify', message: 'Ta postać nie jest połączona z żadnym kontem Discord.', type: 'info');
+                return;
+            }
+
+            $character->update(['discord_user_id' => null]);
+            $this->dispatch('notify', message: 'Odłączono postać od Discorda.', type: 'success');
+            return;
+        }
+
+        if ($character->discord_user_id) {
+            $this->dispatch(
+                'notify',
+                message: 'Ta postać jest już połączona z Discordem. Wpisz "/discord unlink", żeby odłączyć i wygenerować nowy kod.',
+                type: 'info'
+            );
+            return;
+        }
+
+        // Drop any previous unused codes for this character before making a new one.
+        DiscordLinkCode::where('character_id', $character->id)->delete();
+
+        do {
+            $code = Str::upper(Str::random(6));
+        } while (DiscordLinkCode::where('code', $code)->exists());
+
+        DiscordLinkCode::create([
+            'code' => $code,
+            'character_id' => $character->id,
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        $this->dispatch(
+            'notify',
+            message: "Twój kod: {$code} (ważny 10 min). Na kanale #in-game-chat na Discordzie wpisz: !link {$code}",
+            type: 'success'
+        );
     }
 }

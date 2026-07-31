@@ -57,6 +57,7 @@ class Character extends Model
         'achievement_points',
         'current_location',
         'last_active_at',
+        'discord_user_id',
     ];
 
     protected $casts = [

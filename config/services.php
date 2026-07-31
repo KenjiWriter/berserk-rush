@@ -36,9 +36,15 @@ return [
     ],
 
     'discord' => [
-        // Incoming Webhook URL for the #in-game-chat Discord channel.
+        // Incoming Webhook URL for the #in-game-chat Discord channel
+        // (game -> Discord relay, see ForwardGlobalChatMessageToDiscord).
         // Discord -> Channel Settings -> Integrations -> Webhooks -> New Webhook.
         'global_chat_webhook_url' => env('DISCORD_GLOBAL_CHAT_WEBHOOK_URL'),
+
+        // Bot token + channel ID for the two-way bridge (Discord -> game),
+        // see App\Console\Commands\DiscordChatBridgeCommand.
+        'bot_token' => env('DISCORD_BOT_TOKEN'),
+        'chat_channel_id' => env('DISCORD_CHAT_CHANNEL_ID'),
     ],
 
     'google' => [

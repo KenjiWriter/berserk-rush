@@ -126,6 +126,13 @@ VITE_REVERB_SCHEME="${REVERB_SCHEME}"
 STRIPE_KEY=pk_test_...
 STRIPE_SECRET=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Discord chat relay: gra -> Discord (webhook, patrz docs/modules/global_chat.md)
+DISCORD_GLOBAL_CHAT_WEBHOOK_URL=
+
+# Discord chat bridge: Discord -> gra (bot, patrz docs/modules/global_chat.md)
+DISCORD_BOT_TOKEN=
+DISCORD_CHAT_CHANNEL_ID=
 ```
 
 Wygeneruj unikalny klucz aplikacji:
@@ -150,6 +157,25 @@ W środowisku deweloperskim używano konsoli i CLI `stripe listen`. Na serwerze 
 6. Zapisz endpoint.
 7. Skopiuj wygenerowany **Signing secret** (zaczynający się od `whsec_...`) i wklej go do pliku `.env` w parametrze `STRIPE_WEBHOOK_SECRET`.
 
+
+---
+
+### 🤖 Krok 3.2: Integracja Discorda (dwukierunkowy czat globalny)
+
+Czat globalny synchronizuje się z kanałem `#in-game-chat` na Discordzie w obie strony — pełny opis architektury w `docs/modules/global_chat.md`.
+
+**Kierunek gra -> Discord** (webhook, bez dodatkowego procesu):
+1. Discord -> Ustawienia kanału `#in-game-chat` -> Integracje -> Webhooks -> Nowy webhook -> skopiuj URL.
+2. Wklej URL do `.env` jako `DISCORD_GLOBAL_CHAT_WEBHOOK_URL`.
+
+**Kierunek Discord -> gra** (bot, wymaga procesu w tle, patrz Krok 7):
+1. Wejdź na https://discord.com/developers/applications -> **New Application** -> zakładka **Bot**.
+2. Włącz przełącznik **MESSAGE CONTENT INTENT** (Privileged Gateway Intents).
+3. Skopiuj **token bota** -> `.env` jako `DISCORD_BOT_TOKEN`.
+4. Zaproś bota na serwer (OAuth2 -> URL Generator -> scope `bot`, uprawnienia `View Channel` + `Send Messages`) i upewnij się, że widzi kanał `#in-game-chat`.
+5. Włącz w Discordzie tryb developerski (User Settings -> Advanced -> Developer Mode), kliknij PPM na `#in-game-chat` -> **Copy Channel ID** -> `.env` jako `DISCORD_CHAT_CHANNEL_ID`.
+6. Dodaj zależność do projektu (jeśli jeszcze nie ma jej w `composer.json`/`composer.lock` z repo): `composer require team-reflex/discord-php`.
+7. Proces bota (`php artisan discord:bridge`) uruchamiany jest przez Supervisor — patrz konfiguracja `berserk-discord-bridge` w Kroku 7.
 
 ---
 
@@ -231,6 +257,20 @@ user=www-data
 redirect_stderr=true
 stdout_logfile=/var/www/berserk-rush/storage/logs/reverb.log
 ```
+
+Utwórz plik konfiguracyjny supervisora dla bota Discord (dwukierunkowy czat, patrz Krok 3.2 i `docs/modules/global_chat.md`): `/etc/supervisor/conf.d/berserk-discord-bridge.conf`:
+
+```ini
+[program:berserk-discord-bridge]
+command=php /var/www/berserk-rush/artisan discord:bridge
+autostart=true
+autorestart=true
+user=www-data
+redirect_stderr=true
+stdout_logfile=/var/www/berserk-rush/storage/logs/discord-bridge.log
+```
+
+*(Jeśli integracja z Discordem nie jest jeszcze skonfigurowana - brak `DISCORD_BOT_TOKEN`/`DISCORD_CHAT_CHANNEL_ID` w `.env` - proces po prostu zakończy się błędem konfiguracji przy starcie; można wtedy pominąć ten plik supervisora do czasu skonfigurowania bota.)*
 
 Załaduj i uruchom procesy:
 

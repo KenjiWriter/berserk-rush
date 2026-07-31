@@ -32,6 +32,9 @@ Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każ
   - `/give gold <ilość>`, `/give gems <ilość>` — Dodaje waluty.
   - `/exp <ilość>` — Dodaje punkty doświadczenia.
   - `/set level <poziom>`, `/set sp <ilość>` — Ustawia poziom postaci lub dodaje punkty atrybutów.
+- **Integracja z Discordem:** (dostępne dla każdego gracza, patrz sekcja "Integracja z Discordem" poniżej)
+  - `/discord` — generuje jednorazowy kod (ważny 10 minut) do połączenia postaci z kontem Discord.
+  - `/discord unlink` — usuwa istniejące połączenie postaci z Discordem.
 
 ### Format wiadomości
 ```
@@ -90,3 +93,48 @@ Czat wymaga działającego procesu serwera WebSocket. Polecenie `composer dev` u
 composer dev
 # lub ręcznie: php artisan reverb:start
 ```
+
+---
+
+## Integracja z Discordem
+
+Kanał globalny jest dwukierunkowo zsynchronizowany z kanałem `#in-game-chat` na Discordzie serwera gry.
+
+### Kierunek: gra → Discord (relay przez Webhook)
+
+Każda wiadomość rozgłoszona eventem `MessageSent` (o ile `fromDiscord === false`) jest asynchronicznie (przez kolejkę) wysyłana jako POST na Discord Incoming Webhook.
+
+| Plik | Rola |
+|------|------|
+| `app/Listeners/ForwardGlobalChatMessageToDiscord.php` | Listener na `MessageSent` (auto-discovery), wysyła wiadomość na webhook Discorda |
+| `config/services.php` → `discord.global_chat_webhook_url` | URL webhooka (`DISCORD_GLOBAL_CHAT_WEBHOOK_URL` w `.env`) |
+
+Konfiguracja: Discord → Ustawienia kanału `#in-game-chat` → Integracje → Webhooks → Nowy webhook → skopiuj URL do `.env`.
+
+### Kierunek: Discord → gra (bot bridge)
+
+Osobny, długo działający proces bota (biblioteka `team-reflex/discord-php`, oparta o ReactPHP) nasłuchuje wiadomości na kanale `#in-game-chat` i rozgłasza je do gry jako `MessageSent` z flagą `fromDiscord: true` (dzięki czemu `ForwardGlobalChatMessageToDiscord` ich nie odbija z powrotem na Discorda).
+
+| Plik | Rola |
+|------|------|
+| `app/Console/Commands/DiscordChatBridgeCommand.php` | Komenda `php artisan discord:bridge` — długo działający proces bota (uruchamiany pod Supervisorem, tak jak `reverb:start`/`queue:work`) |
+| `app/Infrastructure/Persistence/DiscordLinkCode.php` | Model jednorazowych kodów łączenia postaci z kontem Discord (tabela `discord_link_codes`) |
+| `characters.discord_user_id` | Kolumna z ID (snowflake) połączonego konta Discord — jedna postać na jedno konto Discord |
+
+**Łączenie konta (linking):**
+1. Gracz wpisuje `/discord` na czacie w grze → dostaje jednorazowy kod (np. `ABC123`, ważny 10 min).
+2. Na kanale `#in-game-chat` na Discordzie wpisuje `!link ABC123`.
+3. Bot zapisuje `discord_user_id` gracza na jego postaci i potwierdza połączenie na Discordzie.
+4. Od tej pory wiadomości tego gracza na Discordzie pojawiają się na czacie globalnym w grze pod nazwą jego postaci (poziom, tytuł, odznaki premium/moda/admina — jak przy normalnej wiadomości).
+
+Wiadomości od niepołączonych kont Discorda są ignorowane, a bot odpowiada z instrukcją jak wykonać `/link`.
+
+**Wymagana konfiguracja (`.env`):**
+```
+DISCORD_BOT_TOKEN=              # token bota z Discord Developer Portal
+DISCORD_CHAT_CHANNEL_ID=        # ID kanału #in-game-chat (Developer Mode -> Copy Channel ID)
+```
+
+Bot wymaga uprawnienia **Message Content Intent** (Privileged Gateway Intents w Discord Developer Portal) oraz zaproszenia na serwer z uprawnieniami "View Channel" i "Send Messages" na kanale `#in-game-chat`.
+
+Lokalnie proces bota jest częścią `composer dev` (obok `server`/`queue`/`vite`/`reverb`). Na produkcji patrz `docs/deployment_guide.md` — dodatkowy proces Supervisora `berserk-discord-bridge`.

@@ -39,6 +39,12 @@ class ForwardGlobalChatMessageToDiscord implements ShouldQueue
 
     public function handle(MessageSent $event): void
     {
+        // This message just came FROM Discord via the bot bridge - don't
+        // echo it straight back into the channel it originated from.
+        if ($event->fromDiscord) {
+            return;
+        }
+
         $webhookUrl = config('services.discord.global_chat_webhook_url');
 
         if (empty($webhookUrl)) {
