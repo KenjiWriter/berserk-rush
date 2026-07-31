@@ -107,5 +107,11 @@ class CharacterNameChangeTest extends TestCase
             ->set('newName', 'Ab')
             ->call('changeCharacterName')
             ->assertDispatched('notify', type: 'error');
+
+        // Test name too long (> 16 chars)
+        Livewire::test(\App\Livewire\City\Profile::class, ['character' => $char2])
+            ->set('newName', 'ThisNameIsWayTooLong17')
+            ->call('changeCharacterName')
+            ->assertDispatched('notify', type: 'error');
     }
 }

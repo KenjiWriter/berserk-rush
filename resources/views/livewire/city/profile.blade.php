@@ -231,7 +231,7 @@
                 </div>
 
                 <!-- Portrait & Info -->
-                <div class="flex flex-col items-center w-36 xs:w-44 sm:w-48 lg:w-44 xl:w-52 shrink-0" x-data="{ avatarModalOpen: false }">
+                <div class="flex flex-col items-center w-36 xs:w-44 sm:w-48 lg:w-44 xl:w-52 shrink-0 min-w-0 max-w-full" x-data="{ avatarModalOpen: false }">
                     <div class="w-full h-[180px] xs:h-[210px] sm:h-[240px] lg:h-[230px] xl:h-[260px] bg-stone-950/90 border-2 sm:border-4 border-amber-600/80 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center mb-2 sm:mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
                         @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
@@ -276,13 +276,13 @@
                     </div>
 
                     @if($character->activeTitle)
-                        <div class="text-[9px] xs:text-[10px] sm:text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-1 -mb-0.5 drop-shadow-md text-center truncate max-w-full">
+                        <div class="text-[9px] xs:text-[10px] sm:text-[11px] text-amber-400 font-bold uppercase tracking-widest mt-1 -mb-0.5 drop-shadow-md text-center truncate w-full max-w-full px-1" title="{{ $character->activeTitle->prefix }}">
                             {{ $character->activeTitle->prefix }}
                         </div>
                     @endif
-                    <div class="flex items-center justify-center gap-1.5">
-                        <h2 class="text-lg xs:text-xl sm:text-2xl font-bold text-amber-300 text-center medieval-font drop-shadow-md truncate max-w-full">{{ $character->name }}</h2>
-                        <button wire:click="openNameChangeModal" class="text-amber-400/70 hover:text-amber-200 transition-colors p-0.5 cursor-pointer" title="Zmień nick postaci">
+                    <div class="flex items-center justify-center gap-1 w-full max-w-full min-w-0 px-1">
+                        <h2 class="text-sm xs:text-base sm:text-lg lg:text-xl font-extrabold text-amber-300 text-center medieval-font drop-shadow-md truncate min-w-0" title="{{ $character->name }}">{{ $character->name }}</h2>
+                        <button wire:click="openNameChangeModal" class="text-amber-400/70 hover:text-amber-200 transition-colors p-0.5 cursor-pointer shrink-0" title="Zmień nick postaci">
                             <i class="fa-solid fa-pen-to-square text-xs sm:text-sm"></i>
                         </button>
                     </div>
@@ -304,10 +304,10 @@
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-bold text-stone-300 mb-1.5 uppercase tracking-wider">Nowy nick (3-20 znaków):</label>
+                                        <label class="block text-xs font-bold text-stone-300 mb-1.5 uppercase tracking-wider">Nowy nick (3-16 znaków):</label>
                                         <input type="text" wire:model="newName" wire:keydown.enter="changeCharacterName"
                                             class="w-full bg-stone-950 border-2 border-amber-500/40 rounded-xl py-2.5 px-3 text-amber-100 text-sm font-semibold focus:outline-none focus:border-amber-400 transition shadow-inner placeholder-stone-600"
-                                            placeholder="Wprowadź nowy nick..." maxlength="20" autofocus />
+                                            placeholder="Wprowadź nowy nick..." maxlength="16" autofocus />
                                     </div>
 
                                     {{-- Price Banner --}}

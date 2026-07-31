@@ -304,8 +304,8 @@ class Profile extends Component
     {
         $this->newName = trim($this->newName);
 
-        if (mb_strlen($this->newName) < 3 || mb_strlen($this->newName) > 20) {
-            $this->dispatch('notify', type: 'error', message: 'Nick postaci musi zawierać od 3 do 20 znaków.');
+        if (mb_strlen($this->newName) < 3 || mb_strlen($this->newName) > 16) {
+            $this->dispatch('notify', type: 'error', message: 'Nick postaci musi zawierać od 3 do 16 znaków.');
             return;
         }
 
