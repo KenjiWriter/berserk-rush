@@ -231,6 +231,25 @@
     $formatNumber = function ($value) {
         return \App\Support\NumberHelper::formatShort($value);
     };
+
+    // Jakość (rzadkość) przedmiotu - tylko realne ItemInstance mają wylosowaną
+    // rarity (podglądy szablonów w rzemiośle/sklepie jej nie mają).
+    $rarity = $item->rarity ?? null;
+    $rarityLabel = match ($rarity) {
+        'common' => 'Zwykła',
+        'uncommon' => 'Niezwykła',
+        'rare' => 'Rzadka',
+        'epic' => 'Epicka',
+        'legendary' => 'Legendarna',
+        default => $rarity ? ucfirst($rarity) : null,
+    };
+    $rarityClass = match ($rarity) {
+        'uncommon' => 'text-emerald-400 border-emerald-600/60 bg-emerald-950/20',
+        'rare' => 'text-sky-400 border-sky-500/60 bg-sky-950/20',
+        'epic' => 'text-purple-400 border-purple-500/60 bg-purple-950/20',
+        'legendary' => 'text-amber-400 border-amber-400/70 bg-amber-950/30 shadow-[0_0_8px_rgba(245,158,11,0.3)]',
+        default => 'text-gray-300 border-slate-600/60 bg-slate-800/80',
+    };
 @endphp
 
 <div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
@@ -253,6 +272,11 @@
                 <span class="inline-flex items-center gap-1 bg-slate-800/80 border border-slate-600/60 rounded px-1.5 py-0.5 text-[10px] font-semibold text-amber-300/90">
                     <i class="fa-solid fa-arrow-up-right-dots"></i> Poz. {{ $template->level_requirement ?? 1 }}
                 </span>
+                @if($rarityLabel)
+                    <span class="inline-flex items-center gap-1 border rounded px-1.5 py-0.5 text-[10px] font-semibold {{ $rarityClass }}">
+                        <i class="fa-solid fa-gem"></i> {{ $rarityLabel }}
+                    </span>
+                @endif
             </div>
             @if(isset($roll_stats['mint']))
                 <p class="text-red-400 font-bold text-xs uppercase animate-pulse border-b border-red-500/50 pb-1 w-max">
