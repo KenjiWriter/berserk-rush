@@ -54,7 +54,18 @@ class MailboxComponent extends Component
             return;
         }
 
+        $character->refresh();
+        if ($character->user) {
+            $character->user->refresh();
+        }
+
         $this->dispatch('notify', message: 'Wiadomość/załączniki zostały pomyślnie odebrane!', type: 'success');
+        $this->dispatch('stats-updated', newStats: [
+            'gold' => $character->gold,
+            'gems' => $character->user?->gems ?? 0,
+            'level' => $character->level,
+            'xp' => $character->xp,
+        ]);
         $this->dispatch('character-updated');
     }
     
@@ -254,8 +265,19 @@ class MailboxComponent extends Component
             }
         }
 
+        $character->refresh();
+        if ($character->user) {
+            $character->user->refresh();
+        }
+
         if ($claimedCount > 0) {
             $this->dispatch('notify', message: "Odebrano załączniki z {$claimedCount} wiadomości!", type: 'success');
+            $this->dispatch('stats-updated', newStats: [
+                'gold' => $character->gold,
+                'gems' => $character->user?->gems ?? 0,
+                'level' => $character->level,
+                'xp' => $character->xp,
+            ]);
             $this->dispatch('character-updated');
         } else {
             $this->dispatch('notify', message: 'Nie odebrano żadnych załączników.', type: 'info');
