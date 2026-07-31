@@ -37,6 +37,13 @@ class Adventure extends Component
         }
 
         $this->character = $character;
+
+        if ($this->character->hasActiveMirror()) {
+            session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
+            $this->redirect(route('city.hub', $this->character), navigate: true);
+            return;
+        }
+
         $this->loadMaps();
     }
 

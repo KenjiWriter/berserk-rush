@@ -188,6 +188,28 @@ class Character extends Model
         return $this->hasMany(CharacterPokedex::class, 'character_id');
     }
 
+    public function mapMirrorStats(): HasMany
+    {
+        return $this->hasMany(CharacterMapMirrorStat::class, 'character_id');
+    }
+
+    public function mirrorSessions(): HasMany
+    {
+        return $this->hasMany(CharacterMirrorSession::class, 'character_id');
+    }
+
+    public function activeMirrorSession(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CharacterMirrorSession::class, 'character_id')
+            ->where('status', 'active');
+    }
+
+    public function hasActiveMirror(): bool
+    {
+        $session = $this->activeMirrorSession;
+        return $session !== null && $session->status === 'active';
+    }
+
     public function getStrengthAttribute(): int
     {
         return $this->getAttribute('attributes')['str'] ?? 0;

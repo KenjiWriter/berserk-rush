@@ -39,6 +39,11 @@ class Profile extends Component
     public string $newName = '';
     public bool $showNameChangeModal = false;
 
+    // Mirror System State
+    public ?int $selectedMirrorMapId = null;
+    public int $selectedMirrorDurationHours = 1;
+    public ?array $claimedRewardsSummary = null;
+
     // Pets & Synthesizer State
     public array $selectedSynthesizerPetIds = [];
     public ?int $feedingPetId = null;
@@ -848,6 +853,22 @@ class Profile extends Component
             default => ['str'],
         };
 
+        // Mirror System Data
+        $mirrorMaps = \App\Infrastructure\Persistence\Map::orderBy('level_min')->get();
+        $mirrorService = app(\App\Application\Mirror\MirrorService::class);
+        $mapRates = [];
+        foreach ($mirrorMaps as $m) {
+            $mapRates[$m->id] = $mirrorService->getMapRates($this->character, $m);
+        }
+
+        if (!$this->selectedMirrorMapId && $mirrorMaps->isNotEmpty()) {
+            $accessibleMap = $mirrorMaps->filter(fn($m) => $m->isAccessibleBy($this->character))->last();
+            $this->selectedMirrorMapId = $accessibleMap ? $accessibleMap->id : $mirrorMaps->first()->id;
+        }
+
+        $activeMirrorSession = $this->character->activeMirrorSession;
+        $mirrorRewardsPreview = $activeMirrorSession ? $activeMirrorSession->calculateCurrentRewards() : null;
+
         return view('livewire.city.profile', [
             'equipped' => $equipped,
             'inventory' => $inventory,
@@ -873,6 +894,58 @@ class Profile extends Component
             'feedingPet' => $this->feedingPetId ? Pet::find($this->feedingPetId) : null,
             'baseAvatars' => $baseAvatars,
             'equipmentSets' => $equipmentSets,
+            'mirrorMaps' => $mirrorMaps,
+            'mapRates' => $mapRates,
+            'activeMirrorSession' => $activeMirrorSession,
+            'mirrorRewardsPreview' => $mirrorRewardsPreview,
         ]);
+    }
+
+    public function selectMirrorMap(int $mapId): void
+    {
+        $this->selectedMirrorMapId = $mapId;
+    }
+
+    public function selectMirrorDuration(int $hours): void
+    {
+        $maxHours = ($this->character->user && $this->character->user->hasPremium()) ? 10 : 6;
+        $this->selectedMirrorDurationHours = min($maxHours, max(1, $hours));
+    }
+
+    public function startMirror(): void
+    {
+        try {
+            if (!$this->selectedMirrorMapId) {
+                $this->dispatch('notify', type: 'error', message: 'Wybierz mapę do uruchomienia Lustra.');
+                return;
+            }
+
+            $map = \App\Infrastructure\Persistence\Map::findOrFail($this->selectedMirrorMapId);
+            $mirrorService = app(\App\Application\Mirror\MirrorService::class);
+            $session = $mirrorService->startMirror($this->character, $map, $this->selectedMirrorDurationHours);
+
+            $this->dispatch('notify', type: 'success', message: "Lustro zostało pomyślnie aktywowane na mapie {$map->name}!");
+            $this->character->refresh();
+            $this->activeTab = 'mirror';
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: $e->getMessage());
+        }
+    }
+
+    public function stopMirror(): void
+    {
+        try {
+            $mirrorService = app(\App\Application\Mirror\MirrorService::class);
+            $this->claimedRewardsSummary = $mirrorService->stopAndClaim($this->character);
+            $this->character->refresh();
+            $this->dispatch('notify', type: 'success', message: 'Lustro zostało zakończone, a nagrody odebrane!');
+        } catch (\Exception $e) {
+            $this->dispatch('notify', type: 'error', message: $e->getMessage());
+        }
+    }
+
+    public function closeRewardsSummary(): void
+    {
+        $this->claimedRewardsSummary = null;
     }
 }

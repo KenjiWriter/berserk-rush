@@ -121,6 +121,13 @@ class MapStub extends Component
         }
 
         $this->character = $character;
+
+        if ($this->character->hasActiveMirror()) {
+            session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
+            $this->redirect(route('city.hub', $this->character), navigate: true);
+            return;
+        }
+
         $this->character->syncMissingPoints();
         $this->map = $map;
         $this->background = $this->backgroundFor($map);
@@ -619,6 +626,19 @@ class MapStub extends Component
             $this->sessionXpEarned += $this->xpGained;
             $this->trackSessionDrops();
             $this->character = $this->character->fresh();
+
+            // Record / update player's max exp and gold per minute on this map
+            $sessionMinutes = max(0.5, (time() - $this->sessionStartTime) / 60.0);
+            $expPerMin = (int) round($this->sessionXpEarned / $sessionMinutes);
+            $goldPerMin = (int) round($this->sessionGoldEarned / $sessionMinutes);
+            if ($this->map && ($expPerMin > 0 || $goldPerMin > 0)) {
+                app(\App\Application\Mirror\MirrorService::class)->updateMapRates(
+                    $this->character,
+                    $this->map,
+                    $expPerMin,
+                    $goldPerMin
+                );
+            }
 
             if ($this->character->level > $oldLevel) {
                 $this->dispatch('play-audio', type: 'levelup');

@@ -522,7 +522,7 @@
             <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
                  wire:key="attributes-panel-{{ $character->id }}">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
-                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
                         <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
@@ -537,6 +537,15 @@
                         </button>
                         <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
+                        </button>
+                        <button wire:click="setTab('mirror')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center relative {{ $activeTab === 'mirror' ? 'text-purple-300 border-b-2 border-purple-400 bg-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-stone-400 hover:text-purple-200 hover:bg-stone-800/40' }}">
+                            <i class="fa-solid fa-[#...]/fa-gem text-purple-400 mr-1 text-xs"></i> Lustro
+                            @if($character->hasActiveMirror())
+                                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                                </span>
+                            @endif
                         </button>
                     </div>
                     @if($activeTab === 'attributes')
@@ -753,6 +762,247 @@
                 @elseif($activeTab === 'skills')
                     <div class="mt-4">
                         @livewire('profile.skills-tab', ['character' => $character])
+                    </div>
+                @elseif($activeTab === 'mirror')
+                    <div class="mt-4 bg-stone-900/90 border-2 border-purple-600/60 rounded-2xl p-3 sm:p-5 shadow-2xl relative overflow-hidden">
+                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none"></div>
+
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-purple-500/30 pb-3 mb-4 gap-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-purple-950 border border-purple-500/60 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)] shrink-0">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-purple-300 text-lg animate-pulse"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-base sm:text-lg font-bold text-purple-200 medieval-font">Magiczne Lustro (Multitasking)</h3>
+                                    <p class="text-[11px] text-purple-300/70">Przygoda toczy się w tle! W tym czasie możesz walczyć z bossami, ulepszać eq i bić dungeony.</p>
+                                </div>
+                            </div>
+
+                            @if($activeMirrorSession)
+                                <span class="px-3 py-1 bg-purple-950/80 border border-purple-400 text-purple-300 text-[11px] font-bold rounded-full animate-pulse flex items-center gap-1.5 shadow-[0_0_10px_rgba(168,85,247,0.4)] self-start sm:self-auto">
+                                    <i class="fa-solid fa-arrows-rotate fa-spin"></i> LUSTRO W TOKU
+                                </span>
+                            @endif
+                        </div>
+
+                        @if($claimedRewardsSummary)
+                            <div class="mb-5 p-4 rounded-xl bg-gradient-to-r from-emerald-950/90 via-stone-900 to-emerald-950/90 border-2 border-emerald-500/80 shadow-[0_0_25px_rgba(16,185,129,0.3)] relative">
+                                <button wire:click="closeRewardsSummary" class="absolute top-2 right-2 text-stone-400 hover:text-white font-bold text-lg cursor-pointer">✕</button>
+                                <h4 class="text-sm sm:text-base font-bold text-emerald-300 medieval-font mb-2 flex items-center gap-2">
+                                    <i class="fa-solid fa-gift text-yellow-400"></i> Nagrody z Lustra Zostały Przyznane!
+                                </h4>
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 my-3">
+                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-lg"></i>
+                                        <div>
+                                            <span class="block text-[10px] text-stone-400 uppercase font-bold">Doświadczenie:</span>
+                                            <span class="text-xs sm:text-sm font-extrabold text-amber-300">+{{ number_format($claimedRewardsSummary['xp']) }} XP</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2">
+                                        <i class="fa-solid fa-coins text-yellow-400 text-lg"></i>
+                                        <div>
+                                            <span class="block text-[10px] text-stone-400 uppercase font-bold">Złoto:</span>
+                                            <span class="text-xs sm:text-sm font-extrabold text-yellow-300">+{{ number_format($claimedRewardsSummary['gold']) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2 col-span-2 sm:col-span-1">
+                                        <i class="fa-solid fa-clock text-cyan-400 text-lg"></i>
+                                        <div>
+                                            <span class="block text-[10px] text-stone-400 uppercase font-bold">Czas trwania:</span>
+                                            <span class="text-xs sm:text-sm font-extrabold text-cyan-200">{{ $claimedRewardsSummary['elapsed_minutes'] }} min</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(!empty($claimedRewardsSummary['materials']))
+                                    <div class="mt-2">
+                                        <span class="block text-xs font-bold text-emerald-200 mb-1">Zdobyte materiały:</span>
+                                        <div class="flex flex-wrap gap-2">
+                                            @foreach($claimedRewardsSummary['materials'] as $mat)
+                                                <div class="px-2.5 py-1 bg-stone-950 border border-amber-500/50 rounded-lg flex items-center gap-2 text-xs font-bold text-amber-200">
+                                                    <i class="fa-solid fa-cube text-amber-400"></i>
+                                                    <span>{{ $mat['name'] }}</span>
+                                                    <span class="text-emerald-400">x{{ $mat['quantity'] }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
+
+                        @if($activeMirrorSession)
+                            <div class="space-y-4">
+                                <div class="bg-stone-950/90 border border-purple-500/50 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div class="flex items-center gap-3 w-full md:w-auto">
+                                        <div class="w-14 h-14 rounded-xl bg-purple-950 border-2 border-purple-400 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                                            @if($activeMirrorSession->map && $activeMirrorSession->map->image_path)
+                                                <img src="{{ asset($activeMirrorSession->map->image_path) }}" class="w-full h-full object-cover" />
+                                            @else
+                                                <i class="fa-solid fa-map-location-dot text-purple-300 text-xl"></i>
+                                            @endif
+                                        </div>
+                                        <div class="min-w-0">
+                                            <span class="text-[10px] text-purple-300 uppercase tracking-widest font-bold block">Mapa w tle:</span>
+                                            <h4 class="text-base font-bold text-amber-300 medieval-font truncate">{{ $activeMirrorSession->map ? $activeMirrorSession->map->name : 'Przygoda' }}</h4>
+                                            <p class="text-[11px] text-stone-400">Planowany czas: <strong>{{ $activeMirrorSession->duration_hours }}h</strong> (Stawka 60%)</p>
+                                        </div>
+                                    </div>
+
+                                    @php
+                                        $rewards = $mirrorRewardsPreview ?? $activeMirrorSession->calculateCurrentRewards();
+                                        $remainingSec = $activeMirrorSession->getRemainingSeconds();
+                                        $hoursRem = floor($remainingSec / 3600);
+                                        $minRem = floor(($remainingSec % 3600) / 60);
+                                        $secRem = $remainingSec % 60;
+                                    @endphp
+                                    <div class="text-center md:text-right shrink-0">
+                                        <span class="text-[10px] text-stone-400 uppercase font-bold block">Pozostało do końca:</span>
+                                        <div class="text-xl sm:text-2xl font-black text-purple-300 medieval-font tracking-wider">
+                                            {{ sprintf('%02d:%02d:%02d', $hoursRem, $minRem, $secRem) }}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                        <i class="fa-solid fa-bolt text-yellow-400 text-xl drop-shadow"></i>
+                                        <div>
+                                            <span class="text-[10px] text-stone-400 uppercase font-bold block">Naliczone EXP:</span>
+                                            <span class="text-sm font-extrabold text-amber-300">+{{ number_format($rewards['xp']) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                        <i class="fa-solid fa-coins text-yellow-400 text-xl drop-shadow"></i>
+                                        <div>
+                                            <span class="text-[10px] text-stone-400 uppercase font-bold block">Naliczone Złoto:</span>
+                                            <span class="text-sm font-extrabold text-yellow-300">+{{ number_format($rewards['gold']) }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                        <i class="fa-solid fa-cubes text-amber-400 text-xl drop-shadow"></i>
+                                        <div>
+                                            <span class="text-[10px] text-stone-400 uppercase font-bold block">Przechowywane materiały:</span>
+                                            <span class="text-sm font-extrabold text-amber-200">{{ count($rewards['materials']) }} rodzajów</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="pt-2">
+                                    <button wire:click="stopMirror"
+                                            wire:loading.attr="disabled"
+                                            wire:target="stopMirror"
+                                            class="w-full py-3 bg-gradient-to-r from-red-700 via-rose-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">
+                                        <span wire:loading.remove wire:target="stopMirror" class="flex items-center gap-2">
+                                            <i class="fa-solid fa-hand-paper text-base"></i> PRZERWIJ LUSTRO I ODBIERZ NAGRODY
+                                        </span>
+                                        <span wire:loading wire:target="stopMirror" class="flex items-center gap-2">
+                                            <i class="fa-solid fa-spinner animate-spin text-base"></i> Naliczanie nagród...
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        @else
+                            <div class="space-y-5">
+                                <div>
+                                    <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">1. Wybierz Mapę do Przygody w Tle:</label>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto custom-scrollbar p-1">
+                                        @foreach($mirrorMaps as $m)
+                                            @php
+                                                $isAccessible = $m->isAccessibleBy($character);
+                                                $rates = $mapRates[$m->id] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0];
+                                                $isSelected = $selectedMirrorMapId === $m->id;
+                                            @endphp
+                                            <div wire:click="selectMirrorMap({{ $m->id }})"
+                                                 class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 relative
+                                                        {{ !$isAccessible ? 'opacity-40 border-stone-800 bg-stone-950/60 pointer-events-none' : ($isSelected ? 'border-purple-400 bg-purple-950/60 shadow-[0_0_15px_rgba(168,85,247,0.3)] ring-2 ring-purple-500' : 'border-stone-800 bg-stone-950/80 hover:border-purple-500/50 hover:bg-stone-900') }}">
+                                                <div class="flex items-center gap-2.5 min-w-0">
+                                                    <div class="w-9 h-9 rounded-lg bg-stone-900 border border-stone-700 flex items-center justify-center shrink-0 overflow-hidden">
+                                                        @if($m->image_path)
+                                                            <img src="{{ asset($m->image_path) }}" class="w-full h-full object-cover" />
+                                                        @else
+                                                            <i class="fa-solid fa-map-location-dot text-amber-400 text-base"></i>
+                                                        @endif
+                                                    </div>
+                                                    <div class="min-w-0">
+                                                        <h5 class="text-xs font-bold text-amber-300 truncate medieval-font">{{ $m->name }}</h5>
+                                                        <span class="text-[10px] text-stone-400 font-semibold">Poziom {{ $m->level_range }}</span>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right shrink-0 text-[10px] flex flex-col gap-0.5">
+                                                    <span class="text-amber-400 font-bold"><i class="fa-solid fa-bolt text-yellow-400"></i> {{ number_format($rates['exp_per_minute']) }}/min</span>
+                                                    <span class="text-yellow-300 font-bold"><i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($rates['gold_per_minute']) }}/min</span>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                @php
+                                    $isVip = auth()->user()->hasPremium();
+                                    $maxHoursAllowed = $isVip ? 10 : 6;
+                                @endphp
+                                <div>
+                                    <div class="flex items-center justify-between mb-2">
+                                        <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider">2. Czas trwania Lustra (1 - {{ $maxHoursAllowed }}h):</label>
+                                        @if($isVip)
+                                            <span class="text-[11px] text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> Status VIP (do 10h)</span>
+                                        @else
+                                            <span class="text-[11px] text-stone-400 font-semibold">Bez VIP max 6h (z VIP do 10h)</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex flex-wrap gap-1.5">
+                                        @for($h = 1; $h <= 10; $h++)
+                                            @php
+                                                $lockedForUser = $h > $maxHoursAllowed;
+                                                $isHSelected = $selectedMirrorDurationHours === $h;
+                                            @endphp
+                                            <button type="button"
+                                                    @if($lockedForUser) disabled title="Wymagany status VIP dla czasu > 6 godzin" @else wire:click="selectMirrorDuration({{ $h }})" @endif
+                                                    class="px-3 py-1.5 rounded-xl border font-black text-xs transition-all flex items-center gap-1 cursor-pointer
+                                                           {{ $lockedForUser ? 'border-stone-800 bg-stone-950/60 text-stone-600 cursor-not-allowed' : ($isHSelected ? 'border-purple-400 bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)] scale-105' : 'border-stone-800 bg-stone-950 text-stone-300 hover:border-purple-500 hover:text-white') }}">
+                                                <span>{{ $h }}h</span>
+                                                @if($lockedForUser)
+                                                    <i class="fa-solid fa-lock text-[10px] text-amber-500"></i>
+                                                @endif
+                                            </button>
+                                        @endfor
+                                    </div>
+                                </div>
+
+                                @php
+                                    $activeMapObj = $mirrorMaps->firstWhere('id', $selectedMirrorMapId) ?? $mirrorMaps->first();
+                                    $selectedRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0];
+                                    $totalMins = $selectedMirrorDurationHours * 60;
+                                    $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.60);
+                                    $estGold = (int) floor($totalMins * $selectedRates['gold_per_minute'] * 0.60);
+                                @endphp
+                                <div class="bg-stone-950/90 border border-purple-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                    <div>
+                                        <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider block">Prognozowany plon z Lustra (60% stawki):</span>
+                                        <div class="flex items-center gap-3 mt-1">
+                                            <span class="text-xs sm:text-sm font-extrabold text-amber-300"><i class="fa-solid fa-bolt text-yellow-400"></i> ~{{ number_format($estExp) }} XP</span>
+                                            <span class="text-xs sm:text-sm font-extrabold text-yellow-300"><i class="fa-solid fa-coins text-yellow-400"></i> ~{{ number_format($estGold) }} Złota</span>
+                                            <span class="text-xs font-semibold text-amber-200"><i class="fa-solid fa-cubes text-amber-400"></i> + Materiały</span>
+                                        </div>
+                                    </div>
+
+                                    <button wire:click="startMirror"
+                                            wire:loading.attr="disabled"
+                                            wire:target="startMirror"
+                                            class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                                        <span wire:loading.remove wire:target="startMirror" class="flex items-center gap-2">
+                                            <i class="fa-solid fa-play"></i> URUCHOM LUSTRO
+                                        </span>
+                                        <span wire:loading wire:target="startMirror" class="flex items-center gap-2">
+                                            <i class="fa-solid fa-spinner animate-spin"></i> Uruchamianie...
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>

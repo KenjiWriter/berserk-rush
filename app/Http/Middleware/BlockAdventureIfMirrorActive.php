@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Infrastructure\Persistence\Character;
+
+class BlockAdventureIfMirrorActive
+{
+    public function handle(Request $request, Closure $next)
+    {
+        if (Auth::check()) {
+            $charParam = $request->route('character');
+            $character = null;
+
+            if ($charParam) {
+                $character = $charParam instanceof Character ? $charParam : Character::find($charParam);
+            }
+
+            if (!$character && session('active_character')) {
+                $character = Character::find(session('active_character'));
+            }
+
+            if ($character && $character->hasActiveMirror()) {
+                session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
+                return redirect()->route('city.hub', $character);
+            }
+        }
+
+        return $next($request);
+    }
+}

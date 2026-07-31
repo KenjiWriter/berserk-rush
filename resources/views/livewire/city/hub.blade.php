@@ -68,6 +68,39 @@
     @endif
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
+        {{-- Active Mirror Banner --}}
+        @if($character->hasActiveMirror())
+            @php
+                $activeMirror = $character->activeMirrorSession;
+                $mirrorRewards = $activeMirror ? $activeMirror->calculateCurrentRewards() : null;
+            @endphp
+            @if($activeMirror)
+                <div class="mb-6 p-4 rounded-2xl bg-gradient-to-r from-purple-950/90 via-stone-900/90 to-purple-950/90 border-2 border-purple-500/80 shadow-[0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-xl bg-purple-950 border border-purple-400 flex items-center justify-center shadow-lg shrink-0">
+                            <i class="fa-solid fa-wand-magic-sparkles text-purple-300 text-2xl animate-pulse"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-black uppercase text-purple-300 tracking-wider">Magiczne Lustro Aktywne</span>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-900 border border-purple-400 text-purple-200">
+                                    {{ $activeMirror->map ? $activeMirror->map->name : 'Przygoda' }}
+                                </span>
+                            </div>
+                            <p class="text-xs text-amber-200/80 mt-0.5">
+                                Naliczone w tle: <strong class="text-amber-300">+{{ number_format($mirrorRewards['xp'] ?? 0) }} XP</strong>, <strong class="text-yellow-300">+{{ number_format($mirrorRewards['gold'] ?? 0) }} Złota</strong> (+ {{ count($mirrorRewards['materials'] ?? []) }} rodzajów materiałów)
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('city.profile', ['character' => $character, 'tab' => 'mirror']) }}" wire:navigate
+                       class="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg border border-purple-400 transition-all flex items-center gap-2 shrink-0 cursor-pointer">
+                        <i class="fa-solid fa-user"></i> Zobacz w Profilu
+                    </a>
+                </div>
+            @endif
+        @endif
+
         {{-- Admin Link Header --}}
         @if(auth()->user()->permission_level >= 8)
             <div class="flex justify-end mb-4">
