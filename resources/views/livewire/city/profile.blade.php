@@ -836,12 +836,8 @@
                             <div class="space-y-4">
                                 <div class="bg-stone-950/90 border border-purple-500/50 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
                                     <div class="flex items-center gap-3 w-full md:w-auto">
-                                        <div class="w-14 h-14 rounded-xl bg-purple-950 border-2 border-purple-400 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
-                                            @if($activeMirrorSession->map && $activeMirrorSession->map->image_path)
-                                                <img src="{{ asset($activeMirrorSession->map->image_path) }}" class="w-full h-full object-cover" />
-                                            @else
-                                                <i class="fa-solid fa-map-location-dot text-purple-300 text-xl"></i>
-                                            @endif
+                                        <div class="w-12 h-12 rounded-xl bg-purple-950 border-2 border-purple-400 flex items-center justify-center shrink-0 shadow-md">
+                                            <i class="fa-solid fa-map-location-dot text-purple-300 text-xl"></i>
                                         </div>
                                         <div class="min-w-0">
                                             <span class="text-[10px] text-purple-300 uppercase tracking-widest font-bold block">Mapa w tle:</span>
@@ -905,67 +901,103 @@
                             </div>
                         @else
                             <div class="space-y-5">
+                                {{-- Wybór mapy za pomocą Selectbox --}}
                                 <div>
                                     <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">1. Wybierz Mapę do Przygody w Tle:</label>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-56 overflow-y-auto custom-scrollbar p-1">
-                                        @foreach($mirrorMaps as $m)
-                                            @php
-                                                $isAccessible = $m->isAccessibleBy($character);
-                                                $rates = $mapRates[$m->id] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0];
-                                                $isSelected = $selectedMirrorMapId === $m->id;
-                                            @endphp
-                                            <div wire:click="selectMirrorMap({{ $m->id }})"
-                                                 class="p-2.5 rounded-xl border-2 transition-all cursor-pointer flex items-center justify-between gap-2 relative
-                                                        {{ !$isAccessible ? 'opacity-40 border-stone-800 bg-stone-950/60 pointer-events-none' : ($isSelected ? 'border-purple-400 bg-purple-950/60 shadow-[0_0_15px_rgba(168,85,247,0.3)] ring-2 ring-purple-500' : 'border-stone-800 bg-stone-950/80 hover:border-purple-500/50 hover:bg-stone-900') }}">
-                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                    <div class="w-9 h-9 rounded-lg bg-stone-900 border border-stone-700 flex items-center justify-center shrink-0 overflow-hidden">
-                                                        @if($m->image_path)
-                                                            <img src="{{ asset($m->image_path) }}" class="w-full h-full object-cover" />
-                                                        @else
-                                                            <i class="fa-solid fa-map-location-dot text-amber-400 text-base"></i>
-                                                        @endif
-                                                    </div>
-                                                    <div class="min-w-0">
-                                                        <h5 class="text-xs font-bold text-amber-300 truncate medieval-font">{{ $m->name }}</h5>
-                                                        <span class="text-[10px] text-stone-400 font-semibold">Poziom {{ $m->level_range }}</span>
-                                                    </div>
+                                    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+                                        <select wire:model.live="selectedMirrorMapId"
+                                                class="w-full sm:w-2/3 bg-stone-950 border-2 border-purple-500/60 rounded-xl px-3.5 py-2.5 text-amber-100 text-xs sm:text-sm font-semibold focus:outline-none focus:border-purple-400 shadow-inner">
+                                            @foreach($mirrorMaps as $m)
+                                                @php
+                                                    $isAccessible = $m->isAccessibleBy($character);
+                                                    $rates = $mapRates[$m->id] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
+                                                @endphp
+                                                <option value="{{ $m->id }}" @if(!$isAccessible) disabled @endif class="bg-stone-900 text-amber-100 py-1">
+                                                    {{ $m->name }} (Poz. {{ $m->level_range }})
+                                                    @if($rates['has_record'])
+                                                        — ⚡ {{ number_format($rates['exp_per_minute']) }}/min | 💰 {{ number_format($rates['gold_per_minute']) }}/min
+                                                    @else
+                                                        — ⚠️ Brak rekordu (Stocz min. 1 walkę)
+                                                    @endif
+                                                    @if(!$isAccessible) [Wymagany wyższy poziom] @endif
+                                                </option>
+                                            @endforeach
+                                        </select>
+
+                                        @php
+                                            $activeMapObj = $mirrorMaps->firstWhere('id', (int)$selectedMirrorMapId) ?? $mirrorMaps->first();
+                                            $activeRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
+                                        @endphp
+
+                                        <div class="flex-1 bg-stone-950/80 border border-purple-800/60 rounded-xl p-2.5 flex items-center justify-around text-xs">
+                                            @if($activeRates['has_record'])
+                                                <div class="text-amber-300 font-bold flex items-center gap-1.5" title="Twój najlepszy zarejestrowany wynik XP/min">
+                                                    <i class="fa-solid fa-bolt text-yellow-400 text-sm"></i>
+                                                    <span>{{ number_format($activeRates['exp_per_minute']) }}/min</span>
                                                 </div>
-                                                <div class="text-right shrink-0 text-[10px] flex flex-col gap-0.5">
-                                                    <span class="text-amber-400 font-bold"><i class="fa-solid fa-bolt text-yellow-400"></i> {{ number_format($rates['exp_per_minute']) }}/min</span>
-                                                    <span class="text-yellow-300 font-bold"><i class="fa-solid fa-coins text-yellow-400"></i> {{ number_format($rates['gold_per_minute']) }}/min</span>
+                                                <div class="text-yellow-300 font-bold flex items-center gap-1.5" title="Twój najlepszy zarejestrowany wynik Złota/min">
+                                                    <i class="fa-solid fa-coins text-yellow-400 text-sm"></i>
+                                                    <span>{{ number_format($activeRates['gold_per_minute']) }}/min</span>
                                                 </div>
-                                            </div>
-                                        @endforeach
+                                            @else
+                                                <div class="text-rose-400 font-bold text-center text-[11px] flex items-center gap-1">
+                                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                                    <span>Brak rekordu (Stocz walkę na tej mapie!)</span>
+                                                </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
 
+                                {{-- Wybór czasu trwania (Suwak + Przyciski) --}}
                                 @php
                                     $isVip = auth()->user()->hasPremium();
                                     $maxHoursAllowed = $isVip ? 10 : 6;
                                 @endphp
-                                <div>
+                                <div class="bg-stone-950/60 border border-purple-900/50 p-3.5 rounded-xl">
                                     <div class="flex items-center justify-between mb-2">
-                                        <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider">2. Czas trwania Lustra (1 - {{ $maxHoursAllowed }}h):</label>
-                                        @if($isVip)
-                                            <span class="text-[11px] text-amber-400 font-bold flex items-center gap-1"><i class="fa-solid fa-crown text-yellow-400"></i> Status VIP (do 10h)</span>
-                                        @else
-                                            <span class="text-[11px] text-stone-400 font-semibold">Bez VIP max 6h (z VIP do 10h)</span>
-                                        @endif
+                                        <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider">2. Czas trwania Lustra:</label>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-black text-purple-200 bg-purple-950 border border-purple-400/80 px-3 py-1 rounded-xl shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                                                {{ $selectedMirrorDurationHours }} {{ $selectedMirrorDurationHours === 1 ? 'godzina' : ($selectedMirrorDurationHours < 5 ? 'godziny' : 'godzin') }}
+                                            </span>
+                                            @if($isVip)
+                                                <span class="text-[10px] text-amber-400 font-bold flex items-center gap-1 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/50"><i class="fa-solid fa-crown text-yellow-400"></i> VIP (do 10h)</span>
+                                            @else
+                                                <span class="text-[10px] text-stone-400 font-medium">Bez VIP max 6h</span>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <div class="flex flex-wrap gap-1.5">
+                                    {{-- Range Slider --}}
+                                    <div class="my-3 px-1">
+                                        <input type="range" min="1" max="{{ $maxHoursAllowed }}" step="1"
+                                               wire:model.live="selectedMirrorDurationHours"
+                                               class="w-full h-3 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-purple-500 border border-purple-500/40 shadow-inner">
+                                        <div class="flex justify-between text-[10px] font-bold text-stone-500 px-1 mt-1">
+                                            <span>1h</span>
+                                            <span>3h</span>
+                                            <span>6h</span>
+                                            @if($isVip)
+                                                <span>10h</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Preset buttons --}}
+                                    <div class="flex flex-wrap gap-1.5 mt-2">
                                         @for($h = 1; $h <= 10; $h++)
                                             @php
                                                 $lockedForUser = $h > $maxHoursAllowed;
-                                                $isHSelected = $selectedMirrorDurationHours === $h;
+                                                $isHSelected = (int)$selectedMirrorDurationHours === $h;
                                             @endphp
                                             <button type="button"
                                                     @if($lockedForUser) disabled title="Wymagany status VIP dla czasu > 6 godzin" @else wire:click="selectMirrorDuration({{ $h }})" @endif
-                                                    class="px-3 py-1.5 rounded-xl border font-black text-xs transition-all flex items-center gap-1 cursor-pointer
+                                                    class="px-2.5 py-1 rounded-lg border font-black text-xs transition-all flex items-center gap-1 cursor-pointer
                                                            {{ $lockedForUser ? 'border-stone-800 bg-stone-950/60 text-stone-600 cursor-not-allowed' : ($isHSelected ? 'border-purple-400 bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)] scale-105' : 'border-stone-800 bg-stone-950 text-stone-300 hover:border-purple-500 hover:text-white') }}">
                                                 <span>{{ $h }}h</span>
                                                 @if($lockedForUser)
-                                                    <i class="fa-solid fa-lock text-[10px] text-amber-500"></i>
+                                                    <i class="fa-solid fa-lock text-[9px] text-amber-500"></i>
                                                 @endif
                                             </button>
                                         @endfor
@@ -973,7 +1005,7 @@
                                 </div>
 
                                 @php
-                                    $activeMapObj = $mirrorMaps->firstWhere('id', $selectedMirrorMapId) ?? $mirrorMaps->first();
+                                    $activeMapObj = $mirrorMaps->firstWhere('id', (int)$selectedMirrorMapId) ?? $mirrorMaps->first();
                                     $selectedRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0];
                                     $totalMins = $selectedMirrorDurationHours * 60;
                                     $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.60);

@@ -19,7 +19,7 @@ class MirrorService
     ) {}
 
     /**
-     * Retrieve stored rates or calculate baseline map rates for a character.
+     * Retrieve stored max rates for a character on a specific map.
      */
     public function getMapRates(Character $character, Map $map): array
     {
@@ -27,45 +27,18 @@ class MirrorService
             ->where('map_id', $map->id)
             ->first();
 
-        if ($stat && $stat->max_exp_per_minute > 0 && $stat->max_gold_per_minute > 0) {
+        if ($stat && ($stat->max_exp_per_minute > 0 || $stat->max_gold_per_minute > 0)) {
             return [
-                'exp_per_minute' => $stat->max_exp_per_minute,
-                'gold_per_minute' => $stat->max_gold_per_minute,
-                'is_custom' => true,
+                'exp_per_minute' => (int) $stat->max_exp_per_minute,
+                'gold_per_minute' => (int) $stat->max_gold_per_minute,
+                'has_record' => true,
             ];
         }
 
-        // Calculate baseline rates based on map level_min/max and exploration monsters
-        $monsters = $map->explorationMonsters;
-
-        if ($monsters->isNotEmpty()) {
-            $avgLevel = $monsters->avg('level') ?: ($map->level_min ?: 1);
-        } else {
-            $avgLevel = $map->level_min ?: 1;
-        }
-
-        // Baseline rate formula per minute (assuming ~8 kills per min)
-        $baseExpPerMin = (int) round(($avgLevel * 18 + 30) * 8);
-        $baseGoldPerMin = (int) round(($avgLevel * 10 + 15) * 8);
-
-        // Ensure minimums
-        $baseExpPerMin = max(100, $baseExpPerMin);
-        $baseGoldPerMin = max(50, $baseGoldPerMin);
-
-        // Save baseline if missing
-        if (!$stat) {
-            CharacterMapMirrorStat::create([
-                'character_id' => $character->id,
-                'map_id' => $map->id,
-                'max_exp_per_minute' => $baseExpPerMin,
-                'max_gold_per_minute' => $baseGoldPerMin,
-            ]);
-        }
-
         return [
-            'exp_per_minute' => $stat ? $stat->max_exp_per_minute : $baseExpPerMin,
-            'gold_per_minute' => $stat ? $stat->max_gold_per_minute : $baseGoldPerMin,
-            'is_custom' => false,
+            'exp_per_minute' => 0,
+            'gold_per_minute' => 0,
+            'has_record' => false,
         ];
     }
 
@@ -114,6 +87,10 @@ class MirrorService
         }
 
         $rates = $this->getMapRates($character, $map);
+
+        if (!$rates['has_record'] || ($rates['exp_per_minute'] <= 0 && $rates['gold_per_minute'] <= 0)) {
+            throw new \InvalidArgumentException("Nie posiadasz jeszcze wpisu wydajności na mapie \"{$map->name}\"! Stocz przynajmniej 1 walkę na tej mapie w przygodzie, aby zapisać swoje realne tempo zdobywania EXP/Złota.");
+        }
 
         return CharacterMirrorSession::create([
             'character_id' => $character->id,
