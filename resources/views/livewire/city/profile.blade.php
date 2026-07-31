@@ -764,13 +764,11 @@
                         @livewire('profile.skills-tab', ['character' => $character])
                     </div>
                 @elseif($activeTab === 'mirror')
-                    <div class="mt-4 bg-stone-900/90 border-2 border-purple-600/60 rounded-2xl p-3 sm:p-5 shadow-2xl relative overflow-hidden">
-                        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent pointer-events-none"></div>
-
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-purple-500/30 pb-3 mb-4 gap-2">
+                    <div class="mt-4 bg-stone-950 border-2 border-purple-900/80 rounded-2xl p-4 sm:p-5 shadow-xl relative overflow-hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-purple-900/60 pb-3 mb-4 gap-2">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-purple-950 border border-purple-500/60 flex items-center justify-center shadow-[0_0_15px_rgba(168,85,247,0.3)] shrink-0">
-                                    <i class="fa-solid fa-wand-magic-sparkles text-purple-300 text-lg animate-pulse"></i>
+                                <div class="w-10 h-10 rounded-xl bg-purple-950 border border-purple-600/80 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-purple-300 text-lg"></i>
                                 </div>
                                 <div>
                                     <h3 class="text-base sm:text-lg font-bold text-purple-200 medieval-font">Magiczne Lustro (Multitasking)</h3>
@@ -779,34 +777,34 @@
                             </div>
 
                             @if($activeMirrorSession)
-                                <span class="px-3 py-1 bg-purple-950/80 border border-purple-400 text-purple-300 text-[11px] font-bold rounded-full animate-pulse flex items-center gap-1.5 shadow-[0_0_10px_rgba(168,85,247,0.4)] self-start sm:self-auto">
+                                <span class="px-3 py-1 bg-purple-950 border border-purple-400 text-purple-300 text-[11px] font-bold rounded-full flex items-center gap-1.5 self-start sm:self-auto">
                                     <i class="fa-solid fa-arrows-rotate fa-spin"></i> LUSTRO W TOKU
                                 </span>
                             @endif
                         </div>
 
                         @if($claimedRewardsSummary)
-                            <div class="mb-5 p-4 rounded-xl bg-gradient-to-r from-emerald-950/90 via-stone-900 to-emerald-950/90 border-2 border-emerald-500/80 shadow-[0_0_25px_rgba(16,185,129,0.3)] relative">
+                            <div class="mb-5 p-4 rounded-xl bg-stone-900 border-2 border-emerald-600/80 shadow-md relative">
                                 <button wire:click="closeRewardsSummary" class="absolute top-2 right-2 text-stone-400 hover:text-white font-bold text-lg cursor-pointer">✕</button>
                                 <h4 class="text-sm sm:text-base font-bold text-emerald-300 medieval-font mb-2 flex items-center gap-2">
                                     <i class="fa-solid fa-gift text-yellow-400"></i> Nagrody z Lustra Zostały Przyznane!
                                 </h4>
                                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 my-3">
-                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2">
+                                    <div class="bg-stone-950 border border-emerald-800/60 p-2.5 rounded-lg flex items-center gap-2">
                                         <i class="fa-solid fa-bolt text-yellow-400 text-lg"></i>
                                         <div>
                                             <span class="block text-[10px] text-stone-400 uppercase font-bold">Doświadczenie:</span>
                                             <span class="text-xs sm:text-sm font-extrabold text-amber-300">+{{ number_format($claimedRewardsSummary['xp']) }} XP</span>
                                         </div>
                                     </div>
-                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2">
+                                    <div class="bg-stone-950 border border-emerald-800/60 p-2.5 rounded-lg flex items-center gap-2">
                                         <i class="fa-solid fa-coins text-yellow-400 text-lg"></i>
                                         <div>
                                             <span class="block text-[10px] text-stone-400 uppercase font-bold">Złoto:</span>
                                             <span class="text-xs sm:text-sm font-extrabold text-yellow-300">+{{ number_format($claimedRewardsSummary['gold']) }}</span>
                                         </div>
                                     </div>
-                                    <div class="bg-stone-950/80 border border-emerald-700/50 p-2.5 rounded-lg flex items-center gap-2 col-span-2 sm:col-span-1">
+                                    <div class="bg-stone-950 border border-emerald-800/60 p-2.5 rounded-lg flex items-center gap-2 col-span-2 sm:col-span-1">
                                         <i class="fa-solid fa-clock text-cyan-400 text-lg"></i>
                                         <div>
                                             <span class="block text-[10px] text-stone-400 uppercase font-bold">Czas trwania:</span>
@@ -833,10 +831,30 @@
                         @endif
 
                         @if($activeMirrorSession)
-                            <div class="space-y-4">
-                                <div class="bg-stone-950/90 border border-purple-500/50 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+                            @php
+                                $rewards = $mirrorRewardsPreview ?? $activeMirrorSession->calculateCurrentRewards();
+                                $remainingSec = $activeMirrorSession->getRemainingSeconds();
+                            @endphp
+                            <div x-data="{
+                                    remainingSec: {{ $remainingSec }},
+                                    get timerFormatted() {
+                                        if (this.remainingSec <= 0) return '00:00:00';
+                                        let h = Math.floor(this.remainingSec / 3600);
+                                        let m = Math.floor((this.remainingSec % 3600) / 60);
+                                        let s = this.remainingSec % 60;
+                                        return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+                                    },
+                                    init() {
+                                        setInterval(() => {
+                                            if (this.remainingSec > 0) this.remainingSec--;
+                                        }, 1000);
+                                    }
+                                 }"
+                                 wire:poll.10s
+                                 class="space-y-4">
+                                <div class="bg-stone-900 border border-purple-800/80 rounded-xl p-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
                                     <div class="flex items-center gap-3 w-full md:w-auto">
-                                        <div class="w-12 h-12 rounded-xl bg-purple-950 border-2 border-purple-400 flex items-center justify-center shrink-0 shadow-md">
+                                        <div class="w-12 h-12 rounded-xl bg-purple-950 border-2 border-purple-500 flex items-center justify-center shrink-0 shadow-md">
                                             <i class="fa-solid fa-map-location-dot text-purple-300 text-xl"></i>
                                         </div>
                                         <div class="min-w-0">
@@ -846,37 +864,30 @@
                                         </div>
                                     </div>
 
-                                    @php
-                                        $rewards = $mirrorRewardsPreview ?? $activeMirrorSession->calculateCurrentRewards();
-                                        $remainingSec = $activeMirrorSession->getRemainingSeconds();
-                                        $hoursRem = floor($remainingSec / 3600);
-                                        $minRem = floor(($remainingSec % 3600) / 60);
-                                        $secRem = $remainingSec % 60;
-                                    @endphp
                                     <div class="text-center md:text-right shrink-0">
                                         <span class="text-[10px] text-stone-400 uppercase font-bold block">Pozostało do końca:</span>
-                                        <div class="text-xl sm:text-2xl font-black text-purple-300 medieval-font tracking-wider">
-                                            {{ sprintf('%02d:%02d:%02d', $hoursRem, $minRem, $secRem) }}
+                                        <div class="text-xl sm:text-2xl font-black text-purple-300 medieval-font tracking-wider" x-text="timerFormatted">
+                                            00:00:00
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                    <div class="bg-stone-900 border border-purple-900/60 p-3 rounded-xl flex items-center gap-3">
                                         <i class="fa-solid fa-bolt text-yellow-400 text-xl drop-shadow"></i>
                                         <div>
                                             <span class="text-[10px] text-stone-400 uppercase font-bold block">Naliczone EXP:</span>
                                             <span class="text-sm font-extrabold text-amber-300">+{{ number_format($rewards['xp']) }}</span>
                                         </div>
                                     </div>
-                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                    <div class="bg-stone-900 border border-purple-900/60 p-3 rounded-xl flex items-center gap-3">
                                         <i class="fa-solid fa-coins text-yellow-400 text-xl drop-shadow"></i>
                                         <div>
                                             <span class="text-[10px] text-stone-400 uppercase font-bold block">Naliczone Złoto:</span>
                                             <span class="text-sm font-extrabold text-yellow-300">+{{ number_format($rewards['gold']) }}</span>
                                         </div>
                                     </div>
-                                    <div class="bg-stone-950/80 border border-purple-800/60 p-3 rounded-xl flex items-center gap-3">
+                                    <div class="bg-stone-900 border border-purple-900/60 p-3 rounded-xl flex items-center gap-3">
                                         <i class="fa-solid fa-cubes text-amber-400 text-xl drop-shadow"></i>
                                         <div>
                                             <span class="text-[10px] text-stone-400 uppercase font-bold block">Przechowywane materiały:</span>
@@ -885,11 +896,49 @@
                                     </div>
                                 </div>
 
+                                {{-- Mały plecak na wyleciałe materiały --}}
+                                <div class="bg-stone-900 border border-purple-900/70 rounded-xl p-3">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5 medieval-font uppercase tracking-wider">
+                                            <i class="fa-solid fa-bag-shopping text-amber-400"></i> Zgromadzone Łupy (Materiały z Mapy)
+                                        </span>
+                                        <span class="text-[10px] text-stone-400 font-medium">Przedmioty: {{ count($rewards['materials']) }}</span>
+                                    </div>
+
+                                    @if(empty($rewards['materials']))
+                                        <div class="p-3 bg-stone-950/80 rounded-lg border border-stone-800 text-center">
+                                            <p class="text-xs text-stone-400">Przygoda w toku... Materiały rzemieślnicze z mapy wypadają okresowo (co ~15 min).</p>
+                                            <div class="grid grid-cols-6 gap-2 mt-2">
+                                                @for($i = 0; $i < 6; $i++)
+                                                    <div class="h-10 border border-dashed border-stone-800 rounded-lg flex items-center justify-center bg-stone-950/40">
+                                                        <i class="fa-solid fa-box-open text-stone-700 text-xs"></i>
+                                                    </div>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @else
+                                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 bg-stone-950/80 p-2 rounded-lg border border-stone-800">
+                                            @foreach($rewards['materials'] as $matId => $matInfo)
+                                                @php $mat = $matInfo['item_template']; $qty = $matInfo['quantity']; @endphp
+                                                <div class="bg-stone-900 border border-amber-500/50 rounded-lg p-2 flex flex-col items-center justify-center relative group" title="{{ $mat->name }}">
+                                                    @if($mat->icon)
+                                                        <img src="{{ route('assets.items', ['filename' => $mat->icon]) }}" class="w-8 h-8 object-contain" alt="{{ $mat->name }}" />
+                                                    @else
+                                                        <i class="fa-solid fa-cube text-amber-400 text-lg"></i>
+                                                    @endif
+                                                    <span class="text-[10px] font-bold text-amber-200 truncate w-full text-center mt-1">{{ $mat->name }}</span>
+                                                    <span class="absolute -top-1 -right-1 bg-amber-600 text-stone-950 font-black text-[9px] px-1.5 rounded-full shadow">x{{ $qty }}</span>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+
                                 <div class="pt-2">
                                     <button wire:click="stopMirror"
                                             wire:loading.attr="disabled"
                                             wire:target="stopMirror"
-                                            class="w-full py-3 bg-gradient-to-r from-red-700 via-rose-600 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(225,29,72,0.4)] transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">
+                                            class="w-full py-3 bg-red-800 hover:bg-red-700 text-white font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl border border-red-500 shadow-md transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer">
                                         <span wire:loading.remove wire:target="stopMirror" class="flex items-center gap-2">
                                             <i class="fa-solid fa-hand-paper text-base"></i> PRZERWIJ LUSTRO I ODBIERZ NAGRODY
                                         </span>
@@ -906,20 +955,14 @@
                                     <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider mb-2">1. Wybierz Mapę do Przygody w Tle:</label>
                                     <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
                                         <select wire:model.live="selectedMirrorMapId"
-                                                class="w-full sm:w-2/3 bg-stone-950 border-2 border-purple-500/60 rounded-xl px-3.5 py-2.5 text-amber-100 text-xs sm:text-sm font-semibold focus:outline-none focus:border-purple-400 shadow-inner">
+                                                class="w-full sm:w-2/3 bg-stone-900 border-2 border-purple-600/80 rounded-xl px-3.5 py-2.5 text-amber-100 text-xs sm:text-sm font-semibold focus:outline-none focus:border-purple-400 shadow-inner">
                                             @foreach($mirrorMaps as $m)
                                                 @php
                                                     $isAccessible = $m->isAccessibleBy($character);
                                                     $rates = $mapRates[$m->id] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
                                                 @endphp
                                                 <option value="{{ $m->id }}" @if(!$isAccessible) disabled @endif class="bg-stone-900 text-amber-100 py-1">
-                                                    {{ $m->name }} (Poz. {{ $m->level_range }})
-                                                    @if($rates['has_record'])
-                                                        — ⚡ {{ number_format($rates['exp_per_minute']) }}/min | 💰 {{ number_format($rates['gold_per_minute']) }}/min
-                                                    @else
-                                                        — ⚠️ Brak rekordu (Stocz min. 1 walkę)
-                                                    @endif
-                                                    @if(!$isAccessible) [Wymagany wyższy poziom] @endif
+                                                    {{ $m->name }} (Poz. {{ $m->level_range }}) — ⚡ {{ number_format($rates['exp_per_minute']) }}/min | 💰 {{ number_format($rates['gold_per_minute']) }}/min @if(!$isAccessible) [Wymagany wyższy poziom] @endif
                                                 </option>
                                             @endforeach
                                         </select>
@@ -929,22 +972,15 @@
                                             $activeRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
                                         @endphp
 
-                                        <div class="flex-1 bg-stone-950/80 border border-purple-800/60 rounded-xl p-2.5 flex items-center justify-around text-xs">
-                                            @if($activeRates['has_record'])
-                                                <div class="text-amber-300 font-bold flex items-center gap-1.5" title="Twój najlepszy zarejestrowany wynik XP/min">
-                                                    <i class="fa-solid fa-bolt text-yellow-400 text-sm"></i>
-                                                    <span>{{ number_format($activeRates['exp_per_minute']) }}/min</span>
-                                                </div>
-                                                <div class="text-yellow-300 font-bold flex items-center gap-1.5" title="Twój najlepszy zarejestrowany wynik Złota/min">
-                                                    <i class="fa-solid fa-coins text-yellow-400 text-sm"></i>
-                                                    <span>{{ number_format($activeRates['gold_per_minute']) }}/min</span>
-                                                </div>
-                                            @else
-                                                <div class="text-rose-400 font-bold text-center text-[11px] flex items-center gap-1">
-                                                    <i class="fa-solid fa-triangle-exclamation"></i>
-                                                    <span>Brak rekordu (Stocz walkę na tej mapie!)</span>
-                                                </div>
-                                            @endif
+                                        <div class="flex-1 bg-stone-900 border border-purple-800/80 rounded-xl p-2.5 flex items-center justify-around text-xs">
+                                            <div class="text-amber-300 font-bold flex items-center gap-1.5" title="Twój zarejestrowany wynik XP/min">
+                                                <i class="fa-solid fa-bolt text-yellow-400 text-sm"></i>
+                                                <span>{{ number_format($activeRates['exp_per_minute']) }}/min</span>
+                                            </div>
+                                            <div class="text-yellow-300 font-bold flex items-center gap-1.5" title="Twój zarejestrowany wynik Złota/min">
+                                                <i class="fa-solid fa-coins text-yellow-400 text-sm"></i>
+                                                <span>{{ number_format($activeRates['gold_per_minute']) }}/min</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -954,15 +990,15 @@
                                     $isVip = auth()->user()->hasPremium();
                                     $maxHoursAllowed = $isVip ? 10 : 6;
                                 @endphp
-                                <div class="bg-stone-950/60 border border-purple-900/50 p-3.5 rounded-xl">
+                                <div class="bg-stone-900 border border-purple-900/80 p-3.5 rounded-xl">
                                     <div class="flex items-center justify-between mb-2">
                                         <label class="block text-xs font-bold text-purple-300 uppercase tracking-wider">2. Czas trwania Lustra:</label>
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-black text-purple-200 bg-purple-950 border border-purple-400/80 px-3 py-1 rounded-xl shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                                            <span class="text-xs font-black text-purple-200 bg-purple-950 border border-purple-400/80 px-3 py-1 rounded-xl shadow-sm">
                                                 {{ $selectedMirrorDurationHours }} {{ $selectedMirrorDurationHours === 1 ? 'godzina' : ($selectedMirrorDurationHours < 5 ? 'godziny' : 'godzin') }}
                                             </span>
                                             @if($isVip)
-                                                <span class="text-[10px] text-amber-400 font-bold flex items-center gap-1 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-500/50"><i class="fa-solid fa-crown text-yellow-400"></i> VIP (do 10h)</span>
+                                                <span class="text-[10px] text-amber-400 font-bold flex items-center gap-1 bg-amber-950 px-2 py-0.5 rounded border border-amber-500/50"><i class="fa-solid fa-crown text-yellow-400"></i> VIP (do 10h)</span>
                                             @else
                                                 <span class="text-[10px] text-stone-400 font-medium">Bez VIP max 6h</span>
                                             @endif
@@ -973,7 +1009,7 @@
                                     <div class="my-3 px-1">
                                         <input type="range" min="1" max="{{ $maxHoursAllowed }}" step="1"
                                                wire:model.live="selectedMirrorDurationHours"
-                                               class="w-full h-3 bg-stone-900 rounded-lg appearance-none cursor-pointer accent-purple-500 border border-purple-500/40 shadow-inner">
+                                               class="w-full h-3 bg-stone-950 rounded-lg appearance-none cursor-pointer accent-purple-500 border border-purple-500/40 shadow-inner">
                                         <div class="flex justify-between text-[10px] font-bold text-stone-500 px-1 mt-1">
                                             <span>1h</span>
                                             <span>3h</span>
@@ -994,7 +1030,7 @@
                                             <button type="button"
                                                     @if($lockedForUser) disabled title="Wymagany status VIP dla czasu > 6 godzin" @else wire:click="selectMirrorDuration({{ $h }})" @endif
                                                     class="px-2.5 py-1 rounded-lg border font-black text-xs transition-all flex items-center gap-1 cursor-pointer
-                                                           {{ $lockedForUser ? 'border-stone-800 bg-stone-950/60 text-stone-600 cursor-not-allowed' : ($isHSelected ? 'border-purple-400 bg-purple-600 text-white shadow-[0_0_12px_rgba(168,85,247,0.5)] scale-105' : 'border-stone-800 bg-stone-950 text-stone-300 hover:border-purple-500 hover:text-white') }}">
+                                                           {{ $lockedForUser ? 'border-stone-800 bg-stone-950 text-stone-600 cursor-not-allowed' : ($isHSelected ? 'border-purple-400 bg-purple-600 text-white shadow-md scale-105' : 'border-stone-800 bg-stone-950 text-stone-300 hover:border-purple-500 hover:text-white') }}">
                                                 <span>{{ $h }}h</span>
                                                 @if($lockedForUser)
                                                     <i class="fa-solid fa-lock text-[9px] text-amber-500"></i>
@@ -1011,7 +1047,7 @@
                                     $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.60);
                                     $estGold = (int) floor($totalMins * $selectedRates['gold_per_minute'] * 0.60);
                                 @endphp
-                                <div class="bg-stone-950/90 border border-purple-500/40 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
+                                <div class="bg-stone-900 border border-purple-600/80 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <div>
                                         <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider block">Prognozowany plon z Lustra (60% stawki):</span>
                                         <div class="flex items-center gap-3 mt-1">
@@ -1024,7 +1060,7 @@
                                     <button wire:click="startMirror"
                                             wire:loading.attr="disabled"
                                             wire:target="startMirror"
-                                            class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-600 hover:from-purple-600 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.4)] transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                                            class="w-full sm:w-auto px-6 py-2.5 bg-purple-800 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider rounded-xl border border-purple-500 shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
                                         <span wire:loading.remove wire:target="startMirror" class="flex items-center gap-2">
                                             <i class="fa-solid fa-play"></i> URUCHOM LUSTRO
                                         </span>

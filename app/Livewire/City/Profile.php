@@ -853,17 +853,23 @@ class Profile extends Component
             default => ['str'],
         };
 
-        // Mirror System Data
-        $mirrorMaps = \App\Infrastructure\Persistence\Map::orderBy('level_min')->get();
+        // Mirror System Data: Filter maps to accessible ones for player level
+        $mirrorMaps = \App\Infrastructure\Persistence\Map::where('level_min', '<=', $this->character->level)
+            ->orderBy('level_min')
+            ->get();
+
+        if ($mirrorMaps->isEmpty()) {
+            $mirrorMaps = \App\Infrastructure\Persistence\Map::orderBy('level_min')->take(1)->get();
+        }
+
         $mirrorService = app(\App\Application\Mirror\MirrorService::class);
         $mapRates = [];
         foreach ($mirrorMaps as $m) {
             $mapRates[$m->id] = $mirrorService->getMapRates($this->character, $m);
         }
 
-        if (!$this->selectedMirrorMapId && $mirrorMaps->isNotEmpty()) {
-            $accessibleMap = $mirrorMaps->filter(fn($m) => $m->isAccessibleBy($this->character))->last();
-            $this->selectedMirrorMapId = $accessibleMap ? $accessibleMap->id : $mirrorMaps->first()->id;
+        if (!$this->selectedMirrorMapId || !$mirrorMaps->pluck('id')->contains($this->selectedMirrorMapId)) {
+            $this->selectedMirrorMapId = $mirrorMaps->last()->id;
         }
 
         $activeMirrorSession = $this->character->activeMirrorSession;

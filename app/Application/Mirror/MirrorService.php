@@ -121,7 +121,8 @@ class MirrorService
 
             // Grant EXP
             if ($rewards['xp'] > 0) {
-                $this->levelUpService->addXp($character, $rewards['xp']);
+                $character->increment('xp', $rewards['xp']);
+                $this->levelUpService->checkAndApply($character);
             }
 
             // Grant Gold
