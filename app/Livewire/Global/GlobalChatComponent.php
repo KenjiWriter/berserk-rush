@@ -1019,16 +1019,16 @@ class GlobalChatComponent extends Component
             $code = Str::upper(Str::random(6));
         } while (DiscordLinkCode::where('code', $code)->exists());
 
+        $expiresAt = now()->addMinutes(10);
+
         DiscordLinkCode::create([
             'code' => $code,
             'character_id' => $character->id,
-            'expires_at' => now()->addMinutes(10),
+            'expires_at' => $expiresAt,
         ]);
 
-        $this->dispatch(
-            'notify',
-            message: "Twój kod: {$code} (ważny 10 min). Na kanale #in-game-chat na Discordzie wpisz: !link {$code}",
-            type: 'success'
-        );
+        // Shown as a persistent centered modal (not a toast) so the player
+        // has time to read and copy the code - see DiscordLinkModal.
+        $this->dispatch('open-discord-link-modal', code: $code, expiresAt: $expiresAt->toDateTimeString());
     }
 }

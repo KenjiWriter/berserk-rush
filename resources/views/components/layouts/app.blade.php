@@ -471,6 +471,7 @@
             @livewire('global.level-up-modal')
             @livewire('global.global-chat-component')
             @livewire('global.suggestion-modal')
+            @livewire('global.discord-link-modal')
             <x-mobile-nav />
         @endif
 
