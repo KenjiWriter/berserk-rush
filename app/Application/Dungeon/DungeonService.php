@@ -839,7 +839,8 @@ class DungeonService
         $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? $monster->level);
 
         $isCrit = $this->rollMonsterCritical($monster, $character);
-        $isMiss = $this->rollDodge($playerAgi, $monsterAgi);
+        $playerItemDodge = (float)($character->getEquipmentStats()['dodge_chance'] ?? 0);
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge);
 
         if ($isMiss) {
             return [
@@ -1050,10 +1051,10 @@ class DungeonService
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollDodge(int $defenderAgi, int $attackerAgi): bool
+    private function rollDodge(int $defenderAgi, int $attackerAgi, float $defenderItemDodge = 0.0): bool
     {
         $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015);
+        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015) + ($defenderItemDodge / 100.0);
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

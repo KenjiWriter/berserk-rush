@@ -592,7 +592,8 @@ class PvPEncounterService
         // twardy sufit na 30%, żeby przewaga AGI dawała wyraźny, ale nie dominujący
         // unik.
         $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
-        $dodgeChance = min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006));
+        $targetItemDodge = (($defEq['dodge_chance'] ?? 0) / 100.0);
+        $dodgeChance = min(0.50, 0.03 + ($agiDodgeAdvantage * 0.0006) + $targetItemDodge);
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

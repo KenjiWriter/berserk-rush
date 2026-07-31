@@ -314,7 +314,7 @@
                                                 </span>
                                             @elseif ($turn['type'] == 'dot')
                                                 <span class="text-purple-300 font-semibold italic">
-                                                    Zadano <strong class="text-purple-200 font-mono">{{ $turn['value'] }}</strong> obrażeń od statusów.
+                                                    Zadano <strong class="text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> obrażeń od statusów.
                                                 </span>
                                             @elseif ($turn['type'] == 'crowd_controlled')
                                                 <span class="text-amber-300 font-semibold italic">
@@ -324,16 +324,16 @@
                                             @elseif ($turn['type'] == 'skill_heal')
                                                 <span class="text-emerald-300 font-semibold">
                                                     <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
-                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Leczenie' }}</span> i odnawia <strong class="text-emerald-400 font-mono">{{ $turn['value'] }}</strong> HP!
+                                                    używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Leczenie' }}</span> i odnawia <strong class="text-emerald-400 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> HP!
                                                 </span>
                                             @elseif ($turn['type'] == 'skill')
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
                                                     <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
                                                     używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span>
                                                     @if(!empty($turn['target_name'])) na <strong>{{ $turn['target_name'] }}</strong>@endif
-                                                    i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                    i zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
                                                     @if (!empty($turn['dotDamage']))
-                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                                     @endif
                                                     obrażeń
                                                     @if (!empty($turn['crit'])) <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span> @endif
@@ -341,10 +341,10 @@
                                             @else
                                                 <span class="{{ $turn['actor'] == 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
                                                     <strong class="text-amber-200">{{ $turn['actor_name'] ?? ($turn['actor'] == 'player' ? $player['name'] : $enemy['name']) }}</strong>
-                                                    zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                    zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
                                                     @if(!empty($turn['target_name'])) obrażeń w <strong>{{ $turn['target_name'] }}</strong>@else obrażeń@endif
                                                     @if (!empty($turn['dotDamage']))
-                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                        <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                                     @endif
                                                     @if (!empty($turn['crit']))
                                                         <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span>

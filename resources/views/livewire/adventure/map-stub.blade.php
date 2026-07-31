@@ -246,7 +246,7 @@
                         <div class="space-y-1">
                             <div class="flex justify-between text-xs font-bold text-amber-200 medieval-font drop-shadow">
                                 <span>Życie</span>
-                                <span class="font-mono text-emerald-300 text-xs sm:text-sm">{{ $this->getCurrentPlayerHp() }}/{{ $this->player['maxHp'] ?? $character->getMaxHp() }}</span>
+                                <span class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
                             </div>
                             <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
                                 <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
@@ -315,7 +315,7 @@
                         <div class="space-y-1">
                             <div class="flex justify-between text-xs font-semibold text-indigo-200">
                                 <span>Doświadczenie</span>
-                                <span class="font-mono text-indigo-300">{{ $character->xp }}/{{ $this->getXpToNextLevel() }}</span>
+                                <span class="font-mono text-indigo-300" title="{{ number_format($character->xp) }}/{{ number_format($this->getXpToNextLevel()) }}">{{ \App\Helpers\FormatHelper::short($character->xp) }}/{{ \App\Helpers\FormatHelper::short($this->getXpToNextLevel()) }}</span>
                             </div>
                             <div class="h-2 sm:h-2.5 w-full rounded-full bg-indigo-950/70 ring-1 ring-indigo-700/40 p-0.5">
                                 <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-400 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500"
@@ -334,19 +334,19 @@
                             <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
                                 <div class="bg-slate-900/90 border border-red-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
                                     <div class="text-[10px] sm:text-[11px] font-semibold text-red-300 tracking-wider">STR (Siła)</div>
-                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['str'] ?? 0 }}</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ \App\Helpers\FormatHelper::short($pStats['str'] ?? 0) }}</div>
                                 </div>
                                 <div class="bg-slate-900/90 border border-blue-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
                                     <div class="text-[10px] sm:text-[11px] font-semibold text-blue-300 tracking-wider">INT (Wiedza)</div>
-                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['int'] ?? 0 }}</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ \App\Helpers\FormatHelper::short($pStats['int'] ?? 0) }}</div>
                                 </div>
                                 <div class="bg-slate-900/90 border border-emerald-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
                                     <div class="text-[10px] sm:text-[11px] font-semibold text-emerald-300 tracking-wider">VIT (Witalność)</div>
-                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['vit'] ?? 0 }}</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ \App\Helpers\FormatHelper::short($pStats['vit'] ?? 0) }}</div>
                                 </div>
                                 <div class="bg-slate-900/90 border border-amber-800/40 rounded-xl p-1.5 lg:p-2 text-center shadow-md">
                                     <div class="text-[10px] sm:text-[11px] font-semibold text-amber-300 tracking-wider">AGI (Zręczność)</div>
-                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ $pStats['agi'] ?? 0 }}</div>
+                                    <div class="text-xs sm:text-sm lg:text-base font-black text-amber-100 font-mono">{{ \App\Helpers\FormatHelper::short($pStats['agi'] ?? 0) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -377,13 +377,13 @@
                                     <div class="text-[9px] sm:text-[10px] font-semibold text-red-400 tracking-wider flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-crosshairs text-red-400"></i> Atak (DMG)
                                     </div>
-                                    <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ $playerCombatStats['atk_min'] }} - {{ $playerCombatStats['atk_max'] }}</div>
+                                    <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ \App\Helpers\FormatHelper::short($playerCombatStats['atk_min']) }} - {{ \App\Helpers\FormatHelper::short($playerCombatStats['atk_max']) }}</div>
                                 </div>
                                 <div class="bg-amber-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
                                     <div class="text-[9px] sm:text-[10px] font-semibold text-blue-400 tracking-wider flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-shield text-blue-400"></i> Obrona (DEF)
                                     </div>
-                                    <div class="text-xs sm:text-sm font-black text-blue-200 font-mono">{{ $playerCombatStats['defense'] }}</div>
+                                    <div class="text-xs sm:text-sm font-black text-blue-200 font-mono">{{ \App\Helpers\FormatHelper::short($playerCombatStats['defense']) }}</div>
                                 </div>
                             </div>
                         </div>
@@ -456,19 +456,19 @@
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
                                                 pudłuje atak!
                                                 @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                                 @endif
                                             </span>
                                         @elseif ($turn['type'] == 'dot')
                                             <span class="text-purple-300 font-semibold italic">
-                                                Zadano <strong class="text-purple-200 font-mono">{{ $turn['value'] }}</strong> obrażeń od statusów.
+                                                Zadano <strong class="text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> obrażeń od statusów.
                                             </span>
                                         @elseif ($turn['type'] == 'skill')
                                             <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
-                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
                                                 @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                                 @endif
                                                 obrażeń
                                                 @if (!empty($turn['crit'])) <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span> @endif
@@ -479,14 +479,14 @@
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
                                                 zadaje 
                                                 @if($turn['actor'] == 'player' && isset($turn['bonusDamage']) && $turn['bonusDamage'] > 0)
-                                                    <strong class="text-amber-300 font-mono">{{ $turn['baseDamage'] }} (+{{ $turn['bonusDamage'] }})</strong>
+                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['baseDamage']) }} (+{{ \App\Helpers\FormatHelper::short($turn['bonusDamage']) }})</strong>
                                                 @elseif($turn['actor'] == 'enemy' && isset($turn['resistDamage']) && $turn['resistDamage'] > 0)
-                                                    <strong class="text-amber-300 font-mono">{{ $turn['baseDamage'] }} (-{{ $turn['resistDamage'] }})</strong>
+                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['baseDamage']) }} (-{{ \App\Helpers\FormatHelper::short($turn['resistDamage']) }})</strong>
                                                 @else
-                                                    <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
                                                 @endif
                                                 @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                                 @endif
                                                 obrażeń
                                                 @if ($turn['crit'])
@@ -519,18 +519,18 @@
                                                     <div class="space-y-1.5 text-xs sm:text-sm lg:text-base">
                                                         <div class="flex items-center space-x-2">
                                                             <span class="text-indigo-200">
-                                                                +{{ !empty($xpData) ? $xpData['base'] : $xpGained }} XP (Doświadczenie)
+                                                                +{{ \App\Helpers\FormatHelper::short(!empty($xpData) ? $xpData['base'] : $xpGained) }} XP (Doświadczenie)
                                                                 @if (!empty($xpData) && isset($xpData['multiplier']) && $xpData['multiplier'] > 1.0)
-                                                                    <span class="font-bold text-xs text-emerald-400">(+{{ $xpData['bonus'] }} z bonusu {{ round(($xpData['multiplier'] - 1) * 100) }}%)</span>
+                                                                    <span class="font-bold text-xs text-emerald-400">(+{{ \App\Helpers\FormatHelper::short($xpData['bonus']) }} z bonusu {{ round(($xpData['multiplier'] - 1) * 100) }}%)</span>
                                                                 @endif
                                                             </span>
                                                         </div>
 
                                                         <div class="flex items-center space-x-2">
                                                             <span class="text-amber-200">
-                                                                +{{ !empty($goldData) ? $goldData['base'] : $goldGained }} Złota
+                                                                +{{ \App\Helpers\FormatHelper::short(!empty($goldData) ? $goldData['base'] : $goldGained) }} Złota
                                                                 @if (!empty($goldData) && isset($goldData['multiplier']) && $goldData['multiplier'] > 1.0)
-                                                                    <span class="font-bold text-xs text-yellow-400">(+{{ $goldData['bonus'] }} z bonusu {{ round(($goldData['multiplier'] - 1) * 100) }}%)</span>
+                                                                    <span class="font-bold text-xs text-yellow-400">(+{{ \App\Helpers\FormatHelper::short($goldData['bonus']) }} z bonusu {{ round(($goldData['multiplier'] - 1) * 100) }}%)</span>
                                                                 @endif
                                                             </span>
                                                         </div>
@@ -766,7 +766,7 @@
                             <div class="space-y-1.5">
                                 <div class="flex justify-between text-xs lg:text-sm font-bold text-red-200 medieval-font drop-shadow">
                                     <span>Życie Przeciwnika</span>
-                                    <span class="font-mono text-red-300 text-sm lg:text-base">{{ max(0, $displayHp) }}/{{ $displayMaxHp }}</span>
+                                    <span class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>
                                 </div>
                                 <div class="h-4 sm:h-5 w-full rounded-full bg-black/80 ring-1 ring-red-700/50 p-0.5 shadow-inner">
                                     <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] transition-all duration-500"
@@ -823,15 +823,15 @@
                                 <div class="grid grid-cols-2 gap-2 lg:gap-2.5">
                                     <div class="bg-slate-900/90 border border-red-800/40 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-red-300 tracking-wider">ATK (Atak)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-red-100 font-mono">{{ $displayMonster['stats']['atk'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-red-100 font-mono">{{ \App\Helpers\FormatHelper::short($displayMonster['stats']['atk'] ?? 0) }}</div>
                                     </div>
                                     <div class="bg-slate-900/90 border border-slate-700/50 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-slate-300 tracking-wider">DEF (Obrona)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-slate-100 font-mono">{{ $displayMonster['stats']['def'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-slate-100 font-mono">{{ \App\Helpers\FormatHelper::short($displayMonster['stats']['def'] ?? 0) }}</div>
                                     </div>
                                     <div class="bg-slate-900/90 border border-amber-800/40 rounded-2xl p-2 lg:p-2.5 xl:p-3 text-center shadow-md">
                                         <div class="text-[11px] sm:text-xs font-semibold text-amber-300 tracking-wider">AGI (Zręczność)</div>
-                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-amber-100 font-mono">{{ $displayMonster['stats']['agi'] ?? 0 }}</div>
+                                        <div class="text-sm sm:text-base lg:text-lg xl:text-xl font-black text-amber-100 font-mono">{{ \App\Helpers\FormatHelper::short($displayMonster['stats']['agi'] ?? 0) }}</div>
                                     </div>
                                 </div>
 
@@ -1212,6 +1212,25 @@
                 }
             }
 
+            function formatShortNum(num) {
+                if (num === null || num === undefined) return '0';
+                const abs = Math.abs(num);
+                const sign = num < 0 ? '-' : '';
+                if (abs >= 1000000000) {
+                    let val = (abs / 1000000000).toFixed(1);
+                    return sign + (val.endsWith('.0') ? val.slice(0, -2) : val) + 'B';
+                }
+                if (abs >= 1000000) {
+                    let val = (abs / 1000000).toFixed(1);
+                    return sign + (val.endsWith('.0') ? val.slice(0, -2) : val) + 'M';
+                }
+                if (abs >= 1000) {
+                    let val = (abs / 1000).toFixed(1);
+                    return sign + (val.endsWith('.0') ? val.slice(0, -2) : val) + 'k';
+                }
+                return sign + Math.floor(abs);
+            }
+
             Livewire.on('turn-played', (event) => {
                 isExecutingTurn = true;
 
@@ -1364,7 +1383,7 @@
                     fct.style.top = `${endY - 20}px`;
 
                     const dotBadge = dotDamage > 0 
-                        ? `<span class="text-emerald-300 font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)] font-sans ml-1.5">(+${dotDamage})</span>`
+                        ? `<span class="text-emerald-300 font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)] font-sans ml-1.5">(+${formatShortNum(dotDamage)})</span>`
                         : '';
 
                     if (type === 'miss') {
@@ -1374,13 +1393,13 @@
                             fct.innerHTML = `<span class="text-blue-300 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">UNIK!</span>`;
                         }
                     } else if (type === 'dot') {
-                        fct.innerHTML = `<span class="text-emerald-400 font-black text-2xl">(+${value})</span>`;
+                        fct.innerHTML = `<span class="text-emerald-400 font-black text-2xl">(+${formatShortNum(value)})</span>`;
                     } else if (isCrit) {
-                        fct.innerHTML = `<span class="text-amber-300 font-black text-3xl sm:text-4xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${value}</span>${dotBadge}`;
+                        fct.innerHTML = `<span class="text-amber-300 font-black text-3xl sm:text-4xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${formatShortNum(value)}</span>${dotBadge}`;
                     } else if (skillName) {
-                        fct.innerHTML = `<span class="${isPoison ? 'text-emerald-300' : (isFire ? 'text-orange-300' : 'text-indigo-300')} font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(99,102,241,0.9)]">${skillName} -${value}</span>${dotBadge}`;
+                        fct.innerHTML = `<span class="${isPoison ? 'text-emerald-300' : (isFire ? 'text-orange-300' : 'text-indigo-300')} font-black text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(99,102,241,0.9)]">${skillName} -${formatShortNum(value)}</span>${dotBadge}`;
                     } else {
-                        fct.innerHTML = `<span class="text-red-400 font-black text-2xl sm:text-3xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${value}</span>${dotBadge}`;
+                        fct.innerHTML = `<span class="text-red-400 font-black text-2xl sm:text-3xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${formatShortNum(value)}</span>${dotBadge}`;
                     }
 
                     fxOverlay.appendChild(fct);

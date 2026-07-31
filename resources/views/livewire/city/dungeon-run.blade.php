@@ -371,15 +371,17 @@
                                         <span class="text-emerald-300 font-semibold">
                                             <strong class="text-amber-200">🛡️ Ty</strong> używasz <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i leczysz <strong class="text-emerald-300 font-mono">{{ $turn['value'] }} HP</strong>!
                                             @if (!empty($turn['dotDamage']))
-                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                            <strong class="text-amber-200">🛡️ Ty</strong> używasz <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i leczysz <strong class="text-emerald-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }} HP</strong>!
+                                            @if (!empty($turn['dotDamage']))
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                             @endif
                                         </span>
                                     @elseif(($turn['type'] ?? '') === 'skill')
-                                        <span class="{{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
+                                        <span class="text-blue-300 font-semibold">
                                             <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
-                                            używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                            używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
                                             @if (!empty($turn['dotDamage']))
-                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                             @endif
                                             obrażeń
                                             @if (!empty($turn['crit'])) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
@@ -387,14 +389,14 @@
                                     @else
                                         <span class="{{ $turn['actor'] === 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
                                             <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
-                                            zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong> obrażeń
+                                            zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> obrażeń
                                             @if (!empty($turn['dotDamage']))
-                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
                                             @endif
                                             @if(!empty($turn['crit'])) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
                                         </span>
                                     @endif
-                                    <span class="text-slate-600 text-xs ml-2 font-mono">[HP: {{ $turn['playerHp'] }} | Potwór: {{ $turn['enemyHp'] }}]</span>
+                                    <span class="text-slate-600 text-xs ml-2 font-mono">[HP: {{ \App\Helpers\FormatHelper::short($turn['playerHp']) }} | Potwór: {{ \App\Helpers\FormatHelper::short($turn['enemyHp']) }}]</span>
                                 </li>
                             @endforeach
                             @if($isPlaying)
@@ -552,7 +554,7 @@
                                         </div>
                                         <div class="bg-slate-900/90 border border-rose-900/40 rounded-xl p-1.5 text-center">
                                             <div class="text-[10px] font-semibold text-rose-400 flex items-center justify-center gap-1"><i class="fa-solid fa-heart"></i> MAX HP</div>
-                                            <div class="text-sm font-black text-rose-200 font-mono">{{ number_format($baseMonsterHp) }}</div>
+                                            <div class="text-sm font-black text-rose-200 font-mono">{{ \App\Helpers\FormatHelper::short($baseMonsterHp) }}</div>
                                         </div>
                                     </div>
                                 </div>
@@ -567,13 +569,13 @@
                                             @if(($run->accumulated_loot['xp'] ?? 0) > 0)
                                                 <div class="bg-slate-900/80 border border-indigo-900/40 rounded-xl p-1.5 text-center">
                                                     <div class="text-[10px] text-indigo-400">XP</div>
-                                                    <div class="text-xs font-bold text-indigo-200 font-mono">+{{ number_format($run->accumulated_loot['xp']) }}</div>
+                                                    <div class="text-xs font-bold text-indigo-200 font-mono">+{{ \App\Helpers\FormatHelper::short($run->accumulated_loot['xp']) }}</div>
                                                 </div>
                                             @endif
                                             @if(($run->accumulated_loot['gold'] ?? 0) > 0)
                                                 <div class="bg-slate-900/80 border border-yellow-900/40 rounded-xl p-1.5 text-center">
                                                     <div class="text-[10px] text-yellow-400">Złoto</div>
-                                                    <div class="text-xs font-bold text-yellow-200 font-mono">+{{ number_format($run->accumulated_loot['gold']) }}</div>
+                                                    <div class="text-xs font-bold text-yellow-200 font-mono">+{{ \App\Helpers\FormatHelper::short($run->accumulated_loot['gold']) }}</div>
                                                 </div>
                                             @endif
                                         </div>
@@ -784,9 +786,18 @@
                     fct.className = 'fct-damage-number-dungeon';
                     fct.style.left = `${defenderRect.left + defenderRect.width / 2}px`;
                     fct.style.top = `${defenderRect.top + defenderRect.height / 3 - 20}px`;
+                    function formatShortNum(num) {
+                        if (num === null || num === undefined) return '0';
+                        const abs = Math.abs(num);
+                        const sign = num < 0 ? '-' : '';
+                        if (abs >= 1000000000) { let v = (abs / 1000000000).toFixed(1); return sign + (v.endsWith('.0') ? v.slice(0, -2) : v) + 'B'; }
+                        if (abs >= 1000000) { let v = (abs / 1000000).toFixed(1); return sign + (v.endsWith('.0') ? v.slice(0, -2) : v) + 'M'; }
+                        if (abs >= 1000) { let v = (abs / 1000).toFixed(1); return sign + (v.endsWith('.0') ? v.slice(0, -2) : v) + 'k'; }
+                        return sign + Math.floor(abs);
+                    }
                     if (type === 'miss') fct.innerHTML = `<span class="text-blue-300 font-black text-2xl">UNIK!</span>`;
-                    else if (isCrit) fct.innerHTML = `<span class="text-amber-300 font-black text-3xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${value}</span>`;
-                    else fct.innerHTML = `<span class="text-red-400 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${value}</span>`;
+                    else if (isCrit) fct.innerHTML = `<span class="text-amber-300 font-black text-3xl drop-shadow-[0_0_25px_rgba(245,158,11,1)]">KRYTYK! -${formatShortNum(value)}</span>`;
+                    else fct.innerHTML = `<span class="text-red-400 font-black text-2xl drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">-${formatShortNum(value)}</span>`;
                     fxOverlay.appendChild(fct);
                     setTimeout(() => { if (fct.parentNode) fct.parentNode.removeChild(fct); }, 900);
                 }

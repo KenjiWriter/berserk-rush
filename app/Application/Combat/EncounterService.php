@@ -1209,7 +1209,8 @@ class EncounterService
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
         $isCrit = $this->rollMonsterCritical($monster, $character);
-        $isMiss = $this->rollDodge($playerAgi, $monsterAgi);
+        $playerItemDodge = (float)($character->getEquipmentStats()['dodge_chance'] ?? 0);
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge);
 
         if ($isMiss) {
             return [
@@ -1381,16 +1382,10 @@ class EncounterService
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollDodge(int $defenderAgi, int $attackerAgi): bool
+    private function rollDodge(int $defenderAgi, int $attackerAgi, float $defenderItemDodge = 0.0): bool
     {
-        // UWAGA (fix 2026-07-28): usunięto górny sufit 18% na życzenie. Ta funkcja jest
-        // współdzielona - liczy szansę na unik zarówno gdy broni się gracz, jak i gdy
-        // broni się potwór (patrz wywołania w playerAttack()/monsterAttack() poniżej),
-        // więc zdjęcie capa dotyczy obu stron symetrycznie, tak jak to już wcześniej
-        // działało (nie było tu podziału gracz/potwór - w przeciwieństwie do rollCritical
-        // vs rollMonsterCritical, które to zawsze były rozdzielone).
         $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015);
+        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015) + ($defenderItemDodge / 100.0);
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

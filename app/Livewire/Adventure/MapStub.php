@@ -780,9 +780,10 @@ class MapStub extends Component
         $agiCritPenalty = max(0, ($enemyAgi - $agi) * 0.08);
         $effectiveCrit = max(3.0, min(50, $baseCrit - $agiCritPenalty));
 
-        // Balanced Dodge: Base 3%, scales only with AGI superiority up to max 18%
+        // Balanced Dodge: Base 3% + AGI superiority advantage + item dodge bonus
         $agiDodgeAdvantage = max(0, $agi - $enemyAgi);
-        $effectiveDodge = min(18.0, 3.0 + ($agiDodgeAdvantage * 0.15));
+        $itemDodge = (float)($eqStats['dodge_chance'] ?? 0);
+        $effectiveDodge = 3.0 + ($agiDodgeAdvantage * 0.15) + $itemDodge;
 
         return [
             'crit_chance' => round($effectiveCrit, 1),

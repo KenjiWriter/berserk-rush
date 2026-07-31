@@ -578,6 +578,7 @@ class Character extends Model
                 'magic_attack_max' => 0,
                 'defense' => 0,
                 'crit_chance' => 0,
+                'dodge_chance' => 0,
                 // "Magic burst": dodatkowe, oddzielne obrażenia magiczne z pewną szansą
                 // na trafienie (używane przez Dzwony - patrz EncounterService).
                 'magic_burst_chance' => 0,
@@ -615,6 +616,7 @@ class Character extends Model
                 $stats['magic_attack_max'] += ($base['magic_attack_max'] ?? 0) + ($roll['magic_attack_max'] ?? 0) + ($upgrade['magic_attack_max'] ?? 0);
                 $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
                 $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
+                $stats['dodge_chance'] += ($base['dodge_chance'] ?? 0) + ($roll['dodge_chance'] ?? 0) + ($upgrade['dodge_chance'] ?? 0);
                 $stats['magic_burst_chance'] += ($base['magic_burst_chance'] ?? 0) + ($roll['magic_burst_chance'] ?? 0) + ($upgrade['magic_burst_chance'] ?? 0);
                 $stats['magic_burst_min'] += ($base['magic_burst_min'] ?? 0) + ($roll['magic_burst_min'] ?? 0) + ($upgrade['magic_burst_min'] ?? 0);
                 $stats['magic_burst_max'] += ($base['magic_burst_max'] ?? 0) + ($roll['magic_burst_max'] ?? 0) + ($upgrade['magic_burst_max'] ?? 0);
