@@ -982,7 +982,7 @@
                                     activeItemId = null;
                                 }
                             }
-                        }" wire:key="backpack-item-slot-{{ $item->id }}" @click.outside="forceClose()" 
+                        }" @click.outside="forceClose()" 
                              @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
                              wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                              draggable="true"
@@ -1018,7 +1018,7 @@
                              :class="{ 
                                  'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
                                  'opacity-40 scale-95 border-amber-400': isDraggingThis,
-                                 '!z-[99999] relative': open && !{{ $bulkStashMode ? 'true' : 'false' }}
+                                 '!z-[99999]': open && !{{ $bulkStashMode ? 'true' : 'false' }}
                              }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
