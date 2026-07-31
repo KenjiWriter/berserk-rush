@@ -359,12 +359,15 @@ class Witch extends Component
                 'id' => $recipe->id,
                 'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
                 'result_icon' => $recipe->resultItemTemplate->icon ?? null,
+                'result_level' => $recipe->resultItemTemplate->level_requirement ?? 1,
                 'result_description' => $recipe->resultItemTemplate->description ?? null,
                 'gold_cost' => $recipe->gold_cost,
                 'ingredients' => $preparedIngredients,
                 'can_craft' => $canCraft,
             ];
         }
+
+        usort($preparedRecipes, fn ($a, $b) => ($a['result_level'] <=> $b['result_level']) ?: strcmp($a['result_name'], $b['result_name']));
 
         // Zaczarowywalne przedmioty (broń, zbroja, biżuteria)
         $enchantableItems = $this->character->inventoryItems()->whereHas('template', function($q) {

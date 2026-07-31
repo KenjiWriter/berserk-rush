@@ -238,6 +238,8 @@ class Blacksmith extends Component
             ];
         }
 
+        usort($preparedRecipes, fn ($a, $b) => ($a['result_level'] <=> $b['result_level']) ?: strcmp($a['result_name'], $b['result_name']));
+
         $equipped = [];
         foreach ($this->character->equippedItems()->with('template')->get() as $eq) {
             $equipped[$eq->template->slot] = $eq;

@@ -952,6 +952,7 @@
                                 });
                             },
                             openTooltip() {
+                                if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
                                 clearTimeout(this.hoverTimeout);
                                 // If another item is active, close it immediately and open this one
                                 if (activeItemId && activeItemId !== '{{ $item->id }}') {
@@ -978,7 +979,7 @@
                                     activeItemId = null;
                                 }
                             }
-                        }" @click.outside="forceClose()" 
+                        }" wire:key="backpack-item-slot-{{ $item->id }}" @click.outside="forceClose()" 
                              @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
                              wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                              draggable="true"
@@ -1018,7 +1019,7 @@
                              }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
-                             @click="activeItemId = null; openTooltip()">
+                             @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { activeItemId = null; openTooltip(); }">
 
                             <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
                                  class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
@@ -1177,6 +1178,7 @@
                                 });
                             },
                             openTooltip() {
+                                if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
                                 clearTimeout(this.hoverTimeout);
                                 this.showInfo = true;
                                 this.checkPosition();
@@ -1186,15 +1188,17 @@
                                 this.hoverTimeout = setTimeout(() => { this.showInfo = false; }, 120);
                             },
                             toggleTooltip() {
+                                if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
                                 clearTimeout(this.hoverTimeout);
                                 this.showInfo = !this.showInfo;
                                 if (this.showInfo) this.checkPosition();
                             }
                         }"
+                             wire:key="material-item-slot-{{ $item->id }}"
                              :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
-                             @click="toggleTooltip()"
+                             @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { toggleTooltip(); }"
                              @resize.window.debounce.100ms="checkPosition()"
                              @tooltip-updated.window="checkPosition()"
                              class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
