@@ -478,8 +478,14 @@
             30 => ['title' => 'Czarodziej w Obozie', 'desc' => 'W obozie pojawił się Czarodziej.', 'action' => 'Kliknij kafel "Czarodziej" w Głównym Obozie.', 'location' => 'Główny Obóz (Hub)'],
             31 => ['title' => 'Wizyta u Czarodzieja', 'desc' => 'Kapitan przedstawia tajniki zaklinania.', 'action' => 'Zapoznaj się z dymkiem Kapitana u Czarodzieja.', 'location' => 'Chata Czarodzieja'],
             32 => ['title' => 'Zaklęcie Przedmiotu', 'desc' => 'Wykonaj pomyślne zaklinanie.', 'action' => 'Wybierz przedmiot i kliknij "Zaklnij przedmiot".', 'location' => 'Chata Czarodzieja'],
-            33 => ['title' => 'Odbiór Finałowej Nagrody', 'desc' => 'Przedmiot zaklęty z sukcesem!', 'action' => 'Kliknij przycisk Kapitana, by odebrać 200 EXP i 250 Golda.', 'location' => 'Chata Czarodzieja'],
-            34 => ['title' => 'Samouczek Ukończony!', 'desc' => 'Osiągnąłeś pełne przeszkolenie w Berserk Rush!', 'action' => 'Jesteś wolnym bohaterem. Ruszaj podbijać świat!', 'location' => 'Wszędzie']
+            33 => ['title' => 'Odbiór Nagrody za Zaklinanie', 'desc' => 'Przedmiot zaklęty z sukcesem!', 'action' => 'Kliknij przycisk Kapitana, by odebrać 200 EXP i 250 Golda.', 'location' => 'Chata Czarodzieja'],
+            34 => ['title' => 'Swobodny Rozwój (Do 10 Poziomu)', 'desc' => 'Eksploruj świat i rozwijaj postać.', 'action' => 'Zdobądź 10 poziom postaci, aby odblokować Siedzibę Gildii.', 'location' => 'Przygoda / Mapa'],
+            35 => ['title' => 'Gildie w Obozie', 'desc' => 'Odblokowano dostęp do Gildii (Poz. 10).', 'action' => 'Kapitan objaśnia ideę Gildii. Kliknij "Tak jest, Kapitanie!".', 'location' => 'Główny Obóz (Hub)'],
+            36 => ['title' => 'Wizyta w Siedzibie Gildii', 'desc' => 'Przejdź do nowo odblokowanej Gildii.', 'action' => 'Kliknij kafel "Gildia" w Głównym Obozie.', 'location' => 'Główny Obóz (Hub)'],
+            37 => ['title' => 'Swobodny Rozwój (Do 15 Poziomu)', 'desc' => 'Rozwijaj postać i zdobywaj doświadczenie.', 'action' => 'Zdobądź 15 poziom postaci, aby odblokować Arenę Gladiatorów.', 'location' => 'Przygoda / Gildia'],
+            38 => ['title' => 'Arena Gladiatorów w Obozie', 'desc' => 'Odblokowano dostęp do Areny (Poz. 15).', 'action' => 'Kapitan wita Cię i zaprasza na Arenę Walk. Kliknij "Tak jest, Kapitanie!".', 'location' => 'Główny Obóz (Hub)'],
+            39 => ['title' => 'Wizyta na Arenie Gladiatorów', 'desc' => 'Przejdź na Arenę, by poznać jej zasady.', 'action' => 'Kliknij kafel "Arena" w Głównym Obozie i zapoznaj się z dymkiem Kapitana.', 'location' => 'Arena Gladiatorów'],
+            40 => ['title' => 'Samouczek Ukończony!', 'desc' => 'Osiągnąłeś pełne przeszkolenie w Berserk Rush!', 'action' => 'Jesteś wolnym bohaterem. Ruszaj podbijać świat, walcz na Arenie i tocz wojny gildii!', 'location' => 'Wszędzie']
         ];
         $currentStageData = $stageInfo[$gameStage] ?? [
             'title' => 'Samouczek Ukończony',
@@ -564,16 +570,16 @@
                         <div>
                             <span class="text-xs font-bold uppercase tracking-wider text-amber-400/80 font-mono">Stan Samouczka</span>
                             <h3 class="text-lg font-bold text-amber-200 medieval-font flex items-center gap-2">
-                                @if($gameStage >= 34)
-                                    <i class="fa-solid fa-award text-amber-400"></i> Samouczek Ukończony (Etap 34/34)
+                                @if($gameStage >= 40)
+                                    <i class="fa-solid fa-award text-amber-400"></i> Samouczek Ukończony (Etap 40/40)
                                 @else
-                                    W Trakcie Treningu — Etap {{ $gameStage }} z 34
+                                    W Trakcie Treningu — Etap {{ $gameStage }} z 40
                                 @endif
                             </h3>
                         </div>
                         <div class="w-full sm:w-48 bg-stone-950 rounded-full h-4 border border-amber-800 shadow-inner overflow-hidden">
                             <div class="bg-gradient-to-r from-amber-600 to-yellow-400 h-full rounded-full transition-all duration-500 shadow-[0_0_12px_rgba(245,158,11,0.5)]"
-                                 style="width: {{ min(100, round(($gameStage / 34) * 100)) }}%"></div>
+                                 style="width: {{ min(100, round(($gameStage / 40) * 100)) }}%"></div>
                         </div>
                     </div>
 
@@ -662,6 +668,16 @@
                         <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
                             <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">5. Tajemnice Czarodzieja & Zaklinanie (Etapy 31 – 34)</h4>
                             <p class="text-amber-200/80">Przejdź z Obozu do Czarodzieja → Zaklnij pomyślnie dowolny przedmiot ze swojego ekwipunku → Odbierz nagrodę 200 XP oraz 250 Golda od Kapitana.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">6. Siedziba Gildii & Sojusze (Etapy 35 – 37)</h4>
+                            <p class="text-amber-200/80">Wbij 10 poziom postaci → Odwiedź Siedzibę Gildii → Kapitan objaśnia oddawanie doświadczenia, ulepszanie poziomu gildii oraz wojny gildii.</p>
+                        </div>
+
+                        <div class="border border-stone-800 bg-stone-950/80 rounded-xl p-3.5">
+                            <h4 class="font-bold text-amber-300 medieval-font text-base mb-1">7. Arena Gladiatorów & Sklep (Etapy 38 – 40)</h4>
+                            <p class="text-amber-200/80">Wbij 15 poziom postaci → Odwiedź Arenę Walk → Kapitan objaśnia limit 3 prób (+1/h), ELO oraz zakupy w Sklepie Gladiatora za Żetony Areny.</p>
                         </div>
                     </div>
                 </div>
