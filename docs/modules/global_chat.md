@@ -20,6 +20,7 @@ Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każ
 
 ### Wysyłanie wiadomości i komendy
 - Dostępne **wyłącznie dla zalogowanego gracza z aktywną postacią** (weryfikacja przez `session('active_character')`).
+- **Wymóg Akceptacji Regulaminu Czatu (Wyłączenie Odpowiedzialności / UGC):** Przed pierwszym wysłaniem wiadomości gracz musi zaakceptować Regulamin Czatu (`chat_terms_accepted_at` w tabeli `users`). Dopóki regulamin nie zostanie zaakceptowany, pole wpisywania wiadomości jest zablokowane i wyświetla przycisk akceptacji/podglądu regulaminu (`/regulamin-czatu`).
 - **Anty-spam (Rate Limiting):** 1 wiadomość na 2 sekundy per postać.
 - Maksymalna długość wiadomości: **200 znaków**.
 - **System komend (autocomplete):** Wpisanie `/` na kanale gildii sugeruje listę dostępnych komend (np. dotacje do skarbca).

@@ -6,6 +6,7 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\CharacterMapMirrorStat;
 use App\Infrastructure\Persistence\CharacterMirrorSession;
+use App\Infrastructure\Persistence\CurrencyLedger;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Application\Characters\LevelUpService;
@@ -63,10 +64,62 @@ class MirrorService
     }
 
     /**
+     * Purchase (or extend) timed access to the Mirror feature.
+     * Stacks on top of an existing unexpired access window rather than resetting it.
+     */
+    public function purchaseAccess(Character $character, string $currencyType): void
+    {
+        if ($character->level < 30) {
+            throw new \InvalidArgumentException('Dostęp do Lustra odblokowuje się na 30 poziomie postaci.');
+        }
+
+        if (!in_array($currencyType, ['gold', 'gems'], true)) {
+            throw new \InvalidArgumentException('Wybrano nieprawidłową walutę.');
+        }
+
+        $cost = $currencyType === 'gold' ? 5_000_000 : 200;
+
+        DB::transaction(function () use ($character, $currencyType, $cost) {
+            $currentBalance = $currencyType === 'gold' ? $character->gold : $character->user->gems;
+
+            if ($currentBalance < $cost) {
+                throw new \InvalidArgumentException("Nie masz wystarczającej ilości waluty ({$currencyType}). Koszt to " . number_format($cost, 0, ',', ' ') . '.');
+            }
+
+            if ($currencyType === 'gold') {
+                $character->gold -= $cost;
+                $character->save();
+            } else {
+                $character->user->gems -= $cost;
+                $character->user->save();
+            }
+
+            CurrencyLedger::create([
+                'id' => (string) Str::ulid(),
+                'character_id' => $character->id,
+                'currency_type' => $currencyType,
+                'amount' => -$cost,
+                'balance_after' => $currentBalance - $cost,
+                'source_type' => 'mirror_access',
+                'idempotency_key' => 'mirror_access:' . (string) Str::uuid(),
+                'created_at' => now(),
+            ]);
+
+            $base = $character->hasMirrorAccess() ? $character->mirror_access_until : now();
+            $character->mirror_access_until = $base->copy()->addDays(7);
+            $character->save();
+        });
+    }
+
+    /**
      * Start a new Mirror session.
      */
     public function startMirror(Character $character, Map $map, int $durationHours): CharacterMirrorSession
     {
+        if (!$character->hasMirrorAccess()) {
+            throw new \InvalidArgumentException('Nie masz aktywnego dostępu do Lustra. Kup go u Wiedźmy.');
+        }
+
         if ($character->hasActiveMirror()) {
             throw new \InvalidArgumentException('Masz już aktywne Lustro.');
         }

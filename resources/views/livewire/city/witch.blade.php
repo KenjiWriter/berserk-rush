@@ -7,6 +7,8 @@
         <livewire:global.tutorial-overlay :step="32" />
     @elseif($gameStage == 33)
         <livewire:global.tutorial-overlay :step="34" :rewardXp="200" :rewardGold="250" />
+    @elseif($gameStage == 42)
+        <livewire:global.tutorial-overlay :step="43" />
     @endif
 
     <!-- Static Background Image with Dark & Purple Vignette Overlay -->
@@ -101,6 +103,18 @@
                 <span class="relative flex items-center gap-2">
                     <i class="fa-solid fa-hat-wizard text-indigo-300"></i>
                     Zaczarowanie
+                </span>
+            </button>
+
+            <button wire:click="switchTab('mirror')"
+                class="relative px-6 sm:px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-base sm:text-lg tracking-wider cursor-pointer
+                {{ $activeTab === 'mirror'
+                    ? 'bg-gradient-to-r from-purple-800 to-fuchsia-800 border-purple-400 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] scale-105'
+                    : 'bg-stone-950/70 border-purple-900/60 text-purple-300 hover:bg-purple-950/50 hover:border-purple-500 hover:text-purple-100 backdrop-blur-md' }} {{ in_array($gameStage, [41, 42]) ? 'ring-4 ring-amber-500 animate-pulse' : '' }}">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                <span class="relative flex items-center gap-2">
+                    <i class="fa-solid fa-gem text-purple-300"></i>
+                    Lustro
                 </span>
             </button>
         </div>

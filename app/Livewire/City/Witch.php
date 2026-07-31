@@ -15,6 +15,7 @@ use App\Application\Items\CraftingService;
 use App\Application\Items\ShopService;
 use App\Application\Wizard\EnchantItem;
 use App\Application\Wizard\RerollEnchantments;
+use App\Application\Mirror\MirrorService;
 use App\Domain\Wizard\EnchantmentStrategy;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -133,6 +134,20 @@ class Witch extends Component
             $this->dispatch('stats-updated', gold: $this->character->gold);
         } else {
             $this->showMessage($result['message'], 'error');
+        }
+        $this->character->refresh();
+    }
+
+    public function buyMirrorAccess(string $currencyType, MirrorService $mirrorService)
+    {
+        try {
+            $mirrorService->purchaseAccess($this->character, $currencyType);
+            $this->showMessage('Zakupiono dostęp do Lustra na kolejne 7 dni!', 'success');
+            $this->dispatch('play-audio', type: 'buy');
+            $this->character->refresh();
+            $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
+        } catch (\InvalidArgumentException $e) {
+            $this->showMessage($e->getMessage(), 'error');
         }
         $this->character->refresh();
     }
@@ -401,6 +416,8 @@ class Witch extends Component
             'activeItem' => $activeItem,
             'possibleBonuses' => $possibleBonuses,
             'equipped' => $equipped,
+            'hasMirrorAccess' => $this->character->hasMirrorAccess(),
+            'mirrorAccessUntil' => $this->character->mirror_access_until,
         ]);
     }
 }

@@ -18,6 +18,7 @@ use App\Infrastructure\Persistence\Character;
 Route::get('/', Homepage::class)->name('homepage');
 Route::get('/register', Register::class)->middleware('guest')->name('register');
 Route::view('/regulamin', 'legal.terms')->name('terms');
+Route::view('/regulamin-czatu', 'legal.chat-terms')->name('chat-terms');
 Route::view('/polityka-prywatnosci', 'legal.privacy')->name('privacy');
 
 // Social Login Routes

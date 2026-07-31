@@ -35,6 +35,29 @@ class GlobalChatComponent extends Component
 
     public ?string $activeTooltipId = null;
 
+    public bool $showTermsModal = false;
+
+    public function openTermsModal(): void
+    {
+        $this->showTermsModal = true;
+    }
+
+    public function closeTermsModal(): void
+    {
+        $this->showTermsModal = false;
+    }
+
+    public function acceptChatTerms(): void
+    {
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user) {
+            $user->acceptChatTerms();
+            $this->showTermsModal = false;
+            $this->dispatch('notify', message: 'Zaakceptowano Regulamin Czatu. Możesz teraz pisać na czacie!', type: 'success');
+        }
+    }
+
     public function mount(): void
     {
         // Purge messages older than 10 minutes from session
@@ -129,9 +152,16 @@ class GlobalChatComponent extends Component
 
     public function sendMessage(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         if (! $user) {
+            return;
+        }
+
+        if (! $user->hasAcceptedChatTerms()) {
+            $this->showTermsModal = true;
+            $this->addError('newMessage', 'Musisz najpierw zaakceptować Regulamin Czatu!');
             return;
         }
 

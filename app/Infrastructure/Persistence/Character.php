@@ -59,6 +59,7 @@ class Character extends Model
         'last_active_at',
         'discord_user_id',
         'discord_link_reward_claimed_at',
+        'mirror_access_until',
     ];
 
     protected $casts = [
@@ -78,6 +79,7 @@ class Character extends Model
         'daily_pvp_fights_last_reset_at' => 'datetime',
         'last_active_at' => 'datetime',
         'discord_link_reward_claimed_at' => 'datetime',
+        'mirror_access_until' => 'datetime',
     ];
 
     public function hasClaimedDiscordLinkReward(): bool
@@ -216,6 +218,11 @@ class Character extends Model
     {
         $session = $this->activeMirrorSession;
         return $session !== null && $session->status === 'active';
+    }
+
+    public function hasMirrorAccess(): bool
+    {
+        return $this->mirror_access_until && $this->mirror_access_until->isFuture();
     }
 
     public function getStrengthAttribute(): int

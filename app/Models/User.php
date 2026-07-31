@@ -39,6 +39,7 @@ class User extends Authenticatable
         'profile_url',
         'is_social_setup_pending',
         'muted_until',
+        'chat_terms_accepted_at',
         'last_active_at',
     ];
 
@@ -64,6 +65,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'premium_until' => 'datetime',
             'muted_until' => 'datetime',
+            'chat_terms_accepted_at' => 'datetime',
             'last_active_at' => 'datetime',
             'unlocked_avatars' => 'array',
             'is_social_setup_pending' => 'boolean',
@@ -126,6 +128,16 @@ class User extends Authenticatable
     public function isMuted(): bool
     {
         return $this->muted_until && $this->muted_until->isFuture();
+    }
+
+    public function hasAcceptedChatTerms(): bool
+    {
+        return $this->chat_terms_accepted_at !== null;
+    }
+
+    public function acceptChatTerms(): void
+    {
+        $this->update(['chat_terms_accepted_at' => now()]);
     }
 
     public function playerStashItems(): HasMany

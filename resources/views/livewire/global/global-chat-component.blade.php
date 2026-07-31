@@ -598,6 +598,18 @@
                             <span>Zablokowano: <span x-text="formatTime(secondsLeft)" class="font-mono text-red-100 font-bold ml-1"></span></span>
                         </div>
                     </div>
+                @elseif (!Auth::user()->hasAcceptedChatTerms())
+                    <div class="relative border-t border-amber-800/40 px-3 py-2.5 bg-stone-950/70 text-center shrink-0">
+                        <p class="text-[11px] text-amber-300 font-semibold mb-1.5 flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-shield-halved text-amber-500"></i> Wymagana akceptacja Regulaminu Czatu
+                        </p>
+                        <button
+                            wire:click="openTermsModal"
+                            class="w-full py-1.5 rounded bg-gradient-to-r from-amber-700 to-amber-900 border border-amber-600/60 hover:from-amber-600 hover:to-amber-800 text-amber-100 text-xs font-bold transition-all shadow-md cursor-pointer flex items-center justify-center gap-2 medieval-font"
+                        >
+                            <i class="fa-solid fa-file-signature text-amber-300"></i> Zapoznaj się i Zaakceptuj
+                        </button>
+                    </div>
                 @else
                     <div class="relative border-t border-amber-800/40 px-2 py-2 bg-stone-950/40 shrink-0">
                         {{-- Autocomplete dropup --}}
@@ -646,6 +658,69 @@
             @endif
         </div>
     </div>
+
+    {{-- ========== CHAT TERMS MODAL ========== --}}
+    @if ($showTermsModal)
+        <div class="fixed inset-0 z-[10050] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 pointer-events-auto select-text">
+            <div class="relative bg-slate-900 border-2 border-amber-700/80 rounded-xl p-5 sm:p-6 w-full max-w-lg shadow-2xl text-left flex flex-col max-h-[85vh] overflow-hidden medieval-font">
+                {{-- Decorative Corner accents --}}
+                <div class="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-amber-500"></div>
+                <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-amber-500"></div>
+                <div class="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-amber-500"></div>
+                <div class="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-amber-500"></div>
+
+                <button wire:click="closeTermsModal" class="absolute top-3 right-4 text-amber-500 hover:text-amber-300 text-xl font-bold leading-none cursor-pointer">&times;</button>
+
+                <div class="flex items-center gap-3 border-b border-amber-800/50 pb-3 mb-3 shrink-0">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-700 to-amber-500 flex items-center justify-center text-slate-950 text-lg shadow-md shrink-0">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-amber-400">Regulamin Czatu i Wyłączenie Odpowiedzialności</h3>
+                        <p class="text-slate-400 text-xs font-sans">Wymagana akceptacja zasad przed wysłaniem pierwszej wiadomości</p>
+                    </div>
+                </div>
+
+                {{-- Scrollable Terms Content --}}
+                <div class="overflow-y-auto pr-2 space-y-3 font-sans text-xs text-slate-300 leading-relaxed max-h-[50vh] scrollbar-thin">
+                    <div class="p-3 bg-slate-950/60 rounded border border-amber-900/40">
+                        <h4 class="font-bold text-amber-400 medieval-font text-sm mb-1">§ 1. Treści Użytkowników (UGC)</h4>
+                        <p>Wszystkie wiadomości na czacie stanowią wyłączną treść tworzoną przez graczy. Administracja Berserk Rush nie odpowiada za poglądy ani wypowiedzi użytkowników.</p>
+                    </div>
+
+                    <div class="p-3 bg-slate-950/60 rounded border border-amber-900/40">
+                        <h4 class="font-bold text-amber-400 medieval-font text-sm mb-1">§ 2. Pełne Wyłączenie Odpowiedzialności (Disclaimer)</h4>
+                        <p>Właściciel gry nie ponosi odpowiedzialności za transakcje między graczami, oszustwa, linki zewnętrzne, zniewagi oraz ewentualne szkody majątkowe/osobiste. Użytkownik zobowiązuje się zwolnić Właściciela z wszelkiej odpowiedzialności prawnej (Hold Harmless).</p>
+                    </div>
+
+                    <div class="p-3 bg-slate-950/60 rounded border border-amber-900/40">
+                        <h4 class="font-bold text-amber-400 medieval-font text-sm mb-1">§ 3. Bezwzględne Zakazy</h4>
+                        <p>Kategorycznie zakazuje się mowy nienawiści, groźb, wulgaryzmów, phishingu, ujawniania danych osobowych (RODO), spamu oraz handlu za realną walutę (RMT).</p>
+                    </div>
+
+                    <div class="p-3 bg-slate-950/60 rounded border border-amber-900/40">
+                        <h4 class="font-bold text-amber-400 medieval-font text-sm mb-1">§ 4. Uprawnienia Moderacji i Przekazywanie Logów</h4>
+                        <p>Administracja ma prawo nakładać wyciszenia (mute) oraz banować konta. W przypadku naruszeń prawa, logi czatu (w tym IP/e-mail) zostaną przekazane organom ścigania.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-t border-amber-800/50 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                    <a href="{{ route('chat-terms') }}" target="_blank" class="text-xs text-amber-500 hover:text-amber-300 underline font-sans flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Pełny regulamin czatu
+                    </a>
+
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <button wire:click="closeTermsModal" class="px-3 py-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition-colors font-sans w-1/2 sm:w-auto cursor-pointer">
+                            Anuluj
+                        </button>
+                        <button wire:click="acceptChatTerms" class="px-4 py-1.5 rounded bg-gradient-to-r from-amber-600 to-amber-800 hover:from-amber-500 hover:to-amber-700 text-amber-100 text-xs font-bold transition-all border border-amber-500 shadow-md medieval-font w-1/2 sm:w-auto cursor-pointer">
+                            Akceptuję Regulamin
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
 
     <style>
         /* Chat message appear animation */
