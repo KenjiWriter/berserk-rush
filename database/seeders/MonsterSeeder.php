@@ -424,7 +424,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 75,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 720000, 'atk' => 2100, 'def' => 220, 'agi' => 100, 'int' => 200, 'crit' => 0.8, 'dodge' => 0.4],
+                    'stats' => ['hp' => 50000000, 'atk' => 2100, 'def' => 220, 'agi' => 100, 'int' => 200, 'crit' => 0.8, 'dodge' => 0.4],
                     'abilities' => []
                 ]
             ],
@@ -490,7 +490,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 85,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 1000000, 'atk' => 4800, 'def' => 500, 'agi' => 120, 'int' => 600, 'crit' => 1, 'dodge' => 0.6],
+                    'stats' => ['hp' => 50000000, 'atk' => 4800, 'def' => 500, 'agi' => 120, 'int' => 600, 'crit' => 1, 'dodge' => 0.6],
                     'abilities' => []
                 ]
             ],
@@ -556,7 +556,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 2000000, 'atk' => 14500, 'def' => 1450, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
+                    'stats' => ['hp' => 50000000, 'atk' => 14500, 'def' => 1450, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
                     'abilities' => []
                 ]
             ]
@@ -574,7 +574,7 @@ class MonsterSeeder extends Seeder
 
             foreach ($monsters as $monsterData) {
                 $stats = $monsterData['stats'];
-                if ($mapCount >= 3 || ($map->tier && $map->tier >= 3)) {
+                if ($monsterData['rank'] !== 'worldboss' && ($mapCount >= 3 || ($map->tier && $map->tier >= 3))) {
                     foreach ($stats as $key => $val) {
                         if (in_array($key, ['hp', 'atk', 'def', 'agi', 'int'])) {
                             $stats[$key] = (int)round($val * 1.35);
