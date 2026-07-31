@@ -520,7 +520,7 @@ class Character extends Model
             // Add Pet bonuses
             $equippedPet = Pet::where('character_id', $this->id)->where('is_equipped', true)->first();
             if ($equippedPet) {
-                $petStats = $equippedPet->stats ?? [];
+                $petStats = $equippedPet->getTotalStats();
                 foreach (['str', 'int', 'vit', 'agi'] as $stat) {
                     $total[$stat] += $petStats[$stat] ?? 0;
                 }
