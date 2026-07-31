@@ -117,10 +117,10 @@ class CombatSkillManaTest extends TestCase
         $simRes = $service->simulate($encounter);
         $this->assertTrue($simRes->isOk());
 
-        // Without turn-by-turn mana regen, starting at 20 MP stays at 20 MP (or drops if skill cast).
+        // Every new encounter starts at 100% max mana (80 MP). Mana does not increase turn-by-turn.
         $turns = $simRes->getPayload()['turns'];
         $firstPlayerTurn = collect($turns)->firstWhere('actor', 'player');
         $this->assertNotNull($firstPlayerTurn);
-        $this->assertLessThanOrEqual(20, $firstPlayerTurn['playerMana']);
+        $this->assertEquals(80, $firstPlayerTurn['playerMana']);
     }
 }

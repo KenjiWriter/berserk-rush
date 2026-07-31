@@ -769,7 +769,7 @@ class EncounterService
         $this->initPassives($character);
 
         $this->playerMaxMana = $character->getMaxMana();
-        $this->playerMana = ($initialMana !== null) ? min($this->playerMaxMana, max(0, (int)$initialMana)) : $this->playerMaxMana;
+        $this->playerMana = $this->playerMaxMana;
 
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
@@ -1606,7 +1606,7 @@ class EncounterService
         $this->initPassives($character);
 
         $this->playerMaxMana = $character->getMaxMana();
-        $this->playerMana = ($initialMana !== null) ? min($this->playerMaxMana, max(0, (int)$initialMana)) : $this->playerMaxMana;
+        $this->playerMana = $this->playerMaxMana;
 
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;

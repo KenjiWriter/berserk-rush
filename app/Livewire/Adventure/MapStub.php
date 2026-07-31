@@ -230,16 +230,11 @@ class MapStub extends Component
 
         $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
         
-        if ($this->currentMana < 0 && $this->character) {
-            $this->currentMana = $this->character->getMaxMana();
-        }
-
         $startResult = $encounterService->start(
             $this->character,
             $this->map,
             $forcedMonster,
-            $this->targetStrategy,
-            $this->currentMana >= 0 ? $this->currentMana : null
+            $this->targetStrategy
         );
 
         if ($startResult->isError()) {
@@ -571,7 +566,6 @@ class MapStub extends Component
     {
         $this->isPlaying = false;
         $this->battleCompleted = true;
-        $this->currentMana = $this->getCurrentPlayerMana();
         $this->dispatch('stop-playback');
         
         if ($this->result === 'win' || $this->result === 'finished') {
@@ -718,11 +712,11 @@ class MapStub extends Component
         $maxMana = $char ? $char->getMaxMana() : 50;
 
         if (empty($this->visibleTurns)) {
-            return ($this->currentMana >= 0) ? min($maxMana, $this->currentMana) : $maxMana;
+            return $maxMana;
         }
 
         $lastTurn = end($this->visibleTurns);
-        return $lastTurn['playerMana'] ?? $lastTurn['state']['playerMana'] ?? (($this->currentMana >= 0) ? min($maxMana, $this->currentMana) : $maxMana);
+        return $lastTurn['playerMana'] ?? $lastTurn['state']['playerMana'] ?? $maxMana;
     }
 
     public function getPlayerManaPercent(): float
