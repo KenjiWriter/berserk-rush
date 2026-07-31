@@ -159,6 +159,10 @@ class DungeonService
         $startPlayerHp = $playerHp;
         $playerMaxHp = $character->getMaxHp();
 
+        // Postać zawsze zaczyna starcie w lochu z pełną pulą many
+        $playerMaxMana = $character->getMaxMana();
+        $playerMana = $playerMaxMana;
+
         $totalStages = $run->dungeon->stages()->count();
         $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
         $stageType = $stage->stage_type ?? 'single_mob';
@@ -183,6 +187,9 @@ class DungeonService
                     $activeBuffs[$k]['duration']--;
                     if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                 }
+                // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
+                $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                 $turn = $this->playerAttackStep(
                     $character,
@@ -196,11 +203,14 @@ class DungeonService
                     $activeDots,
                     $activeBuffs,
                     $activePassives,
-                    $diffMultiplier
+                    $diffMultiplier,
+                    $playerMana,
+                    $playerMaxMana
                 );
 
                 $playerHp = $turn['playerHp'];
                 $monsterHp = $turn['enemyHp'];
+                $playerMana = $turn['playerMana'];
                 $turns[] = $turn;
                 $turnCount++;
 
@@ -217,11 +227,14 @@ class DungeonService
                         $activeDots,
                         $activeBuffs,
                         $activePassives,
-                        $diffMultiplier
+                        $diffMultiplier,
+                        $playerMana,
+                        $playerMaxMana
                     );
                     $extraTurn['extra_attack'] = true;
                     $playerHp = $extraTurn['playerHp'];
                     $monsterHp = $extraTurn['enemyHp'];
+                    $playerMana = $extraTurn['playerMana'];
                     $turns[] = $extraTurn;
                     $turnCount++;
                 }
@@ -258,6 +271,9 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
+                    // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
+                    $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                    $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $targetMobId = $aliveMobs[0]['id'];
                     $targetMobHp = $aliveMobs[0]['hp'];
@@ -275,11 +291,14 @@ class DungeonService
                         $activeDots,
                         $activeBuffs,
                         $activePassives,
-                        $diffMultiplier
+                        $diffMultiplier,
+                        $playerMana,
+                        $playerMaxMana
                     );
 
                     $damageDealt = max(0, $targetMobHp - $turn['enemyHp']);
                     $playerHp = $turn['playerHp'];
+                    $playerMana = $turn['playerMana'];
 
                     $isAoe = ($turn['type'] === 'skill' && !empty($turn['effect_type']) && in_array($turn['effect_type'], ['aoe_dmg', 'direct_dmg']) && $equippedSkills->firstWhere('skill.name', $turn['skill_name'])?->skill->is_aoe);
 
@@ -327,12 +346,15 @@ class DungeonService
                                     $activeDots,
                                     $activeBuffs,
                                     $activePassives,
-                                    $diffMultiplier
+                                    $diffMultiplier,
+                                    $playerMana,
+                                    $playerMaxMana
                                 );
                                 $extraTurn['extra_attack'] = true;
                                 $dmg = max(0, $bonusMob['hp'] - $extraTurn['enemyHp']);
                                 $bonusMob['hp'] = max(0, $bonusMob['hp'] - $dmg);
                                 $playerHp = $extraTurn['playerHp'];
+                                $playerMana = $extraTurn['playerMana'];
 
                                 $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
                                 $extraTurn['enemyHp'] = $totalCurrentMonsterHp;
@@ -387,6 +409,9 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
+                    // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
+                    $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                    $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $turn = $this->playerAttackStep(
                         $character,
@@ -400,11 +425,14 @@ class DungeonService
                         $activeDots,
                         $activeBuffs,
                         $activePassives,
-                        $diffMultiplier
+                        $diffMultiplier,
+                        $playerMana,
+                        $playerMaxMana
                     );
 
                     $playerHp = $turn['playerHp'];
                     $monsterHp = $turn['enemyHp'];
+                    $playerMana = $turn['playerMana'];
 
                     if (!empty($turn['cc_applied'])) {
                         $monsterCcTurns = max($monsterCcTurns, (int) $turn['cc_applied']['duration']);
@@ -426,11 +454,14 @@ class DungeonService
                             $activeDots,
                             $activeBuffs,
                             $activePassives,
-                            $diffMultiplier
+                            $diffMultiplier,
+                            $playerMana,
+                            $playerMaxMana
                         );
                         $extraTurn['extra_attack'] = true;
                         $playerHp = $extraTurn['playerHp'];
                         $monsterHp = $extraTurn['enemyHp'];
+                        $playerMana = $extraTurn['playerMana'];
 
                         if (!empty($extraTurn['cc_applied'])) {
                             $monsterCcTurns = max($monsterCcTurns, (int) $extraTurn['cc_applied']['duration']);
@@ -551,13 +582,13 @@ class DungeonService
             return Result::error('NO_POTION', 'Nie posiadasz tej mikstury.');
         }
 
-        // Sprawdź czy to mikstura/consumable (wyklucz skrzynie z użycia w walce)
+        // Sprawdź czy to prawdziwa mikstura lecznicza (wyklucz skrzynie, zwoje i inne consumable bez heal_amount)
         $template = $potion->template;
-        if (!$template || $template->type !== 'consumable' || $template->sub_type === 'chest' || str_contains(mb_strtolower($template->name), 'skrzyn')) {
+        if (!$template || $template->type !== 'consumable' || !isset($template->base_stats['heal_amount'])) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
 
-        $healAmount = $template->base_stats['heal'] ?? 50;
+        $healAmount = $template->base_stats['heal_amount'];
         $maxHp = $character->getMaxHp();
 
         $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
@@ -589,7 +620,9 @@ class DungeonService
         array &$activeDots,
         array &$activeBuffs,
         array $activePassives,
-        float $diffMultiplier = 1.0
+        float $diffMultiplier = 1.0,
+        int $playerMana = 0,
+        int $playerMaxMana = 0
     ): array {
         $equippedWeaponType = $character->getEquippedWeaponType();
         $eq = $character->getEquipmentStats();
@@ -603,6 +636,12 @@ class DungeonService
                     continue;
                 }
 
+                $manaCost = $cs->getManaCost();
+                if ($playerMana < $manaCost) {
+                    continue; // Za mało many, by użyć tej umiejętności
+                }
+
+                $playerMana -= $manaCost;
                 $activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
                 $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
 
@@ -681,6 +720,8 @@ class DungeonService
                     'crit' => false,
                     'playerHp' => $newPlayerHp,
                     'enemyHp' => $newMonsterHp,
+                    'playerMana' => $playerMana,
+                    'playerMaxMana' => $playerMaxMana,
                 ];
             }
 
@@ -732,6 +773,8 @@ class DungeonService
                 'baseDamage' => $baseDamage,
                 'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
                 'magicDamage' => $magicDamage > 0 ? $magicDamage : null,
+                'playerMana' => $playerMana,
+                'playerMaxMana' => $playerMaxMana,
             ];
 
             if (in_array($csSkill->effect_type, ['freeze', 'stun'], true)) {
@@ -786,6 +829,8 @@ class DungeonService
                 'crit' => false,
                 'playerHp' => $playerHp,
                 'enemyHp' => $newMonsterHp,
+                'playerMana' => $playerMana,
+                'playerMaxMana' => $playerMaxMana,
             ];
         }
 
@@ -807,6 +852,8 @@ class DungeonService
             'crit' => $isCrit,
             'playerHp' => $playerHp,
             'enemyHp' => $newMonsterHp,
+            'playerMana' => $playerMana,
+            'playerMaxMana' => $playerMaxMana,
         ];
 
         if ($bonusDamage > 0 || $magicDamage > 0) {

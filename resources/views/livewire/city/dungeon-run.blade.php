@@ -253,6 +253,18 @@
                                 </div>
                             </div>
 
+                            {{-- Mana Bar --}}
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-bold text-cyan-200 medieval-font">
+                                    <span>Mana</span>
+                                    <span class="font-mono text-cyan-300" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
+                                </div>
+                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
+                                         style="width: {{ $this->getPlayerManaPercent() }}%"></div>
+                                </div>
+                            </div>
+
                             {{-- Stage Progress --}}
                             <div class="space-y-1">
                                 <div class="flex justify-between text-xs font-semibold text-amber-200/80 medieval-font">
@@ -300,7 +312,7 @@
                                             <div class="flex items-center justify-between bg-slate-900/80 rounded-xl px-3 py-2 border border-purple-900/40">
                                                 <div>
                                                     <p class="text-xs font-bold text-purple-200">{{ $potion->template->name }}</p>
-                                                    <p class="text-[10px] text-slate-500">Leczy: {{ $potion->template->base_stats['heal'] ?? 50 }} HP @if($potion->stack_size > 1)• x{{ $potion->stack_size }}@endif</p>
+                                                    <p class="text-[10px] text-slate-500">Leczy: {{ $potion->template->base_stats['heal_amount'] ?? 50 }} HP @if($potion->stack_size > 1)• x{{ $potion->stack_size }}@endif</p>
                                                 </div>
                                                 <button wire:click="usePotion('{{ $potion->id }}')"
                                                     class="bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors border border-purple-500/50"

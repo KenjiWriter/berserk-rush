@@ -271,6 +271,26 @@ class DungeonRun extends Component
         $this->redirect(route('city.adventure', ['character' => $this->character, 'tab' => 'dungeons']), navigate: true);
     }
 
+    public function getCurrentPlayerMana(): int
+    {
+        $maxMana = $this->character->getMaxMana();
+
+        // Tylko tury gracza niosą 'playerMana' - szukamy od końca ostatniej znanej wartości
+        for ($i = count($this->visibleTurns) - 1; $i >= 0; $i--) {
+            if (isset($this->visibleTurns[$i]['playerMana'])) {
+                return $this->visibleTurns[$i]['playerMana'];
+            }
+        }
+
+        return $maxMana;
+    }
+
+    public function getPlayerManaPercent(): float
+    {
+        $maxMana = $this->character->getMaxMana();
+        return min(100, max(0, ($this->getCurrentPlayerMana() / max(1, $maxMana)) * 100));
+    }
+
     private function getActiveRun(): ?CharacterDungeonRun
     {
         if (!$this->runId) {
@@ -291,16 +311,14 @@ class DungeonRun extends Component
         $maxHp = $this->character->getMaxHp();
         $currentHp = $run?->current_hp ?? $maxHp;
 
-        // Get consumable potions from inventory (excluding chests)
+        // Tylko prawdziwe mikstury lecznicze (mają zdefiniowany heal_amount) - wyklucza
+        // skrzynie, zwoje użytkowe oraz mikstury buffowe (siła/obrona/many), których
+        // usePotion() w DungeonService i tak nie umie poprawnie obsłużyć w walce.
         $potions = ItemInstance::where('owner_character_id', $this->character->id)
             ->where('location', 'inventory')
             ->whereHas('template', function ($q) {
                 $q->where('type', 'consumable')
-                  ->where(function ($sq) {
-                      $sq->whereNull('sub_type')
-                        ->orWhere('sub_type', '!=', 'chest');
-                  })
-                  ->where('name', 'NOT LIKE', '%skrzyn%');
+                  ->whereNotNull('base_stats->heal_amount');
             })
             ->with('template')
             ->get();
