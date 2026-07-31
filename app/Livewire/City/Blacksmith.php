@@ -158,7 +158,7 @@ class Blacksmith extends Component
                 $recipe->resultItemTemplate->type ?? null,
                 $recipe->resultItemTemplate->slot ?? null
             );
-        })->values();
+        })->sortBy(fn ($recipe) => $recipe->resultItemTemplate->level_requirement ?? 1)->values();
 
         // Batch fetch monster drops to eliminate N+1 queries
         $allMatIds = [];

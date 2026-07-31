@@ -678,7 +678,8 @@ class Profile extends Component
         $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
         $derivedStats = [
-            'max_hp' => 100 + ($vit * 10) + ($level * 5) + $eqStats['hp_bonus'],
+            'max_hp' => $this->character->getMaxHp(),
+            'max_mana' => $this->character->getMaxMana(),
             'base_damage_min' => $baseDmg + $weaponAtkMin,
             'base_damage_max' => $baseDmg + $weaponAtkMax,
             'magic_damage_min' => $magicDmg + $eqStats['magic_attack_min'],

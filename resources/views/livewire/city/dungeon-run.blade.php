@@ -369,8 +369,6 @@
                                         </span>
                                     @elseif(($turn['type'] ?? '') === 'skill_heal')
                                         <span class="text-emerald-300 font-semibold">
-                                            <strong class="text-amber-200">🛡️ Ty</strong> używasz <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i leczysz <strong class="text-emerald-300 font-mono">{{ $turn['value'] }} HP</strong>!
-                                            @if (!empty($turn['dotDamage']))
                                             <strong class="text-amber-200">🛡️ Ty</strong> używasz <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i leczysz <strong class="text-emerald-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }} HP</strong>!
                                             @if (!empty($turn['dotDamage']))
                                                 <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>

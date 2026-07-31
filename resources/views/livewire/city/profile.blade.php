@@ -675,6 +675,10 @@
                             <span class="text-green-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['max_hp']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Maksymalna pula many używana do rzucania umiejętności bojowych.">Max Mana:</span>
+                            <span class="text-cyan-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['max_mana']) }}</span>
+                        </div>
+                        <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
                             <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia ataków fizycznych.">Base Damage:</span>
                             <span class="text-red-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_min']) }} - {{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_max']) }}</span>
                         </div>

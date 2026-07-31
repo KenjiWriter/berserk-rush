@@ -699,7 +699,7 @@ class MapStub extends Component
 
     public function getCurrentPlayerMana(): int
     {
-        $char = $this->getCharacterProperty();
+        $char = $this->character ?? Auth::user()?->character;
         $maxMana = $char ? $char->getMaxMana() : 50;
 
         if (empty($this->visibleTurns)) {
@@ -712,7 +712,7 @@ class MapStub extends Component
 
     public function getPlayerManaPercent(): float
     {
-        $char = $this->getCharacterProperty();
+        $char = $this->character ?? Auth::user()?->character;
         $maxMana = $char ? $char->getMaxMana() : 50;
 
         return min(100, max(0, ($this->getCurrentPlayerMana() / max(1, $maxMana)) * 100));
