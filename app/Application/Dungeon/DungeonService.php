@@ -29,8 +29,10 @@ class DungeonService
     /**
      * Rozpoczyna nowy run w dungeonie. Wymaga klucza (entry item).
      */
-    public function startRun(Character $character, Dungeon $dungeon): Result
+    public function startRun(Character $character, Dungeon $dungeon, int $keyMultiplier = 1): Result
     {
+        $keyMultiplier = max(1, $keyMultiplier);
+
         // Sprawdź poziom
         if ($character->level < $dungeon->min_level) {
             return Result::error('LEVEL_TOO_LOW', "Wymagany poziom: {$dungeon->min_level}");
@@ -48,21 +50,29 @@ class DungeonService
 
         // Sprawdź klucz (entry_item_template_id)
         if ($dungeon->entry_item_template_id) {
-            $keyItem = ItemInstance::where('owner_character_id', $character->id)
+            $keyItems = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $dungeon->entry_item_template_id)
                 ->whereIn('location', ['inventory', 'material_stash'])
                 ->where('stack_size', '>=', 1)
-                ->first();
+                ->get();
 
-            if (!$keyItem) {
-                return Result::error('NO_KEY', 'Nie posiadasz klucza do tego lochu.');
+            $totalKeys = $keyItems->sum('stack_size');
+            if ($totalKeys < $keyMultiplier) {
+                return Result::error('NO_KEY', "Nie posiadasz wystarczającej liczby kluczy ({$totalKeys}/{$keyMultiplier}) do tego lochu.");
             }
 
-            // Zużyj klucz
-            if ($keyItem->stack_size > 1) {
-                $keyItem->decrement('stack_size');
-            } else {
-                $keyItem->delete();
+            // Zużyj klucze
+            $remainingToDeduct = $keyMultiplier;
+            foreach ($keyItems as $keyItem) {
+                if ($remainingToDeduct <= 0) break;
+
+                if ($keyItem->stack_size > $remainingToDeduct) {
+                    $keyItem->decrement('stack_size', $remainingToDeduct);
+                    $remainingToDeduct = 0;
+                } else {
+                    $remainingToDeduct -= $keyItem->stack_size;
+                    $keyItem->delete();
+                }
             }
         }
 
@@ -76,6 +86,7 @@ class DungeonService
         $run = CharacterDungeonRun::create([
             'character_id' => $character->id,
             'dungeon_id' => $dungeon->id,
+            'key_multiplier' => $keyMultiplier,
             'current_stage' => 1,
             'current_hp' => $character->getMaxHp(),
             'is_completed' => false,
@@ -157,9 +168,11 @@ class DungeonService
         $turns = [];
         $turnCount = 0;
 
+        $diffMultiplier = 1.0 + (($run->key_multiplier ?? 1) - 1) * 0.25;
+
         if ($stageType === 'gate') {
             $maxTurns = $stage->max_turns ?? 10;
-            $monsterHp = $monster->stats['hp'] ?? ($monster->level * 40);
+            $monsterHp = (int) round(($monster->stats['hp'] ?? ($monster->level * 40)) * $diffMultiplier);
             $monsterMaxHp = $monsterHp;
 
             while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
@@ -182,7 +195,8 @@ class DungeonService
                     $activeCooldowns,
                     $activeDots,
                     $activeBuffs,
-                    $activePassives
+                    $activePassives,
+                    $diffMultiplier
                 );
 
                 $playerHp = $turn['playerHp'];
@@ -202,7 +216,8 @@ class DungeonService
                         $activeCooldowns,
                         $activeDots,
                         $activeBuffs,
-                        $activePassives
+                        $activePassives,
+                        $diffMultiplier
                     );
                     $extraTurn['extra_attack'] = true;
                     $playerHp = $extraTurn['playerHp'];
@@ -214,7 +229,7 @@ class DungeonService
 
             $won = $monsterHp <= 0;
         } elseif ($stageType === 'group_mob' && $monsterCount > 1) {
-            $singleMaxHp = $monster->stats['hp'] ?? ($monster->level * 20);
+            $singleMaxHp = (int) round(($monster->stats['hp'] ?? ($monster->level * 20)) * $diffMultiplier);
             $mobs = [];
             for ($m = 0; $m < $monsterCount; $m++) {
                 $mobs[] = [
@@ -259,7 +274,8 @@ class DungeonService
                         $activeCooldowns,
                         $activeDots,
                         $activeBuffs,
-                        $activePassives
+                        $activePassives,
+                        $diffMultiplier
                     );
 
                     $damageDealt = max(0, $targetMobHp - $turn['enemyHp']);
@@ -310,7 +326,8 @@ class DungeonService
                                     $activeCooldowns,
                                     $activeDots,
                                     $activeBuffs,
-                                    $activePassives
+                                    $activePassives,
+                                    $diffMultiplier
                                 );
                                 $extraTurn['extra_attack'] = true;
                                 $dmg = max(0, $bonusMob['hp'] - $extraTurn['enemyHp']);
@@ -339,7 +356,7 @@ class DungeonService
                                 'enemyHp' => $totalCurrentMonsterHp,
                             ];
                         } else {
-                            $turn = $this->monsterAttackStep($monster, $character, $playerHp, $totalCurrentMonsterHp, $activeBuffs);
+                            $turn = $this->monsterAttackStep($monster, $character, $playerHp, $totalCurrentMonsterHp, $activeBuffs, $diffMultiplier);
                             $playerHp = $turn['playerHp'];
                             $turns[] = $turn;
                         }
@@ -352,7 +369,7 @@ class DungeonService
             $monsterHp = array_sum(array_column($mobs, 'hp'));
             $won = $monsterHp <= 0;
         } else {
-            $monsterHp = $monster->stats['hp'] ?? ($monster->level * 20);
+            $monsterHp = (int) round(($monster->stats['hp'] ?? ($monster->level * 20)) * $diffMultiplier);
             $monsterMaxHp = $monsterHp;
 
             $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
@@ -382,7 +399,8 @@ class DungeonService
                         $activeCooldowns,
                         $activeDots,
                         $activeBuffs,
-                        $activePassives
+                        $activePassives,
+                        $diffMultiplier
                     );
 
                     $playerHp = $turn['playerHp'];
@@ -407,7 +425,8 @@ class DungeonService
                             $activeCooldowns,
                             $activeDots,
                             $activeBuffs,
-                            $activePassives
+                            $activePassives,
+                            $diffMultiplier
                         );
                         $extraTurn['extra_attack'] = true;
                         $playerHp = $extraTurn['playerHp'];
@@ -434,7 +453,7 @@ class DungeonService
                         'enemyHp' => $monsterHp,
                     ];
                 } else {
-                    $turn = $this->monsterAttackStep($monster, $character, $playerHp, $monsterHp, $activeBuffs);
+                    $turn = $this->monsterAttackStep($monster, $character, $playerHp, $monsterHp, $activeBuffs, $diffMultiplier);
                     $playerHp = $turn['playerHp'];
                 }
 
@@ -466,7 +485,7 @@ class DungeonService
         }
 
         // Przeciwnik pokonany - losujemy loot (przedmioty wykluczone dla nie-bossa)
-        $lootFromThisStage = $this->calculateStageLoot($character, $monster, $isBossStage, $run->dungeon);
+        $lootFromThisStage = $this->calculateStageLoot($character, $monster, $isBossStage, $run->dungeon, $run->key_multiplier ?? 1);
         $accumulatedLoot['gold'] += $lootFromThisStage['gold'];
         $accumulatedLoot['xp'] += $lootFromThisStage['xp'];
         foreach ($lootFromThisStage['items'] as $item) {
@@ -569,7 +588,8 @@ class DungeonService
         array &$activeCooldowns,
         array &$activeDots,
         array &$activeBuffs,
-        array $activePassives
+        array $activePassives,
+        float $diffMultiplier = 1.0
     ): array {
         $equippedWeaponType = $character->getEquippedWeaponType();
         $eq = $character->getEquipmentStats();
@@ -809,9 +829,9 @@ class DungeonService
         return $turn;
     }
 
-    private function monsterAttackStep($monster, Character $character, int $playerHp, int $monsterHp, array $activeBuffs): array
+    private function monsterAttackStep($monster, Character $character, int $playerHp, int $monsterHp, array $activeBuffs, float $diffMultiplier = 1.0): array
     {
-        $damageData = $this->calculateMonsterDamage($monster, $character);
+        $damageData = $this->calculateMonsterDamage($monster, $character, $diffMultiplier);
         $damage = $damageData['total'];
 
         $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
@@ -918,7 +938,7 @@ class DungeonService
         return ['dot' => $dot, 'cc' => $cc];
     }
 
-    private function calculatePlayerDamage(Character $character, $monster): array
+    private function calculatePlayerDamage(Character $character, $monster, float $diffMultiplier = 1.0): array
     {
         $weaponType = $character->getEquippedWeaponType();
         $statBonus = $character->getAttributeAttackBonus($weaponType);
@@ -936,7 +956,8 @@ class DungeonService
 
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
         $scaledStats = $monster->getScaledStats($character->level);
-        $defense = $scaledStats['def'] ?? ($monster->stats['def'] ?? $monster->level);
+        $rawDefense = $scaledStats['def'] ?? ($monster->stats['def'] ?? $monster->level);
+        $defense = (int) round($rawDefense * $diffMultiplier);
 
         $baseDamage = max(1, $damage - ($defense * 0.2));
         $bonusDamage = 0;
@@ -972,10 +993,11 @@ class DungeonService
         ];
     }
 
-    private function calculateMonsterDamage($monster, Character $character): array
+    private function calculateMonsterDamage($monster, Character $character, float $diffMultiplier = 1.0): array
     {
         $scaledStats = $monster->getScaledStats($character->level);
-        $baseDamage = $scaledStats['atk'] ?? ($monster->stats['atk'] ?? $monster->level * 2);
+        $rawDamage = $scaledStats['atk'] ?? ($monster->stats['atk'] ?? $monster->level * 2);
+        $baseDamage = (int) round($rawDamage * $diffMultiplier);
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $eq = $character->getEquipmentStats();
         $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
@@ -1058,7 +1080,7 @@ class DungeonService
             ->first() ?? ItemTemplate::where('type', 'consumable')->where('sub_type', 'chest')->first();
     }
 
-    private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false, ?Dungeon $dungeon = null): array
+    private function calculateStageLoot(Character $character, $monster, bool $isBossStage = false, ?Dungeon $dungeon = null, int $keyMultiplier = 1): array
     {
         $multiplierService = app(RewardMultiplierService::class);
         
@@ -1072,18 +1094,18 @@ class DungeonService
         $goldMult = $multiplierService->getGoldMultiplier($character);
         $xpMult = $multiplierService->getExpMultiplier($character);
         
-        $totalGold = (int)round($baseGold * $goldMult);
-        $totalXp = (int)round($baseXp * $xpMult);
+        $totalGold = (int)round($baseGold * $goldMult) * $keyMultiplier;
+        $totalXp = (int)round($baseXp * $xpMult) * $keyMultiplier;
 
         $items = [];
         
         // Roll loot table ONLY for boss stages
         if ($isBossStage) {
-            // Gwarantowany drop skrzyń (100% szansy na 1-3 sztuki skrzyń z bossa)
+            // Gwarantowany drop skrzyń (100% szansy na 1-3 sztuki skrzyń * keyMultiplier z bossa)
             if ($dungeon) {
                 $chestTemplate = $this->getChestForDungeon($dungeon);
                 if ($chestTemplate) {
-                    $chestQuantity = mt_rand(1, 3);
+                    $chestQuantity = mt_rand(1, 3) * $keyMultiplier;
                     $items[] = [
                         'type' => 'item',
                         'name' => $chestTemplate->name,
@@ -1103,7 +1125,7 @@ class DungeonService
                     
                     $selectedEntry = $picker->pick($entries);
                     if ($selectedEntry) {
-                        $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+                        $quantity = $rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']) * $keyMultiplier;
                         
                         if ($selectedEntry['reward_type'] === 'gold') {
                             $totalGold += $quantity;

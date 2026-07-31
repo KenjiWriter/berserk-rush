@@ -8,6 +8,7 @@ use App\Infrastructure\Persistence\Map;
 use App\Infrastructure\Persistence\Dungeon;
 use App\Infrastructure\Persistence\CharacterDungeonRun;
 use App\Infrastructure\Persistence\WorldBossInstance;
+use App\Infrastructure\Persistence\ItemInstance;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
@@ -71,12 +72,12 @@ class Adventure extends Component
         );
     }
 
-    public function enterDungeon(int $dungeonId): void
+    public function enterDungeon(int $dungeonId, int $multiplier = 1): void
     {
         $dungeon = Dungeon::findOrFail($dungeonId);
 
         $this->redirect(
-            route('city.dungeon.run', [$this->character, $dungeon]),
+            route('city.dungeon.run', ['character' => $this->character, 'dungeon' => $dungeon, 'multiplier' => $multiplier]),
             navigate: true
         );
     }
@@ -98,6 +99,7 @@ class Adventure extends Component
         $dungeons = collect();
         $dungeonCount = Dungeon::count();
         $activeRun = null;
+        $keyCounts = [];
         
         if ($this->tab === 'dungeons') {
             $dungeons = Dungeon::with(['stages.monster.lootTable.entries.itemTemplate', 'entryItemTemplate'])->get();
@@ -105,6 +107,17 @@ class Adventure extends Component
                 ->where('is_completed', false)
                 ->where('is_failed', false)
                 ->first();
+
+            foreach ($dungeons as $d) {
+                if ($d->entry_item_template_id) {
+                    $keyCounts[$d->id] = (int) ItemInstance::where('owner_character_id', $this->character->id)
+                        ->where('template_id', $d->entry_item_template_id)
+                        ->whereIn('location', ['inventory', 'material_stash'])
+                        ->sum('stack_size');
+                } else {
+                    $keyCounts[$d->id] = 999;
+                }
+            }
         }
 
         // Worldboss data jest potrzebna tylko na zakładce 'worldboss' - na mapach world
@@ -157,6 +170,7 @@ class Adventure extends Component
             'dungeons'          => $dungeons,
             'dungeonCount'      => $dungeonCount,
             'activeRun'         => $activeRun,
+            'keyCounts'         => $keyCounts,
             'worldBosses'       => $worldBosses,
             'bracketLabels'     => self::BRACKET_LABELS,
             'participatedBrackets' => $participatedBrackets,

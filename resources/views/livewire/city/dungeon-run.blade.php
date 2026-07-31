@@ -17,8 +17,14 @@
         {{-- Header --}}
         <div class="flex items-center justify-between mb-2 lg:mb-3">
             <div>
-                <h1 class="text-2xl sm:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl">
-                    {{ $dungeon->name }}
+                <h1 class="text-2xl sm:text-3xl font-bold text-amber-100 medieval-font drop-shadow-2xl flex items-center gap-2 flex-wrap">
+                    <span>{{ $dungeon->name }}</span>
+                    @php $activeMult = $run ? ($run->key_multiplier ?? 1) : $multiplier; @endphp
+                    @if($activeMult > 1)
+                        <span class="px-2.5 py-0.5 rounded-lg bg-amber-900/90 border border-amber-500/60 text-amber-300 font-black text-xs shadow-md flex items-center gap-1">
+                            <i class="fa-solid fa-layer-group text-amber-400"></i> {{ $activeMult }}x Multi
+                        </span>
+                    @endif
                 </h1>
                 @if($run)
                     <p class="text-xs text-red-300/80 mt-0.5">Etap <span class="font-bold text-amber-300">{{ $currentStage }}</span> / {{ $totalStages }}</p>
@@ -53,11 +59,18 @@
                         <div class="text-slate-300 mb-6 space-y-1 text-sm">
                             <p>Etapy: <strong class="text-amber-300">{{ $totalStages }}</strong></p>
                             <p>Wymagany poziom: <strong class="text-amber-300">{{ $dungeon->min_level }}</strong></p>
+                            @if($multiplier > 1)
+                                <div class="mt-3 p-2 bg-amber-950/80 border border-amber-500/50 rounded-xl inline-block text-amber-200 text-xs font-bold">
+                                    <i class="fa-solid fa-layer-group text-amber-400"></i> Tryb Multi {{ $multiplier }}x: +{{ ($multiplier - 1) * 25 }}% Trudności potworów | x{{ $multiplier }} Złoto, XP & Skrzynie
+                                </div>
+                            @endif
                         </div>
                         <button wire:click="startRun"
                             class="rounded-xl px-8 py-3.5 bg-gradient-to-r from-red-700 via-red-600 to-red-700 border border-red-400/60 text-white font-extrabold medieval-font shadow-[0_0_25px_rgba(239,68,68,0.4)] hover:scale-105 active:scale-95 transition-all"
                             wire:loading.attr="disabled" wire:loading.class="opacity-50 cursor-not-allowed">
-                            <span wire:loading.remove wire:target="startRun"><i class="fa-solid fa-dungeon mr-2"></i>Rozpocznij Ekspedycję</span>
+                            <span wire:loading.remove wire:target="startRun">
+                                <i class="fa-solid fa-dungeon mr-2"></i>Rozpocznij Ekspedycję {{ $multiplier > 1 ? "({$multiplier}x)" : "" }}
+                            </span>
                             <span wire:loading wire:target="startRun">Rozpoczynanie...</span>
                         </button>
                     </div>

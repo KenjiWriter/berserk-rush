@@ -31,12 +31,22 @@ Moduł lochów wprowadza do gry zaawansowaną zawartość PvE typu instancjonowa
    - Pokonanie ostatecznego bossa w lochu (`boss` stage) gwarantuje w **100% drop skrzyń z łupami** (tych samych skrzyń, które wypadają z bossów map, np. Skrzynia Starych Ruin, Skrzynia Jaskini Trolli itp.).
    - Jedynym losowanym parametrem jest ilość skrzyń: od **1 do 3 sztuk** (`mt_rand(1, 3)`), co zapewnia graczom pewny i satysfakcjonujący loot z każdego pomyślnie ukończonego lochu.
 
+7. **Licznik Kluczy oraz Multi-Dungeony (Mnożniki Wypraw):**
+   - Interfejs lochów wyświetla w czasie rzeczywistym liczbę posiadanych przez postać kluczy (z ekwipunku i magazynu materiałów).
+   - Gracze z większym zasobem kluczy mogą skorzystać z opcji **Multi-Dungeonów** (`1x`, `3x`, `5x` kluczy na raz).
+   - Przejście lochu w trybie Multi zużywa wielokrotność kluczy (np. 3 lub 5 sztuk), zmniejszając czas wymagany do farmedowania.
+   - **Skalowanie Trudności:** Aby zrównoważyć dużą oszczędność czasu, potwory w trybie multi posiadają skalowane statystyki (HP, ATK, DEF):
+     - `1x`: Standardowe statystyki (100%)
+     - `3x`: +35% do statystyk potworów (135%)
+     - `5x`: +70% do statystyk potworów (170%)
+   - **Skalowanie Nagród:** Wygrana w wyprawie Multi mnoży przyznawane Złoto, Doświadczenie (XP), liczbę gwarantowanych Skrzyń z Bossa (np. 5x = od 5 do 15 skrzyń) oraz ilość przedmiotów w tabeli dropów przez wybrany mnożnik (`key_multiplier`).
+
 ## Baza Danych
 
 - `dungeons`: Tablica główna opisująca dany loch (nazwa, minimalny level, przedmiot-klucz).
 - `dungeon_stages`: Rekordy reprezentujące kolejne "piętra". Powiązane z modelem `Monster` (jaki potwór tam stoi).
-- `character_dungeon_runs`: Model śledzący aktualne zmagania konkretnego gracza. Zawiera informacje o obecnym etapie (`current_stage`), zdrowiu gracza (`current_hp`), zapisy logów bitewnych (`combat_data`) z zadania w tle, a także zakolejkowane łupy (`accumulated_loot`).
+- `character_dungeon_runs`: Model śledzący aktualne zmagania konkretnego gracza. Zawiera informacje o obecnym etapie (`current_stage`), używanym mnożniku wyprawy (`key_multiplier`), zdrowiu gracza (`current_hp`), zapisy logów bitewnych (`combat_data`) z zadania w tle, a także zakolejkowane łupy (`accumulated_loot`).
 
 ## Logika Aplikacji
-Logika instancjonowanych lochów jest sterowana głównie z poziomu **`DungeonService`**, do którego oddelegowano metody startowania ekspedycji, kalkulacji potencjalnego lootu (z mnożnikami) i ostatecznego jego dystrybuowania na koniec. Uzupełniane jest to asynchronicznym jobem **`SimulateDungeonStageJob`** zapewniającym generowanie wyników.
+Logika instancjonowanych lochów jest sterowana głównie z poziomu **`DungeonService`**, do którego oddelegowano metody startowania ekspedycji (z walidacją i zużyciem odpowiedniej liczby kluczy), kalkulacji potencjalnego lootu (z uwzględnieniem mnożnika wyprawy) i ostatecznego jego dystrybuowania na koniec. Uzupełniane jest to asynchronicznym jobem **`SimulateDungeonStageJob`** zapewniającym generowanie wyników.
 

@@ -564,7 +564,8 @@
                 @foreach($dungeons as $dungeon)
                     @php
                         $canEnter = $dungeon->canCharacterEnter($character);
-                        $hasKey = $dungeon->entry_item_template_id ? $character->items()->whereIn('location', ['inventory', 'material_stash'])->where('template_id', $dungeon->entry_item_template_id)->where('stack_size', '>=', 1)->exists() : true;
+                        $keysOwned = $keyCounts[$dungeon->id] ?? 0;
+                        $hasKey = $dungeon->entry_item_template_id ? ($keysOwned >= 1) : true;
                         $isInProgress = $activeRun && $activeRun->dungeon_id === $dungeon->id;
                         $dungeonMonsters = $dungeon->stages->filter(fn($s) => $s->monster)->map(fn($s) => $s->monster)->unique('id')->sortBy('level')->values();
                     @endphp
@@ -573,6 +574,7 @@
                         showBossModal: false,
                         turningPage: false,
                         turnDirection: 'next',
+                        selectedMultiplier: 1,
                         monsterIds: [ @foreach($dungeonMonsters as $dm) '{{ $dm->id }}', @endforeach ],
                         selectedMonsterId: '{{ $dungeonMonsters->first()?->id ?? '' }}',
                         selectMonster(id) {
@@ -608,7 +610,7 @@
                             @if($dungeon->entryItemTemplate)
                                 <div class="absolute top-3 right-3 bg-slate-950/85 backdrop-blur-md px-2.5 py-1 rounded-lg border {{ $hasKey ? 'border-amber-500/50 text-amber-300' : 'border-red-500/50 text-red-300' }} text-[11px] font-bold flex items-center gap-1.5 shadow-lg">
                                     <i class="fa-solid fa-key {{ $hasKey ? 'text-amber-400' : 'text-red-400' }}"></i>
-                                    <span>{{ $dungeon->entryItemTemplate->name }}</span>
+                                    <span>{{ $dungeon->entryItemTemplate->name }} ({{ $keysOwned }} szt.)</span>
                                 </div>
                             @endif
                         </div>
@@ -632,10 +634,10 @@
                                 @if($dungeon->entryItemTemplate)
                                     <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
                                         <span class="text-slate-400 font-semibold flex items-center gap-1.5">
-                                            <i class="fa-solid fa-key text-amber-500/80"></i> Wymagany klucz:
+                                            <i class="fa-solid fa-key text-amber-500/80"></i> Posiadane klucze:
                                         </span>
                                         <span class="font-bold {{ $hasKey ? 'text-amber-300' : 'text-red-400' }}">
-                                            {{ $dungeon->entryItemTemplate->name }}
+                                            {{ $keysOwned }} szt.
                                         </span>
                                     </div>
                                 @endif
@@ -654,11 +656,42 @@
                             @elseif(!$hasKey)
                                 <button disabled class="w-full bg-slate-900/90 text-red-400 py-3 px-2 rounded-xl font-bold medieval-font cursor-not-allowed border border-red-900/60 flex items-center justify-center gap-2 shadow-inner text-xs sm:text-sm">
                                     <i class="fa-solid fa-lock text-red-400"></i>
-                                    <span>Brak: {{ $dungeon->entryItemTemplate?->name ?? 'Klucza' }}</span>
+                                    <span>Brak klucza (0/1 szt.)</span>
                                 </button>
                             @else
-                                <button wire:click="enterDungeon({{ $dungeon->id }})" class="w-full bg-slate-800 text-amber-200 hover:text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-900/50 transition-all border border-slate-600 hover:border-amber-600">
-                                    Rozpocznij Ekspedycję
+                                {{-- MULTI-DUNGEON SELECTOR --}}
+                                <div class="bg-slate-950/70 p-2.5 rounded-xl border border-amber-900/40 space-y-2">
+                                    <div class="flex items-center justify-between text-[11px] font-bold text-amber-200/80 uppercase px-1">
+                                        <span class="flex items-center gap-1"><i class="fa-solid fa-layer-group text-amber-400"></i> Tryb Wyprawy:</span>
+                                        <span x-text="selectedMultiplier === 1 ? '1 Klucz (Standard)' : (selectedMultiplier === 3 ? '3 Klucze (+35% Trudności, x3 Łup)' : '5 Kluczy (+70% Trudności, x5 Łup)')" class="text-amber-400 font-extrabold text-[10px]"></span>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <button @click="selectedMultiplier = 1" 
+                                            :class="selectedMultiplier === 1 ? 'bg-amber-600 text-white border-amber-400 shadow-md font-black' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'"
+                                            class="py-1.5 px-2 rounded-lg text-xs border transition-all medieval-font flex items-center justify-center gap-1">
+                                            <span>1x</span>
+                                        </button>
+                                        <button @click="selectedMultiplier = 3" 
+                                            :disabled="{{ $keysOwned }} < 3"
+                                            :class="selectedMultiplier === 3 ? 'bg-amber-600 text-white border-amber-400 shadow-md font-black' : ({{ $keysOwned }} < 3 ? 'bg-slate-900/60 text-slate-600 border-slate-850 cursor-not-allowed' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700')"
+                                            class="py-1.5 px-2 rounded-lg text-xs border transition-all medieval-font flex items-center justify-center gap-1">
+                                            <span>3x</span>
+                                            <span class="text-[9px] px-1 rounded bg-amber-950/80 text-amber-300">Multi</span>
+                                        </button>
+                                        <button @click="selectedMultiplier = 5" 
+                                            :disabled="{{ $keysOwned }} < 5"
+                                            :class="selectedMultiplier === 5 ? 'bg-amber-600 text-white border-amber-400 shadow-md font-black' : ({{ $keysOwned }} < 5 ? 'bg-slate-900/60 text-slate-600 border-slate-850 cursor-not-allowed' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700')"
+                                            class="py-1.5 px-2 rounded-lg text-xs border transition-all medieval-font flex items-center justify-center gap-1">
+                                            <span>5x</span>
+                                            <span class="text-[9px] px-1 rounded bg-amber-950/80 text-amber-300">Mega</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <button @click="$wire.enterDungeon({{ $dungeon->id }}, selectedMultiplier)" class="w-full bg-slate-800 text-amber-200 hover:text-white py-3 rounded-xl font-bold medieval-font hover:bg-amber-900/50 transition-all border border-slate-600 hover:border-amber-600 flex items-center justify-center gap-2">
+                                    <i class="fa-solid fa-dungeon text-amber-400"></i>
+                                    <span>Rozpocznij Ekspedycję</span>
+                                    <span x-show="selectedMultiplier > 1" class="text-xs text-amber-400 font-extrabold" x-text="'(' + selectedMultiplier + 'x)'"></span>
                                 </button>
                             @endif
 

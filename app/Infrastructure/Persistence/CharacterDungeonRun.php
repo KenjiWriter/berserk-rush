@@ -13,12 +13,14 @@ class CharacterDungeonRun extends Model
         'current_hp',
         'is_completed',
         'is_failed',
+        'key_multiplier',
         'combat_state',
         'combat_data',
         'accumulated_loot',
     ];
 
     protected $casts = [
+        'key_multiplier' => 'integer',
         'is_completed' => 'boolean',
         'is_failed' => 'boolean',
         'combat_data' => 'array',

@@ -33,12 +33,16 @@ class DungeonRun extends Component
     public int $playbackSpeed = 1;
     public int $animatedPlayerHp = 0;
     public int $animatedEnemyHp = 0;
+    public int $multiplier = 1;
 
     public function mount(Character $character, Dungeon $dungeon): void
     {
         if (Auth::user()->id !== $character->user_id) {
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
+
+        $requestedMultiplier = (int) request()->query('multiplier', 1);
+        $this->multiplier = in_array($requestedMultiplier, [1, 3, 5]) ? $requestedMultiplier : 1;
 
         $this->playbackSpeed = session('combat_playback_speed', 1);
         $this->character = $character;
@@ -55,6 +59,7 @@ class DungeonRun extends Component
         if ($activeRun) {
             $this->runId = $activeRun->id;
             $this->currentStage = $activeRun->current_stage;
+            $this->multiplier = $activeRun->key_multiplier ?? 1;
             
             if ($activeRun->combat_state === 'calculating') {
                 $this->isCalculating = true;
@@ -77,7 +82,7 @@ class DungeonRun extends Component
     {
         $this->errorMessage = null;
         $service = app(DungeonService::class);
-        $result = $service->startRun($this->character, $this->dungeon);
+        $result = $service->startRun($this->character, $this->dungeon, $this->multiplier);
 
         if ($result->isError()) {
             $this->errorMessage = $result->getErrorMessage();
