@@ -148,7 +148,7 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ],
                 [
-                    'name' => 'Władca Krypty',
+                    'name' => 'Rycerz Ruin',
                     'type' => 'undead',
                     'level' => 27,
                     'rank' => 'boss',

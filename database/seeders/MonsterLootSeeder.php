@@ -91,10 +91,10 @@ class MonsterLootSeeder extends Seeder
                         'materials' => ['Odłamek Ruin'],
                         'items' => ['Ząbkowany Topór Upiora', 'Żelazne Sabatony']
                     ],
-                    // 'Władca Krypty' to zwykły killable boss (rank 'boss') tej mapy - przejął
+                    // 'Rycerz Ruin' to zwykły killable boss (rank 'boss') tej mapy - przejął
                     // dropy 'Licz Cieni' (rank='worldboss', patrz uwaga niżej), w tym
                     // 'Fragment Całunu', który wcześniej NIE MIAŁ żadnego innego źródła w grze.
-                    'Władca Krypty' => [
+                    'Rycerz Ruin' => [
                         'materials' => ['Strzaskana Kość', 'Fragment Całunu'],
                         'items' => ['Dzwon Pokutny', 'Naszyjnik z Zimnej Stali', 'Zbutwiała Szata Licza', 'Pierścień Wiecznego Żalu', 'Sztylety Skrytobójcy Dusz']
                     ],
@@ -480,7 +480,7 @@ class MonsterLootSeeder extends Seeder
                 // 4. Mała szansa na drop Klucza do Lochu z Bossa mapy (Waga 3 vs materiały 25)
                 $bossKeyMapping = [
                     'Strażnik Puszczy' => 'Klucz Katakumb',
-                    'Władca Krypty' => 'Klucz Krypty',
+                    'Rycerz Ruin' => 'Klucz Krypty',
                     'Starożytny Ogr' => 'Klucz Krypty',
                     'Niszczyciel Pustkowi' => 'Klucz Pustkowi',
                     'Królowa Wiedźm' => 'Klucz Cytadeli',
@@ -509,7 +509,7 @@ class MonsterLootSeeder extends Seeder
                 // 5. Drop Skrzynek z łupami z Bossów map (waga 15 vs materiały 25)
                 $bossChestMapping = [
                     'Strażnik Puszczy' => 'Skrzynia Mrocznego Lasu',
-                    'Władca Krypty' => 'Skrzynia Starych Ruin',
+                    'Rycerz Ruin' => 'Skrzynia Starych Ruin',
                     'Starożytny Ogr' => 'Skrzynia Jaskini Trolli',
                     'Niszczyciel Pustkowi' => 'Skrzynia Pustkowi Orków',
                     'Królowa Wiedźm' => 'Skrzynia Bagien Grozy',
