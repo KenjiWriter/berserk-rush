@@ -249,7 +249,7 @@ class MailboxComponent extends Component
             }
 
             $result = $action->execute($character, $mail);
-            if ($result->isSuccess()) {
+            if ($result->isOk()) {
                 $claimedCount++;
             }
         }

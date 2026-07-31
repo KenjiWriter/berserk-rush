@@ -1,5 +1,6 @@
 <div
     x-data="{
+        isOpen: $wire.entangle('isOpen'),
         message: $wire.entangle('newMessage'),
         showCommands: false,
         isSending: false,
@@ -15,6 +16,9 @@
         isUpdating: false,
         lastMsgCount: 0,
         justOpened: false,
+        toggleChat() {
+            $wire.toggleChat();
+        },
         captureScrollState() {
             const el = this.$refs.chatBox;
             if (el) {
@@ -117,7 +121,6 @@
             if (!el) return;
             if (el.scrollHeight <= el.clientHeight) return;
 
-            // Ignore transient zero-scroll events during DOM manipulations when user was scrolled down
             if (el.scrollTop === 0 && this.userScrollPos > 20) {
                 return;
             }
@@ -178,11 +181,13 @@
                 this.scrollToBottom();
                 this.checkCommands();
             });
-            this.$watch('$wire.isOpen', (val) => {
+            this.$watch('isOpen', (val) => {
                 if (val) {
                     this.lastMsgCount = 0;
                     this.userWasAtBottom = true;
-                    this.scrollToBottom();
+                    this.$nextTick(() => {
+                        setTimeout(() => this.scrollToBottom(), 150);
+                    });
                 }
             });
             this.$watch('$wire.activeTooltipId', () => {
@@ -190,11 +195,13 @@
             });
         }
     }"
-    class="fixed bottom-20 lg:bottom-0 right-2 sm:right-4 m-2 sm:m-4 z-[9950] font-sans select-none"
+    class="fixed bottom-16 lg:bottom-0 right-2 sm:right-4 z-[9950] font-sans select-none w-[calc(100vw-1rem)] sm:w-86 md:w-96 max-w-full pointer-events-none"
     style="font-family: 'Cinzel', serif;"
 >
-    {{-- ========== CHAT WRAPPER ========== --}}
-    <div class="relative flex flex-col w-80">
+    {{-- ========== CHAT DOCK CONTAINER ========== --}}
+    <div class="relative flex flex-col w-full pointer-events-auto rounded-t-xl rounded-b-none border-t-2 border-x border-amber-700/60 shadow-[0_-8px_25px_rgba(0,0,0,0.85)] backdrop-blur-md overflow-hidden"
+         style="background: linear-gradient(180deg, rgba(26,13,5,0.98) 0%, rgba(13,6,2,0.98) 100%);">
+        
         {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
         @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
             @php
@@ -405,56 +412,73 @@
             </div>
         @endif
 
-        {{-- ========== MINIMIZED BUBBLE ========== --}}
-        @if (!$isOpen)
-            <button
-                wire:click="toggleChat"
-                class="ml-auto flex items-center gap-2 bg-gradient-to-r from-amber-900/95 to-stone-900/95 border border-amber-700/60 rounded-full px-4 py-2 shadow-2xl hover:from-amber-800/95 transition-all duration-200 text-amber-200 font-bold text-sm cursor-pointer backdrop-blur-md"
-            >
-                <div class="relative flex items-center">
-                    <span class="text-base"><i class="fa-solid fa-comments"></i></span>
-                </div>
-                <span>Czat</span>
-                @if ($unreadGlobalCount > 0 || $unreadGuildCount > 0)
-                    <div class="flex gap-1 ml-1">
-                        @if ($unreadGlobalCount > 0)
-                            <span class="bg-amber-600 text-white text-[10px] px-1.5 py-0.5 rounded-full" title="Globalny">{{ $unreadGlobalCount }}</span>
-                        @endif
-                        @if ($unreadGuildCount > 0)
-                            <span class="bg-red-600 text-white text-[10px] px-1.5 py-0.5 rounded-full" title="Gildia">{{ $unreadGuildCount }}</span>
+        {{-- ========== DOCK HEADER BAR ========== --}}
+        @php $activeChar = session('active_character') ? \App\Infrastructure\Persistence\Character::find(session('active_character')) : null; @endphp
+        <div 
+            @click="toggleChat()"
+            class="flex items-center justify-between px-3.5 py-2.5 cursor-pointer transition-colors duration-200 hover:bg-amber-950/40 group"
+            style="background: linear-gradient(90deg, rgba(120,53,15,0.75) 0%, rgba(45,18,5,0.75) 100%);"
+        >
+            <div class="flex items-center gap-2 min-w-0">
+                <i class="fa-solid fa-comments text-amber-400 text-sm shrink-0"></i>
+                
+                {{-- Channel Tabs (When Expanded) --}}
+                <template x-if="isOpen">
+                    <div class="flex items-center gap-2" @click.stop>
+                        <button wire:click="setChannel('global')" class="text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors {{ $currentChannel === 'global' ? 'text-amber-200 underline decoration-amber-500' : 'text-amber-600/70 hover:text-amber-400' }}">Globalny</button>
+                        @if($activeChar && $activeChar->guild_id)
+                            <span class="text-amber-800">|</span>
+                            <button wire:click="setChannel('guild')" class="text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1 transition-colors {{ $currentChannel === 'guild' ? 'text-red-300 underline decoration-red-500' : 'text-amber-600/70 hover:text-red-400' }}">
+                                <span>Gildia</span>
+                            </button>
                         @endif
                     </div>
-                @endif
-            </button>
-        @endif
+                </template>
 
-        {{-- ========== EXPANDED PANEL ========== --}}
-        @if ($isOpen)
-        <div
-            class="flex flex-col rounded-xl overflow-hidden shadow-2xl border border-amber-700/40 backdrop-blur-md"
-            style="background: linear-gradient(160deg, rgba(20,10,5,0.97) 0%, rgba(40,20,8,0.97) 100%);"
-        >
-            {{-- ---- Header ---- --}}
-            <div class="flex items-center justify-between px-3 py-2 border-b border-amber-800/50"
-                 style="background: linear-gradient(90deg, rgba(120,53,15,0.6) 0%, rgba(60,25,8,0.6) 100%);">
-                @php $activeChar = session('active_character') ? \App\Infrastructure\Persistence\Character::find(session('active_character')) : null; @endphp
-                <div class="flex items-center gap-2">
-                    <button wire:click="setChannel('global')" class="text-xs font-bold uppercase tracking-wider cursor-pointer {{ $currentChannel === 'global' ? 'text-amber-200 underline decoration-amber-500' : 'text-amber-600/70 hover:text-amber-400' }}">Globalny</button>
-                    @if($activeChar && $activeChar->guild_id)
-                    <span class="text-amber-800">|</span>
-                    <button wire:click="setChannel('guild')" class="text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1 {{ $currentChannel === 'guild' ? 'text-red-300 underline decoration-red-500' : 'text-amber-600/70 hover:text-red-400' }}">
-                        <span>Gildia</span>
-                    </button>
-                    @endif
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-lg shadow-emerald-400/50 animate-pulse ml-1"></span>
-                </div>
-                <button
-                    wire:click="toggleChat"
-                    class="text-amber-500 hover:text-amber-200 text-lg leading-none cursor-pointer transition-colors"
-                    title="Minimalizuj"
-                >−</button>
+                {{-- Channel Label & Unread indicators (When Collapsed) --}}
+                <template x-if="!isOpen">
+                    <div class="flex items-center gap-2 truncate">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-200 medieval-font">Czat {{ $currentChannel === 'guild' ? 'Gildii' : 'Globalny' }}</span>
+                    </div>
+                </template>
+
+                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse shrink-0 ml-1"></span>
             </div>
 
+            <div class="flex items-center gap-2 shrink-0">
+                {{-- Unread Badges (When Collapsed) --}}
+                <template x-if="!isOpen">
+                    <div class="flex items-center gap-1.5">
+                        @if ($unreadGlobalCount > 0)
+                            <span class="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Globalny">{{ $unreadGlobalCount }}</span>
+                        @endif
+                        @if ($unreadGuildCount > 0)
+                            <span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Gildia">{{ $unreadGuildCount }}</span>
+                        @endif
+                    </div>
+                </template>
+
+                {{-- Toggle Chevron --}}
+                <button 
+                    class="text-amber-400 group-hover:text-amber-200 text-xs transition-transform duration-300 leading-none"
+                    :title="isOpen ? 'Zwiń czat' : 'Rozwiń czat'"
+                >
+                    <i class="fa-solid" :class="isOpen ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
+                </button>
+            </div>
+        </div>
+
+        {{-- ========== SLIDE-UP EXPANDABLE PANEL CONTENT ========== --}}
+        <div
+            x-show="isOpen"
+            x-transition:enter="transition-all duration-300 ease-out origin-bottom"
+            x-transition:enter-start="max-h-0 opacity-0"
+            x-transition:enter-end="max-h-[480px] opacity-100"
+            x-transition:leave="transition-all duration-200 ease-in origin-bottom"
+            x-transition:leave-start="max-h-[480px] opacity-100"
+            x-transition:leave-end="max-h-0 opacity-0"
+            class="flex flex-col overflow-hidden border-t border-amber-900/40"
+        >
             {{-- ---- Messages Box ---- --}}
             <div
                 x-ref="chatBox"
@@ -513,95 +537,94 @@
                 @endforeach
             </div>
 
-        {{-- ---- Input area ---- --}}
-        @if (Auth::check() && session('active_character'))
-            @if (Auth::user()->isMuted())
-                @php
-                    $muteSeconds = Auth::user()->getMuteRemainingSeconds();
-                @endphp
-                <div
-                    x-data="{
-                        secondsLeft: {{ $muteSeconds }},
-                        timer: null,
-                        formatTime(sec) {
-                            if (sec <= 0) return '0s';
-                            let d = Math.floor(sec / 86400);
-                            let h = Math.floor((sec % 86400) / 3600);
-                            let m = Math.floor((sec % 3600) / 60);
-                            let s = sec % 60;
-                            let res = '';
-                            if (d > 0) res += d + 'd ';
-                            if (h > 0 || d > 0) res += h + 'h ';
-                            if (m > 0 || h > 0 || d > 0) res += m + 'm ';
-                            res += s + 's';
-                            return res.trim();
-                        },
-                        init() {
-                            this.timer = setInterval(() => {
-                                if (this.secondsLeft > 0) {
-                                    this.secondsLeft--;
-                                } else {
-                                    clearInterval(this.timer);
-                                }
-                            }, 1000);
-                        }
-                    }"
-                    class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner"
-                >
-                    <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-red-300">
-                        <i class="fa-solid fa-microphone-slash text-sm animate-pulse mr-1"></i>
-                        <span>Zablokowano: <span x-text="formatTime(secondsLeft)" class="font-mono text-red-100 font-bold ml-1"></span></span>
+            {{-- ---- Input area ---- --}}
+            @if (Auth::check() && session('active_character'))
+                @if (Auth::user()->isMuted())
+                    @php
+                        $muteSeconds = Auth::user()->getMuteRemainingSeconds();
+                    @endphp
+                    <div
+                        x-data="{
+                            secondsLeft: {{ $muteSeconds }},
+                            timer: null,
+                            formatTime(sec) {
+                                if (sec <= 0) return '0s';
+                                let d = Math.floor(sec / 86400);
+                                let h = Math.floor((sec % 86400) / 3600);
+                                let m = Math.floor((sec % 3600) / 60);
+                                let s = sec % 60;
+                                let res = '';
+                                if (d > 0) res += d + 'd ';
+                                if (h > 0 || d > 0) res += h + 'h ';
+                                if (m > 0 || h > 0 || d > 0) res += m + 'm ';
+                                res += s + 's';
+                                return res.trim();
+                            },
+                            init() {
+                                this.timer = setInterval(() => {
+                                    if (this.secondsLeft > 0) {
+                                        this.secondsLeft--;
+                                    } else {
+                                        clearInterval(this.timer);
+                                    }
+                                }, 1000);
+                            }
+                        }"
+                        class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner"
+                    >
+                        <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-red-300">
+                            <i class="fa-solid fa-microphone-slash text-sm animate-pulse mr-1"></i>
+                            <span>Zablokowano: <span x-text="formatTime(secondsLeft)" class="font-mono text-red-100 font-bold ml-1"></span></span>
+                        </div>
                     </div>
-                </div>
-            @else
-                <div class="relative border-t border-amber-800/40 px-2 py-2">
-                    {{-- Autocomplete dropup --}}
-                    <div x-show="showCommands" style="display: none;" class="absolute bottom-full left-0 w-full bg-stone-900 border border-amber-800/60 rounded-t-lg shadow-xl overflow-hidden z-[70] mb-1">
-                        <template x-for="cmd in filteredCommands" :key="cmd.cmd">
-                            <div @click="selectCommand(cmd.cmd)" class="px-3 py-2 border-b border-amber-900/30 hover:bg-amber-900/40 cursor-pointer flex justify-between items-center transition-colors">
-                                <span class="text-amber-400 font-bold text-xs font-mono" x-text="cmd.cmd"></span>
-                                <span class="text-stone-400 text-[10px]" x-text="cmd.desc"></span>
-                            </div>
-                        </template>
-                    </div>
+                @else
+                    <div class="relative border-t border-amber-800/40 px-2 py-2 bg-stone-950/40">
+                        {{-- Autocomplete dropup --}}
+                        <div x-show="showCommands" style="display: none;" class="absolute bottom-full left-0 w-full bg-stone-900 border border-amber-800/60 rounded-t-lg shadow-xl overflow-hidden z-[70] mb-1">
+                            <template x-for="cmd in filteredCommands" :key="cmd.cmd">
+                                <div @click="selectCommand(cmd.cmd)" class="px-3 py-2 border-b border-amber-900/30 hover:bg-amber-900/40 cursor-pointer flex justify-between items-center transition-colors">
+                                    <span class="text-amber-400 font-bold text-xs font-mono" x-text="cmd.cmd"></span>
+                                    <span class="text-stone-400 text-[10px]" x-text="cmd.desc"></span>
+                                </div>
+                            </template>
+                        </div>
 
-                    @error('newMessage')
-                        <p class="text-red-400 text-xs mb-1 px-1">{{ $message }}</p>
-                    @enderror
-                    <form @submit.prevent="sendMsg()" class="flex gap-1">
-                        <input
-                            x-ref="chatInput"
-                            wire:model="newMessage"
-                            @keydown.tab.prevent="if(showCommands && filteredCommands.length > 0) selectCommand(filteredCommands[0].cmd)"
-                            type="text"
-                            maxlength="200"
-                            placeholder="Napisz wiadomość…"
-                            autocomplete="off"
-                            :disabled="isSending"
-                            class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors disabled:opacity-50"
-                        >
-                        <button
-                            type="submit"
-                            :disabled="isSending"
-                            class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
-                        >
-                            {{-- Normal state --}}
-                            <span x-show="!isSending" class="flex items-center">▶</span>
-                            {{-- Sending state --}}
-                            <span x-show="isSending" class="flex items-center">
-                                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-                                </svg>
-                            </span>
-                        </button>
-                    </form>
-                </div>
+                        @error('newMessage')
+                            <p class="text-red-400 text-xs mb-1 px-1">{{ $message }}</p>
+                        @enderror
+                        <form @submit.prevent="sendMsg()" class="flex gap-1">
+                            <input
+                                x-ref="chatInput"
+                                wire:model="newMessage"
+                                @keydown.tab.prevent="if(showCommands && filteredCommands.length > 0) selectCommand(filteredCommands[0].cmd)"
+                                type="text"
+                                maxlength="200"
+                                placeholder="Napisz wiadomość…"
+                                autocomplete="off"
+                                :disabled="isSending"
+                                class="flex-1 bg-stone-900/80 border border-amber-800/40 rounded-lg px-3 py-1.5 text-xs text-amber-100 placeholder-amber-700/60 focus:outline-none focus:border-amber-600/60 transition-colors disabled:opacity-50"
+                            >
+                            <button
+                                type="submit"
+                                :disabled="isSending"
+                                class="shrink-0 bg-gradient-to-b from-amber-700 to-amber-900 hover:from-amber-600 hover:to-amber-800 text-amber-100 rounded-lg px-3 py-1.5 text-xs font-bold transition-all duration-150 hover:shadow-lg hover:shadow-amber-900/50 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
+                            >
+                                {{-- Normal state --}}
+                                <span x-show="!isSending" class="flex items-center">▶</span>
+                                {{-- Sending state --}}
+                                <span x-show="isSending" class="flex items-center">
+                                    <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                    </div>
+                @endif
             @endif
-        @endif
+        </div>
     </div>
-    @endif
-</div>
 
     <style>
         /* Chat message appear animation */

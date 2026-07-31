@@ -28,8 +28,8 @@ class CollectionsTab extends Component
         $service = app(AchievementService::class);
         $result = $service->claimReward($this->character, $charAchievement);
 
-        if ($result->isSuccess()) {
-            $this->dispatch('notify', type: 'success', message: $result->getMessage());
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: $result->getPayload()['message'] ?? 'Nagroda odebrana!');
             $this->character->refresh();
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());

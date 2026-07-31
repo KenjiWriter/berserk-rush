@@ -39,11 +39,11 @@ class SimulatePvPEncounterJob implements ShouldQueue
 
         $result = $service->simulate($encounter);
 
-        if ($result->isSuccess()) {
+        if ($result->isOk()) {
             // Send mail to defender
             $attackerName = $encounter->attacker_snapshot['name'] ?? 'Nieznany gracz';
-            $isDefenderWinner = ($result->getValue()['winner_id'] === $encounter->defender_character_id);
-            $eloChange = $result->getValue()['defender_elo_change'];
+            $isDefenderWinner = ($result->getPayload()['winner_id'] === $encounter->defender_character_id);
+            $eloChange = $result->getPayload()['defender_elo_change'];
             
             $subject = $isDefenderWinner ? '🛡️ Obroniono atak na Arenie!' : '⚔️ Przegrano obronę na Arenie';
             $body = $isDefenderWinner 
@@ -58,7 +58,7 @@ class SimulatePvPEncounterJob implements ShouldQueue
             ]);
         } else {
             $encounter->update(['state' => 'error']);
-            Log::error('PvP simulation returned error', ['id' => $this->pvpEncounterId, 'error' => $result->getError()]);
+            Log::error('PvP simulation returned error', ['id' => $this->pvpEncounterId, 'error' => $result->getErrorMessage()]);
         }
     }
 }

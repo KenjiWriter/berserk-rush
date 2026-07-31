@@ -9,9 +9,9 @@ Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każ
 ## Zakres funkcjonalności
 
 ### Wyświetlanie, układ i sesja
-- Panel czatu jest przypięty do dolnego-prawego rogu ekranu (`fixed bottom-0 right-0`).
-- Możliwość **minimalizacji** do małego przycisku. Stan zwinięcia/rozwinięcia oraz **historia wiadomości (z ostatnich 10 minut)** są zapamiętywane w sesji dzięki Livewire 3 `#[Session]`.
-- Jeśli czat jest zwinięty, na przycisku pojawiają się **kolorowe liczniki nieprzeczytanych wiadomości** osobno dla kanału globalnego i gildii (również zachowywane w sesji).
+- Panel czatu jest przypięty przy dolnej krawędzi ekranu (`fixed bottom-16 lg:bottom-0 right-2 sm:right-4`) w formie eleganckiego prostokątnego doku z zaokrąglonymi górnymi rogami, wyeliminowując problem zasłaniania UI gry przez dawny dymek.
+- Możliwość **minimalizacji/rozsuwania**: w stanie zwiniętym czat stanowi zwartą, prostokątną beleczkę nagłówkową na dole ekranu. Kliknięcie w dowolne miejsce belce powoduje płynne rozsuwanie się panelu wiadomości do góry (efekt slide-up). Stan zwinięcia/rozwinięcia oraz **historia wiadomości (z ostatnich 10 minut)** są zapamiętywane w sesji dzięki Livewire 3 `#[Session]`.
+- Jeśli czat jest zwinięty, na prostokątnej belce nagłówkowej wyświetlają się **kolorowe liczniki nieprzeczytanych wiadomości** osobno dla kanału globalnego i gildii oraz ikona rozsuwania (`fa-chevron-up`).
 - Wyświetlanie maksymalnie **100 ostatnich wiadomości**. Wiadomości starsze niż 10 minut są automatycznie usuwane przy ładowaniu strony.
 
 ### Kanały komunikacji
