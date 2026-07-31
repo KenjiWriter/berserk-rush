@@ -172,7 +172,18 @@ class ShopEquipmentSeeder extends Seeder
                         // Wartości procentowe nie mnożą się przez skalę poziomu - rosną
                         // liniowo z kolejnym tier'em sklepu i mają sensowny sufit.
                         $cap = $statName === 'crit_chance' ? 40 : 60;
-                        $scaledStats[$statName] = $this->statRange(min($cap, $baseValue + ($themeIndex * 2)), 0.25, $cap);
+                        $critVal = min($cap, $baseValue + ($themeIndex * 2));
+
+                        if ($statName === 'crit_chance') {
+                            $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);
+                            $isRingOrNecklace = in_array($protoKey, ['ring', 'amulet'], true) || in_array($proto['slot'] ?? '', ['ring', 'neck'], true);
+
+                            if ($isWeaponAbove15 || $isRingOrNecklace) {
+                                $critVal = $critVal * 0.5;
+                            }
+                        }
+
+                        $scaledStats[$statName] = $this->statRange($critVal, 0.25, $cap);
                         continue;
                     }
                     $scaledValue = $baseValue * $theme['scale'];

@@ -346,7 +346,18 @@ class ItemTemplateSeeder extends Seeder
                         // Wartości procentowe - rosną liniowo z kolejnym tier'em zamiast
                         // mnożyć się przez skalę mocy, i mają sensowny sufit.
                         $cap = $statName === 'crit_chance' ? 50 : 70;
-                        $scaledStats[$statName] = $this->statRange(min($cap, $baseValue + ($index * 2)), 0.25, $cap);
+                        $critVal = min($cap, $baseValue + ($index * 2));
+
+                        if ($statName === 'crit_chance') {
+                            $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);
+                            $isRingOrNecklace = in_array($protoKey, ['ring', 'amulet'], true) || in_array($proto['slot'] ?? '', ['ring', 'neck'], true);
+
+                            if ($isWeaponAbove15 || $isRingOrNecklace) {
+                                $critVal = $critVal * 0.5;
+                            }
+                        }
+
+                        $scaledStats[$statName] = $this->statRange($critVal, 0.25, $cap);
                     } else {
                         $scaledStats[$statName] = $this->statRange($baseValue * $theme['scale']);
                     }
