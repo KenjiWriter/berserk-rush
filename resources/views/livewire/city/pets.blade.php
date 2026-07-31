@@ -1,6 +1,14 @@
 <div>
+    @php
+        $errorMessage = $errorMessage ?? null;
+        $successMessage = $successMessage ?? null;
+        $selectedSynthesizerPetIds = $selectedSynthesizerPetIds ?? [];
+        $inventoryItems = $inventoryItems ?? $inventory ?? collect();
+        $feedingPet = $feedingPet ?? null;
+    @endphp
+
     {{-- Global Notifications --}}
-    @if($errorMessage)
+    @if(!empty($errorMessage))
         <div class="mb-4 p-4 bg-red-950/90 border-2 border-red-500/60 rounded-2xl text-red-200 text-sm shadow-[0_0_20px_rgba(239,68,68,0.3)] flex items-center justify-between animate-fade-in">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-triangle-exclamation text-red-400 text-xl"></i>
@@ -10,7 +18,7 @@
         </div>
     @endif
 
-    @if($successMessage)
+    @if(!empty($successMessage))
         <div class="mb-4 p-4 bg-emerald-950/90 border-2 border-emerald-500/60 rounded-2xl text-emerald-200 text-sm shadow-[0_0_20px_rgba(16,185,129,0.3)] flex items-center justify-between animate-fade-in">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i>

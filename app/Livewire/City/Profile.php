@@ -35,6 +35,13 @@ class Profile extends Component
     public string $newName = '';
     public bool $showNameChangeModal = false;
 
+    // Pets & Synthesizer State
+    public array $selectedSynthesizerPetIds = [];
+    public ?int $feedingPetId = null;
+    public array $selectedFeedItemIds = [];
+    public ?string $errorMessage = null;
+    public ?string $successMessage = null;
+
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
     #[On('inventory-updated')]
@@ -267,6 +274,128 @@ class Profile extends Component
         }
 
         $this->character->clearStatsCache();
+        $this->character->refresh();
+    }
+
+    public function toggleSynthesizerPet(int $petId): void
+    {
+        $this->errorMessage = null;
+        $this->successMessage = null;
+
+        if (in_array($petId, $this->selectedSynthesizerPetIds)) {
+            $this->selectedSynthesizerPetIds = array_values(array_diff($this->selectedSynthesizerPetIds, [$petId]));
+            return;
+        }
+
+        if (count($this->selectedSynthesizerPetIds) >= 3) {
+            $this->dispatch('notify', type: 'error', message: 'Możesz wybrać maksymalnie 3 chowańce do transmutacji.');
+            return;
+        }
+
+        $pet = Pet::where('id', $petId)->where('character_id', $this->character->id)->first();
+        if (!$pet || $pet->is_equipped) {
+            $this->dispatch('notify', type: 'error', message: 'Nie możesz użyć założonego lub nieistniejącego chowańca.');
+            return;
+        }
+
+        if (!empty($this->selectedSynthesizerPetIds)) {
+            $firstPet = Pet::find($this->selectedSynthesizerPetIds[0]);
+            if ($firstPet && $firstPet->rarity !== $pet->rarity) {
+                $this->dispatch('notify', type: 'error', message: 'Wszystkie 3 chowańce muszą posiadać ten sam stopień rzadkości (' . ucfirst($firstPet->rarity) . ')!');
+                return;
+            }
+        }
+
+        if ($pet->rarity === 'legendary') {
+            $this->dispatch('notify', type: 'error', message: 'Chowańce rangi Legendarnej osiągnęły już najwyższą klasę.');
+            return;
+        }
+
+        $this->selectedSynthesizerPetIds[] = $petId;
+    }
+
+    public function clearSynthesizer(): void
+    {
+        $this->selectedSynthesizerPetIds = [];
+    }
+
+    public function synthesizePets(): void
+    {
+        $service = app(\App\Application\Pets\PetService::class);
+        $result = $service->synthesizePets($this->character, $this->selectedSynthesizerPetIds);
+
+        if ($result->isError()) {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            return;
+        }
+
+        $payload = $result->getPayload();
+        $this->selectedSynthesizerPetIds = [];
+
+        if (!($payload['success'] ?? false)) {
+            $this->dispatch('notify', type: 'error', message: $payload['message'] ?? 'Transmutacja nie powiodła się!');
+        } else {
+            $this->dispatch('notify', type: 'success', message: $payload['message'] ?? 'Transmutacja zakończona sukcesem!');
+        }
+
+        $this->character->refresh();
+    }
+
+    public function openFeedModal(int $petId): void
+    {
+        $this->feedingPetId = $petId;
+        $this->selectedFeedItemIds = [];
+    }
+
+    public function closeFeedModal(): void
+    {
+        $this->feedingPetId = null;
+        $this->selectedFeedItemIds = [];
+    }
+
+    public function toggleFeedItem(string $itemId): void
+    {
+        if (in_array($itemId, $this->selectedFeedItemIds)) {
+            $this->selectedFeedItemIds = array_values(array_diff($this->selectedFeedItemIds, [$itemId]));
+        } else {
+            $this->selectedFeedItemIds[] = $itemId;
+        }
+    }
+
+    public function selectAllFeedItems(): void
+    {
+        $inventoryItems = $this->character->inventoryItems->pluck('id')->toArray();
+
+        if (count($this->selectedFeedItemIds) === count($inventoryItems)) {
+            $this->selectedFeedItemIds = [];
+        } else {
+            $this->selectedFeedItemIds = $inventoryItems;
+        }
+    }
+
+    public function feedPet(): void
+    {
+        if (!$this->feedingPetId) {
+            $this->dispatch('notify', type: 'error', message: 'Wybierz chowańca do nakarmienia.');
+            return;
+        }
+
+        $service = app(\App\Application\Pets\PetService::class);
+        $result = $service->feedPet($this->character, $this->feedingPetId, $this->selectedFeedItemIds);
+
+        if ($result->isError()) {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+            return;
+        }
+
+        $payload = $result->getPayload();
+        $this->selectedFeedItemIds = [];
+
+        $msg = "Przekazano pożywienie! Chowaniec otrzymał +{$payload['gainedExp']} EXP.";
+        if ($payload['leveledUp'] ?? false) {
+            $msg .= " Awans na Poziom {$payload['newLevel']}!";
+        }
+        $this->dispatch('notify', type: 'success', message: $msg);
         $this->character->refresh();
     }
     // -----------------------------
@@ -665,6 +794,8 @@ class Profile extends Component
             'pets' => $pets,
             'incubator' => $incubator,
             'eggs' => $eggs,
+            'inventoryItems' => $inventory,
+            'feedingPet' => $this->feedingPetId ? Pet::find($this->feedingPetId) : null,
             'baseAvatars' => $baseAvatars,
             'equipmentSets' => $equipmentSets,
         ]);
