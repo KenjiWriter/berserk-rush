@@ -803,10 +803,16 @@
                 <div class="flex justify-between items-center pt-1">
                     @if($inventoryTab === 'backpack')
                         <span class="text-stone-400 text-xs font-medium">Miejsca w plecaku: <strong class="text-amber-300">{{ $backpackCount }} / {{ $backpackCapacity }}</strong> @if(auth()->user()->hasPremium()) <span class="bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.5 rounded border border-amber-500/40 font-bold ml-1">VIP</span> @endif</span>
-                        <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
-                            <i class="fa-solid fa-layer-group"></i>
-                            Połącz przedmioty
-                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <button wire:click="sortInventory" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-amber-700 to-yellow-700 hover:from-amber-600 hover:to-yellow-600 text-amber-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-amber-500/40 transform active:scale-95" title="Sortuj przedmioty w plecaku (kategoriami od najmocniejszego do najsłabszego)">
+                                <i class="fa-solid fa-arrow-down-wide-short"></i>
+                                Sortuj plecak
+                            </button>
+                            <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz powtarzające się materiały">
+                                <i class="fa-solid fa-layer-group"></i>
+                                Połącz przedmioty
+                            </button>
+                        </div>
                     @elseif($inventoryTab === 'materials')
                         <span class="text-stone-400 text-xs font-medium">Magazyn Materiałów: <strong class="text-amber-300">{{ $materialStashCount }} / {{ $materialStashCapacity }} slotów</strong></span>
                         <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz stosy materiałów">

@@ -119,7 +119,7 @@ class OpenLootChestAction
                     ->where('location', $targetLocation)
                     ->first();
 
-                if ($existingItem && in_array($winningTemplate->type, ['material', 'consumable', 'currency'])) {
+                if ($existingItem && in_array($winningTemplate->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item'])) {
                     $existingItem->increment('stack_size', $winningQty);
                 } else {
                     ItemInstance::create([

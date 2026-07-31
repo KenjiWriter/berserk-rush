@@ -1217,7 +1217,7 @@ class DungeonService
                     $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid);
                     if (!$template) continue;
 
-                    if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+                    if (in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item'])) {
                         $existingItem = ItemInstance::where('owner_character_id', $character->id)
                             ->where('template_id', $templateUlid)
                             ->where('location', 'inventory')

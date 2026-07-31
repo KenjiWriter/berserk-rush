@@ -4,6 +4,7 @@ namespace App\Livewire\City;
 
 use Livewire\Component;
 use App\Infrastructure\Persistence\Character;
+use App\Application\Items\ItemSorter;
 use Illuminate\Support\Facades\Gate;
 
 class Merchant extends Component
@@ -225,10 +226,12 @@ class Merchant extends Component
 
 
         // Sell items based on playerItemFilter
-        $inventoryItems = ($this->playerItemFilter === 'materials')
+        $rawItems = ($this->playerItemFilter === 'materials')
             ? $this->character->materialStashItems()->take(100)->get()
-            : $this->character->inventoryItems()->take(64)->get()
+            : $this->character->inventoryItems()->get()
                 ->filter(fn($item) => $this->matchesSlotFilter($item->template->slot ?? null));
+
+        $inventoryItems = ItemSorter::sort($rawItems)->take(64);
 
         $sellPrices = [];
         foreach($inventoryItems as $item) {

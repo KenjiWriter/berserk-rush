@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Pet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class IncubatorService
 {
@@ -42,9 +43,28 @@ class IncubatorService
             $rarity = $egg->getEggRarity();
             $hours = CharacterIncubator::getIncubationHours($rarity);
 
+            // Handle stacked eggs: split off 1 egg for incubator if stack_size > 1
+            if (($egg->stack_size ?? 1) > 1) {
+                $egg->decrement('stack_size');
+                $incubatorEgg = ItemInstance::create([
+                    'id' => (string) Str::ulid(),
+                    'owner_character_id' => $character->id,
+                    'template_id' => $egg->template_id,
+                    'location' => 'incubator',
+                    'stack_size' => 1,
+                    'rarity' => $egg->rarity,
+                    'upgrade_level' => $egg->upgrade_level ?? 0,
+                    'roll_stats' => $egg->roll_stats ?? [],
+                ]);
+                $targetEggId = $incubatorEgg->id;
+            } else {
+                $egg->update(['location' => 'incubator']);
+                $targetEggId = $egg->id;
+            }
+
             if ($incubator) {
                 $incubator->update([
-                    'egg_item_instance_id' => $egg->id,
+                    'egg_item_instance_id' => $targetEggId,
                     'egg_rarity' => $rarity,
                     'started_at' => now(),
                     'hatches_at' => now()->addHours($hours),
@@ -53,16 +73,13 @@ class IncubatorService
             } else {
                 $incubator = CharacterIncubator::create([
                     'character_id' => $character->id,
-                    'egg_item_instance_id' => $egg->id,
+                    'egg_item_instance_id' => $targetEggId,
                     'egg_rarity' => $rarity,
                     'started_at' => now(),
                     'hatches_at' => now()->addHours($hours),
                     'is_hatched' => false,
                 ]);
             }
-
-            // Przenieś jajko z inventory
-            $egg->update(['location' => 'incubator']);
 
             return Result::ok($incubator);
         });

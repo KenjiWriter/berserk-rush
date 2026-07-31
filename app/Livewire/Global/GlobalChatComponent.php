@@ -667,7 +667,7 @@ class GlobalChatComponent extends Component
                 ? 'material_stash'
                 : 'inventory';
 
-            if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+            if (in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item'])) {
                 // Stack with existing item if possible
                 $existing = \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $character->id)
                     ->where('template_id', $template->id)

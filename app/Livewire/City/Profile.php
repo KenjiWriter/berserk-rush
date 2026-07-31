@@ -4,6 +4,7 @@ namespace App\Livewire\City;
 
 use App\Application\Items\EquipItem;
 use App\Application\Items\EquipmentSetService;
+use App\Application\Items\ItemSorter;
 use App\Application\Items\UnequipItem;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
@@ -75,33 +76,16 @@ class Profile extends Component
 
     public function stackItems()
     {
-        $character = $this->character;
-        $allItems = $character->inventoryItems()->get()->merge($character->materialStashItems()->get());
-        
-        $groups = $allItems->groupBy(function($item) {
-            return $item->template_id . '_' . $item->location;
-        });
-        
-        foreach ($groups as $groupKey => $items) {
-            $template = $items->first()->template;
-            if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
-                if ($items->count() > 1) {
-                    $firstItem = $items->first();
-                    $totalStack = $items->sum('stack_size');
-                    
-                    $firstItem->stack_size = $totalStack;
-                    $firstItem->save();
-                    
-                    foreach ($items->skip(1) as $item) {
-                        $item->delete();
-                    }
-                }
-            }
-        }
+        $this->character->consolidateStackableItems();
         
         $this->dispatch('notify', type: 'success', message: 'Ekwipunek i magazyn materiałów zostały uporządkowane.');
         $this->character->refresh();
         $this->character->load('equippedSkills.skill');
+    }
+
+    public function sortInventory()
+    {
+        $this->dispatch('notify', type: 'success', message: 'Przedmioty zostały posortowane wg kategorii i mocy.');
     }
 
     public function unequipSkill(string $characterSkillId)
@@ -581,6 +565,7 @@ class Profile extends Component
                 return $item->template->type === $this->inventoryFilter;
             });
         }
+        $inventory = ItemSorter::sort($inventory);
         // Safety cap to prevent memory exhaustion if a character has an excessive number of items in DB
         $inventory = $inventory->take(64);
 
@@ -591,6 +576,7 @@ class Profile extends Component
                 return $item->template->type === $this->inventoryFilter;
             });
         }
+        $playerStashItems = ItemSorter::sort($playerStashItems);
         $playerStashItems = $playerStashItems->take(64);
 
 

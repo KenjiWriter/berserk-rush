@@ -251,16 +251,18 @@ class Character extends Model
             ->with('template')
             ->get();
 
-        $groups = $items->groupBy('template_id');
+        $groups = $items->groupBy(function ($item) {
+            return $item->template_id . '_' . $item->location . '_' . ($item->rarity ?? 'common');
+        });
 
-        foreach ($groups as $templateId => $group) {
+        foreach ($groups as $groupKey => $group) {
             $template = $group->first()->template;
             if (!$template) continue;
 
-            $isStackable = in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item']) || ($template->sub_type === 'key');
+            $isStackable = in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item', 'chest']) || ($template->sub_type === 'key');
 
             if ($isStackable) {
-                $targetLocation = ($template->type === 'material') ? 'material_stash' : 'inventory';
+                $targetLocation = ($template->type === 'material') ? 'material_stash' : $group->first()->location;
                 $totalStack = (int) $group->sum('stack_size');
                 $mainItem = $group->first();
 

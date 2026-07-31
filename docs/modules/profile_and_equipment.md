@@ -32,7 +32,11 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
   - Magazyn kontowy przypisany do konta użytkownika (`User`), wspólny dla wszystkich posiadanych postaci.
   - Domyślnie posiada **2 sloty**.
   - Możliwość powiększenia magazynu w profilu: koszt **50 gemów** za każdy dodatkowy slot (`stash_slots`).
-  - Akcje `PlayerStashService`: `deposit()` (przeniesienie przedmiotu z plecaka do magazynu gracza) oraz `withdraw()` (wyciągnięcie przedmiotu z magazynu do plecaka).
+- **Sortowanie Przedmiotów w Plecaku (`ItemSorter`):**
+  - Przedmioty w plecaku (oraz magazynie gracza, u handlarza i kowala) są automatycznie grupowane i sortowane według kategorii oraz mocy sprzętu.
+  - **Kolejność Kategorii:** Bronie (od mieczy po dzwony) -> Hełmy -> Zbroje -> Buty -> Naszyjniki -> Pierścienie -> Mikstury / Materiały eksploatacyjne -> Jajka -> Skrzynie i Klucze -> Księgi skilli -> Materiały rzemieślnicze.
+  - **Moc Przedmiotu (Power Strength):** W ramach tej samej kategorii przedmioty sortowane są malejąco od najsilniejszego na górze (`getCombatPower()` / statystyki / ulepszenie / rzadkość / poziom wymagany) do najsłabszego na dole.
+  - **Przycisk "Sortuj plecak":** Dostępny w pasku akcji plecaka pod zakładkami kategorii w profilu.
 
 ### 3a. Prezentacja Statystyk w Tooltipie Przedmiotu (Info Box)
 - **Prezentacja Ataku Broni:** W info boxie przedmiotu (`x-item-tooltip`) statystyki broni (fizyczne `attack_min`/`attack_max`, magiczne `magic_attack_min`/`magic_attack_max` oraz `magic_burst_min`/`magic_burst_max`) są skonsolidowane w pojedynczy wiersz: `Atak: <min>-<max>` (np. `120-180`).

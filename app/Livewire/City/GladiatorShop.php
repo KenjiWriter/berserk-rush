@@ -63,7 +63,7 @@ class GladiatorShop extends Component
             $this->character->decrement('arena_tokens', $item->price);
 
             // Give item
-            if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+            if ($template && in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item'])) {
                 $existingItem = ItemInstance::where('owner_character_id', $this->character->id)
                     ->where('template_id', $template->id)
                     ->where('location', $targetLocation)

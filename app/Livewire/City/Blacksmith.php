@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Gate;
 use App\Infrastructure\Persistence\ItemRecipe;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Application\Items\CraftingService;
+use App\Application\Items\ItemSorter;
 
 class Blacksmith extends Component
 {
@@ -126,7 +127,8 @@ class Blacksmith extends Component
 
         $upgradableItems = $upgradableItems->filter(function ($item) {
             return $this->matchesItemFilter($item->template->type ?? null, $item->template->slot ?? null);
-        })->values();
+        });
+        $upgradableItems = ItemSorter::sort($upgradableItems);
 
         // Koszt ulepszenia liczony wyłącznie dla aktualnie wybranego przedmiotu (widok i tak
         // pokazuje tylko $upgradeCosts[$selectedUpgradeItemId]) - liczenie go dla całej listy
