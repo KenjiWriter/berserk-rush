@@ -89,6 +89,7 @@ class DungeonService
             'key_multiplier' => $keyMultiplier,
             'current_stage' => 1,
             'current_hp' => $character->getMaxHp(),
+            'current_mana' => $character->getMaxMana(),
             'is_completed' => false,
             'is_failed' => false,
         ]);
@@ -154,15 +155,15 @@ class DungeonService
         $activePassives = [];
         $monsterCcTurns = 0;
 
-        // Symuluj walkę z aktualnym HP gracza (brak regeneracji!)
+        // Symuluj walkę z aktualnym HP i MP gracza (brak automatycznej regeneracji!)
         $playerHp = $run->current_hp;
         $startPlayerHp = $playerHp;
         $playerMaxHp = $character->getMaxHp();
 
         // Zachowaj przenoszony stan many z poprzedniego etapu
         $playerMaxMana = $character->getMaxMana();
-        $savedState = is_array($run->combat_state) ? $run->combat_state : (json_decode($run->combat_state ?? '', true) ?: []);
-        $playerMana = isset($savedState['current_mana']) ? min($playerMaxMana, max(0, (int)$savedState['current_mana'])) : $playerMaxMana;
+        $playerMana = $run->current_mana !== null ? min($playerMaxMana, max(0, (int) $run->current_mana)) : $playerMaxMana;
+        $startPlayerMana = $playerMana;
 
         $totalStages = $run->dungeon->stages()->count();
         $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
@@ -491,8 +492,9 @@ class DungeonService
             $won = $monsterHp <= 0;
         }
 
-        // Zapisz stan HP po walce
+        // Zapisz stan HP i MP po walce
         $run->current_hp = $playerHp;
+        $run->current_mana = $playerMana;
         
         $accumulatedLoot = $run->accumulated_loot ?? ['gold' => 0, 'xp' => 0, 'items' => []];
 
@@ -542,9 +544,7 @@ class DungeonService
             ]);
         }
 
-        // Przejdź do następnego etapu i zapisz stan many
-        $savedState['current_mana'] = $playerMana;
-        $run->combat_state = $savedState;
+        // Przejdź do następnego etapu
         $run->current_stage++;
         $run->save();
 

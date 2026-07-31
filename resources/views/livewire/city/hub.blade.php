@@ -66,7 +66,7 @@
     @elseif($gameStage == 35)
         <livewire:global.tutorial-overlay :step="36" />
     @elseif($gameStage == 38)
-        <livewire:global.tutorial-overlay :step="38" />
+        <livewire:global.tutorial-overlay :step="39" />
     @elseif($gameStage == 41)
         <livewire:global.tutorial-overlay :step="42" />
     @endif

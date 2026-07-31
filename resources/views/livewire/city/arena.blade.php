@@ -1,6 +1,6 @@
 <div class="min-h-screen relative overflow-hidden" x-data="{ travelingTo: null }">
     @if(auth()->user()->game_stage == 39)
-        <livewire:global.tutorial-overlay :step="39" />
+        <livewire:global.tutorial-overlay :step="40" />
     @endif
 
     {{-- Dynamic background --}}

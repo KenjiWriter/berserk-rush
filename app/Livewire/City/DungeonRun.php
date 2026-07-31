@@ -282,6 +282,11 @@ class DungeonRun extends Component
             }
         }
 
+        $run = $this->getActiveRun();
+        if ($run && $run->current_mana !== null) {
+            return min($maxMana, max(0, (int) $run->current_mana));
+        }
+
         return $maxMana;
     }
 

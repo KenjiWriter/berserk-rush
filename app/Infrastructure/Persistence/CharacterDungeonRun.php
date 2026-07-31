@@ -11,6 +11,7 @@ class CharacterDungeonRun extends Model
         'dungeon_id',
         'current_stage',
         'current_hp',
+        'current_mana',
         'is_completed',
         'is_failed',
         'key_multiplier',
