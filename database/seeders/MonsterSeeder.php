@@ -236,7 +236,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 37,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 835, 'atk' => 433, 'def' => 41, 'agi' => 33, 'int' => 22, 'crit' => 0.36, 'dodge' => 0.2],
+                    'stats' => ['hp' => 850, 'atk' => 440, 'def' => 41, 'agi' => 33, 'int' => 22, 'crit' => 0.36, 'dodge' => 0.2],
                     'abilities' => []
                 ],
                 [
@@ -244,7 +244,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 40,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 923, 'atk' => 487, 'def' => 43, 'agi' => 29, 'int' => 19, 'crit' => 0.38, 'dodge' => 0.18],
+                    'stats' => ['hp' => 940, 'atk' => 495, 'def' => 43, 'agi' => 29, 'int' => 19, 'crit' => 0.38, 'dodge' => 0.18],
                     'abilities' => []
                 ],
                 [
@@ -252,7 +252,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 42,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1027, 'atk' => 562, 'def' => 45, 'agi' => 28, 'int' => 17, 'crit' => 0.48, 'dodge' => 0.16],
+                    'stats' => ['hp' => 1045, 'atk' => 570, 'def' => 46, 'agi' => 28, 'int' => 16, 'crit' => 0.48, 'dodge' => 0.16],
                     'abilities' => []
                 ],
                 [
@@ -260,7 +260,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 44,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1044, 'atk' => 580, 'def' => 50, 'agi' => 25, 'int' => 21, 'crit' => 0.42, 'dodge' => 0.14],
+                    'stats' => ['hp' => 1060, 'atk' => 590, 'def' => 50, 'agi' => 25, 'int' => 21, 'crit' => 0.42, 'dodge' => 0.14],
                     'abilities' => []
                 ],
                 [
@@ -268,7 +268,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 46,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 931, 'atk' => 487, 'def' => 36, 'agi' => 22, 'int' => 110, 'crit' => 0.32, 'dodge' => 0.16],
+                    'stats' => ['hp' => 950, 'atk' => 495, 'def' => 36, 'agi' => 22, 'int' => 111, 'crit' => 0.32, 'dodge' => 0.16],
                     'abilities' => []
                 ],
                 [
@@ -276,7 +276,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 48,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1123, 'atk' => 627, 'def' => 54, 'agi' => 29, 'int' => 33, 'crit' => 0.48, 'dodge' => 0.2],
+                    'stats' => ['hp' => 1145, 'atk' => 638, 'def' => 55, 'agi' => 29, 'int' => 33, 'crit' => 0.48, 'dodge' => 0.2],
                     'abilities' => []
                 ],
                 [
@@ -284,7 +284,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 53,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 3267, 'atk' => 660, 'def' => 55, 'agi' => 28, 'int' => 41, 'crit' => 0.50, 'dodge' => 0.15],
+                    'stats' => ['hp' => 3330, 'atk' => 704, 'def' => 48, 'agi' => 28, 'int' => 41, 'crit' => 0.50, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -292,7 +292,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'orc',
                     'level' => 50,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 330000, 'atk' => 412, 'def' => 56, 'agi' => 82, 'int' => 55, 'crit' => 0.6, 'dodge' => 0.2],
+                    'stats' => ['hp' => 450000, 'atk' => 560, 'def' => 75, 'agi' => 100, 'int' => 70, 'crit' => 0.6, 'dodge' => 0.2],
                     'abilities' => []
                 ]
             ],
