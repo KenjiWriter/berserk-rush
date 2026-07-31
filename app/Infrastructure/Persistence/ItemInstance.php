@@ -113,6 +113,29 @@ class ItemInstance extends Model
         return $this->location === 'equipped';
     }
 
+    public function getEggRarity(): string
+    {
+        $templateId = $this->template_id ?? $this->template?->id ?? '';
+
+        if (str_contains($templateId, 'legendary')) return 'legendary';
+        if (str_contains($templateId, 'epic')) return 'epic';
+        if (str_contains($templateId, 'rare')) return 'rare';
+        if (str_contains($templateId, 'uncommon')) return 'uncommon';
+        if (str_contains($templateId, 'common')) return 'common';
+
+        $name = mb_strtolower($this->template?->name ?? '');
+        if (str_contains($name, 'legendar')) return 'legendary';
+        if (str_contains($name, 'epick')) return 'epic';
+        if (str_contains($name, 'rzadki')) return 'rare';
+        if (str_contains($name, 'nietypow')) return 'uncommon';
+
+        if (!empty($this->rarity) && $this->rarity !== 'common') {
+            return $this->rarity;
+        }
+
+        return 'common';
+    }
+
     public function isInInventory(): bool
     {
         return $this->location === 'inventory';

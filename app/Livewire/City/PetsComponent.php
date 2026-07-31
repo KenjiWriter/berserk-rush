@@ -99,7 +99,9 @@ class PetsComponent extends Component
             ->orderByDesc('rarity')
             ->get();
 
-        $incubator = CharacterIncubator::where('character_id', $this->character->id)->first();
+        $incubator = CharacterIncubator::with('eggItemInstance.template')
+            ->where('character_id', $this->character->id)
+            ->first();
 
         $eggs = ItemInstance::where('owner_character_id', $this->character->id)
             ->where('location', 'inventory')

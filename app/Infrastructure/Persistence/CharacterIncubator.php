@@ -31,6 +31,14 @@ class CharacterIncubator extends Model
         return $this->belongsTo(ItemInstance::class, 'egg_item_instance_id');
     }
 
+    public function getEffectiveRarity(): string
+    {
+        if ($this->eggItemInstance) {
+            return $this->eggItemInstance->getEggRarity();
+        }
+        return $this->egg_rarity ?? 'common';
+    }
+
     /**
      * Sprawdza czy jajko jest gotowe do wylęgu.
      */

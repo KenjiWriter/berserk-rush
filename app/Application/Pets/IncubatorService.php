@@ -39,7 +39,7 @@ class IncubatorService
                 return Result::error('INCUBATOR_BUSY', 'Inkubator jest już zajęty.');
             }
 
-            $rarity = $egg->rarity ?? 'common';
+            $rarity = $egg->getEggRarity();
             $hours = CharacterIncubator::getIncubationHours($rarity);
 
             if ($incubator) {
@@ -68,6 +68,8 @@ class IncubatorService
         });
     }
 
+
+
     /**
      * Wykluj peta z jajka.
      */
@@ -85,6 +87,14 @@ class IncubatorService
             }
 
             $rarity = $incubator->egg_rarity;
+            $eggItem = null;
+            if ($incubator->egg_item_instance_id) {
+                $eggItem = ItemInstance::with('template')->find($incubator->egg_item_instance_id);
+                if ($eggItem) {
+                    $rarity = $eggItem->getEggRarity();
+                }
+            }
+
             $stats = $this->generatePetStats($rarity);
             $name = $this->generatePetName($rarity);
 
@@ -100,11 +110,8 @@ class IncubatorService
             ]);
 
             // Usuń jajko z inkubatora
-            if ($incubator->egg_item_instance_id) {
-                $eggItem = ItemInstance::find($incubator->egg_item_instance_id);
-                if ($eggItem) {
-                    $eggItem->delete();
-                }
+            if ($eggItem) {
+                $eggItem->delete();
             }
 
             $incubator->update([

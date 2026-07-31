@@ -526,7 +526,9 @@ class Profile extends Component
             ->orderByDesc('rarity')
             ->get();
 
-        $incubator = CharacterIncubator::where('character_id', $this->character->id)->first();
+        $incubator = CharacterIncubator::with('eggItemInstance.template')
+            ->where('character_id', $this->character->id)
+            ->first();
 
         $eggs = $this->character->inventoryItems->filter(function($item) {
             return $item->template->type === 'egg';
