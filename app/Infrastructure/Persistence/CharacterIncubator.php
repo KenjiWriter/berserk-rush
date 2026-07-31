@@ -40,6 +40,26 @@ class CharacterIncubator extends Model
     }
 
     /**
+     * Synchronicznie koryguje rzadkość i czas inkubacji, jeśli podpięte jajko ma inną rzadkość.
+     */
+    public function syncRarityIfNecessary(): void
+    {
+        if ($this->is_hatched || !$this->egg_item_instance_id) {
+            return;
+        }
+
+        $effectiveRarity = $this->getEffectiveRarity();
+        if ($effectiveRarity !== $this->egg_rarity) {
+            $hours = self::getIncubationHours($effectiveRarity);
+            $this->egg_rarity = $effectiveRarity;
+            if ($this->started_at) {
+                $this->hatches_at = $this->started_at->copy()->addHours($hours);
+            }
+            $this->save();
+        }
+    }
+
+    /**
      * Sprawdza czy jajko jest gotowe do wylęgu.
      */
     public function isReady(): bool
@@ -47,6 +67,7 @@ class CharacterIncubator extends Model
         if ($this->is_hatched || !$this->hatches_at) {
             return false;
         }
+        $this->syncRarityIfNecessary();
         return now()->gte($this->hatches_at);
     }
 
@@ -56,14 +77,32 @@ class CharacterIncubator extends Model
     public function getProgress(): float
     {
         if (!$this->started_at || !$this->hatches_at) {
-            return 0;
+            return 0.0;
         }
 
-        $total = $this->hatches_at->diffInSeconds($this->started_at);
-        $elapsed = now()->diffInSeconds($this->started_at);
+        $this->syncRarityIfNecessary();
 
-        if ($total <= 0) return 100;
-        return min(100, ($elapsed / $total) * 100);
+        $nowTs = now()->timestamp;
+        $startTs = $this->started_at->timestamp;
+        $hatchTs = $this->hatches_at->timestamp;
+
+        if ($nowTs >= $hatchTs) {
+            return 100.0;
+        }
+
+        if ($nowTs <= $startTs) {
+            return 0.0;
+        }
+
+        $totalSeconds = $hatchTs - $startTs;
+        $elapsedSeconds = $nowTs - $startTs;
+
+        if ($totalSeconds <= 0) {
+            return 100.0;
+        }
+
+        $progress = ($elapsedSeconds / $totalSeconds) * 100.0;
+        return max(0.0, min(100.0, round($progress, 1)));
     }
 
     /**
