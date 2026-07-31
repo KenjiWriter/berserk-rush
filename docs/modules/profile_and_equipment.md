@@ -136,3 +136,23 @@ efektywnie odpowiada to aktualnie założonemu ekwipunkowi.
 Wojna Gildii / Set 1 / Set 2 / Set 3, kłódka gdy brak Premium) - rozwijane
 menu z podglądem zapisanych przedmiotów oraz przyciskami "Zapisz aktualny
 ekwipunek" i (tylko dla setów do noszenia) "Załóż ten zestaw".
+
+### 6. Zakładka Lustro (Mirror)
+
+Szczegółowy opis samego systemu Lustra (multitasking, offline farming) znajduje
+się w `docs/modules/mirror.md`. Tutaj opisany jest wyłącznie stan zakładki w
+Profilu:
+
+- **Blokada do 30 poziomu**: przycisk zakładki jest wygaszony (`opacity-60
+  grayscale`, ikona `fa-lock`) dla postaci poniżej 30 poziomu. Kliknięcie jest
+  przechwytywane w `Profile::setTab()` - dla `tab === 'mirror'` przy
+  `level < 30` zakładka NIE zostaje otwarta, zamiast tego wyświetlany jest
+  komunikat błędu (`dispatch('notify', type: 'error', ...)`).
+- **Brak wykupionego dostępu**: dla postaci z poziomem >= 30, ale bez
+  aktywnego okna dostępu (`Character::hasMirrorAccess()` zwraca `false`) i bez
+  trwającej sesji, zamiast selektora mapy/godzin wyświetlany jest komunikat
+  z odnośnikiem do Chaty Wiedźmy, gdzie kupuje się dostęp.
+- **Wykupiony dostęp**: dopiero wtedy widoczny jest istniejący selektor mapy i
+  czasu trwania (1-6h / 1-10h dla Premium) oraz przycisk "Uruchom Lustro".
+  Trwająca/rozliczona sesja (baner z nagrodami w toku, podsumowanie po
+  odebraniu) działa bez zmian względem wcześniejszej wersji.

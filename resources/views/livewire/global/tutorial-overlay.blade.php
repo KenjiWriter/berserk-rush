@@ -94,6 +94,10 @@
                                 Wojowniku, osiągnąłeś już piętnasty poziom - czas sprawdzić swoje umiejętności na Arenie Gladiatorów! To starcie z innymi mistrzami naszej krainy o sławę, wyższe rangi i Żetony Areny. Odwiedź teraz Arenę, aby stoczyć swoje pierwsze pojedynki!
                             @elseif($step == 39)
                                 Witaj na Arenie Gladiatorów! Próby walk na Arenie regenerują się w tempie +1 na godzinę (maksymalny limit wynosi 3 próby jednocześnie). Za odniesione zwycięstwa otrzymujesz Żetony Areny oraz punkty ELO. Zgromadzone żetony możesz wydać w Sklepie Gladiatora na wyśmienity ekwipunek. Powodzenia w walce!
+                            @elseif($step == 42)
+                                Wojowniku, osiągnąłeś już trzydziesty poziom - Twoja legenda rośnie! W Chacie Wiedźmy kryje się kolejna tajemnica: potrafi ona stworzyć Twoje zwierciadlane odbicie, które samodzielnie poluje na potwory w Twoim imieniu, gdy Ty zajmujesz się innymi sprawami. Odwiedź teraz Wiedźmę, aby poznać tę magiczną sztukę!
+                            @elseif($step == 43)
+                                Oto Magiczne Lustro! Za 5 000 000 złota lub 200 gemów możesz wynająć je na 7 dni - przez ten czas Twoje odbicie będzie mogło polować za Ciebie na wybranej mapie. Odwiedź zakładkę "Lustro" w swoim Profilu, aby wybrać mapę i rozpocząć magiczne polowanie!
                             @endif
                         </div>
 

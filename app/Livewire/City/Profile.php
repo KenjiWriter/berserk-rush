@@ -82,6 +82,11 @@ class Profile extends Component
 
     public function setTab(string $tab)
     {
+        if ($tab === 'mirror' && $this->character->level < 30) {
+            $this->dispatch('notify', type: 'error', message: 'Lustro odblokowuje się na 30 poziomie postaci.');
+            return;
+        }
+
         $this->activeTab = $tab;
     }
 

@@ -19,7 +19,14 @@
         $isGuildLocked = auth()->check() && (!$character || $character->level < 10);
         $isArenaLocked = auth()->check() && (!$character || $character->level < 15);
 
-        $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount;
+        $hubTutorialStages = [3, 4, 8, 15, 16, 20, 22, 30, 35, 38, 41];
+        $currentGameStage = auth()->check() ? auth()->user()->game_stage : null;
+        $hubTutorialPending = $character && $currentGameStage !== null && (
+            in_array($currentGameStage, $hubTutorialStages, true)
+            || ($currentGameStage == 13 && $character->character_points > 0)
+        );
+
+        $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount + ($hubTutorialPending ? 1 : 0);
     @endphp
 
     <div x-data="{ mobileMenuOpen: false }" class="lg:hidden">
@@ -172,9 +179,12 @@
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Eksploracja</div>
                     <div class="grid grid-cols-2 gap-2">
                         <a href="{{ route('city.hub', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                             <i class="fa-solid fa-archway text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Miasto</span>
+                            @if($hubTutorialPending)
+                                <span class="ml-auto shrink-0 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[9px] text-slate-950 font-black shadow">!</span>
+                            @endif
                         </a>
 
                         <a href="{{ route('city.profile', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })"
@@ -332,11 +342,14 @@
         {{-- Bottom Fixed Navigation Bar --}}
         <div class="fixed bottom-0 w-full z-[9900] bg-stone-950/95 backdrop-blur-lg border-t-2 border-amber-700/80 shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
             <div class="flex justify-around items-center h-16 px-1">
-                <a href="{{ route('city.hub', $charId) }}" wire:navigate 
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
+                <a href="{{ route('city.hub', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}"
                    @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })">
-                    <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
+                    <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-archway text-amber-400 text-lg"></i>
+                        @if($hubTutorialPending)
+                            <span class="absolute -top-1 -right-2 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[9px] font-black animate-bounce shadow">!</span>
+                        @endif
                     </span>
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Miasto</span>
                 </a>

@@ -65,4 +65,138 @@ class MirrorClaimTest extends TestCase
         $this->assertTrue($summary['had_level_up']);
         $this->assertGreaterThan(1, $summary['new_level']);
     }
+
+    public function test_purchase_access_with_gold_charges_and_grants_seven_days(): void
+    {
+        $user = User::factory()->create(['gems' => 0]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorBuyerGold',
+            'level' => 30,
+            'xp' => 0,
+            'gold' => 6_000_000,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $service = app(MirrorService::class);
+        $service->purchaseAccess($character, 'gold');
+
+        $character->refresh();
+        $this->assertEquals(1_000_000, $character->gold);
+        $this->assertTrue($character->hasMirrorAccess());
+        $this->assertTrue($character->mirror_access_until->between(now()->addDays(6), now()->addDays(8)));
+    }
+
+    public function test_purchase_access_with_gems_charges_and_grants_seven_days(): void
+    {
+        $user = User::factory()->create(['gems' => 250]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorBuyerGems',
+            'level' => 30,
+            'xp' => 0,
+            'gold' => 0,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $service = app(MirrorService::class);
+        $service->purchaseAccess($character, 'gems');
+
+        $character->refresh();
+        $this->assertEquals(50, $user->fresh()->gems);
+        $this->assertTrue($character->hasMirrorAccess());
+    }
+
+    public function test_purchase_access_extends_existing_window_instead_of_resetting(): void
+    {
+        $user = User::factory()->create(['gems' => 0]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorExtender',
+            'level' => 30,
+            'xp' => 0,
+            'gold' => 10_000_000,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+            'mirror_access_until' => now()->addDays(2),
+        ]);
+
+        $service = app(MirrorService::class);
+        $service->purchaseAccess($character, 'gold');
+
+        $character->refresh();
+        $this->assertTrue($character->mirror_access_until->between(now()->addDays(8), now()->addDays(10)));
+    }
+
+    public function test_purchase_access_fails_below_level_30(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorTooLow',
+            'level' => 29,
+            'xp' => 0,
+            'gold' => 10_000_000,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $service = app(MirrorService::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $service->purchaseAccess($character, 'gold');
+    }
+
+    public function test_purchase_access_fails_with_insufficient_gold(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorPoor',
+            'level' => 30,
+            'xp' => 0,
+            'gold' => 100,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $service = app(MirrorService::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $service->purchaseAccess($character, 'gold');
+    }
+
+    public function test_start_mirror_fails_without_purchased_access(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'MirrorNoAccess',
+            'level' => 30,
+            'xp' => 0,
+            'gold' => 100,
+            'attributes' => ['str' => 5, 'int' => 5, 'vit' => 5, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $map = Map::create([
+            'name' => 'Dolina Bez Dostepu',
+            'level_min' => 1,
+            'level_max' => 10,
+        ]);
+
+        $service = app(MirrorService::class);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Nie masz aktywnego dostępu do Lustra. Kup go u Wiedźmy.');
+        $service->startMirror($character, $map, 1);
+    }
 }

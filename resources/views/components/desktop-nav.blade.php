@@ -16,6 +16,12 @@
         if (auth()->check()) {
             auth()->user()->checkAndRepairTutorialStage($character);
         }
+        $hubTutorialStages = [3, 4, 8, 15, 16, 20, 22, 30, 35, 38, 41];
+        $currentGameStage = auth()->check() ? auth()->user()->game_stage : null;
+        $hubTutorialPending = $character && $currentGameStage !== null && (
+            in_array($currentGameStage, $hubTutorialStages, true)
+            || ($currentGameStage == 13 && $character->character_points > 0)
+        );
         $isQuestsLocked = auth()->check() && (!$character || $character->level < 5);
         $isGuildLocked = auth()->check() && (!$character || $character->level < 10);
         $isArenaLocked = auth()->check() && (!$character || $character->level < 15);
@@ -221,6 +227,9 @@
                               x-transition:leave-start="opacity-100"
                               x-transition:leave-end="opacity-0"
                               class="truncate">MIASTO</span>
+                        @if($hubTutorialPending)
+                            <span :class="collapsed ? 'absolute top-1 right-1' : 'absolute right-3 top-1/2 -translate-y-1/2'" class="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-[10px] text-slate-950 font-black animate-bounce z-10 transition-all duration-300">!</span>
+                        @endif
                     </a>
 
                     {{-- Postać & Ekwipunek --}}

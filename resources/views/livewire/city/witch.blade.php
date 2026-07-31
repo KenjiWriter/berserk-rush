@@ -703,6 +703,57 @@
                         </div>
                     </div>
                 </div>
+            @elseif($activeTab === 'mirror')
+                <div class="max-w-3xl mx-auto space-y-6 animate-[fade-in_0.4s_ease-out]">
+                    <div class="relative bg-gradient-to-r from-purple-950/90 via-fuchsia-950/70 to-slate-950/90 border-2 border-purple-500/50 rounded-2xl p-6 md:p-8 shadow-[0_0_35px_rgba(168,85,247,0.25)] backdrop-blur-xl overflow-hidden">
+                        <div class="absolute top-0 right-0 w-80 h-80 bg-purple-600/15 rounded-full filter blur-3xl opacity-50 pointer-events-none"></div>
+                        <div class="relative flex items-center gap-4 mb-4">
+                            <div class="w-14 h-14 rounded-2xl bg-gradient-to-b from-purple-800 via-purple-950 to-black border-2 border-purple-400 flex items-center justify-center text-2xl text-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.4)] shrink-0">
+                                <i class="fa-solid fa-gem"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl sm:text-2xl font-extrabold text-purple-200 medieval-font tracking-wider uppercase">Magiczne Lustro</h2>
+                                <p class="text-xs sm:text-sm text-purple-300/70 font-sans">Wiedźma stworzy Twoje zwierciadlane odbicie, które poluje w Twoim imieniu</p>
+                            </div>
+                        </div>
+
+                        @if($character->level < 30)
+                            <div class="relative bg-stone-900/90 border-2 border-stone-800 rounded-xl p-6 text-center opacity-80">
+                                <i class="fa-solid fa-lock text-3xl text-amber-500/60 mb-3"></i>
+                                <p class="text-stone-400 font-bold font-sans">Zablokowane! Wymagany 30 poziom postaci.</p>
+                            </div>
+                        @else
+                            <div class="relative space-y-4">
+                                @if($hasMirrorAccess)
+                                    <div class="bg-emerald-950/60 border border-emerald-600/60 rounded-xl p-4 flex items-center gap-3">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                                        <span class="text-emerald-200 font-bold font-sans text-sm">Dostęp aktywny do {{ $mirrorAccessUntil->format('d.m.Y H:i') }}</span>
+                                    </div>
+                                    <p class="text-purple-300/70 text-xs font-sans">Możesz dokupić kolejne 7 dni już teraz — zostaną doliczone do obecnego terminu.</p>
+                                @else
+                                    <p class="text-purple-300/70 text-sm font-sans">Nie posiadasz aktywnego dostępu do Lustra. Wykup go poniżej, a następnie wybierz mapę i uruchom sesję w zakładce <span class="text-purple-200 font-bold">Postać &amp; Ekwipunek → Lustro</span>.</p>
+                                @endif
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <button wire:click="buyMirrorAccess('gold')" wire:loading.attr="disabled"
+                                        {{ $character->gold < 5000000 ? 'disabled' : '' }}
+                                        class="flex flex-col items-center gap-2 p-5 rounded-xl border-2 font-sans transition-all duration-200 {{ $character->gold < 5000000 ? 'bg-stone-900/70 border-stone-800 text-stone-600 cursor-not-allowed opacity-60' : 'bg-gradient-to-b from-amber-900/60 to-stone-950 border-amber-600/70 text-amber-200 hover:border-amber-400 hover:scale-[1.02] cursor-pointer shadow-lg' }}">
+                                        <i class="fa-solid fa-coins text-2xl text-amber-400"></i>
+                                        <span class="font-black text-lg">5 000 000</span>
+                                        <span class="text-[10px] uppercase tracking-widest opacity-80">Złota za 7 dni</span>
+                                    </button>
+                                    <button wire:click="buyMirrorAccess('gems')" wire:loading.attr="disabled"
+                                        {{ $character->gems < 200 ? 'disabled' : '' }}
+                                        class="flex flex-col items-center gap-2 p-5 rounded-xl border-2 font-sans transition-all duration-200 {{ $character->gems < 200 ? 'bg-stone-900/70 border-stone-800 text-stone-600 cursor-not-allowed opacity-60' : 'bg-gradient-to-b from-fuchsia-900/60 to-stone-950 border-fuchsia-500/70 text-fuchsia-200 hover:border-fuchsia-400 hover:scale-[1.02] cursor-pointer shadow-lg' }}">
+                                        <i class="fa-solid fa-gem text-2xl text-fuchsia-400"></i>
+                                        <span class="font-black text-lg">200</span>
+                                        <span class="text-[10px] uppercase tracking-widest opacity-80">Gemów za 7 dni</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
             @endif
         </div>
 

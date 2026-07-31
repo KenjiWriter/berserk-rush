@@ -36,6 +36,7 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Czarodziej i Zaklinanie Przedmiotów (game_stage 30-34)**: Po powrocie do Głównego Obozu Kapitan informuje gracza, że kolejnym mieszkańcem jest Czarodziej. Kafel Czarodzieja w Hubie zostaje podświetlony. Po przejściu do Czarodzieja Kapitan oprowadza gracza po mechanice zaklinania (dodawanie bonusów) i zleca pomyślne zaklecie dowolnego przedmiotu. Po wykonaniu zadania z sukcesem gracz otrzymuje nagrodę 200 EXP oraz 250 Golda.
 - **Gildia (game_stage 34-37)**: Aktywowane po wbiciu 10 poziomu postaci (analogicznie do Tablicy Wyzwań na 5 poziomie). Moduł Gildii (`city.guild`) jest zablokowany (kafel w Hubie i link w nawigacji wygaszone, badge `fa-lock`) dopóki postać nie osiągnie 10 poziomu. Po spełnieniu warunku, w Hubie pojawia się dymek Kapitana (etap 35→36) tłumaczący mechaniki gildii: oddawanie doświadczenia i zasobów do skarbca, ulepszanie poziomu gildii oraz wojny między gildiami. Po zamknięciu dymku podświetla się kafel Gildii; wejście do widoku listy gildii pokazuje kolejny dymek (etap 36→37), w którym Kapitan informuje, że można założyć własną gildię lub dołączyć do istniejącej. Etap kończy się na 37, bez nagrody rzeczowej.
 - **Arena Gladiatorów (game_stage 38-40)**: Aktywowane po wbiciu 15 poziomu postaci (analogicznie do Gildii na 10 poziomie). Moduł Areny (`city.arena`) oraz Sklep Gladiatora są zablokowane dla postaci poniżej 15 poziomu. Po osiągnięciu 15 poziomu, w Hubie pojawia się dymek Kapitana (etap 38→39) zapraszający na Arenę. Po zamknięciu dymku kafel Areny ulega podświetleniu (`animate-pulse`); wejście na Arenę uruchamia kolejny dymek (etap 39→40), w którym Kapitan objaśnia limit 3 prób walki (+1/h), punkty ELO i rankingi oraz możliwość zakupu ekwipunku w Sklepie Gladiatora za Żetony Areny.
+- **Lustro (game_stage 40-43)**: Aktywowane po wbiciu 30 poziomu postaci (analogicznie do Gildii na 10 poziomie i Areny na 15 poziomie). Zakładka "Lustro" w Profilu oraz zakładka "Lustro" u Wiedźmy są zablokowane dla postaci poniżej 30 poziomu - patrz `docs/modules/mirror.md` po pełny opis mechaniki i `docs/modules/profile_and_equipment.md` §6 po opis blokady w UI Profilu. Po osiągnięciu 30 poziomu, w Hubie pojawia się dymek Kapitana (etap 41→42) tłumaczący, że Wiedźma potrafi stworzyć zwierciadlane odbicie postaci, które samodzielnie poluje w jej imieniu, i kierujący gracza do Chaty Wiedźmy. Po zamknięciu dymku kafel Wiedźmy w Hubie ulega podświetleniu (`animate-pulse`, wspólnie z etapem 31 z sekcji Czarodzieja/Zaklinania powyżej); wejście do Wiedźmy uruchamia kolejny dymek (etap 42→43), w którym Kapitan krótko opisuje ofertę: wynajęcie Lustra na 7 dni za 5 000 000 złota lub 200 gemów. Etap kończy się na 43, bez nagrody rzeczowej (analogicznie do wątku Gildii kończącego się na etapie 37).
 
 ## Automatyczne Pomijanie Etapów (Anti-Softlock)
 
@@ -53,6 +54,22 @@ Samouczek liniowy oparty o ścisłe porównania `game_stage == X` potrafił blok
 4. **Natychmiastowe odblokowanie Areny po 15 poziomie**: Analogiczny mechanizm dla progu 15 poziomu i modułu Areny. `User::checkAndRepairTutorialStage()` przeskakuje z `game_stage == 37` na `38`, gdy postać osiągnie 15 poziom. Kliknięcie kafelka Areny przy `level >= 15` i `game_stage < 38`:
    - w Hubie (`Hub::goTo('arena')`) ustawia `game_stage` na 38 i pozostaje w Hubie, prezentując dymek Kapitana (etap 38 -> 39),
    - przy bezpośrednim wejściu na `/arena` (`Arena::mount`) robi to samo i przekierowuje do Hubu.
+5. **Natychmiastowe odblokowanie Lustra po 30 poziomie**: Analogiczny mechanizm dla progu 30 poziomu i modułu Lustra. `User::checkAndRepairTutorialStage()` przeskakuje z `game_stage == 40` na `41`, gdy postać osiągnie 30 poziom (40 to stan spoczynkowy po zakończeniu wątku Areny). W przeciwieństwie do Gildii/Areny, dostęp do Lustra nie jest tu zablokowany klikalnym kaflem w Hubie (Wiedźma jest dostępna na każdym poziomie) - blokada dotyczy wyłącznie zakładek "Lustro" w Profilu i u Wiedźmy, więc nie ma odpowiednika wymuszonego skoku `goTo()`/`mount()` przy bezpośrednim wejściu.
+
+## Dioda oczekującego dymku na ikonie "Miasto"
+
+Ikony "Postać" i "Czarnoksiężnik" w nawigacji (`desktop-nav.blade.php`,
+`mobile-nav.blade.php`) od dawna pokazują pulsujący znacznik (`bg-amber-500
+rounded-full animate-bounce`), gdy czeka na gracza jakaś akcja (niewydane
+punkty statystyk / punkty umiejętności). Analogiczny znacznik dodano na
+ikonie "Miasto", sygnalizujący, że w Hubie czeka dymek Kapitana. W bloku
+`@php` obu plików nawigacji wyliczana jest zmienna `$hubTutorialPending` na
+podstawie listy wartości `game_stage`, dla których `hub.blade.php`
+renderuje dymek (`[3, 4, 8, 15, 16, 20, 22, 30, 35, 38, 41]`, plus
+przypadek `game_stage == 13` z niewydanymi punktami postaci). Lista tę
+trzeba rozszerzać ręcznie przy każdym nowym `@elseif($gameStage == X)`
+dodanym do `hub.blade.php`. W `mobile-nav.blade.php` dioda dolicza się
+dodatkowo do zbiorczego licznika `$totalBadgeCount` na przycisku "Więcej".
 
 ## Implementacja na przyszłość
 

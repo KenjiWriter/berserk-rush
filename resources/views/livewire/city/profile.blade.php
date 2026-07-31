@@ -538,13 +538,17 @@
                         <button wire:click="setTab('skills')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'skills' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Umiejętności
                         </button>
-                        <button wire:click="setTab('mirror')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center relative {{ $activeTab === 'mirror' ? 'text-purple-300 border-b-2 border-purple-400 bg-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-stone-400 hover:text-purple-200 hover:bg-stone-800/40' }}">
-                            <i class="fa-solid fa-[#...]/fa-gem text-purple-400 mr-1 text-xs"></i> Lustro
-                            @if($character->hasActiveMirror())
-                                <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
-                                </span>
+                        <button wire:click="setTab('mirror')" title="{{ $character->level < 30 ? 'Zablokowane (Poz. 30)' : '' }}" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center relative {{ $character->level < 30 ? 'text-stone-600 opacity-60 grayscale cursor-not-allowed hover:bg-transparent' : ($activeTab === 'mirror' ? 'text-purple-300 border-b-2 border-purple-400 bg-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-stone-400 hover:text-purple-200 hover:bg-stone-800/40') }}">
+                            @if($character->level < 30)
+                                <i class="fa-solid fa-lock text-amber-500/60 mr-1 text-xs"></i> Lustro
+                            @else
+                                <i class="fa-solid fa-gem text-purple-400 mr-1 text-xs"></i> Lustro
+                                @if($character->hasActiveMirror())
+                                    <span class="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-purple-500"></span>
+                                    </span>
+                                @endif
                             @endif
                         </button>
                     </div>
@@ -947,6 +951,16 @@
                                         </span>
                                     </button>
                                 </div>
+                            </div>
+                        @elseif(!$character->hasMirrorAccess())
+                            <div class="p-6 rounded-xl bg-stone-900 border-2 border-purple-900/80 text-center space-y-3">
+                                <i class="fa-solid fa-lock text-3xl text-purple-500/60"></i>
+                                <p class="text-sm text-purple-200 font-bold">Nie posiadasz dostępu do Lustra.</p>
+                                <p class="text-xs text-stone-400">Kup dostęp na 7 dni u Wiedźmy, aby móc uruchamiać sesje Lustra.</p>
+                                <a href="{{ route('city.witch', $character->id) }}" wire:navigate
+                                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-800 hover:bg-purple-700 border border-purple-500 text-purple-100 text-xs font-bold uppercase tracking-wider shadow-md">
+                                    <i class="fa-solid fa-mortar-pestle"></i> Idź do Wiedźmy
+                                </a>
                             </div>
                         @else
                             <div class="space-y-5">
