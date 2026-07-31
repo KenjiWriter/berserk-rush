@@ -317,16 +317,18 @@ class DropService
         $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid);
         $itemName = $template ? $template->name : "Item {$templateUlid}";
         
-        // Stackable items logic
-        if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+        $isStackable = $template && (in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item']) || ($template->sub_type === 'key'));
+
+        if ($isStackable) {
             $location = ($template->type === 'material') ? 'material_stash' : 'inventory';
 
             $existingItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $templateUlid)
-                ->where('location', $location)
+                ->whereIn('location', ['material_stash', 'inventory'])
                 ->first();
 
             if ($existingItem) {
+                $existingItem->location = $location;
                 $existingItem->stack_size += $quantity;
                 $existingItem->save();
 
@@ -340,6 +342,8 @@ class DropService
                     'quantity_change' => $quantity,
                     'idempotency_key' => $idempotencyKey . ":item:0"
                 ]);
+
+                $character->consolidateStackableItems();
 
                 $items[] = [
                     'id' => $existingItem->id,
@@ -369,6 +373,8 @@ class DropService
                     'roll_stats' => [],
                     'upgrade_level' => 0
                 ]);
+
+                $character->consolidateStackableItems();
 
                 ItemLedger::create([
                     'id' => Str::ulid(),

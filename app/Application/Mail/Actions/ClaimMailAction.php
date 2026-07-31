@@ -52,14 +52,17 @@ class ClaimMailAction
                                 $template = $item->template;
                                 $targetLocation = ($template && $template->type === 'material') ? 'material_stash' : 'inventory';
 
-                                if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
+                                $isStackable = $template && (in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item']) || ($template->sub_type === 'key'));
+
+                                if ($isStackable) {
                                     $existingItem = ItemInstance::where('owner_character_id', $character->id)
                                         ->where('template_id', $item->template_id)
-                                        ->where('location', $targetLocation)
+                                        ->whereIn('location', ['material_stash', 'inventory'])
                                         ->where('id', '!=', $item->id)
                                         ->first();
 
                                     if ($existingItem) {
+                                        $existingItem->location = $targetLocation;
                                         $existingItem->stack_size += $qty;
                                         $existingItem->save();
 
@@ -150,6 +153,8 @@ class ClaimMailAction
                         }
                     }
                 }
+
+                $character->consolidateStackableItems();
 
                 $mail->update(['claimed' => true]);
 

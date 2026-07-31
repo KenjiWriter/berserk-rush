@@ -122,26 +122,8 @@ class CleanupExcessItemsCommand extends Command
 
             // 1. Złączanie stosów (stackowanie)
             $stackedDeletedCount = 0;
-            $groups = $items->groupBy('template_id');
-
-            foreach ($groups as $templateId => $groupItems) {
-                $template = $groupItems->first()->template;
-                if ($template && in_array($template->type, ['material', 'consumable', 'currency', 'egg']) && $groupItems->count() > 1) {
-                    $mainItem = $groupItems->first();
-                    $totalStack = $groupItems->sum('stack_size');
-
-                    if (!$dryRun) {
-                        $mainItem->stack_size = $totalStack;
-                        $mainItem->save();
-
-                        foreach ($groupItems->skip(1) as $excessItem) {
-                            $excessItem->delete();
-                            $stackedDeletedCount++;
-                        }
-                    } else {
-                        $stackedDeletedCount += ($groupItems->count() - 1);
-                    }
-                }
+            if (!$dryRun) {
+                $character->consolidateStackableItems();
             }
 
             // Pobierz aktualną listę po stackowaniu

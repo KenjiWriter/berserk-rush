@@ -276,15 +276,17 @@ class QuestService
         $template = \App\Infrastructure\Persistence\ItemTemplate::find($templateId);
         if (!$template) return;
 
-        $location = ($template->type === 'material') ? 'material_stash' : 'inventory';
+        $targetLocation = ($template->type === 'material') ? 'material_stash' : 'inventory';
+        $isStackable = in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item']) || ($template->sub_type === 'key');
 
-        if (in_array($template->type, ['material', 'consumable', 'currency'])) {
+        if ($isStackable) {
             $existingItem = ItemInstance::where('owner_character_id', $character->id)
                 ->where('template_id', $templateId)
-                ->where('location', $location)
+                ->whereIn('location', ['material_stash', 'inventory'])
                 ->first();
 
             if ($existingItem) {
+                $existingItem->location = $targetLocation;
                 $existingItem->stack_size += $amount;
                 $existingItem->save();
 
@@ -298,16 +300,16 @@ class QuestService
                     'quantity_change' => $amount,
                     'idempotency_key' => "quest_reward:{$questId}:item:{$existingItem->id}:" . time()
                 ]);
+
+                $character->consolidateStackableItems();
                 return;
             }
-        }
 
-        if (in_array($template->type, ['material', 'consumable', 'currency'])) {
             $itemInstance = ItemInstance::create([
                 'id' => Str::ulid(),
                 'template_id' => $templateId,
                 'owner_character_id' => $character->id,
-                'location' => $location,
+                'location' => $targetLocation,
                 'stack_size' => $amount,
                 'rarity' => 'common',
                 'roll_stats' => [],
@@ -324,6 +326,8 @@ class QuestService
                 'quantity_change' => $amount,
                 'idempotency_key' => "quest_reward:{$questId}:item:{$itemInstance->id}:" . time()
             ]);
+
+            $character->consolidateStackableItems();
             return;
         }
 

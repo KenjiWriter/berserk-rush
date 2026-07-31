@@ -242,6 +242,42 @@ class Character extends Model
         return $this->equipmentSetItems()->where('set_type', $setType)->with('itemInstance.template');
     }
 
+    public function consolidateStackableItems(): void
+    {
+        $items = ItemInstance::where('owner_character_id', $this->id)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->with('template')
+            ->get();
+
+        $groups = $items->groupBy('template_id');
+
+        foreach ($groups as $templateId => $group) {
+            $template = $group->first()->template;
+            if (!$template) continue;
+
+            $isStackable = in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key', 'quest_item']) || ($template->sub_type === 'key');
+
+            if ($isStackable) {
+                $targetLocation = ($template->type === 'material') ? 'material_stash' : 'inventory';
+                $totalStack = (int) $group->sum('stack_size');
+                $mainItem = $group->first();
+
+                if ($mainItem->location !== $targetLocation || $mainItem->stack_size !== $totalStack) {
+                    $mainItem->update([
+                        'location' => $targetLocation,
+                        'stack_size' => $totalStack,
+                    ]);
+                }
+
+                if ($group->count() > 1) {
+                    foreach ($group->skip(1) as $duplicate) {
+                        $duplicate->delete();
+                    }
+                }
+            }
+        }
+    }
+
     public function inventoryItems()
     {
         return $this->items()->where('location', 'inventory')->whereHas('template', function($q) {
