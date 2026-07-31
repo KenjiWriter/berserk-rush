@@ -115,9 +115,17 @@ class MirrorService
             $rewards = $session->calculateCurrentRewards();
 
             // Grant EXP
+            $oldLevel = $character->level;
+            $hadLevelUp = false;
+            $newLevel = $oldLevel;
+
             if ($rewards['xp'] > 0) {
                 $character->increment('xp', $rewards['xp']);
-                $this->levelUpService->checkAndApply($character);
+                $lvlRes = $this->levelUpService->checkAndApply($character);
+                if ($lvlRes->isOk() && $lvlRes->getPayload() && $lvlRes->getPayload()->hadLevelUp) {
+                    $hadLevelUp = true;
+                    $newLevel = $lvlRes->getPayload()->newLevel;
+                }
             }
 
             // Grant Gold
@@ -174,6 +182,8 @@ class MirrorService
                 'xp' => $rewards['xp'],
                 'gold' => $rewards['gold'],
                 'materials' => $grantedMaterials,
+                'had_level_up' => $hadLevelUp,
+                'new_level' => $newLevel,
             ];
         });
     }

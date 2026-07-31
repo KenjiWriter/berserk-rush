@@ -151,7 +151,7 @@ class DungeonService
         }
         $activeDots = [];
         $activeBuffs = [];
-        $activePassives = $this->initPassives($character, $equippedSkills);
+        $activePassives = [];
         $monsterCcTurns = 0;
 
         // Symuluj walkę z aktualnym HP gracza (brak regeneracji!)

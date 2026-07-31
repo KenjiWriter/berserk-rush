@@ -942,8 +942,24 @@ class Profile extends Component
     {
         try {
             $mirrorService = app(\App\Application\Mirror\MirrorService::class);
-            $this->claimedRewardsSummary = $mirrorService->stopAndClaim($this->character);
+            $summary = $mirrorService->stopAndClaim($this->character);
+            $this->claimedRewardsSummary = $summary;
+
+            // Clear cached relations on character model so inventory & material stash update immediately
+            $this->character->unsetRelation('inventoryItems');
+            $this->character->unsetRelation('materialStashItems');
+            $this->character->unsetRelation('equipmentItems');
             $this->character->refresh();
+
+            // Notify header & navigation components to update stats and notification badges
+            $this->dispatch('character-updated');
+
+            // Trigger level-up modal & sound if level increased
+            if (!empty($summary['had_level_up'])) {
+                $this->dispatch('open-level-up-modal', level: $summary['new_level']);
+                $this->dispatch('play-audio', type: 'level-up');
+            }
+
             $this->dispatch('notify', type: 'success', message: 'Lustro zostało zakończone, a nagrody odebrane!');
         } catch (\Exception $e) {
             $this->dispatch('notify', type: 'error', message: $e->getMessage());
