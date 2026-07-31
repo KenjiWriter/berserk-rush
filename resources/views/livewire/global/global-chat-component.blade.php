@@ -201,7 +201,7 @@
     {{-- ========== CHAT DOCK CONTAINER ========== --}}
     <div class="relative flex flex-col w-full pointer-events-auto rounded-t-xl rounded-b-none border-t-2 border-x border-amber-700/60 shadow-[0_-8px_25px_rgba(0,0,0,0.85)] backdrop-blur-md overflow-hidden"
          style="background: linear-gradient(180deg, rgba(26,13,5,0.98) 0%, rgba(13,6,2,0.98) 100%);">
-        
+
         {{-- ========== GLOBAL TOOLTIP (POPOVER) ========== --}}
         @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
             @php
@@ -416,51 +416,45 @@
         @php $activeChar = session('active_character') ? \App\Infrastructure\Persistence\Character::find(session('active_character')) : null; @endphp
         <div 
             @click="toggleChat()"
-            class="flex items-center justify-between px-3.5 py-2.5 cursor-pointer transition-colors duration-200 hover:bg-amber-950/40 group"
-            style="background: linear-gradient(90deg, rgba(120,53,15,0.75) 0%, rgba(45,18,5,0.75) 100%);"
+            class="flex items-center justify-between px-3.5 py-2.5 h-11 cursor-pointer transition-colors duration-200 hover:bg-amber-950/40 shrink-0 select-none"
+            style="background: linear-gradient(90deg, rgba(120,53,15,0.85) 0%, rgba(45,18,5,0.85) 100%);"
         >
             <div class="flex items-center gap-2 min-w-0">
                 <i class="fa-solid fa-comments text-amber-400 text-sm shrink-0"></i>
                 
                 {{-- Channel Tabs (When Expanded) --}}
-                <template x-if="isOpen">
-                    <div class="flex items-center gap-2" @click.stop>
-                        <button wire:click="setChannel('global')" class="text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors {{ $currentChannel === 'global' ? 'text-amber-200 underline decoration-amber-500' : 'text-amber-600/70 hover:text-amber-400' }}">Globalny</button>
-                        @if($activeChar && $activeChar->guild_id)
-                            <span class="text-amber-800">|</span>
-                            <button wire:click="setChannel('guild')" class="text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1 transition-colors {{ $currentChannel === 'guild' ? 'text-red-300 underline decoration-red-500' : 'text-amber-600/70 hover:text-red-400' }}">
-                                <span>Gildia</span>
-                            </button>
-                        @endif
-                    </div>
-                </template>
+                <div x-show="isOpen" class="flex items-center gap-2" @click.stop>
+                    <button wire:click="setChannel('global')" class="text-xs font-bold uppercase tracking-wider cursor-pointer transition-colors {{ $currentChannel === 'global' ? 'text-amber-200 underline decoration-amber-500' : 'text-amber-600/70 hover:text-amber-400' }}">Globalny</button>
+                    @if($activeChar && $activeChar->guild_id)
+                        <span class="text-amber-800">|</span>
+                        <button wire:click="setChannel('guild')" class="text-xs font-bold uppercase tracking-wider cursor-pointer flex items-center gap-1 transition-colors {{ $currentChannel === 'guild' ? 'text-red-300 underline decoration-red-500' : 'text-amber-600/70 hover:text-red-400' }}">
+                            <span>Gildia</span>
+                        </button>
+                    @endif
+                </div>
 
                 {{-- Channel Label & Unread indicators (When Collapsed) --}}
-                <template x-if="!isOpen">
-                    <div class="flex items-center gap-2 truncate">
-                        <span class="text-xs font-bold uppercase tracking-wider text-amber-200 medieval-font">Czat {{ $currentChannel === 'guild' ? 'Gildii' : 'Globalny' }}</span>
-                    </div>
-                </template>
+                <div x-show="!isOpen" class="flex items-center gap-2 truncate">
+                    <span class="text-xs font-bold uppercase tracking-wider text-amber-200 medieval-font">Czat {{ $currentChannel === 'guild' ? 'Gildii' : 'Globalny' }}</span>
+                </div>
 
                 <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse shrink-0 ml-1"></span>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">
                 {{-- Unread Badges (When Collapsed) --}}
-                <template x-if="!isOpen">
-                    <div class="flex items-center gap-1.5">
-                        @if ($unreadGlobalCount > 0)
-                            <span class="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Globalny">{{ $unreadGlobalCount }}</span>
-                        @endif
-                        @if ($unreadGuildCount > 0)
-                            <span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Gildia">{{ $unreadGuildCount }}</span>
-                        @endif
-                    </div>
-                </template>
+                <div x-show="!isOpen" class="flex items-center gap-1.5">
+                    @if ($unreadGlobalCount > 0)
+                        <span class="bg-amber-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Globalny">{{ $unreadGlobalCount }}</span>
+                    @endif
+                    @if ($unreadGuildCount > 0)
+                        <span class="bg-red-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow" title="Gildia">{{ $unreadGuildCount }}</span>
+                    @endif
+                </div>
 
                 {{-- Toggle Chevron --}}
                 <button 
-                    class="text-amber-400 group-hover:text-amber-200 text-xs transition-transform duration-300 leading-none"
+                    class="text-amber-400 hover:text-amber-200 text-xs transition-transform duration-300 leading-none"
                     :title="isOpen ? 'Zwiń czat' : 'Rozwiń czat'"
                 >
                     <i class="fa-solid" :class="isOpen ? 'fa-chevron-down' : 'fa-chevron-up'"></i>
@@ -473,9 +467,9 @@
             x-show="isOpen"
             x-transition:enter="transition-all duration-300 ease-out origin-bottom"
             x-transition:enter-start="max-h-0 opacity-0"
-            x-transition:enter-end="max-h-[480px] opacity-100"
+            x-transition:enter-end="max-h-[350px] opacity-100"
             x-transition:leave="transition-all duration-200 ease-in origin-bottom"
-            x-transition:leave-start="max-h-[480px] opacity-100"
+            x-transition:leave-start="max-h-[350px] opacity-100"
             x-transition:leave-end="max-h-0 opacity-0"
             class="flex flex-col overflow-hidden border-t border-amber-900/40"
         >
@@ -485,7 +479,7 @@
                 @scroll="handleScroll()"
                 wire:ignore.self
                 class="flex flex-col gap-1 overflow-y-auto px-3 py-2 scrollbar-thin"
-                style="height: 260px; scrollbar-color: rgba(180,120,30,0.4) transparent;"
+                style="height: 250px; scrollbar-color: rgba(180,120,30,0.4) transparent;"
             >
                 @if (count($messages) === 0)
                     <p class="text-amber-600/60 text-xs text-center mt-10 italic">Brak wiadomości. Bądź pierwszy!</p>
@@ -570,7 +564,7 @@
                                 }, 1000);
                             }
                         }"
-                        class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner"
+                        class="relative border-t border-red-900/60 bg-red-950/60 px-3 py-2.5 text-center shadow-inner shrink-0"
                     >
                         <div class="flex items-center justify-center gap-1.5 text-xs font-extrabold text-red-300">
                             <i class="fa-solid fa-microphone-slash text-sm animate-pulse mr-1"></i>
@@ -578,7 +572,7 @@
                         </div>
                     </div>
                 @else
-                    <div class="relative border-t border-amber-800/40 px-2 py-2 bg-stone-950/40">
+                    <div class="relative border-t border-amber-800/40 px-2 py-2 bg-stone-950/40 shrink-0">
                         {{-- Autocomplete dropup --}}
                         <div x-show="showCommands" style="display: none;" class="absolute bottom-full left-0 w-full bg-stone-900 border border-amber-800/60 rounded-t-lg shadow-xl overflow-hidden z-[70] mb-1">
                             <template x-for="cmd in filteredCommands" :key="cmd.cmd">

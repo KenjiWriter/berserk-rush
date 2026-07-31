@@ -254,7 +254,7 @@
 
 <div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
     <!-- Górny pasek -->
-    <div class="flex justify-between items-center mb-2">
+    <div class="flex justify-between items-start mb-2 gap-2">
         <div>
             <h4 class="font-bold text-lg text-amber-400">
                 {{ $template->name }} 
@@ -603,6 +603,12 @@
                 @endif
             @endif
         </div>
+        <button 
+            type="button" 
+            @click="showInfo = false" 
+            class="sm:hidden text-amber-500 hover:text-amber-300 font-bold text-xl leading-none px-2 py-1 -mr-1 cursor-pointer shrink-0"
+            title="Zamknij"
+        >&times;</button>
     </div>
 
     <!-- Przyciski i akcje wstrzykiwane z zewnątrz -->

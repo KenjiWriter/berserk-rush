@@ -42,11 +42,27 @@
                             const triggerEl = this.$el;
                             const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
                             if (!triggerEl || !tooltipEl) return;
+
+                            if (window.innerWidth < 640) {
+                                this.tooltipStyle = {
+                                    position: 'fixed',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    margin: '0',
+                                    width: 'calc(100vw - 1.5rem)',
+                                    maxWidth: '380px',
+                                    maxHeight: '85vh',
+                                    overflowY: 'auto',
+                                    zIndex: '10000',
+                                };
+                                return;
+                            }
+
                             const triggerRect = triggerEl.getBoundingClientRect();
                             const targetBoxEl = tooltipEl.firstElementChild || tooltipEl;
                             const tooltipRect = targetBoxEl.getBoundingClientRect();
                             if (!triggerRect.width || !tooltipRect.width) return;
-                            if (window.innerWidth < 640) { this.tooltipStyle = {}; return; }
 
                             const minMargin = 12;
                             const triggerCenter = triggerRect.left + triggerRect.width / 2;
@@ -58,6 +74,7 @@
                                 left: left + 'px',
                                 transform: 'none',
                                 margin: '0',
+                                zIndex: '10000',
                             };
 
                             if (triggerRect.top < tooltipRect.height + 16) {
@@ -71,8 +88,14 @@
                             this.tooltipStyle = style;
                         });
                     },
-                    openTooltip() { clearTimeout(this.timeout); this.showInfo = true; this.updatePosition(); },
+                    openTooltip() {
+                        if (window.innerWidth < 640) return;
+                        clearTimeout(this.timeout);
+                        this.showInfo = true;
+                        this.updatePosition();
+                    },
                     closeTooltip(event) {
+                        if (window.innerWidth < 640) return;
                         if (event && event.relatedTarget) {
                             const tooltipEl = this.$refs.tooltipContainer;
                             const movingIntoTooltip = (tooltipEl && tooltipEl.contains(event.relatedTarget)) ||
@@ -85,7 +108,11 @@
                         clearTimeout(this.timeout);
                         this.timeout = setTimeout(() => { this.showInfo = false; }, 600);
                     },
-                    toggleTooltip() { clearTimeout(this.timeout); this.showInfo = !this.showInfo; if (this.showInfo) { this.updatePosition(); } }
+                    toggleTooltip() {
+                        clearTimeout(this.timeout);
+                        this.showInfo = !this.showInfo;
+                        if (this.showInfo) { this.updatePosition(); }
+                    }
                 };
             };
         }
