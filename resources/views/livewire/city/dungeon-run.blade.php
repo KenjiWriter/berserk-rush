@@ -342,19 +342,46 @@
                             @foreach($visibleTurns as $index => $turn)
                                 <li class="leading-relaxed bg-slate-900/70 border border-red-500/20 rounded-xl px-3 py-2 shadow-sm backdrop-blur-sm text-xs sm:text-sm">
                                     <span class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-red-900/80 text-red-200 rounded-md border border-red-600/40 px-1 py-0.5 mr-1.5 font-mono">T{{ $index + 1 }}</span>
-                                    @if($turn['type'] === 'miss')
+                                    @if(($turn['type'] ?? '') === 'miss')
                                         <span class="text-slate-300 italic font-semibold">
                                             <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
                                             pudłuje atak!
+                                            @if (!empty($turn['dotDamage']))
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                            @endif
+                                        </span>
+                                    @elseif(($turn['type'] ?? '') === 'crowd_controlled')
+                                        <span class="text-purple-300 font-semibold italic">
+                                            <strong class="text-amber-200">👹 {{ $monster->name ?? 'Potwór' }}</strong> jest zamrożony/ogłuszony i traci turę!
+                                        </span>
+                                    @elseif(($turn['type'] ?? '') === 'skill_heal')
+                                        <span class="text-emerald-300 font-semibold">
+                                            <strong class="text-amber-200">🛡️ Ty</strong> używasz <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i leczysz <strong class="text-emerald-300 font-mono">{{ $turn['value'] }} HP</strong>!
+                                            @if (!empty($turn['dotDamage']))
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                            @endif
+                                        </span>
+                                    @elseif(($turn['type'] ?? '') === 'skill')
+                                        <span class="{{ $turn['actor'] === 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
+                                            <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
+                                            używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Umiejętność' }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong>
+                                            @if (!empty($turn['dotDamage']))
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                            @endif
+                                            obrażeń
+                                            @if (!empty($turn['crit'])) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
                                         </span>
                                     @else
                                         <span class="{{ $turn['actor'] === 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
                                             <strong class="text-amber-200">{{ $turn['actor'] === 'player' ? '🛡️ Ty' : ('👹 ' . ($monster->name ?? 'Potwór')) }}</strong>
                                             zadaje <strong class="text-amber-300 font-mono">{{ $turn['value'] }}</strong> obrażeń
-                                            @if($turn['crit']) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
+                                            @if (!empty($turn['dotDamage']))
+                                                <span class="text-purple-400 font-mono font-bold ml-1">(+{{ $turn['dotDamage'] }})</span>
+                                            @endif
+                                            @if(!empty($turn['crit'])) <span class="font-bold text-amber-400">KRYTYK!</span> @endif
                                         </span>
-                                        <span class="text-slate-600 text-xs ml-2 font-mono">[HP: {{ $turn['playerHp'] }} | Potwór: {{ $turn['enemyHp'] }}]</span>
                                     @endif
+                                    <span class="text-slate-600 text-xs ml-2 font-mono">[HP: {{ $turn['playerHp'] }} | Potwór: {{ $turn['enemyHp'] }}]</span>
                                 </li>
                             @endforeach
                             @if($isPlaying)

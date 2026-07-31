@@ -168,4 +168,107 @@ class DungeonExpansionTest extends TestCase
         $this->assertGreaterThanOrEqual(1, $chestInstance->stack_size);
         $this->assertLessThanOrEqual(3, $chestInstance->stack_size);
     }
+
+    public function test_dungeon_combat_uses_equipped_skills(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Skille',
+            'level' => 20,
+            'xp' => 0,
+            'gold' => 500,
+            'attributes' => ['str' => 50, 'int' => 50, 'vit' => 100, 'agi' => 50],
+        ]);
+
+        $skill = \App\Infrastructure\Persistence\CombatSkill::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'name' => 'Potężny Cios Test',
+            'type' => 'active',
+            'effect_type' => 'direct_dmg',
+            'required_weapon_type' => 'all',
+            'base_cooldown' => 2,
+            'base_value' => 2.5,
+            'scaling_value' => 0.5,
+            'base_duration' => 0,
+            'is_magic' => false,
+            'is_aoe' => false,
+            'unlock_level' => 1,
+            'cost_sp' => 1,
+        ]);
+
+        \App\Infrastructure\Persistence\CharacterCombatSkill::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'character_id' => $character->id,
+            'combat_skill_id' => $skill->id,
+            'level' => 1,
+            'is_equipped' => true,
+            'equip_slot' => 1,
+        ]);
+
+        $dungeon = Dungeon::where('min_level', 12)->first();
+
+        ItemInstance::create([
+            'template_id' => $dungeon->entry_item_template_id,
+            'owner_character_id' => $character->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $service = app(DungeonService::class);
+        $startResult = $service->startRun($character, $dungeon);
+        $this->assertTrue($startResult->isOk());
+        $run = $startResult->getPayload();
+
+        $simResult = $service->simulateStage($run);
+        $this->assertTrue($simResult->isOk());
+        $payload = $simResult->getPayload();
+
+        $usedSkillsInTurns = array_filter($payload['turns'], fn($t) => ($t['type'] ?? '') === 'skill');
+        $this->assertNotEmpty($usedSkillsInTurns);
+    }
+
+    public function test_chests_are_not_usable_as_potions_in_dungeon(): void
+    {
+        $this->seed(\Database\Seeders\LootChestSeeder::class);
+
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Skrzynia',
+            'level' => 20,
+            'xp' => 0,
+            'gold' => 500,
+            'attributes' => ['str' => 50, 'int' => 50, 'vit' => 100, 'agi' => 50],
+        ]);
+
+        $dungeon = Dungeon::where('min_level', 12)->first();
+        $service = app(DungeonService::class);
+
+        $run = \App\Infrastructure\Persistence\CharacterDungeonRun::create([
+            'character_id' => $character->id,
+            'dungeon_id' => $dungeon->id,
+            'current_stage' => 1,
+            'current_hp' => 50,
+            'is_completed' => false,
+            'is_failed' => false,
+        ]);
+
+        $chestTemplate = ItemTemplate::where('type', 'consumable')->where('sub_type', 'chest')->first();
+        $this->assertNotNull($chestTemplate);
+
+        $chestInstance = ItemInstance::create([
+            'id' => \Illuminate\Support\Str::ulid(),
+            'template_id' => $chestTemplate->id,
+            'owner_character_id' => $character->id,
+            'location' => 'inventory',
+            'stack_size' => 1,
+        ]);
+
+        $useResult = $service->usePotion($run, $chestInstance->id);
+        $this->assertTrue($useResult->isError());
+        $this->assertEquals('NOT_CONSUMABLE', $useResult->getErrorCode());
+    }
 }

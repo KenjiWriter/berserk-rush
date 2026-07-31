@@ -12,6 +12,7 @@ use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemTemplate;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\CurrencyLedger;
+use App\Infrastructure\Persistence\CharacterCombatSkill;
 use App\Application\Loot\WeightedPicker;
 use App\Infrastructure\RNG\RandomProvider;
 use App\Application\Combat\RewardMultiplierService;
@@ -21,6 +22,10 @@ use Illuminate\Support\Facades\Log;
 
 class DungeonService
 {
+    private const EQUIPMENT_POISON_DURATION = 3;
+    private const EQUIPMENT_POISON_VALUE = 0.03;
+    private const EQUIPMENT_STUN_DURATION = 1;
+
     /**
      * Rozpoczyna nowy run w dungeonie. Wymaga klucza (entry item).
      */
@@ -120,9 +125,28 @@ class DungeonService
             return Result::error('MISSING_DATA', 'Brak danych do walki.');
         }
 
+        // Pobierz wyposażone umiejętności postaci
+        $equippedSkills = CharacterCombatSkill::with('skill')
+            ->where('character_id', $character->id)
+            ->where('is_equipped', true)
+            ->orderBy('equip_slot')
+            ->get();
+
+        $activeCooldowns = [];
+        foreach ($equippedSkills as $cs) {
+            if ($cs->skill->type === 'active') {
+                $activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1);
+            }
+        }
+        $activeDots = [];
+        $activeBuffs = [];
+        $activePassives = $this->initPassives($character, $equippedSkills);
+        $monsterCcTurns = 0;
+
         // Symuluj walkę z aktualnym HP gracza (brak regeneracji!)
         $playerHp = $run->current_hp;
         $startPlayerHp = $playerHp;
+        $playerMaxHp = $character->getMaxHp();
 
         $totalStages = $run->dungeon->stages()->count();
         $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
@@ -139,19 +163,53 @@ class DungeonService
             $monsterMaxHp = $monsterHp;
 
             while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
-                // Gracz atakuje wrota (wrota nie zadają obrażeń, atk = 0)
-                $damage = $this->calculatePlayerDamage($character, $monster);
-                $isCrit = mt_rand(1, 100) <= 10;
-                $isMiss = mt_rand(1, 100) <= 2; // wrota rzadko robią unik
-
-                if ($isMiss) {
-                    $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
-                } else {
-                    if ($isCrit) $damage = (int)($damage * 1.5);
-                    $monsterHp = max(0, $monsterHp - $damage);
-                    $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                foreach ($activeCooldowns as $id => $cd) {
+                    if ($cd > 0) $activeCooldowns[$id]--;
                 }
+                foreach ($activeBuffs as $k => $b) {
+                    $activeBuffs[$k]['duration']--;
+                    if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
+                }
+
+                $turn = $this->playerAttackStep(
+                    $character,
+                    $monster,
+                    $playerHp,
+                    $monsterHp,
+                    $monsterMaxHp,
+                    $playerMaxHp,
+                    $equippedSkills,
+                    $activeCooldowns,
+                    $activeDots,
+                    $activeBuffs,
+                    $activePassives
+                );
+
+                $playerHp = $turn['playerHp'];
+                $monsterHp = $turn['enemyHp'];
+                $turns[] = $turn;
                 $turnCount++;
+
+                if ($monsterHp > 0 && $this->rollExtraAttack($activePassives)) {
+                    $extraTurn = $this->playerAttackStep(
+                        $character,
+                        $monster,
+                        $playerHp,
+                        $monsterHp,
+                        $monsterMaxHp,
+                        $playerMaxHp,
+                        $equippedSkills,
+                        $activeCooldowns,
+                        $activeDots,
+                        $activeBuffs,
+                        $activePassives
+                    );
+                    $extraTurn['extra_attack'] = true;
+                    $playerHp = $extraTurn['playerHp'];
+                    $monsterHp = $extraTurn['enemyHp'];
+                    $turns[] = $extraTurn;
+                    $turnCount++;
+                }
             }
 
             $won = $monsterHp <= 0;
@@ -162,7 +220,8 @@ class DungeonService
                 $mobs[] = [
                     'id' => $m + 1,
                     'hp' => $singleMaxHp,
-                    'maxHp' => $singleMaxHp
+                    'maxHp' => $singleMaxHp,
+                    'cc_turns' => 0
                 ];
             }
             $monsterMaxHp = $singleMaxHp * $monsterCount;
@@ -177,48 +236,123 @@ class DungeonService
                 $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
 
                 if ($isPlayerTurn && !empty($aliveMobs)) {
-                    $targetMobId = $aliveMobs[0]['id'];
-                    $damage = $this->calculatePlayerDamage($character, $monster);
-                    $isCrit = mt_rand(1, 100) <= 10;
-                    $isMiss = mt_rand(1, 100) <= 5;
+                    foreach ($activeCooldowns as $id => $cd) {
+                        if ($cd > 0) $activeCooldowns[$id]--;
+                    }
+                    foreach ($activeBuffs as $k => $b) {
+                        $activeBuffs[$k]['duration']--;
+                        if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
+                    }
 
-                    if ($isMiss) {
-                        $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
-                    } else {
-                        if ($isCrit) $damage = (int)($damage * 1.5);
-                        foreach ($mobs as &$mb) {
-                            if ($mb['id'] === $targetMobId) {
-                                $mb['hp'] = max(0, $mb['hp'] - $damage);
-                                break;
+                    $targetMobId = $aliveMobs[0]['id'];
+                    $targetMobHp = $aliveMobs[0]['hp'];
+                    $targetMobMaxHp = $aliveMobs[0]['maxHp'];
+
+                    $turn = $this->playerAttackStep(
+                        $character,
+                        $monster,
+                        $playerHp,
+                        $targetMobHp,
+                        $targetMobMaxHp,
+                        $playerMaxHp,
+                        $equippedSkills,
+                        $activeCooldowns,
+                        $activeDots,
+                        $activeBuffs,
+                        $activePassives
+                    );
+
+                    $damageDealt = max(0, $targetMobHp - $turn['enemyHp']);
+                    $playerHp = $turn['playerHp'];
+
+                    $isAoe = ($turn['type'] === 'skill' && !empty($turn['effect_type']) && in_array($turn['effect_type'], ['aoe_dmg', 'direct_dmg']) && $equippedSkills->firstWhere('skill.name', $turn['skill_name'])?->skill->is_aoe);
+
+                    foreach ($mobs as &$mb) {
+                        if ($mb['hp'] <= 0) continue;
+
+                        if ($isAoe) {
+                            $mb['hp'] = max(0, $mb['hp'] - $turn['value']);
+                        } elseif ($mb['id'] === $targetMobId) {
+                            $mb['hp'] = max(0, $mb['hp'] - $damageDealt);
+                        }
+
+                        if (!empty($turn['cc_applied']) && ($isAoe || $mb['id'] === $targetMobId)) {
+                            $mb['cc_turns'] = max($mb['cc_turns'], (int) $turn['cc_applied']['duration']);
+                        }
+                    }
+                    unset($mb);
+
+                    $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
+                    $turn['enemyHp'] = $totalCurrentMonsterHp;
+                    $turns[] = $turn;
+                    $turnCount++;
+
+                    if ($totalCurrentMonsterHp > 0 && $this->rollExtraAttack($activePassives)) {
+                        $aliveAfter = array_values(array_filter($mobs, fn($mb) => $mb['hp'] > 0));
+                        if (!empty($aliveAfter)) {
+                            $bonusMobKey = null;
+                            foreach ($mobs as $mk => $mv) {
+                                if ($mv['id'] === $aliveAfter[0]['id']) {
+                                    $bonusMobKey = $mk;
+                                    break;
+                                }
+                            }
+                            if ($bonusMobKey !== null) {
+                                $bonusMob = &$mobs[$bonusMobKey];
+                                $extraTurn = $this->playerAttackStep(
+                                    $character,
+                                    $monster,
+                                    $playerHp,
+                                    $bonusMob['hp'],
+                                    $bonusMob['maxHp'],
+                                    $playerMaxHp,
+                                    $equippedSkills,
+                                    $activeCooldowns,
+                                    $activeDots,
+                                    $activeBuffs,
+                                    $activePassives
+                                );
+                                $extraTurn['extra_attack'] = true;
+                                $dmg = max(0, $bonusMob['hp'] - $extraTurn['enemyHp']);
+                                $bonusMob['hp'] = max(0, $bonusMob['hp'] - $dmg);
+                                $playerHp = $extraTurn['playerHp'];
+
+                                $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
+                                $extraTurn['enemyHp'] = $totalCurrentMonsterHp;
+                                $turns[] = $extraTurn;
+                                $turnCount++;
                             }
                         }
-                        unset($mb);
-                        $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
-                        $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
                     }
                 } else {
-                    foreach ($aliveMobs as $aliveMob) {
-                        if ($playerHp <= 0) break;
-                        $damage = $this->calculateMonsterDamage($monster, $character);
-                        $isCrit = mt_rand(1, 100) <= 8;
-                        $isMiss = mt_rand(1, 100) <= 5;
+                    foreach ($mobs as &$aliveMob) {
+                        if ($aliveMob['hp'] <= 0 || $playerHp <= 0) continue;
 
-                        if ($isMiss) {
-                            $turns[] = ['actor' => 'enemy', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                        if ($aliveMob['cc_turns'] > 0) {
+                            $aliveMob['cc_turns']--;
+                            $turns[] = [
+                                'actor' => 'enemy',
+                                'type' => 'crowd_controlled',
+                                'value' => 0,
+                                'crit' => false,
+                                'playerHp' => $playerHp,
+                                'enemyHp' => $totalCurrentMonsterHp,
+                            ];
                         } else {
-                            if ($isCrit) $damage = (int)($damage * 1.5);
-                            $playerHp = max(0, $playerHp - $damage);
-                            $turns[] = ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $totalCurrentMonsterHp];
+                            $turn = $this->monsterAttackStep($monster, $character, $playerHp, $totalCurrentMonsterHp, $activeBuffs);
+                            $playerHp = $turn['playerHp'];
+                            $turns[] = $turn;
                         }
                     }
+                    unset($aliveMob);
+                    $turnCount++;
                 }
-                $turnCount++;
             }
 
             $monsterHp = array_sum(array_column($mobs, 'hp'));
             $won = $monsterHp <= 0;
         } else {
-            $monsterHp = $monster->stats['hp'] ?? $monster->level * 20;
+            $monsterHp = $monster->stats['hp'] ?? ($monster->level * 20);
             $monsterMaxHp = $monsterHp;
 
             $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
@@ -229,30 +363,82 @@ class DungeonService
                 $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
                 if ($isPlayerTurn) {
-                    $damage = $this->calculatePlayerDamage($character, $monster);
-                    $isCrit = mt_rand(1, 100) <= 10;
-                    $isMiss = mt_rand(1, 100) <= 5;
-
-                    if ($isMiss) {
-                        $turns[] = ['actor' => 'player', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
-                    } else {
-                        if ($isCrit) $damage = (int)($damage * 1.5);
-                        $monsterHp = max(0, $monsterHp - $damage);
-                        $turns[] = ['actor' => 'player', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    foreach ($activeCooldowns as $id => $cd) {
+                        if ($cd > 0) $activeCooldowns[$id]--;
                     }
-                } else {
-                    $damage = $this->calculateMonsterDamage($monster, $character);
-                    $isCrit = mt_rand(1, 100) <= 8;
-                    $isMiss = mt_rand(1, 100) <= 5;
-
-                    if ($isMiss) {
-                        $turns[] = ['actor' => 'enemy', 'type' => 'miss', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
-                    } else {
-                        if ($isCrit) $damage = (int)($damage * 1.5);
-                        $playerHp = max(0, $playerHp - $damage);
-                        $turns[] = ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
+                    foreach ($activeBuffs as $k => $b) {
+                        $activeBuffs[$k]['duration']--;
+                        if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
+
+                    $turn = $this->playerAttackStep(
+                        $character,
+                        $monster,
+                        $playerHp,
+                        $monsterHp,
+                        $monsterMaxHp,
+                        $playerMaxHp,
+                        $equippedSkills,
+                        $activeCooldowns,
+                        $activeDots,
+                        $activeBuffs,
+                        $activePassives
+                    );
+
+                    $playerHp = $turn['playerHp'];
+                    $monsterHp = $turn['enemyHp'];
+
+                    if (!empty($turn['cc_applied'])) {
+                        $monsterCcTurns = max($monsterCcTurns, (int) $turn['cc_applied']['duration']);
+                    }
+
+                    $turns[] = $turn;
+                    $turnCount++;
+
+                    if ($monsterHp > 0 && $this->rollExtraAttack($activePassives)) {
+                        $extraTurn = $this->playerAttackStep(
+                            $character,
+                            $monster,
+                            $playerHp,
+                            $monsterHp,
+                            $monsterMaxHp,
+                            $playerMaxHp,
+                            $equippedSkills,
+                            $activeCooldowns,
+                            $activeDots,
+                            $activeBuffs,
+                            $activePassives
+                        );
+                        $extraTurn['extra_attack'] = true;
+                        $playerHp = $extraTurn['playerHp'];
+                        $monsterHp = $extraTurn['enemyHp'];
+
+                        if (!empty($extraTurn['cc_applied'])) {
+                            $monsterCcTurns = max($monsterCcTurns, (int) $extraTurn['cc_applied']['duration']);
+                        }
+
+                        $turns[] = $extraTurn;
+                        $turnCount++;
+                    }
+                    continue;
                 }
+
+                if ($monsterCcTurns > 0) {
+                    $monsterCcTurns--;
+                    $turn = [
+                        'actor' => 'enemy',
+                        'type' => 'crowd_controlled',
+                        'value' => 0,
+                        'crit' => false,
+                        'playerHp' => $playerHp,
+                        'enemyHp' => $monsterHp,
+                    ];
+                } else {
+                    $turn = $this->monsterAttackStep($monster, $character, $playerHp, $monsterHp, $activeBuffs);
+                    $playerHp = $turn['playerHp'];
+                }
+
+                $turns[] = $turn;
                 $turnCount++;
             }
 
@@ -328,7 +514,7 @@ class DungeonService
     }
 
     /**
-     * Użycie mikstury w lochu - leczy tyle ile mikstura leczy.
+     * Użycie mikstury w lochu - leczy tyle ile mikstura leczy (wyklucza skrzynie).
      */
     public function usePotion(CharacterDungeonRun $run, string $itemInstanceId): Result
     {
@@ -346,9 +532,9 @@ class DungeonService
             return Result::error('NO_POTION', 'Nie posiadasz tej mikstury.');
         }
 
-        // Sprawdź czy to mikstura/consumable
+        // Sprawdź czy to mikstura/consumable (wyklucz skrzynie z użycia w walce)
         $template = $potion->template;
-        if (!$template || $template->type !== 'consumable') {
+        if (!$template || $template->type !== 'consumable' || $template->sub_type === 'chest' || str_contains(mb_strtolower($template->name), 'skrzyn')) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
 
@@ -372,7 +558,367 @@ class DungeonService
         ]);
     }
 
-    private function calculatePlayerDamage(Character $character, $monster): int
+    private function playerAttackStep(
+        Character $character,
+        $monster,
+        int $playerHp,
+        int $monsterHp,
+        int $monsterMaxHp,
+        int $playerMaxHp,
+        $equippedSkills,
+        array &$activeCooldowns,
+        array &$activeDots,
+        array &$activeBuffs,
+        array $activePassives
+    ): array {
+        $equippedWeaponType = $character->getEquippedWeaponType();
+        $eq = $character->getEquipmentStats();
+
+        $usedSkill = null;
+
+        foreach ($equippedSkills as $cs) {
+            if ($cs->skill->type === 'active' && ($activeCooldowns[$cs->id] ?? 0) <= 0) {
+                $reqWep = $cs->skill->required_weapon_type;
+                if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
+                    continue;
+                }
+
+                $activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
+                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+
+                if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
+                    $activeDots[] = [
+                        'type' => $cs->skill->effect_type,
+                        'name' => $cs->skill->name,
+                        'icon' => $cs->skill->icon,
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
+                } elseif ($cs->skill->effect_type === 'buff_phys_dmg') {
+                    $activeBuffs['phys_dmg'] = [
+                        'type' => $cs->skill->effect_type,
+                        'name' => $cs->skill->name,
+                        'icon' => $cs->skill->icon,
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
+                } elseif ($cs->skill->effect_type === 'buff_defense') {
+                    $activeBuffs['defense'] = [
+                        'type' => $cs->skill->effect_type,
+                        'name' => $cs->skill->name,
+                        'icon' => $cs->skill->icon,
+                        'value' => $effVal,
+                        'duration' => $cs->skill->base_duration,
+                    ];
+                }
+
+                $usedSkill = [
+                    'skill' => $cs->skill,
+                    'effVal' => $effVal,
+                ];
+                break;
+            }
+        }
+
+        // Process DoTs
+        $dotDamage = 0;
+        $dotType = null;
+        foreach ($activeDots as $k => $dot) {
+            if ($dot['type'] === 'poison') {
+                $dmg = (int)($monsterHp * $dot['value']);
+            } elseif ($dot['type'] === 'fire') {
+                $dmg = (int)($monsterMaxHp * $dot['value']);
+            } else {
+                $dmg = 0;
+            }
+            $dmg = max(1, $dmg);
+            $dotDamage += $dmg;
+            $dotType = $dot['type'];
+
+            $activeDots[$k]['duration']--;
+            if ($activeDots[$k]['duration'] <= 0) unset($activeDots[$k]);
+        }
+
+        if ($usedSkill) {
+            $csSkill = $usedSkill['skill'];
+            $effVal = $usedSkill['effVal'];
+
+            if ($csSkill->effect_type === 'heal') {
+                $healAmount = max(1, (int) round($playerMaxHp * $effVal));
+                $newPlayerHp = min($playerMaxHp, $playerHp + $healAmount);
+                $newMonsterHp = max(0, $monsterHp - $dotDamage);
+
+                return [
+                    'actor' => 'player',
+                    'type' => 'skill_heal',
+                    'skill_name' => $csSkill->name,
+                    'effect_type' => $csSkill->effect_type,
+                    'is_magic' => (bool) $csSkill->is_magic,
+                    'value' => $healAmount,
+                    'healAmount' => $healAmount,
+                    'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+                    'dotType' => $dotDamage > 0 ? $dotType : null,
+                    'crit' => false,
+                    'playerHp' => $newPlayerHp,
+                    'enemyHp' => $newMonsterHp,
+                ];
+            }
+
+            $skillMultiplier = 1.0;
+            if (in_array($csSkill->effect_type, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true)) {
+                $skillMultiplier = $effVal;
+            }
+
+            $damageData = $this->calculatePlayerDamage($character, $monster);
+            $damage = (int)($damageData['total'] * $skillMultiplier);
+            $baseDamage = (int)($damageData['base'] * $skillMultiplier);
+            $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
+            $magicDamage = (int)(($damageData['magic'] ?? 0) * $skillMultiplier);
+
+            $physBuffValue = ($activeBuffs['phys_dmg']['value'] ?? 0) + ($activePassives['aura_dmg'] ?? 0);
+            if ($physBuffValue > 0) {
+                $damage = (int)($damage * (1 + $physBuffValue));
+                $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
+            }
+
+            $isCrit = $this->rollCritical($character, $monster);
+            if ($isCrit) {
+                $damage = (int)($damage * 1.5);
+                $baseDamage = (int)($baseDamage * 1.5);
+                $bonusDamage = (int)($bonusDamage * 1.5);
+                $magicDamage = (int)($magicDamage * 1.5);
+            }
+
+            if ($csSkill->is_magic) {
+                $magicDamage += $baseDamage + $bonusDamage;
+                $baseDamage = 0;
+                $bonusDamage = 0;
+            }
+
+            $newMonsterHp = max(0, $monsterHp - $damage - $dotDamage);
+
+            $result = [
+                'actor' => 'player',
+                'type' => 'skill',
+                'skill_name' => $csSkill->name,
+                'effect_type' => $csSkill->effect_type,
+                'is_magic' => (bool) $csSkill->is_magic,
+                'value' => $damage,
+                'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+                'dotType' => $dotDamage > 0 ? $dotType : null,
+                'crit' => $isCrit,
+                'playerHp' => $playerHp,
+                'enemyHp' => $newMonsterHp,
+                'baseDamage' => $baseDamage,
+                'bonusDamage' => $bonusDamage > 0 ? $bonusDamage : null,
+                'magicDamage' => $magicDamage > 0 ? $magicDamage : null,
+            ];
+
+            if (in_array($csSkill->effect_type, ['freeze', 'stun'], true)) {
+                $result['cc_applied'] = [
+                    'type' => $csSkill->effect_type,
+                    'duration' => max(1, (int) $csSkill->base_duration),
+                ];
+            }
+
+            $procs = $this->rollEquipmentProcs($eq);
+            if ($procs['dot']) {
+                $activeDots[] = $procs['dot'];
+            }
+            if ($procs['cc']) {
+                $result['cc_applied'] = [
+                    'type' => $procs['cc']['type'],
+                    'duration' => max($result['cc_applied']['duration'] ?? 0, $procs['cc']['duration']),
+                ];
+            }
+
+            return $result;
+        }
+
+        // Standard attack
+        $damageData = $this->calculatePlayerDamage($character, $monster);
+        $damage = $damageData['total'];
+        $baseDamage = $damageData['base'];
+        $bonusDamage = $damageData['bonus'];
+        $magicDamage = $damageData['magic'] ?? 0;
+
+        $physBuffValue = ($activeBuffs['phys_dmg']['value'] ?? 0) + ($activePassives['aura_dmg'] ?? 0);
+        if ($physBuffValue > 0) {
+            $damage = (int)($damage * (1 + $physBuffValue));
+            $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
+        }
+
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $scaledMonsterStats = $monster->getScaledStats($character->level);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? $monster->level);
+
+        $isCrit = $this->rollCritical($character, $monster);
+        $isMiss = $this->rollDodge($monsterAgi, $playerAgi);
+
+        if ($isMiss) {
+            $newMonsterHp = max(0, $monsterHp - $dotDamage);
+            return [
+                'actor' => 'player',
+                'type' => 'miss',
+                'value' => 0,
+                'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+                'dotType' => $dotDamage > 0 ? $dotType : null,
+                'crit' => false,
+                'playerHp' => $playerHp,
+                'enemyHp' => $newMonsterHp,
+            ];
+        }
+
+        if ($isCrit) {
+            $damage = (int)($damage * 1.5);
+            $baseDamage = (int)($baseDamage * 1.5);
+            $bonusDamage = (int)($bonusDamage * 1.5);
+            $magicDamage = (int)($magicDamage * 1.5);
+        }
+
+        $newMonsterHp = max(0, $monsterHp - $damage - $dotDamage);
+
+        $turn = [
+            'actor' => 'player',
+            'type' => 'hit',
+            'value' => $damage,
+            'dotDamage' => $dotDamage > 0 ? $dotDamage : null,
+            'dotType' => $dotDamage > 0 ? $dotType : null,
+            'crit' => $isCrit,
+            'playerHp' => $playerHp,
+            'enemyHp' => $newMonsterHp,
+        ];
+
+        if ($bonusDamage > 0 || $magicDamage > 0) {
+            $turn['baseDamage'] = $baseDamage;
+            $turn['bonusDamage'] = $bonusDamage > 0 ? $bonusDamage : null;
+            $turn['magicDamage'] = $magicDamage > 0 ? $magicDamage : null;
+        }
+
+        $procs = $this->rollEquipmentProcs($eq);
+        if ($procs['dot']) {
+            $activeDots[] = $procs['dot'];
+        }
+        if ($procs['cc']) {
+            $turn['cc_applied'] = [
+                'type' => $procs['cc']['type'],
+                'duration' => max($turn['cc_applied']['duration'] ?? 0, $procs['cc']['duration']),
+            ];
+        }
+
+        return $turn;
+    }
+
+    private function monsterAttackStep($monster, Character $character, int $playerHp, int $monsterHp, array $activeBuffs): array
+    {
+        $damageData = $this->calculateMonsterDamage($monster, $character);
+        $damage = $damageData['total'];
+
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $scaledMonsterStats = $monster->getScaledStats($character->level);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? $monster->level);
+
+        $isCrit = $this->rollMonsterCritical($monster, $character);
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi);
+
+        if ($isMiss) {
+            return [
+                'actor' => 'enemy',
+                'type' => 'miss',
+                'value' => 0,
+                'crit' => false,
+                'playerHp' => $playerHp,
+                'enemyHp' => $monsterHp,
+            ];
+        }
+
+        if ($isCrit) {
+            $damage = (int)($damage * 1.5);
+        }
+
+        $defenseBuffValue = min(0.75, max(0, $activeBuffs['defense']['value'] ?? 0));
+        if ($defenseBuffValue > 0) {
+            $damage = max(1, (int)($damage * (1 - $defenseBuffValue)));
+        }
+
+        $newPlayerHp = max(0, $playerHp - $damage);
+
+        return [
+            'actor' => 'enemy',
+            'type' => 'hit',
+            'value' => $damage,
+            'crit' => $isCrit,
+            'playerHp' => $newPlayerHp,
+            'enemyHp' => $monsterHp,
+        ];
+    }
+
+    private function initPassives(Character $character, $equippedSkills): array
+    {
+        $activePassives = [];
+        if (!$equippedSkills) {
+            return $activePassives;
+        }
+
+        $equippedWeaponType = $character->getEquippedWeaponType();
+
+        foreach ($equippedSkills as $cs) {
+            if ($cs->skill->type !== 'passive') {
+                continue;
+            }
+
+            $reqWep = $cs->skill->required_weapon_type;
+            if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
+                continue;
+            }
+
+            $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+
+            if ($cs->skill->effect_type === 'passive_aura_dmg') {
+                $activePassives['aura_dmg'] = ($activePassives['aura_dmg'] ?? 0) + $effVal;
+            } elseif ($cs->skill->effect_type === 'passive_extra_attack') {
+                $chance = min(0.75, max(0, $effVal));
+                $activePassives['extra_attack_chance'] = max($activePassives['extra_attack_chance'] ?? 0, $chance);
+            }
+        }
+
+        return $activePassives;
+    }
+
+    private function rollExtraAttack(array $activePassives): bool
+    {
+        $chance = $activePassives['extra_attack_chance'] ?? 0;
+        if ($chance <= 0) {
+            return false;
+        }
+
+        return mt_rand(1, 10000) <= (int) round($chance * 10000);
+    }
+
+    private function rollEquipmentProcs(array $eq): array
+    {
+        $poisonChance = max(0, $eq['poison_chance'] ?? 0);
+        $stunChance = max(0, $eq['stun_chance'] ?? 0);
+
+        $dot = null;
+        if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
+            $dot = [
+                'type' => 'poison',
+                'name' => 'Zatrucie (Ekwipunek)',
+                'value' => self::EQUIPMENT_POISON_VALUE,
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+            ];
+        }
+
+        $cc = null;
+        if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
+            $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
+        }
+
+        return ['dot' => $dot, 'cc' => $cc];
+    }
+
+    private function calculatePlayerDamage(Character $character, $monster): array
     {
         $weaponType = $character->getEquippedWeaponType();
         $statBonus = $character->getAttributeAttackBonus($weaponType);
@@ -390,20 +936,104 @@ class DungeonService
 
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
         $scaledStats = $monster->getScaledStats($character->level);
-        $defense = $scaledStats['def'];
+        $defense = $scaledStats['def'] ?? ($monster->stats['def'] ?? $monster->level);
 
-        return max(1, $damage - ($defense * 0.2));
+        $baseDamage = max(1, $damage - ($defense * 0.2));
+        $bonusDamage = 0;
+
+        if (isset($monster->type)) {
+            $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
+            $bonusKey = 'strong_vs_' . $typeStr;
+            $altBonusKey = 'bonus_vs_' . $typeStr;
+            $pluralBonusKey = 'strong_vs_' . $typeStr . 's';
+
+            $bonusPercentage = ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
+            if ($bonusPercentage > 0) {
+                $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
+            }
+        }
+
+        $magicBurstDamage = 0;
+        $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
+        if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
+            $burstMin = $eq['magic_burst_min'] ?? 0;
+            $burstMax = max($burstMin, $eq['magic_burst_max'] ?? 0);
+            if ($burstMax > 0) {
+                $rawBurst = mt_rand((int) $burstMin, (int) $burstMax);
+                $magicBurstDamage = max(1, (int) round($rawBurst - ($defense * 0.2)));
+            }
+        }
+
+        return [
+            'base' => (int) $baseDamage,
+            'bonus' => (int) $bonusDamage,
+            'magic' => (int) $magicBurstDamage,
+            'total' => (int) ($baseDamage + $bonusDamage + $magicBurstDamage),
+        ];
     }
 
-    private function calculateMonsterDamage($monster, Character $character): int
+    private function calculateMonsterDamage($monster, Character $character): array
     {
         $scaledStats = $monster->getScaledStats($character->level);
-        $baseDamage = $scaledStats['atk'];
+        $baseDamage = $scaledStats['atk'] ?? ($monster->stats['atk'] ?? $monster->level * 2);
         $vitality = $character->getTotalAttributes()['vit'] ?? 1;
         $eq = $character->getEquipmentStats();
-        $defense = $vitality + ($character->level / 2) + $eq['defense'];
+        $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
 
-        return max(1, $baseDamage - ($defense * 0.2));
+        $damage = max(1, $baseDamage - ($defense * 0.2));
+        $resistDamage = 0;
+
+        if (isset($monster->type)) {
+            $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
+            $resistKey = 'resist_' . $typeStr;
+            $pluralResistKey = 'resist_' . $typeStr . 's';
+            
+            $resistPercentage = ($eq[$resistKey] ?? 0) + ($eq[$pluralResistKey] ?? 0);
+            if ($resistPercentage > 0) {
+                $resistDamage = (int)($damage * ($resistPercentage / 100));
+            }
+        }
+
+        return [
+            'base' => (int)$damage,
+            'resist' => (int)$resistDamage,
+            'total' => max(1, (int)$damage - $resistDamage)
+        ];
+    }
+
+    private function rollCritical(Character $character, $monster): bool
+    {
+        $agility = $character->getTotalAttributes()['agi'] ?? 1;
+        $eq = $character->getEquipmentStats();
+        $scaledMonsterStats = $monster->getScaledStats($character->level);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? 0);
+
+        $baseCrit = 0.05 + ($agility * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
+        $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
+        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
+
+        return mt_rand(1, 1000) <= (int)round($critChance * 1000);
+    }
+
+    private function rollMonsterCritical($monster, Character $character): bool
+    {
+        $scaledMonsterStats = $monster->getScaledStats($character->level);
+        $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? 0);
+        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+
+        $baseCrit = 0.03 + ($monsterAgi * 0.003);
+        $agiCritPenalty = max(0, ($playerAgi - $monsterAgi) * 0.0008);
+        $critChance = max(0.02, min(0.30, $baseCrit - $agiCritPenalty));
+
+        return mt_rand(1, 1000) <= (int)round($critChance * 1000);
+    }
+
+    private function rollDodge(int $defenderAgi, int $attackerAgi): bool
+    {
+        $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
+        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015);
+
+        return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }
 
     public function getChestForDungeon(Dungeon $dungeon): ?ItemTemplate

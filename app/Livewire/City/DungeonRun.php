@@ -286,10 +286,17 @@ class DungeonRun extends Component
         $maxHp = $this->character->getMaxHp();
         $currentHp = $run?->current_hp ?? $maxHp;
 
-        // Get consumable potions from inventory
+        // Get consumable potions from inventory (excluding chests)
         $potions = ItemInstance::where('owner_character_id', $this->character->id)
             ->where('location', 'inventory')
-            ->whereHas('template', fn($q) => $q->where('type', 'consumable'))
+            ->whereHas('template', function ($q) {
+                $q->where('type', 'consumable')
+                  ->where(function ($sq) {
+                      $sq->whereNull('sub_type')
+                        ->orWhere('sub_type', '!=', 'chest');
+                  })
+                  ->where('name', 'NOT LIKE', '%skrzyn%');
+            })
             ->with('template')
             ->get();
 
