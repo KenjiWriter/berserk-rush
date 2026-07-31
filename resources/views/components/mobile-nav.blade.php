@@ -26,6 +26,18 @@
             || ($currentGameStage == 13 && $character->character_points > 0)
         );
 
+        // Podświetlenie linku w nawigacji, gdy aktywny krok samouczka wskazuje na dany ekran
+        // (te same warunki co pulsowanie kafelków w hub.blade.php).
+        $navTutorialPulse = [
+            'adventure' => $currentGameStage == 9,
+            'profile' => in_array($currentGameStage, [5, 14], true),
+            'quests' => !$isQuestsLocked && $currentGameStage == 23,
+            'merchant' => $currentGameStage == 17,
+            'witch' => in_array($currentGameStage, [31, 42], true),
+            'arena' => !$isArenaLocked && $currentGameStage == 39,
+            'guild' => !$isGuildLocked && $currentGameStage == 36,
+        ];
+
         $totalBadgeCount = $questBadgeCount + $profileBadgeCount + $skillPointsCount + $unreadMailCount + ($hubTutorialPending ? 1 : 0);
     @endphp
 
@@ -188,7 +200,7 @@
                         </a>
 
                         <a href="{{ route('city.profile', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0 {{ $navTutorialPulse['profile'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                             <i class="fa-solid fa-user-shield text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Postać</span>
                             @if($profileBadgeCount > 0)
@@ -197,7 +209,7 @@
                         </a>
 
                         <a href="{{ route('city.adventure', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wyruszanie na Wyprawę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $navTutorialPulse['adventure'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                             <i class="fa-solid fa-map-location-dot text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Wyprawy</span>
                         </a>
@@ -211,7 +223,7 @@
                             </a>
                         @else
                             <a href="{{ route('city.quests', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Otwieranie Wyzwań...', icon: 'fa-solid fa-beer-mug-empty', url: $el.href })"
-                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0 {{ $navTutorialPulse['quests'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                                 <i class="fa-solid fa-beer-mug-empty text-amber-400 text-sm shrink-0"></i>
                                 <span class="truncate text-[11px] sm:text-xs">Wyzwania</span>
                                 @if($questBadgeCount > 0)
@@ -227,7 +239,7 @@
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Sklepy & Rzemiosło</div>
                     <div class="grid grid-cols-2 gap-2">
                         <a href="{{ route('city.merchant', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Handlarza...', icon: 'fa-solid fa-shop', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $navTutorialPulse['merchant'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                             <i class="fa-solid fa-shop text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Handlarz</span>
                         </a>
@@ -239,7 +251,7 @@
                         </a>
 
                         <a href="{{ route('city.witch', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Wiedźmy...', icon: 'fa-solid fa-wand-magic-sparkles', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $navTutorialPulse['witch'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                             <i class="fa-solid fa-wand-magic-sparkles text-amber-400 text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Wiedźma</span>
                         </a>
@@ -266,7 +278,7 @@
                     <div class="text-[10px] text-amber-500/80 mb-2 font-extrabold tracking-widest border-b border-stone-800 pb-1">Społeczność & Walka</div>
                     <div class="grid grid-cols-2 gap-2">
                         <a href="{{ route('city.arena', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })"
-                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }}">
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ $navTutorialPulse['arena'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                             <i class="fa-solid {{ $isArenaLocked ? 'fa-lock text-amber-500' : 'fa-dungeon text-amber-400' }} text-sm shrink-0"></i>
                             <span class="truncate text-[11px] sm:text-xs">Arena Walk</span>
                         </a>
@@ -286,7 +298,7 @@
                             </a>
                         @else
                             <a href="{{ route('city.guild', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Podróż do Gildii...', icon: 'fa-solid fa-flag', url: $el.href })"
-                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                               class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0 {{ $navTutorialPulse['guild'] ? 'ring-2 ring-amber-500 animate-pulse' : '' }}">
                                 <i class="fa-solid fa-flag text-amber-400 text-sm shrink-0"></i>
                                 <span class="truncate text-[11px] sm:text-xs">Gildia</span>
                             </a>
@@ -354,8 +366,8 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Miasto</span>
                 </a>
 
-                <a href="{{ route('city.profile', $charId) }}" wire:navigate 
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.profile') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
+                <a href="{{ route('city.profile', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.profile') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['profile'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
                    @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })">
                     <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-user-shield text-amber-400 text-lg"></i>
@@ -366,8 +378,8 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Profil</span>
                 </a>
 
-                <a href="{{ route('city.adventure', $charId) }}" wire:navigate 
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
+                <a href="{{ route('city.adventure', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['adventure'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
                    @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })">
                     <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
                         <i class="fa-solid fa-map-location-dot text-amber-400 text-lg"></i>
@@ -375,8 +387,8 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Przygoda</span>
                 </a>
 
-                <a href="{{ route('city.arena', $charId) }}" wire:navigate 
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}" 
+                <a href="{{ route('city.arena', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['arena'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
                    @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })">
                     <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
                         <i class="fa-solid {{ $isArenaLocked ? 'fa-lock text-amber-500' : 'fa-khanda text-amber-400' }} text-lg"></i>
