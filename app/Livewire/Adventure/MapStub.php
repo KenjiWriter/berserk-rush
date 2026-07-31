@@ -26,6 +26,7 @@ class MapStub extends Component
     public array $visibleTurns = [];
     public string $result = '';
     public bool $playerFirst = true;
+    public int $currentMana = -1;
 
     // Session Tracking
     public int $sessionMonstersDefeated = 0;
@@ -190,6 +191,8 @@ class MapStub extends Component
             $this->redirect(route('city.adventure', $character), navigate: true);
             return;
         }
+
+        $this->currentMana = $character->getMaxMana();
     }
 
     public function setTargetStrategy(string $strategy): void
@@ -225,8 +228,17 @@ class MapStub extends Component
             $monsterId = null;
         }
         
-        $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
-        $startResult = $encounterService->start($this->character, $this->map, $forcedMonster, $this->targetStrategy);
+        if ($this->currentMana < 0 && $this->character) {
+            $this->currentMana = $this->character->getMaxMana();
+        }
+
+        $startResult = $encounterService->start(
+            $this->character,
+            $this->map,
+            $forcedMonster,
+            $this->targetStrategy,
+            $this->currentMana >= 0 ? $this->currentMana : null
+        );
 
         if ($startResult->isError()) {
             $this->addError('battle', $startResult->getErrorMessage());
@@ -557,6 +569,7 @@ class MapStub extends Component
     {
         $this->isPlaying = false;
         $this->battleCompleted = true;
+        $this->currentMana = $this->getCurrentPlayerMana();
         $this->dispatch('stop-playback');
         
         if ($this->result === 'win' || $this->result === 'finished') {
@@ -703,11 +716,11 @@ class MapStub extends Component
         $maxMana = $char ? $char->getMaxMana() : 50;
 
         if (empty($this->visibleTurns)) {
-            return $maxMana;
+            return ($this->currentMana >= 0) ? min($maxMana, $this->currentMana) : $maxMana;
         }
 
         $lastTurn = end($this->visibleTurns);
-        return $lastTurn['playerMana'] ?? $lastTurn['state']['playerMana'] ?? $maxMana;
+        return $lastTurn['playerMana'] ?? $lastTurn['state']['playerMana'] ?? (($this->currentMana >= 0) ? min($maxMana, $this->currentMana) : $maxMana);
     }
 
     public function getPlayerManaPercent(): float

@@ -159,9 +159,10 @@ class DungeonService
         $startPlayerHp = $playerHp;
         $playerMaxHp = $character->getMaxHp();
 
-        // Postać zawsze zaczyna starcie w lochu z pełną pulą many
+        // Zachowaj przenoszony stan many z poprzedniego etapu
         $playerMaxMana = $character->getMaxMana();
-        $playerMana = $playerMaxMana;
+        $savedState = is_array($run->combat_state) ? $run->combat_state : (json_decode($run->combat_state ?? '', true) ?: []);
+        $playerMana = isset($savedState['current_mana']) ? min($playerMaxMana, max(0, (int)$savedState['current_mana'])) : $playerMaxMana;
 
         $totalStages = $run->dungeon->stages()->count();
         $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
@@ -187,8 +188,8 @@ class DungeonService
                     $activeBuffs[$k]['duration']--;
                     if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                 }
-                // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
-                $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
+                $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
                 $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                 $turn = $this->playerAttackStep(
@@ -271,8 +272,8 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
-                    // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
-                    $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                    // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
+                    $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
                     $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $targetMobId = $aliveMobs[0]['id'];
@@ -409,8 +410,8 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
-                    // Regeneracja 5% maksymalnej many na turę (minimum 5 MP)
-                    $manaRegen = max(5, (int) round($playerMaxMana * 0.05));
+                    // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
+                    $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
                     $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $turn = $this->playerAttackStep(
@@ -546,7 +547,9 @@ class DungeonService
             ]);
         }
 
-        // Przejdź do następnego etapu
+        // Przejdź do następnego etapu i zapisz stan many
+        $savedState['current_mana'] = $playerMana;
+        $run->combat_state = $savedState;
         $run->current_stage++;
         $run->save();
 

@@ -34,7 +34,7 @@ Wewnątrz tury występują 3 stany ataku:
     - **Sztylet (`dagger`)**: `STR + AGI`
     - **Domyślnie / Pięści (`barehands`)**: `STR * 2`
 - HP u gracza zależy głównie od `VIT`: `100 + (VIT * 15) + (Poziom * 5) + hp_bonus`. HP u potworów skaluje się z ich poziomem oraz poziomem gracza.
-- Mana (MP) u gracza zależy od `INT`: `50 + (INT * 10) + (Poziom * 3) + mana_bonus`. Postać rozpoczyna walkę z pełnym stanem MP (`playerMana = playerMaxMana`). Każda aktywna umiejętność pobiera określony koszt many przy wywołaniu. W każdej turze gracza regeneruje się **5% maksymalnej many** (minimum 5 MP per turę). Wyniki stanu many są przekazywane w każdym krok turnu (`playerMana`, `playerMaxMana`) i animowane w interfejsie walki.
+- Mana (MP) u gracza zależy od `INT`: `50 + (INT * 10) + (Poziom * 3) + mana_bonus`. Postać rozpoczyna serię walk z pełnym stanem MP (`playerMana = playerMaxMana`), a w trakcie ciągłej eksploracji (auto-chain na mapie oraz etapy w lochach) stan many przenosi się pomiędzy kolejnymi starciami. W każdej turze gracza regeneruje się **5% maksymalnej many** (minimum 1 MP per turę). Wyniki stanu many są przekazywane w każdym krok turnu (`playerMana`, `playerMaxMana`) i animowane w interfejsie walki.
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Bronie nadal nie przydzielają bonusów do
 > surowych atrybutów (STR/INT/VIT/AGI) - dają wyłącznie obrażenia fizyczne

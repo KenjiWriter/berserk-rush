@@ -72,7 +72,7 @@ class EncounterService
         return ['dot' => $dot, 'cc' => $cc];
     }
 
-    public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random'): Result
+    public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random', ?int $initialMana = null): Result
     {
         Log::info('EncounterService::start called', [
             'character_id' => $character->id,
@@ -81,10 +81,11 @@ class EncounterService
             'map_name' => $map->name,
             'forced_monster_id' => $forcedMonster?->id,
             'target_strategy' => $targetStrategy,
+            'initial_mana' => $initialMana,
         ]);
 
         try {
-            return DB::transaction(function () use ($character, $map, $forcedMonster, $targetStrategy) {
+            return DB::transaction(function () use ($character, $map, $forcedMonster, $targetStrategy, $initialMana) {
                 // Lock character row to serialize concurrent battle requests
                 $char = Character::where('id', $character->id)->lockForUpdate()->first();
                 if (!$char) {
@@ -348,6 +349,7 @@ class EncounterService
                         'tier_diff' => $tierDiff,
                         'tier_multiplier' => $tierMultiplier,
                         'tier_label' => $tierLabel,
+                        'initial_mana' => $initialMana,
                         // Pre-scaled stats for single-monster fights
                         'scaled_monster_stats' => (!$isOverLevel && $tierMultiplier > 1.0) ? $scaledMonsterStats : null,
                     ],
@@ -436,7 +438,8 @@ class EncounterService
                 if ($isGroupFight) {
                     $monstersData = $encounter->combat_data['monsters'];
                     $tactic = $encounter->combat_data['target_strategy'] ?? 'random';
-                    $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic, $playerMaxHp);
+                    $initialMana = $encounter->combat_data['initial_mana'] ?? null;
+                    $turns = $this->simulateMultiCombat($character, $monstersData, $playerHp, $tactic, $playerMaxHp, $initialMana);
 
                     // Modele potworów grupy (do nagród, dropu i eventów bestiariusza per-sztuka
                     // poniżej) - zbierane raz i cache'owane po id, bo ta sama sztuka potwora
@@ -494,7 +497,8 @@ class EncounterService
                         $xpRewardData['bonus'] = $xpRewardData['total'] - $xpRewardData['base'];
                     }
                 } else {
-                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss, $playerMaxHp);
+                    $initialMana = $encounter->combat_data['initial_mana'] ?? null;
+                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss, $playerMaxHp, $initialMana);
                     $lastTurn = end($turns);
                     $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
 
@@ -742,7 +746,7 @@ class EncounterService
         }
     }
 
-    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false, int $playerMaxHp = 0): array
+    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false, int $playerMaxHp = 0, ?int $initialMana = null): array
     {
         // Reset state for new combat
         $this->activeCooldowns = [];
@@ -765,7 +769,7 @@ class EncounterService
         $this->initPassives($character);
 
         $this->playerMaxMana = $character->getMaxMana();
-        $this->playerMana = $this->playerMaxMana;
+        $this->playerMana = ($initialMana !== null) ? min($this->playerMaxMana, max(0, (int)$initialMana)) : $this->playerMaxMana;
 
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
@@ -797,8 +801,8 @@ class EncounterService
                     $this->activeBuffs[$k]['duration']--;
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
-                // Regenerate 5% max mana per turn (minimum 5 MP)
-                $manaRegen = max(5, (int) round($this->playerMaxMana * 0.05));
+                // Regenerate 5% max mana per turn (minimum 1 MP)
+                $manaRegen = max(1, (int) round($this->playerMaxMana * 0.05));
                 $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
                 $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
@@ -1584,7 +1588,7 @@ class EncounterService
         return $turn;
     }
 
-    private function simulateMultiCombat(Character $character, array $monsters, int $playerHp, string $tactic = 'random', int $playerMaxHp = 0): array
+    private function simulateMultiCombat(Character $character, array $monsters, int $playerHp, string $tactic = 'random', int $playerMaxHp = 0, ?int $initialMana = null): array
     {
         $this->activeCooldowns = [];
         $this->activeDots = [];
@@ -1605,7 +1609,7 @@ class EncounterService
         $this->initPassives($character);
 
         $this->playerMaxMana = $character->getMaxMana();
-        $this->playerMana = $this->playerMaxMana;
+        $this->playerMana = ($initialMana !== null) ? min($this->playerMaxMana, max(0, (int)$initialMana)) : $this->playerMaxMana;
 
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
@@ -1705,8 +1709,8 @@ class EncounterService
                 $this->activeBuffs[$k]['duration']--;
                 if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
             }
-            // Regenerate 5% max mana per turn (min 5 MP)
-            $manaRegen = max(5, (int) round($this->playerMaxMana * 0.05));
+            // Regenerate 5% max mana per turn (min 1 MP)
+            $manaRegen = max(1, (int) round($this->playerMaxMana * 0.05));
             $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
             $aoeSkillCs = $this->resolveAoeSkill($character);

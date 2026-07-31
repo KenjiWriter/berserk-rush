@@ -79,4 +79,52 @@ class CombatSkillManaTest extends TestCase
         // Passive skill cost is always 0
         $this->assertEquals(0, $passiveSkill->getManaCost(1));
     }
+
+    public function test_persistent_mana_and_regen_rate(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'ManaTestPersist',
+            'level' => 10,
+            'xp' => 0,
+            'gold' => 1000,
+            'attributes' => ['str' => 5, 'int' => 0, 'vit' => 10, 'agi' => 5],
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $map = \App\Infrastructure\Persistence\Map::create([
+            'name' => 'Test Map Mana',
+            'level_min' => 1,
+            'level_max' => 20,
+        ]);
+
+        $monster = \App\Infrastructure\Persistence\Monster::create([
+            'name' => 'Test Mob Mana',
+            'level' => 10,
+            'rank' => 'regular',
+            'type' => 'animal',
+            'stats' => ['hp' => 500, 'atk' => 10, 'def' => 5, 'agi' => 1],
+            'map_id' => $map->id,
+        ]);
+
+        $service = app(\App\Application\Combat\EncounterService::class);
+        $res = $service->start($character, $map, $monster, 'random', 20);
+        $this->assertTrue($res->isOk());
+
+        $encounter = $res->getPayload();
+        $this->assertEquals(20, $encounter->combat_data['initial_mana']);
+
+        $simRes = $service->simulate($encounter);
+        $this->assertTrue($simRes->isOk());
+
+        // Max mana for level 10 with 0 INT is 80.
+        // Starting at 20 MP, regen is 5% of 80 = 4 MP per player turn.
+        // First player turn: 20 + 4 = 24 MP.
+        $turns = $simRes->getPayload()['turns'];
+        $firstPlayerTurn = collect($turns)->firstWhere('actor', 'player');
+        $this->assertNotNull($firstPlayerTurn);
+        $this->assertEquals(24, $firstPlayerTurn['playerMana']);
+    }
 }
