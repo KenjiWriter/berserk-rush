@@ -47,10 +47,15 @@ class ArenaCombat extends Component
             ->get();
     }
 
-    public function mount(Character $character, ?string $pvpId = null, ?int $gvgId = null): void
+    public function mount(Character $character, ?string $pvpId = null, ?int $gvgId = null)
     {
         if (Auth::user()->id !== $character->user_id) {
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
+        }
+
+        if ($character->level < 15) {
+            session()->flash('error', 'Walki na Arenie są zablokowane poniżej 15 poziomu.');
+            return redirect()->route('city.hub', $character);
         }
 
         $this->playbackSpeed = session('combat_playback_speed', 1);

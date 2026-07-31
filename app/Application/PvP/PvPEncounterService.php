@@ -47,6 +47,14 @@ class PvPEncounterService
      */
     public function startEncounter(Character $attacker, Character $defender): Result
     {
+        if ($attacker->level < 15) {
+            return Result::error('LEVEL_TOO_LOW', 'Musisz posiadać co najmniej 15 poziom, aby walczyć na Arenie.');
+        }
+
+        if ($defender->level < 15) {
+            return Result::error('LEVEL_TOO_LOW', 'Przeciwnik musi posiadać co najmniej 15 poziom, aby walczyć na Arenie.');
+        }
+
         // Clean up stale pending/calculating PvP encounters older than 2 minutes
         PvpEncounter::where('attacker_character_id', $attacker->id)
             ->whereIn('state', ['pending', 'calculating'])

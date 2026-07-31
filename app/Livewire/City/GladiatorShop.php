@@ -20,6 +20,11 @@ class GladiatorShop extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
+        if ($character->level < 15) {
+            session()->flash('error', 'Sklep Gladiatora jest zablokowany! Twój poziom jest zbyt niski (wymagany 15 poziom).');
+            return redirect()->route('city.hub', $character);
+        }
+
         $this->character = $character;
         $this->loadItems();
     }

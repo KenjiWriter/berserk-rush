@@ -217,6 +217,11 @@ class DiscordChatBridgeCommand extends Command
             return;
         }
 
+        if (strtolower($content) === '!unlink') {
+            $this->handleUnlinkCommand($authorId, $authorMention);
+            return;
+        }
+
         if (! $authorId) {
             return;
         }
@@ -290,6 +295,30 @@ class DiscordChatBridgeCommand extends Command
         }
 
         $this->replyToDiscord($replyText);
+    }
+
+    /**
+     * "!unlink" - the Discord-side counterpart to "/discord unlink" in game.
+     * Only clears discord_user_id; discord_link_reward_claimed_at is left
+     * untouched on purpose, so the one-time 200 gems reward can never be
+     * farmed again by unlinking and relinking (same or different account).
+     */
+    private function handleUnlinkCommand(?string $authorId, string $authorMention): void
+    {
+        if (! $authorId) {
+            return;
+        }
+
+        $character = Character::where('discord_user_id', (string) $authorId)->first();
+
+        if (! $character) {
+            $this->replyToDiscord("{$authorMention}, to konto Discord nie jest połączone z żadną postacią.");
+            return;
+        }
+
+        $character->update(['discord_user_id' => null]);
+
+        $this->replyToDiscord("🔌 {$authorMention}, odłączono postać **{$character->name}** od tego konta Discord.");
     }
 
     /**

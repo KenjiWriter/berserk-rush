@@ -29,6 +29,18 @@ class Arena extends Component
             abort(403, 'Nie możesz wejść do postaci innego gracza.');
         }
 
+        if ($character->level < 15) {
+            session()->flash('error', 'Arena jest zablokowana! Twój poziom jest zbyt niski (wymagany 15 poziom).');
+            return redirect()->route('city.hub', $character);
+        }
+
+        if (Auth::user()->game_stage < 38) {
+            Auth::user()->update(['game_stage' => 38]);
+            return redirect()->route('city.hub', $character);
+        }
+
+        Auth::user()->checkAndRepairTutorialStage($character);
+
         $this->character = $character;
         $this->character->checkAndResetDailyPvpFights();
         $this->currentLeague = $character->league ?? 'bronze';
@@ -116,6 +128,7 @@ class Arena extends Component
         $rankingEquipment = [];
         if ($this->activeTab === 'ranking') {
             $ranking = Character::query()
+                ->where('level', '>=', 15)
                 ->orderBy('elo', 'desc')
                 ->orderBy('level', 'desc')
                 ->paginate(10);

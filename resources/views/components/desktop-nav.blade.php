@@ -18,6 +18,7 @@
         }
         $isQuestsLocked = auth()->check() && (!$character || $character->level < 5);
         $isGuildLocked = auth()->check() && (!$character || $character->level < 10);
+        $isArenaLocked = auth()->check() && (!$character || $character->level < 15);
     @endphp
 
     <aside x-data="{ collapsed: localStorage.getItem('desktop_nav_collapsed') === 'true' }"
@@ -451,9 +452,13 @@
                        @click="$dispatch('play-audio', { type: 'tab' }); $dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })"
                        :title="collapsed ? 'Arena Walk' : ''"
                        :class="collapsed ? 'justify-center px-0' : 'px-3 gap-3'"
-                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ request()->routeIs('city.arena*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
+                       class="flex items-center h-11 rounded-lg text-xs tracking-widest font-extrabold uppercase transition-all duration-300 ease-out relative group border-2 {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ request()->routeIs('city.arena*') ? 'bg-gradient-to-b from-amber-800 via-amber-900 to-amber-950 text-yellow-200 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5),inset_0_1px_0_rgba(254,240,138,0.4),inset_0_-2px_0_rgba(0,0,0,0.9)] scale-[1.02]' : 'bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-slate-300 border-slate-700 hover:border-amber-600/80 hover:text-amber-200 hover:bg-gradient-to-b hover:from-slate-700 hover:to-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_-2px_0_rgba(0,0,0,0.8),0_3px_6px_rgba(0,0,0,0.6)]' }}">
                         <span :class="collapsed ? 'w-full text-amber-400' : 'w-5 text-amber-400 group-hover:scale-110 transition-transform'" class="text-base shrink-0 flex items-center justify-center transition-all duration-300">
-                            <i class="fa-solid fa-dungeon"></i>
+                            @if($isArenaLocked)
+                                <i class="fa-solid fa-lock text-amber-500"></i>
+                            @else
+                                <i class="fa-solid fa-dungeon"></i>
+                            @endif
                         </span>
                         <span x-show="!collapsed"
                               x-transition:enter="transition-opacity ease-out duration-200 delay-100"

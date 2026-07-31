@@ -1,4 +1,8 @@
 <div class="min-h-screen relative overflow-hidden" x-data="{ travelingTo: null }">
+    @if(auth()->user()->game_stage == 39)
+        <livewire:global.tutorial-overlay :step="39" />
+    @endif
+
     {{-- Dynamic background --}}
     <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('{{ asset('img/maps/shadow-mountains.png') }}');">
     </div>

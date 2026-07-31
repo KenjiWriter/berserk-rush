@@ -65,6 +65,8 @@
         <livewire:global.tutorial-overlay :step="31" />
     @elseif($gameStage == 35)
         <livewire:global.tutorial-overlay :step="36" />
+    @elseif($gameStage == 38)
+        <livewire:global.tutorial-overlay :step="38" />
     @endif
 
     <div class="relative w-full px-6 md:px-10 lg:px-12 py-6 md:py-8 min-h-screen flex flex-col z-10">
@@ -178,11 +180,17 @@
             </div>
 
             {{-- ARENA (5 cols, 1 row) --}}
-            <div class="col-span-5 row-span-1 relative group rounded-3xl overflow-hidden border border-orange-900/50 shadow-lg transition-all duration-300 hover:border-orange-500/80 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)]"
+            <div class="col-span-5 row-span-1 relative group rounded-3xl overflow-hidden border border-orange-900/50 shadow-lg transition-all duration-300 hover:border-orange-500/80 hover:shadow-[0_0_20px_rgba(249,115,22,0.2)] {{ $character->level < 15 ? 'opacity-60 grayscale' : ($gameStage == 39 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 z-10' : '') }}"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
-                <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'; $dispatch('play-audio', { type: 'combat' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-start p-6 relative">
+                <button wire:click="goTo('arena')" @click="{{ $character->level >= 15 ? "travelingTo = 'Arena'; \$dispatch('play-audio', { type: 'combat' })" : "" }}" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex items-center justify-start p-6 relative">
                     <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/arena-bg.png') }}');"></div>
                     <div class="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/30"></div>
+                    @if($character->level < 15)
+                        <div class="absolute top-3 right-3 z-20 bg-stone-950/90 border border-amber-600/50 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-md">
+                            <i class="fa-solid fa-lock text-amber-500 text-xs"></i>
+                            <span class="text-[10px] text-amber-300 font-bold uppercase tracking-wider">Zablokowane (Poz. 15)</span>
+                        </div>
+                    @endif
                     <div class="relative z-10 text-left">
                         <div wire:loading wire:target="goTo('arena')" class="mb-1"><svg class="animate-spin h-8 w-8 text-orange-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
                         <h3 class="text-2xl font-bold text-orange-400 medieval-font group-hover:text-orange-300 drop-shadow-md">Arena Gladiatorów</h3>
@@ -396,9 +404,15 @@
 
                 {{-- Arena --}}
                 <div class="col-span-1">
-                    <button wire:click="goTo('arena')" @click="travelingTo = 'Arena'" class="w-full h-36 rounded-3xl border-2 border-orange-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                    <button wire:click="goTo('arena')" @click="{{ $character->level >= 15 ? "travelingTo = 'Arena'" : "" }}" class="w-full h-36 rounded-3xl border-2 border-orange-800/50 overflow-hidden relative shadow-lg {{ $character->level < 15 ? 'opacity-60 grayscale' : ($gameStage == 39 ? 'animate-[pulse_1.5s_ease-in-out_infinite] ring-2 ring-amber-500' : '') }}" wire:loading.attr="disabled">
                         <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/arena-bg.png') }}');"></div>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        @if($character->level < 15)
+                            <div class="absolute top-2 right-2 z-20 bg-stone-950/90 border border-amber-600/50 px-2 py-0.5 rounded-full flex items-center gap-1 shadow">
+                                <i class="fa-solid fa-lock text-amber-500 text-[10px]"></i>
+                                <span class="text-[9px] text-amber-300 font-bold">Poz. 15</span>
+                            </div>
+                        @endif
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="font-bold text-orange-400 medieval-font text-lg">Arena</div>
                         </div>

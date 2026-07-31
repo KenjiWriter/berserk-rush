@@ -35,6 +35,7 @@ Podstawowy ciąg nauki gry przez nowicjusza (game_stage od 0 do 21):
 - **Tablica Wyzwań i Osiągnięcia (game_stage 22-30)**: Aktywowane po wbiciu 5 poziomu postaci. Do etapu 22 Tablica Wyzwań jest zablokowana. Dopiero po awansie na 5 poziom Kapitan ponownie wita gracza w obozie, zachęca do odwiedzenia Tablicy Wyzwań i instruuje jak odbierać misje, wykonuje się przykładową misję, odbiera nagrodę, po czym Kapitan przedstawia system Osiągnięć.
 - **Czarodziej i Zaklinanie Przedmiotów (game_stage 30-34)**: Po powrocie do Głównego Obozu Kapitan informuje gracza, że kolejnym mieszkańcem jest Czarodziej. Kafel Czarodzieja w Hubie zostaje podświetlony. Po przejściu do Czarodzieja Kapitan oprowadza gracza po mechanice zaklinania (dodawanie bonusów) i zleca pomyślne zaklecie dowolnego przedmiotu. Po wykonaniu zadania z sukcesem gracz otrzymuje nagrodę 200 EXP oraz 250 Golda.
 - **Gildia (game_stage 34-37)**: Aktywowane po wbiciu 10 poziomu postaci (analogicznie do Tablicy Wyzwań na 5 poziomie). Moduł Gildii (`city.guild`) jest zablokowany (kafel w Hubie i link w nawigacji wygaszone, badge `fa-lock`) dopóki postać nie osiągnie 10 poziomu. Po spełnieniu warunku, w Hubie pojawia się dymek Kapitana (etap 35→36) tłumaczący mechaniki gildii: oddawanie doświadczenia i zasobów do skarbca, ulepszanie poziomu gildii oraz wojny między gildiami. Po zamknięciu dymku podświetla się kafel Gildii; wejście do widoku listy gildii pokazuje kolejny dymek (etap 36→37), w którym Kapitan informuje, że można założyć własną gildię lub dołączyć do istniejącej. Etap kończy się na 37, bez nagrody rzeczowej.
+- **Arena Gladiatorów (game_stage 38-40)**: Aktywowane po wbiciu 15 poziomu postaci (analogicznie do Gildii na 10 poziomie). Moduł Areny (`city.arena`) oraz Sklep Gladiatora są zablokowane dla postaci poniżej 15 poziomu. Po osiągnięciu 15 poziomu, w Hubie pojawia się dymek Kapitana (etap 38→39) zapraszający na Arenę. Po zamknięciu dymku kafel Areny ulega podświetleniu (`animate-pulse`); wejście na Arenę uruchamia kolejny dymek (etap 39→40), w którym Kapitan objaśnia limit 3 prób walki (+1/h), punkty ELO i rankingi oraz możliwość zakupu ekwipunku w Sklepie Gladiatora za Żetony Areny.
 
 ## Automatyczne Pomijanie Etapów (Anti-Softlock)
 
@@ -49,6 +50,9 @@ Samouczek liniowy oparty o ścisłe porównania `game_stage == X` potrafił blok
    - w Hubie (`Hub::goTo('guild')`) ustawia `game_stage` na 35 i pozostaje w Hubie, pokazując od razu dymek Kapitana (etap 35 -> 36),
    - przy bezpośrednim wejściu na `/guild` (`GuildComponent::mount`) robi to samo i przekierowuje z powrotem do Hubu.
    Gracze poniżej 10 poziomu nadal widzą kafel/link jako zablokowany.
+4. **Natychmiastowe odblokowanie Areny po 15 poziomie**: Analogiczny mechanizm dla progu 15 poziomu i modułu Areny. `User::checkAndRepairTutorialStage()` przeskakuje z `game_stage == 37` na `38`, gdy postać osiągnie 15 poziom. Kliknięcie kafelka Areny przy `level >= 15` i `game_stage < 38`:
+   - w Hubie (`Hub::goTo('arena')`) ustawia `game_stage` na 38 i pozostaje w Hubie, prezentując dymek Kapitana (etap 38 -> 39),
+   - przy bezpośrednim wejściu na `/arena` (`Arena::mount`) robi to samo i przekierowuje do Hubu.
 
 ## Implementacja na przyszłość
 

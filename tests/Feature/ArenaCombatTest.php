@@ -21,7 +21,7 @@ class ArenaCombatTest extends TestCase
             'user_id' => $user->id,
             'name' => 'Wojownik1',
             'class' => 'warrior',
-            'level' => 1,
+            'level' => 15,
             'experience' => 0,
             'gold' => 100,
         ]);
@@ -29,7 +29,7 @@ class ArenaCombatTest extends TestCase
             'user_id' => User::factory()->create()->id,
             'name' => 'Wojownik2',
             'class' => 'warrior',
-            'level' => 1,
+            'level' => 15,
             'experience' => 0,
             'gold' => 100,
         ]);
@@ -71,7 +71,7 @@ class ArenaCombatTest extends TestCase
             'user_id' => $user->id,
             'name' => 'GvGHero',
             'class' => 'warrior',
-            'level' => 10,
+            'level' => 15,
             'experience' => 0,
             'gold' => 100,
         ]);

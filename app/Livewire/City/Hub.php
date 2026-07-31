@@ -60,6 +60,18 @@ class Hub extends Component
             return;
         }
 
+        if (in_array($building, ['arena', 'gladiator'], true)) {
+            if ($this->character->level < 15) {
+                $this->dispatch('notify', type: 'error', message: 'Arena jest zablokowana! Wbij 15 poziom postaci i wyczekuj rozkazów Kapitana.');
+                return;
+            }
+
+            if (auth()->user()->game_stage < 38) {
+                Auth::user()->update(['game_stage' => 38]);
+                return;
+            }
+        }
+
         $route = match ($building) {
             'profile' => route('city.profile', $this->character),
             'merchant' => route('city.merchant', $this->character),

@@ -30,6 +30,7 @@ class MatchmakingService
             
             $query = Character::where('id', '!=', $character->id)
                 ->whereNotIn('id', $excludedIds)
+                ->where('level', '>=', 15)
                 ->whereBetween('elo', [$minElo, $maxElo])
                 ->inRandomOrder()
                 ->limit($limit - count($opponents));

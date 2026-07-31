@@ -19,6 +19,7 @@ Atakujący zawsze walczy tym, co ma aktualnie na sobie w momencie ataku
 
 ### System ELO, Ligi i Pojemność Prób Areny
 Arena posiada własny system matchmakingu, rangowania oraz limitowania pojedynków:
+- **Wymóg poziomu (Level 15):** Arena Walk, wyzywanie graczy na pojedynki PvP, Sklep Gladiatora, losowanie przeciwników (Matchmaking) oraz ranking "Arena Chwały" są zablokowane dla postaci poniżej 15 poziomu doświadczenia,
 - **Pojemność prób Areny:** Gracze mogą gromadzić maksymalnie **3 próby** walk na Arenie jednocześnie (`MAX_DAILY_PVP_FIGHTS = 3`),
 - **Regeneracja +1 próba na 1h:** Nowa próba walki regeneruje się automatycznie co 1 godzinę (do limitu 3/3). Użycie **Zwoju Areny Walki** w ekwipunku natychmiastowo przywraca +1 próbę (do zdobycia w Sklepie Premium lub z bossów lochów),
 - Wygrana powoduje kradzież pewnej puli ELO na rzecz Atakującego,

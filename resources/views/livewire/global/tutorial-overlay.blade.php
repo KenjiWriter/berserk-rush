@@ -90,6 +90,10 @@
                                 Wojowniku, osiągnąłeś już dziesiąty poziom - jesteś gotów, by przyłączyć się do większej sprawy! W naszym królestwie działają Gildie - zrzeszenia wojowników, którzy razem stają się silniejsi. Możesz oddawać część zdobywanego doświadczenia oraz zasobów do skarbca swojej Gildii, by wspólnie ulepszać jej poziom i zdobywać potężne bonusy dla wszystkich członków. Silne Gildie mogą również wypowiadać sobie nawzajem wojny i walczyć o chwałę oraz łupy! Odwiedź teraz siedzibę Gildii, by dowiedzieć się więcej.
                             @elseif($step == 37)
                                 Witaj w siedzibie Gildii! Stąd możesz założyć własną Gildię i zostać jej dowódcą, albo dołączyć do jednej z istniejących załóg i razem z innymi wojownikami budować wspólną potęgę. Wybór należy do Ciebie!
+                            @elseif($step == 38)
+                                Wojowniku, osiągnąłeś już piętnasty poziom - czas sprawdzić swoje umiejętności na Arenie Gladiatorów! To starcie z innymi mistrzami naszej krainy o sławę, wyższe rangi i Żetony Areny. Odwiedź teraz Arenę, aby stoczyć swoje pierwsze pojedynki!
+                            @elseif($step == 39)
+                                Witaj na Arenie Gladiatorów! Próby walk na Arenie regenerują się w tempie +1 na godzinę (maksymalny limit wynosi 3 próby jednocześnie). Za odniesione zwycięstwa otrzymujesz Żetony Areny oraz punkty ELO. Zgromadzone żetony możesz wydać w Sklepie Gladiatora na wyśmienity ekwipunek. Powodzenia w walce!
                             @endif
                         </div>
 
