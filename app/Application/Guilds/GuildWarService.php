@@ -347,7 +347,7 @@ class GuildWarService
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
                 'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
-                'passives' => $this->computeTeamPassives($snap),
+                'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
             ];
         }
         foreach (array_values($defenderSnapshots) as $i => $snap) {
@@ -356,7 +356,7 @@ class GuildWarService
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
                 'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
-                'passives' => $this->computeTeamPassives($snap),
+                'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
             ];
         }
 
@@ -479,6 +479,10 @@ class GuildWarService
      */
     private function resolveTeamAttack(array &$combatants, int $actorIdx, int $primaryTargetIdx, string $enemySide): array
     {
+        // Pobranie many i ocena efektów pasywnych na tę turę
+        $actorSnap = $combatants[$actorIdx]['snapshot'] ?? [];
+        $combatants[$actorIdx]['passives'] = $this->computeTeamPassivesForTurn($actorSnap, $combatants[$actorIdx]['mana']);
+
         $turns = $this->resolveTeamAction($combatants, $actorIdx, $primaryTargetIdx, $enemySide);
 
         $anyHit = false;
@@ -841,9 +845,9 @@ class GuildWarService
 
     /**
      * Wylicza sumaryczne efekty pasywnych umiejętności (type = 'passive') z wyposażonego
-     * decku danego combatanta 5v5. Lustrzane odbicie `PvPEncounterService::computePassives()`.
+     * decku danego combatanta 5v5 na daną turę. Pobiera MP.
      */
-    private function computeTeamPassives(array $snapshot): array
+    private function computeTeamPassivesForTurn(array $snapshot, int &$actorMana): array
     {
         $passives = ['aura_dmg' => 0, 'extra_attack_chance' => 0];
         $weaponType = $snapshot['weapon_type'] ?? 'barehands';
@@ -859,6 +863,16 @@ class GuildWarService
             }
 
             $effLevel = max(1, $skill['level'] ?? 1);
+            $baseMana = $skill['base_mana_cost'] ?? 0;
+            $scalingMana = $skill['scaling_mana_cost'] ?? 0;
+            $manaCost = max(0, (int) round($baseMana + (($effLevel - 1) * $scalingMana)));
+
+            if ($actorMana < $manaCost) {
+                continue; // Brak wystarczającej ilości MP w tej turze
+            }
+
+            $actorMana -= $manaCost;
+
             $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
 
             if (($skill['effect_type'] ?? null) === 'passive_aura_dmg') {

@@ -270,6 +270,8 @@ class DungeonService
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
 
+                    $activePassives = $this->evaluatePassivesForTurn($character, $equippedSkills, $playerMana);
+
                     $targetMobId = $aliveMobs[0]['id'];
                     $targetMobHp = $aliveMobs[0]['hp'];
                     $targetMobMaxHp = $aliveMobs[0]['maxHp'];
@@ -404,6 +406,8 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
+
+                    $activePassives = $this->evaluatePassivesForTurn($character, $equippedSkills, $playerMana);
 
                     $turn = $this->playerAttackStep(
                         $character,
@@ -915,7 +919,7 @@ class DungeonService
         ];
     }
 
-    private function initPassives(Character $character, $equippedSkills): array
+    private function evaluatePassivesForTurn(Character $character, $equippedSkills, int &$playerMana): array
     {
         $activePassives = [];
         if (!$equippedSkills) {
@@ -933,6 +937,13 @@ class DungeonService
             if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
                 continue;
             }
+
+            $manaCost = $cs->getManaCost();
+            if ($playerMana < $manaCost) {
+                continue; // Za mało MP na ten pasyw w tej turze
+            }
+
+            $playerMana -= $manaCost;
 
             $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
 

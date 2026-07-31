@@ -265,6 +265,135 @@
                                 </div>
                             </div>
 
+                            {{-- Equipped Skills HUD --}}
+                            @php
+                                $dungeonEquippedSkills = $character->equippedSkills()->with('skill')->get();
+                            @endphp
+                            @if($dungeonEquippedSkills && count($dungeonEquippedSkills) > 0)
+                                <div class="bg-black/60 rounded-2xl p-1.5 lg:p-2 border border-amber-500/20 shadow-inner">
+                                    <div class="flex gap-2 justify-center">
+                                        @foreach($dungeonEquippedSkills as $cs)
+                                            @php
+                                                $skill = $cs->skill;
+                                                $lvl = $cs->level ?? 1;
+                                                $cd = 0; // Cooldown w trybie symulacji lochów
+                                                $eqWeapon = $character->getEquippedWeaponType();
+                                                $reqWep = $skill->required_weapon_type;
+                                                $isWepMatched = ($reqWep === 'all' || $reqWep === $eqWeapon);
+                                                $manaCost = $cs->getManaCost();
+                                                $effVal = $skill->base_value + ($skill->scaling_value * ($lvl - 1));
+
+                                                $wepLabel = 'Wszystkie';
+                                                $wepIcon = 'fa-solid fa-swords';
+                                                if ($reqWep === 'sword') { $wepLabel = 'Miecz'; $wepIcon = 'fa-solid fa-khanda'; }
+                                                elseif ($reqWep === 'axe') { $wepLabel = 'Topór'; $wepIcon = 'fa-solid fa-axe'; }
+                                                elseif ($reqWep === 'wand') { $wepLabel = 'Różdżka'; $wepIcon = 'fa-solid fa-wand-magic-sparkles'; }
+                                                elseif ($reqWep === 'bell') { $wepLabel = 'Dzwon'; $wepIcon = 'fa-solid fa-bell'; }
+                                                elseif ($reqWep === 'bow') { $wepLabel = 'Łuk'; $wepIcon = 'fa-solid fa-bow-arrow'; }
+                                                elseif ($reqWep === 'dagger') { $wepLabel = 'Sztylet'; $wepIcon = 'fa-solid fa-scissors'; }
+
+                                                $effText = '';
+                                                if (in_array($skill->effect_type, ['direct_dmg', 'direct', 'aoe_dmg'])) {
+                                                    $effText = round($effVal * 100) . '% Obrażeń Broni';
+                                                } elseif (in_array($skill->effect_type, ['buff_phys_dmg', 'buff_damage'])) {
+                                                    $effText = '+' . round($effVal * 100) . '% Fizycznych Obrażeń';
+                                                } elseif (in_array($skill->effect_type, ['fire', 'dot_fire'])) {
+                                                    $effText = number_format($effVal * 100, 1) . '% Max HP / Turę';
+                                                } elseif (in_array($skill->effect_type, ['poison', 'dot_poison'])) {
+                                                    $effText = number_format($effVal * 100, 1) . '% Akt. HP / Turę';
+                                                } elseif ($skill->effect_type === 'heal') {
+                                                    $effText = '+' . round($effVal * 100) . '% Max HP';
+                                                } elseif (in_array($skill->effect_type, ['freeze', 'stun'])) {
+                                                    $effText = round($effVal * 100) . '% Obrażeń, ' . $skill->base_duration . ' Tur CC';
+                                                } elseif ($skill->effect_type === 'buff_defense') {
+                                                    $effText = '-' . round($effVal * 100) . '% Obrażeń Przychodzących';
+                                                } elseif ($skill->effect_type === 'passive_aura_dmg') {
+                                                    $effText = '+' . round($effVal * 100) . '% Obrażeń Fizycznych (Pasywna Aura)';
+                                                } elseif ($skill->effect_type === 'passive_extra_attack') {
+                                                    $effText = round(min(0.75, $effVal) * 100) . '% Szansy na Dodatkowy Atak';
+                                                } else {
+                                                    $effText = round($effVal * 100) . '% Mocy';
+                                                }
+                                            @endphp
+
+                                            <div class="group relative inline-block cursor-pointer z-20">
+                                                {{-- Skill Icon Badge --}}
+                                                <div class="relative w-9 h-9 sm:w-10 sm:h-10 lg:w-11 lg:h-11 rounded-xl border {{ $skill->type === 'passive' ? 'border-purple-500/80 bg-purple-950/80 shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'border-amber-500/80 bg-amber-950/80 shadow-[0_0_12px_rgba(245,158,11,0.4)]' }} flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105">
+                                                    @if($skill->icon)
+                                                        <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $skill->name }}">
+                                                    @else
+                                                        <span class="text-[10px] font-bold text-amber-200">{{ mb_substr($skill->name, 0, 3) }}</span>
+                                                    @endif
+                                                </div>
+
+                                                {{-- Rich Hover Popover / Modal --}}
+                                                <div class="opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none group-hover:pointer-events-auto z-[100] absolute bottom-full mb-2.5 left-1/2 -translate-x-1/2 w-64 sm:w-72 bg-slate-950/95 border-2 border-amber-500/80 rounded-xl p-3 shadow-[0_10px_30px_rgba(0,0,0,0.9)] backdrop-blur-md text-left cursor-default">
+                                                    <div class="flex items-center gap-2.5 mb-2 pb-2 border-b border-amber-500/30">
+                                                        <div class="w-9 h-9 rounded-lg border border-amber-500/60 bg-black/80 p-0.5 shrink-0">
+                                                            @if($skill->icon)
+                                                                <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-full h-full object-contain" alt="">
+                                                            @else
+                                                                <i class="fa-solid fa-khanda text-amber-400"></i>
+                                                            @endif
+                                                        </div>
+                                                        <div class="min-w-0 flex-1">
+                                                            <h5 class="text-xs sm:text-sm font-extrabold text-amber-200 medieval-font truncate">{{ $skill->name }}</h5>
+                                                            <div class="flex items-center gap-1.5 mt-0.5">
+                                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-black uppercase {{ $skill->type === 'passive' ? 'bg-purple-950 text-purple-300 border border-purple-600/60' : 'bg-blue-950 text-blue-300 border border-blue-600/60' }}">
+                                                                    {{ $skill->type === 'passive' ? 'Pasywna' : 'Aktywna' }}
+                                                                </span>
+                                                                <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-950 text-amber-300 border border-amber-600/60 font-mono">
+                                                                    Lv. {{ $lvl }}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed font-sans">
+                                                        {{ $skill->description }}
+                                                    </p>
+
+                                                    <div class="space-y-1.5 text-[10px] font-semibold">
+                                                        <div class="bg-slate-900/90 border border-emerald-800/60 rounded px-2 py-1 text-emerald-300 flex items-center justify-between">
+                                                            <span><i class="fa-solid fa-bolt text-emerald-400 mr-1"></i>Efekt:</span>
+                                                            <span class="font-bold text-amber-200">{{ $effText }}</span>
+                                                        </div>
+
+                                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                                            @if($manaCost > 0)
+                                                                <span class="bg-cyan-950/90 border border-cyan-700/60 text-cyan-300 px-2 py-0.5 rounded font-mono">
+                                                                    <i class="fa-solid fa-droplet mr-1"></i>{{ $manaCost }} MP {{ $skill->type === 'passive' ? '/ turę' : '' }}
+                                                                </span>
+                                                            @else
+                                                                <span class="bg-slate-900 border border-slate-700 text-slate-400 px-2 py-0.5 rounded font-mono">
+                                                                    0 MP
+                                                                </span>
+                                                            @endif
+
+                                                            @if($skill->type === 'active')
+                                                                <span class="bg-sky-950/90 border border-sky-700/60 text-sky-300 px-2 py-0.5 rounded font-mono">
+                                                                    <i class="fa-regular fa-clock mr-1"></i>CD: {{ $skill->base_cooldown }} Tur
+                                                                </span>
+                                                            @endif
+
+                                                            @if($skill->base_duration > 1)
+                                                                <span class="bg-purple-950/90 border border-purple-700/60 text-purple-300 px-2 py-0.5 rounded font-mono">
+                                                                    <i class="fa-solid fa-hourglass-half mr-1"></i>Czas: {{ $skill->base_duration }} Tur
+                                                                </span>
+                                                            @endif
+
+                                                            <span class="px-2 py-0.5 rounded font-mono border {{ $isWepMatched ? 'bg-amber-950/80 border-amber-600/60 text-amber-300' : 'bg-red-950/80 border-red-600/60 text-red-400' }}">
+                                                                <i class="{{ $wepIcon }} mr-1"></i>{{ $wepLabel }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+
                             {{-- Stage Progress --}}
                             <div class="space-y-1">
                                 <div class="flex justify-between text-xs font-semibold text-amber-200/80 medieval-font">

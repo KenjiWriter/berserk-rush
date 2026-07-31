@@ -262,7 +262,7 @@ class PvPEncounterService
                 'cooldowns' => [],
                 'effects' => [],
                 'cc_turns' => 0,
-                'passives' => $this->computePassives($attacker),
+                'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
                 'mana' => $attacker['max_mana'] ?? 50,
                 'max_mana' => $attacker['max_mana'] ?? 50,
             ],
@@ -270,7 +270,7 @@ class PvPEncounterService
                 'cooldowns' => [],
                 'effects' => [],
                 'cc_turns' => 0,
-                'passives' => $this->computePassives($defender),
+                'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
                 'mana' => $defender['max_mana'] ?? 50,
                 'max_mana' => $defender['max_mana'] ?? 50,
             ],
@@ -301,6 +301,10 @@ class PvPEncounterService
                 $turnCount++;
                 continue;
             }
+
+            // Pobranie many i ocena efektów pasywnych na tę turę
+            $actorSnapshot = $isAttackerTurn ? $attacker : $defender;
+            $state[$actorKey]['passives'] = $this->computePassivesForTurn($actorSnapshot, $state[$actorKey]['mana']);
 
             $turn = $this->performAttack($attacker, $defender, $attackerHp, $defenderHp, $actorKey, $state[$actorKey], $state[$targetKey]);
 
@@ -342,10 +346,9 @@ class PvPEncounterService
 
     /**
      * Wylicza sumaryczne efekty pasywnych umiejętności (equip_slot 1-3, type = 'passive')
-     * z wyposażonego decku danej strony pojedynku PvP (snapshot). Lustrzane odbicie
-     * EncounterService::initPassives() dla starć PvE - patrz tam pełny opis.
+     * z wyposażonego decku danej strony pojedynku PvP (snapshot) na daną turę. Pobiera MP.
      */
-    private function computePassives(array $snapshot): array
+    private function computePassivesForTurn(array $snapshot, int &$actorMana): array
     {
         $passives = ['aura_dmg' => 0, 'extra_attack_chance' => 0];
         $weaponType = $snapshot['weapon_type'] ?? 'barehands';
@@ -361,6 +364,16 @@ class PvPEncounterService
             }
 
             $effLevel = max(1, $skill['level'] ?? 1);
+            $baseMana = $skill['base_mana_cost'] ?? 0;
+            $scalingMana = $skill['scaling_mana_cost'] ?? 0;
+            $manaCost = max(0, (int) round($baseMana + (($effLevel - 1) * $scalingMana)));
+
+            if ($actorMana < $manaCost) {
+                continue; // Brak wystarczającej ilości MP w tej turze
+            }
+
+            $actorMana -= $manaCost;
+
             $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
 
             if (($skill['effect_type'] ?? null) === 'passive_aura_dmg') {

@@ -76,8 +76,9 @@ class CombatSkillManaTest extends TestCase
             'unlock_cost' => 5,
         ]);
 
-        // Passive skill cost is always 0
-        $this->assertEquals(0, $passiveSkill->getManaCost(1));
+        // Passive skill cost is calculated based on level
+        $this->assertEquals(50, $passiveSkill->getManaCost(1));
+        $this->assertEquals(60, $passiveSkill->getManaCost(2));
     }
 
     public function test_no_mid_combat_mana_regen(): void
@@ -122,5 +123,75 @@ class CombatSkillManaTest extends TestCase
         $firstPlayerTurn = collect($turns)->firstWhere('actor', 'player');
         $this->assertNotNull($firstPlayerTurn);
         $this->assertEquals(80, $firstPlayerTurn['playerMana']);
+    }
+
+    public function test_passive_skill_drains_mana_per_turn_in_combat(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'PassiveManaTester',
+            'level' => 10,
+            'xp' => 0,
+            'gold' => 1000,
+            'attributes' => ['str' => 5, 'int' => 0, 'vit' => 10, 'agi' => 5], // Max Mana = 80
+            'character_points' => 0,
+            'skill_points' => 0,
+        ]);
+
+        $passiveSkill = CombatSkill::create([
+            'name' => 'Aura Miecza Test',
+            'description' => 'Zwiększa atrybuty',
+            'type' => 'passive',
+            'required_weapon_type' => 'all',
+            'effect_type' => 'passive_aura_dmg',
+            'base_cooldown' => 0,
+            'base_duration' => 0,
+            'base_value' => 0.2,
+            'scaling_value' => 0.05,
+            'base_mana_cost' => 15,
+            'scaling_mana_cost' => 5,
+            'required_level' => 1,
+            'unlock_cost' => 1,
+        ]);
+
+        CharacterCombatSkill::create([
+            'character_id' => $character->id,
+            'combat_skill_id' => $passiveSkill->id,
+            'level' => 1,
+            'is_equipped' => true,
+            'equip_slot' => 1,
+        ]);
+
+        $map = \App\Infrastructure\Persistence\Map::create([
+            'name' => 'Test Map Passive Mana',
+            'level_min' => 1,
+            'level_max' => 20,
+        ]);
+
+        $monster = \App\Infrastructure\Persistence\Monster::create([
+            'name' => 'Test Mob Passive Mana',
+            'level' => 10,
+            'rank' => 'regular',
+            'type' => 'animal',
+            'stats' => ['hp' => 500, 'atk' => 10, 'def' => 5, 'agi' => 1],
+            'map_id' => $map->id,
+        ]);
+
+        $service = app(\App\Application\Combat\EncounterService::class);
+        $res = $service->start($character, $map, $monster, 'random', 20);
+        $encounter = $res->getPayload();
+        $simRes = $service->simulate($encounter);
+
+        $turns = $simRes->getPayload()['turns'];
+        $playerTurns = array_values(array_filter($turns, fn($t) => ($t['actor'] ?? '') === 'player'));
+
+        $this->assertNotEmpty($playerTurns);
+        // Player starts with 80 MP. In first turn, passive drains 15 MP => 65 MP remaining.
+        $this->assertEquals(65, $playerTurns[0]['playerMana']);
+        if (isset($playerTurns[1])) {
+            // Second turn, passive drains another 15 MP => 50 MP remaining.
+            $this->assertEquals(50, $playerTurns[1]['playerMana']);
+        }
     }
 }

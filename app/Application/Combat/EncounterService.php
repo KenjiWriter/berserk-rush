@@ -766,8 +766,6 @@ class EncounterService
             }
         }
 
-        $this->initPassives($character);
-
         $this->playerMaxMana = $character->getMaxMana();
         $this->playerMana = $this->playerMaxMana;
 
@@ -801,6 +799,9 @@ class EncounterService
                     $this->activeBuffs[$k]['duration']--;
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
+
+                // Pobranie many i ocena efektów pasywnych na tę turę
+                $this->evaluatePassivesForTurn($character);
 
                 $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
                 $playerHp = $turn['playerHp'];
@@ -880,16 +881,10 @@ class EncounterService
 
     /**
      * Wylicza aktywne efekty pasywnych umiejętności (equip_slot 1-3, type = 'passive')
-     * z wyposażonego decku. W przeciwieństwie do skilli aktywnych, pasywy nie mają
-     * cooldownu ani nie "zastępują" ataku - działają cały czas, o ile wymagana broń
-     * (required_weapon_type) jest założona w ręce głównej.
-     *
-     * Obsługiwane effect_type:
-     * - passive_aura_dmg: stały % bonusu do obrażeń fizycznych (np. "Aura Miecza").
-     * - passive_extra_attack: szansa (0..1) na natychmiastowy dodatkowy atak po trafieniu
-     *   (np. "Furia Berserkera" dla topora).
+     * z wyposażonego decku na daną turę. Pobiera koszt MP co turę/wywołanie.
+     * W przypadku braku MP, efekt pasywny w danej turze zostaje pominięty.
      */
-    private function initPassives(Character $character): void
+    private function evaluatePassivesForTurn(Character $character): void
     {
         $this->activePassives = [];
         if (!$this->equippedSkills) {
@@ -907,6 +902,13 @@ class EncounterService
             if (!empty($reqWep) && $reqWep !== 'all' && $reqWep !== $equippedWeaponType) {
                 continue;
             }
+
+            $manaCost = $cs->getManaCost();
+            if ($this->playerMana < $manaCost) {
+                continue; // Brak wystarczającej ilości MP do aktywacji pasywa w tej turze
+            }
+
+            $this->playerMana -= $manaCost;
 
             $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
 
@@ -1603,8 +1605,6 @@ class EncounterService
             }
         }
 
-        $this->initPassives($character);
-
         $this->playerMaxMana = $character->getMaxMana();
         $this->playerMana = $this->playerMaxMana;
 
@@ -1706,6 +1706,9 @@ class EncounterService
                 $this->activeBuffs[$k]['duration']--;
                 if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
             }
+
+            // Pobranie many i ocena efektów pasywnych na tę turę
+            $this->evaluatePassivesForTurn($character);
 
             $aoeSkillCs = $this->resolveAoeSkill($character);
 

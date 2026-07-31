@@ -47,10 +47,6 @@ class CombatSkill extends Model
 
     public function getManaCost(int $level = 1): int
     {
-        if ($this->type === 'passive') {
-            return 0;
-        }
-
         $lvl = max(1, $level);
         return max(0, (int) round($this->base_mana_cost + (($lvl - 1) * $this->scaling_mana_cost)));
     }

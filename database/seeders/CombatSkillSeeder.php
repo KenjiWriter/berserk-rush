@@ -1225,8 +1225,25 @@ class CombatSkillSeeder extends Seeder
             $reqLevel = $skill['required_level'] ?? 1;
 
             if ($isPassive) {
-                $baseMana = 0;
-                $scalingMana = 0;
+                if ($reqLevel <= 15) {
+                    $baseMana = 6;
+                    $scalingMana = 2;
+                } elseif ($reqLevel <= 30) {
+                    $baseMana = 10;
+                    $scalingMana = 3;
+                } elseif ($reqLevel <= 50) {
+                    $baseMana = 15;
+                    $scalingMana = 4;
+                } elseif ($reqLevel <= 70) {
+                    $baseMana = 22;
+                    $scalingMana = 5;
+                } elseif ($reqLevel <= 90) {
+                    $baseMana = 30;
+                    $scalingMana = 7;
+                } else {
+                    $baseMana = 40;
+                    $scalingMana = 10;
+                }
             } else {
                 if ($reqLevel <= 15) {
                     $baseMana = 12;
