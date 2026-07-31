@@ -355,5 +355,8 @@ class WorldBossRewardJobTest extends TestCase
             'action' => 'mail_claim',
             'quantity_change' => 5,
         ]);
+
+        $this->assertEquals('material_stash', $itemInstance->fresh()->location);
+        $this->assertTrue($char->materialStashItems->pluck('id')->contains($itemInstance->id));
     }
 }

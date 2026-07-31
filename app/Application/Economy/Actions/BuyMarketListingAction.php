@@ -87,11 +87,12 @@ class BuyMarketListingAction
                 ]);
 
                 // Transfer item to buyer
-                $item = ItemInstance::find($listing->item_instance_id);
+                $item = ItemInstance::with('template')->find($listing->item_instance_id);
                 if ($item) {
+                    $targetLocation = ($item->template && $item->template->type === 'material') ? 'material_stash' : 'inventory';
                     $item->update([
                         'owner_character_id' => $buyer->id,
-                        'location' => 'inventory',
+                        'location' => $targetLocation,
                     ]);
 
                     ItemLedger::create([

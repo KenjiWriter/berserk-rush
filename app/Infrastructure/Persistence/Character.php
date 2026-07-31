@@ -251,7 +251,13 @@ class Character extends Model
 
     public function materialStashItems()
     {
-        return $this->items()->where('location', 'material_stash')->with('template');
+        return $this->items()->where(function ($q) {
+            $q->where('location', 'material_stash')
+              ->orWhere(function ($sub) {
+                  $sub->where('location', 'inventory')
+                      ->whereHas('template', fn ($t) => $t->where('type', 'material'));
+              });
+        })->with('template');
     }
 
     public function getBackpackCapacity(): int

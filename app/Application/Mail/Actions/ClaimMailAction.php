@@ -50,10 +50,12 @@ class ClaimMailAction
                             if ($item) {
                                 $qty = max(1, $item->stack_size ?? 1);
                                 $template = $item->template;
+                                $targetLocation = ($template && $template->type === 'material') ? 'material_stash' : 'inventory';
+
                                 if ($template && in_array($template->type, ['material', 'consumable', 'currency'])) {
                                     $existingItem = ItemInstance::where('owner_character_id', $character->id)
                                         ->where('template_id', $item->template_id)
-                                        ->where('location', 'inventory')
+                                        ->where('location', $targetLocation)
                                         ->where('id', '!=', $item->id)
                                         ->first();
 
@@ -81,7 +83,7 @@ class ClaimMailAction
 
                                 $item->update([
                                     'owner_character_id' => $character->id,
-                                    'location' => 'inventory',
+                                    'location' => $targetLocation,
                                 ]);
 
                                 ItemLedger::create([
