@@ -23,6 +23,10 @@ class Profile extends Component
     public string $inventoryTab = 'backpack'; // 'backpack', 'stash', or 'materials'
     public string $inventoryFilter = 'all';
 
+    // Zaznacz wiele -> Przenieś do magazynu (plecak i materiały)
+    public bool $bulkStashMode = false;
+    public array $selectedStashItemIds = [];
+
     // Market Selling
     public ?string $sellingItemUlid = null;
     public $sellPrice = 100;
@@ -577,6 +581,77 @@ class Profile extends Component
     public function setInventoryTab(string $tab): void
     {
         $this->inventoryTab = $tab;
+        $this->bulkStashMode = false;
+        $this->selectedStashItemIds = [];
+    }
+
+    public function toggleBulkStashMode(): void
+    {
+        $this->bulkStashMode = !$this->bulkStashMode;
+        if (!$this->bulkStashMode) {
+            $this->selectedStashItemIds = [];
+        }
+    }
+
+    public function toggleSelectStashItem(string $itemUlid): void
+    {
+        if (in_array($itemUlid, $this->selectedStashItemIds)) {
+            $this->selectedStashItemIds = array_values(array_diff($this->selectedStashItemIds, [$itemUlid]));
+        } else {
+            $this->selectedStashItemIds[] = $itemUlid;
+        }
+    }
+
+    public function selectAllForStash(): void
+    {
+        $items = $this->inventoryTab === 'materials'
+            ? $this->character->materialStashItems()->get()
+            : $this->character->inventoryItems()->get();
+
+        $allIds = $items->pluck('id')->toArray();
+        if (count($this->selectedStashItemIds) === count($allIds)) {
+            $this->selectedStashItemIds = [];
+        } else {
+            $this->selectedStashItemIds = $allIds;
+        }
+    }
+
+    public function clearStashSelection(): void
+    {
+        $this->selectedStashItemIds = [];
+    }
+
+    public function moveSelectedToStash(\App\Application\Storage\PlayerStashService $stashService): void
+    {
+        if (empty($this->selectedStashItemIds)) {
+            $this->dispatch('notify', type: 'error', message: 'Wybierz przedmioty do przeniesienia.');
+            return;
+        }
+
+        $moved = 0;
+        $lastError = null;
+        foreach ($this->selectedStashItemIds as $itemUlid) {
+            $item = ItemInstance::find($itemUlid);
+            if (!$item) continue;
+
+            $result = $stashService->deposit($this->character, $item);
+            if ($result->isOk()) {
+                $moved++;
+            } else {
+                $lastError = $result->getErrorMessage();
+                break; // magazyn pełny lub inny błąd blokujący - przerwij dalsze przenoszenie
+            }
+        }
+
+        if ($moved > 0) {
+            $this->dispatch('notify', type: 'success', message: "Przeniesiono {$moved} przedmiot(ów) do magazynu gracza!");
+        }
+        if ($lastError) {
+            $this->dispatch('notify', type: 'error', message: $lastError);
+        }
+
+        $this->selectedStashItemIds = [];
+        $this->character->refresh();
     }
 
     public function moveToStash(string $itemUlid, \App\Application\Storage\PlayerStashService $stashService): void

@@ -816,13 +816,23 @@
                                 <i class="fa-solid fa-layer-group"></i>
                                 Połącz przedmioty
                             </button>
+                            <button wire:click="toggleBulkStashMode" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl font-bold flex items-center gap-1.5 shadow transition-all duration-200 border transform active:scale-95 {{ $bulkStashMode ? 'bg-cyan-600 hover:bg-cyan-500 border-cyan-400 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 text-cyan-300 border-cyan-500/40' }}">
+                                <i class="fa-solid {{ $bulkStashMode ? 'fa-square-check' : 'fa-list-check' }}"></i>
+                                Zaznacz wiele
+                            </button>
                         </div>
                     @elseif($inventoryTab === 'materials')
                         <span class="text-stone-400 text-xs font-medium">Magazyn Materiałów: <strong class="text-amber-300">{{ $materialStashCount }} / {{ $materialStashCapacity }} slotów</strong></span>
-                        <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz stosy materiałów">
-                            <i class="fa-solid fa-layer-group"></i>
-                            Połącz stosy
-                        </button>
+                        <div class="flex items-center gap-1.5">
+                            <button wire:click="stackItems" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 text-emerald-100 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-emerald-500/40 transform active:scale-95" title="Połącz stosy materiałów">
+                                <i class="fa-solid fa-layer-group"></i>
+                                Połącz stosy
+                            </button>
+                            <button wire:click="toggleBulkStashMode" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl font-bold flex items-center gap-1.5 shadow transition-all duration-200 border transform active:scale-95 {{ $bulkStashMode ? 'bg-cyan-600 hover:bg-cyan-500 border-cyan-400 text-white' : 'bg-gradient-to-r from-slate-800 to-slate-700 hover:from-slate-700 hover:to-slate-600 text-cyan-300 border-cyan-500/40' }}">
+                                <i class="fa-solid {{ $bulkStashMode ? 'fa-square-check' : 'fa-list-check' }}"></i>
+                                Zaznacz wiele
+                            </button>
+                        </div>
                     @else
                         <span class="text-stone-400 text-xs font-medium">Magazyn Gracza: <strong class="text-amber-300">{{ count($playerStashItems) }} / {{ $stashCapacity }} slotów</strong></span>
                         <button wire:click="expandStash" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-amber-400 transform active:scale-95">
@@ -830,6 +840,36 @@
                         </button>
                     @endif
                 </div>
+
+                @if($bulkStashMode && in_array($inventoryTab, ['backpack', 'materials']))
+                    <div class="bg-slate-950/80 p-2.5 rounded-lg border border-cyan-500/30 flex flex-col gap-2 animate-[fade-in_0.2s_ease-out]">
+                        <div class="flex items-center justify-between flex-wrap gap-1.5">
+                            <span class="text-[11px] font-semibold text-gray-400">Zaznaczanie:</span>
+                            <div class="flex items-center gap-1 flex-wrap">
+                                <button wire:click="selectAllForStash" class="px-2 py-0.5 bg-cyan-950/80 hover:bg-cyan-900 text-cyan-300 text-[11px] font-semibold rounded border border-cyan-700 transition">
+                                    Wszystkie
+                                </button>
+                                @if(count($selectedStashItemIds) > 0)
+                                    <button wire:click="clearStashSelection" class="px-2 py-0.5 bg-red-950/80 hover:bg-red-900 text-red-300 text-[11px] font-semibold rounded border border-red-700 transition">
+                                        Wyczyść
+                                    </button>
+                                @endif
+                            </div>
+                        </div>
+
+                        @if(count($selectedStashItemIds) > 0)
+                            <div class="p-2 bg-cyan-950/60 border border-cyan-500/50 rounded flex items-center justify-between gap-2">
+                                <div class="text-xs text-cyan-200">
+                                    Wybrano: <span class="font-bold text-white">{{ count($selectedStashItemIds) }}</span> szt.
+                                </div>
+                                <button wire:click="moveSelectedToStash" class="px-3 py-1 bg-gradient-to-r from-cyan-700 to-blue-600 hover:from-cyan-600 hover:to-blue-500 text-white font-extrabold text-xs rounded shadow transition flex items-center gap-1">
+                                    <i class="fa-solid fa-vault"></i>
+                                    Przenieś do magazynu
+                                </button>
+                            </div>
+                        @endif
+                    </div>
+                @endif
             </div>
 
             <!-- Inventory Grid -->
@@ -976,14 +1016,25 @@
                                  'opacity-40 scale-95 border-amber-400': isDraggingThis,
                                  '!z-[99999] relative': open
                              }"
-                             @mouseenter="openTooltip()" 
-                             @mouseleave="closeTooltip()" 
+                             @mouseenter="openTooltip()"
+                             @mouseleave="closeTooltip()"
                              @click="activeItemId = null; openTooltip()">
-                            
+
+                            @if($bulkStashMode)
+                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                        @if(in_array($item->id, $selectedStashItemIds))
+                                            <i class="fa-solid fa-check"></i>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
                             @if($item->template->icon)
                                 <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
-                                    
+
                                     <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
                                         @if($item->stack_size > 1)
                                             <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
@@ -1149,7 +1200,18 @@
                              @resize.window.debounce.100ms="checkPosition()"
                              @tooltip-updated.window="checkPosition()"
                              class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
-                            
+
+                            @if($bulkStashMode)
+                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                        @if(in_array($item->id, $selectedStashItemIds))
+                                            <i class="fa-solid fa-check"></i>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
                             <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
                                 @if($item->template->icon)
                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
