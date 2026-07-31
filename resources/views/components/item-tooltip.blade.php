@@ -252,7 +252,25 @@
     };
 @endphp
 
-<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]" x-data="{ compare: {{ $canCompare ? 'true' : 'false' }} }" @click.stop>
+<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]"
+     x-data="{
+         showComparePref: localStorage.getItem('global_show_item_comparison') !== 'false',
+         get compare() {
+             return {{ $canCompare ? 'true' : 'false' }} && this.showComparePref;
+         },
+         toggleCompare() {
+             this.showComparePref = !this.showComparePref;
+             localStorage.setItem('global_show_item_comparison', this.showComparePref ? 'true' : 'false');
+             window.dispatchEvent(new CustomEvent('global-compare-toggled', { detail: this.showComparePref }));
+             this.$dispatch('tooltip-updated');
+         },
+         init() {
+             window.addEventListener('global-compare-toggled', (e) => {
+                 this.showComparePref = e.detail;
+                 this.$dispatch('tooltip-updated');
+             });
+         }
+     }" @click.stop>
     <!-- Górny pasek -->
     <div class="flex justify-between items-start mb-2 gap-2">
         <div>
@@ -318,9 +336,9 @@
             <span class="text-xs text-amber-300 font-bold flex items-center gap-1.5">
                 <i class="fa-solid fa-scale-balanced text-amber-400"></i> Porównanie z założonym
             </span>
-            <button @click="compare = !compare; $dispatch('tooltip-updated')" class="text-[11px] text-gray-400 hover:text-amber-200 underline font-semibold transition">
-                <span x-show="compare">Ukryj</span>
-                <span x-show="!compare">Pokaż</span>
+            <button @click="toggleCompare()" class="text-[11px] text-amber-400 hover:text-amber-200 underline font-bold transition cursor-pointer">
+                <span x-show="compare">Ukryj porównanie (globalnie)</span>
+                <span x-show="!compare">Pokaż porównanie z założonym</span>
             </button>
         </div>
     @endif

@@ -57,25 +57,31 @@ function createSmartTooltip() {
                 let left = triggerCenter - (tooltipRect.width / 2);
                 left = Math.max(minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
 
+                let top = triggerRect.top - tooltipRect.height - 8;
+                if (top < minMargin) {
+                    top = triggerRect.bottom + 8;
+                }
+                if (top + tooltipRect.height > window.innerHeight - minMargin) {
+                    top = Math.max(minMargin, window.innerHeight - tooltipRect.height - minMargin);
+                }
+
                 const style = {
                     position: 'fixed',
                     left: left + 'px',
+                    top: top + 'px',
+                    bottom: 'auto',
                     transform: 'none',
                     margin: '0',
+                    maxHeight: 'calc(100vh - 24px)',
+                    overflowY: 'auto',
+                    zIndex: '10000',
                 };
-
-                if (triggerRect.top < tooltipRect.height + 16) {
-                    style.top = (triggerRect.bottom + 8) + 'px';
-                    style.bottom = 'auto';
-                } else {
-                    style.top = (triggerRect.top - tooltipRect.height - 8) + 'px';
-                    style.bottom = 'auto';
-                }
 
                 this.tooltipStyle = style;
             });
         },
         openTooltip() {
+            if (window.innerWidth < 640) return;
             clearTimeout(this.timeout);
             this.showInfo = true;
             this.updatePosition();
