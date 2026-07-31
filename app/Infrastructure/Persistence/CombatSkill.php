@@ -25,6 +25,8 @@ class CombatSkill extends Model
         'base_duration',
         'base_value',
         'scaling_value',
+        'base_mana_cost',
+        'scaling_mana_cost',
         'required_level',
         'unlock_cost',
         'icon',
@@ -37,7 +39,19 @@ class CombatSkill extends Model
         'base_duration' => 'integer',
         'base_value' => 'float',
         'scaling_value' => 'float',
+        'base_mana_cost' => 'integer',
+        'scaling_mana_cost' => 'integer',
         'required_level' => 'integer',
         'unlock_cost' => 'integer',
     ];
+
+    public function getManaCost(int $level = 1): int
+    {
+        if ($this->type === 'passive') {
+            return 0;
+        }
+
+        $lvl = max(1, $level);
+        return max(0, (int) round($this->base_mana_cost + (($lvl - 1) * $this->scaling_mana_cost)));
+    }
 }

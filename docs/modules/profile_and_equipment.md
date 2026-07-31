@@ -51,6 +51,7 @@ Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swo
 - Mechanika pozwala na szybkie dodawanie punktów pojedynczo (`+1`) lub po pięć sztuk naraz (`+5`).
 - UI używa animowanych wskaźników (pulse) dla nieprzydzielonych punktów i interaktywnych dymków (tooltipów) z informacją o działaniu konkretnej statystyki.
 - **Resetowanie Atrybutów:** Gracz ma możliwość zresetowania rozdanych atrybutów dla swoich postaci z poziomu Sklepu Premium (`ItemShopComponent`) za 50 Gemów. Reset zeruje przydzielone statystyki i zwraca całą pulę punktów (`character_points` = 10 + (poziom - 1) * 3) do ponownego rozdysponowania.
+- **Wyliczanie Maksymalnej Many (`getMaxMana()`):** Pula many wyliczana jest jako `50 + (INT * 10) + (Poziom * 3) + mana_bonus` z przedmiotów/buffów/tytułów. Wynik jest buforowany w pamięci podręcznej Cache pod kluczem `max_mana` i czyszczony w `clearStatsCache()`.
 
 > **Uwaga (rework itemizacji, 2026-07-28, poranek):** STR/INT/VIT/AGI były przez
 > chwilę wyłącznie statystykami rozdawanymi ręcznie przez gracza (oraz bonusami z

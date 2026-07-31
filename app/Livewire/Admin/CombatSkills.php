@@ -14,6 +14,7 @@ class CombatSkills extends Component
     public $skills;
     public $name, $description, $type = 'active', $required_weapon_type = 'all', $effect_type = 'direct_dmg';
     public $base_cooldown = 0, $base_duration = 0, $base_value = 0, $scaling_value = 0;
+    public $base_mana_cost = 0, $scaling_mana_cost = 0;
     public $required_level = 1, $unlock_cost = 0, $icon;
     // Rozszerzenie systemu skilli (2026-07-28): przełącznik obrażeń magicznych
     // (magicDamage w logu walki zamiast obrażeń fizycznych) oraz flaga obszarowa
@@ -36,6 +37,8 @@ class CombatSkills extends Component
         'base_duration' => 'required|integer|min:0',
         'base_value' => 'required|numeric|min:0',
         'scaling_value' => 'required|numeric|min:0',
+        'base_mana_cost' => 'required|integer|min:0',
+        'scaling_mana_cost' => 'required|integer|min:0',
         'required_level' => 'required|integer|min:1',
         'unlock_cost' => 'required|integer|min:0',
         'icon' => 'nullable|string',
@@ -133,6 +136,8 @@ class CombatSkills extends Component
             'base_duration' => $this->base_duration,
             'base_value' => $this->base_value,
             'scaling_value' => $this->scaling_value,
+            'base_mana_cost' => $this->base_mana_cost,
+            'scaling_mana_cost' => $this->scaling_mana_cost,
             'required_level' => $this->required_level,
             'unlock_cost' => $this->unlock_cost,
             'icon' => $finalIcon,
@@ -144,7 +149,7 @@ class CombatSkills extends Component
             CombatSkill::create($data);
         }
 
-        $this->reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'is_magic', 'is_aoe', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'required_level', 'unlock_cost', 'icon', 'editingId']);
+        $this->reset(['name', 'description', 'type', 'required_weapon_type', 'effect_type', 'is_magic', 'is_aoe', 'base_cooldown', 'base_duration', 'base_value', 'scaling_value', 'base_mana_cost', 'scaling_mana_cost', 'required_level', 'unlock_cost', 'icon', 'editingId']);
         $this->loadData();
         $this->loadAvailableIcons();
         session()->flash('message', 'Umiejętność zapisana.');
@@ -165,6 +170,8 @@ class CombatSkills extends Component
         $this->base_duration = $skill->base_duration;
         $this->base_value = $skill->base_value;
         $this->scaling_value = $skill->scaling_value;
+        $this->base_mana_cost = $skill->base_mana_cost;
+        $this->scaling_mana_cost = $skill->scaling_mana_cost;
         $this->required_level = $skill->required_level;
         $this->unlock_cost = $skill->unlock_cost;
         $this->icon = $skill->icon;

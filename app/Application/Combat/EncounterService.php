@@ -28,6 +28,8 @@ class EncounterService
     // per-potwór wewnątrz tablicy $monsters (klucz 'cc_turns'), patrz simulateMultiCombat().
     private array $activePassives = [];
     private int $monsterCcTurns = 0;
+    private int $playerMana = 0;
+    private int $playerMaxMana = 0;
 
     // Procki z ekwipunku (2026-07-29): 'poison_chance'/'stun_chance' na broni dają
     // szansę (%) na dołożenie efektu przy KAŻDYM wylądowanym trafieniu (nie tylko
@@ -762,6 +764,9 @@ class EncounterService
 
         $this->initPassives($character);
 
+        $this->playerMaxMana = $character->getMaxMana();
+        $this->playerMana = $this->playerMaxMana;
+
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
         }
@@ -792,6 +797,9 @@ class EncounterService
                     $this->activeBuffs[$k]['duration']--;
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
+                // Regenerate 5% max mana per turn (minimum 5 MP)
+                $manaRegen = max(5, (int) round($this->playerMaxMana * 0.05));
+                $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
                 $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
                 $playerHp = $turn['playerHp'];
@@ -801,10 +809,14 @@ class EncounterService
                     $this->monsterCcTurns = max($this->monsterCcTurns, (int) $turn['cc_applied']['duration']);
                 }
 
+                $turn['playerMana'] = $this->playerMana;
+                $turn['playerMaxMana'] = $this->playerMaxMana;
                 $turn['state'] = [
                     'dots' => $this->activeDots,
                     'buffs' => $this->activeBuffs,
                     'cooldowns' => $this->activeCooldowns,
+                    'playerMana' => $this->playerMana,
+                    'playerMaxMana' => $this->playerMaxMana,
                 ];
                 $turns[] = $turn;
                 $turnCount++;
@@ -820,10 +832,14 @@ class EncounterService
                         $this->monsterCcTurns = max($this->monsterCcTurns, (int) $bonusTurn['cc_applied']['duration']);
                     }
 
+                    $bonusTurn['playerMana'] = $this->playerMana;
+                    $bonusTurn['playerMaxMana'] = $this->playerMaxMana;
                     $bonusTurn['state'] = [
                         'dots' => $this->activeDots,
                         'buffs' => $this->activeBuffs,
                         'cooldowns' => $this->activeCooldowns,
+                        'playerMana' => $this->playerMana,
+                        'playerMaxMana' => $this->playerMaxMana,
                     ];
                     $turns[] = $bonusTurn;
                     $turnCount++;
@@ -937,7 +953,14 @@ class EncounterService
                     continue;
                 }
 
-                // Use skill
+                // Check mana requirement
+                $manaCost = $cs->getManaCost();
+                if ($this->playerMana < $manaCost) {
+                    continue; // Not enough mana to use skill
+                }
+
+                // Consume mana & set cooldown
+                $this->playerMana -= $manaCost;
                 $this->activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
                 
                 $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
@@ -1478,6 +1501,11 @@ class EncounterService
                 continue;
             }
 
+            $manaCost = $cs->getManaCost();
+            if ($this->playerMana < $manaCost) {
+                continue;
+            }
+
             return $cs;
         }
 
@@ -1576,6 +1604,9 @@ class EncounterService
 
         $this->initPassives($character);
 
+        $this->playerMaxMana = $character->getMaxMana();
+        $this->playerMana = $this->playerMaxMana;
+
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
         }
@@ -1614,10 +1645,14 @@ class EncounterService
                         'enemy_name' => $m['name'],
                     ];
                     $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['playerMana'] = $this->playerMana;
+                    $turn['playerMaxMana'] = $this->playerMaxMana;
                     $turn['state'] = [
                         'dots' => $this->activeDots,
                         'buffs' => $this->activeBuffs,
                         'cooldowns' => $this->activeCooldowns,
+                        'playerMana' => $this->playerMana,
+                        'playerMaxMana' => $this->playerMaxMana,
                     ];
                     $turns[] = $turn;
                     $turnCount++;
@@ -1643,10 +1678,14 @@ class EncounterService
                 $turn['enemy_index'] = $mIdx;
                 $turn['enemy_name'] = $m['name'];
                 $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                $turn['playerMana'] = $this->playerMana;
+                $turn['playerMaxMana'] = $this->playerMaxMana;
                 $turn['state'] = [
                     'dots' => $this->activeDots,
                     'buffs' => $this->activeBuffs,
                     'cooldowns' => $this->activeCooldowns,
+                    'playerMana' => $this->playerMana,
+                    'playerMaxMana' => $this->playerMaxMana,
                 ];
 
                 $turns[] = $turn;
@@ -1666,10 +1705,14 @@ class EncounterService
                 $this->activeBuffs[$k]['duration']--;
                 if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
             }
+            // Regenerate 5% max mana per turn (min 5 MP)
+            $manaRegen = max(5, (int) round($this->playerMaxMana * 0.05));
+            $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
             $aoeSkillCs = $this->resolveAoeSkill($character);
 
             if ($aoeSkillCs) {
+                $this->playerMana -= $aoeSkillCs->getManaCost();
                 $this->activeCooldowns[$aoeSkillCs->id] = $aoeSkillCs->skill->base_cooldown;
                 $effVal = $aoeSkillCs->skill->base_value + ($aoeSkillCs->skill->scaling_value * ($aoeSkillCs->level - 1));
 
@@ -1693,10 +1736,14 @@ class EncounterService
                     $turn['target_name'] = $m['name'];
                     $turn['playerHp'] = $playerHp;
                     $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['playerMana'] = $this->playerMana;
+                    $turn['playerMaxMana'] = $this->playerMaxMana;
                     $turn['state'] = [
                         'dots' => $this->activeDots,
                         'buffs' => $this->activeBuffs,
                         'cooldowns' => $this->activeCooldowns,
+                        'playerMana' => $this->playerMana,
+                        'playerMaxMana' => $this->playerMaxMana,
                     ];
 
                     $turns[] = $turn;
@@ -1723,10 +1770,14 @@ class EncounterService
                     $turn['target_index'] = $targetIdx;
                     $turn['target_name'] = $targetMonster['name'];
                     $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
+                    $turn['playerMana'] = $this->playerMana;
+                    $turn['playerMaxMana'] = $this->playerMaxMana;
                     $turn['state'] = [
                         'dots' => $this->activeDots,
                         'buffs' => $this->activeBuffs,
                         'cooldowns' => $this->activeCooldowns,
+                        'playerMana' => $this->playerMana,
+                        'playerMaxMana' => $this->playerMaxMana,
                     ];
 
                     $turns[] = $turn;

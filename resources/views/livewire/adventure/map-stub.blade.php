@@ -254,6 +254,18 @@
                             </div>
                         </div>
 
+                        {{-- Player Mana Bar --}}
+                        <div class="space-y-1 mt-1.5">
+                            <div class="flex justify-between text-xs font-bold text-cyan-200 medieval-font drop-shadow">
+                                <span>Mana</span>
+                                <span class="font-mono text-cyan-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
+                            </div>
+                            <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
+                                <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
+                                    style="width: {{ $this->getPlayerManaPercent() }}%"></div>
+                            </div>
+                        </div>
+
                         {{-- Active Buffs --}}
                         @php $currentState = method_exists($this, 'getCurrentState') ? $this->getCurrentState() : null; @endphp
                         @if($currentState && !empty($currentState['buffs']))

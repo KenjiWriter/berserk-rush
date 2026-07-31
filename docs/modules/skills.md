@@ -40,9 +40,10 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 - Jeśli gracz nie posiada wyposażonej broni wymaganego typu w ręce głównej (main hand), skill jest oznaczany jako nieaktywny dla obecnego ekwipunku i nie zostanie użyty podczas walki (PvE oraz PvP).
 
 ### 5. Działanie Skilli w Walce (PvE / PvP)
-- Skille **aktywne** (`type = active`) zastępują atak podstawowy, gdy są gotowe (cooldown = 0).
-- Na początku walki wszystkie skille aktywne domyślnie są nieaktywne (mają czas odnowienia ustawiony na `base_cooldown - 1`, tzn. gotowe "o jedną turę wcześniej"). Gdy cooldown spadnie do 0, skill aktywuje się automatycznie.
-- Skille **pasywne** (`type = passive`) NIE są "rzucane" i nie mają cooldownu - działają stale, przez cały czas trwania walki, o ile spełniony jest wymóg broni (patrz pkt. 4). Nadal zajmują jeden z 3 slotów Decku.
+- Skille **aktywne** (`type = active`) zastępują atak podstawowy, gdy są gotowe (cooldown = 0) oraz gdy postać posiada wystarczającą ilość **Many (MP)** (`playerMana >= skillManaCost`).
+- **Koszt Many (`base_mana_cost`, `scaling_mana_cost`):** Każda umiejętność aktywna posiada bazowy koszt many oraz przyrost kosztu na poziom skilla: `Koszt = base_mana_cost + (level - 1) * scaling_mana_cost`. Jeśli postać nie ma wystarczającej ilości MP w momencie gdy cooldown spada do 0, użycie skilla jest pomijane (postać wykonuje zwykły atak) do czasu odzyskania wymaganej ilości many. Skille pasywne kosztują 0 MP.
+- Na początku walki wszystkie skille aktywne domyślnie są nieaktywne (mają czas odnowienia ustawiony na `base_cooldown - 1`, tzn. gotowe "o jedną turę wcześniej"). Gdy cooldown spadnie do 0 i postać posiada wystarczająco MP, skill aktywuje się automatycznie i pobiera manę.
+- Skille **pasywne** (`type = passive`) NIE są "rzucane", nie mają cooldownu ani kosztu many - działają stale, przez cały czas trwania walki, o ile spełniony jest wymóg broni (patrz pkt. 4). Nadal zajmują jeden z 3 slotów Decku.
 - **Typy efektów (`effect_type`, wartość zapisana w bazie):**
   - **`poison` (Trucizna):** Zadaje % aktualnego HP przeciwnika co turę przez `base_duration` tur.
   - **`fire` (Ogień/Podpalenie):** Zadaje % maksymalnego HP przeciwnika co turę przez `base_duration` tur.

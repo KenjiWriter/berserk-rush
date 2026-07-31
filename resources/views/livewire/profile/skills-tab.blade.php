@@ -139,6 +139,11 @@
                                     <span class="bg-stone-900 border border-sky-900/60 text-sky-300 px-2.5 py-1 rounded-md font-bold">
                                         <i class="fa-regular fa-clock mr-1"></i>CD: {{ $skill->base_cooldown }} Tur
                                     </span>
+                                    @if($skill->getManaCost($level) > 0)
+                                        <span class="bg-stone-900 border border-cyan-900/60 text-cyan-300 px-2.5 py-1 rounded-md font-bold">
+                                            <i class="fa-solid fa-droplet mr-1"></i>Mana: {{ $skill->getManaCost($level) }} MP
+                                        </span>
+                                    @endif
                                     @if($skill->base_duration > 1)
                                         <span class="bg-stone-900 border border-purple-900/60 text-purple-300 px-2.5 py-1 rounded-md font-bold">
                                             <i class="fa-solid fa-hourglass-half mr-1"></i>Czas: {{ $skill->base_duration }} Tur

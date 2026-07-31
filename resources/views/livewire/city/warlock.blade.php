@@ -271,6 +271,12 @@
                                     <i class="fa-regular fa-clock"></i>
                                     <span>CD: {{ $skill->base_cooldown }} Tur</span>
                                 </span>
+                                @if($skill->getManaCost($isUnlocked ? $mySkill->level : 1) > 0)
+                                    <span class="bg-stone-950/80 px-2.5 py-1 rounded-md text-[11px] font-bold text-cyan-300 border border-cyan-900/60 flex items-center gap-1.5 font-sans" title="Koszt many">
+                                        <i class="fa-solid fa-bolt"></i>
+                                        <span>Mana: {{ $skill->getManaCost($isUnlocked ? $mySkill->level : 1) }} MP</span>
+                                    </span>
+                                @endif
                                 @if($skill->base_duration > 1)
                                     <span class="bg-stone-950/80 px-2.5 py-1 rounded-md text-[11px] font-bold text-purple-300 border border-purple-900/60 flex items-center gap-1.5 font-sans">
                                         <i class="fa-solid fa-hourglass-half"></i>

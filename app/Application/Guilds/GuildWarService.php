@@ -345,6 +345,7 @@ class GuildWarService
             $combatants[] = [
                 'side' => 'challenger', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
+                'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
                 'passives' => $this->computeTeamPassives($snap),
             ];
@@ -353,6 +354,7 @@ class GuildWarService
             $combatants[] = [
                 'side' => 'defender', 'idx' => $i, 'snapshot' => $snap,
                 'hp' => $snap['max_hp'], 'maxHp' => max(1, $snap['max_hp']), 'alive' => true,
+                'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
                 'passives' => $this->computeTeamPassives($snap),
             ];
@@ -380,6 +382,10 @@ class GuildWarService
                 if (!$combatants[$ci]['alive']) {
                     continue;
                 }
+
+                // Regenerate 5% max mana per turn (min 5 MP)
+                $manaRegen = max(5, (int) round(($combatants[$ci]['maxMana'] ?? 50) * 0.05));
+                $combatants[$ci]['mana'] = min($combatants[$ci]['maxMana'] ?? 50, ($combatants[$ci]['mana'] ?? 0) + $manaRegen);
 
                 $enemySide = $combatants[$ci]['side'] === 'challenger' ? 'defender' : 'challenger';
                 $targetIdx = $this->selectLowestHpAlive($combatants, $enemySide);
@@ -521,6 +527,7 @@ class GuildWarService
         $weaponType = $snap['weapon_type'] ?? 'barehands';
 
         $skillToUse = null;
+        $skillManaCost = 0;
         foreach ($skills as $skill) {
             // Umiejętności pasywne nie są "rzucane" - działają cały czas poprzez
             // computeTeamPassives(), nie mogą więc zostać wybrane jako akcja tej tury.
@@ -529,8 +536,12 @@ class GuildWarService
             }
             if (($skill['required_weapon_type'] ?? 'all') === 'all' || $skill['required_weapon_type'] === $weaponType) {
                 $cd = $actor['cooldowns'][$skill['id']] ?? 0;
-                if ($cd <= 0) {
+                $effLevel = max(1, $skill['level'] ?? 1);
+                $cost = max(0, (int) round(($skill['base_mana_cost'] ?? 0) + (($effLevel - 1) * ($skill['scaling_mana_cost'] ?? 0))));
+
+                if ($cd <= 0 && ($actor['mana'] ?? 0) >= $cost) {
                     $skillToUse = $skill;
+                    $skillManaCost = $cost;
                     break;
                 }
             }
@@ -540,6 +551,7 @@ class GuildWarService
         $bonus = 0.0;
 
         if ($skillToUse) {
+            $actor['mana'] = max(0, ($actor['mana'] ?? 0) - $skillManaCost);
             $actor['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
             $effLevel = max(1, $skillToUse['level'] ?? 1);
             $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);

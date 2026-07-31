@@ -99,11 +99,19 @@
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-gray-400 text-sm font-bold mb-2">Base Value (Dmg/%/itp)</label>
-                            <input type="number" wire:model="base_value" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                            <input type="number" step="0.001" wire:model="base_value" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
                             <label class="block text-gray-400 text-sm font-bold mb-2">Scaling Value</label>
-                            <input type="number" wire:model="scaling_value" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                            <input type="number" step="0.001" wire:model="scaling_value" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Bazowy Koszt Many (MP)</label>
+                            <input type="number" wire:model="base_mana_cost" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm font-bold mb-2">Przyrost Many / Level</label>
+                            <input type="number" wire:model="scaling_mana_cost" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
                         </div>
                         <div>
                             <label class="block text-gray-400 text-sm font-bold mb-2">Cooldown (tury)</label>
@@ -207,7 +215,7 @@
                                                 <span class="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-emerald-900 text-emerald-400 border border-emerald-700">AoE</span>
                                             @endif
                                         </div>
-                                        <div class="text-xs text-gray-500">Wartość: {{ $skill->base_value }} (CD: {{ $skill->base_cooldown }}, Czas: {{ $skill->base_duration }})</div>
+                                        <div class="text-xs text-gray-500">Wartość: {{ $skill->base_value }} (CD: {{ $skill->base_cooldown }}, Mana: {{ $skill->base_mana_cost }} MP, Czas: {{ $skill->base_duration }})</div>
                                     </td>
                                     <td class="p-3 text-right">
                                         <button wire:click.stop="delete('{{ $skill->id }}')" class="text-red-400 hover:text-red-300" onclick="confirm('Na pewno usunąć?') || event.stopImmediatePropagation()">Usuń</button>

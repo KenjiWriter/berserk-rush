@@ -360,6 +360,7 @@ class Character extends Model
         Cache::forget($this->getCacheKey('total_attributes'));
         Cache::forget($this->getCacheKey('equipment_stats'));
         Cache::forget($this->getCacheKey('max_hp'));
+        Cache::forget($this->getCacheKey('max_mana'));
         Cache::forget($this->getCacheKey('combat_power'));
         $this->unsetRelation('equippedItems');
         $this->unsetRelation('inventoryItems');
@@ -748,6 +749,21 @@ class Character extends Model
         return $compute();
     }
 
+    public function getMaxMana(?string $setType = null): int
+    {
+        $compute = function () use ($setType) {
+            $intelligence = $this->getTotalAttributes($setType)['int'] ?? 0;
+            $eq = $this->getEquipmentStats($setType);
+            return 50 + ($intelligence * 10) + ($this->level * 3) + ($eq['mana_bonus'] ?? 0);
+        };
+
+        if ($setType === null) {
+            return Cache::remember($this->getCacheKey('max_mana'), 3600, $compute);
+        }
+
+        return $compute();
+    }
+
     public function getTotalCombatPower(?string $setType = null): int
     {
         $compute = function () use ($setType) {
@@ -804,6 +820,8 @@ class Character extends Model
                 'base_duration' => $charSkill->skill->base_duration,
                 'base_value' => $charSkill->skill->base_value,
                 'scaling_value' => $charSkill->skill->scaling_value,
+                'base_mana_cost' => $charSkill->skill->base_mana_cost ?? 0,
+                'scaling_mana_cost' => $charSkill->skill->scaling_mana_cost ?? 0,
                 'level' => $charSkill->level,
                 'required_weapon_type' => $charSkill->skill->required_weapon_type,
                 'icon' => $charSkill->skill->icon,
@@ -820,6 +838,7 @@ class Character extends Model
             'attributes' => $this->getTotalAttributes($setType),
             'equipment_stats' => $this->getEquipmentStats($setType),
             'max_hp' => $this->getMaxHp($setType),
+            'max_mana' => $this->getMaxMana($setType),
             'combat_power' => $this->getTotalCombatPower($setType),
             'skills' => $skillsData,
             'weapon_type' => $weaponType,

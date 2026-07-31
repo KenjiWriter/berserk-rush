@@ -1221,12 +1221,42 @@ class CombatSkillSeeder extends Seeder
         ];
 
         foreach ($skills as $skill) {
+            $isPassive = ($skill['type'] ?? 'active') === 'passive';
+            $reqLevel = $skill['required_level'] ?? 1;
+
+            if ($isPassive) {
+                $baseMana = 0;
+                $scalingMana = 0;
+            } else {
+                if ($reqLevel <= 15) {
+                    $baseMana = 12;
+                    $scalingMana = 3;
+                } elseif ($reqLevel <= 30) {
+                    $baseMana = 22;
+                    $scalingMana = 5;
+                } elseif ($reqLevel <= 50) {
+                    $baseMana = 38;
+                    $scalingMana = 8;
+                } elseif ($reqLevel <= 70) {
+                    $baseMana = 55;
+                    $scalingMana = 12;
+                } elseif ($reqLevel <= 90) {
+                    $baseMana = 80;
+                    $scalingMana = 15;
+                } else {
+                    $baseMana = 110;
+                    $scalingMana = 20;
+                }
+            }
+
             DB::table('combat_skills')->insert(array_merge($skill, [
+                'base_mana_cost' => $skill['base_mana_cost'] ?? $baseMana,
+                'scaling_mana_cost' => $skill['scaling_mana_cost'] ?? $scalingMana,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
         }
 
-        $this->command->info('Seeded ' . count($skills) . ' combat skills across levels 10 to 99.');
+        $this->command->info('Seeded ' . count($skills) . ' combat skills across levels 10 to 99 with mana costs.');
     }
 }

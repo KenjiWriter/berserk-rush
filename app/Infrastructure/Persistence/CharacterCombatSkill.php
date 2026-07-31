@@ -33,4 +33,9 @@ class CharacterCombatSkill extends Model
     {
         return $this->belongsTo(CombatSkill::class, 'combat_skill_id');
     }
+
+    public function getManaCost(): int
+    {
+        return $this->skill ? $this->skill->getManaCost($this->level) : 0;
+    }
 }

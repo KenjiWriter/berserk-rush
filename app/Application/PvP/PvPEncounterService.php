@@ -250,14 +250,32 @@ class PvPEncounterService
         $maxTurns = 50;
 
         $state = [
-            'attacker' => ['cooldowns' => [], 'effects' => [], 'cc_turns' => 0, 'passives' => $this->computePassives($attacker)],
-            'defender' => ['cooldowns' => [], 'effects' => [], 'cc_turns' => 0, 'passives' => $this->computePassives($defender)],
+            'attacker' => [
+                'cooldowns' => [],
+                'effects' => [],
+                'cc_turns' => 0,
+                'passives' => $this->computePassives($attacker),
+                'mana' => $attacker['max_mana'] ?? 50,
+                'max_mana' => $attacker['max_mana'] ?? 50,
+            ],
+            'defender' => [
+                'cooldowns' => [],
+                'effects' => [],
+                'cc_turns' => 0,
+                'passives' => $this->computePassives($defender),
+                'mana' => $defender['max_mana'] ?? 50,
+                'max_mana' => $defender['max_mana'] ?? 50,
+            ],
         ];
 
         while ($attackerHp > 0 && $defenderHp > 0 && $turnCount < $maxTurns) {
             $isAttackerTurn = $attackerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
+
+            // Regenerate 5% max mana per turn (min 5 MP)
+            $manaRegen = max(5, (int) round(($state[$actorKey]['max_mana'] ?? 50) * 0.05));
+            $state[$actorKey]['mana'] = min($state[$actorKey]['max_mana'] ?? 50, ($state[$actorKey]['mana'] ?? 0) + $manaRegen);
 
             // Zamrożenie/ogłuszenie: aktor traci turę ataku, ale cooldowny nadal tykają
             if (($state[$actorKey]['cc_turns'] ?? 0) > 0) {
@@ -370,6 +388,7 @@ class PvPEncounterService
         $weaponType = $actingSnapshot['weapon_type'] ?? 'barehands';
         
         $skillToUse = null;
+        $skillManaCost = 0;
         foreach ($skills as $skill) {
             // Umiejętności pasywne (Aura Miecza, Furia Berserkera) nie są "rzucane" -
             // działają cały czas poprzez computePassives(), nie mogą więc zostać
@@ -380,8 +399,12 @@ class PvPEncounterService
 
             if ($skill['required_weapon_type'] === 'all' || $skill['required_weapon_type'] === $weaponType) {
                 $cd = $actorState['cooldowns'][$skill['id']] ?? 0;
-                if ($cd <= 0) {
+                $effLevel = max(1, $skill['level'] ?? 1);
+                $cost = max(0, (int) round(($skill['base_mana_cost'] ?? 0) + (($effLevel - 1) * ($skill['scaling_mana_cost'] ?? 0))));
+
+                if ($cd <= 0 && ($actorState['mana'] ?? 0) >= $cost) {
                     $skillToUse = $skill;
+                    $skillManaCost = $cost;
                     break;
                 }
             }
@@ -421,6 +444,7 @@ class PvPEncounterService
         $ccDuration = 0;
 
         if ($skillToUse) {
+            $actorState['mana'] = max(0, ($actorState['mana'] ?? 0) - $skillManaCost);
             $actorState['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
             $effLevel = max(1, $skillToUse['level'] ?? 1);
             $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);

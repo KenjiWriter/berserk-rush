@@ -697,6 +697,27 @@ class MapStub extends Component
         return ($this->getCurrentPlayerHp() / max(1, $this->player['maxHp'])) * 100;
     }
 
+    public function getCurrentPlayerMana(): int
+    {
+        $char = $this->getCharacterProperty();
+        $maxMana = $char ? $char->getMaxMana() : 50;
+
+        if (empty($this->visibleTurns)) {
+            return $maxMana;
+        }
+
+        $lastTurn = end($this->visibleTurns);
+        return $lastTurn['playerMana'] ?? $lastTurn['state']['playerMana'] ?? $maxMana;
+    }
+
+    public function getPlayerManaPercent(): float
+    {
+        $char = $this->getCharacterProperty();
+        $maxMana = $char ? $char->getMaxMana() : 50;
+
+        return min(100, max(0, ($this->getCurrentPlayerMana() / max(1, $maxMana)) * 100));
+    }
+
     public function getEnemyHpPercent(): float
     {
         if (empty($this->enemy)) return 0;
