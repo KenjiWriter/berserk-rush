@@ -63,12 +63,14 @@
 
             {{-- Tab Switcher --}}
             <div class="inline-flex bg-slate-900/90 rounded-xl p-1.5 border border-slate-800 mt-6 shadow-inner">
-                <button wire:click="setTab('maps')" 
-                    class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'maps' ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white shadow-lg border border-emerald-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
-                    <i class="fa-solid fa-tree text-emerald-400"></i>
-                    <span>Mapy</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'maps' ? 'bg-emerald-950 text-emerald-200' : 'bg-slate-800 text-slate-400' }}">{{ $maps->count() }}</span>
-                </button>
+                @if(!$character->hasActiveMirror())
+                    <button wire:click="setTab('maps')" 
+                        class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'maps' ? 'bg-gradient-to-r from-emerald-700 to-emerald-600 text-white shadow-lg border border-emerald-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
+                        <i class="fa-solid fa-tree text-emerald-400"></i>
+                        <span>Mapy</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'maps' ? 'bg-emerald-950 text-emerald-200' : 'bg-slate-800 text-slate-400' }}">{{ $maps->count() }}</span>
+                    </button>
+                @endif
                 <button wire:click="setTab('dungeons')" 
                     class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'dungeons' ? 'bg-gradient-to-r from-amber-700 to-amber-600 text-white shadow-lg border border-amber-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-dungeon text-amber-400"></i>
@@ -79,9 +81,18 @@
                     class="px-6 py-2.5 rounded-lg font-bold text-sm sm:text-base transition-all duration-300 medieval-font flex items-center gap-2 {{ $tab === 'worldboss' ? 'bg-gradient-to-r from-purple-700 to-purple-600 text-white shadow-lg border border-purple-500/50' : 'text-slate-400 hover:text-amber-200 hover:bg-slate-800/60' }}">
                     <i class="fa-solid fa-crown text-purple-400"></i>
                     <span>Worldboss</span>
-                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'worldboss' ? 'bg-purple-950 text-purple-200' : 'bg-slate-800 text-slate-400' }}">3</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full {{ $tab === 'purple-950' ? 'bg-purple-950 text-purple-200' : 'bg-slate-800 text-slate-400' }}">3</span>
                 </button>
             </div>
+
+            @if($character->hasActiveMirror())
+                <div class="mt-4 p-3 bg-purple-950/80 border border-purple-500/50 rounded-xl backdrop-blur-md max-w-xl mx-auto shadow-xl">
+                    <p class="text-purple-200 font-semibold text-xs sm:text-sm text-center flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
+                        <span>Lustro jest aktywne! Zwykłe Mapy są ukryte — możesz walczyć w <strong>Lochach</strong> oraz z <strong>World Bossami</strong>.</span>
+                    </p>
+                </div>
+            @endif
         </div>
 
         {{-- Map access error alert --}}

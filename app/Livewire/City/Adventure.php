@@ -38,10 +38,8 @@ class Adventure extends Component
 
         $this->character = $character;
 
-        if ($this->character->hasActiveMirror()) {
-            session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
-            $this->redirect(route('city.hub', $this->character), navigate: true);
-            return;
+        if ($this->character->hasActiveMirror() && $this->tab === 'maps') {
+            $this->tab = 'dungeons';
         }
 
         $this->loadMaps();
@@ -60,6 +58,11 @@ class Adventure extends Component
 
     public function enterMap(string $mapId): void
     {
+        if ($this->character->hasActiveMirror()) {
+            $this->addError('map_access', 'Podczas aktywnego Lustra nie możesz walczyć na zwykłych mapach (dostępne są tylko Lochy i World Bossy).');
+            return;
+        }
+
         $map = Map::findOrFail($mapId);
 
         if (!$map->isAccessibleBy($this->character)) {
@@ -91,6 +94,10 @@ class Adventure extends Component
 
     public function setTab(string $tab): void
     {
+        if ($this->character->hasActiveMirror() && $tab === 'maps') {
+            return;
+        }
+
         if (in_array($tab, ['maps', 'dungeons', 'worldboss'])) {
             $this->tab = $tab;
         }
