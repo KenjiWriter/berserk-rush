@@ -122,7 +122,7 @@ class MapStub extends Component
 
         $this->character = $character;
 
-        if ($this->character->hasActiveMirror()) {
+        if ($this->character->hasActiveMirror() && !request()->has('world_boss')) {
             session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
             $this->redirect(route('city.adventure', ['character' => $this->character, 'tab' => 'dungeons']), navigate: true);
             return;
@@ -212,6 +212,14 @@ class MapStub extends Component
 
     public function startBattle(?int $monsterId = null): void
     {
+        if ($this->character->hasActiveMirror() && !$this->isWorldBoss) {
+            $this->autoChain = false;
+            session(['combat_auto_chain' => false]);
+            session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
+            $this->redirect(route('city.adventure', ['character' => $this->character, 'tab' => 'dungeons']), navigate: true);
+            return;
+        }
+
         if (!$this->isActiveTab()) {
             $this->isInactiveTab = true;
             $this->autoChain = false;

@@ -24,6 +24,10 @@ class BlockAdventureIfMirrorActive
             }
 
             if ($character && $character->hasActiveMirror()) {
+                if ($request->has('world_boss')) {
+                    return $next($request);
+                }
+
                 session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
                 return redirect()->route('city.adventure', ['character' => $character, 'tab' => 'dungeons']);
             }
