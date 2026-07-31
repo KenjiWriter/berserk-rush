@@ -968,6 +968,10 @@
                                                                     <i class="fa-solid fa-flask"></i> Użyj przedmiotu
                                                                 </button>
                                                             @endif
+                                                        @elseif(($item->template->type ?? '') === 'egg')
+                                                            <button @click.stop="$wire.placeEgg('{{ $item->id }}'); $wire.setTab('pets'); $nextTick(() => forceClose())" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
+                                                                <i class="fa-solid fa-egg text-amber-200"></i> Umieść w inkubatorze
+                                                            </button>
                                                         @endif
                                                     @endif
 
@@ -1106,16 +1110,19 @@
                                                                 <button @click.stop="$wire.consumeItem('{{ $item->id }}', 2); $nextTick(() => closeTooltip())" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
                                                                     <i class="fa-solid fa-boxes-packing"></i> Otwórz 2x Na Raz
                                                                 </button>
-                                                            @endif
-                                                            @if(($item->stack_size ?? 1) >= 3)
+                                    @if(($item->stack_size ?? 1) >= 3)
                                                                 <button @click.stop="$wire.consumeItem('{{ $item->id }}', 3); $nextTick(() => closeTooltip())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
                                                                     <i class="fa-solid fa-fire text-amber-950"></i> Otwórz 3x Na Raz
                                                                 </button>
                                                             @endif
-                                                        </div>
-                                                    @else
-                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer">
-                                                            <i class="fa-solid fa-flask"></i> Użyj przedmiotu
+                                                        @else
+                                                            <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer">
+                                                                <i class="fa-solid fa-flask"></i> Użyj przedmiotu
+                                                            </button>
+                                                        @endif
+                                                    @elseif(($item->template->type ?? '') === 'egg')
+                                                        <button @click.stop="$wire.placeEgg('{{ $item->id }}'); $wire.setTab('pets'); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer border border-amber-400">
+                                                            <i class="fa-solid fa-egg text-amber-200"></i> Umieść w inkubatorze
                                                         </button>
                                                     @endif
                                                 @endif

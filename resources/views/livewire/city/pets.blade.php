@@ -105,77 +105,18 @@
                     </div>
                 @else
                     {{-- Incubator is Empty --}}
-                    <div class="text-center py-4">
-                        <div class="w-20 h-20 mx-auto rounded-full border-2 border-dashed border-amber-500/30 bg-stone-950/60 flex items-center justify-center mb-3">
+                    <div class="text-center py-8 px-2 flex flex-col items-center justify-center">
+                        <div class="w-20 h-20 mx-auto rounded-full border-2 border-dashed border-amber-500/30 bg-stone-950/60 flex items-center justify-center mb-4 shadow-inner">
                             <i class="fa-solid fa-egg text-3xl text-amber-500/40"></i>
                         </div>
-                        <h4 class="text-sm font-bold text-amber-200/90 mb-1" style="font-family: 'Cinzel', serif;">Komnata Inkubacji jest pusta</h4>
-                        <p class="text-xs text-stone-400 mb-4">Wybierz jajko z plecaka, aby rozpocząć proces inkubacji.</p>
-
-                        @if($eggs->count() > 0)
-                            <div class="text-left border-t border-amber-500/20 pt-3">
-                                <p class="text-xs font-bold text-amber-300/80 mb-2 uppercase tracking-wider">Jaja w plecaku:</p>
-                                <div class="space-y-2 max-h-60 overflow-y-auto pr-1 custom-scrollbar">
-                                    @foreach($eggs as $egg)
-                                        @php
-                                            $eggRarity = $egg->getEggRarity();
-                                            $badgeColor = match($eggRarity) {
-                                                'legendary' => 'text-yellow-400 border-yellow-500/40 bg-yellow-950/30',
-                                                'epic' => 'text-purple-400 border-purple-500/40 bg-purple-950/30',
-                                                'rare' => 'text-cyan-400 border-cyan-500/40 bg-cyan-950/30',
-                                                'uncommon' => 'text-emerald-400 border-emerald-500/40 bg-emerald-950/30',
-                                                default => 'text-stone-300 border-stone-700 bg-stone-900/60',
-                                            };
-                                            $rarityLabel = match($eggRarity) {
-                                                'common' => 'Zwykłe',
-                                                'uncommon' => 'Nietypowe',
-                                                'rare' => 'Rzadkie',
-                                                'epic' => 'Epickie',
-                                                'legendary' => 'Legendarne',
-                                                default => ucfirst($eggRarity),
-                                            };
-                                        @endphp
-                                        <div class="flex items-center justify-between bg-stone-950/70 rounded-xl p-2.5 border border-stone-800 hover:border-amber-500/40 transition">
-                                            <div class="flex items-center space-x-3">
-                                                <div class="w-9 h-9 rounded-lg bg-stone-900 border border-stone-700 flex items-center justify-center p-1 relative">
-                                                    @if($egg->template->icon)
-                                                        <img src="{{ route('assets.items', ['filename' => $egg->template->icon]) }}" class="w-full h-full object-contain drop-shadow" alt="{{ $egg->template->name }}">
-                                                    @else
-                                                        <i class="fa-solid fa-egg text-amber-400"></i>
-                                                    @endif
-                                                </div>
-                                                <div class="text-left">
-                                                    <p class="text-xs font-bold text-stone-200 leading-tight">{{ $egg->template->name }}</p>
-                                                    <div class="flex items-center gap-1.5 mt-0.5">
-                                                        <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.2 rounded border {{ $badgeColor }}">
-                                                            {{ $rarityLabel }}
-                                                        </span>
-                                                        @if($egg->stack_size > 1)
-                                                            <span class="text-[10px] text-stone-400 font-semibold">x{{ $egg->stack_size }}</span>
-                                                        @endif
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <button wire:click="placeEgg('{{ $egg->id }}')"
-                                                class="bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white text-xs font-bold py-1.5 px-3 rounded-lg border border-amber-500/50 transition-all shadow-md flex items-center gap-1"
-                                                wire:loading.attr="disabled" wire:target="placeEgg('{{ $egg->id }}')">
-                                                <span wire:loading.remove wire:target="placeEgg('{{ $egg->id }}')" class="flex items-center gap-1">
-                                                    <i class="fa-solid fa-arrow-up-from-bracket text-[10px]"></i> Umieść
-                                                </span>
-                                                <span wire:loading wire:target="placeEgg('{{ $egg->id }}')">
-                                                    <i class="fa-solid fa-spinner animate-spin"></i>
-                                                </span>
-                                            </button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @else
-                            <div class="p-3 bg-stone-950/60 rounded-xl border border-stone-800 text-stone-500 text-xs mt-2">
-                                <i class="fa-solid fa-circle-info mr-1 text-amber-500/60"></i> Brak jajek w plecaku. Zdobywaj je pokonując bossów i przemierzając lochy!
-                            </div>
-                        @endif
+                        <h4 class="text-sm font-bold text-amber-200 mb-1.5" style="font-family: 'Cinzel', serif;">Komnata Inkubacji jest pusta</h4>
+                        <p class="text-xs text-stone-400 mb-4 max-w-xs leading-relaxed">
+                            Przejdź do zakładki <span class="text-amber-300 font-bold">Ekwipunek</span>, wybierz jajo z plecaka i kliknij <span class="text-amber-300 font-bold">"Umieść w inkubatorze"</span> lub przeciągnij jajo na slot peta.
+                        </p>
+                        <div class="p-3 bg-stone-950/70 rounded-xl border border-stone-800 text-stone-400 text-[11px] leading-relaxed text-left flex items-start gap-2">
+                            <i class="fa-solid fa-lightbulb text-amber-400 text-sm mt-0.5 shrink-0"></i>
+                            <span>Jaja chowańców możesz zdobyć podczas wypraw do lochów lub z pokonanych bossów!</span>
+                        </div>
                     </div>
                 @endif
             </div>
