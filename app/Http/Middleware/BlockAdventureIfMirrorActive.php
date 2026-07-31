@@ -24,8 +24,8 @@ class BlockAdventureIfMirrorActive
             }
 
             if ($character && $character->hasActiveMirror()) {
-                session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
-                return redirect()->route('city.hub', $character);
+                session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
+                return redirect()->route('city.adventure', ['character' => $character, 'tab' => 'dungeons']);
             }
         }
 

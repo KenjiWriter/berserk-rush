@@ -123,8 +123,8 @@ class MapStub extends Component
         $this->character = $character;
 
         if ($this->character->hasActiveMirror()) {
-            session()->flash('error', 'Lustro jest aktywne! Nie możesz przeglądać ani rozpoczynać ręcznych przygód podczas trwania lustra.');
-            $this->redirect(route('city.hub', $this->character), navigate: true);
+            session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
+            $this->redirect(route('city.adventure', ['character' => $this->character, 'tab' => 'dungeons']), navigate: true);
             return;
         }
 
