@@ -231,6 +231,17 @@
                                                             Zaproszenie od gildii: <span class="underline underline-offset-2">{{ $guild ? $guild->name : 'Nieznana Gildia' }}</span>
                                                         </div>
                                                     </div>
+                                                @elseif(isset($attachment['type']) && $attachment['type'] === 'guild_war_challenge')
+                                                    @php
+                                                        $war = \App\Infrastructure\Persistence\GuildWar::find($attachment['guild_war_id'] ?? null);
+                                                        $challenger = $war ? $war->challengerGuild : null;
+                                                    @endphp
+                                                    <div class="flex items-center gap-2.5 bg-stone-950 border-2 border-amber-600/80 rounded-xl p-2 pr-3.5 shadow-md">
+                                                        <i class="fa-solid fa-skull-crossbones text-amber-400 text-base"></i>
+                                                        <div class="text-xs font-bold text-amber-300 font-sans">
+                                                            Wyzwanie Wojenne od gildii: <span class="underline underline-offset-2 text-yellow-200">{{ $challenger ? $challenger->name : 'Nieznana Gildia' }}</span>
+                                                        </div>
+                                                    </div>
                                                 @endif
                                             @endforeach
                                         </div>
@@ -243,10 +254,15 @@
                                 @if(!$mail->claimed)
                                     @php
                                         $isGuildInvite = false;
+                                        $isGuildWarChallenge = false;
                                         if (!empty($mail->attachments)) {
                                             foreach($mail->attachments as $att) {
                                                 if (($att['type'] ?? '') === 'guild_invite') {
                                                     $isGuildInvite = true;
+                                                    break;
+                                                }
+                                                if (($att['type'] ?? '') === 'guild_war_challenge') {
+                                                    $isGuildWarChallenge = true;
                                                     break;
                                                 }
                                             }
@@ -272,6 +288,28 @@
                                                 <i class="fa-solid fa-xmark"></i> Odrzuć
                                             </span>
                                             <span wire:loading wire:target="declineGuildInvite('{{ $mail->id }}')">
+                                                <i class="fa-solid fa-spinner animate-spin"></i>
+                                            </span>
+                                        </button>
+                                    @elseif($isGuildWarChallenge)
+                                        <button wire:click="acceptGuildWar('{{ $mail->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="acceptGuildWar('{{ $mail->id }}')"
+                                            class="w-full bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900 hover:from-amber-500 hover:to-amber-800 text-yellow-100 font-extrabold py-2 px-3 rounded-xl border border-amber-400/80 shadow-md flex items-center justify-center gap-1.5 transition-all text-xs uppercase cursor-pointer">
+                                            <span wire:loading.remove wire:target="acceptGuildWar('{{ $mail->id }}')">
+                                                <i class="fa-solid fa-check"></i> Zaakceptuj
+                                            </span>
+                                            <span wire:loading wire:target="acceptGuildWar('{{ $mail->id }}')">
+                                                <i class="fa-solid fa-spinner animate-spin"></i>
+                                            </span>
+                                        </button>
+
+                                        <button wire:click="declineGuildWar('{{ $mail->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="declineGuildWar('{{ $mail->id }}')"
+                                            class="w-full bg-gradient-to-b from-red-900 via-stone-900 to-stone-950 hover:from-red-800 hover:to-stone-900 text-red-300 font-bold py-1.5 px-3 rounded-xl border border-red-800/80 flex items-center justify-center gap-1.5 transition-all text-xs cursor-pointer">
+                                            <span wire:loading.remove wire:target="declineGuildWar('{{ $mail->id }}')">
+                                                <i class="fa-solid fa-xmark"></i> Odrzuć
+                                            </span>
+                                            <span wire:loading wire:target="declineGuildWar('{{ $mail->id }}')">
                                                 <i class="fa-solid fa-spinner animate-spin"></i>
                                             </span>
                                         </button>

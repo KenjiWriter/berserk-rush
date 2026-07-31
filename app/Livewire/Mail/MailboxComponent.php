@@ -70,7 +70,7 @@ class MailboxComponent extends Component
         $hasValuableAttachments = false;
         if (!empty($mail->attachments)) {
             foreach($mail->attachments as $att) {
-                if (($att['type'] ?? '') !== 'guild_invite') {
+                if (!in_array(($att['type'] ?? ''), ['guild_invite', 'guild_war_challenge'])) {
                     $hasValuableAttachments = true;
                     break;
                 }
@@ -116,6 +116,109 @@ class MailboxComponent extends Component
         $mail->delete();
     }
 
+    public function acceptGuildWar(string $mailId, \App\Application\Guilds\GuildWarService $warService)
+    {
+        $mail = Mail::find($mailId);
+        if (!$mail || $mail->to_character_id !== $this->characterId || $mail->claimed) {
+            return;
+        }
+
+        $warId = null;
+        if (!empty($mail->attachments)) {
+            foreach ($mail->attachments as $att) {
+                if (($att['type'] ?? '') === 'guild_war_challenge') {
+                    $warId = $att['guild_war_id'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if (!$warId) {
+            $this->dispatch('notify', message: 'Nie odnaleziono ID wyzwania wojennego.', type: 'error');
+            return;
+        }
+
+        $war = \App\Infrastructure\Persistence\GuildWar::find($warId);
+        if (!$war) {
+            $mail->update(['claimed' => true]);
+            $this->dispatch('notify', message: 'Wyzwanie wojenne wygasło lub zostało już usunięte.', type: 'error');
+            return;
+        }
+
+        $character = $this->character;
+        if (!$character->guild_id) {
+            $this->dispatch('notify', message: 'Nie należysz do żadnej gildii.', type: 'error');
+            return;
+        }
+
+        $myGuild = \App\Models\Guild::find($character->guild_id);
+        $myMember = \App\Models\GuildMember::where('character_id', $character->id)->first();
+
+        if (!$myMember || $myMember->role !== 'leader') {
+            $this->dispatch('notify', message: 'Tylko lider gildii może odpowiedzieć na wyzwanie wojenne.', type: 'error');
+            return;
+        }
+
+        if (!$myGuild->hasWarTeam()) {
+            $this->dispatch('notify', message: 'Ustaw drużynę wojenną (5 członków) w panelu gildii przed akceptacją.', type: 'error');
+            return;
+        }
+
+        $result = $warService->acceptWar($war, $myGuild);
+        if (!$result->isOk()) {
+            $this->dispatch('notify', message: $result->getErrorMessage(), type: 'error');
+            return;
+        }
+
+        \App\Jobs\ProcessGuildWarJob::dispatchSync($war->id);
+
+        $mail->update(['claimed' => true]);
+
+        $war->refresh();
+        if ($war->status === 'finished') {
+            $won = $war->winner_guild_id === $myGuild->id;
+            $this->dispatch('notify', message: $won
+                ? 'Wyzwanie zaakceptowane - Twoja gildia zwyciężyła w starciu!'
+                : 'Wyzwanie zaakceptowane - Twoja gildia przegrała starcie.', type: $won ? 'success' : 'error');
+        } else {
+            $this->dispatch('notify', message: 'Wyzwanie zostało zaakceptowane!', type: 'success');
+        }
+
+        $this->dispatch('character-updated');
+    }
+
+    public function declineGuildWar(string $mailId, \App\Application\Guilds\GuildWarService $warService)
+    {
+        $mail = Mail::find($mailId);
+        if (!$mail || $mail->to_character_id !== $this->characterId || $mail->claimed) {
+            return;
+        }
+
+        $warId = null;
+        if (!empty($mail->attachments)) {
+            foreach ($mail->attachments as $att) {
+                if (($att['type'] ?? '') === 'guild_war_challenge') {
+                    $warId = $att['guild_war_id'] ?? null;
+                    break;
+                }
+            }
+        }
+
+        if ($warId) {
+            $war = \App\Infrastructure\Persistence\GuildWar::find($warId);
+            if ($war) {
+                $character = $this->character;
+                $myGuild = \App\Models\Guild::find($character->guild_id ?? null);
+                if ($myGuild) {
+                    $warService->declineWar($war, $myGuild);
+                }
+            }
+        }
+
+        $mail->update(['claimed' => true]);
+        $this->dispatch('notify', message: 'Wyzwanie wojenne zostało odrzucone.', type: 'info');
+    }
+
     public function claimAll(ClaimMailAction $action)
     {
         $character = $this->character;
@@ -130,18 +233,18 @@ class MailboxComponent extends Component
 
         $claimedCount = 0;
         foreach ($unclaimedMails as $mail) {
-            // Check if guild invite - skip auto claim for invites
-            $isGuildInvite = false;
+            // Check if special interactive action mail (guild invite or war challenge) - skip auto claim
+            $isSpecialMail = false;
             if (!empty($mail->attachments)) {
                 foreach ($mail->attachments as $att) {
-                    if (($att['type'] ?? '') === 'guild_invite') {
-                        $isGuildInvite = true;
+                    if (in_array(($att['type'] ?? ''), ['guild_invite', 'guild_war_challenge'])) {
+                        $isSpecialMail = true;
                         break;
                     }
                 }
             }
 
-            if ($isGuildInvite) {
+            if ($isSpecialMail) {
                 continue;
             }
 

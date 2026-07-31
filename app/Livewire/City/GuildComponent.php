@@ -171,6 +171,8 @@ class GuildComponent extends Component
         // Rozstrzygnięcie starcia następuje od razu - brak workera kolejki w tym środowisku.
         ProcessGuildWarJob::dispatchSync($war->id);
 
+        $this->markWarChallengeMailAsClaimed($war->id);
+
         $war->refresh();
         if ($war->status === 'finished') {
             $won = $war->winner_guild_id === $myGuild->id;
@@ -206,7 +208,27 @@ class GuildComponent extends Component
             return;
         }
 
+        $this->markWarChallengeMailAsClaimed($war->id);
+
         $this->dispatch('notify', type: 'info', message: 'Wyzwanie wojenne zostało odrzucone.');
+    }
+
+    private function markWarChallengeMailAsClaimed(string $warId): void
+    {
+        $mails = \App\Infrastructure\Persistence\Mail::where('to_character_id', $this->character->id)
+            ->where('claimed', false)
+            ->get();
+
+        foreach ($mails as $mail) {
+            if (!empty($mail->attachments)) {
+                foreach ($mail->attachments as $att) {
+                    if (($att['type'] ?? '') === 'guild_war_challenge' && ($att['guild_war_id'] ?? null) === $warId) {
+                        $mail->update(['claimed' => true]);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     public function toggleAutoDonateExp(): void
