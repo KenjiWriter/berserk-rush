@@ -962,7 +962,13 @@
                                                     $rates = $mapRates[$m->id] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
                                                 @endphp
                                                 <option value="{{ $m->id }}" @if(!$isAccessible) disabled @endif class="bg-stone-900 text-amber-100 py-1">
-                                                    {{ $m->name }} (Poz. {{ $m->level_range }}) — ⚡ {{ number_format($rates['exp_per_minute']) }}/min | 💰 {{ number_format($rates['gold_per_minute']) }}/min @if(!$isAccessible) [Wymagany wyższy poziom] @endif
+                                                    {{ $m->name }} (Poz. {{ $m->level_range }})
+                                                    @if($rates['has_record'])
+                                                        — ⚡ {{ number_format($rates['exp_per_minute']) }}/min | 💰 {{ number_format($rates['gold_per_minute']) }}/min
+                                                    @else
+                                                        — ⚠️ 0/min (Brak walki)
+                                                    @endif
+                                                    @if(!$isAccessible) [Wymagany wyższy poziom] @endif
                                                 </option>
                                             @endforeach
                                         </select>
@@ -983,6 +989,16 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    @if(!$activeRates['has_record'])
+                                        <div class="mt-2.5 p-3 rounded-xl bg-amber-950/70 border border-amber-500/50 text-amber-200 text-xs flex items-center gap-2.5">
+                                            <i class="fa-solid fa-triangle-exclamation text-amber-400 text-lg shrink-0"></i>
+                                            <div>
+                                                <strong class="font-bold block text-amber-300">Brak zarejestrowanych wyników walki!</strong>
+                                                <span>Nie stoczyłeś jeszcze walki na mapie "<strong>{{ $activeMapObj->name ?? 'Wybranej' }}</strong>". Wyrusz na tę mapę w przygodzie i stocz przynajmniej 1 walkę, aby zapisać swoją prędkość zdobywania EXP i Złota.</span>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
                                 {{-- Wybór czasu trwania (Suwak + Przyciski) --}}
@@ -1042,7 +1058,7 @@
 
                                 @php
                                     $activeMapObj = $mirrorMaps->firstWhere('id', (int)$selectedMirrorMapId) ?? $mirrorMaps->first();
-                                    $selectedRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0];
+                                    $selectedRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
                                     $totalMins = $selectedMirrorDurationHours * 60;
                                     $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.60);
                                     $estGold = (int) floor($totalMins * $selectedRates['gold_per_minute'] * 0.60);
@@ -1058,9 +1074,11 @@
                                     </div>
 
                                     <button wire:click="startMirror"
+                                            @if(!$selectedRates['has_record']) disabled title="Musisz najpierw stoczyć min. 1 walkę na tej mapie!" @endif
                                             wire:loading.attr="disabled"
                                             wire:target="startMirror"
-                                            class="w-full sm:w-auto px-6 py-2.5 bg-purple-800 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-wider rounded-xl border border-purple-500 shadow-md transition-all duration-200 cursor-pointer flex items-center justify-center gap-2">
+                                            class="w-full sm:w-auto px-6 py-2.5 rounded-xl border text-white font-black text-xs uppercase tracking-wider transition-all duration-200 flex items-center justify-center gap-2
+                                                   {{ !$selectedRates['has_record'] ? 'bg-stone-800 border-stone-700 text-stone-500 cursor-not-allowed opacity-60' : 'bg-purple-800 hover:bg-purple-700 border-purple-500 shadow-md cursor-pointer' }}">
                                         <span wire:loading.remove wire:target="startMirror" class="flex items-center gap-2">
                                             <i class="fa-solid fa-play"></i> URUCHOM LUSTRO
                                         </span>
