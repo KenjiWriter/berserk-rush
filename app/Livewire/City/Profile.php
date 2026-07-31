@@ -36,7 +36,8 @@ class Profile extends Component
     public function refreshProfile()
     {
         $this->character->refresh();
-        $this->character->load('equippedSkills.skill');
+        $this->character->unsetRelations();
+        $this->character->load(['equippedSkills.skill', 'inventoryItems.template', 'materialStashItems.template', 'equippedItems.template']);
     }
 
     // Wysyłane np. przez panel admina na czacie, gdy ktoś przyzna punkty postaci z zewnątrz.

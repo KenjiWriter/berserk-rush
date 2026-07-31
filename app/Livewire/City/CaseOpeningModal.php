@@ -61,6 +61,8 @@ class CaseOpeningModal extends Component
 
         if ($result->isError()) {
             $this->errorMessage = $result->getErrorMessage();
+            $this->isOpen = true;
+            $this->dispatch('inventory-updated');
             return;
         }
 

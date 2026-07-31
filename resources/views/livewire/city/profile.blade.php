@@ -949,34 +949,34 @@
                                                         @elseif($item->template->type === 'consumable')
                                                             @if(($item->template->sub_type ?? '') === 'chest')
                                                                 <div class="flex flex-col gap-1.5 w-full">
-                                                                    <button wire:click.stop="consumeItem('{{ $item->id }}', 1)" @click.stop="forceClose()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs">
+                                                                    <button @click.stop="$wire.consumeItem('{{ $item->id }}', 1); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs">
                                                                         <i class="fa-solid fa-box-open"></i> Otwórz 1x
                                                                     </button>
                                                                     @if(($item->stack_size ?? 1) >= 2)
-                                                                        <button wire:click.stop="consumeItem('{{ $item->id }}', 2)" @click.stop="forceClose()" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
+                                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}', 2); $nextTick(() => forceClose())" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
                                                                             <i class="fa-solid fa-boxes-packing"></i> Otwórz 2x Na Raz
                                                                         </button>
                                                                     @endif
                                                                     @if(($item->stack_size ?? 1) >= 3)
-                                                                        <button wire:click.stop="consumeItem('{{ $item->id }}', 3)" @click.stop="forceClose()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
+                                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}', 3); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
                                                                             <i class="fa-solid fa-fire text-amber-950"></i> Otwórz 3x Na Raz
                                                                         </button>
                                                                     @endif
                                                                 </div>
                                                             @else
-                                                                <button wire:click.stop="consumeItem('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer">
+                                                                <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer">
                                                                     <i class="fa-solid fa-flask"></i> Użyj przedmiotu
                                                                 </button>
                                                             @endif
                                                         @endif
                                                     @endif
 
-                                                    <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="forceClose()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5">
+                                                    <button @click.stop="$wire.moveToStash('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5 cursor-pointer">
                                                         <i class="fa-solid fa-vault"></i> Przenieś do magazynu
                                                     </button>
                                                     
                                                     @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
-                                                        <button wire:click.stop="openSellModal('{{ $item->id }}'); forceClose();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors">
+                                                        <button @click.stop="$wire.openSellModal('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors cursor-pointer">
                                                             Wystaw na targowisko
                                                         </button>
                                                     @endif

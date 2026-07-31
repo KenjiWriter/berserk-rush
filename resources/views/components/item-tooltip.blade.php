@@ -150,7 +150,7 @@
         'armor' => 'Zbroja',
         'accessory' => 'Biżuteria',
         'material' => 'Materiał',
-        'consumable' => 'Eliksir',
+        'consumable' => (($template->sub_type ?? '') === 'chest' ? 'Skrzynia' : 'Eliksir'),
         'egg' => 'Jajko',
     ];
     $slotKey = $template->slot ?? null;

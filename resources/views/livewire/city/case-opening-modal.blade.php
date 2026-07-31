@@ -7,8 +7,8 @@
 
     handleSpin(data) {
         let payload = data;
-        if (data && data.payload) payload = data.payload;
         if (Array.isArray(payload)) payload = payload[0];
+        if (payload && payload.payload) payload = payload.payload;
         if (!payload) return;
 
         this.translates = [0, 0, 0];
@@ -22,7 +22,7 @@
         let spins = payload.spins || [payload];
 
         spins.forEach((spin, idx) => {
-            let viewportEl = this.$refs['viewport' + idx] || this.$refs.viewport0 || this.$refs.viewport;
+            let viewportEl = document.getElementById('case-viewport-' + idx) || this.$refs['viewport' + idx] || this.$refs.viewport0 || this.$refs.viewport;
             let containerWidth = viewportEl ? viewportEl.offsetWidth : 600;
             let targetIdx = spin.winning_index !== undefined ? spin.winning_index : 28;
 
@@ -37,6 +37,7 @@
 
             this.translates[idx] = targetPos;
         });
+        this.translates = [...this.translates];
 
         let startTime = Date.now();
         let duration = 6000;
@@ -138,7 +139,7 @@
                                 <div class="absolute top-0 bottom-0 left-1/2 -translate-x-1/2 w-1 bg-amber-400/80 z-20 shadow-[0_0_12px_#f59e0b] pointer-events-none"></div>
 
                                 {{-- Viewport Box --}}
-                                <div x-ref="viewport{{ $sIdx }}" class="w-full h-36 bg-slate-950 rounded-xl border-2 border-amber-600/60 shadow-inner overflow-hidden relative">
+                                <div id="case-viewport-{{ $sIdx }}" x-ref="viewport{{ $sIdx }}" class="w-full h-36 bg-slate-950 rounded-xl border-2 border-amber-600/60 shadow-inner overflow-hidden relative">
                                     
                                     {{-- Vignette Gradients --}}
                                     <div class="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-slate-950 via-slate-950/80 to-transparent z-10 pointer-events-none"></div>
