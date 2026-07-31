@@ -588,9 +588,8 @@ class Profile extends Component
     public function toggleBulkStashMode(): void
     {
         $this->bulkStashMode = !$this->bulkStashMode;
-        if (!$this->bulkStashMode) {
-            $this->selectedStashItemIds = [];
-        }
+        $this->selectedStashItemIds = [];
+        $this->dispatch('close-all-tooltips');
     }
 
     public function toggleSelectStashItem(string $itemUlid): void

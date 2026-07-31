@@ -910,9 +910,12 @@
                             init() {
                                 this._onInventoryUpdated = () => { this.open = false; };
                                 window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                                this._onCloseAllTooltips = () => { this.forceClose(); };
+                                window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
                             },
                             destroy() {
                                 window.removeEventListener('inventory-updated', this._onInventoryUpdated);
+                                window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
                             },
                             checkPosition() { 
                                 if (window.innerWidth < 640) return;
@@ -1015,14 +1018,14 @@
                              :class="{ 
                                  'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
                                  'opacity-40 scale-95 border-amber-400': isDraggingThis,
-                                 '!z-[99999] relative': open
+                                 '!z-[99999] relative': open && !{{ $bulkStashMode ? 'true' : 'false' }}
                              }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
                              @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { activeItemId = null; openTooltip(); }">
 
                             <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
-                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-cyan-950/10 border-2 border-slate-700/50 hover:border-cyan-400/50 hover:bg-cyan-500/10' }}">
                                 <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
                                     @if(in_array($item->id, $selectedStashItemIds))
                                         <i class="fa-solid fa-check"></i>
@@ -1054,7 +1057,7 @@
                             @endif
 
                             <!-- Tooltip / Modal -->
-                            <div x-show="open" x-transition.opacity style="display: none;" 
+                            <div x-show="open && !{{ $bulkStashMode ? 'true' : 'false' }}" x-transition.opacity style="display: none;" 
                                  :style="window.innerWidth >= 640 ? tooltipStyle : {}"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
                                 <template x-if="open">
@@ -1136,9 +1139,12 @@
                             init() {
                                 this._onInventoryUpdated = () => { this.showInfo = false; };
                                 window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                                this._onCloseAllTooltips = () => { this.showInfo = false; };
+                                window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
                             },
                             destroy() {
                                 window.removeEventListener('inventory-updated', this._onInventoryUpdated);
+                                window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
                             },
                             checkPosition() {
                                 if (window.innerWidth < 640) return;
@@ -1195,7 +1201,7 @@
                             }
                         }"
                              wire:key="material-item-slot-{{ $item->id }}"
-                             :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                             :class="{ 'z-50': showInfo && !{{ $bulkStashMode ? 'true' : 'false' }}, 'z-10': !showInfo }"
                              @mouseenter="openTooltip()"
                              @mouseleave="closeTooltip()"
                              @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { toggleTooltip(); }"
@@ -1204,7 +1210,7 @@
                              class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-pointer relative transition-all duration-200 shadow">
 
                             <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
-                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-black/40 hover:bg-cyan-500/10 border-2 border-transparent' }}">
+                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-cyan-950/10 border-2 border-slate-700/50 hover:border-cyan-400/50 hover:bg-cyan-500/10' }}">
                                 <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
                                     @if(in_array($item->id, $selectedStashItemIds))
                                         <i class="fa-solid fa-check"></i>
@@ -1224,7 +1230,7 @@
                             <!-- Infobox Materiału -->
                             <div x-ref="tooltipContainer"
                                  data-tooltip-container="true"
-                                 x-show="showInfo" 
+                                 x-show="showInfo && !{{ $bulkStashMode ? 'true' : 'false' }}" 
                                  x-transition.opacity 
                                  style="display: none;" 
                                  :style="tooltipStyle"
@@ -1350,7 +1356,7 @@
                             @endif
 
                             <!-- Tooltip -->
-                            <div x-show="open" x-transition.opacity style="display: none;" 
+                            <div x-show="open && !{{ $bulkStashMode ? 'true' : 'false' }}" x-transition.opacity style="display: none;" 
                                  :class="posClass"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
                                 <template x-if="open">
