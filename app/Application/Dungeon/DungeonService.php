@@ -188,9 +188,6 @@ class DungeonService
                     $activeBuffs[$k]['duration']--;
                     if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                 }
-                // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
-                $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
-                $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                 $turn = $this->playerAttackStep(
                     $character,
@@ -272,9 +269,6 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
-                    // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
-                    $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
-                    $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $targetMobId = $aliveMobs[0]['id'];
                     $targetMobHp = $aliveMobs[0]['hp'];
@@ -410,9 +404,6 @@ class DungeonService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
-                    // Regeneracja 5% maksymalnej many na turę (minimum 1 MP)
-                    $manaRegen = max(1, (int) round($playerMaxMana * 0.05));
-                    $playerMana = min($playerMaxMana, $playerMana + $manaRegen);
 
                     $turn = $this->playerAttackStep(
                         $character,

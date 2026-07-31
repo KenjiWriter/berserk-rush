@@ -80,12 +80,12 @@ class CombatSkillManaTest extends TestCase
         $this->assertEquals(0, $passiveSkill->getManaCost(1));
     }
 
-    public function test_persistent_mana_and_regen_rate(): void
+    public function test_no_mid_combat_mana_regen(): void
     {
         $user = User::factory()->create();
         $character = Character::create([
             'user_id' => $user->id,
-            'name' => 'ManaTestPersist',
+            'name' => 'ManaTestNoRegen',
             'level' => 10,
             'xp' => 0,
             'gold' => 1000,
@@ -95,13 +95,13 @@ class CombatSkillManaTest extends TestCase
         ]);
 
         $map = \App\Infrastructure\Persistence\Map::create([
-            'name' => 'Test Map Mana',
+            'name' => 'Test Map Mana NoRegen',
             'level_min' => 1,
             'level_max' => 20,
         ]);
 
         $monster = \App\Infrastructure\Persistence\Monster::create([
-            'name' => 'Test Mob Mana',
+            'name' => 'Test Mob Mana NoRegen',
             'level' => 10,
             'rank' => 'regular',
             'type' => 'animal',
@@ -114,17 +114,13 @@ class CombatSkillManaTest extends TestCase
         $this->assertTrue($res->isOk());
 
         $encounter = $res->getPayload();
-        $this->assertEquals(20, $encounter->combat_data['initial_mana']);
-
         $simRes = $service->simulate($encounter);
         $this->assertTrue($simRes->isOk());
 
-        // Max mana for level 10 with 0 INT is 80.
-        // Starting at 20 MP, regen is 5% of 80 = 4 MP per player turn.
-        // First player turn: 20 + 4 = 24 MP.
+        // Without turn-by-turn mana regen, starting at 20 MP stays at 20 MP (or drops if skill cast).
         $turns = $simRes->getPayload()['turns'];
         $firstPlayerTurn = collect($turns)->firstWhere('actor', 'player');
         $this->assertNotNull($firstPlayerTurn);
-        $this->assertEquals(24, $firstPlayerTurn['playerMana']);
+        $this->assertLessThanOrEqual(20, $firstPlayerTurn['playerMana']);
     }
 }

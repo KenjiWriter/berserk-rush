@@ -383,10 +383,6 @@ class GuildWarService
                     continue;
                 }
 
-                // Regenerate 5% max mana per turn (min 5 MP)
-                $manaRegen = max(5, (int) round(($combatants[$ci]['maxMana'] ?? 50) * 0.05));
-                $combatants[$ci]['mana'] = min($combatants[$ci]['maxMana'] ?? 50, ($combatants[$ci]['mana'] ?? 0) + $manaRegen);
-
                 $enemySide = $combatants[$ci]['side'] === 'challenger' ? 'defender' : 'challenger';
                 $targetIdx = $this->selectLowestHpAlive($combatants, $enemySide);
                 if ($targetIdx === null) {

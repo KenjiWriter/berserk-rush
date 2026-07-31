@@ -273,10 +273,6 @@ class PvPEncounterService
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
-            // Regenerate 5% max mana per turn (min 5 MP)
-            $manaRegen = max(5, (int) round(($state[$actorKey]['max_mana'] ?? 50) * 0.05));
-            $state[$actorKey]['mana'] = min($state[$actorKey]['max_mana'] ?? 50, ($state[$actorKey]['mana'] ?? 0) + $manaRegen);
-
             // Zamrożenie/ogłuszenie: aktor traci turę ataku, ale cooldowny nadal tykają
             if (($state[$actorKey]['cc_turns'] ?? 0) > 0) {
                 $state[$actorKey]['cc_turns']--;

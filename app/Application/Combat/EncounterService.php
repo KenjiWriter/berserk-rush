@@ -801,9 +801,6 @@ class EncounterService
                     $this->activeBuffs[$k]['duration']--;
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
                 }
-                // Regenerate 5% max mana per turn (minimum 1 MP)
-                $manaRegen = max(1, (int) round($this->playerMaxMana * 0.05));
-                $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
                 $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
                 $playerHp = $turn['playerHp'];
@@ -1709,9 +1706,6 @@ class EncounterService
                 $this->activeBuffs[$k]['duration']--;
                 if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
             }
-            // Regenerate 5% max mana per turn (min 1 MP)
-            $manaRegen = max(1, (int) round($this->playerMaxMana * 0.05));
-            $this->playerMana = min($this->playerMaxMana, $this->playerMana + $manaRegen);
 
             $aoeSkillCs = $this->resolveAoeSkill($character);
 
