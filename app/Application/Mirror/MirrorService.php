@@ -43,7 +43,7 @@ class MirrorService
     }
 
     /**
-     * Update max rates for a character on a map when they perform combat.
+     * Update rates for a character on a map based on actual combat performance.
      */
     public function updateMapRates(Character $character, Map $map, int $expPerMin, int $goldPerMin): void
     {
@@ -56,15 +56,10 @@ class MirrorService
             ['max_exp_per_minute' => 0, 'max_gold_per_minute' => 0]
         );
 
-        $newExp = max($stat->max_exp_per_minute, $expPerMin);
-        $newGold = max($stat->max_gold_per_minute, $goldPerMin);
-
-        if ($newExp !== $stat->max_exp_per_minute || $newGold !== $stat->max_gold_per_minute) {
-            $stat->update([
-                'max_exp_per_minute' => $newExp,
-                'max_gold_per_minute' => $newGold,
-            ]);
-        }
+        $stat->update([
+            'max_exp_per_minute' => $expPerMin,
+            'max_gold_per_minute' => $goldPerMin,
+        ]);
     }
 
     /**

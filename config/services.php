@@ -35,6 +35,12 @@ return [
         ],
     ],
 
+    'discord' => [
+        // Incoming Webhook URL for the #in-game-chat Discord channel.
+        // Discord -> Channel Settings -> Integrations -> Webhooks -> New Webhook.
+        'global_chat_webhook_url' => env('DISCORD_GLOBAL_CHAT_WEBHOOK_URL'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

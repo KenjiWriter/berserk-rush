@@ -627,17 +627,20 @@ class MapStub extends Component
             $this->trackSessionDrops();
             $this->character = $this->character->fresh();
 
-            // Record / update player's max exp and gold per minute on this map
-            $elapsedSec = max(5, time() - $this->sessionStartTime);
-            $expPerMin = (int) round(($this->sessionXpEarned / (float) $elapsedSec) * 60.0);
-            $goldPerMin = (int) round(($this->sessionGoldEarned / (float) $elapsedSec) * 60.0);
-            if ($this->map && ($expPerMin > 0 || $goldPerMin > 0)) {
-                app(\App\Application\Mirror\MirrorService::class)->updateMapRates(
-                    $this->character,
-                    $this->map,
-                    $expPerMin,
-                    $goldPerMin
-                );
+            // Record / update player's actual exp and gold per minute on this map
+            $elapsedSec = time() - $this->sessionStartTime;
+            if ($elapsedSec >= 15 && $this->map) {
+                $expPerMin = (int) round(($this->sessionXpEarned / (float) $elapsedSec) * 60.0);
+                $goldPerMin = (int) round(($this->sessionGoldEarned / (float) $elapsedSec) * 60.0);
+
+                if ($expPerMin > 0 || $goldPerMin > 0) {
+                    app(\App\Application\Mirror\MirrorService::class)->updateMapRates(
+                        $this->character,
+                        $this->map,
+                        $expPerMin,
+                        $goldPerMin
+                    );
+                }
             }
 
             if ($this->character->level > $oldLevel) {
