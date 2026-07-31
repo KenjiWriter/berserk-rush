@@ -227,6 +227,8 @@ class MapStub extends Component
         } else {
             $monsterId = null;
         }
+
+        $forcedMonster = $monsterId ? \App\Infrastructure\Persistence\Monster::find($monsterId) : null;
         
         if ($this->currentMana < 0 && $this->character) {
             $this->currentMana = $this->character->getMaxMana();
