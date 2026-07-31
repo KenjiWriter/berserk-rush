@@ -2,6 +2,7 @@
     x-data="{
         isOpen: $wire.entangle('isOpen'),
         message: $wire.entangle('newMessage'),
+        onlineCount: 1,
         showCommands: false,
         isSending: false,
         commands: [
@@ -193,6 +194,28 @@
             this.$watch('$wire.activeTooltipId', () => {
                 this.preserveScroll();
             });
+
+            const setupPresence = () => {
+                if (window.Echo) {
+                    window.Echo.join('global-chat')
+                        .here((users) => {
+                            const count = Array.isArray(users) ? users.length : Object.keys(users).length;
+                            this.onlineCount = Math.max(1, count);
+                        })
+                        .joining(() => {
+                            this.onlineCount++;
+                        })
+                        .leaving(() => {
+                            this.onlineCount = Math.max(1, this.onlineCount - 1);
+                        });
+                }
+            };
+
+            if (window.Echo) {
+                setupPresence();
+            } else {
+                window.addEventListener('load', () => setupPresence());
+            }
         }
     }"
     class="fixed bottom-16 lg:bottom-0 right-2 sm:right-4 z-[9950] font-sans select-none w-[calc(100vw-1rem)] sm:w-86 md:w-96 max-w-full pointer-events-none"
@@ -438,7 +461,11 @@
                     <span class="text-xs font-bold uppercase tracking-wider text-amber-200 medieval-font">Czat {{ $currentChannel === 'guild' ? 'Gildii' : 'Globalny' }}</span>
                 </div>
 
-                <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse shrink-0 ml-1"></span>
+                {{-- Online Reverb Clients Counter & Green Diode --}}
+                <div class="flex items-center gap-1.5 ml-1 shrink-0 bg-stone-950/60 border border-emerald-500/40 rounded-full px-2 py-0.5 shadow-inner" title="Gracze online (połączeni przez Reverb)">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse shrink-0"></span>
+                    <span class="text-[11px] font-extrabold text-emerald-400 font-mono leading-none" x-text="onlineCount">1</span>
+                </div>
             </div>
 
             <div class="flex items-center gap-2 shrink-0">

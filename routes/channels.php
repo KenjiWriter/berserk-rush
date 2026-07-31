@@ -14,5 +14,14 @@ use Illuminate\Support\Facades\Broadcast;
 |
 */
 
-// global-chat is a public channel — no auth required to listen
-Broadcast::channel('global-chat', fn () => true);
+// global-chat channel authorization for broadcast & presence
+Broadcast::channel('global-chat', function ($user) {
+    if (! $user) {
+        return false;
+    }
+
+    return [
+        'id' => $user->id,
+        'name' => $user->name,
+    ];
+});

@@ -35,9 +35,20 @@ function createSmartTooltip() {
 
                 if (!triggerRect.width || !tooltipRect.width) return;
 
-                // Mobile screens (< 640px) use modal overlay or standard layout
+                // Mobile screens (< 640px) use fixed center modal layout
                 if (window.innerWidth < 640) {
-                    this.tooltipStyle = {};
+                    this.tooltipStyle = {
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        margin: '0',
+                        width: 'calc(100vw - 1.5rem)',
+                        maxWidth: '380px',
+                        maxHeight: '85vh',
+                        overflowY: 'auto',
+                        zIndex: '10000',
+                    };
                     return;
                 }
 
