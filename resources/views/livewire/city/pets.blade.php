@@ -71,11 +71,57 @@
 
                         $progress = $incubator->getProgress();
                         $isReady = $incubator->isReady();
-                        $timeRemaining = $isReady ? null : ($incubator->hatches_at ? $incubator->hatches_at->diffForHumans() : null);
+                        $startMs = $incubator->started_at ? $incubator->started_at->timestamp * 1000 : now()->timestamp * 1000;
+                        $targetMs = $incubator->hatches_at ? $incubator->hatches_at->timestamp * 1000 : now()->timestamp * 1000;
+
+                        $diff = $isReady ? null : ($incubator->hatches_at ? now()->diff($incubator->hatches_at) : null);
+                        $initialTimeRemaining = $diff ? sprintf('%dh %dm %ds', $diff->h + ($diff->days * 24), $diff->i, $diff->s) : null;
                     @endphp
 
                     {{-- Egg incubating active layout --}}
-                    <div class="text-center py-3 flex flex-col items-center">
+                    <div class="text-center py-3 flex flex-col items-center"
+                         x-data="{
+                            start: {{ $startMs }},
+                            target: {{ $targetMs }},
+                            now: Date.now(),
+                            timer: null,
+                            isReady: {{ $isReady ? 'true' : 'false' }},
+                            init() {
+                                if (this.isReady) return;
+                                this.timer = setInterval(() => {
+                                    this.now = Date.now();
+                                    if (this.now >= this.target) {
+                                        clearInterval(this.timer);
+                                        this.isReady = true;
+                                        $wire.$refresh();
+                                    }
+                                }, 1000);
+                            },
+                            destroy() {
+                                if (this.timer) clearInterval(this.timer);
+                            },
+                            get diffSeconds() {
+                                return Math.max(0, Math.floor((this.target - this.now) / 1000));
+                            },
+                            get formattedTime() {
+                                if (this.diffSeconds <= 0 || this.isReady) return 'Gotowe do wyklucia!';
+                                let h = Math.floor(this.diffSeconds / 3600);
+                                let m = Math.floor((this.diffSeconds % 3600) / 60);
+                                let s = this.diffSeconds % 60;
+                                let parts = [];
+                                if (h > 0) parts.push(h + 'h');
+                                parts.push((m < 10 && h > 0 ? '0' : '') + m + 'm');
+                                parts.push((s < 10 ? '0' : '') + s + 's');
+                                return parts.join(' ');
+                            },
+                            get progressPercent() {
+                                if (this.isReady) return '100.0';
+                                let total = (this.target - this.start);
+                                if (total <= 0) return '100.0';
+                                let elapsed = (this.now - this.start);
+                                return Math.min(100, Math.max(0, (elapsed / total) * 100)).toFixed(1);
+                            }
+                         }">
                         <div class="relative w-24 h-24 flex items-center justify-center mb-3">
                             <div class="absolute inset-0 rounded-full bg-gradient-to-tr {{ $rarityColorClass }} animate-pulse"></div>
                             <div class="absolute inset-1.5 rounded-full border border-amber-500/30 bg-stone-950/80 flex items-center justify-center shadow-inner">
@@ -98,22 +144,27 @@
                         <div class="w-full bg-stone-950 p-2.5 rounded-xl border border-stone-800 mb-3 shadow-inner">
                             <div class="flex justify-between items-center text-xs mb-1 font-semibold">
                                 <span class="text-stone-400">Postęp</span>
-                                <span class="text-amber-300 font-bold">{{ number_format(min(100, $progress), 1) }}%</span>
+                                <span class="text-amber-300 font-bold" x-text="progressPercent + '%'">{{ number_format(min(100, $progress), 1) }}%</span>
                             </div>
 
                             <div class="w-full bg-stone-900 rounded-full h-3 border border-stone-700 overflow-hidden relative shadow-inner">
-                                <div class="h-full rounded-full transition-all duration-1000 relative {{ $isReady ? 'bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'bg-gradient-to-r from-amber-700 via-amber-500 to-yellow-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]' }}"
+                                <div class="h-full rounded-full transition-all duration-300 relative {{ $isReady ? 'bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]' : 'bg-gradient-to-r from-amber-700 via-amber-500 to-yellow-400 shadow-[0_0_12px_rgba(245,158,11,0.6)]' }}"
+                                     :style="'width: ' + progressPercent + '%'"
                                      style="width: {{ min(100, $progress) }}%">
                                     <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
                                 </div>
                             </div>
 
                             <div class="text-[11px] text-stone-400 mt-1.5 flex items-center justify-center gap-1.5 font-medium">
-                                @if($isReady)
+                                <template x-if="isReady">
                                     <span class="text-emerald-400 font-bold flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> Jajko gotowe do wyklucia!</span>
-                                @else
-                                    <span class="text-amber-300/90 flex items-center gap-1"><i class="fa-solid fa-hourglass-half text-amber-400 animate-spin"></i> {{ $timeRemaining }}</span>
-                                @endif
+                                </template>
+                                <template x-if="!isReady">
+                                    <span class="text-amber-300/90 flex items-center gap-1 font-mono font-bold">
+                                        <i class="fa-solid fa-hourglass-half text-amber-400 animate-spin mr-1"></i>
+                                        <span x-text="formattedTime">{{ $initialTimeRemaining }}</span>
+                                    </span>
+                                </template>
                             </div>
                         </div>
 
