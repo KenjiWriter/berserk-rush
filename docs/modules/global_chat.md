@@ -142,8 +142,32 @@ Wiadomości od niepołączonych kont Discorda są ignorowane, a bot odpowiada z 
 ```
 DISCORD_BOT_TOKEN=              # token bota z Discord Developer Portal
 DISCORD_CHAT_CHANNEL_ID=        # ID kanału #in-game-chat (Developer Mode -> Copy Channel ID)
+DISCORD_UPDATE_LOG_CHANNEL_ID=  # ID kanału #update-log (domyślnie 899078131728650272)
 ```
 
-Bot wymaga uprawnienia **Message Content Intent** (Privileged Gateway Intents w Discord Developer Portal) oraz zaproszenia na serwer z uprawnieniami "View Channel" i "Send Messages" na kanale `#in-game-chat`.
+Bot wymaga uprawnienia **Message Content Intent** (Privileged Gateway Intents w Discord Developer Portal) oraz zaproszenia na serwer z uprawnieniami "View Channel" i "Send Messages" na kanale `#in-game-chat` oraz `#update-log`.
 
 Lokalnie proces bota jest częścią `composer dev` (obok `server`/`queue`/`vite`/`reverb`). Na produkcji patrz `docs/deployment_guide.md` — dodatkowy proces Supervisora `berserk-discord-bridge`.
+
+---
+
+### Integracja Update-log (Discord ↔ Panel Admina / Aktualności)
+
+Proces bota (`php artisan discord:bridge`) automatycznie nasłuchuje i odpytuje również kanał **Update-log** (`DISCORD_UPDATE_LOG_CHANNEL_ID`, np. `899078131728650272`).
+
+#### Format ogłoszeń na Discordzie:
+```text
+@Update-log notification
+AKTUALIZACJA [wersja: beta 0.2.4]!
+Wprowadzone zmiany:
+
+• Kompletny rework systemu Petów...
+```
+
+#### Automatyczne parsujące zasady:
+1. Usunięcie wzmianek ról (np. `@Update-log notification`, `<@&...>`).
+2. Pierwsza linia tekstu staje się **Tytułem** (np. `AKTUALIZACJA [wersja: beta 0.2.4]!`).
+3. Reszta treści tworzy **Opis / Treść zmiań**.
+4. Wpis zapisywany jest w tabeli `news` z unikalnym `discord_message_id` i trafia bezpośrednio do Panelu Admina (`/admin/news`) oraz na Stronę Główną gry (`/`). Edycja wiadomości na Discordzie automatycznie aktualizuje treść w grze.
+5. W Panelu Admina istnieje również możliwość bezpośredniego wysłania wpisu z gry na kanał Discord Update-log za pomocą przycisku **"Wyślij na DS"**.
+

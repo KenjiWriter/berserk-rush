@@ -17,6 +17,7 @@ class NewsList extends Component
     public $title;
     public $content;
     public $published_at;
+    public $postToDiscord = false;
 
     // UI state
     public $isEditing = false;
@@ -75,11 +76,48 @@ class NewsList extends Component
             $newsItem->update($data);
             session()->flash('message', 'Aktualność zaktualizowana.');
         } else {
-            News::create($data);
+            $data['source'] = 'admin';
+            $newsItem = News::create($data);
             session()->flash('message', 'Aktualność utworzona.');
+
+            if ($this->postToDiscord) {
+                $this->sendToDiscord($newsItem->id);
+            }
         }
 
         $this->showModal = false;
+        $this->loadNews();
+    }
+
+    public function sendToDiscord($id)
+    {
+        $newsItem = News::findOrFail($id);
+        $token = config('services.discord.bot_token');
+        $channelId = config('services.discord.update_log_channel_id', '899078131728650272');
+
+        if (empty($token) || empty($channelId)) {
+            session()->flash('message', 'Błąd: Brak zdefiniowanego DISCORD_BOT_TOKEN w .env');
+            return;
+        }
+
+        $payload = "@Update-log notification\n" . $newsItem->title . "\n" . $newsItem->content;
+
+        $response = \Illuminate\Support\Facades\Http::withToken($token, 'Bot')
+            ->timeout(10)
+            ->post("https://discord.com/api/v10/channels/{$channelId}/messages", [
+                'content' => $payload,
+                'allowed_mentions' => ['parse' => ['roles', 'users']],
+            ]);
+
+        if ($response->successful()) {
+            $newsItem->update([
+                'discord_message_id' => (string) ($response->json('id') ?? ''),
+            ]);
+            session()->flash('message', 'Wysłano ogłoszenie na kanał Discord update-log!');
+        } else {
+            session()->flash('message', 'Błąd wysyłania na Discord: ' . $response->body());
+        }
+
         $this->loadNews();
     }
 
@@ -96,6 +134,7 @@ class NewsList extends Component
         $this->title = '';
         $this->content = '';
         $this->published_at = null;
+        $this->postToDiscord = false;
     }
 
     public function render()

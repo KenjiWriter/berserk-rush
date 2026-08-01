@@ -45,6 +45,7 @@ return [
         // see App\Console\Commands\DiscordChatBridgeCommand.
         'bot_token' => env('DISCORD_BOT_TOKEN'),
         'chat_channel_id' => env('DISCORD_CHAT_CHANNEL_ID'),
+        'update_log_channel_id' => env('DISCORD_UPDATE_LOG_CHANNEL_ID', '899078131728650272'),
     ],
 
     'google' => [

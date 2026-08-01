@@ -6,6 +6,8 @@ use App\Application\Mail\Actions\SendMailAction;
 use App\Domain\Social\Events\MessageSent;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\DiscordLinkCode;
+use App\Infrastructure\Persistence\News;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -67,11 +69,13 @@ class DiscordChatBridgeCommand extends Command
 
     private string $token;
     private string $channelId;
+    private ?string $updateLogChannelId;
 
     public function handle(): int
     {
         $token = config('services.discord.bot_token');
         $channelId = config('services.discord.chat_channel_id');
+        $updateLogChannelId = config('services.discord.update_log_channel_id');
 
         if (empty($token) || empty($channelId)) {
             $this->error('DISCORD_BOT_TOKEN and/or DISCORD_CHAT_CHANNEL_ID are not configured in .env.');
@@ -80,8 +84,9 @@ class DiscordChatBridgeCommand extends Command
 
         $this->token = $token;
         $this->channelId = $channelId;
+        $this->updateLogChannelId = $updateLogChannelId;
 
-        $lastMessageId = $this->fetchLatestMessageId();
+        $lastMessageId = $this->fetchLatestMessageIdForChannel($this->channelId);
 
         if ($lastMessageId === null) {
             $this->error(
@@ -91,11 +96,17 @@ class DiscordChatBridgeCommand extends Command
             return self::FAILURE;
         }
 
+        $lastUpdateLogId = null;
+        if (!empty($this->updateLogChannelId)) {
+            $lastUpdateLogId = $this->fetchLatestMessageIdForChannel($this->updateLogChannelId);
+            $this->info("Discord update-log bridge listening on channel {$this->updateLogChannelId}.");
+        }
+
         $this->info("Discord chat bridge polling channel {$channelId} every ".self::POLL_INTERVAL_SECONDS.'s...');
 
         while (true) {
             try {
-                $messages = $this->fetchNewMessages($lastMessageId);
+                $messages = $this->fetchNewMessagesForChannel($this->channelId, $lastMessageId);
 
                 // Discord returns newest-first; replay oldest-first so
                 // ordering in the game chat matches the order they were sent.
@@ -111,7 +122,28 @@ class DiscordChatBridgeCommand extends Command
                     }
                 }
             } catch (\Throwable $e) {
-                Log::warning('Discord chat bridge: poll error', ['error' => $e->getMessage()]);
+                Log::warning('Discord chat bridge: poll error (chat)', ['error' => $e->getMessage()]);
+            }
+
+            // Poll update log channel if configured
+            if (!empty($this->updateLogChannelId) && $lastUpdateLogId !== null) {
+                try {
+                    $updateLogs = $this->fetchNewMessagesForChannel($this->updateLogChannelId, $lastUpdateLogId);
+
+                    foreach (array_reverse($updateLogs) as $logMessage) {
+                        $lastUpdateLogId = $logMessage['id'];
+
+                        try {
+                            $this->handleIncomingUpdateLogMessage($logMessage);
+                        } catch (\Throwable $e) {
+                            Log::warning('Discord bridge: error handling update log message', [
+                                'error' => $e->getMessage(),
+                            ]);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Discord bridge: poll error (update-log)', ['error' => $e->getMessage()]);
+                }
             }
 
             sleep(self::POLL_INTERVAL_SECONDS);
@@ -121,9 +153,9 @@ class DiscordChatBridgeCommand extends Command
     /**
      * @return array<int, array<string, mixed>>
      */
-    private function fetchNewMessages(string $afterId): array
+    private function fetchNewMessagesForChannel(string $channelId, string $afterId): array
     {
-        $response = $this->discordGet("/channels/{$this->channelId}/messages", [
+        $response = $this->discordGet("/channels/{$channelId}/messages", [
             'after' => $afterId,
             'limit' => 100,
         ]);
@@ -135,9 +167,9 @@ class DiscordChatBridgeCommand extends Command
         return $response->json() ?? [];
     }
 
-    private function fetchLatestMessageId(): ?string
+    private function fetchLatestMessageIdForChannel(string $channelId): ?string
     {
-        $response = $this->discordGet("/channels/{$this->channelId}/messages", ['limit' => 1]);
+        $response = $this->discordGet("/channels/{$channelId}/messages", ['limit' => 1]);
 
         if ($response === null || $response->failed()) {
             return null;
@@ -145,8 +177,6 @@ class DiscordChatBridgeCommand extends Command
 
         $messages = $response->json() ?? [];
 
-        // Empty channel history is still a "successful" connection - start
-        // from "no messages seen yet" rather than treating it as an error.
         return $messages[0]['id'] ?? '0';
     }
 
@@ -356,5 +386,107 @@ class DiscordChatBridgeCommand extends Command
 
             return true;
         });
+    }
+
+    /**
+     * Process an incoming message from the update-log channel on Discord.
+     * Parses title and content, removing role mentions, and updates/creates
+     * a News entry in the game database.
+     *
+     * @param array<string, mixed> $message
+     */
+    private function handleIncomingUpdateLogMessage(array $message): void
+    {
+        $rawContent = $message['content'] ?? '';
+        if (trim($rawContent) === '') {
+            return;
+        }
+
+        $parsed = $this->parseUpdateLogContent($rawContent);
+        if (!$parsed) {
+            return;
+        }
+
+        $msgId = (string) ($message['id'] ?? '');
+        if (empty($msgId)) {
+            return;
+        }
+
+        $publishedAt = isset($message['timestamp'])
+            ? Carbon::parse($message['timestamp'])
+            : now();
+
+        $newsItem = News::updateOrCreate(
+            ['discord_message_id' => $msgId],
+            [
+                'title' => $parsed['title'],
+                'content' => $parsed['content'],
+                'source' => 'discord',
+                'published_at' => $publishedAt,
+            ]
+        );
+
+        Log::info('Discord update log imported into news', [
+            'news_id' => $newsItem->id,
+            'discord_message_id' => $msgId,
+            'title' => $parsed['title'],
+        ]);
+    }
+
+    /**
+     * Parses raw Discord text format into title and content.
+     * Example input:
+     *   @Update-log notification
+     *   AKTUALIZACJA [wersja: beta 0.2.4]!
+     *   Wprowadzone zmiany:
+     *   • Kompletny rework...
+     *
+     * @return array{title: string, content: string}|null
+     */
+    private function parseUpdateLogContent(string $rawContent): ?array
+    {
+        // Strip raw mention tags (<@&...>, <@...>) and string mention "@Update-log notification"
+        $cleaned = preg_replace('/<@&?\d+>/', '', $rawContent);
+        $cleaned = preg_replace('/@Update-log notification/i', '', $cleaned);
+        $cleaned = trim($cleaned);
+
+        if ($cleaned === '') {
+            return null;
+        }
+
+        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $cleaned));
+        $nonEmptyLines = [];
+        foreach ($lines as $line) {
+            if (trim($line) !== '') {
+                $nonEmptyLines[] = trim($line);
+            }
+        }
+
+        if (empty($nonEmptyLines)) {
+            return null;
+        }
+
+        // First non-empty line is title
+        $title = array_shift($nonEmptyLines);
+
+        // Find index of title line in original lines to preserve exact formatting of body
+        $titleIndex = -1;
+        foreach ($lines as $idx => $line) {
+            if (trim($line) === $title) {
+                $titleIndex = $idx;
+                break;
+            }
+        }
+
+        if ($titleIndex !== -1 && isset($lines[$titleIndex + 1])) {
+            $content = trim(implode("\n", array_slice($lines, $titleIndex + 1)));
+        } else {
+            $content = implode("\n", $nonEmptyLines);
+        }
+
+        return [
+            'title' => $title,
+            'content' => $content,
+        ];
     }
 }

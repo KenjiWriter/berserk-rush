@@ -12,6 +12,8 @@ class News extends Model
         'title',
         'content',
         'published_at',
+        'discord_message_id',
+        'source',
     ];
 
     protected $casts = [
