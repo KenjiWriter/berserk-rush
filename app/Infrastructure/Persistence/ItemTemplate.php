@@ -40,4 +40,17 @@ class ItemTemplate extends Model
     {
         return $this->belongsTo(Quest::class, 'quest_id');
     }
+
+    public function getIconAttribute(?string $value): ?string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        if (!empty($this->name)) {
+            return \Illuminate\Support\Str::slug($this->name) . '.png';
+        }
+
+        return $value;
+    }
 }
