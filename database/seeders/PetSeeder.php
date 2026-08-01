@@ -54,7 +54,7 @@ class PetSeeder extends Seeder
                 'name' => 'Zwykłe Jajo Chowańca',
                 'type' => 'egg',
                 'level_requirement' => 1,
-                'icon' => '🥚',
+                'icon' => 'zwykle-jajo-chowanca.png',
                 'description' => 'Może z niego wykluć się zwierzak (najczęściej Common).'
             ],
             [
@@ -62,7 +62,7 @@ class PetSeeder extends Seeder
                 'name' => 'Rzadkie Jajo Chowańca',
                 'type' => 'egg',
                 'level_requirement' => 10,
-                'icon' => '🥚',
+                'icon' => 'rzadkie-jajo-chowanca.png',
                 'description' => 'Gwarantuje lepszego chowańca (większa szansa na Rare).'
             ],
             [
@@ -70,13 +70,18 @@ class PetSeeder extends Seeder
                 'name' => 'Epickie Jajo Chowańca',
                 'type' => 'egg',
                 'level_requirement' => 20,
-                'icon' => '🥚',
+                'icon' => 'epickie-jajo-chowanca.png',
                 'description' => 'Potężne jajo skrywające epickiego stwora.'
             ],
         ];
 
         foreach ($eggs as $egg) {
-            ItemTemplate::firstOrCreate(['id' => $egg['id']], $egg);
+            $existing = ItemTemplate::find($egg['id']);
+            if ($existing) {
+                $existing->update($egg);
+            } else {
+                ItemTemplate::create($egg);
+            }
         }
 
         // 3. Boss Loot Table

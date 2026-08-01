@@ -98,6 +98,7 @@ class MaterialItemSeeder extends Seeder
             if ($existing) {
                 $existing->update([
                     'description' => $material['desc'],
+                    'icon' => Str::slug($material['name']) . '.png',
                 ]);
             } else {
                 ItemTemplate::create([
