@@ -1226,49 +1226,49 @@ class CombatSkillSeeder extends Seeder
 
             if ($isPassive) {
                 if ($reqLevel <= 15) {
-                    $baseMana = 6;
-                    $scalingMana = 2;
+                    $baseMana = 18;
+                    $scalingMana = 6;
                 } elseif ($reqLevel <= 30) {
-                    $baseMana = 10;
-                    $scalingMana = 3;
-                } elseif ($reqLevel <= 50) {
-                    $baseMana = 15;
-                    $scalingMana = 4;
-                } elseif ($reqLevel <= 70) {
-                    $baseMana = 22;
-                    $scalingMana = 5;
-                } elseif ($reqLevel <= 90) {
                     $baseMana = 30;
-                    $scalingMana = 7;
+                    $scalingMana = 9;
+                } elseif ($reqLevel <= 50) {
+                    $baseMana = 45;
+                    $scalingMana = 12;
+                } elseif ($reqLevel <= 70) {
+                    $baseMana = 66;
+                    $scalingMana = 15;
+                } elseif ($reqLevel <= 90) {
+                    $baseMana = 90;
+                    $scalingMana = 21;
                 } else {
-                    $baseMana = 40;
-                    $scalingMana = 10;
+                    $baseMana = 120;
+                    $scalingMana = 30;
                 }
             } else {
                 if ($reqLevel <= 15) {
-                    $baseMana = 12;
-                    $scalingMana = 3;
+                    $baseMana = 36;
+                    $scalingMana = 9;
                 } elseif ($reqLevel <= 30) {
-                    $baseMana = 22;
-                    $scalingMana = 5;
-                } elseif ($reqLevel <= 50) {
-                    $baseMana = 38;
-                    $scalingMana = 8;
-                } elseif ($reqLevel <= 70) {
-                    $baseMana = 55;
-                    $scalingMana = 12;
-                } elseif ($reqLevel <= 90) {
-                    $baseMana = 80;
+                    $baseMana = 66;
                     $scalingMana = 15;
+                } elseif ($reqLevel <= 50) {
+                    $baseMana = 114;
+                    $scalingMana = 24;
+                } elseif ($reqLevel <= 70) {
+                    $baseMana = 165;
+                    $scalingMana = 36;
+                } elseif ($reqLevel <= 90) {
+                    $baseMana = 240;
+                    $scalingMana = 45;
                 } else {
-                    $baseMana = 110;
-                    $scalingMana = 20;
+                    $baseMana = 330;
+                    $scalingMana = 60;
                 }
             }
 
             DB::table('combat_skills')->insert(array_merge($skill, [
-                'base_mana_cost' => $skill['base_mana_cost'] ?? $baseMana,
-                'scaling_mana_cost' => $skill['scaling_mana_cost'] ?? $scalingMana,
+                'base_mana_cost' => ($skill['base_mana_cost'] ?? $baseMana),
+                'scaling_mana_cost' => ($skill['scaling_mana_cost'] ?? $scalingMana),
                 'created_at' => now(),
                 'updated_at' => now(),
             ]));
