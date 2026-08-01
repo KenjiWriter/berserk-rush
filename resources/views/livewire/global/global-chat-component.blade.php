@@ -17,6 +17,22 @@
         isUpdating: false,
         lastMsgCount: 0,
         justOpened: false,
+        isIdleHidden: false,
+        idleTimer: null,
+        resetIdleTimer() {
+            this.isIdleHidden = false;
+            if (this.idleTimer) {
+                clearTimeout(this.idleTimer);
+                this.idleTimer = null;
+            }
+            if (!this.isOpen) {
+                this.idleTimer = setTimeout(() => {
+                    if (!this.isOpen) {
+                        this.isIdleHidden = true;
+                    }
+                }, 2000);
+            }
+        },
         toggleChat() {
             $wire.toggleChat();
         },
@@ -159,6 +175,16 @@
             }
         },
         init() {
+            const handleActivity = () => {
+                this.resetIdleTimer();
+            };
+
+            ['mousemove', 'touchstart', 'pointerdown', 'keydown', 'scroll'].forEach(evt => {
+                window.addEventListener(evt, handleActivity, { passive: true });
+            });
+
+            this.resetIdleTimer();
+
             this.$nextTick(() => {
                 const el = this.$refs.chatBox;
                 if (el) {
@@ -173,10 +199,12 @@
             });
 
             this.$watch('$wire.messages', () => {
+                this.resetIdleTimer();
                 this.preserveScroll();
             });
             this.$watch('message', () => this.checkCommands());
             this.$watch('$wire.currentChannel', () => {
+                this.resetIdleTimer();
                 this.lastMsgCount = 0;
                 this.userWasAtBottom = true;
                 this.scrollToBottom();
@@ -184,11 +212,18 @@
             });
             this.$watch('isOpen', (val) => {
                 if (val) {
+                    this.isIdleHidden = false;
+                    if (this.idleTimer) {
+                        clearTimeout(this.idleTimer);
+                        this.idleTimer = null;
+                    }
                     this.lastMsgCount = 0;
                     this.userWasAtBottom = true;
                     this.$nextTick(() => {
                         setTimeout(() => this.scrollToBottom(), 150);
                     });
+                } else {
+                    this.resetIdleTimer();
                 }
             });
             this.$watch('$wire.activeTooltipId', () => {
@@ -218,8 +253,14 @@
             }
         }
     }"
-    class="fixed bottom-16 lg:bottom-0 right-2 sm:right-4 z-[9950] font-sans select-none w-[calc(100vw-1rem)] sm:w-86 md:w-96 max-w-full pointer-events-none"
+    :class="[
+        isOpen ? 'z-[9960]' : 'z-[9910]',
+        isIdleHidden && !isOpen ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'
+    ]"
+    class="fixed bottom-16 lg:bottom-0 right-2 sm:right-4 font-sans select-none w-[calc(100vw-1rem)] sm:w-86 md:w-96 max-w-full transition-all duration-500 ease-in-out pointer-events-none"
     style="font-family: 'Cinzel', serif;"
+    @mouseenter="resetIdleTimer()"
+    @mouseleave="resetIdleTimer()"
 >
     {{-- ========== CHAT DOCK CONTAINER ========== --}}
     <div class="relative flex flex-col w-full pointer-events-auto rounded-t-xl rounded-b-none border-t-2 border-x border-amber-700/60 shadow-[0_-8px_25px_rgba(0,0,0,0.85)] backdrop-blur-md overflow-hidden"

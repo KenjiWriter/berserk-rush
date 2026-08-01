@@ -51,7 +51,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="mobileMenuOpen = false"
-             class="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[9890]"
+             class="fixed inset-0 bg-stone-950/80 backdrop-blur-md z-[9940]"
              style="display: none;"></div>
 
         {{-- Expanded Bottom Sheet Menu --}}
@@ -62,7 +62,7 @@
              x-transition:leave="transition ease-in duration-200 transform"
              x-transition:leave-start="translate-y-0 opacity-100"
              x-transition:leave-end="translate-y-full opacity-0"
-             class="fixed bottom-16 inset-x-0 max-h-[82vh] overflow-y-auto z-[9895] bg-gradient-to-b from-stone-900 via-stone-950 to-stone-950 border-t-2 border-amber-700/80 rounded-t-2xl p-4 shadow-[0_-10px_35px_rgba(0,0,0,0.95)] custom-scrollbar"
+             class="fixed bottom-16 inset-x-0 max-h-[82vh] overflow-y-auto z-[9945] bg-gradient-to-b from-stone-900 via-stone-950 to-stone-950 border-t-2 border-amber-700/80 rounded-t-2xl p-4 shadow-[0_-10px_35px_rgba(0,0,0,0.95)] custom-scrollbar"
              style="font-family: 'Cinzel', serif; display: none;">
 
             {{-- Header with Character summary & Close button --}}
@@ -352,20 +352,19 @@
         </div>
 
         {{-- Bottom Fixed Navigation Bar --}}
-        <div class="fixed bottom-0 w-full z-[9900] bg-stone-950/95 backdrop-blur-lg border-t-2 border-amber-700/80 shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
+        <div class="fixed bottom-0 w-full z-[9950] bg-stone-950/95 backdrop-blur-lg border-t-2 border-amber-700/80 shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
             <div class="flex justify-around items-center h-16 px-1">
-                <a href="{{ route('city.hub', $charId) }}" wire:navigate
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}"
-                   @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })">
-                    <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
-                        <i class="fa-solid fa-archway text-amber-400 text-lg"></i>
-                        @if($hubTutorialPending)
-                            <span class="absolute -top-1 -right-2 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[9px] font-black animate-bounce shadow">!</span>
-                        @endif
+                {{-- 1. Arena (najdalej od kciuka) --}}
+                <a href="{{ route('city.arena', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['arena'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
+                   @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })">
+                    <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
+                        <i class="fa-solid {{ $isArenaLocked ? 'fa-lock text-amber-500' : 'fa-khanda text-amber-400' }} text-lg"></i>
                     </span>
-                    <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Miasto</span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Arena</span>
                 </a>
 
+                {{-- 2. Profil (po lewej stronie Miasta) --}}
                 <a href="{{ route('city.profile', $charId) }}" wire:navigate
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.profile') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['profile'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
                    @click="$dispatch('location-leave', { text: 'Otwieranie Ekwipunku...', icon: 'fa-solid fa-user-shield', url: $el.href })">
@@ -378,6 +377,20 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Profil</span>
                 </a>
 
+                {{-- 3. Miasto (Centrum) --}}
+                <a href="{{ route('city.hub', $charId) }}" wire:navigate
+                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.hub') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }}"
+                   @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: $el.href })">
+                    <span class="text-xl mb-1 relative group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-archway text-amber-400 text-lg"></i>
+                        @if($hubTutorialPending)
+                            <span class="absolute -top-1 -right-2 w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center text-slate-950 text-[9px] font-black animate-bounce shadow">!</span>
+                        @endif
+                    </span>
+                    <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Miasto</span>
+                </a>
+
+                {{-- 4. Przygoda (po prawej stronie Miasta) --}}
                 <a href="{{ route('city.adventure', $charId) }}" wire:navigate
                    class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group {{ request()->routeIs('city.adventure*') || request()->routeIs('adventure.*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['adventure'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
                    @click="$dispatch('location-leave', { text: 'Wyruszanie na Przygodę...', icon: 'fa-solid fa-map-location-dot', url: $el.href })">
@@ -387,15 +400,7 @@
                     <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Przygoda</span>
                 </a>
 
-                <a href="{{ route('city.arena', $charId) }}" wire:navigate
-                   class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 group {{ $isArenaLocked ? 'opacity-60 grayscale' : '' }} {{ request()->routeIs('city.arena*') ? 'bg-amber-500/15 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60' }} {{ $navTutorialPulse['arena'] ? 'ring-2 ring-amber-500 ring-inset animate-pulse' : '' }}"
-                   @click="$dispatch('location-leave', { text: 'Wejście na Arenę...', icon: 'fa-solid fa-dungeon', url: $el.href })">
-                    <span class="text-xl mb-1 group-hover:scale-110 transition-transform">
-                        <i class="fa-solid {{ $isArenaLocked ? 'fa-lock text-amber-500' : 'fa-khanda text-amber-400' }} text-lg"></i>
-                    </span>
-                    <span class="text-[10px] font-bold uppercase tracking-wider" style="font-family: 'Cinzel', serif;">Arena</span>
-                </a>
-
+                {{-- 5. Więcej (Menu) --}}
                 <button @click="mobileMenuOpen = !mobileMenuOpen" 
                         class="flex flex-col items-center justify-center w-full h-full transition-all duration-200 relative group"
                         :class="mobileMenuOpen ? 'bg-amber-500/20 text-amber-300 border-t-2 border-amber-400 shadow-[0_-4px_12px_rgba(245,158,11,0.3)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-900/60'">
