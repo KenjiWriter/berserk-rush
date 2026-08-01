@@ -440,7 +440,7 @@ class ItemTemplates extends Component
             $query->where('type', $this->filterType);
         }
 
-        $templates = $query->orderBy('level_requirement')->paginate(20);
+        $templates = $query->orderBy('level_requirement')->orderBy('name')->paginate(20);
         $this->usedIcons = ItemTemplate::pluck('icon')->filter()->unique()->toArray();
 
         return view('livewire.admin.item-templates', [
