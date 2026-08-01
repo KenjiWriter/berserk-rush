@@ -245,23 +245,23 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Demon Otchłani', 'level' => 86, 'rank' => 'regular', 'stats' => ['hp' => 28000, 'atk' => 5500, 'def' => 450, 'agi' => 45], 'avatar' => 'demon-otchlani.png']
+                        'monster' => ['name' => 'Demon Otchłani', 'level' => 86, 'rank' => 'regular', 'stats' => ['hp' => 42000, 'atk' => 38500, 'def' => 1200, 'agi' => 45], 'avatar' => 'demon-otchlani.png']
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Kat Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 22000, 'atk' => 4800, 'def' => 400, 'agi' => 42], 'avatar' => 'plagowy-kat-dung.png']
+                        'monster' => ['name' => 'Kat Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 32000, 'atk' => 32000, 'def' => 1000, 'agi' => 42], 'avatar' => 'plagowy-kat-dung.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 12,
-                        'monster' => ['name' => 'Wrota Wulkaniczne Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 45000, 'atk' => 0, 'def' => 350, 'agi' => 0], 'avatar' => 'otchlan-wrota.png']
+                        'monster' => ['name' => 'Wrota Wulkaniczne Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 120000, 'atk' => 0, 'def' => 1500, 'agi' => 0], 'avatar' => 'otchlan-wrota.png']
                     ],
                     [
                         'order' => 4, 'type' => 'miniboss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Książę Otchłani', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 55000, 'atk' => 8500, 'def' => 600, 'agi' => 52], 'avatar' => 'ksiaze-skazy.png']
+                        'monster' => ['name' => 'Książę Otchłani', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 90000, 'atk' => 45000, 'def' => 1600, 'agi' => 52], 'avatar' => 'ksiaze-skazy.png']
                     ],
                     [
                         'order' => 5, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Pan Zniszczenia (Loch)', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 95000, 'atk' => 12000, 'def' => 800, 'agi' => 60], 'avatar' => 'pan-zniszczenia-dung.png']
+                        'monster' => ['name' => 'Pan Zniszczenia (Loch)', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 150000, 'atk' => 50000, 'def' => 1900, 'agi' => 60], 'avatar' => 'pan-zniszczenia-dung.png']
                     ],
                 ]
             ]

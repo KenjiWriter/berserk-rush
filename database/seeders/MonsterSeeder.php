@@ -556,7 +556,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 6300, 'atk' => 690, 'def' => 142, 'agi' => 22, 'int' => 50, 'crit' => 0.32, 'dodge' => 0.12],
+                    'stats' => ['hp' => 105000, 'atk' => 46000, 'def' => 1600, 'agi' => 30, 'int' => 150, 'crit' => 0.40, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -564,7 +564,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 86,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 29990, 'atk' => 17595, 'def' => 1141, 'agi' => 39, 'int' => 64, 'crit' => 0.56, 'dodge' => 0.32],
+                    'stats' => ['hp' => 41500, 'atk' => 38500, 'def' => 1200, 'agi' => 39, 'int' => 64, 'crit' => 0.45, 'dodge' => 0.20],
                     'abilities' => []
                 ],
                 [
@@ -572,7 +572,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 88,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 31239, 'atk' => 18230, 'def' => 1216, 'agi' => 41, 'int' => 70, 'crit' => 0.60, 'dodge' => 0.35],
+                    'stats' => ['hp' => 43000, 'atk' => 40000, 'def' => 1300, 'agi' => 41, 'int' => 70, 'crit' => 0.48, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -580,7 +580,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 90,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 28990, 'atk' => 16284, 'def' => 1005, 'agi' => 43, 'int' => 192, 'crit' => 0.64, 'dodge' => 0.4],
+                    'stats' => ['hp' => 40000, 'atk' => 41500, 'def' => 1100, 'agi' => 43, 'int' => 192, 'crit' => 0.50, 'dodge' => 0.25],
                     'abilities' => []
                 ],
                 [
@@ -588,7 +588,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 92,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 33739, 'atk' => 19025, 'def' => 1384, 'agi' => 36, 'int' => 80, 'crit' => 0.58, 'dodge' => 0.30],
+                    'stats' => ['hp' => 47000, 'atk' => 42000, 'def' => 1500, 'agi' => 36, 'int' => 80, 'crit' => 0.42, 'dodge' => 0.18],
                     'abilities' => []
                 ],
                 [
@@ -596,7 +596,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 94,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 27990, 'atk' => 18032, 'def' => 937, 'agi' => 61, 'int' => 48, 'crit' => 0.72, 'dodge' => 0.56],
+                    'stats' => ['hp' => 39000, 'atk' => 43000, 'def' => 1050, 'agi' => 61, 'int' => 48, 'crit' => 0.55, 'dodge' => 0.35],
                     'abilities' => []
                 ],
                 [
@@ -604,7 +604,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 98,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 34988, 'atk' => 19740, 'def' => 1476, 'agi' => 47, 'int' => 80, 'crit' => 0.64, 'dodge' => 0.4],
+                    'stats' => ['hp' => 48500, 'atk' => 44500, 'def' => 1600, 'agi' => 47, 'int' => 80, 'crit' => 0.48, 'dodge' => 0.24],
                     'abilities' => []
                 ],
                 [
@@ -612,7 +612,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 102,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 105606, 'atk' => 10755, 'def' => 1191, 'agi' => 44, 'int' => 250, 'crit' => 0.90, 'dodge' => 0.50],
+                    'stats' => ['hp' => 160000, 'atk' => 52000, 'def' => 2000, 'agi' => 44, 'int' => 250, 'crit' => 0.60, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -620,7 +620,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 50000000, 'atk' => 14500, 'def' => 1450, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
+                    'stats' => ['hp' => 50000000, 'atk' => 65000, 'def' => 10000, 'agi' => 160, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
                     'abilities' => []
                 ]
             ]
