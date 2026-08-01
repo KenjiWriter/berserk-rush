@@ -390,9 +390,11 @@
                     <div class="p-5 sm:p-6 space-y-5">
                         @foreach ($adminMessages as $message)
                             <article class="rpg-news-item">
-                                <h3 class="text-lg font-bold rpg-ink mb-1.5 medieval-font">{{ $message['title'] }}</h3>
-                                <p class="rpg-ink-soft leading-relaxed text-sm mb-1.5">{{ $message['content'] }}</p>
-                                <p class="text-xs rpg-ink-faint italic">
+                                <h3 class="text-lg font-bold rpg-ink mb-2 medieval-font">{{ $message['title'] }}</h3>
+                                <div class="rpg-news-content mb-2">
+                                    {!! \Illuminate\Support\Str::markdown(preg_replace('/^[ \t]*[•]\s*/m', '- ', $message['content'])) !!}
+                                </div>
+                                <p class="text-xs rpg-ink-faint italic mt-2 border-t border-amber-900/20 pt-1.5">
                                     {{ date('j F Y', strtotime($message['date'])) }}
                                 </p>
                             </article>
@@ -659,7 +661,84 @@
         }
 
         /* News */
-        .rpg-news-item { border-left: 3px solid var(--gold); padding-left: 1rem; }
+        .rpg-news-item {
+            border-left: 3px solid var(--gold);
+            padding-left: 1rem;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        .rpg-news-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .rpg-news-content {
+            color: var(--ink-soft);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .rpg-news-content p {
+            margin-bottom: 0.6rem;
+        }
+        .rpg-news-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .rpg-news-content strong,
+        .rpg-news-content b {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .rpg-news-content ul {
+            list-style-type: disc;
+            padding-left: 1.25rem;
+            margin-top: 0.35rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .rpg-news-content ol {
+            list-style-type: decimal;
+            padding-left: 1.25rem;
+            margin-top: 0.35rem;
+            margin-bottom: 0.65rem;
+        }
+
+        .rpg-news-content li {
+            margin-bottom: 0.3rem;
+            line-height: 1.5;
+        }
+
+        .rpg-news-content h1,
+        .rpg-news-content h2,
+        .rpg-news-content h3,
+        .rpg-news-content h4 {
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            color: var(--ink);
+            margin-top: 0.85rem;
+            margin-bottom: 0.35rem;
+        }
+        .rpg-news-content h1 { font-size: 1.15rem; }
+        .rpg-news-content h2 { font-size: 1.05rem; }
+        .rpg-news-content h3 { font-size: 0.95rem; }
+
+        .rpg-news-content hr {
+            border: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(184,134,47,0.4) 50%, transparent);
+            margin: 0.75rem 0;
+        }
+
+        .rpg-news-content code {
+            background: rgba(32,24,18,0.08);
+            border: 1px solid rgba(184,134,47,0.3);
+            border-radius: 3px;
+            padding: 0.1rem 0.3rem;
+            font-size: 0.825rem;
+            color: var(--ink);
+        }
 
         /* Buttons */
         .rpg-btn {

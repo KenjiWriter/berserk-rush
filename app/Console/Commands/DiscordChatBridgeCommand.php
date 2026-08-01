@@ -484,6 +484,9 @@ class DiscordChatBridgeCommand extends Command
             $content = implode("\n", $nonEmptyLines);
         }
 
+        // Normalize unicode bullet points (•) to Markdown list hyphens (- )
+        $content = preg_replace('/^[ \t]*[•]\s*/m', '- ', $content);
+
         return [
             'title' => $title,
             'content' => $content,
