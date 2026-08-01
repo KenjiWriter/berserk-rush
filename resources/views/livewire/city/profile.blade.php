@@ -692,11 +692,11 @@
                             <span class="text-cyan-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['max_mana']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
-                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia ataków fizycznych.">Base Damage:</span>
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Obrażenia fizyczne ataków podstawowych i umiejętności fizycznych. Zależą od Siły (STR), Zręczności (AGI) oraz fizycznej siły ataku broni.">Base Damage (Fizyczne):</span>
                             <span class="text-red-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_min']) }} - {{ \App\Support\NumberHelper::formatShort($derivedStats['base_damage_max']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">
-                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Podstawowe obrażenia z umiejętności magicznych.">Magic Damage:</span>
+                            <span class="text-gray-400 font-semibold cursor-help border-b border-dashed border-gray-600" title="Obrażenia magiczne czarów i umiejętności magicznych (Różdżka, Dzwon). Zależą od Inteligencji (INT) oraz magicznej siły ataku broni.">Magic Damage (Magiczne):</span>
                             <span class="text-purple-400 font-bold text-base">{{ \App\Support\NumberHelper::formatShort($derivedStats['magic_damage_min']) }} - {{ \App\Support\NumberHelper::formatShort($derivedStats['magic_damage_max']) }}</span>
                         </div>
                         <div class="flex justify-between items-center pb-2 border-b border-gray-700/50">

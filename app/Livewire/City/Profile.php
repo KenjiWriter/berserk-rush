@@ -754,20 +754,29 @@ class Profile extends Component
         
         $eqStats = $this->character->getEquipmentStats();
         
-        $statBonus = $this->character->getAttributeAttackBonus();
-        $baseDmg = 10 + $statBonus + ($level * 1);
-        $magicDmg = ($int * 2) + ($level * 1);
+        $activeWeaponType = $this->character->getEquippedWeaponType();
 
-        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+        // Physical damage calculation (uses physical weapon attack_min/max only)
+        $physWeaponType = in_array($activeWeaponType, ['wand', 'bell'], true) ? 'sword' : $activeWeaponType;
+        $physStatBonus = $this->character->getAttributeAttackBonus($physWeaponType);
+        $basePhysDmg = 10 + $physStatBonus + ($level * 1);
+        $physAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+        $physAtkMax = (int) max($physAtkMin, $eqStats['attack_max'] ?? 0);
+
+        // Magic damage calculation (uses magic weapon magic_attack_min/max only)
+        $magicWeaponType = in_array($activeWeaponType, ['wand', 'bell'], true) ? $activeWeaponType : 'wand';
+        $magicStatBonus = $this->character->getAttributeAttackBonus($magicWeaponType);
+        $baseMagicDmg = 10 + $magicStatBonus + ($level * 1);
+        $magicAtkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+        $magicAtkMax = (int) max($magicAtkMin, $eqStats['magic_attack_max'] ?? 0);
 
         $derivedStats = [
             'max_hp' => $this->character->getMaxHp(),
             'max_mana' => $this->character->getMaxMana(),
-            'base_damage_min' => $baseDmg + $weaponAtkMin,
-            'base_damage_max' => $baseDmg + $weaponAtkMax,
-            'magic_damage_min' => $magicDmg + $eqStats['magic_attack_min'],
-            'magic_damage_max' => $magicDmg + $eqStats['magic_attack_max'],
+            'base_damage_min' => $basePhysDmg + $physAtkMin,
+            'base_damage_max' => $basePhysDmg + $physAtkMax,
+            'magic_damage_min' => $baseMagicDmg + $magicAtkMin,
+            'magic_damage_max' => $baseMagicDmg + $magicAtkMax,
             'crit_chance' => min(50, 5 + ($agi * 0.5) + $eqStats['crit_chance']),
             'dodge_chance' => 2 + ($agi * 0.3) + ($eqStats['dodge_chance'] ?? 0),
             'damage_reduction' => ($vit * 1) + $eqStats['defense'],

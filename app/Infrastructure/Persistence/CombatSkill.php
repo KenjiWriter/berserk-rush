@@ -50,4 +50,74 @@ class CombatSkill extends Model
         $lvl = max(1, $level);
         return max(0, (int) round($this->base_mana_cost + (($lvl - 1) * $this->scaling_mana_cost)));
     }
+
+    public function isMagicSkill(): bool
+    {
+        if ($this->is_magic) {
+            return true;
+        }
+
+        return in_array($this->required_weapon_type, ['wand', 'bell'], true);
+    }
+
+    public function getEffectiveWeaponType(Character $character): string
+    {
+        if (!empty($this->required_weapon_type) && $this->required_weapon_type !== 'all') {
+            return $this->required_weapon_type;
+        }
+
+        if ($this->is_magic) {
+            return 'wand';
+        }
+
+        return $character->getEquippedWeaponType();
+    }
+
+    /**
+     * Zwraca zakres ataku bazowego [min, max, avg] pod symulację obrażeń tej konkretnej umiejętności
+     * z uwzględnieniem prawidłowego przelicznika atrybutów i ataku broni (fizyczny vs magiczny).
+     */
+    public function getBaseDamageRange(Character $character): array
+    {
+        $weaponType = $this->getEffectiveWeaponType($character);
+        $statBonus = $character->getAttributeAttackBonus($weaponType);
+        $eqStats = $character->getEquipmentStats();
+        $level = $character->level;
+
+        if ($weaponType === 'wand') {
+            $atkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+            $atkMax = (int) max($atkMin, $eqStats['magic_attack_max'] ?? 0);
+        } elseif ($weaponType === 'bell') {
+            $atkMin = (int) (($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0));
+            $atkMax = (int) max($atkMin, ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0));
+        } else {
+            $atkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $atkMax = (int) max($atkMin, $eqStats['attack_max'] ?? 0);
+        }
+
+        $min = 10 + $statBonus + ($level * 1) + $atkMin;
+        $max = 10 + $statBonus + ($level * 1) + $atkMax;
+
+        return [
+            'min' => $min,
+            'max' => $max,
+            'avg' => ($min + $max) / 2,
+        ];
+    }
+
+    /**
+     * Zwraca czytelny tekst opisujący główne statystyki wpływające na tę umiejętność.
+     */
+    public function getStatInfluenceText(Character $character): string
+    {
+        $weaponType = $this->getEffectiveWeaponType($character);
+
+        return match ($weaponType) {
+            'wand' => 'Inteligencja (INT) [+3 Atak/PKT], Poziom Postaci i Atak Magiczny Broni.',
+            'bell' => 'Siła (STR) i Inteligencja (INT) [+1.5 Atak/PKT], Poziom Postaci i Broń.',
+            'axe' => 'Siła (STR) [+3 Atak/PKT], Poziom Postaci i Broń.',
+            'sword', 'bow', 'dagger' => 'Siła (STR) i Zręczność (AGI) [+1.5 Atak/PKT], Poziom Postaci i Broń.',
+            default => 'Siła (STR) [+2 Atak/PKT], Poziom Postaci i Broń.',
+        };
+    }
 }

@@ -23,13 +23,6 @@
         </div>
     @else
         @php
-            // Character base attack parameters for simulations
-            $totalStr = $character->getTotalAttributes()['str'] ?? 1;
-            $eqStats = $character->getEquipmentStats();
-            
-            $baseMin = 10 + ($totalStr * 2) + ($character->level * 1) + ($eqStats['attack_min'] ?? 0);
-            $baseMax = 10 + ($totalStr * 2) + ($character->level * 1) + ($eqStats['attack_max'] ?? 0);
-            $baseAvg = ($baseMin + $baseMax) / 2;
             $simMobHp = max(100, $character->level * 150);
         @endphp
 
@@ -40,6 +33,13 @@
                     $isActive = $characterSkill->is_equipped;
                     $level = $characterSkill->level;
                     $currentValue = $skill->base_value + ($skill->scaling_value * ($level - 1));
+
+                    // Base damage range and stat influence computed specifically for this skill
+                    $baseDamageRange = $skill->getBaseDamageRange($character);
+                    $baseMin = $baseDamageRange['min'];
+                    $baseMax = $baseDamageRange['max'];
+                    $baseAvg = $baseDamageRange['avg'];
+                    $statInfluenceText = $skill->getStatInfluenceText($character);
 
                     // Weapon requirement mapping
                     $weaponName = 'Wszystkie Bronie';
@@ -54,30 +54,25 @@
                     // Effect formatting
                     $effectTitle = 'Obrażenia';
                     $effectValueText = '';
-                    $statInfluenceText = 'Siła (STR) [+2 Atak/PKT], Poziom i Broń.';
 
-                    if (in_array($skill->effect_type, ['direct_dmg', 'direct'])) {
-                        $effectTitle = 'Obrażenia Bezpośrednie';
+                    if (in_array($skill->effect_type, ['direct_dmg', 'direct', 'aoe_dmg'])) {
+                        $effectTitle = 'Obrażenia Direct/AOE';
                         $effectValueText = round($currentValue * 100) . '% Obrażeń Broni';
-                        $statInfluenceText = 'Siła (STR) [+2 Atak/PKT], Poziom Postaci i Broń.';
                     } elseif (in_array($skill->effect_type, ['buff_phys_dmg', 'buff_damage'])) {
-                        $effectTitle = 'Wzmocnienie Fizyczne';
+                        $effectTitle = 'Wzmocnienie Obrażeń';
                         $effectValueText = '+' . round($currentValue * 100) . '% Obrażeń';
-                        $statInfluenceText = 'Siła (STR), Poziom Postaci i Broń.';
                     } elseif (in_array($skill->effect_type, ['fire', 'dot_fire'])) {
                         $effectTitle = 'Podpalenie';
                         $effectValueText = number_format($currentValue * 100, 1) . '% Max HP / Turę';
-                        $statInfluenceText = 'Poziom Skilla i Max HP Przeciwnika.';
                     } elseif (in_array($skill->effect_type, ['poison', 'dot_poison'])) {
                         $effectTitle = 'Trucizna';
                         $effectValueText = number_format($currentValue * 100, 1) . '% Akt. HP / Turę';
-                        $statInfluenceText = 'Poziom Skilla i Akt. HP Przeciwnika.';
                     } else {
                         $effectTitle = 'Moc';
                         $effectValueText = round($currentValue * 100) . '%';
                     }
 
-                    // Damage Simulations based on current stat values
+                    // Damage Simulations based on skill base damage calculation
                     $simMinDamage = round($baseMin * $currentValue);
                     $simMaxDamage = round($baseMax * $currentValue);
                     $simAvgDamage = round($baseAvg * $currentValue);
