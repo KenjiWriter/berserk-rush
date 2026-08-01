@@ -66,9 +66,7 @@ class DungeonSeeder extends Seeder
                 'min_level' => 12,
                 'key_id' => '01k4jpx94j70x2vv10b835key1',
                 'boss_loot' => [
-                    // Eggs: ~35% chance for common, rare 5%
-                    ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
-                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
+                    // Brak lootu chowańców - pety wypadają wyłącznie z lochów 50 lvl+.
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
@@ -103,9 +101,7 @@ class DungeonSeeder extends Seeder
                 'min_level' => 30,
                 'key_id' => '01k4jpx94j70x2vv10b835key2',
                 'boss_loot' => [
-                    // Eggs: ~42% overall chance
-                    ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 280],
-                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
+                    // Brak lootu chowańców - pety wypadają wyłącznie z lochów 50 lvl+.
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
@@ -141,10 +137,11 @@ class DungeonSeeder extends Seeder
                 'min_level' => 50,
                 'key_id' => '01k4jpx94j70x2vv10b835key3',
                 'boss_loot' => [
-                    // Eggs: ~50% total drop chance
-                    ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
-                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 250],
-                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
+                    // Wejściowy loch z lootem chowańców (50 lvl+): T3-T5 jajka + podstawowa obroża.
+                    ['reward_type' => 'item', 'ref_name' => 'Nietypowe Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
+                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
+                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 60],
+                    ['reward_type' => 'item', 'ref_name' => 'Skórzana Obroża', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 80],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 80],
@@ -184,10 +181,12 @@ class DungeonSeeder extends Seeder
                 'min_level' => 70,
                 'key_id' => '01k4jpx94j70x2vv10b835key4',
                 'boss_loot' => [
-                    // Eggs: ~58% total drop chance
-                    ['reward_type' => 'item', 'ref_name' => 'Zwykłe Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 100],
-                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
-                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 130],
+                    // Loch środkowego poziomu: T4-T6 jajka (mała szansa na Legendarne!) + lepszy ekwipunek peta.
+                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 300],
+                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 250],
+                    ['reward_type' => 'item', 'ref_name' => 'Legendarne Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
+                    ['reward_type' => 'item', 'ref_name' => 'Posrebrzana Obroża', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
+                    ['reward_type' => 'item', 'ref_name' => 'Amulet Feralnej Mocy', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
@@ -227,9 +226,11 @@ class DungeonSeeder extends Seeder
                 'min_level' => 88,
                 'key_id' => '01k4jpx94j70x2vv10b835key5',
                 'boss_loot' => [
-                    // Eggs: ~65% total drop chance, high Epic chance
-                    ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
-                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajo Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 300],
+                    // Najlepszy loot chowańców w grze: głównie T5, spora szansa na T6 Legendarne + rzadki ekwipunek.
+                    ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
+                    ['reward_type' => 'item', 'ref_name' => 'Legendarne Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
+                    ['reward_type' => 'item', 'ref_name' => 'Amulet Feralnej Mocy', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 70],
+                    ['reward_type' => 'item', 'ref_name' => 'Sakwa Chowańców', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],

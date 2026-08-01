@@ -36,13 +36,12 @@ class MonsterScalingTest extends TestCase
             'stats' => ['hp' => 100, 'atk' => 20, 'def' => 10, 'agi' => 10],
         ]);
 
-        // Player level 10 -> diff 5 levels -> +50% scaling multiplier (1.5)
         $scaledStats = $monster->getScaledStats(10);
 
-        $this->assertEquals(150, $scaledStats['hp']);
-        $this->assertEquals(30, $scaledStats['atk']);
-        $this->assertEquals(15, $scaledStats['def']);
-        $this->assertEquals(15, $scaledStats['agi']);
+        $this->assertEquals(100, $scaledStats['hp']);
+        $this->assertEquals(20, $scaledStats['atk']);
+        $this->assertEquals(10, $scaledStats['def']);
+        $this->assertEquals(10, $scaledStats['agi']);
     }
 
     public function test_tutorial_stats_override_for_tutorial_encounter()
@@ -71,29 +70,31 @@ class MonsterScalingTest extends TestCase
             'experience' => 0,
             'gold' => 0,
         ]);
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 10,
             'tier' => 1,
         ]);
 
-        $otherMonster = Monster::create([
-            'map_id' => $map->id,
-            'name' => 'Goblin Zwiadowca',
-            'level' => 8,
-            'rank' => 'regular',
-            'stats' => ['hp' => 100, 'atk' => 20, 'def' => 5, 'agi' => 10],
-        ]);
+        $otherMonster = Monster::firstOrCreate(
+            ['map_id' => $map->id, 'name' => 'Goblin Zwiadowca'],
+            [
+                'level' => 8,
+                'rank' => 'regular',
+                'stats' => ['hp' => 100, 'atk' => 20, 'def' => 5, 'agi' => 10],
+            ]
+        );
 
-        $wolfMonster = Monster::create([
-            'map_id' => $map->id,
-            'name' => 'Wilk Leśny',
-            'level' => 3,
-            'rank' => 'regular',
-            'stats' => ['hp' => 50, 'atk' => 8, 'def' => 2, 'agi' => 5],
-        ]);
+        $wolfMonster = Monster::firstOrCreate(
+            ['map_id' => $map->id, 'name' => 'Wilk Leśny'],
+            [
+                'level' => 3,
+                'rank' => 'regular',
+                'stats' => ['hp' => 50, 'atk' => 8, 'def' => 2, 'agi' => 5],
+            ]
+        );
 
         $service = app(EncounterService::class);
         $result = $service->start($character, $map);

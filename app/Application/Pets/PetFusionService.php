@@ -16,6 +16,7 @@ class PetFusionService
     public function __construct(
         private RandomProvider $rng,
         private PetStatCalculator $statCalculator,
+        private PetSpeciesPicker $speciesPicker,
     ) {
     }
 
@@ -76,9 +77,10 @@ class PetFusionService
             }
 
             $statProfile = $this->statCalculator->rollStatProfile();
+            [$name, $icon] = $this->speciesPicker->pick($resultTier);
             $newPet = new Pet([
                 'character_id' => $character->id,
-                'name' => $this->fusedPetName($petA, $petB),
+                'name' => $name,
                 'tier' => $resultTier,
                 'stat_profile' => $statProfile,
                 'level' => 1,
@@ -86,7 +88,7 @@ class PetFusionService
                 'growth_stage' => 0,
                 'fusion_count' => $fusionCount,
                 'is_equipped' => false,
-                'icon' => $petA->icon,
+                'icon' => $icon,
             ]);
             $newPet->recalculateStats();
             $newPet->save();
@@ -100,10 +102,5 @@ class PetFusionService
                 'chance' => $chance,
             ]);
         });
-    }
-
-    private function fusedPetName(Pet $petA, Pet $petB): string
-    {
-        return $petA->name ?: ($petB->name ?: 'Zlany Chowaniec');
     }
 }

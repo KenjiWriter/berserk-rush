@@ -84,6 +84,8 @@ test('placing egg from stack into incubator splits off 1 egg and retains remaini
         'id' => 'egg-rare-test-2',
         'name' => 'Rzadkie Jajo Chowańca',
         'type' => 'egg',
+        'sub_type' => 'rare',
+        'egg_tier' => 2,
         'level_requirement' => 10,
     ]);
 
@@ -96,7 +98,7 @@ test('placing egg from stack into incubator splits off 1 egg and retains remaini
         'rarity' => 'rare',
     ]);
 
-    $service = new IncubatorService();
+    $service = app(IncubatorService::class);
     $result = $service->placeEgg($character, $eggStack->id);
 
     expect($result->isOk())->toBeTrue();

@@ -80,9 +80,13 @@ class Pet extends Model
      */
     public function recalculateStats(): void
     {
-        $this->growth_stage = PetGrowthStage::forLevel($this->level);
+        $this->growth_stage = PetGrowthStage::forLevel((int) $this->level);
 
-        $pool = PetStatCalculator::totalPool($this->tier, $this->level, $this->fusion_count);
+        // Domyślne 0, gdyby peta stworzono (np. z przyszłego kodu) bez jawnego
+        // ustawienia tych pól - patrz historia buga w GlobalChatComponent::handleGiveCommand().
+        $fusionCount = (int) ($this->fusion_count ?? 0);
+
+        $pool = PetStatCalculator::totalPool((int) $this->tier, (int) $this->level, $fusionCount);
         $this->stats = PetStatCalculator::distribute($pool, $this->stat_profile);
     }
 

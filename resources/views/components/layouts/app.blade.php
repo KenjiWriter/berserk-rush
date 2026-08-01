@@ -109,10 +109,8 @@
                         if (window.innerWidth < 640) return;
                         if (event && event.relatedTarget) {
                             const tooltipEl = this.$refs.tooltipContainer;
-                            const movingIntoTooltip = (tooltipEl && tooltipEl.contains(event.relatedTarget)) ||
-                                                      (event.relatedTarget.closest && event.relatedTarget.closest('[data-tooltip-container]'));
-                            const movingIntoTrigger = (this.$el && this.$el.contains(event.relatedTarget)) ||
-                                                      (event.relatedTarget.closest && event.relatedTarget.closest('.smart-tooltip-trigger'));
+                            const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
+                            const movingIntoTrigger = this.$el && this.$el.contains(event.relatedTarget);
                             const movingIntoSubTooltip = event.relatedTarget.closest && event.relatedTarget.closest('[data-item-tooltip]');
                             if (movingIntoTooltip || movingIntoTrigger || movingIntoSubTooltip) { return; }
                         }

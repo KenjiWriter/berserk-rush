@@ -576,12 +576,17 @@ class GlobalChatComponent extends Component
                 return;
             }
             
-            $pet = \App\Infrastructure\Persistence\Pet::create([
+            $statCalculator = app(\App\Domain\Pets\PetStatCalculator::class);
+
+            $pet = new \App\Infrastructure\Persistence\Pet([
                 'character_id' => $character->id,
                 'name' => $petTemplate->name,
                 'tier' => $petTemplate->tier ?? 1,
+                'stat_profile' => $statCalculator->rollStatProfile(),
                 'level' => 1,
                 'exp' => 0,
+                'growth_stage' => 0,
+                'fusion_count' => 0,
                 'is_equipped' => false,
                 'icon' => $petTemplate->icon,
             ]);

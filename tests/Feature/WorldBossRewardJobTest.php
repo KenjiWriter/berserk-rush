@@ -48,7 +48,10 @@ class WorldBossRewardJobTest extends TestCase
 
     private function seedWorldBossMonsters(): void
     {
-        $map = Map::create(['name' => 'Test Map', 'level_min' => 0, 'level_max' => 99]);
+        $map = Map::firstOrCreate(
+            ['name' => 'Test Map'],
+            ['level_min' => 0, 'level_max' => 99]
+        );
 
         foreach (WorldBossService::BRACKET_POOLS as $names) {
             foreach ($names as $name) {
@@ -293,7 +296,10 @@ class WorldBossRewardJobTest extends TestCase
     {
         // High bracket is 65-99. Map 'Wieża Magów' has level_min 75, level_max 85.
         // A character of level 66 is in 'high' bracket (65-99) and should be allowed to attack Arcymag.
-        $map = Map::create(['name' => 'Wieża Magów', 'level_min' => 75, 'level_max' => 85]);
+        $map = Map::firstOrCreate(
+            ['name' => 'Wieża Magów'],
+            ['level_min' => 75, 'level_max' => 85]
+        );
         $monster = Monster::create([
             'map_id' => $map->id,
             'name' => 'Arcymag',

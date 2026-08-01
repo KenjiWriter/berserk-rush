@@ -22,26 +22,26 @@ class WeaponAttackScalingTest extends TestCase
             ]
         ]);
 
-        // Axe: STR * 2 = 10 * 2 = 20
-        $this->assertEquals(20, $character->getAttributeAttackBonus('axe'));
+        // Axe: (STR * 2) * 1.5 = (10 * 2) * 1.5 = 30
+        $this->assertEquals(30, $character->getAttributeAttackBonus('axe'));
 
-        // Bow: STR + AGI = 10 + 15 = 25
-        $this->assertEquals(25, $character->getAttributeAttackBonus('bow'));
+        // Bow: (STR + AGI) * 1.5 = (10 + 15) * 1.5 = 38
+        $this->assertEquals(38, $character->getAttributeAttackBonus('bow'));
 
-        // Sword: STR + AGI = 10 + 15 = 25
-        $this->assertEquals(25, $character->getAttributeAttackBonus('sword'));
+        // Sword: (STR + AGI) * 1.5 = (10 + 15) * 1.5 = 38
+        $this->assertEquals(38, $character->getAttributeAttackBonus('sword'));
 
-        // Dagger: STR + AGI = 10 + 15 = 25
-        $this->assertEquals(25, $character->getAttributeAttackBonus('dagger'));
+        // Dagger: (STR + AGI) * 1.5 = (10 + 15) * 1.5 = 38
+        $this->assertEquals(38, $character->getAttributeAttackBonus('dagger'));
 
-        // Bell: STR + INT = 10 + 20 = 30
-        $this->assertEquals(30, $character->getAttributeAttackBonus('bell'));
+        // Bell: (STR + INT) * 1.5 = (10 + 20) * 1.5 = 45
+        $this->assertEquals(45, $character->getAttributeAttackBonus('bell'));
 
-        // Wand: INT * 2 = 20 * 2 = 40
-        $this->assertEquals(40, $character->getAttributeAttackBonus('wand'));
+        // Wand: (INT * 2) * 1.5 = (20 * 2) * 1.5 = 60
+        $this->assertEquals(60, $character->getAttributeAttackBonus('wand'));
 
-        // Default / Barehands: STR * 2 = 10 * 2 = 20
-        $this->assertEquals(20, $character->getAttributeAttackBonus('barehands'));
+        // Default / Barehands: (STR * 2) * 1.5 = (10 * 2) * 1.5 = 30
+        $this->assertEquals(30, $character->getAttributeAttackBonus('barehands'));
     }
 
     public function test_profile_renders_highlighted_scaling_stats(): void

@@ -34,6 +34,14 @@ class MonsterSeeder extends Seeder
         $monstersByMap = [
             'Mroczny Las' => [
                 [
+                    'name' => 'Widmowy Leśny Niedźwiedź',
+                    'type' => 'animal',
+                    'level' => 11,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 240, 'atk' => 30, 'def' => 6, 'agi' => 5, 'int' => 4, 'crit' => 0.20, 'dodge' => 0.08],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Wilk Leśny',
                     'type' => 'animal',
                     'level' => 3,
@@ -99,6 +107,14 @@ class MonsterSeeder extends Seeder
                 ]
             ],
             'Stare Ruiny' => [
+                [
+                    'name' => 'Starożytny Golem Kamienny',
+                    'type' => 'mystical',
+                    'level' => 25,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 480, 'atk' => 68, 'def' => 18, 'agi' => 4, 'int' => 6, 'crit' => 0.15, 'dodge' => 0.05],
+                    'abilities' => []
+                ],
                 [
                     'name' => 'Szkielet Wojownik',
                     'type' => 'undead',
@@ -166,6 +182,14 @@ class MonsterSeeder extends Seeder
             ],
             'Jaskinia Trolli' => [
                 [
+                    'name' => 'Mroczny Władca Trolli',
+                    'type' => 'troll',
+                    'level' => 36,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 880, 'atk' => 125, 'def' => 32, 'agi' => 6, 'int' => 8, 'crit' => 0.20, 'dodge' => 0.06],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Troll Paskudnik',
                     'type' => 'troll',
                     'level' => 26,
@@ -231,6 +255,14 @@ class MonsterSeeder extends Seeder
                 ]
             ],
             'Pustkowia Orków' => [
+                [
+                    'name' => 'Wojownik Cienia Orków',
+                    'type' => 'orc',
+                    'level' => 49,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 1450, 'atk' => 200, 'def' => 48, 'agi' => 10, 'int' => 10, 'crit' => 0.22, 'dodge' => 0.08],
+                    'abilities' => []
+                ],
                 [
                     'name' => 'Orczy Zwiad',
                     'type' => 'orc',
@@ -298,6 +330,14 @@ class MonsterSeeder extends Seeder
             ],
             'Bagna Grozy' => [
                 [
+                    'name' => 'Bagnisty Behemot Cienia',
+                    'type' => 'demon',
+                    'level' => 66,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 2250, 'atk' => 285, 'def' => 68, 'agi' => 12, 'int' => 15, 'crit' => 0.25, 'dodge' => 0.08],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Topielec',
                     'type' => 'undead',
                     'level' => 52,
@@ -363,6 +403,14 @@ class MonsterSeeder extends Seeder
                 ]
             ],
             'Góry Cienia' => [
+                [
+                    'name' => 'Wyvern Cienistego Szczytu',
+                    'type' => 'mystical',
+                    'level' => 76,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 3300, 'atk' => 395, 'def' => 92, 'agi' => 16, 'int' => 20, 'crit' => 0.28, 'dodge' => 0.10],
+                    'abilities' => []
+                ],
                 [
                     'name' => 'Wilk Cienia',
                     'type' => 'animal',
@@ -430,6 +478,14 @@ class MonsterSeeder extends Seeder
             ],
             'Wieża Magów' => [
                 [
+                    'name' => 'Arcymag Pustki i Arkanów',
+                    'type' => 'mystical',
+                    'level' => 86,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 4500, 'atk' => 530, 'def' => 112, 'agi' => 18, 'int' => 45, 'crit' => 0.30, 'dodge' => 0.12],
+                    'abilities' => []
+                ],
+                [
                     'name' => 'Adepci Run',
                     'type' => 'mystical',
                     'level' => 76,
@@ -495,6 +551,14 @@ class MonsterSeeder extends Seeder
                 ]
             ],
             'Skażone Miasto' => [
+                [
+                    'name' => 'Władca Skażenia i Plagi',
+                    'type' => 'demon',
+                    'level' => 99,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 6300, 'atk' => 690, 'def' => 142, 'agi' => 22, 'int' => 50, 'crit' => 0.32, 'dodge' => 0.12],
+                    'abilities' => []
+                ],
                 [
                     'name' => 'Zmutowany Nieumarły',
                     'type' => 'undead',

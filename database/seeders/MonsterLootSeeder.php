@@ -18,6 +18,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Mroczne Zioło', 'Magiczny Mech', 'Słaby Kryształ Many'],
                 'boss_general' => ['Kawałek Poroża'],
                 'monsters' => [
+                    'Widmowy Leśny Niedźwiedź' => [
+                        'materials' => ["Mroczne Zioło","Magiczny Mech","Słaby Kryształ Many","Kawałek Poroża","Wilczy Kieł","Błona Skrzydła","Prastara Kora","Gobliński Sztylet"],
+                        'items' => ["Sztylety z Kości Wilka","Pancerz z Wilczej Skóry","Maska z Czaszki Wilka","Miękkie Mokasyny","Płaszcz Liściastego Skrytobójcy","Dzwon Leśnego Szamana","Łuk z Pnia Suchodrzewu","Kostur z Serca Suchodrzewu","Zbroja z Twardej Kory","Hełm Leśnego Strażnika","Buty Tropiącego","Miecz Leśnego Goblina","Zatrute Sztylety Goblina","Topór Drwala z Mrocznego Lasu","Wzmocniony Hełm Strażnika","Ostrze Króla Lasu","Amulet Prastarego Dębu","Pierścień Wędrowca"]
+                    ],
                     'Wilk Leśny' => [
                         'materials' => ['Wilczy Kieł'],
                         'items' => ['Sztylety z Kości Wilka', 'Pancerz z Wilczej Skóry']
@@ -67,6 +71,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Pył Grobowy', 'Zardzewiała Moneta', 'Odłamek Ruin'],
                 'boss_general' => ['Przeklęty Onyks'],
                 'monsters' => [
+                    'Starożytny Golem Kamienny' => [
+                        'materials' => ["Pył Grobowy","Zardzewiała Moneta","Odłamek Ruin","Przeklęty Onyks","Strzaskana Kość","Ektoplazma","Zardzewiały Grot","Fragment Całunu"],
+                        'items' => ["Zardzewiały Miecz Szkieletu","Zardzewiały Hełm Rycerza","Różdżka Potępionych Dusz","Kaptur Zjaw","Kolczuga Strażnika Ruin","Maska Beztwarzowego Ducha","Skórznia Z Grobowca","Cmentarne Buty","Łuk z Kości Zjaw","Buty Mgły","Ząbkowany Topór Upiora","Żelazne Sabatony","Dzwon Pokutny","Naszyjnik z Zimnej Stali","Zbutwiała Szata Licza","Pierścień Wiecznego Żalu","Sztylety Skrytobójcy Dusz"]
+                    ],
                     'Szkielet Wojownik' => [
                         'materials' => ['Strzaskana Kość'],
                         'items' => ['Zardzewiały Miecz Szkieletu', 'Zardzewiały Hełm Rycerza']
@@ -114,6 +122,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Ruda Żelaza', 'Błyszczący Grzyb', 'Śluz Jaskiniowy'],
                 'boss_general' => ['Odłamek Skarbu'],
                 'monsters' => [
+                    'Mroczny Władca Trolli' => [
+                        'materials' => ["Trolla Skóra","Kieł Trolla","Pustynna Ruda Żelaza","Gęsty Śluz","Pęd Pełzacza","Szamański Totem","Kość Ogra","Prastara Runa Głębin"],
+                        'items' => ["Maczuga Trolla Paskudnika","Zbroja z Grubej Skóry Trolla","Pancerz z Pancerza Pełzacza","Różdżka Mrocznej Jaskini","Szamański Dzwon Trolla","Szata Trolla Szamana","Wielki Topór Ogra","Kask z Prastarej Stali","Łuk z Kości Ogra","Płaszcz Nocnego Łowcy","Miecz ze Stali Trolli","Pierścień Siły Trolla","Tarcza Starożytnego Ogra","Sygnet Podziemi","Amulet Ogrzej Krwi"]
+                    ],
                     'Troll Paskudnik' => [
                         'materials' => ['Gruba Skóra Trolla'],
                         'items' => ['Gruboskórny Pancerz Trolla', 'Masywne Buciska']
@@ -158,6 +170,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Skóra Pustynna', 'Wyschnięty Krzew', 'Kamień Szlifierski'],
                 'boss_general' => ['Szczątki Pancerza'],
                 'monsters' => [
+                    'Wojownik Cienia Orków' => [
+                        'materials' => ["Orczy Kieł","Symbol Watahy","Ruda Stali Orków","Kolcowy Pancerz Skorpiona","Skorpionowy Jad","Tymiankowy Susz","Runiczny Kamień Orków","Czaszka Wodza Orków"],
+                        'items' => ["Miecz Orczego Zwiadowcy","Lekka Kolczuga Pustkowi","Sztylety Skorpionowego Kła","Pancerz z Łusek Skorpiona","Topór Orczego Berserkera","Rozpruwacz z Pustkowi","Ciężki Pancerz Orków","Maska Berserkera","Kostur Szamana Krwi","Szata Szamana Orków","Wielki Topór Dowódca Watahy","Zbroja Płytowa Watahy","Miecz Niszczyciela Pustkowi","Naszyjnik z Kłów Orka","Pierścień Pustynnego Wiatru","Amulet Wodza Orków"]
+                    ],
                     'Orczy Zwiad' => [
                         'materials' => ['Złamany Kieł Orka'],
                         'items' => ['Łuk Krwawego Zwiadu', 'Buty Burzy Piaskowej']
@@ -199,6 +215,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Bagienne Zioło', 'Mętna Woda', 'Toksyczny Śluz'],
                 'boss_general' => ['Skamieniały Torf'],
                 'monsters' => [
+                    'Bagnisty Behemot Cienia' => [
+                        'materials' => ["Bagienne Zioło","Mętna Woda","Toksyczny Śluz","Skamieniały Torf","Zgniłe Mięso","Wiedźmi Amulet","Błotnisty Korzeń","Łuska Hydry"],
+                        'items' => ["Zbutwiały Topór Topielca","Mokre Buty Bagienne","Skórznia Żmijowa","Maska z Błota","Różdżka Wiedźmiej Straży","Kaptur Wiedźmy Zgnilizny","Łuk z Wierzby Płaczącej","Szata Tkana z Zielska","Dzwon Utopców","Buty Bagiennej Mgły","Ostrze z Zęba Hydry","Pancerz z Łusek Hydry","Zatrute Kły Hydry","Pierścień Zgniłego Mchu","Podeszwy Bezdźwięku","Zardzewiały Hełm z Głębin","Naszyjnik z Oka Hydry"]
+                    ],
                     'Topielec' => [
                         'materials' => ['Zgniłe Mięso'],
                         'items' => ['Zbutwiały Topór Topielca', 'Mokre Buty Bagienne']
@@ -240,6 +260,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Kryształ Cienia', 'Górska Ruda Miedzi'],
                 'boss_general' => ['Popiół Wulkaniczny'],
                 'monsters' => [
+                    'Wyvern Cienistego Szczytu' => [
+                        'materials' => ["Kryształ Cienia","Górska Ruda Miedzi","Popiół Wulkaniczny","Mroczne Futro","Pióro Harpii","Odłamek Bazaltu","Zniszczona Księga Magii","Łuska Smoka Cienia"],
+                        'items' => ["Płaszcz Górskiego Cienia","Maska Nocnego Drapieżnika","Łuk z Piór Harpii","Buty Sokolnika","Miecz Wykuty z Bazaltu","Pancerz Skalnego Golema","Ciężkie Kamienne Buty","Szata z Piór Harpii","Trzewiki Górskiego Wiatru","Topór Kamiennego Golema","Hełm z Czarnego Bazaltu","Różdżka z Górskiego Kryształu","Dzwon Górskiego Echa","Kaptur Burzowych Chmur","Sztylety Skalnego Kła","Pierścień Czarnego Kryształu","Piekielny Miecz Smoka","Topór Smoczego Gniewu","Smoczy Łuk","Pancerz ze Smoczych Łusek","Amulet Smoczego Oka"]
+                    ],
                     'Wilk Cienia' => [
                         'materials' => ['Mroczne Futro'],
                         'items' => ['Płaszcz Górskiego Cienia', 'Maska Nocnego Drapieżnika']
@@ -280,6 +304,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Eteryczny Pył', 'Czysta Mana', 'Czysty Pergamin'],
                 'boss_general' => ['Odłamek Kostura Arcymaga'],
                 'monsters' => [
+                    'Arcymag Pustki i Arkanów' => [
+                        'materials' => ["Eteryczny Pył","Czysta Mana","Czysty Pergamin","Odłamek Kostura Arcymaga","Runiczny Kamień","Magiczny Rdzeń","Żar Płomieni","Szkło Iluzji"],
+                        'items' => ["Kaptur Arcymaga","Buty Lewitacji","Miecz Runicznego Gwardzisty","Buty Żywiołaka Płomieni","Hełm Strażnika Arkanów","Zbroja Runiczna","Topór Magicznego Płomienia","Dzwon Oddechu Smoka","Sztylety z Czystej Energii","Skórznia Nasączona Magią","Dzwon Mistrza Iluzji","Szata Mistrza Iluzji","Maska Niewidzialności","Łuk z Eterycznej Energii","Naszyjnik Runicznej Energii","Kostur Arcymaga","Różdżka Smoczej Łuski","Pierścień Absolutu"]
+                    ],
                     'Adepci Run' => [
                         'materials' => ['Runiczny Kamień'],
                         'items' => ['Kaptur Arcymaga', 'Buty Lewitacji']
@@ -320,6 +348,10 @@ class MonsterLootSeeder extends Seeder
                 'general' => ['Skażony Metal', 'Popioły Miasta'],
                 'boss_general' => ['Czarny Kamień Dusz'],
                 'monsters' => [
+                    'Władca Skażenia i Plagi' => [
+                        'materials' => ["Skażony Metal","Popioły Miasta","Czarny Kamień Dusz","Skażona Kość","Przeklęta Stal","Fiolka Zgnilizny","Jad Pająka Plagi","Esencja Zniszczenia"],
+                        'items' => ["Hełm Rycerza Skazy","Buty Zgnilizny","Ostrze Skażonego Rycerza","Pancerz Skażonej Stali","Topór Czarownicy Zgnilizny","Kaptur Pająka Plagi","Rozdzieracz Światów","Pancerz Absolutnego Chaosu","Łuk Tkany z Pajęczyny Plagi","Sztylety Jadu Pająka Plagi","Miecz Pana Zniszczenia","Korona Pana Zniszczenia","Dzwon Ostatniego Tchnienia","Szata Mrocznej Pustki","Łuk Apokalipsy","Serce Pana Zniszczenia","Sygnet Apokalipsy","Sztylety Ostatecznego Zniszczenia"]
+                    ],
                     'Zmutowany Nieumarły' => [
                         'materials' => ['Skażona Kość'],
                         'items' => ['Hełm Rycerza Skazy', 'Buty Zgnilizny']

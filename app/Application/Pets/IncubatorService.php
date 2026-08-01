@@ -9,7 +9,6 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterIncubator;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Pet;
-use App\Infrastructure\Persistence\PetTemplate;
 use App\Infrastructure\RNG\RandomProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -19,6 +18,7 @@ class IncubatorService
     public function __construct(
         private RandomProvider $rng,
         private PetStatCalculator $statCalculator,
+        private PetSpeciesPicker $speciesPicker,
     ) {
     }
 
@@ -123,7 +123,7 @@ class IncubatorService
 
             $resultTier = $this->rollHatchTier($eggTier);
             $statProfile = $this->statCalculator->rollStatProfile();
-            [$name, $icon] = $this->pickSpecies($resultTier);
+            [$name, $icon] = $this->speciesPicker->pick($resultTier);
 
             $pet = new Pet([
                 'character_id' => $character->id,
@@ -173,32 +173,5 @@ class IncubatorService
 
         // Fallback (zaokrąglenia w configu) - ostatni tier z rozkładu.
         return (int) array_key_last($distribution);
-    }
-
-    /**
-     * Wybiera nazwę i ikonę dla nowo wyklutego peta z puli gatunków
-     * zdefiniowanych przez admina (`PetTemplate`) dla danego tieru - to co
-     * admin skonfiguruje w panelu "Zarządzanie Zwierzakami" faktycznie
-     * pojawia się przy wykluciu. Jeśli dla tieru nie zdefiniowano żadnego
-     * gatunku, spada na wbudowaną, sparowaną nazwę+ikonę (nigdy osobno
-     * losowanych - stąd brak niedopasowań typu "Golem" z ikoną smoka).
-     */
-    private function pickSpecies(int $tier): array
-    {
-        $template = PetTemplate::where('tier', $tier)->inRandomOrder()->first();
-        if ($template) {
-            return [$template->name, $template->icon ?: 'paw'];
-        }
-
-        $fallback = match ($tier) {
-            6 => ['Złoty Smok', 'dragon'],
-            5 => ['Mroczny Feniks', 'fire'],
-            4 => ['Dziki Tygrys', 'cat'],
-            3 => ['Tajemniczy Golem', 'chess-rook'],
-            2 => ['Szybki Wilk', 'dog'],
-            default => ['Mały Duch', 'ghost'],
-        };
-
-        return $fallback;
     }
 }

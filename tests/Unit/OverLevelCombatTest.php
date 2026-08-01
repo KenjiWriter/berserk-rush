@@ -27,9 +27,9 @@ class OverLevelCombatTest extends TestCase
             'gold' => 0,
         ]);
 
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 15,
             'tier' => 1,
@@ -51,9 +51,9 @@ class OverLevelCombatTest extends TestCase
             'gold' => 0,
         ]);
 
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 15,
             'tier' => 1,
@@ -101,9 +101,9 @@ class OverLevelCombatTest extends TestCase
             'attributes' => ['str' => 50, 'int' => 10, 'vit' => 50, 'agi' => 30],
         ]);
 
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 15,
             'tier' => 1,
@@ -154,9 +154,9 @@ class OverLevelCombatTest extends TestCase
             'attributes' => ['str' => 80, 'int' => 10, 'vit' => 80, 'agi' => 50],
         ]);
 
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 15,
             'tier' => 1,
@@ -216,9 +216,9 @@ class OverLevelCombatTest extends TestCase
             'gold' => 0,
         ]);
 
-        $map = Map::create([
-            'id' => (string) \Illuminate\Support\Str::ulid(),
+        $map = Map::firstOrCreate([
             'name' => 'Mroczny Las',
+        ], [
             'level_min' => 0,
             'level_max' => 15,
             'tier' => 1,

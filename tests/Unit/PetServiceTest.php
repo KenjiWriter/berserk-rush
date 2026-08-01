@@ -82,6 +82,8 @@ class PetServiceTest extends TestCase
 
     public function test_fusion_service_fuses_two_pets_of_same_tier_on_success(): void
     {
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([1]));
+
         $character = $this->createTestCharacter();
         $p1 = $this->makePet($character, 1);
         $p2 = $this->makePet($character, 1);
