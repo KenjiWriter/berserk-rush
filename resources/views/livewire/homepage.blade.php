@@ -201,6 +201,15 @@
         @endguest
 
         @auth
+            @if (session()->has('message'))
+                <div class="mb-6 p-4 bg-amber-900/40 border border-amber-600/60 rounded-lg text-amber-200 text-sm font-semibold flex items-center justify-between shadow-lg">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-amber-400 text-base"></i>
+                        <span>{{ session('message') }}</span>
+                    </div>
+                </div>
+            @endif
+
             {{-- Account bar --}}
             <div class="mb-6 rpg-panel">
                 <div class="flex flex-col lg:flex-row items-center justify-between gap-4 px-5 py-4">
@@ -250,8 +259,15 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                         @foreach ($myCharacters as $index => $character)
-                            <div class="rpg-slot {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'rpg-slot-highlight' : '' }}">
+                            <div class="rpg-slot relative {{ ($shouldHighlightNewCharacter && !$character) || ($shouldHighlightPlayButton && $character) ? 'rpg-slot-highlight' : '' }}">
                                 @if ($character)
+                                    <button type="button" 
+                                            wire:click.prevent.stop="openDeleteModal('{{ $character->id }}')" 
+                                            @click.stop
+                                            class="absolute top-1.5 right-1.5 text-stone-600 hover:text-red-600 transition-colors p-1.5 z-30 rounded hover:bg-red-950/30"
+                                            title="Usuń postać {{ $character->name }}">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
                                     <a href="{{ route('characters.play', $character) }}" @click.prevent="startTeleport('{{ route('characters.play', $character) }}')" class="block h-full p-3">
                                         <div class="flex items-center space-x-2.5 h-full">
                                             <div class="relative flex-shrink-0">
@@ -1019,6 +1035,73 @@
     @auth
         @if(Auth::user()->is_social_setup_pending)
             <livewire:auth.social-setup-modal />
+        @endif
+
+        {{-- Character Deletion Modal --}}
+        @if ($showDeleteModal)
+            <div class="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" wire:click="closeDeleteModal"></div>
+
+                <div class="relative w-full max-w-md bg-stone-900 border-2 border-red-800 rounded-lg shadow-[0_0_40px_rgba(220,38,38,0.3)] p-6 text-stone-100 z-10"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100">
+                    <div class="flex items-center justify-between border-b border-red-900/60 pb-3 mb-4">
+                        <div class="flex items-center gap-2.5 text-red-500 font-bold text-lg medieval-font">
+                            <i class="fa-solid fa-skull-crossbones text-xl"></i>
+                            <span>Usuwanie Postaci</span>
+                        </div>
+                        <button wire:click="closeDeleteModal" class="text-stone-400 hover:text-white transition-colors">
+                            <i class="fa-solid fa-xmark text-xl"></i>
+                        </button>
+                    </div>
+
+                    <div class="mb-4 bg-red-950/50 border border-red-900/60 p-3 rounded text-xs text-red-200 leading-relaxed">
+                        ⚠️ <strong class="text-red-400 font-semibold">UWAGA!</strong> Zamierzasz bezpowrotnie usunąć postać <strong class="text-white select-all">{{ $characterToDeleteName }}</strong>. Wszystkie jej statystyki, ekwipunek i chowańce zostaną utracone.
+                    </div>
+
+                    @if ($deleteErrorMessage)
+                        <div class="mb-4 bg-red-900/70 text-red-100 p-2.5 rounded text-xs border border-red-600 font-semibold flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-sm text-red-300 flex-shrink-0"></i>
+                            <span>{{ $deleteErrorMessage }}</span>
+                        </div>
+                    @endif
+
+                    <form wire:submit.prevent="confirmDeleteCharacter" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-stone-300 mb-1">
+                                Wpisz dokładnie nazwę postaci (<span class="text-amber-400 font-mono select-all">{{ $characterToDeleteName }}</span>):
+                            </label>
+                            <input type="text" 
+                                   wire:model.defer="deleteCharacterNameInput" 
+                                   placeholder="{{ $characterToDeleteName }}" 
+                                   class="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:outline-none focus:border-red-500 shadow-inner"
+                                   required>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-stone-300 mb-1">
+                                Wpisz Twoje hasło do konta:
+                            </label>
+                            <input type="password" 
+                                   wire:model.defer="deleteAccountPasswordInput" 
+                                   placeholder="Hasło do konta" 
+                                   class="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:outline-none focus:border-red-500 shadow-inner"
+                                   required>
+                        </div>
+
+                        <div class="flex items-center justify-end gap-3 pt-3 border-t border-stone-800">
+                            <button type="button" wire:click="closeDeleteModal" class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 text-xs font-bold rounded transition-colors">
+                                Anuluj
+                            </button>
+                            <button type="submit" class="px-4 py-2 bg-red-700 hover:bg-red-600 text-white text-xs font-bold rounded transition-colors flex items-center gap-1.5 shadow-lg">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Usuń Postać</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         @endif
     @endauth
 </div>

@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 class Homepage extends Component
 {
+    // Deletion Modal State
+    public bool $showDeleteModal = false;
+    public ?string $characterToDeleteId = null;
+    public ?string $characterToDeleteName = null;
+    public string $deleteCharacterNameInput = '';
+    public string $deleteAccountPasswordInput = '';
+    public ?string $deleteErrorMessage = null;
+
     #[On('user-logged-in')]
     #[On('tutorial-completed')]
     public function refreshAfterLogin()
@@ -100,5 +108,70 @@ class Homepage extends Component
         } catch (\Throwable $e) {
             return nl2br(e($clean));
         }
+    }
+
+    public function openDeleteModal(string $characterId): void
+    {
+        if (!Auth::check()) {
+            return;
+        }
+
+        $character = Auth::user()->characters()->where('id', $characterId)->first();
+        if (!$character) {
+            return;
+        }
+
+        $this->characterToDeleteId = $character->id;
+        $this->characterToDeleteName = $character->name;
+        $this->deleteCharacterNameInput = '';
+        $this->deleteAccountPasswordInput = '';
+        $this->deleteErrorMessage = null;
+        $this->showDeleteModal = true;
+    }
+
+    public function closeDeleteModal(): void
+    {
+        $this->showDeleteModal = false;
+        $this->characterToDeleteId = null;
+        $this->characterToDeleteName = null;
+        $this->deleteCharacterNameInput = '';
+        $this->deleteAccountPasswordInput = '';
+        $this->deleteErrorMessage = null;
+    }
+
+    public function confirmDeleteCharacter(): void
+    {
+        if (!Auth::check()) {
+            return;
+        }
+
+        $user = Auth::user();
+        $character = $user->characters()->where('id', $this->characterToDeleteId)->first();
+
+        if (!$character) {
+            $this->deleteErrorMessage = 'Nie znaleziono wybranej postaci.';
+            return;
+        }
+
+        if (trim($this->deleteCharacterNameInput) !== $character->name) {
+            $this->deleteErrorMessage = 'Wpisana nazwa postaci jest nieprawidłowa. Musi dokładnie zgadzać się z "' . $character->name . '".';
+            return;
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($this->deleteAccountPasswordInput, $user->password)) {
+            $this->deleteErrorMessage = 'Wprowadzono nieprawidłowe hasło do konta.';
+            return;
+        }
+
+        $characterName = $character->name;
+
+        if (session('active_character') === $character->id) {
+            session()->forget('active_character');
+        }
+
+        $character->delete();
+
+        $this->closeDeleteModal();
+        session()->flash('message', "Postać \"{$characterName}\" została bezpowrotnie usunięta.");
     }
 }
