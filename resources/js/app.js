@@ -15,18 +15,30 @@ function createSmartTooltip() {
         showInfo: false,
         timeout: null,
         tooltipStyle: {},
+        _onCloseAllTooltips: null,
         init() {
+            this._onCloseAllTooltips = () => {
+                clearTimeout(this.timeout);
+                this.showInfo = false;
+            };
+            window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
+
             this.$watch('showInfo', (value) => {
                 if (value) {
                     this.updatePosition();
                 }
             });
         },
+        destroy() {
+            if (this._onCloseAllTooltips) {
+                window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
+            }
+        },
         updatePosition() {
             if (!this.showInfo) return;
             this.$nextTick(() => {
                 const triggerEl = this.$el;
-                const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                const tooltipEl = this.$refs.tooltipContainer || (this.$el && this.$el.querySelector ? this.$el.querySelector('[data-tooltip-container]') : null);
                 if (!triggerEl || !tooltipEl) return;
 
                 const triggerRect = triggerEl.getBoundingClientRect();
@@ -82,11 +94,13 @@ function createSmartTooltip() {
         },
         openTooltip() {
             if (window.innerWidth < 640) return;
+            window.dispatchEvent(new CustomEvent('close-all-tooltips'));
             clearTimeout(this.timeout);
             this.showInfo = true;
             this.updatePosition();
         },
         closeTooltip(event) {
+            if (window.innerWidth < 640) return;
             if (event && event.relatedTarget) {
                 const tooltipEl = this.$refs.tooltipContainer;
                 const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
@@ -100,13 +114,16 @@ function createSmartTooltip() {
             clearTimeout(this.timeout);
             this.timeout = setTimeout(() => {
                 this.showInfo = false;
-            }, 600);
+            }, 120);
         },
         toggleTooltip() {
             clearTimeout(this.timeout);
-            this.showInfo = !this.showInfo;
-            if (this.showInfo) {
+            if (!this.showInfo) {
+                window.dispatchEvent(new CustomEvent('close-all-tooltips'));
+                this.showInfo = true;
                 this.updatePosition();
+            } else {
+                this.showInfo = false;
             }
         }
     };
