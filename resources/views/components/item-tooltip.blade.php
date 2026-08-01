@@ -326,9 +326,19 @@
             @endif
         </div>
         
-        @if(is_object($item) && method_exists($item, 'getCombatPower'))
-            <span class="text-indigo-300 font-bold ml-2 flex items-center gap-1"><i class="fa-solid fa-bolt text-indigo-400"></i> {{ $item->getCombatPower() }}</span>
-        @endif
+        <div class="flex items-center gap-2 shrink-0">
+            @if(is_object($item) && method_exists($item, 'getCombatPower'))
+                <span class="text-indigo-300 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-indigo-400"></i> {{ $item->getCombatPower() }}</span>
+            @endif
+            <button 
+                type="button" 
+                @click="if (typeof showInfo !== 'undefined') showInfo = false; if (typeof open !== 'undefined') open = false;" 
+                class="sm:hidden text-amber-400 hover:text-amber-200 font-bold text-xl leading-none p-1.5 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                title="Zamknij"
+            >
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
+        </div>
     </div>
     
     @if($canCompare)
@@ -621,12 +631,6 @@
                 @endif
             @endif
         </div>
-        <button 
-            type="button" 
-            @click="showInfo = false" 
-            class="sm:hidden text-amber-500 hover:text-amber-300 font-bold text-xl leading-none px-2 py-1 -mr-1 cursor-pointer shrink-0"
-            title="Zamknij"
-        >&times;</button>
     </div>
 
     <!-- Przyciski i akcje wstrzykiwane z zewnątrz -->

@@ -62,6 +62,7 @@
                     timeout: null,
                     tooltipStyle: { ...defaultStyle },
                     _onCloseAllTooltips: null,
+                    _onWindowClick: null,
                     init() {
                         this._onCloseAllTooltips = () => {
                             clearTimeout(this.timeout);
@@ -69,13 +70,33 @@
                         };
                         window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
 
+                        this._onWindowClick = (e) => {
+                            if (!this.showInfo) return;
+                            const tooltipEl = this.getTooltipElement();
+                            const isInsideTooltip = tooltipEl && tooltipEl.contains(e.target);
+                            const isInsideTrigger = this.$el && this.$el.contains(e.target);
+                            if (!isInsideTooltip && !isInsideTrigger) {
+                                this.showInfo = false;
+                            }
+                        };
+
                         this.$watch('showInfo', (value) => {
-                            if (value) { this.updatePosition(); }
+                            if (value) {
+                                this.updatePosition();
+                                setTimeout(() => {
+                                    window.addEventListener('pointerdown', this._onWindowClick);
+                                }, 50);
+                            } else {
+                                window.removeEventListener('pointerdown', this._onWindowClick);
+                            }
                         });
                     },
                     destroy() {
                         if (this._onCloseAllTooltips) {
                             window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
+                        }
+                        if (this._onWindowClick) {
+                            window.removeEventListener('pointerdown', this._onWindowClick);
                         }
                     },
                     getTooltipElement() {
