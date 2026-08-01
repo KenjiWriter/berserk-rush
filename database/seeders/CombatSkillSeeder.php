@@ -848,6 +848,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.03,
                 'required_level' => 10,
                 'unlock_cost' => 5,
+                'icon' => 'soothing-tone.png',
                 'icon' => null,
             ],
             [
@@ -864,6 +865,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.055,
                 'required_level' => 45,
                 'unlock_cost' => 30,
+                'icon' => 'healing-chorus.png',
                 'icon' => null,
             ],
             [
@@ -880,6 +882,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.07,
                 'required_level' => 80,
                 'unlock_cost' => 60,
+                'icon' => 'sacred-renewal-hymn.png',
                 'icon' => null,
             ],
             [
@@ -896,6 +899,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.08,
                 'required_level' => 99,
                 'unlock_cost' => 100,
+                'icon' => 'resurrection-requiem.png',
                 'icon' => null,
             ],
 
@@ -915,6 +919,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.10,
                 'required_level' => 10,
                 'unlock_cost' => 5,
+                'icon' => 'shockwave.png',
                 'icon' => null,
             ],
             [
@@ -931,6 +936,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.10,
                 'required_level' => 10,
                 'unlock_cost' => 5,
+                'icon' => 'double-slash.png',
                 'icon' => null,
             ],
             [
@@ -947,6 +953,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'earthquake.png',
                 'icon' => null,
             ],
             [
@@ -964,6 +971,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.15,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'luminous-circle.png',
                 'icon' => null,
             ],
             [
@@ -980,6 +988,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.25,
                 'required_level' => 99,
                 'unlock_cost' => 80,
+                'icon' => 'blade-doomsday.png',
                 'icon' => null,
             ],
             [
@@ -996,6 +1005,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.25,
                 'required_level' => 99,
                 'unlock_cost' => 100,
+                'icon' => 'destruction-rain.png',
                 'icon' => null,
             ],
 
@@ -1014,6 +1024,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.10,
                 'required_level' => 10,
                 'unlock_cost' => 5,
+                'icon' => 'frost-gust.png',
                 'icon' => null,
             ],
             [
@@ -1029,6 +1040,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.20,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'paralyzing-shot.png',
                 'icon' => null,
             ],
             [
@@ -1044,6 +1056,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.22,
                 'required_level' => 80,
                 'unlock_cost' => 60,
+                'icon' => 'shadow-shackles.png',
                 'icon' => null,
             ],
             [
@@ -1060,6 +1073,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.30,
                 'required_level' => 99,
                 'unlock_cost' => 100,
+                'icon' => 'absolute-zero.png',
                 'icon' => null,
             ],
 
@@ -1077,6 +1091,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.015,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'caustic-venom.png',
                 'icon' => null,
             ],
             [
@@ -1092,6 +1107,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.012,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'burning-impetus.png',
                 'icon' => null,
             ],
 
@@ -1109,6 +1125,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.03,
                 'required_level' => 10,
                 'unlock_cost' => 5,
+                'icon' => 'shield-stance.png',
                 'icon' => null,
             ],
             [
@@ -1124,6 +1141,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.03,
                 'required_level' => 25,
                 'unlock_cost' => 15,
+                'icon' => 'iron-skin.png',
                 'icon' => null,
             ],
             [
@@ -1139,6 +1157,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.035,
                 'required_level' => 45,
                 'unlock_cost' => 30,
+                'icon' => 'swift-evade.png',
                 'icon' => null,
             ],
             [
@@ -1155,6 +1174,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.035,
                 'required_level' => 45,
                 'unlock_cost' => 30,
+                'icon' => 'astral-shield.png',
                 'icon' => null,
             ],
             [
@@ -1171,6 +1191,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.04,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'divine-barrier.png',
                 'icon' => null,
             ],
             [
@@ -1186,6 +1207,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.04,
                 'required_level' => 60,
                 'unlock_cost' => 45,
+                'icon' => 'shadow-stealth.png',
                 'icon' => null,
             ],
             [
@@ -1201,6 +1223,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.05,
                 'required_level' => 80,
                 'unlock_cost' => 60,
+                'icon' => 'stone-stance.png',
                 'icon' => null,
             ],
             [
@@ -1216,6 +1239,7 @@ class CombatSkillSeeder extends Seeder
                 'scaling_value' => 0.06,
                 'required_level' => 99,
                 'unlock_cost' => 100,
+                'icon' => 'unyielding-will.png',
                 'icon' => null,
             ],
         ];
