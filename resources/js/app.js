@@ -11,10 +11,33 @@ document.addEventListener('click', (e) => {
 });
 
 function createSmartTooltip() {
+    const isMobile = window.innerWidth < 768;
+    const defaultStyle = isMobile ? {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        margin: '0',
+        width: 'calc(100vw - 1.5rem)',
+        maxWidth: '380px',
+        maxHeight: '85vh',
+        overflowY: 'auto',
+        zIndex: '10000',
+    } : {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        margin: '0',
+        maxHeight: 'calc(100vh - 24px)',
+        overflowY: 'auto',
+        zIndex: '10000',
+    };
+
     return {
         showInfo: false,
         timeout: null,
-        tooltipStyle: {},
+        tooltipStyle: { ...defaultStyle },
         _onCloseAllTooltips: null,
         init() {
             this._onCloseAllTooltips = () => {
@@ -34,11 +57,32 @@ function createSmartTooltip() {
                 window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
             }
         },
+        getTooltipElement() {
+            if (this.$refs && this.$refs.tooltipContainer) {
+                return this.$refs.tooltipContainer;
+            }
+            if (this.$el) {
+                if (this.$el.querySelector) {
+                    const internal = this.$el.querySelector('[data-tooltip-container]');
+                    if (internal) return internal;
+                }
+                const activeContainers = document.body.querySelectorAll('[data-tooltip-container]');
+                for (let i = 0; i < activeContainers.length; i++) {
+                    if (activeContainers[i].offsetParent !== null || window.getComputedStyle(activeContainers[i]).display !== 'none') {
+                        return activeContainers[i];
+                    }
+                }
+                if (activeContainers.length > 0) {
+                    return activeContainers[activeContainers.length - 1];
+                }
+            }
+            return document.querySelector('[data-tooltip-container]');
+        },
         updatePosition() {
             if (!this.showInfo) return;
 
-            // Mobile screens (< 640px) use fixed center modal layout immediately
-            if (window.innerWidth < 640) {
+            // Mobile/tablet screens (< 768px) use fixed center modal layout immediately
+            if (window.innerWidth < 768) {
                 this.tooltipStyle = {
                     position: 'fixed',
                     top: '50%',
@@ -54,32 +98,27 @@ function createSmartTooltip() {
                 return;
             }
 
-            const doPositioning = () => {
+            const attemptPositioning = (retryCount = 0) => {
                 if (!this.showInfo) return;
                 const triggerEl = this.$el;
-                const tooltipEl = this.$refs.tooltipContainer || (this.$el && this.$el.querySelector ? this.$el.querySelector('[data-tooltip-container]') : null);
+                const tooltipEl = this.getTooltipElement();
                 if (!triggerEl || !tooltipEl) return;
 
                 const triggerRect = triggerEl.getBoundingClientRect();
                 const targetBoxEl = tooltipEl.firstElementChild || tooltipEl;
                 const tooltipRect = targetBoxEl.getBoundingClientRect();
 
-                if (!triggerRect.width || !tooltipRect.width) {
-                    requestAnimationFrame(() => {
-                        if (!this.showInfo) return;
-                        const tBox = tooltipEl.firstElementChild || tooltipEl;
-                        const tRect = tBox.getBoundingClientRect();
-                        const trRect = triggerEl.getBoundingClientRect();
-                        if (!trRect.width || !tRect.width) return;
-                        this._applyDesktopStyle(trRect, tRect);
-                    });
+                if ((!triggerRect.width || !tooltipRect.width) && retryCount < 3) {
+                    requestAnimationFrame(() => attemptPositioning(retryCount + 1));
                     return;
                 }
 
-                this._applyDesktopStyle(triggerRect, tooltipRect);
+                if (triggerRect.width && tooltipRect.width) {
+                    this._applyDesktopStyle(triggerRect, tooltipRect);
+                }
             };
 
-            this.$nextTick(doPositioning);
+            this.$nextTick(() => attemptPositioning(0));
         },
         _applyDesktopStyle(triggerRect, tooltipRect) {
             const minMargin = 12;
@@ -108,16 +147,16 @@ function createSmartTooltip() {
             };
         },
         openTooltip() {
-            if (window.innerWidth < 640) return;
+            if (window.innerWidth < 768) return;
             window.dispatchEvent(new CustomEvent('close-all-tooltips'));
             clearTimeout(this.timeout);
             this.showInfo = true;
             this.updatePosition();
         },
         closeTooltip(event) {
-            if (window.innerWidth < 640) return;
+            if (window.innerWidth < 768) return;
             if (event && event.relatedTarget) {
-                const tooltipEl = this.$refs.tooltipContainer;
+                const tooltipEl = this.getTooltipElement();
                 const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
                 const movingIntoTrigger = this.$el && this.$el.contains(event.relatedTarget);
                 const movingIntoSubTooltip = event.relatedTarget.closest && event.relatedTarget.closest('[data-item-tooltip]');
