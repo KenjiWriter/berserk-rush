@@ -39,6 +39,18 @@
                     @enderror
                 </div>
 
+                <div>
+                    <label class="block text-sm font-medium text-amber-500/80 mb-1 font-serif uppercase tracking-wider">
+                        Kod usunięcia postaci (min. 7 znaków)
+                    </label>
+                    <input type="text" wire:model="deletion_code" required minlength="7" placeholder="np. TajneKod123"
+                           class="w-full bg-slate-800 border @error('deletion_code') border-red-500 @else border-amber-900/50 @enderror text-amber-100 rounded p-2 focus:border-amber-500 focus:ring-1 focus:ring-amber-500 outline-none transition-colors">
+                    <p class="text-xs text-slate-500 mt-1">Służy do bezpiecznego potwierdzania usunięcia postaci z konta.</p>
+                    @error('deletion_code')
+                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
                 <div class="pt-4">
                     <button type="submit" 
                             class="w-full relative overflow-hidden group bg-gradient-to-b from-amber-600 to-amber-800 text-amber-100 font-bold py-3 px-4 rounded shadow-[0_0_15px_rgba(217,119,6,0.3)] hover:shadow-[0_0_25px_rgba(217,119,6,0.5)] transition-all duration-300">

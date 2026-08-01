@@ -17,8 +17,8 @@ class ProfileManagementModal extends Component
     public string $password = '';
     public string $password_confirmation = '';
 
-    // Account deletion field
-    public string $delete_password = '';
+    // Deletion code field
+    public string $deletion_code = '';
 
     public string $successMessage = '';
     public string $errorMessage = '';
@@ -26,6 +26,9 @@ class ProfileManagementModal extends Component
     public function openModal(): void
     {
         $this->resetInputFields();
+        if (Auth::check()) {
+            $this->deletion_code = Auth::user()->deletion_code ?? '';
+        }
         $this->showModal = true;
     }
 
@@ -79,6 +82,23 @@ class ProfileManagementModal extends Component
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
         $this->successMessage = 'Hasło zostało pomyślnie zmienione.';
+    }
+
+    public function updateDeletionCode(): void
+    {
+        $this->validate([
+            'deletion_code' => 'required|string|min:7|max:50',
+        ], [
+            'deletion_code.required' => 'Kod usunięcia postaci jest wymagany.',
+            'deletion_code.min' => 'Kod usunięcia postaci musi mieć co najmniej 7 znaków.',
+            'deletion_code.max' => 'Kod usunięcia postaci może mieć maksymalnie 50 znaków.',
+        ]);
+
+        Auth::user()->update([
+            'deletion_code' => $this->deletion_code,
+        ]);
+
+        $this->successMessage = 'Kod usunięcia postaci został pomyślnie zaktualizowany.';
     }
 
     public function deleteAccount(): void

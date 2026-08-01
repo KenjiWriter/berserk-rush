@@ -14,6 +14,7 @@ class Register extends Component
     public string $email = '';
     public string $password = '';
     public string $password_confirmation = '';
+    public string $deletion_code = '';
     public bool $terms = false;
     public bool $privacy = false;
 
@@ -23,6 +24,7 @@ class Register extends Component
             'name' => 'required|string|max:255|min:3',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => ['required', 'confirmed', Password::defaults()],
+            'deletion_code' => 'required|string|min:7|max:50',
             'terms' => 'accepted',
             'privacy' => 'accepted',
         ];
@@ -37,6 +39,9 @@ class Register extends Component
         'email.unique' => 'Ten email jest już zarejestrowany',
         'password.required' => 'Podaj hasło',
         'password.confirmed' => 'Hasła muszą być identyczne',
+        'deletion_code.required' => 'Podaj kod usunięcia postaci',
+        'deletion_code.min' => 'Kod usunięcia postaci musi mieć co najmniej 7 znaków',
+        'deletion_code.max' => 'Kod usunięcia postaci może mieć maksymalnie 50 znaków',
         'terms.accepted' => 'Musisz zaakceptować regulamin gry',
         'privacy.accepted' => 'Musisz zaakceptować politykę prywatności',
     ];
@@ -61,6 +66,7 @@ class Register extends Component
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
+            'deletion_code' => $validated['deletion_code'],
         ]);
 
         Auth::login($user);

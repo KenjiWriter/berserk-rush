@@ -1081,12 +1081,13 @@
 
                         <div>
                             <label class="block text-xs font-bold text-stone-300 mb-1">
-                                Wpisz Twoje hasło do konta:
+                                Wpisz kod usunięcia postaci (min. 7 znaków):
                             </label>
-                            <input type="password" 
-                                   wire:model.defer="deleteAccountPasswordInput" 
-                                   placeholder="Hasło do konta" 
-                                   class="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:outline-none focus:border-red-500 shadow-inner"
+                            <input type="text" 
+                                   wire:model.defer="deleteCodeInput" 
+                                   placeholder="np. TajneKod123" 
+                                   minlength="7"
+                                   class="w-full bg-stone-950 border border-stone-700 rounded px-3 py-2 text-sm text-stone-100 focus:outline-none focus:border-red-500 shadow-inner font-mono"
                                    required>
                         </div>
 

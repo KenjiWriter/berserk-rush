@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Infrastructure\Persistence\Character;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -13,10 +12,10 @@ class CharacterDeletionTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_user_can_delete_character_with_matching_name_and_password(): void
+    public function test_user_can_delete_character_with_matching_name_and_deletion_code(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('secret-password-123'),
+            'deletion_code' => 'MojeTajne123',
         ]);
 
         $character = Character::create([
@@ -33,7 +32,7 @@ class CharacterDeletionTest extends TestCase
             ->assertSet('showDeleteModal', true)
             ->assertSet('characterToDeleteName', 'WojownikTestowy')
             ->set('deleteCharacterNameInput', 'WojownikTestowy')
-            ->set('deleteAccountPasswordInput', 'secret-password-123')
+            ->set('deleteCodeInput', 'MojeTajne123')
             ->call('confirmDeleteCharacter')
             ->assertSet('showDeleteModal', false);
 
@@ -42,10 +41,10 @@ class CharacterDeletionTest extends TestCase
         ]);
     }
 
-    public function test_character_deletion_fails_if_name_does_not_match(): void
+    public function test_character_deletion_fails_if_deletion_code_is_too_short(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('secret-password-123'),
+            'deletion_code' => 'MojeTajne123',
         ]);
 
         $character = Character::create([
@@ -59,21 +58,21 @@ class CharacterDeletionTest extends TestCase
 
         Livewire::test(\App\Livewire\Homepage::class)
             ->call('openDeleteModal', $character->id)
-            ->set('deleteCharacterNameInput', 'ZlaNazwa')
-            ->set('deleteAccountPasswordInput', 'secret-password-123')
+            ->set('deleteCharacterNameInput', 'BohaterImperium')
+            ->set('deleteCodeInput', '123456') // 6 chars (min 7)
             ->call('confirmDeleteCharacter')
             ->assertSet('showDeleteModal', true)
-            ->assertSee('Wpisana nazwa postaci jest nieprawidłowa');
+            ->assertSee('Kod usunięcia postaci musi mieć co najmniej 7 znaków');
 
         $this->assertDatabaseHas('characters', [
             'id' => $character->id,
         ]);
     }
 
-    public function test_character_deletion_fails_if_password_is_incorrect(): void
+    public function test_character_deletion_fails_if_deletion_code_is_incorrect(): void
     {
         $user = User::factory()->create([
-            'password' => Hash::make('correct-password'),
+            'deletion_code' => 'PrawidlowyKod123',
         ]);
 
         $character = Character::create([
@@ -88,10 +87,10 @@ class CharacterDeletionTest extends TestCase
         Livewire::test(\App\Livewire\Homepage::class)
             ->call('openDeleteModal', $character->id)
             ->set('deleteCharacterNameInput', 'MagMroku')
-            ->set('deleteAccountPasswordInput', 'wrong-password')
+            ->set('deleteCodeInput', 'BlednyKod123')
             ->call('confirmDeleteCharacter')
             ->assertSet('showDeleteModal', true)
-            ->assertSee('Wprowadzono nieprawidłowe hasło');
+            ->assertSee('Wprowadzono nieprawidłowy kod usunięcia');
 
         $this->assertDatabaseHas('characters', [
             'id' => $character->id,

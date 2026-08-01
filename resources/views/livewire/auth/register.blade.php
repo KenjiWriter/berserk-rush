@@ -113,6 +113,20 @@
                                 placeholder="••••••••" autocomplete="new-password">
                         </div>
 
+                        {{-- Character Deletion Code field --}}
+                        <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-830" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0">
+                            <label for="deletion_code" class="block text-sm uppercase tracking-wider font-bold text-slate-400 mb-3 flex items-center gap-2">
+                                <i class="fa-solid fa-key text-amber-500"></i> Kod Usunięcia Postaci (min. 7 znaków)
+                            </label>
+                            <input type="text" id="deletion_code" wire:model.live="deletion_code"
+                                class="w-full px-5 py-4 bg-slate-950/50 border border-slate-700 rounded focus:ring-1 focus:ring-amber-500 focus:border-amber-500 text-amber-100 placeholder-slate-600 transition-all duration-300 text-lg"
+                                placeholder="np. TajneKod123" minlength="7">
+                            <p class="mt-1 text-xs text-slate-500">Kod ten będzie służyć do potwierdzania usunięcia postaci z Twojego konta.</p>
+                            @error('deletion_code')
+                                <p class="mt-2 text-sm text-red-500 font-semibold">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Terms of Service and Privacy Policy checkboxes --}}
                         <div x-show="show" x-transition:enter="transition ease-out duration-500 delay-850" x-transition:enter-start="opacity-0 translate-x-4" x-transition:enter-end="opacity-100 translate-x-0" class="space-y-3 pt-2">
                             <label class="flex items-start gap-3 cursor-pointer text-slate-300 group">

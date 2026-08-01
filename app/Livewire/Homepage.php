@@ -15,7 +15,7 @@ class Homepage extends Component
     public ?string $characterToDeleteId = null;
     public ?string $characterToDeleteName = null;
     public string $deleteCharacterNameInput = '';
-    public string $deleteAccountPasswordInput = '';
+    public string $deleteCodeInput = '';
     public ?string $deleteErrorMessage = null;
 
     #[On('user-logged-in')]
@@ -124,7 +124,7 @@ class Homepage extends Component
         $this->characterToDeleteId = $character->id;
         $this->characterToDeleteName = $character->name;
         $this->deleteCharacterNameInput = '';
-        $this->deleteAccountPasswordInput = '';
+        $this->deleteCodeInput = '';
         $this->deleteErrorMessage = null;
         $this->showDeleteModal = true;
     }
@@ -135,7 +135,7 @@ class Homepage extends Component
         $this->characterToDeleteId = null;
         $this->characterToDeleteName = null;
         $this->deleteCharacterNameInput = '';
-        $this->deleteAccountPasswordInput = '';
+        $this->deleteCodeInput = '';
         $this->deleteErrorMessage = null;
     }
 
@@ -158,8 +158,16 @@ class Homepage extends Component
             return;
         }
 
-        if (!\Illuminate\Support\Facades\Hash::check($this->deleteAccountPasswordInput, $user->password)) {
-            $this->deleteErrorMessage = 'Wprowadzono nieprawidłowe hasło do konta.';
+        $providedCode = trim($this->deleteCodeInput);
+        if (mb_strlen($providedCode) < 7) {
+            $this->deleteErrorMessage = 'Kod usunięcia postaci musi mieć co najmniej 7 znaków.';
+            return;
+        }
+
+        if (empty($user->deletion_code)) {
+            $user->update(['deletion_code' => $providedCode]);
+        } elseif ($providedCode !== $user->deletion_code) {
+            $this->deleteErrorMessage = 'Wprowadzono nieprawidłowy kod usunięcia postaci.';
             return;
         }
 

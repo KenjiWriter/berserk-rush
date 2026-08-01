@@ -38,6 +38,7 @@ class User extends Authenticatable
         'hometown',
         'profile_url',
         'is_social_setup_pending',
+        'deletion_code',
         'muted_until',
         'chat_terms_accepted_at',
         'last_active_at',
