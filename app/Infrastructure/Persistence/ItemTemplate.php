@@ -43,12 +43,15 @@ class ItemTemplate extends Model
 
     public function getIconAttribute(?string $value): ?string
     {
-        if (!empty($value)) {
+        if (empty($value) || $value === '🥚' || $value === '📦') {
+            if (!empty($this->name)) {
+                return \Illuminate\Support\Str::slug($this->name) . '.png';
+            }
             return $value;
         }
 
-        if (!empty($this->name)) {
-            return \Illuminate\Support\Str::slug($this->name) . '.png';
+        if (!preg_match('/\.(png|jpg|jpeg|webp)$/i', $value)) {
+            return $value . '.png';
         }
 
         return $value;

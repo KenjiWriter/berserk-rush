@@ -396,7 +396,7 @@ class ItemTemplateSeeder extends Seeder
                         'level_requirement' => $theme['level'],
                         'base_stats' => $scaledStats,
                         'description' => "Potężny artefakt odpowiedni dla poziomu " . $theme['level'] . ".",
-                        'icon' => Str::slug($name),
+                        'icon' => Str::slug($name) . '.png',
                         'rarity_weights' => [
                             'common' => 50,
                             'uncommon' => 30,
