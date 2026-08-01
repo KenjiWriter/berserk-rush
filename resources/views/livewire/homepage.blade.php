@@ -392,7 +392,7 @@
                             <article class="rpg-news-item">
                                 <h3 class="text-lg font-bold rpg-ink mb-2 medieval-font">{{ $message['title'] }}</h3>
                                 <div class="rpg-news-content mb-2">
-                                    {!! \Illuminate\Support\Str::markdown(preg_replace('/^[ \t]*[•]\s*/m', '- ', $message['content'])) !!}
+                                    {!! $message['content'] !!}
                                 </div>
                                 <p class="text-xs rpg-ink-faint italic mt-2 border-t border-amber-900/20 pt-1.5">
                                     {{ date('j F Y', strtotime($message['date'])) }}

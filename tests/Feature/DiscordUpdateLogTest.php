@@ -27,4 +27,13 @@ class DiscordUpdateLogTest extends TestCase
             'source' => 'discord',
         ]);
     }
+
+    public function test_format_news_markdown_handles_utf8_bullets_safely(): void
+    {
+        $rawContent = "Wprowadzone zmiany:\n• Kompletny rework **Petów**\n• Nowy system";
+        $html = \App\Livewire\Homepage::formatNewsMarkdown($rawContent);
+
+        $this->assertStringContainsString('Kompletny rework <strong>Petów</strong>', $html);
+        $this->assertStringContainsString('<li>Nowy system</li>', $html);
+    }
 }

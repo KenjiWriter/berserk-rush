@@ -59,7 +59,7 @@ class Homepage extends Component
             ->map(function ($n) {
                 return [
                     'title' => $n->title,
-                    'content' => $n->content,
+                    'content' => self::formatNewsMarkdown($n->content),
                     'date' => $n->published_at ? $n->published_at->format('Y-m-d') : $n->created_at->format('Y-m-d')
                 ];
             });
@@ -81,5 +81,24 @@ class Homepage extends Component
         $mockData['galleryImages'] = \App\Infrastructure\Persistence\GalleryImage::where('is_active', true)->orderBy('order')->get();
 
         return view('livewire.homepage', $mockData);
+    }
+
+    public static function formatNewsMarkdown(?string $content): string
+    {
+        if (empty($content)) {
+            return '';
+        }
+
+        // Clean invalid UTF-8 byte sequences to prevent CommonMark UnexpectedEncodingException
+        $clean = mb_convert_encoding($content, 'UTF-8', 'UTF-8');
+
+        // Normalize unicode bullet points at the start of lines to Markdown list hyphens (- )
+        $clean = preg_replace('/^[ \t]*[\x{2022}\x{2023}\x{2219}]\s*/um', '- ', $clean);
+
+        try {
+            return \Illuminate\Support\Str::markdown($clean);
+        } catch (\Throwable $e) {
+            return nl2br(e($clean));
+        }
     }
 }
