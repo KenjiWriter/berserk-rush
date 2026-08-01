@@ -185,7 +185,7 @@ class Profile extends Component
 
         if ($result->isOk()) {
             $label = self::EQUIPMENT_SET_LABELS[$setType] ?? $setType;
-            $this->dispatch('notify', type: 'success', message: "Zapisano aktualny ekwipunek jako zestaw: {$label}.");
+            $this->dispatch('notify', type: 'success', message: "Zapisano aktualny ekwipunek i umiejętności jako zestaw: {$label}.");
             $this->character->refresh();
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
@@ -539,10 +539,12 @@ class Profile extends Component
 
         $hasPremium = auth()->user()?->hasPremium() ?? false;
         $savedSetItems = $this->character->equipmentSetItems()->with('itemInstance.template')->get()->groupBy('set_type');
+        $savedSetSkills = $this->character->skillSetItems()->with('skill')->get()->groupBy('set_type');
 
         $equipmentSets = [];
         foreach (CharacterEquipmentSetItem::ALL_SETS as $setType) {
             $itemsForSet = ($savedSetItems->get($setType) ?? collect())->keyBy('slot');
+            $skillsForSet = $savedSetSkills->get($setType) ?? collect();
             $slots = [];
             foreach (CharacterEquipmentSetItem::SLOTS as $slot) {
                 $slots[$slot] = $itemsForSet->get($slot)?->itemInstance;
@@ -553,6 +555,7 @@ class Profile extends Component
                 'isWearable' => in_array($setType, CharacterEquipmentSetItem::WEARABLE_SETS, true),
                 'locked' => in_array($setType, CharacterEquipmentSetItem::VIP_ONLY_SETS, true) && !$hasPremium,
                 'slots' => $slots,
+                'skills' => $skillsForSet,
                 'configuredCount' => $itemsForSet->count(),
             ];
         }

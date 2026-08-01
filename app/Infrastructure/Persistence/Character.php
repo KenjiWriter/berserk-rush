@@ -303,6 +303,47 @@ class Character extends Model
         return $this->equipmentSetItems()->where('set_type', $setType)->with('itemInstance.template');
     }
 
+    public function skillSetItems(): HasMany
+    {
+        return $this->hasMany(CharacterSkillSetItem::class);
+    }
+
+    public function skillSetItemsFor(string $setType)
+    {
+        return $this->skillSetItems()->where('set_type', $setType)->with('skill');
+    }
+
+    public function resolveEffectiveSkills(?string $setType = null)
+    {
+        if ($setType === null) {
+            $this->loadMissing('equippedSkills.skill');
+            return $this->equippedSkills;
+        }
+
+        $savedSetSkills = $this->skillSetItemsFor($setType)->orderBy('equip_slot')->get();
+
+        if ($savedSetSkills->isNotEmpty()) {
+            $skillIds = $savedSetSkills->pluck('combat_skill_id')->toArray();
+            $charSkills = CharacterCombatSkill::where('character_id', $this->id)
+                ->whereIn('combat_skill_id', $skillIds)
+                ->with('skill')
+                ->get()
+                ->keyBy('combat_skill_id');
+
+            $result = collect();
+            foreach ($savedSetSkills as $setItem) {
+                $cs = $charSkills->get($setItem->combat_skill_id);
+                if ($cs && $cs->skill) {
+                    $result->push($cs);
+                }
+            }
+            return $result;
+        }
+
+        $this->loadMissing('equippedSkills.skill');
+        return $this->equippedSkills;
+    }
+
     public function consolidateStackableItems(): void
     {
         $items = ItemInstance::where('owner_character_id', $this->id)
@@ -864,10 +905,9 @@ class Character extends Model
      */
     public function createSnapshot(?string $setType = null): array
     {
-        // Ensure skills are loaded
-        $this->loadMissing('equippedSkills.skill');
+        $effectiveSkills = $this->resolveEffectiveSkills($setType);
 
-        $skillsData = $this->equippedSkills->map(function($charSkill) {
+        $skillsData = $effectiveSkills->map(function($charSkill) {
             return [
                 'id' => $charSkill->skill->id,
                 'name' => $charSkill->skill->name,
@@ -885,7 +925,7 @@ class Character extends Model
                 'required_weapon_type' => $charSkill->skill->required_weapon_type,
                 'icon' => $charSkill->skill->icon,
             ];
-        })->toArray();
+        })->values()->toArray();
 
         // Check weapon type accurately
         $weaponType = $this->getEquippedWeaponType($setType);

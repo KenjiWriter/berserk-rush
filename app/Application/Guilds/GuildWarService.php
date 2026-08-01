@@ -389,6 +389,9 @@ class GuildWarService
                     break 2; // przeciwna drużyna została doszczętnie pokonana w trakcie rundy
                 }
 
+                // Regeneracja many aktora na początku jego akcji (5% maxMana, min 5 MP)
+                $combatants[$ci]['mana'] = min($combatants[$ci]['maxMana'], $combatants[$ci]['mana'] + max(5, (int)ceil($combatants[$ci]['maxMana'] * 0.05)));
+
                 // Ogłuszenie (ze skilla lub z procka ekwipunku) - aktor traci turę ataku,
                 // ale jego cooldowny nadal tykają (parytet z PvPEncounterService::simulateCombat()).
                 if (($combatants[$ci]['cc_turns'] ?? 0) > 0) {
@@ -948,6 +951,8 @@ class GuildWarService
                 'level' => $c['snapshot']['level'] ?? null,
                 'hp' => $c['hp'],
                 'maxHp' => $c['maxHp'],
+                'mana' => $c['mana'] ?? 50,
+                'maxMana' => $c['maxMana'] ?? 50,
                 'alive' => $c['alive'],
             ];
         }, $combatants);

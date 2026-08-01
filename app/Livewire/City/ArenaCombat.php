@@ -91,6 +91,8 @@ class ArenaCombat extends Component
             'avatar' => $this->character->avatar ? asset("img/avatars/{$this->character->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
+            'maxMana' => $mySnap['max_mana'] ?? 50,
+            'mana' => $mySnap['max_mana'] ?? 50,
             'stats' => $mySnap['attributes'],
             'equipment_stats' => $mySnap['equipment_stats'] ?? [],
             'weapon_type' => $mySnap['weapon_type'] ?? 'barehands',
@@ -107,6 +109,8 @@ class ArenaCombat extends Component
             'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
+            'maxMana' => $enemySnap['max_mana'] ?? 50,
+            'mana' => $enemySnap['max_mana'] ?? 50,
             'stats' => $enemySnap['attributes'],
             'equipment_stats' => $enemySnap['equipment_stats'] ?? [],
             'weapon_type' => $enemySnap['weapon_type'] ?? 'barehands',
@@ -483,11 +487,15 @@ class ArenaCombat extends Component
                 $newTurn['actor'] = $turn['actor'] === 'attacker' ? 'player' : 'enemy';
                 $newTurn['playerHp'] = $turn['attackerHp'];
                 $newTurn['enemyHp'] = $turn['defenderHp'];
+                $newTurn['playerMana'] = $turn['attackerMana'] ?? ($this->player['maxMana'] ?? 50);
+                $newTurn['enemyMana'] = $turn['defenderMana'] ?? ($this->enemy['maxMana'] ?? 50);
             } else {
                 // Defender is 'player', Attacker is 'enemy'
                 $newTurn['actor'] = $turn['actor'] === 'defender' ? 'player' : 'enemy';
                 $newTurn['playerHp'] = $turn['defenderHp'];
                 $newTurn['enemyHp'] = $turn['attackerHp'];
+                $newTurn['playerMana'] = $turn['defenderMana'] ?? ($this->player['maxMana'] ?? 50);
+                $newTurn['enemyMana'] = $turn['attackerMana'] ?? ($this->enemy['maxMana'] ?? 50);
             }
             
             return $newTurn;
@@ -588,6 +596,30 @@ class ArenaCombat extends Component
     {
         if (empty($this->enemy)) return 0;
         return ($this->getCurrentEnemyHp() / max(1, $this->enemy['maxHp'])) * 100;
+    }
+
+    public function getCurrentPlayerMana(): int
+    {
+        if (empty($this->visibleTurns)) return $this->player['mana'] ?? 50;
+        return end($this->visibleTurns)['playerMana'] ?? $this->player['mana'] ?? 50;
+    }
+
+    public function getCurrentEnemyMana(): int
+    {
+        if (empty($this->visibleTurns)) return $this->enemy['mana'] ?? 50;
+        return end($this->visibleTurns)['enemyMana'] ?? $this->enemy['mana'] ?? 50;
+    }
+
+    public function getPlayerManaPercent(): float
+    {
+        if (empty($this->player)) return 0;
+        return max(0, min(100, ($this->getCurrentPlayerMana() / max(1, $this->player['maxMana'] ?? 50)) * 100));
+    }
+
+    public function getEnemyManaPercent(): float
+    {
+        if (empty($this->enemy)) return 0;
+        return max(0, min(100, ($this->getCurrentEnemyMana() / max(1, $this->enemy['maxMana'] ?? 50)) * 100));
     }
 
     public function isPlayerTurn(): bool

@@ -5,13 +5,15 @@ namespace App\Application\Items;
 use App\Application\Shared\Result;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
+use App\Infrastructure\Persistence\CharacterSkillSetItem;
+use App\Infrastructure\Persistence\CharacterCombatSkill;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class EquipmentSetService
 {
     /**
-     * Zapisuje aktualnie założony ekwipunek postaci jako nazwany zestaw
+     * Zapisuje aktualnie założony ekwipunek i umiejętności postaci jako nazwany zestaw
      * (pvp/guild_war/set_1/set_2/set_3). Nadpisuje poprzednią zawartość tego setu.
      */
     public function saveCurrentAsSet(Character $character, string $setType): Result
@@ -42,7 +44,19 @@ class EquipmentSetService
                 ]);
             }
 
-            Log::info('Equipment set saved', ['character_id' => $character->id, 'set_type' => $setType]);
+            // Zapis umiejętności do presetu
+            $character->skillSetItemsFor($setType)->delete();
+            $equippedSkills = $character->equippedSkills()->get();
+            foreach ($equippedSkills as $idx => $charSkill) {
+                CharacterSkillSetItem::create([
+                    'character_id' => $character->id,
+                    'set_type' => $setType,
+                    'equip_slot' => $idx + 1,
+                    'combat_skill_id' => $charSkill->combat_skill_id,
+                ]);
+            }
+
+            Log::info('Equipment & skill set saved', ['character_id' => $character->id, 'set_type' => $setType]);
 
             return Result::ok(['set_type' => $setType]);
         });
@@ -86,6 +100,16 @@ class EquipmentSetService
                     }
 
                     $targetItem->update(['location' => 'equipped', 'bound_to_character' => true]);
+                }
+
+                // Zastosowanie zapisanego zestawu umiejętności (jeśli istnieje)
+                $savedSkills = $character->skillSetItemsFor($setType)->get();
+                if ($savedSkills->isNotEmpty()) {
+                    $targetSkillIds = $savedSkills->pluck('combat_skill_id')->toArray();
+                    CharacterCombatSkill::where('character_id', $character->id)->update(['is_equipped' => false]);
+                    CharacterCombatSkill::where('character_id', $character->id)
+                        ->whereIn('combat_skill_id', $targetSkillIds)
+                        ->update(['is_equipped' => true]);
                 }
 
                 $character->clearStatsCache();

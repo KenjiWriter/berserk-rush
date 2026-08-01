@@ -60,6 +60,22 @@
                                         </div>
                                     @endforeach
                                 </div>
+                                <div class="mb-2 pt-1 border-t border-stone-800">
+                                    <div class="text-[10px] text-amber-300/80 font-semibold mb-1">Umiejętności w zestawie:</div>
+                                    <div class="flex gap-1.5">
+                                        @forelse($set['skills'] as $setSkill)
+                                            <div class="w-7 h-7 bg-purple-950/80 border border-purple-500/60 rounded flex items-center justify-center overflow-hidden" title="{{ $setSkill->skill?->name }}">
+                                                @if($setSkill->skill?->icon)
+                                                    <img src="{{ route('assets.skills.icons', ['filename' => $setSkill->skill->icon]) }}" class="w-full h-full object-contain p-0.5" alt="{{ $setSkill->skill->name }}">
+                                                @else
+                                                    <span class="text-[8px] font-bold text-amber-200">{{ mb_substr($setSkill->skill?->name ?? '', 0, 2) }}</span>
+                                                @endif
+                                            </div>
+                                        @empty
+                                            <span class="text-stone-500 text-[10px]">Brak (użyje domyślnych)</span>
+                                        @endforelse
+                                    </div>
+                                </div>
                                 @if($set['configuredCount'] === 0)
                                     <p class="text-stone-500 text-[10px] mb-2">Nieskonfigurowany - użyje aktualnego ekwipunku.</p>
                                 @endif
@@ -68,7 +84,7 @@
                                 <button wire:click="saveEquipmentSet('{{ $setType }}')" @click="openSet = null"
                                         @if($set['locked']) disabled @endif
                                         class="w-full bg-amber-700 hover:bg-amber-600 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold py-1.5 rounded">
-                                    Zapisz aktualny ekwipunek
+                                    Zapisz zestaw (ekwipunek + skille)
                                 </button>
                                 @if($set['isWearable'])
                                     <button wire:click="applyEquipmentSet('{{ $setType }}')" @click="openSet = null"
@@ -140,8 +156,7 @@
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <template x-if="open">
-                                        <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                            <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                        <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none">
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
                                                     <div class="flex flex-col gap-2 w-full">
@@ -427,8 +442,7 @@
                                 <!-- Tooltip / Modal -->
                                 <div x-show="open" x-transition.opacity style="display: none;" class="fixed inset-0 sm:absolute sm:inset-auto sm:top-full sm:left-1/2 sm:-translate-x-1/2 sm:mt-2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="open = false">
                                     <template x-if="open">
-                                        <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none">
-                                            <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                        <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none">
                                             <x-item-tooltip :item="$equipped[$slot]">
                                                 <x-slot:actions>
                                                     <div class="flex flex-col gap-2 w-full">
@@ -1338,8 +1352,7 @@
                                  :style="window.innerWidth >= 640 ? tooltipStyle : {}"
                                  class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
                                 <template x-if="open">
-                                    <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
-                                        <button @click="forceClose()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                    <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
                                         <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" :dropSources="($item->template->type ?? null) === 'material' ? ($materialDropSources[$item->template_id] ?? []) : null">
                                             <x-slot:actions>
                                                 <div class="flex flex-col gap-2 w-full">
@@ -1514,8 +1527,7 @@
                                  :class="posClass"
                                  class="fixed inset-0 sm:absolute sm:inset-auto z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" 
                                  @click.stop="closeTooltip()">
-                                <div class="relative w-full max-w-xs sm:w-auto sm:max-w-none" @click.stop>
-                                    <button @click="closeTooltip()" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold sm:hidden z-10">✕</button>
+                                <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none" @click.stop>
                                     <x-item-tooltip :item="$item" :dropSources="$materialDropSources[$item->template_id] ?? []">
                                         <x-slot:actions>
                                             <div class="flex flex-col gap-2 w-full">

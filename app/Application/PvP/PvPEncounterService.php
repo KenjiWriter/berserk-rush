@@ -281,6 +281,10 @@ class PvPEncounterService
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
+            // Regeneracja many co turę dla obu stron (5% max_mana, min 5 MP)
+            $state['attacker']['mana'] = min($state['attacker']['max_mana'], $state['attacker']['mana'] + max(5, (int)ceil($state['attacker']['max_mana'] * 0.05)));
+            $state['defender']['mana'] = min($state['defender']['max_mana'], $state['defender']['mana'] + max(5, (int)ceil($state['defender']['max_mana'] * 0.05)));
+
             // Zamrożenie/ogłuszenie: aktor traci turę ataku, ale cooldowny nadal tykają
             if (($state[$actorKey]['cc_turns'] ?? 0) > 0) {
                 $state[$actorKey]['cc_turns']--;
@@ -291,6 +295,8 @@ class PvPEncounterService
                     'crit' => false,
                     'attackerHp' => $attackerHp,
                     'defenderHp' => $defenderHp,
+                    'attackerMana' => $state['attacker']['mana'],
+                    'defenderMana' => $state['defender']['mana'],
                 ];
 
                 foreach ($state[$actorKey]['cooldowns'] as &$cd) {
@@ -491,9 +497,13 @@ class PvPEncounterService
                 if ($actor === 'attacker') {
                     $healTurn['attackerHp'] = $newActingHp;
                     $healTurn['defenderHp'] = $defenderHp;
+                    $healTurn['attackerMana'] = $actorState['mana'];
+                    $healTurn['defenderMana'] = $targetState['mana'];
                 } else {
                     $healTurn['attackerHp'] = $attackerHp;
                     $healTurn['defenderHp'] = $newActingHp;
+                    $healTurn['attackerMana'] = $targetState['mana'];
+                    $healTurn['defenderMana'] = $actorState['mana'];
                 }
 
                 return $healTurn;
@@ -709,10 +719,14 @@ class PvPEncounterService
             $newDefenderHp = max(0, $defenderHp - (int)$damage - $dotDamage);
             $turn['attackerHp'] = $attackerHp;
             $turn['defenderHp'] = $newDefenderHp;
+            $turn['attackerMana'] = $actorState['mana'];
+            $turn['defenderMana'] = $targetState['mana'];
         } else {
             $newAttackerHp = max(0, $attackerHp - (int)$damage - $dotDamage);
             $turn['attackerHp'] = $newAttackerHp;
             $turn['defenderHp'] = $defenderHp;
+            $turn['attackerMana'] = $targetState['mana'];
+            $turn['defenderMana'] = $actorState['mana'];
         }
 
         return $turn;

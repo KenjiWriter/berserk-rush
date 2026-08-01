@@ -144,6 +144,18 @@
                                 </div>
                             </div>
 
+                            {{-- Player Mana Bar --}}
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-bold text-cyan-200 medieval-font drop-shadow">
+                                    <span>Mana</span>
+                                    <span class="font-mono text-cyan-300 text-xs sm:text-sm">{{ $this->getCurrentPlayerMana() }}/{{ $player['maxMana'] ?? 50 }}</span>
+                                </div>
+                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
+                                        style="width: {{ $this->getPlayerManaPercent() }}%"></div>
+                                </div>
+                            </div>
+
                             {{-- Equipped Skills HUD --}}
                             @if(!empty($player['skills']) && count($player['skills']) > 0)
                                 <div class="bg-black/60 rounded-2xl p-1.5 lg:p-2 border border-amber-500/20 shadow-inner">
@@ -599,6 +611,18 @@
                                 <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
                                     <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
                                         style="width: {{ $this->getEnemyHpPercent() }}%"></div>
+                                </div>
+                            </div>
+
+                            {{-- Enemy Mana Bar --}}
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-xs font-bold text-cyan-200 medieval-font drop-shadow">
+                                    <span>Mana</span>
+                                    <span class="font-mono text-cyan-300 text-xs sm:text-sm">{{ $this->getCurrentEnemyMana() }}/{{ $enemy['maxMana'] ?? 50 }}</span>
+                                </div>
+                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
+                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
+                                        style="width: {{ $this->getEnemyManaPercent() }}%"></div>
                                 </div>
                             </div>
 
