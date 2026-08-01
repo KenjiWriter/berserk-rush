@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        Schema::dropIfExists('character_skill_set_items');
         Schema::create('character_skill_set_items', function (Blueprint $table) {
             $table->ulid('id')->primary();
             $table->ulid('character_id');
@@ -17,7 +18,7 @@ return new class extends Migration {
 
             $table->foreign('character_id')->references('id')->on('characters')->cascadeOnDelete();
             $table->foreign('combat_skill_id')->references('id')->on('combat_skills')->cascadeOnDelete();
-            $table->unique(['character_id', 'set_type', 'equip_slot']);
+            $table->unique(['character_id', 'set_type', 'equip_slot'], 'char_skill_sets_unique');
         });
     }
 
