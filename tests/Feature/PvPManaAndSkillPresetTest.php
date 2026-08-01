@@ -8,9 +8,11 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CombatSkill;
 use App\Infrastructure\Persistence\CharacterCombatSkill;
 use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
-use App\Infrastructure\Persistence\CharacterSkillSetItem;
+use App\Infrastructure\Persistence\Map;
+use App\Infrastructure\Persistence\Monster;
 use App\Application\Items\EquipmentSetService;
 use App\Application\PvP\PvPEncounterService;
+use App\Application\Combat\EncounterService;
 use App\Infrastructure\Persistence\PvpEncounter;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -124,5 +126,50 @@ class PvPManaAndSkillPresetTest extends TestCase
 
         $this->assertArrayHasKey('attackerMana', $firstTurn);
         $this->assertArrayHasKey('defenderMana', $firstTurn);
+    }
+
+    public function test_pve_encounter_preserves_player_mana_on_monster_turns(): void
+    {
+        $user = User::factory()->create(['game_stage' => 15]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'Wojowo',
+            'level' => 20,
+            'attributes' => ['str' => 10, 'int' => 10, 'vit' => 10, 'agi' => 10],
+        ]);
+
+        $map = Map::create([
+            'name' => 'Test Map',
+            'level_min' => 1,
+            'level_max' => 50,
+        ]);
+
+        $monster = Monster::create([
+            'map_id' => $map->id,
+            'name' => 'Orc Boss',
+            'level' => 20,
+            'hp' => 500,
+            'attack_min' => 10,
+            'attack_max' => 20,
+            'defense' => 5,
+        ]);
+
+        $service = app(EncounterService::class);
+        $result = $service->start($character, $map, $monster);
+
+        $this->assertTrue($result->isOk());
+        $encounter = $result->getPayload();
+
+        $simResult = $service->simulate($encounter);
+        $this->assertTrue($simResult->isOk());
+
+        $turns = $encounter->fresh()->turns;
+        $this->assertNotEmpty($turns);
+
+        // Verify that EVERY turn (both player and enemy turns) has playerMana defined
+        foreach ($turns as $idx => $turn) {
+            $this->assertArrayHasKey('playerMana', $turn, "Turn {$idx} ({$turn['actor']}) should have playerMana");
+            $this->assertNotNull($turn['playerMana'], "Turn {$idx} ({$turn['actor']}) playerMana should not be null");
+        }
     }
 }

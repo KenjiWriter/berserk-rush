@@ -790,6 +790,9 @@ class EncounterService
             $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
             if ($isPlayerTurn) {
+                // Regeneracja many na początku tury gracza w PvE (5% maxMana, min 5 MP)
+                $this->playerMana = min($this->playerMaxMana, $this->playerMana + max(5, (int)ceil($this->playerMaxMana * 0.05)));
+
                 // Player's turn: decrease skill cooldowns
                 foreach ($this->activeCooldowns as $id => $cd) {
                     if ($cd > 0) $this->activeCooldowns[$id]--;
@@ -866,10 +869,14 @@ class EncounterService
                 $playerHp = $turn['playerHp'];
             }
 
+            $turn['playerMana'] = $this->playerMana;
+            $turn['playerMaxMana'] = $this->playerMaxMana;
             $turn['state'] = [
                 'dots' => $this->activeDots,
                 'buffs' => $this->activeBuffs,
                 'cooldowns' => $this->activeCooldowns,
+                'playerMana' => $this->playerMana,
+                'playerMaxMana' => $this->playerMaxMana,
             ];
 
             $turns[] = $turn;
