@@ -77,6 +77,7 @@ class Hub extends Component
             'merchant' => route('city.merchant', $this->character),
             'blacksmith' => route('city.blacksmith', $this->character),
             'witch' => route('city.witch', $this->character),
+            'pets' => route('city.pets', $this->character),
             'wizard' => route('city.wizard', $this->character),
             'warlock' => route('city.warlock', $this->character),
             'market' => route('city.market', $this->character),

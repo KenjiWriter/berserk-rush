@@ -29,25 +29,29 @@ class CancelMarketListingAction
 
                 $listing->update(['status' => 'cancelled']);
 
-                // Return item to character
-                $item = ItemInstance::with('template')->find($listing->item_instance_id);
-                if ($item) {
-                    $targetLocation = ($item->template && $item->template->type === 'material') ? 'material_stash' : 'inventory';
-                    $item->update([
-                        'owner_character_id' => $character->id,
-                        'location' => $targetLocation,
-                    ]);
+                // Pety nigdy fizycznie nie opuszczają właściciela przy wystawieniu - anulowanie
+                // sprowadza się do zmiany statusu oferty, bez ruchów na ItemInstance/ItemLedger.
+                if ($listing->pet_id === null) {
+                    // Return item to character
+                    $item = ItemInstance::with('template')->find($listing->item_instance_id);
+                    if ($item) {
+                        $targetLocation = ($item->template && $item->template->type === 'material') ? 'material_stash' : 'inventory';
+                        $item->update([
+                            'owner_character_id' => $character->id,
+                            'location' => $targetLocation,
+                        ]);
 
-                    ItemLedger::create([
-                        'id' => Str::ulid(),
-                        'character_id' => $character->id,
-                        'item_instance_id' => $item->id,
-                        'action' => 'returned_from_market',
-                        'ref_type' => 'market_listing',
-                        'ref_id' => $listing->id,
-                        'quantity_change' => 1,
-                        'idempotency_key' => $idempotencyKey . ':return',
-                    ]);
+                        ItemLedger::create([
+                            'id' => Str::ulid(),
+                            'character_id' => $character->id,
+                            'item_instance_id' => $item->id,
+                            'action' => 'returned_from_market',
+                            'ref_type' => 'market_listing',
+                            'ref_id' => $listing->id,
+                            'quantity_change' => 1,
+                            'idempotency_key' => $idempotencyKey . ':return',
+                        ]);
+                    }
                 }
 
                 Log::info('Market listing cancelled', [

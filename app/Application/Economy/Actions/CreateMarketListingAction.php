@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\CurrencyLedger;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\MarketListing;
+use App\Infrastructure\Persistence\Pet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -167,5 +168,107 @@ class CreateMarketListingAction
     public static function getListingFees(): array
     {
         return self::LISTING_FEES;
+    }
+
+    /**
+     * Wystawia peta na Rynku - analogicznie do execute(), ale bez ruchów
+     * ItemInstance/ItemLedger (pet nigdy fizycznie nie zmienia "lokalizacji";
+     * obecność aktywnego MarketListing.pet_id wystarcza jako stan "na rynku").
+     */
+    public function executeForPet(Character $character, Pet $pet, int $price, string $currency, int $durationHours): Result
+    {
+        if ($pet->character_id !== $character->id) {
+            return Result::error('NOT_OWNER', 'Ten chowaniec nie należy do Ciebie.');
+        }
+
+        if ($pet->is_equipped) {
+            return Result::error('PET_EQUIPPED', 'Musisz odwołać tego chowańca jako towarzysza, zanim wystawisz go na targowisko.');
+        }
+
+        if ($pet->collar_item_instance_id || $pet->charm_item_instance_id) {
+            return Result::error('PET_GEARED', 'Musisz zdjąć cały ekwipunek chowańca (obrożę/charm), zanim wystawisz go na targowisko.');
+        }
+
+        if ($price <= 0) {
+            return Result::error('INVALID_PRICE', 'Cena musi być większa od zera.');
+        }
+
+        if (!in_array($currency, ['gold', 'gems'])) {
+            return Result::error('INVALID_CURRENCY', 'Nieprawidłowa waluta. Wybierz złoto lub klejnoty.');
+        }
+
+        if (!array_key_exists($durationHours, self::LISTING_FEES)) {
+            return Result::error('INVALID_DURATION', 'Nieprawidłowy czas trwania. Wybierz 24, 48 lub 72 godziny.');
+        }
+
+        $listingFee = self::LISTING_FEES[$durationHours];
+
+        if ($character->gold < $listingFee) {
+            return Result::error('INSUFFICIENT_GOLD', "Nie masz wystarczająco złota na opłatę wystawienia ({$listingFee} szt.).");
+        }
+
+        try {
+            return DB::transaction(function () use ($character, $pet, $price, $currency, $durationHours, $listingFee) {
+                $pet = Pet::where('id', $pet->id)->lockForUpdate()->first();
+
+                if (!$pet || $pet->is_equipped) {
+                    return Result::error('PET_EQUIPPED', 'Musisz odwołać tego chowańca jako towarzysza, zanim wystawisz go na targowisko.');
+                }
+
+                if (MarketListing::active()->where('pet_id', $pet->id)->exists()) {
+                    return Result::error('ALREADY_LISTED', 'Ten chowaniec jest już wystawiony na Rynku.');
+                }
+
+                $idempotencyKey = 'market_list_pet:' . $pet->id . ':' . Str::ulid();
+
+                $character->gold -= $listingFee;
+                $character->save();
+
+                CurrencyLedger::create([
+                    'id'              => Str::ulid(),
+                    'idempotency_key' => $idempotencyKey . ':fee',
+                    'character_id'    => $character->id,
+                    'currency_type'   => 'gold',
+                    'amount'          => -$listingFee,
+                    'balance_after'   => $character->gold,
+                    'source_type'     => 'market_listing_fee',
+                    'source_id'       => (string) $pet->id,
+                    'description'     => "Opłata za wystawienie chowańca na market ({$durationHours}h)",
+                    'created_at'      => now(),
+                ]);
+
+                $listing = MarketListing::create([
+                    'seller_character_id' => $character->id,
+                    'pet_id'              => $pet->id,
+                    'price'               => $price,
+                    'currency'            => $currency,
+                    'status'              => 'active',
+                    'expires_at'          => now()->addHours($durationHours),
+                ]);
+
+                event(new MarketListingCreated($listing));
+
+                Log::info('Pet market listing created', [
+                    'listing_id' => $listing->id,
+                    'character_id' => $character->id,
+                    'pet_id' => $pet->id,
+                    'price' => $price,
+                    'currency' => $currency,
+                    'duration' => $durationHours,
+                ]);
+
+                return Result::ok([
+                    'listing' => $listing,
+                    'fee' => $listingFee,
+                ]);
+            });
+        } catch (\Exception $e) {
+            Log::error('CreateMarketListing (pet) failed', [
+                'character_id' => $character->id,
+                'pet_id' => $pet->id,
+                'error' => $e->getMessage(),
+            ]);
+            return Result::error('LISTING_FAILED', 'Wystąpił błąd podczas wystawiania chowańca na market.');
+        }
     }
 }

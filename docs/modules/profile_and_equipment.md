@@ -20,7 +20,15 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
   - Zdejmuje ewentualny przedmiot zajmujący ten sam slot i zamienia go na nowy, przeliczając bonusy.
 - **`UnequipItem`:** Odpowiada za zdjęcie przedmiotu i przeniesienie go z powrotem do dostępnego ekwipunku postaci (do wolnego miejsca w plecaku).
 - **Obsługa Ekwipunku (Drag & Drop oraz Double-Click):**
-  - **Przeciągnij i Upuść (Drag & Drop):** Gracz może przeciągnąć przedmiot z plecaka bezpośrednio na odpowiadający mu slot na postaci (np. broń na slot `main_hand`, pancerz na `chest`). Poprawne sloty są podświetlane na zielono z powiększeniem, a sloty niedozwolone (np. zbyt niski poziom) na czerwono. Przeciągnięcie założonego przedmiotu lub peta z powrotem na siatkę plecaka automatycznie go zdejmuje.
+  - **Przeciągnij i Upuść (Drag & Drop):** Gracz może przeciągnąć przedmiot z plecaka bezpośrednio na odpowiadający mu slot na postaci (np. broń na slot `main_hand`, pancerz na `chest`). Poprawne sloty są podświetlane na zielono z powiększeniem, a sloty niedozwolone (np. zbyt niski poziom) na czerwono. Przeciągnięcie założonego przedmiotu z powrotem na siatkę plecaka automatycznie go zdejmuje.
+
+> **Uwaga (rework Petów):** Chowańce (Pety) zostały **usunięte z Profilu** -
+> nie ma już slotu na peta w portrecie postaci ani zakładki "Pety &
+> Inkubator". Cały system (wykluwanie, fuzja, karmienie, ekwipunek, handel)
+> przeniesiony został do własnej domeny `city.pets`, dostępnej z Hubu i
+> nawigacji bocznej. Podwójne kliknięcie na jajko w plecaku pokazuje teraz
+> podpowiedź kierującą do zakładki Pety zamiast bezpośrednio wykluwać.
+> Szczegóły: `docs/modules/pets.md`.
   - **Podwójne Kliknięcie (Double-Click):** Dwukrotne kliknięcie myszką na przedmiot w plecaku zakłada go automatycznie na odpowiedni slot (lub używa w przypadku mikstur / umieszcza jajko w inkubatorze). Dwukrotne kliknięcie na założony przedmiot zdejmuje go do plecaka.
 
 ### 3. Limity Plecaka oraz Magazyn Gracza (Player Stash)

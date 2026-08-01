@@ -178,6 +178,28 @@ class Character extends Model
         return $this->belongsTo(Title::class, 'active_title_id');
     }
 
+    public function activePet(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Pet::class, 'character_id')->where('is_equipped', true);
+    }
+
+    /**
+     * Ile niezałożonych petów gracz może jednocześnie posiadać ("stajnia").
+     * Bazowa pojemność z config/pets.php + bonus z "Sakwy Chowańców" założonej
+     * w slocie charm aktywnego towarzysza (patrz docs/modules/pets.md).
+     */
+    public function getPetStableCapacity(): int
+    {
+        $capacity = (int) config('pets.stable_base_capacity', 20);
+
+        $pet = $this->activePet;
+        if ($pet && $pet->charmItem && ($pet->charmItem->template->base_stats['pet_stable_bonus'] ?? 0) > 0) {
+            $capacity += (int) $pet->charmItem->template->base_stats['pet_stable_bonus'];
+        }
+
+        return $capacity;
+    }
+
     public function unlockedTitles(): HasMany
     {
         return $this->hasMany(CharacterTitle::class, 'character_id');
@@ -555,10 +577,10 @@ class Character extends Model
                 }
             }
 
-            // Add Pet bonuses
-            $equippedPet = Pet::where('character_id', $this->id)->where('is_equipped', true)->first();
+            // Add Pet bonuses (tłumione mnożnikiem poziomu, patrz Pet::getEffectiveStatsFor())
+            $equippedPet = $this->activePet;
             if ($equippedPet) {
-                $petStats = $equippedPet->getTotalStats();
+                $petStats = $equippedPet->getEffectiveStatsFor($this);
                 foreach (['str', 'int', 'vit', 'agi'] as $stat) {
                     $total[$stat] += $petStats[$stat] ?? 0;
                 }
@@ -809,10 +831,10 @@ class Character extends Model
                 $cp += $item->getCombatPower();
             }
 
-            // Add Pet combat power
-            $equippedPet = Pet::where('character_id', $this->id)->where('is_equipped', true)->first();
+            // Add Pet combat power (tłumione mnożnikiem poziomu, patrz Pet::getCombatPowerFor())
+            $equippedPet = $this->activePet;
             if ($equippedPet) {
-                $cp += $equippedPet->getCombatPower();
+                $cp += $equippedPet->getCombatPowerFor($this);
             }
 
             return $cp;

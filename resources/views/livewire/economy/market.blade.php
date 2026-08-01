@@ -65,6 +65,18 @@
         </div>
 
         @if($activeTab === 'buy')
+            {{-- Listing Type Sub-Tabs (Przedmioty / Pety) --}}
+            <div class="flex gap-2 mb-6">
+                <button wire:click="switchListingType('item')"
+                        class="px-4 py-2 min-h-[40px] rounded-lg font-extrabold text-[11px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-2 cursor-pointer {{ $listingType === 'item' ? 'bg-amber-900/70 text-yellow-300 border-amber-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                    <i class="fa-solid fa-shield-halved"></i> Przedmioty
+                </button>
+                <button wire:click="switchListingType('pet')"
+                        class="px-4 py-2 min-h-[40px] rounded-lg font-extrabold text-[11px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-2 cursor-pointer {{ $listingType === 'pet' ? 'bg-amber-900/70 text-yellow-300 border-amber-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                    <i class="fa-solid fa-paw"></i> Pety
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 
                 {{-- Filters Sidebar --}}
@@ -79,39 +91,51 @@
                         
                         <div class="space-y-4 text-xs">
                             <div>
-                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Nazwa Przedmiotu</label>
+                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">{{ $listingType === 'pet' ? 'Nazwa Chowańca' : 'Nazwa Przedmiotu' }}</label>
                                 <div class="relative">
                                     <input type="text" wire:model.live.debounce.300ms="search" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg pl-8 pr-3 py-2 text-xs text-amber-100 placeholder-amber-700/50 focus:border-amber-400 focus:ring-1 focus:ring-amber-400 font-sans shadow-inner" placeholder="Wpisz nazwę...">
                                     <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-amber-600/60 text-xs"></i>
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Rzadkość</label>
-                                <select wire:model.live="rarity" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
-                                    <option value="">Wszystkie Rzadkości</option>
-                                    <option value="common">Zwykły (Common)</option>
-                                    <option value="uncommon">Niecodzienny (Uncommon)</option>
-                                    <option value="rare">Rzadki (Rare)</option>
-                                    <option value="epic">Epicki (Epic)</option>
-                                    <option value="legendary">Legendarny (Legendary)</option>
-                                </select>
-                            </div>
+                            @if($listingType === 'pet')
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Tier</label>
+                                    <select wire:model.live="petTier" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
+                                        <option value="">Wszystkie Tiery</option>
+                                        @foreach($tiers as $t => $meta)
+                                            <option value="{{ $t }}">{{ $meta['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @else
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Rzadkość</label>
+                                    <select wire:model.live="rarity" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
+                                        <option value="">Wszystkie Rzadkości</option>
+                                        <option value="common">Zwykły (Common)</option>
+                                        <option value="uncommon">Niecodzienny (Uncommon)</option>
+                                        <option value="rare">Rzadki (Rare)</option>
+                                        <option value="epic">Epicki (Epic)</option>
+                                        <option value="legendary">Legendarny (Legendary)</option>
+                                    </select>
+                                </div>
 
-                            <div>
-                                <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Kategoria (Slot)</label>
-                                <select wire:model.live="slot" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
-                                    <option value="">Wszystkie Kategorie</option>
-                                    <option value="main_hand">Broń</option>
-                                    <option value="head">Głowa</option>
-                                    <option value="chest">Zbroja</option>
-                                    <option value="boots">Buty</option>
-                                    <option value="ring">Pierścień</option>
-                                    <option value="neck">Naszyjnik</option>
-                                    <option value="material">Materiały</option>
-                                    <option value="consumable">Mikstury</option>
-                                </select>
-                            </div>
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Kategoria (Slot)</label>
+                                    <select wire:model.live="slot" class="w-full bg-stone-900 border border-amber-900/80 rounded-lg px-3 py-2 text-xs text-amber-100 font-sans focus:border-amber-400">
+                                        <option value="">Wszystkie Kategorie</option>
+                                        <option value="main_hand">Broń</option>
+                                        <option value="head">Głowa</option>
+                                        <option value="chest">Zbroja</option>
+                                        <option value="boots">Buty</option>
+                                        <option value="ring">Pierścień</option>
+                                        <option value="neck">Naszyjnik</option>
+                                        <option value="material">Materiały</option>
+                                        <option value="consumable">Mikstury</option>
+                                    </select>
+                                </div>
+                            @endif
 
                             <div>
                                 <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Waluta</label>
@@ -152,18 +176,20 @@
                                 </div>
                             </div>
 
-                            <div>
-                                <label class="block font-bold text-amber-200/80 mb-2 uppercase tracking-wider text-[10px]">Statystyki Bonusowe</label>
-                                <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 bg-stone-900/60 border border-amber-900/60 rounded-lg p-2.5">
-                                    @foreach($statOptions as $statKey => $statLabel)
-                                        <label class="flex items-center gap-1.5 cursor-pointer group">
-                                            <input type="checkbox" wire:model.live="stats" value="{{ $statKey }}"
-                                                class="w-3.5 h-3.5 rounded border-amber-700 bg-stone-950 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer accent-amber-500">
-                                            <span class="text-[10px] text-amber-200/80 font-sans group-hover:text-amber-100 truncate">{{ $statLabel }}</span>
-                                        </label>
-                                    @endforeach
+                            @if($listingType === 'item')
+                                <div>
+                                    <label class="block font-bold text-amber-200/80 mb-2 uppercase tracking-wider text-[10px]">Statystyki Bonusowe</label>
+                                    <div class="grid grid-cols-2 gap-x-2 gap-y-1.5 bg-stone-900/60 border border-amber-900/60 rounded-lg p-2.5">
+                                        @foreach($statOptions as $statKey => $statLabel)
+                                            <label class="flex items-center gap-1.5 cursor-pointer group">
+                                                <input type="checkbox" wire:model.live="stats" value="{{ $statKey }}"
+                                                    class="w-3.5 h-3.5 rounded border-amber-700 bg-stone-950 text-amber-500 focus:ring-amber-400 focus:ring-offset-0 cursor-pointer accent-amber-500">
+                                                <span class="text-[10px] text-amber-200/80 font-sans group-hover:text-amber-100 truncate">{{ $statLabel }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
 
                             <div>
                                 <label class="block font-bold text-amber-200/80 mb-1.5 uppercase tracking-wider text-[10px]">Sortowanie</label>
@@ -172,6 +198,9 @@
                                         <option value="created_at">Najnowsze</option>
                                         <option value="price">Cena</option>
                                         <option value="level">Poziom</option>
+                                        @if($listingType === 'pet')
+                                            <option value="tier">Tier</option>
+                                        @endif
                                         <option value="expires_at">Wygasające</option>
                                     </select>
                                     <select wire:model.live="sortDir" class="w-1/3 bg-stone-900 border border-amber-900/80 rounded-lg px-2 py-2 text-xs text-amber-100 font-sans">
@@ -194,6 +223,66 @@
                     @if(count($listings) > 0)
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
                             @foreach($listings as $listing)
+                            @if($listingType === 'pet')
+                                @php $petTierMeta = $tiers[$listing->pet->tier] ?? ['name' => 'Nieznany']; @endphp
+                                <div wire:key="pet-listing-{{ $listing->id }}"
+                                     class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 border-amber-500/60 rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_15px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all duration-200 relative group">
+                                    <div class="flex items-start space-x-3 mb-3">
+                                        <div class="w-12 h-12 rounded-lg border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-2xl shadow-inner relative">
+                                            <i class="fa-solid fa-dragon text-amber-400"></i>
+                                        </div>
+                                        <div class="min-w-0 flex-1">
+                                            <h4 class="font-extrabold text-amber-100 text-xs sm:text-sm truncate leading-snug">{{ $listing->pet->name }}</h4>
+                                            <div class="text-[10px] text-amber-400/80 font-bold uppercase tracking-wider mt-0.5 flex items-center gap-2">
+                                                <span>Lvl {{ $listing->pet->level }}</span>
+                                                <span>•</span>
+                                                <span>{{ $petTierMeta['name'] }}</span>
+                                                @if($listing->pet->fusion_count > 0)
+                                                    <span>•</span>
+                                                    <span class="text-sky-400">+{{ $listing->pet->fusion_count }}</span>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-[11px] text-stone-300 bg-stone-950/80 p-2 rounded-lg border border-stone-800 mb-3 grid grid-cols-2 gap-1 font-sans">
+                                        @foreach($listing->pet->stats ?? [] as $stat => $val)
+                                            <div class="flex justify-between">
+                                                <span class="text-stone-400 uppercase truncate mr-1">{{ $stat }}</span>
+                                                <span class="text-emerald-400 font-bold">+{{ $val }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="flex flex-col mt-auto pt-2 border-t border-amber-900/40">
+                                        <div class="flex justify-between items-center mb-2 text-[10px] text-stone-400 font-sans">
+                                            <span>Sprzedawca: <strong class="text-amber-200">{{ $listing->seller->name }}</strong></span>
+                                            <span class="text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</span>
+                                        </div>
+
+                                        <button wire:click="buyItem('{{ $listing->id }}')"
+                                            wire:loading.attr="disabled" wire:target="buyItem('{{ $listing->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem('{{ $listing->id }}')"
+                                            class="w-full flex items-center justify-center font-extrabold py-2 px-3 rounded-lg text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer
+                                            @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 hover:from-amber-600 hover:to-amber-900 text-yellow-200 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]
+                                            @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-b from-purple-700 via-purple-800 to-purple-950 hover:from-purple-600 hover:to-purple-900 text-purple-100 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.3)]
+                                            @else bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60 @endif">
+
+                                            <span wire:loading.remove wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-1.5">
+                                                <span>KUP ZA</span>
+                                                <span class="font-extrabold text-sm {{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
+                                                    {{ number_format($listing->price) }}
+                                                    @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5"></i> @else <i class="fa-solid fa-gem ml-0.5"></i> @endif
+                                                </span>
+                                            </span>
+                                            <span wire:loading wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-2">
+                                                <i class="fa-solid fa-circle-notch animate-spin"></i>
+                                                <span>Kupowanie...</span>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
                                 <div wire:key="listing-{{ $listing->id }}"
                                      class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_15px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all duration-200 relative group
                                     @if($listing->item->rarity === 'common') border-stone-700
@@ -308,9 +397,10 @@
                                         </button>
                                     </div>
                                 </div>
+                            @endif
                             @endforeach
                         </div>
-                        
+
                         <div class="mt-4">
                             {{ $listings->links() }}
                         </div>
@@ -344,8 +434,8 @@
                     </div>
                 </div>
                 
-                @if(count($myListings) > 0)
-                    <div class="overflow-x-auto custom-scrollbar">
+                @if(count($myItemListings) > 0)
+                    <div class="overflow-x-auto custom-scrollbar mb-8">
                         <table class="w-full text-left border-collapse">
                             <thead>
                                 <tr class="bg-stone-900/90 border-b-2 border-amber-900/60 text-amber-400 uppercase text-[10px] tracking-widest font-extrabold">
@@ -357,7 +447,7 @@
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-amber-900/30 text-xs">
-                                @foreach($myListings as $listing)
+                                @foreach($myItemListings as $listing)
                                     <tr class="hover:bg-amber-950/20 transition-colors">
                                         <td class="p-3">
                                             <div class="flex items-center space-x-3">
@@ -435,21 +525,98 @@
                             </tbody>
                         </table>
                     </div>
-                    
-                    <div class="mt-4">
-                        {{ $myListings->links() }}
+
+                    <div class="mt-4 mb-8">
+                        {{ $myItemListings->links() }}
                     </div>
-                @else
+                @endif
+
+                @if(count($myPetListings) > 0)
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-stone-900/90 border-b-2 border-amber-900/60 text-amber-400 uppercase text-[10px] tracking-widest font-extrabold">
+                                    <th class="p-3">Chowaniec</th>
+                                    <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-right">Cena Ofertowa</th>
+                                    <th class="p-3 text-right">Wygasa za</th>
+                                    <th class="p-3 text-center">Akcja</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-amber-900/30 text-xs">
+                                @foreach($myPetListings as $listing)
+                                    <tr class="hover:bg-amber-950/20 transition-colors">
+                                        <td class="p-3">
+                                            <div class="flex items-center space-x-3">
+                                                <div class="w-9 h-9 rounded-lg border border-amber-600/80 bg-stone-900 flex items-center justify-center shrink-0 text-amber-400 text-base shadow-inner relative">
+                                                    <i class="fa-solid fa-dragon"></i>
+                                                </div>
+                                                <div>
+                                                    <div class="font-extrabold text-amber-100">{{ $listing->pet->name }}</div>
+                                                    <div class="text-[10px] text-amber-500/80 font-bold uppercase">{{ $listing->pet->tierName() }} · Lvl {{ $listing->pet->level }}</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider
+                                                {{ $listing->status === 'active' ? 'bg-emerald-950 text-emerald-300 border border-emerald-600/80 shadow-[0_0_8px_rgba(16,185,129,0.3)]' :
+                                                  ($listing->status === 'sold' ? 'bg-sky-950 text-sky-300 border border-sky-600/80' : 'bg-stone-900 text-stone-400 border border-stone-700') }}">
+                                                @if($listing->status === 'active') <i class="fa-solid fa-circle-check"></i>
+                                                @elseif($listing->status === 'sold') <i class="fa-solid fa-handshake"></i>
+                                                @endif
+                                                {{ $listing->statusLabel() }}
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right font-extrabold text-sm">
+                                            <span class="{{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
+                                                {{ number_format($listing->price) }}
+                                                @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5 text-xs"></i> @else <i class="fa-solid fa-gem ml-0.5 text-xs"></i> @endif
+                                            </span>
+                                        </td>
+                                        <td class="p-3 text-right text-xs font-sans">
+                                            <div class="text-stone-300">{{ $listing->created_at->format('Y-m-d H:i') }}</div>
+                                            <div class="text-[10px] text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</div>
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            @if($listing->status === 'active')
+                                                <button wire:click="cancelListing('{{ $listing->id }}')" onclick="confirm('Czy na pewno chcesz anulować tę ofertę? Opłata za wystawienie nie zostanie zwrócona.') || event.stopImmediatePropagation()"
+                                                    wire:loading.attr="disabled" wire:target="cancelListing('{{ $listing->id }}')"
+                                                    wire:loading.class="opacity-50 cursor-not-allowed" wire:target="cancelListing('{{ $listing->id }}')"
+                                                    class="px-3 py-1.5 bg-gradient-to-b from-red-900 to-stone-950 hover:from-red-800 hover:to-stone-900 text-red-200 border border-red-700/80 rounded-lg transition-all text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1.5 shadow cursor-pointer">
+                                                    <span wire:loading.remove wire:target="cancelListing('{{ $listing->id }}')" class="flex items-center gap-1">
+                                                        <i class="fa-solid fa-xmark"></i>
+                                                        <span>Anuluj</span>
+                                                    </span>
+                                                    <span wire:loading wire:target="cancelListing('{{ $listing->id }}')" class="flex items-center gap-1">
+                                                        <i class="fa-solid fa-circle-notch animate-spin"></i>
+                                                    </span>
+                                                </button>
+                                            @else
+                                                <span class="text-stone-600">-</span>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-4">
+                        {{ $myPetListings->links() }}
+                    </div>
+                @endif
+
+                @if(count($myItemListings) === 0 && count($myPetListings) === 0)
                     <div class="text-center py-12 text-stone-400">
                         <div class="mb-4">
                             <i class="fa-solid fa-box-open text-amber-700/50 text-5xl"></i>
                         </div>
                         <h4 class="text-base font-extrabold text-amber-300 mb-1">Brak Wystawionych Ofert</h4>
-                        <p class="text-xs text-amber-200/60 font-sans">Nie masz obecnie żadnych przedmiotów na sprzedaż.</p>
-                        <p class="text-xs text-stone-500 font-sans mt-2">Aby wystawić przedmiot, otwórz swój ekwipunek i kliknij "Wystaw na targowisko" przy wybranym przedmiocie.</p>
+                        <p class="text-xs text-amber-200/60 font-sans">Nie masz obecnie żadnych przedmiotów ani chowańców na sprzedaż.</p>
+                        <p class="text-xs text-stone-500 font-sans mt-2">Aby wystawić przedmiot, otwórz swój ekwipunek i kliknij "Wystaw na targowisko". Aby wystawić chowańca, przejdź do zakładki Pety.</p>
                     </div>
                 @endif
-                
+
             </div>
         @endif
     </div>

@@ -3,16 +3,24 @@
 namespace App\Application\Pets;
 
 use App\Application\Shared\Result;
+use App\Domain\Pets\PetStatCalculator;
+use App\Domain\Pets\PetTier;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterIncubator;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Pet;
+use App\Infrastructure\RNG\RandomProvider;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class IncubatorService
 {
+    public function __construct(
+        private RandomProvider $rng,
+        private PetStatCalculator $statCalculator,
+    ) {
+    }
+
     /**
      * Umieść jajko w inkubatorze.
      */
@@ -33,6 +41,11 @@ class IncubatorService
                 return Result::error('NOT_EGG', 'Ten przedmiot nie jest jajkiem.');
             }
 
+            $tier = $egg->getEggTier();
+            if (!$tier) {
+                return Result::error('NO_EGG_TIER', 'To jajko nie ma przypisanego tieru chowańca.');
+            }
+
             // Sprawdź czy inkubator jest wolny
             $incubator = CharacterIncubator::where('character_id', $character->id)->first();
 
@@ -40,8 +53,7 @@ class IncubatorService
                 return Result::error('INCUBATOR_BUSY', 'Inkubator jest już zajęty.');
             }
 
-            $rarity = $egg->getEggRarity();
-            $hours = CharacterIncubator::getIncubationHours($rarity);
+            $hours = PetTier::hatchHours($tier);
 
             // Handle stacked eggs: split off 1 egg for incubator if stack_size > 1
             if (($egg->stack_size ?? 1) > 1) {
@@ -62,33 +74,29 @@ class IncubatorService
                 $targetEggId = $egg->id;
             }
 
+            $data = [
+                'egg_item_instance_id' => $targetEggId,
+                'egg_tier' => $tier,
+                'egg_rarity' => PetTier::slug($tier),
+                'started_at' => now(),
+                'hatches_at' => now()->addMinutes((int) round($hours * 60)),
+                'is_hatched' => false,
+            ];
+
             if ($incubator) {
-                $incubator->update([
-                    'egg_item_instance_id' => $targetEggId,
-                    'egg_rarity' => $rarity,
-                    'started_at' => now(),
-                    'hatches_at' => now()->addHours($hours),
-                    'is_hatched' => false,
-                ]);
+                $incubator->update($data);
             } else {
-                $incubator = CharacterIncubator::create([
-                    'character_id' => $character->id,
-                    'egg_item_instance_id' => $targetEggId,
-                    'egg_rarity' => $rarity,
-                    'started_at' => now(),
-                    'hatches_at' => now()->addHours($hours),
-                    'is_hatched' => false,
-                ]);
+                $incubator = CharacterIncubator::create($data + ['character_id' => $character->id]);
             }
 
             return Result::ok($incubator);
         });
     }
 
-
-
     /**
-     * Wykluj peta z jajka.
+     * Wykluj peta z jajka. Wynikowy tier peta losowany jest z macierzy szans
+     * `config('pets.hatch_matrix')` w zależności od tieru wyklutego jajka -
+     * NIE jest to już proste kopiowanie tieru jajka 1:1.
      */
     public function hatchEgg(Character $character): Result
     {
@@ -103,28 +111,33 @@ class IncubatorService
                 return Result::error('NOT_READY', 'Jajko nie jest jeszcze gotowe.');
             }
 
-            $rarity = $incubator->egg_rarity;
+            $eggTier = $incubator->egg_tier ?? 1;
             $eggItem = null;
             if ($incubator->egg_item_instance_id) {
                 $eggItem = ItemInstance::with('template')->find($incubator->egg_item_instance_id);
-                if ($eggItem) {
-                    $rarity = $eggItem->getEggRarity();
+                if ($eggItem && $eggItem->getEggTier()) {
+                    $eggTier = $eggItem->getEggTier();
                 }
             }
 
-            $stats = $this->generatePetStats($rarity);
-            $name = $this->generatePetName($rarity);
+            $resultTier = $this->rollHatchTier($eggTier);
+            $statProfile = $this->statCalculator->rollStatProfile();
+            $name = $this->generatePetName($resultTier);
 
-            $pet = Pet::create([
+            $pet = new Pet([
                 'character_id' => $character->id,
                 'name' => $name,
-                'rarity' => $rarity,
-                'stats' => $stats,
+                'tier' => $resultTier,
+                'stat_profile' => $statProfile,
                 'level' => 1,
                 'exp' => 0,
+                'growth_stage' => 0,
+                'fusion_count' => 0,
                 'is_equipped' => false,
-                'icon' => $this->getRandomPetIcon($rarity),
+                'icon' => $this->getRandomPetIcon(),
             ]);
+            $pet->recalculateStats();
+            $pet->save();
 
             // Usuń jajko z inkubatora
             if ($eggItem) {
@@ -141,59 +154,34 @@ class IncubatorService
     }
 
     /**
-     * Załóż/zdejmij peta.
+     * Losuje wynikowy tier peta z macierzy szans dla danego tieru jajka.
      */
-    public function toggleEquipPet(Character $character, int $petId): Result
+    private function rollHatchTier(int $eggTier): int
     {
-        $pet = Pet::where('id', $petId)
-            ->where('character_id', $character->id)
-            ->first();
+        $distribution = config("pets.hatch_matrix.{$eggTier}", [$eggTier => 100]);
 
-        if (!$pet) {
-            return Result::error('NO_PET', 'Nie posiadasz tego peta.');
+        $roll = $this->rng->int(1, 100);
+        $cumulative = 0;
+
+        foreach ($distribution as $tier => $chance) {
+            $cumulative += $chance;
+            if ($roll <= $cumulative) {
+                return (int) $tier;
+            }
         }
 
-        if ($pet->is_equipped) {
-            $pet->update(['is_equipped' => false]);
-            return Result::ok(['action' => 'unequipped', 'pet' => $pet]);
-        }
-
-        // Zdejmij aktualnego peta
-        Pet::where('character_id', $character->id)
-            ->where('is_equipped', true)
-            ->update(['is_equipped' => false]);
-
-        $pet->update(['is_equipped' => true]);
-
-        return Result::ok(['action' => 'equipped', 'pet' => $pet]);
+        // Fallback (zaokrąglenia w configu) - ostatni tier z rozkładu.
+        return (int) array_key_last($distribution);
     }
 
-    private function generatePetStats(string $rarity): array
+    private function generatePetName(int $tier): string
     {
-        $multiplier = match ($rarity) {
-            'common' => 1,
-            'uncommon' => 2,
-            'rare' => 3,
-            'epic' => 5,
-            'legendary' => 8,
-            default => 1,
-        };
-
-        return [
-            'str' => mt_rand(1, 3) * $multiplier,
-            'agi' => mt_rand(1, 3) * $multiplier,
-            'int' => mt_rand(1, 3) * $multiplier,
-            'vit' => mt_rand(1, 3) * $multiplier,
-        ];
-    }
-
-    private function generatePetName(string $rarity): string
-    {
-        $prefixes = match ($rarity) {
-            'legendary' => ['Złoty', 'Mistyczny', 'Starożytny', 'Boski'],
-            'epic' => ['Mroczny', 'Ognisty', 'Lodowy', 'Błyskawiczny'],
-            'rare' => ['Magiczny', 'Dziki', 'Zwinny', 'Nieustraszony'],
-            'uncommon' => ['Mały', 'Szybki', 'Silny', 'Sprytny'],
+        $prefixes = match ($tier) {
+            6 => ['Złoty', 'Mistyczny', 'Starożytny', 'Boski'],
+            5 => ['Mroczny', 'Ognisty', 'Lodowy', 'Błyskawiczny'],
+            4 => ['Magiczny', 'Dziki', 'Zwinny', 'Nieustraszony'],
+            3 => ['Tajemniczy', 'Chytry', 'Zwarty', 'Uparty'],
+            2 => ['Mały', 'Szybki', 'Silny', 'Sprytny'],
             default => ['Przyjaciel', 'Towarzysz', 'Pomocnik', 'Stróż'],
         };
 
@@ -202,7 +190,7 @@ class IncubatorService
         return $prefixes[array_rand($prefixes)] . ' ' . $types[array_rand($types)];
     }
 
-    private function getRandomPetIcon(string $rarity): string
+    private function getRandomPetIcon(): string
     {
         $icons = ['pet_dragon', 'pet_phoenix', 'pet_wolf', 'pet_eagle', 'pet_bear', 'pet_tiger', 'pet_golem', 'pet_spirit'];
         return $icons[array_rand($icons)];

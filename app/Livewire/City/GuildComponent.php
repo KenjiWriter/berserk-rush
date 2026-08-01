@@ -296,9 +296,9 @@ class GuildComponent extends Component
             'equipped_items' => $equippedItems,
             'pet'           => $equippedPet ? [
                 'name' => $equippedPet->name,
-                'rarity' => $equippedPet->rarity,
+                'rarity' => $equippedPet->tierName(),
                 'level' => $equippedPet->level,
-                'combat_power' => $equippedPet->getCombatPower(),
+                'combat_power' => $equippedPet->getCombatPowerFor($character),
             ] : null,
         ];
     }

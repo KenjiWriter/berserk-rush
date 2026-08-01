@@ -10,6 +10,7 @@ use App\Infrastructure\Persistence\CurrencyLedger;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemLedger;
 use App\Infrastructure\Persistence\MarketListing;
+use App\Infrastructure\Persistence\Pet;
 use App\Infrastructure\Persistence\Purchase;
 use App\Infrastructure\Persistence\Mail;
 use Illuminate\Support\Facades\DB;
@@ -86,32 +87,51 @@ class BuyMarketListingAction
                     'currency' => $currency,
                 ]);
 
-                // Transfer item to buyer
-                $item = ItemInstance::with('template')->find($listing->item_instance_id);
-                if ($item) {
-                    $targetLocation = ($item->template && $item->template->type === 'material') ? 'material_stash' : 'inventory';
-                    $item->update([
-                        'owner_character_id' => $buyer->id,
-                        'location' => $targetLocation,
-                    ]);
+                $isPetListing = $listing->pet_id !== null;
+                $item = null;
+                $pet = null;
 
-                    ItemLedger::create([
-                        'id' => Str::ulid(),
-                        'character_id' => $buyer->id,
-                        'item_instance_id' => $item->id,
-                        'action' => 'purchased_from_market',
-                        'ref_type' => 'market_purchase',
-                        'ref_id' => $purchase->id,
-                        'quantity_change' => 1,
-                        'idempotency_key' => $idempotencyKey . ':item_transfer',
-                    ]);
+                if ($isPetListing) {
+                    // Transfer peta do kupującego - pet nigdy fizycznie nie "leżał" na markecie,
+                    // wystarczy zmienić właściciela; wymusza się też brak aktywnego towarzysza,
+                    // choć CreateMarketListingAction już tego pilnował przy wystawianiu.
+                    $pet = Pet::where('id', $listing->pet_id)->lockForUpdate()->first();
+                    if ($pet) {
+                        $pet->update([
+                            'character_id' => $buyer->id,
+                            'is_equipped' => false,
+                        ]);
+                    }
+                } else {
+                    // Transfer item to buyer
+                    $item = ItemInstance::with('template')->find($listing->item_instance_id);
+                    if ($item) {
+                        $targetLocation = ($item->template && $item->template->type === 'material') ? 'material_stash' : 'inventory';
+                        $item->update([
+                            'owner_character_id' => $buyer->id,
+                            'location' => $targetLocation,
+                        ]);
+
+                        ItemLedger::create([
+                            'id' => Str::ulid(),
+                            'character_id' => $buyer->id,
+                            'item_instance_id' => $item->id,
+                            'action' => 'purchased_from_market',
+                            'ref_type' => 'market_purchase',
+                            'ref_id' => $purchase->id,
+                            'quantity_change' => 1,
+                            'idempotency_key' => $idempotencyKey . ':item_transfer',
+                        ]);
+                    }
                 }
 
                 // Send mail to seller with proceeds
+                $sellerSubject = $isPetListing ? 'Chowaniec sprzedany!' : 'Przedmiot sprzedany!';
+                $sellerNoun = $isPetListing ? 'Twój chowaniec został sprzedany' : 'Twój przedmiot został sprzedany';
                 $sellerMail = Mail::create([
                     'to_character_id' => $listing->seller_character_id,
-                    'subject' => 'Przedmiot sprzedany!',
-                    'body' => "Twój przedmiot został sprzedany za {$price} {$currency}. Po potrąceniu 5% prowizji ({$commission} {$currency}) otrzymujesz {$sellerProceeds} {$currency}.",
+                    'subject' => $sellerSubject,
+                    'body' => "{$sellerNoun} za {$price} {$currency}. Po potrąceniu 5% prowizji ({$commission} {$currency}) otrzymujesz {$sellerProceeds} {$currency}.",
                     'attachments' => [
                         ['type' => $currency, 'qty' => $sellerProceeds],
                     ],
@@ -119,10 +139,13 @@ class BuyMarketListingAction
                 event(new MailReceived($sellerMail));
 
                 // Send confirmation mail to buyer
+                $buyerBody = $isPetListing
+                    ? "Pomyślnie zakupiono chowańca za {$price} {$currency}. Znajdziesz go w swojej Menażerii (Pety)."
+                    : "Pomyślnie zakupiono przedmiot za {$price} {$currency}. Przedmiot trafił do Twojego plecaka.";
                 $buyerMail = Mail::create([
                     'to_character_id' => $buyer->id,
                     'subject' => 'Zakup udany!',
-                    'body' => "Pomyślnie zakupiono przedmiot za {$price} {$currency}. Przedmiot trafił do Twojego plecaka.",
+                    'body' => $buyerBody,
                     'attachments' => null,
                     'claimed' => true,
                 ]);
@@ -141,6 +164,7 @@ class BuyMarketListingAction
                 return Result::ok([
                     'purchase' => $purchase,
                     'item' => $item,
+                    'pet' => $pet,
                     'commission' => $commission,
                     'seller_proceeds' => $sellerProceeds,
                 ]);

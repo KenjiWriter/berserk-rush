@@ -14,6 +14,7 @@ class MarketListing extends Model
     protected $fillable = [
         'seller_character_id',
         'item_instance_id',
+        'pet_id',
         'material_ref_ulid',
         'quantity',
         'price',
@@ -40,6 +41,16 @@ class MarketListing extends Model
     public function item(): BelongsTo
     {
         return $this->belongsTo(ItemInstance::class, 'item_instance_id');
+    }
+
+    public function pet(): BelongsTo
+    {
+        return $this->belongsTo(Pet::class, 'pet_id');
+    }
+
+    public function isPetListing(): bool
+    {
+        return $this->pet_id !== null;
     }
 
     /* ---------- Scopes ---------- */

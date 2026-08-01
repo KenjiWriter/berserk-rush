@@ -87,68 +87,6 @@
             <div class="flex justify-center items-start gap-1.5 xs:gap-2 sm:gap-3 md:gap-4 lg:gap-4 xl:gap-6 mb-3 mt-1 sm:mt-2">
                 <!-- Left Slots -->
                 <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
-                    <!-- Pet Slot -->
-                    @php $activePet = $pets->firstWhere('is_equipped', true); @endphp
-                    <div id="equip-slot-pet" x-data="{ open: false, hoverTimeout: null, isDragOver: false }" @click.outside="open = false" 
-                         @if($activePet) 
-                             wire:loading.class="opacity-50 scale-95 pointer-events-none" 
-                             wire:target="toggleEquipPet({{ $activePet->id }})" 
-                             draggable="true"
-                             @dragstart="open = false; clearTimeout(hoverTimeout); window.currentDragItem = { id: {{ $activePet->id }}, type: 'pet', source: 'equipped_pet', domId: 'equip-slot-pet' }"
-                             @dragend="window.currentDragItem = null"
-                             @dblclick="open = false; clearTimeout(hoverTimeout); flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet({{ $activePet->id }}))"
-                         @endif
-                         @dragover.prevent="if (window.currentDragItem && window.currentDragItem.type === 'egg') isDragOver = true"
-                         @dragleave="isDragOver = false"
-                         @drop.prevent="
-                             if (window.currentDragItem && window.currentDragItem.type === 'egg') {
-                                 let dragItem = window.currentDragItem;
-                                 isDragOver = false;
-                                 flyItem(dragItem.domId, 'equip-slot-pet', () => $wire.placeEgg(dragItem.id));
-                             } else {
-                                 isDragOver = false;
-                             }
-                         "
-                         class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ $activePet ? 'border-amber-500 cursor-grab active:cursor-grabbing hover:border-red-500 enchanted-border' : 'border-stone-700 border-dashed hover:border-amber-500/50' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 shadow-md"
-                         :class="{ 'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver, '!z-[99999] relative': open }"
-                         @if($activePet) @click="open = true" @endif>
-                        @if($activePet)
-                            <div class="text-center text-xs text-white flex flex-col items-center justify-center p-0.5 sm:p-1">
-                                <i class="fa-solid fa-paw text-amber-400 text-xl xs:text-2xl drop-shadow"></i>
-                                <span class="block truncate w-10 xs:w-12 sm:w-16 text-[9px] xs:text-[10px] sm:text-[11px] text-amber-300 font-semibold mt-0.5">{{ $activePet->name }}</span>
-                            </div>
-                            <!-- Modal -->
-                            <div x-show="open" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">
-                                <div class="bg-gray-900 border border-amber-500 p-4 rounded-xl w-full max-w-xs shadow-2xl relative" @click.stop>
-                                    <button @click="open = false" class="absolute top-2 right-2 text-gray-400 hover:text-white text-lg font-bold">✕</button>
-                                    <div class="flex justify-between items-center mb-2">
-                                        <p class="font-bold text-amber-400 text-lg">{{ $activePet->name }}</p>
-                                        <span class="text-indigo-300 font-bold flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-400"></i> {{ $activePet->getCombatPower() }}</span>
-                                    </div>
-                                    <p class="text-gray-300 mb-2">Poziom: {{ $activePet->level }}</p>
-                                    @if(count($activePet->stats ?? []) > 0)
-                                        <div class="mt-2 text-green-400 border-t border-gray-700 pt-2 space-y-1">
-                                            @foreach($activePet->stats ?? [] as $stat => $val)
-                                                <div class="flex justify-between text-amber-200">
-                                                    <span class="capitalize">{{ $stat }}</span>
-                                                    <span class="font-bold">+{{ $val }}</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    <button @click="open = false; flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet({{ $activePet->id }}))" class="mt-4 w-full bg-red-600 hover:bg-red-500 text-white font-bold py-2 rounded">
-                                        Odwołaj Peta
-                                    </button>
-                                </div>
-                            </div>
-                        @else
-                            <div class="text-stone-500 flex flex-col items-center">
-                                <i class="fa-solid fa-paw text-stone-500 text-lg xs:text-xl sm:text-2xl opacity-50 mb-0.5"></i>
-                                <span class="text-[9px] xs:text-[10px] sm:text-[11px] font-semibold text-stone-400">Pet</span>
-                            </div>
-                        @endif
-                    </div>
-
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
                         <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
                              @if(isset($equipped[$slot])) 
@@ -522,15 +460,12 @@
             <div class="bg-stone-950/80 border border-amber-900/60 rounded-2xl p-3 sm:p-4 mt-3 shadow-inner relative z-10"
                  wire:key="attributes-panel-{{ $character->id }}">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-900/60 pb-2 mb-3">
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
+                    <div class="grid grid-cols-3 sm:grid-cols-5 gap-1 flex-grow text-[11px] sm:text-xs md:text-sm">
                         <button wire:click="setTab('attributes')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'attributes' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Atrybuty
                         </button>
                         <button wire:click="setTab('stats')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'stats' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Statystyki
-                        </button>
-                        <button wire:click="setTab('pets')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'pets' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
-                            Pety<span class="hidden xs:inline"> & Inkubator</span>
                         </button>
                         <button wire:click="setTab('collections')" class="w-full text-center py-1.5 px-1 font-bold rounded-t-lg transition-all duration-200 medieval-font flex items-center justify-center {{ $activeTab === 'collections' ? 'text-amber-300 border-b-2 border-amber-400 bg-amber-500/15 shadow-[0_0_10px_rgba(245,158,11,0.2)]' : 'text-stone-400 hover:text-amber-200 hover:bg-stone-800/40' }}">
                             Kolekcje<span class="hidden xs:inline"> & Tytuły</span>
@@ -754,10 +689,6 @@
                                 @endforeach
                             </div>
                         </div>
-                    </div>
-                @elseif($activeTab === 'pets')
-                    <div class="mt-4">
-                        @include('livewire.city.pets')
                     </div>
                 @elseif($activeTab === 'collections')
                     <div class="mt-4">
@@ -1228,17 +1159,13 @@
                      isInventoryDragOver: false,
                      activeItemId: null
                  }"
-                 @dragover.prevent="if (window.currentDragItem && (window.currentDragItem.source === 'equipped' || window.currentDragItem.source === 'equipped_pet')) isInventoryDragOver = true"
+                 @dragover.prevent="if (window.currentDragItem && window.currentDragItem.source === 'equipped') isInventoryDragOver = true"
                  @dragleave="isInventoryDragOver = false"
                  @drop.prevent="
                      if (window.currentDragItem && window.currentDragItem.source === 'equipped') {
                          let dragItem = window.currentDragItem;
                          isInventoryDragOver = false;
                          flyItem('equip-slot-' + dragItem.slot, 'inventory-grid', () => $wire.unequipItem(dragItem.id));
-                     } else if (window.currentDragItem && window.currentDragItem.source === 'equipped_pet') {
-                         let dragItem = window.currentDragItem;
-                         isInventoryDragOver = false;
-                         flyItem('equip-slot-pet', 'inventory-grid', () => $wire.toggleEquipPet(dragItem.id));
                      } else {
                          isInventoryDragOver = false;
                      }
@@ -1360,7 +1287,7 @@
                                      @elseif(($item->template->type ?? '') === 'consumable')
                                          $wire.consumeItem('{{ $item->id }}');
                                      @elseif(($item->template->type ?? '') === 'egg')
-                                         flyItem('backpack-item-{{ $item->id }}', 'equip-slot-pet', () => $wire.placeEgg('{{ $item->id }}'));
+                                         $dispatch('notify', { type: 'info', message: 'Przejdź do zakładki Pety w menu, aby umieścić jajko w inkubatorze.' });
                                      @endif
                                  @endif
                              "
@@ -1446,9 +1373,9 @@
                                                                 </button>
                                                             @endif
                                                         @elseif(($item->template->type ?? '') === 'egg')
-                                                            <button @click.stop="$wire.placeEgg('{{ $item->id }}'); $wire.setTab('pets'); $nextTick(() => forceClose())" class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
-                                                                <i class="fa-solid fa-egg text-amber-200"></i> Umieść w inkubatorze
-                                                            </button>
+                                                            <a href="{{ route('city.pets', $character) }}" wire:navigate @click.stop class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
+                                                                <i class="fa-solid fa-egg text-amber-200"></i> Idź do Petów
+                                                            </a>
                                                         @endif
                                                     @endif
 
@@ -1613,9 +1540,9 @@
                                                             </button>
                                                         @endif
                                                     @elseif(($item->template->type ?? '') === 'egg')
-                                                        <button @click.stop="$wire.placeEgg('{{ $item->id }}'); $wire.setTab('pets'); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer border border-amber-400">
-                                                            <i class="fa-solid fa-egg text-amber-200"></i> Umieść w inkubatorze
-                                                        </button>
+                                                        <a href="{{ route('city.pets', $character) }}" wire:navigate @click.stop class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer border border-amber-400">
+                                                            <i class="fa-solid fa-egg text-amber-200"></i> Idź do Petów
+                                                        </a>
                                                     @endif
                                                 @endif
                                                 <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-1.5 rounded transition-colors shadow flex items-center justify-center gap-1.5 text-xs">

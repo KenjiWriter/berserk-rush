@@ -375,9 +375,9 @@ class GlobalChatComponent extends Component
                 'equipped_items' => $equippedItems,
                 'pet'           => $equippedPet ? [
                     'name' => $equippedPet->name,
-                    'rarity' => $equippedPet->rarity,
+                    'rarity' => $equippedPet->tierName(),
                     'level' => $equippedPet->level,
-                    'combat_power' => $equippedPet->getCombatPower(),
+                    'combat_power' => $equippedPet->getCombatPowerFor($character),
                 ] : null,
             ];
 
@@ -576,17 +576,22 @@ class GlobalChatComponent extends Component
                 return;
             }
             
-            \App\Infrastructure\Persistence\Pet::create([
+            $tier = match ($petTemplate->rarity) {
+                'uncommon' => 2, 'rare' => 3, 'epic' => 4, 'legendary' => 5, default => 1,
+            };
+
+            $pet = \App\Infrastructure\Persistence\Pet::create([
                 'character_id' => $character->id,
                 'name' => $petTemplate->name,
-                'rarity' => $petTemplate->rarity,
-                'stats' => $petTemplate->base_stats,
+                'tier' => $tier,
                 'level' => 1,
                 'exp' => 0,
                 'is_equipped' => false,
                 'icon' => $petTemplate->icon,
             ]);
-            
+            $pet->recalculateStats();
+            $pet->save();
+
             $this->dispatch('notify', message: "Otrzymano chowańca: {$petTemplate->name}!", type: 'success');
             return;
         }

@@ -256,6 +256,12 @@
                             <span class="truncate text-[11px] sm:text-xs">Wiedźma</span>
                         </a>
 
+                        <a href="{{ route('city.pets', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Wizyta u Petów...', icon: 'fa-solid fa-paw', url: $el.href })"
+                           class="flex items-center gap-2 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all min-w-0">
+                            <i class="fa-solid fa-paw text-amber-400 text-sm shrink-0"></i>
+                            <span class="truncate text-[11px] sm:text-xs">Pety</span>
+                        </a>
+
                         <a href="{{ route('city.warlock', $charId) }}" wire:navigate @click="mobileMenuOpen = false; $dispatch('location-leave', { text: 'Czarnoksiężnik...', icon: 'fa-solid fa-skull', url: $el.href })"
                            class="flex items-center gap-1.5 p-2.5 sm:p-3 min-h-[44px] rounded-lg border border-amber-900/60 bg-stone-900/90 text-amber-100 hover:border-amber-500 transition-all relative min-w-0">
                             <i class="fa-solid fa-skull text-amber-400 text-sm shrink-0"></i>

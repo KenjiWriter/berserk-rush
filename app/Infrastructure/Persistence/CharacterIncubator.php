@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Persistence;
 
+use App\Domain\Pets\PetTier;
 use Illuminate\Database\Eloquent\Model;
 
 class CharacterIncubator extends Model
@@ -10,12 +11,14 @@ class CharacterIncubator extends Model
         'character_id',
         'egg_item_instance_id',
         'egg_rarity',
+        'egg_tier',
         'started_at',
         'hatches_at',
         'is_hatched',
     ];
 
     protected $casts = [
+        'egg_tier' => 'integer',
         'started_at' => 'datetime',
         'hatches_at' => 'datetime',
         'is_hatched' => 'boolean',
@@ -31,29 +34,31 @@ class CharacterIncubator extends Model
         return $this->belongsTo(ItemInstance::class, 'egg_item_instance_id');
     }
 
-    public function getEffectiveRarity(): string
+    public function getEffectiveTier(): int
     {
-        if ($this->eggItemInstance) {
-            return $this->eggItemInstance->getEggRarity();
+        if ($this->eggItemInstance && $this->eggItemInstance->getEggTier()) {
+            return $this->eggItemInstance->getEggTier();
         }
-        return $this->egg_rarity ?? 'common';
+        return $this->egg_tier ?? 1;
     }
 
     /**
-     * Synchronicznie koryguje rzadkość i czas inkubacji, jeśli podpięte jajko ma inną rzadkość.
+     * Synchronicznie koryguje tier i czas inkubacji, jeśli podpięte jajko ma inny tier
+     * niż zapisany (np. admin podmienił szablon jajka po umieszczeniu w inkubatorze).
      */
-    public function syncRarityIfNecessary(): void
+    public function syncTierIfNecessary(): void
     {
         if ($this->is_hatched || !$this->egg_item_instance_id) {
             return;
         }
 
-        $effectiveRarity = $this->getEffectiveRarity();
-        if ($effectiveRarity !== $this->egg_rarity) {
-            $hours = self::getIncubationHours($effectiveRarity);
-            $this->egg_rarity = $effectiveRarity;
+        $effectiveTier = $this->getEffectiveTier();
+        if ($effectiveTier !== $this->egg_tier) {
+            $hours = PetTier::hatchHours($effectiveTier);
+            $this->egg_tier = $effectiveTier;
+            $this->egg_rarity = PetTier::slug($effectiveTier);
             if ($this->started_at) {
-                $this->hatches_at = $this->started_at->copy()->addHours($hours);
+                $this->hatches_at = $this->started_at->copy()->addMinutes((int) round($hours * 60));
             }
             $this->save();
         }
@@ -67,7 +72,7 @@ class CharacterIncubator extends Model
         if ($this->is_hatched || !$this->hatches_at) {
             return false;
         }
-        $this->syncRarityIfNecessary();
+        $this->syncTierIfNecessary();
         return now()->gte($this->hatches_at);
     }
 
@@ -80,7 +85,7 @@ class CharacterIncubator extends Model
             return 0.0;
         }
 
-        $this->syncRarityIfNecessary();
+        $this->syncTierIfNecessary();
 
         $nowTs = now()->timestamp;
         $startTs = $this->started_at->timestamp;
@@ -103,20 +108,5 @@ class CharacterIncubator extends Model
 
         $progress = ($elapsedSeconds / $totalSeconds) * 100.0;
         return max(0.0, min(100.0, round($progress, 1)));
-    }
-
-    /**
-     * Czas inkubacji w godzinach zależnie od rzadkości.
-     */
-    public static function getIncubationHours(string $rarity): int
-    {
-        return match ($rarity) {
-            'common' => 1,
-            'uncommon' => 2,
-            'rare' => 4,
-            'epic' => 8,
-            'legendary' => 24,
-            default => 1,
-        };
     }
 }

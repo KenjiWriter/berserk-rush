@@ -9,9 +9,6 @@ use App\Application\Items\UnequipItem;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
 use App\Infrastructure\Persistence\ItemInstance;
-use App\Infrastructure\Persistence\Pet;
-use App\Infrastructure\Persistence\CharacterIncubator;
-use App\Application\Pets\IncubatorService;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -43,13 +40,6 @@ class Profile extends Component
     public ?int $selectedMirrorMapId = null;
     public int $selectedMirrorDurationHours = 1;
     public ?array $claimedRewardsSummary = null;
-
-    // Pets & Synthesizer State
-    public array $selectedSynthesizerPetIds = [];
-    public ?int $feedingPetId = null;
-    public array $selectedFeedItemIds = [];
-    public ?string $errorMessage = null;
-    public ?string $successMessage = null;
 
     #[On('tutorial-completed')]
     #[On('skill-equipped')]
@@ -237,182 +227,6 @@ class Profile extends Component
             $this->dispatch('notify', type: 'error', message: $result['message']);
         }
     }
-
-    // --- PETS & INCUBATOR LOGIC ---
-    public function placeEgg(string $eggItemInstanceId): void
-    {
-        $service = app(IncubatorService::class);
-        $result = $service->placeEgg($this->character, $eggItemInstanceId);
-
-        if ($result->isError()) {
-            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            return;
-        }
-
-        $this->dispatch('notify', type: 'success', message: 'Jajko zostało umieszczone w inkubatorze!');
-    }
-
-    public function hatchEgg(): void
-    {
-        $service = app(IncubatorService::class);
-        $result = $service->hatchEgg($this->character);
-
-        if ($result->isError()) {
-            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            return;
-        }
-
-        $pet = $result->getPayload();
-        $this->dispatch('notify', type: 'success', message: "Wykluł się nowy pet: {$pet->name} ({$pet->rarity})!");
-        $this->character->refresh();
-    }
-
-    public function toggleEquipPet(int $petId): void
-    {
-        $service = app(IncubatorService::class);
-        $result = $service->toggleEquipPet($this->character, $petId);
-
-        if ($result->isError()) {
-            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            return;
-        }
-
-        $payload = $result->getPayload();
-        $action = $payload['action'] ?? '';
-        $pet = $payload['pet'] ?? null;
-
-        if ($action === 'equipped') {
-            $this->dispatch('notify', type: 'success', message: "Pet {$pet->name} został założony!");
-        } else {
-            $this->dispatch('notify', type: 'success', message: "Pet {$pet->name} został zdjęty.");
-        }
-
-        $this->character->clearStatsCache();
-        $this->character->refresh();
-    }
-
-    public function toggleSynthesizerPet(int $petId): void
-    {
-        $this->errorMessage = null;
-        $this->successMessage = null;
-
-        if (in_array($petId, $this->selectedSynthesizerPetIds)) {
-            $this->selectedSynthesizerPetIds = array_values(array_diff($this->selectedSynthesizerPetIds, [$petId]));
-            return;
-        }
-
-        if (count($this->selectedSynthesizerPetIds) >= 3) {
-            $this->dispatch('notify', type: 'error', message: 'Możesz wybrać maksymalnie 3 chowańce do transmutacji.');
-            return;
-        }
-
-        $pet = Pet::where('id', $petId)->where('character_id', $this->character->id)->first();
-        if (!$pet || $pet->is_equipped) {
-            $this->dispatch('notify', type: 'error', message: 'Nie możesz użyć założonego lub nieistniejącego chowańca.');
-            return;
-        }
-
-        if (!empty($this->selectedSynthesizerPetIds)) {
-            $firstPet = Pet::find($this->selectedSynthesizerPetIds[0]);
-            if ($firstPet && $firstPet->rarity !== $pet->rarity) {
-                $this->dispatch('notify', type: 'error', message: 'Wszystkie 3 chowańce muszą posiadać ten sam stopień rzadkości (' . ucfirst($firstPet->rarity) . ')!');
-                return;
-            }
-        }
-
-        if ($pet->rarity === 'legendary') {
-            $this->dispatch('notify', type: 'error', message: 'Chowańce rangi Legendarnej osiągnęły już najwyższą klasę.');
-            return;
-        }
-
-        $this->selectedSynthesizerPetIds[] = $petId;
-    }
-
-    public function clearSynthesizer(): void
-    {
-        $this->selectedSynthesizerPetIds = [];
-    }
-
-    public function synthesizePets(): void
-    {
-        $service = app(\App\Application\Pets\PetService::class);
-        $result = $service->synthesizePets($this->character, $this->selectedSynthesizerPetIds);
-
-        if ($result->isError()) {
-            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            return;
-        }
-
-        $payload = $result->getPayload();
-        $this->selectedSynthesizerPetIds = [];
-
-        if (!($payload['success'] ?? false)) {
-            $this->dispatch('notify', type: 'error', message: $payload['message'] ?? 'Transmutacja nie powiodła się!');
-        } else {
-            $this->dispatch('notify', type: 'success', message: $payload['message'] ?? 'Transmutacja zakończona sukcesem!');
-        }
-
-        $this->character->refresh();
-    }
-
-    public function openFeedModal(int $petId): void
-    {
-        $this->feedingPetId = $petId;
-        $this->selectedFeedItemIds = [];
-    }
-
-    public function closeFeedModal(): void
-    {
-        $this->feedingPetId = null;
-        $this->selectedFeedItemIds = [];
-    }
-
-    public function toggleFeedItem(string $itemId): void
-    {
-        if (in_array($itemId, $this->selectedFeedItemIds)) {
-            $this->selectedFeedItemIds = array_values(array_diff($this->selectedFeedItemIds, [$itemId]));
-        } else {
-            $this->selectedFeedItemIds[] = $itemId;
-        }
-    }
-
-    public function selectAllFeedItems(): void
-    {
-        $inventoryItems = $this->character->inventoryItems->pluck('id')->toArray();
-
-        if (count($this->selectedFeedItemIds) === count($inventoryItems)) {
-            $this->selectedFeedItemIds = [];
-        } else {
-            $this->selectedFeedItemIds = $inventoryItems;
-        }
-    }
-
-    public function feedPet(): void
-    {
-        if (!$this->feedingPetId) {
-            $this->dispatch('notify', type: 'error', message: 'Wybierz chowańca do nakarmienia.');
-            return;
-        }
-
-        $service = app(\App\Application\Pets\PetService::class);
-        $result = $service->feedPet($this->character, $this->feedingPetId, $this->selectedFeedItemIds);
-
-        if ($result->isError()) {
-            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
-            return;
-        }
-
-        $payload = $result->getPayload();
-        $this->selectedFeedItemIds = [];
-
-        $msg = "Przekazano pożywienie! Chowaniec otrzymał +{$payload['gainedExp']} EXP.";
-        if ($payload['leveledUp'] ?? false) {
-            $msg .= " Awans na Poziom {$payload['newLevel']}!";
-        }
-        $this->dispatch('notify', type: 'success', message: $msg);
-        $this->character->refresh();
-    }
-    // -----------------------------
 
     // --- NAME CHANGE LOGIC ---
     public function openNameChangeModal(): void
@@ -803,19 +617,6 @@ class Profile extends Component
         $playerStashItems = $playerStashItems->take(64);
 
 
-        $pets = Pet::where('character_id', $this->character->id)
-            ->orderByDesc('is_equipped')
-            ->orderByDesc('rarity')
-            ->get();
-
-        $incubator = CharacterIncubator::with('eggItemInstance.template')
-            ->where('character_id', $this->character->id)
-            ->first();
-
-        $eggs = $this->character->inventoryItems->filter(function($item) {
-            return $item->template->type === 'egg';
-        });
-
         $baseAvatars = [];
         $avatarPath = public_path('img/avatars');
         if (\Illuminate\Support\Facades\File::exists($avatarPath)) {
@@ -907,11 +708,6 @@ class Profile extends Component
             'eqStats' => $eqStats,
             'activeWeaponType' => $activeWeaponType,
             'activeScalingStats' => $activeScalingStats,
-            'pets' => $pets,
-            'incubator' => $incubator,
-            'eggs' => $eggs,
-            'inventoryItems' => $inventory,
-            'feedingPet' => $this->feedingPetId ? Pet::find($this->feedingPetId) : null,
             'baseAvatars' => $baseAvatars,
             'equipmentSets' => $equipmentSets,
             'mirrorMaps' => $mirrorMaps,

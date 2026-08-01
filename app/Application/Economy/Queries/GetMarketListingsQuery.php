@@ -57,6 +57,10 @@ class GetMarketListingsQuery
 
     public function execute(array $filters = [], string $sortBy = 'created_at', string $sortDir = 'desc', int $perPage = 20)
     {
+        if (($filters['type'] ?? 'item') === 'pet') {
+            return $this->executeForPets($filters, $sortBy, $sortDir, $perPage);
+        }
+
         $query = MarketListing::query()
             ->where('status', 'active')
             ->has('item')
@@ -170,6 +174,75 @@ class GetMarketListingsQuery
                 ->limit(1);
 
             $query->orderBy($levelSubquery, $sortDir);
+        } else {
+            $query->orderBy($sortBy, $sortDir);
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     * Wariant dla ofert chowańców - pety mają zupełnie inny zestaw filtrów
+     * (tier/poziom/CP) niż itemy (statystyki bonusowe), więc to osobna ścieżka
+     * zamiast doklejania kolejnych warunków do execute().
+     */
+    private function executeForPets(array $filters, string $sortBy, string $sortDir, int $perPage)
+    {
+        $query = MarketListing::query()
+            ->where('status', 'active')
+            ->has('pet')
+            ->with(['pet', 'seller']);
+
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+            $query->whereHas('pet', function ($q) use ($search) {
+                $q->where('name', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        if (!empty($filters['tier'])) {
+            $query->whereHas('pet', function ($q) use ($filters) {
+                $q->where('tier', (int) $filters['tier']);
+            });
+        }
+
+        if (isset($filters['min_level'])) {
+            $query->whereHas('pet', function ($q) use ($filters) {
+                $q->where('level', '>=', (int) $filters['min_level']);
+            });
+        }
+
+        if (isset($filters['max_level'])) {
+            $query->whereHas('pet', function ($q) use ($filters) {
+                $q->where('level', '<=', (int) $filters['max_level']);
+            });
+        }
+
+        if (!empty($filters['currency'])) {
+            $query->where('currency', $filters['currency']);
+        }
+
+        if (isset($filters['min_price'])) {
+            $query->where('price', '>=', (int) $filters['min_price']);
+        }
+
+        if (isset($filters['max_price'])) {
+            $query->where('price', '<=', (int) $filters['max_price']);
+        }
+
+        $allowedSorts = ['created_at', 'price', 'expires_at', 'level', 'tier'];
+        if (!in_array($sortBy, $allowedSorts)) {
+            $sortBy = 'created_at';
+        }
+        $sortDir = strtolower($sortDir) === 'asc' ? 'asc' : 'desc';
+
+        if (in_array($sortBy, ['level', 'tier'], true)) {
+            $petSubquery = \App\Infrastructure\Persistence\Pet::query()
+                ->selectRaw($sortBy)
+                ->whereColumn('pets.id', 'market_listings.pet_id')
+                ->limit(1);
+
+            $query->orderBy($petSubquery, $sortDir);
         } else {
             $query->orderBy($sortBy, $sortDir);
         }

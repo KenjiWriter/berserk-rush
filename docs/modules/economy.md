@@ -5,13 +5,13 @@ Moduł gospodarki w Berserk Rush obsługuje waluty (złoto, klejnoty) oraz hande
 ## Modele
 - **CurrencyLedger**: Służy jako dziennik transakcyjny dla każdej operacji na walucie, zapobiegając nadużyciom poprzez klucze idempotencji.
 - **ItemLedger**: Dziennik ruchów przedmiotów (transfery do plecaka, wyposażenie, wystawienie na market).
-- **MarketListing**: Aktywne, sprzedane, anulowane lub wygasłe oferty rynkowe graczy.
+- **MarketListing**: Aktywne, sprzedane, anulowane lub wygasłe oferty rynkowe graczy. Posiada `item_instance_id` LUB `pet_id` (dokładnie jedno z dwóch) - patrz `docs/modules/pets.md`, sekcja "Handel Chowańcami".
 - **Purchase**: Rekordy potwierdzające zakup (kto, co, za ile, kiedy).
 
 ## Główne Procesy (Akcje)
-- **CreateMarketListingAction**: Zabiera przedmiot z ekwipunku, pobiera bezzwrotną opłatę manipulacyjną od sprzedawcy (w zależności od czasu 24/48/72h: 100/250/500 sztuk złota) i tworzy ofertę.
-- **BuyMarketListingAction**: Rezerwuje ofertę za pomocą pesymistycznego blokowania (`lockForUpdate`), przesyła przedmiot kupującemu oraz złoto/klejnoty sprzedającemu (z potrąceniem 5% prowizji systemowej) przez **pocztę systemową**.
-- **CancelMarketListingAction**: Pozwala sprzedawcy anulować ofertę. Zwraca przedmiot, ale opłata nie jest zwracana.
+- **CreateMarketListingAction**: Zabiera przedmiot z ekwipunku, pobiera bezzwrotną opłatę manipulacyjną od sprzedawcy (w zależności od czasu 24/48/72h: 100/250/500 sztuk złota) i tworzy ofertę. Metoda `executeForPet()` obsługuje analogicznie wystawianie chowańców (wymaga braku aktywnego towarzysza i pustego ekwipunku peta), bez ruchów `ItemInstance`/`ItemLedger` - pet nigdy fizycznie nie "leży" na rynku.
+- **BuyMarketListingAction**: Rezerwuje ofertę za pomocą pesymistycznego blokowania (`lockForUpdate`), przesyła przedmiot (lub chowańca - zmiana `character_id`) kupującemu oraz złoto/klejnoty sprzedającemu (z potrąceniem 5% prowizji systemowej) przez **pocztę systemową**.
+- **CancelMarketListingAction**: Pozwala sprzedawcy anulować ofertę. Zwraca przedmiot (lub nic nie robi dla peta, poza zmianą statusu), ale opłata nie jest zwracana.
 
 ## Harmonogram zadań (Jobs)
 - **ExpireMarketListingsJob**: Uruchamiany co godzinę. Zmienia status przeterminowanych ofert i zwraca przedmioty sprzedawcom za pomocą poczty systemowej.

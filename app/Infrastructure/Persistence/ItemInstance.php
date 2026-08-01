@@ -115,25 +115,18 @@ class ItemInstance extends Model
 
     public function getEggRarity(): string
     {
-        $templateId = $this->template_id ?? $this->template?->id ?? '';
+        $tier = $this->getEggTier();
+        return $tier ? \App\Domain\Pets\PetTier::slug($tier) : 'common';
+    }
 
-        if (str_contains($templateId, 'legendary')) return 'legendary';
-        if (str_contains($templateId, 'epic')) return 'epic';
-        if (str_contains($templateId, 'rare')) return 'rare';
-        if (str_contains($templateId, 'uncommon')) return 'uncommon';
-        if (str_contains($templateId, 'common')) return 'common';
-
-        $name = mb_strtolower($this->template?->name ?? '');
-        if (str_contains($name, 'legendar')) return 'legendary';
-        if (str_contains($name, 'epick')) return 'epic';
-        if (str_contains($name, 'rzadki')) return 'rare';
-        if (str_contains($name, 'nietypow')) return 'uncommon';
-
-        if (!empty($this->rarity) && $this->rarity !== 'common') {
-            return $this->rarity;
-        }
-
-        return 'common';
+    /**
+     * Tier peta (1-6) zapisany jawnie na szablonie jajka (`item_templates.egg_tier`).
+     * Zastępuje dawne zgadywanie rzadkości po nazwie/id szablonu.
+     */
+    public function getEggTier(): ?int
+    {
+        $tier = $this->template?->egg_tier;
+        return $tier ? (int) $tier : null;
     }
 
     public function isInInventory(): bool

@@ -287,6 +287,20 @@
                 </button>
             </div>
 
+            {{-- PETS (3 cols, 1 row) --}}
+            <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-amber-900/50 shadow-lg transition-all duration-300 hover:border-amber-500/80 hover:shadow-[0_0_20px_rgba(245,158,11,0.2)]"
+                 x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
+                <button wire:click="goTo('pets')" @click="travelingTo = 'Pety'; $dispatch('play-audio', { type: 'shop' })" @mouseenter="$dispatch('play-audio', { type: 'hover' })" class="w-full h-full flex flex-col items-center justify-center p-4 relative">
+                    <div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110 opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-black/30"></div>
+                    <div class="relative z-10 text-center">
+                        <div wire:loading wire:target="goTo('pets')" class="mb-1"><svg class="animate-spin h-7 w-7 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+                        <h3 class="text-xl font-bold text-amber-300 medieval-font group-hover:text-amber-200 drop-shadow">Pety</h3>
+                        <p class="text-amber-200/70 text-xs font-medium mt-0.5">Wykluwanie, fuzja i karmienie chowańców</p>
+                    </div>
+                </button>
+            </div>
+
             {{-- WARLOCK (3 cols, 1 row) --}}
             <div class="col-span-3 row-span-1 relative group rounded-3xl overflow-hidden border border-green-900/50 shadow-lg transition-all duration-300 hover:border-green-500/80 hover:shadow-[0_0_20px_rgba(34,197,94,0.2)]"
                  x-data="{ tiltX: 0, tiltY: 0 }" @mousemove="const r = $el.getBoundingClientRect(); tiltX = ((($event.clientY - r.top)/r.height)-0.5)*-12; tiltY = ((($event.clientX - r.left)/r.width)-0.5)*12;" @mouseleave="tiltX = 0; tiltY = 0" :style="`transform: perspective(1000px) rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${tiltX !== 0 || tiltY !== 0 ? 1.02 : 1}); transition: transform 0.1s ease-out;`">
@@ -428,6 +442,17 @@
                         <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
                         <div class="absolute bottom-0 w-full p-4 text-center">
                             <div class="font-bold text-fuchsia-400 medieval-font text-lg">Wiedźma</div>
+                        </div>
+                    </button>
+                </div>
+
+                {{-- Pets --}}
+                <div class="col-span-1">
+                    <button wire:click="goTo('pets')" @click="travelingTo = 'Pety'" class="w-full h-36 rounded-3xl border-2 border-amber-800/50 overflow-hidden relative shadow-lg" wire:loading.attr="disabled">
+                        <div class="absolute inset-0 bg-cover bg-center opacity-55 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent"></div>
+                        <div class="absolute bottom-0 w-full p-4 text-center">
+                            <div class="font-bold text-amber-300 medieval-font text-lg">Pety</div>
                         </div>
                     </button>
                 </div>

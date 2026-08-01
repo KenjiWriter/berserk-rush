@@ -5,6 +5,7 @@ namespace App\Livewire\Economy;
 use App\Application\Economy\Actions\BuyMarketListingAction;
 use App\Application\Economy\Actions\CancelMarketListingAction;
 use App\Application\Economy\Queries\GetMarketListingsQuery;
+use App\Domain\Pets\PetTier;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\MarketListing;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,8 @@ class MarketComponent extends Component
 
     public $characterId;
     public $activeTab = 'buy'; // 'buy' or 'my_listings'
-    
+    public $listingType = 'item'; // 'item' or 'pet' - tylko dla activeTab === 'buy'
+
     // Filters
     public $search = '';
     public $rarity = '';
@@ -26,12 +28,14 @@ class MarketComponent extends Component
     public $maxPrice = '';
     public $minLevel = '';
     public $maxLevel = '';
+    public $petTier = '';
     public array $stats = [];
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
 
     protected $queryString = [
         'activeTab' => ['except' => 'buy'],
+        'listingType' => ['except' => 'item'],
         'search' => ['except' => ''],
         'rarity' => ['except' => ''],
         'currency' => ['except' => ''],
@@ -39,6 +43,7 @@ class MarketComponent extends Component
         'maxPrice' => ['except' => ''],
         'minLevel' => ['except' => ''],
         'maxLevel' => ['except' => ''],
+        'petTier' => ['except' => ''],
         'stats' => ['except' => []],
         'sortBy' => ['except' => 'created_at'],
         'sortDir' => ['except' => 'desc'],
@@ -56,20 +61,26 @@ class MarketComponent extends Component
 
     public function updating($name, $value)
     {
-        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'stats', 'sortBy', 'sortDir', 'activeTab'])) {
+        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'petTier', 'stats', 'sortBy', 'sortDir', 'activeTab', 'listingType'])) {
             $this->resetPage();
         }
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'stats']);
+        $this->reset(['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'petTier', 'stats']);
         $this->resetPage();
     }
 
     public function switchTab($tab)
     {
         $this->activeTab = $tab;
+        $this->resetPage();
+    }
+
+    public function switchListingType($type)
+    {
+        $this->listingType = $type;
         $this->resetPage();
     }
 
@@ -83,6 +94,8 @@ class MarketComponent extends Component
             return;
         }
 
+        $isPetListing = $listing->pet_id !== null;
+
         $result = $action->execute($character, $listing);
 
         if ($result->isError()) {
@@ -90,7 +103,7 @@ class MarketComponent extends Component
             return;
         }
 
-        $this->dispatch('notify', message: 'Przedmiot został pomyślnie kupiony!', type: 'success');
+        $this->dispatch('notify', message: $isPetListing ? 'Chowaniec został pomyślnie kupiony!' : 'Przedmiot został pomyślnie kupiony!', type: 'success');
         $this->dispatch('play-audio', type: 'buy');
         $character->refresh();
         $this->dispatch('stats-updated', gold: $character->gold, gems: auth()->user()->gems ?? 0);
@@ -107,6 +120,8 @@ class MarketComponent extends Component
             return;
         }
 
+        $isPetListing = $listing->pet_id !== null;
+
         $result = $action->execute($character, $listing);
 
         if ($result->isError()) {
@@ -114,7 +129,7 @@ class MarketComponent extends Component
             return;
         }
 
-        $this->dispatch('notify', message: 'Oferta została anulowana. Przedmiot wrócił do ekwipunku.', type: 'success');
+        $this->dispatch('notify', message: $isPetListing ? 'Oferta została anulowana.' : 'Oferta została anulowana. Przedmiot wrócił do ekwipunku.', type: 'success');
         $character->refresh();
         $this->dispatch('stats-updated', gold: $character->gold, gems: auth()->user()->gems ?? 0);
     }
@@ -144,9 +159,31 @@ class MarketComponent extends Component
     {
         $character = $this->character;
         $listings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
-        $myListings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+        $myItemListings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
+        $myPetListings = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 12);
 
-        if ($this->activeTab === 'buy') {
+        if ($this->activeTab === 'buy' && $this->listingType === 'pet') {
+            $filters = [
+                'type' => 'pet',
+                'search' => $this->search,
+                'currency' => $this->currency,
+                'tier' => $this->petTier,
+            ];
+
+            if ($this->maxPrice !== '' && $this->maxPrice !== null) {
+                $filters['max_price'] = \App\Support\PriceParser::parse($this->maxPrice);
+            }
+
+            if ($this->minLevel !== '' && $this->minLevel !== null) {
+                $filters['min_level'] = $this->minLevel;
+            }
+
+            if ($this->maxLevel !== '' && $this->maxLevel !== null) {
+                $filters['max_level'] = $this->maxLevel;
+            }
+
+            $listings = $query->execute($filters, $this->sortBy, $this->sortDir, 12);
+        } elseif ($this->activeTab === 'buy') {
             $filters = [
                 'search' => $this->search,
                 'rarity' => $this->rarity,
@@ -172,11 +209,17 @@ class MarketComponent extends Component
 
             $listings = $query->execute($filters, $this->sortBy, $this->sortDir, 12);
         } else {
-            $myListings = MarketListing::with('item.template')
+            $myItemListings = MarketListing::with('item.template')
                 ->where('seller_character_id', $character->id)
                 ->has('item')
                 ->orderBy('created_at', 'desc')
-                ->paginate(12);
+                ->paginate(12, ['*'], 'itemsPage');
+
+            $myPetListings = MarketListing::with('pet')
+                ->where('seller_character_id', $character->id)
+                ->has('pet')
+                ->orderBy('created_at', 'desc')
+                ->paginate(12, ['*'], 'petsPage');
         }
 
         $equipped = [];
@@ -187,9 +230,11 @@ class MarketComponent extends Component
         return view('livewire.economy.market', [
             'character' => $character,
             'listings' => $listings,
-            'myListings' => $myListings,
+            'myItemListings' => $myItemListings,
+            'myPetListings' => $myPetListings,
             'equipped' => $equipped,
             'statOptions' => $this->statOptions(),
+            'tiers' => PetTier::all(),
         ]);
     }
 }
