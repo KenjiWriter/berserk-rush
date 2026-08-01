@@ -217,7 +217,7 @@
                                         @if(in_array($availableIcon, $usedIcons))
                                             <div class="absolute -top-1 -right-1 bg-red-600 text-white text-[9px] px-1 py-0.5 rounded shadow border border-gray-900 pointer-events-none whitespace-nowrap" title="Ikona w użyciu">W użyciu</div>
                                         @endif
-                                        <img src="{{ asset('assets/items/' . $availableIcon) }}?v={{ @filemtime(storage_path('app/assets/items/' . $availableIcon)) }}" alt="{{ $availableIcon }}" class="w-10 h-10 object-contain drop-shadow-md" />
+                                        <img src="{{ route('assets.items', ['filename' => $availableIcon]) }}" alt="{{ $availableIcon }}" class="w-10 h-10 object-contain drop-shadow-md" />
                                     </div>
                                 @endforeach
                             </div>
@@ -343,7 +343,7 @@
                                     <td class="p-3 text-white">
                                         <div class="flex items-center gap-3">
                                             @if($item->icon)
-                                                <img src="{{ asset('assets/items/' . $item->icon) }}?v={{ $item->updated_at?->timestamp ?? 1 }}-{{ $cacheBuster }}" class="w-10 h-10 object-contain drop-shadow-md bg-gray-800 rounded p-1" alt="icon">
+                                                <img src="{{ route('assets.items', ['filename' => $item->icon]) }}?v={{ $item->updated_at?->timestamp ?? 1 }}-{{ $cacheBuster }}" class="w-10 h-10 object-contain drop-shadow-md bg-gray-800 rounded p-1" alt="icon">
                                             @else
                                                 <div class="w-10 h-10 bg-gray-700 rounded flex items-center justify-center text-xs text-gray-500">Brak</div>
                                             @endif
