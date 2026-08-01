@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterIncubator;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\Pet;
+use App\Infrastructure\Persistence\PetTemplate;
 use App\Infrastructure\RNG\RandomProvider;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -122,7 +123,7 @@ class IncubatorService
 
             $resultTier = $this->rollHatchTier($eggTier);
             $statProfile = $this->statCalculator->rollStatProfile();
-            $name = $this->generatePetName($resultTier);
+            [$name, $icon] = $this->pickSpecies($resultTier);
 
             $pet = new Pet([
                 'character_id' => $character->id,
@@ -134,7 +135,7 @@ class IncubatorService
                 'growth_stage' => 0,
                 'fusion_count' => 0,
                 'is_equipped' => false,
-                'icon' => $this->getRandomPetIcon(),
+                'icon' => $icon,
             ]);
             $pet->recalculateStats();
             $pet->save();
@@ -174,25 +175,30 @@ class IncubatorService
         return (int) array_key_last($distribution);
     }
 
-    private function generatePetName(int $tier): string
+    /**
+     * Wybiera nazwę i ikonę dla nowo wyklutego peta z puli gatunków
+     * zdefiniowanych przez admina (`PetTemplate`) dla danego tieru - to co
+     * admin skonfiguruje w panelu "Zarządzanie Zwierzakami" faktycznie
+     * pojawia się przy wykluciu. Jeśli dla tieru nie zdefiniowano żadnego
+     * gatunku, spada na wbudowaną, sparowaną nazwę+ikonę (nigdy osobno
+     * losowanych - stąd brak niedopasowań typu "Golem" z ikoną smoka).
+     */
+    private function pickSpecies(int $tier): array
     {
-        $prefixes = match ($tier) {
-            6 => ['Złoty', 'Mistyczny', 'Starożytny', 'Boski'],
-            5 => ['Mroczny', 'Ognisty', 'Lodowy', 'Błyskawiczny'],
-            4 => ['Magiczny', 'Dziki', 'Zwinny', 'Nieustraszony'],
-            3 => ['Tajemniczy', 'Chytry', 'Zwarty', 'Uparty'],
-            2 => ['Mały', 'Szybki', 'Silny', 'Sprytny'],
-            default => ['Przyjaciel', 'Towarzysz', 'Pomocnik', 'Stróż'],
+        $template = PetTemplate::where('tier', $tier)->inRandomOrder()->first();
+        if ($template) {
+            return [$template->name, $template->icon ?: 'paw'];
+        }
+
+        $fallback = match ($tier) {
+            6 => ['Złoty Smok', 'dragon'],
+            5 => ['Mroczny Feniks', 'fire'],
+            4 => ['Dziki Tygrys', 'cat'],
+            3 => ['Tajemniczy Golem', 'chess-rook'],
+            2 => ['Szybki Wilk', 'dog'],
+            default => ['Mały Duch', 'ghost'],
         };
 
-        $types = ['Smok', 'Feniks', 'Wilk', 'Orzeł', 'Niedźwiedź', 'Tygrys', 'Golem', 'Duch'];
-
-        return $prefixes[array_rand($prefixes)] . ' ' . $types[array_rand($types)];
-    }
-
-    private function getRandomPetIcon(): string
-    {
-        $icons = ['pet_dragon', 'pet_phoenix', 'pet_wolf', 'pet_eagle', 'pet_bear', 'pet_tiger', 'pet_golem', 'pet_spirit'];
-        return $icons[array_rand($icons)];
+        return $fallback;
     }
 }

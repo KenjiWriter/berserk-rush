@@ -12,11 +12,13 @@ class PetTemplate extends Model
     protected $fillable = [
         'name',
         'rarity',
+        'tier',
         'base_stats',
         'icon',
     ];
 
     protected $casts = [
         'base_stats' => 'array',
+        'tier' => 'integer',
     ];
 }

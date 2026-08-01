@@ -16,39 +16,22 @@ class PetSeeder extends Seeder
 {
     public function run(): void
     {
-        // 1. Pet Templates - używane wyłącznie przez GM-owe /give pet <nazwa> na
-        // czacie globalnym (patrz GlobalChatComponent::handleGiveCommand). Hatch
-        // z jajka NIE korzysta z tych szablonów - generuje losowego peta wg tieru
-        // (patrz app/Application/Pets/IncubatorService.php i docs/modules/pets.md).
+        // 1. Gatunki Chowańców (PetTemplate) - pula nazw+ikon per tier, z której
+        // IncubatorService::hatchEgg() losuje przy wykluciu (patrz pickSpecies()).
+        // Zarządzane też z panelu admina "Zarządzanie Zwierzakami" (Filament/Livewire) -
+        // admin może dodawać kolejne gatunki do dowolnego tieru bez zmian w kodzie.
+        // Ikony to nazwy ikon FontAwesome (bez emoji, zgodnie z docs/agent_rules.md pkt 8).
         $pets = [
-            [
-                'name' => 'Leśny Wilk',
-                'rarity' => 'common',
-                'icon' => '🐺',
-                'base_stats' => ['str' => 2, 'agi' => 3, 'int' => 0, 'vit' => 1]
-            ],
-            [
-                'name' => 'Skalny Golem',
-                'rarity' => 'uncommon',
-                'icon' => '🪨',
-                'base_stats' => ['str' => 4, 'agi' => 0, 'int' => 0, 'vit' => 5]
-            ],
-            [
-                'name' => 'Magiczna Wróżka',
-                'rarity' => 'rare',
-                'icon' => '🧚',
-                'base_stats' => ['str' => 0, 'agi' => 2, 'int' => 6, 'vit' => 2]
-            ],
-            [
-                'name' => 'Mroczny Smok',
-                'rarity' => 'epic',
-                'icon' => '🐉',
-                'base_stats' => ['str' => 8, 'agi' => 5, 'int' => 8, 'vit' => 6]
-            ],
+            ['name' => 'Leśny Wilk', 'tier' => 1, 'rarity' => 'common', 'icon' => 'dog', 'base_stats' => ['str' => 2, 'agi' => 3, 'int' => 0, 'vit' => 1]],
+            ['name' => 'Skalny Golem', 'tier' => 2, 'rarity' => 'uncommon', 'icon' => 'chess-rook', 'base_stats' => ['str' => 4, 'agi' => 0, 'int' => 0, 'vit' => 5]],
+            ['name' => 'Magiczna Wróżka', 'tier' => 3, 'rarity' => 'rare', 'icon' => 'wand-magic-sparkles', 'base_stats' => ['str' => 0, 'agi' => 2, 'int' => 6, 'vit' => 2]],
+            ['name' => 'Mroczny Smok', 'tier' => 4, 'rarity' => 'epic', 'icon' => 'dragon', 'base_stats' => ['str' => 8, 'agi' => 5, 'int' => 8, 'vit' => 6]],
+            ['name' => 'Ognisty Feniks', 'tier' => 5, 'rarity' => 'epic', 'icon' => 'fire', 'base_stats' => ['str' => 6, 'agi' => 6, 'int' => 8, 'vit' => 4]],
+            ['name' => 'Świetlisty Duch', 'tier' => 6, 'rarity' => 'legendary', 'icon' => 'ghost', 'base_stats' => ['str' => 4, 'agi' => 8, 'int' => 10, 'vit' => 6]],
         ];
 
         foreach ($pets as $pet) {
-            PetTemplate::firstOrCreate(['name' => $pet['name']], $pet);
+            PetTemplate::updateOrCreate(['name' => $pet['name']], $pet);
         }
 
         // 2. Jajka chowańców - 1 na każdy z 6 tierów (Pospolity..Legendarny).

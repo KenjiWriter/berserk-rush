@@ -190,16 +190,16 @@ class PetServiceTest extends TestCase
         $this->assertDatabaseMissing('item_instances', ['id' => $item->id]);
     }
 
-    public function test_feeding_pet_rejects_item_outside_level_bracket(): void
+    public function test_feeding_pet_rejects_item_below_tier_minimum_level(): void
     {
         $character = $this->createTestCharacter();
-        $pet = $this->makePet($character, 1); // T1 przyjmuje wyłącznie itemy poz. 0-20
+        $pet = $this->makePet($character, 4); // T4 przyjmuje wyłącznie itemy od poz. 45+
 
         $template = ItemTemplate::create([
-            'id' => 'sword-lvl-99',
-            'name' => 'Miecz Poziomu 99',
+            'id' => 'sword-lvl-10',
+            'name' => 'Miecz Poziomu 10',
             'type' => 'weapon',
-            'level_requirement' => 99,
+            'level_requirement' => 10,
         ]);
 
         $item = ItemInstance::create([
@@ -214,5 +214,32 @@ class PetServiceTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertDatabaseHas('item_instances', ['id' => $item->id, 'location' => 'inventory']);
+    }
+
+    public function test_feeding_pet_accepts_item_above_tier_minimum_with_no_upper_cap(): void
+    {
+        $character = $this->createTestCharacter();
+        $pet = $this->makePet($character, 1); // T1 przyjmuje od poz. 0 - bez górnej granicy
+
+        $template = ItemTemplate::create([
+            'id' => 'sword-lvl-99',
+            'name' => 'Legendarny Miecz Poziomu 99',
+            'type' => 'weapon',
+            'level_requirement' => 99,
+        ]);
+
+        $item = ItemInstance::create([
+            'template_id' => $template->id,
+            'owner_character_id' => $character->id,
+            'location' => 'inventory',
+            'rarity' => 'legendary',
+        ]);
+
+        $service = app(PetFeedingService::class);
+        $result = $service->feedPet($character, $pet->id, [$item->id]);
+
+        // T1 może zjeść nawet legendarny item poz. 99 - brak górnej granicy.
+        $this->assertFalse($result->isError());
+        $this->assertDatabaseMissing('item_instances', ['id' => $item->id]);
     }
 }

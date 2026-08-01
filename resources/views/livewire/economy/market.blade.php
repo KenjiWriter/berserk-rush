@@ -229,7 +229,7 @@
                                      class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 border-amber-500/60 rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_15px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] transition-all duration-200 relative group">
                                     <div class="flex items-start space-x-3 mb-3">
                                         <div class="w-12 h-12 rounded-lg border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-2xl shadow-inner relative">
-                                            <i class="fa-solid fa-dragon text-amber-400"></i>
+                                            <i class="fa-solid fa-{{ $listing->pet->icon ?: 'paw' }} text-amber-400"></i>
                                         </div>
                                         <div class="min-w-0 flex-1">
                                             <h4 class="font-extrabold text-amber-100 text-xs sm:text-sm truncate leading-snug">{{ $listing->pet->name }}</h4>
@@ -549,7 +549,7 @@
                                         <td class="p-3">
                                             <div class="flex items-center space-x-3">
                                                 <div class="w-9 h-9 rounded-lg border border-amber-600/80 bg-stone-900 flex items-center justify-center shrink-0 text-amber-400 text-base shadow-inner relative">
-                                                    <i class="fa-solid fa-dragon"></i>
+                                                    <i class="fa-solid fa-{{ $listing->pet->icon ?: 'paw' }}"></i>
                                                 </div>
                                                 <div>
                                                     <div class="font-extrabold text-amber-100">{{ $listing->pet->name }}</div>

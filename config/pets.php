@@ -16,7 +16,6 @@ return [
             'hatch_hours' => 1,
             'level_norm' => 1.00,
             'feed_level_min' => 0,
-            'feed_level_max' => 20,
         ],
         2 => [
             'name' => 'Zwykły',
@@ -24,7 +23,6 @@ return [
             'hatch_hours' => 1.5,
             'level_norm' => 1.30,
             'feed_level_min' => 15,
-            'feed_level_max' => 35,
         ],
         3 => [
             'name' => 'Nietypowy',
@@ -32,7 +30,6 @@ return [
             'hatch_hours' => 2,
             'level_norm' => 1.60,
             'feed_level_min' => 30,
-            'feed_level_max' => 50,
         ],
         4 => [
             'name' => 'Rzadki',
@@ -40,7 +37,6 @@ return [
             'hatch_hours' => 2.5,
             'level_norm' => 1.90,
             'feed_level_min' => 45,
-            'feed_level_max' => 65,
         ],
         5 => [
             'name' => 'Epicki',
@@ -48,7 +44,6 @@ return [
             'hatch_hours' => 3,
             'level_norm' => 2.20,
             'feed_level_min' => 60,
-            'feed_level_max' => 80,
         ],
         6 => [
             'name' => 'Legendarny',
@@ -56,7 +51,6 @@ return [
             'hatch_hours' => 4,
             'level_norm' => 2.50,
             'feed_level_min' => 75,
-            'feed_level_max' => null, // brak górnej granicy
         ],
     ],
 

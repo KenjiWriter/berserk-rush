@@ -249,7 +249,7 @@
                                             <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full text-[10px] flex items-center justify-center shadow hover:bg-red-500">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
-                                            <i class="fa-solid fa-dragon text-2xl text-purple-300 mb-1 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"></i>
+                                            <i class="fa-solid fa-{{ $selectedPet->icon ?: 'paw' }} text-2xl text-purple-300 mb-1 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"></i>
                                             <span class="text-[10px] font-bold text-amber-200 truncate w-full text-center">{{ $selectedPet->name }}</span>
                                             <span class="text-[9px] uppercase font-extrabold text-purple-300">{{ $selectedPet->tierName() }} · {{ $selectedPet->growthStageLabel() }}</span>
                                         </div>
@@ -337,7 +337,7 @@
 
                                         <div class="flex items-start space-x-4 flex-1">
                                             <div class="relative w-16 h-16 rounded-xl border-2 {{ $pet->is_equipped ? 'border-amber-400 bg-amber-900/40 ring-4 ring-amber-400/30' : 'border-stone-700 bg-stone-950' }} flex items-center justify-center text-3xl shadow-inner shrink-0 mt-0.5">
-                                                <i class="fa-solid fa-dragon {{ $c['text'] }}"></i>
+                                                <i class="fa-solid fa-{{ $pet->icon ?: 'paw' }} {{ $c['text'] }}"></i>
                                                 @if($pet->is_equipped)
                                                     <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-stone-900 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="Aktywny Towarzysz"></span>
                                                 @endif
@@ -502,11 +502,11 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
-                @php [$feedMin, $feedMax] = \App\Domain\Pets\PetTier::feedLevelRange($feedingPet->tier); @endphp
+                @php $feedMin = \App\Domain\Pets\PetTier::feedLevelMin($feedingPet->tier); @endphp
 
                 <div class="flex items-center space-x-4 pb-4 border-b border-amber-500/20 mb-4 shrink-0">
                     <div class="w-14 h-14 rounded-xl border-2 border-amber-400 bg-stone-950 flex items-center justify-center text-2xl">
-                        <i class="fa-solid fa-dragon text-yellow-400"></i>
+                        <i class="fa-solid fa-{{ $feedingPet->icon ?: 'paw' }} text-yellow-400"></i>
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-amber-200" style="font-family: 'Cinzel', serif;">
@@ -517,7 +517,7 @@
                             <span>•</span>
                             <span>EXP: <strong class="text-cyan-300">{{ $feedingPet->exp }} / {{ $feedingPet->getRequiredExp() }}</strong></span>
                             <span>•</span>
-                            <span>Przyjmuje itemy poz. <strong class="text-emerald-300">{{ $feedMin }}{{ $feedMax !== null ? '-'.$feedMax : '+' }}</strong></span>
+                            <span>Przyjmuje itemy od poz. <strong class="text-emerald-300">{{ $feedMin }}+</strong></span>
                         </div>
                     </div>
                 </div>
@@ -675,10 +675,10 @@
 
                     <div>
                         <h4 class="text-emerald-300 font-bold mb-2 uppercase tracking-wider">Karmienie</h4>
-                        <p class="mb-2">Każdy tier chowańca przyjmuje wyłącznie przedmioty z określonego przedziału poziomowego:</p>
+                        <p class="mb-2">Każdy tier chowańca przyjmuje przedmioty od określonego minimalnego poziomu wzwyż (mocniejszy przedmiot zawsze można skarmić):</p>
                         <ul class="space-y-1">
                             @foreach($tiers as $t => $meta)
-                                <li>{{ $meta['name'] }}: poz. <strong class="text-amber-300">{{ $meta['feed_level_min'] }}{{ $meta['feed_level_max'] !== null ? '-'.$meta['feed_level_max'] : '+' }}</strong></li>
+                                <li>{{ $meta['name'] }}: od poz. <strong class="text-amber-300">{{ $meta['feed_level_min'] }}+</strong></li>
                             @endforeach
                         </ul>
                     </div>
@@ -688,6 +688,52 @@
                         <p>Jeśli pet ma wyższy poziom niż Twoja postać, jego wkład do statystyk jest tłumiony proporcjonalnie (poziom postaci / poziom peta). Pet zawsze można założyć, karmić i sprzedać niezależnie od poziomu.</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- FUSION RESULT MODAL --}}
+    @if($fusionResultModal)
+        @php
+            $fr = $fusionResultModal;
+            $frSuccess = $fr['success'] ?? false;
+            $frPet = $fr['pet'] ?? null;
+        @endphp
+        <div class="fixed inset-0 z-[100] flex items-center justify-center bg-stone-950/85 backdrop-blur-md p-4 animate-fade-in">
+            <div class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 {{ $frSuccess ? 'border-emerald-500' : 'border-red-500' }} rounded-2xl max-w-md w-full p-6 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative text-center">
+                <button wire:click="closeFusionResultModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <div class="w-20 h-20 mx-auto rounded-full border-4 {{ $frSuccess ? 'border-emerald-400 bg-emerald-950/40' : 'border-red-400 bg-red-950/40' }} flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid {{ $frSuccess ? 'fa-check text-emerald-400' : 'fa-xmark text-red-400' }} text-4xl"></i>
+                </div>
+
+                <h3 class="text-2xl font-bold mb-2 {{ $frSuccess ? 'text-emerald-300' : 'text-red-300' }}" style="font-family: 'Cinzel', serif;">
+                    {{ $frSuccess ? 'Fuzja udana!' : 'Fuzja nieudana' }}
+                </h3>
+
+                <p class="text-sm text-stone-300 mb-4">{{ $fr['message'] ?? '' }}</p>
+
+                @if(isset($fr['chance']))
+                    <p class="text-xs text-stone-500 mb-4">Szansa powodzenia wynosiła: <strong class="text-amber-300">{{ number_format($fr['chance'], 2) }}%</strong></p>
+                @endif
+
+                @if($frSuccess && $frPet)
+                    <div class="flex items-center gap-3 bg-stone-950/80 border border-emerald-500/30 rounded-xl p-3 text-left">
+                        <div class="w-12 h-12 rounded-lg border-2 border-emerald-400 bg-stone-900 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-{{ $frPet->icon ?: 'paw' }} text-emerald-300"></i>
+                        </div>
+                        <div>
+                            <div class="font-bold text-amber-100">{{ $frPet->name }}</div>
+                            <div class="text-xs text-stone-400">{{ $frPet->tierName() }} · Poziom {{ $frPet->level }}</div>
+                        </div>
+                    </div>
+                @endif
+
+                <button wire:click="closeFusionResultModal" class="mt-5 w-full {{ $frSuccess ? 'bg-emerald-700 hover:bg-emerald-600' : 'bg-red-800 hover:bg-red-700' }} text-white font-bold py-2.5 rounded-xl transition-colors">
+                    Zamknij
+                </button>
             </div>
         </div>
     @endif
@@ -706,7 +752,7 @@
                 @if($sellPet)
                     <div class="flex items-center space-x-3 mb-6 bg-gray-800 p-3 rounded border border-gray-700">
                         <div class="text-3xl flex items-center justify-center w-10 h-10">
-                            <i class="fa-solid fa-dragon text-amber-400"></i>
+                            <i class="fa-solid fa-{{ $sellPet->icon ?: 'paw' }} text-amber-400"></i>
                         </div>
                         <div>
                             <div class="font-bold text-amber-200">{{ $sellPet->name }}</div>

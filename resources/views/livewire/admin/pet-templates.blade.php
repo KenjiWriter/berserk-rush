@@ -26,19 +26,18 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-400 text-sm font-bold mb-2">Rzadkość</label>
-                        <select wire:model="rarity" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
-                            <option value="common">Common</option>
-                            <option value="uncommon">Uncommon</option>
-                            <option value="rare">Rare</option>
-                            <option value="epic">Epic</option>
-                            <option value="legendary">Legendary</option>
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Tier</label>
+                        <select wire:model="tier" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                            @foreach($tierOptions as $t => $label)
+                                <option value="{{ $t }}">T{{ $t }} - {{ $label }}</option>
+                            @endforeach
                         </select>
-                        @error('rarity') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @error('tier') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        <p class="text-xs text-gray-500 mt-1">Ten gatunek będzie mógł wypaść przy wykluciu peta tego tieru (patrz `config/pets.php`).</p>
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-400 text-sm font-bold mb-2">Ikona (np. 🐺)</label>
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Ikona (nazwa ikony FontAwesome, np. "dragon", "paw" - bez emoji)</label>
                         <input type="text" wire:model="icon" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                         @error('icon') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                     </div>
@@ -68,7 +67,7 @@
                             Zapisz
                         </button>
                         @if($editingId)
-                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'rarity', 'icon', 'str', 'agi', 'int', 'vit'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'tier', 'icon', 'str', 'agi', 'int', 'vit'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
                                 Anuluj
                             </button>
                         @endif
@@ -83,7 +82,7 @@
                         <thead>
                             <tr class="bg-gray-700 border-b border-gray-600">
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Ikona & Nazwa</th>
-                                <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Rzadkość</th>
+                                <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Tier</th>
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Statystyki</th>
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm text-right">Akcje</th>
                             </tr>
@@ -93,19 +92,22 @@
                                 <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
                                     <td class="py-3 px-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-2xl">{{ $pet->icon }}</span>
+                                            <i class="fa-solid fa-{{ $pet->icon ?: 'paw' }} text-xl text-amber-400 w-6 text-center"></i>
                                             <span class="font-bold text-white">{{ $pet->name }}</span>
                                         </div>
                                     </td>
                                     <td class="py-3 px-4">
+                                        @php $tMeta = \App\Domain\Pets\PetTier::all()[$pet->tier] ?? null; @endphp
                                         <span class="px-2 py-1 rounded text-xs font-bold
-                                            @if($pet->rarity == 'common') bg-gray-500 text-white
-                                            @elseif($pet->rarity == 'uncommon') bg-green-500 text-white
-                                            @elseif($pet->rarity == 'rare') bg-blue-500 text-white
-                                            @elseif($pet->rarity == 'epic') bg-purple-500 text-white
-                                            @elseif($pet->rarity == 'legendary') bg-orange-500 text-white
+                                            @if($pet->tier == 1) bg-stone-500 text-white
+                                            @elseif($pet->tier == 2) bg-emerald-500 text-white
+                                            @elseif($pet->tier == 3) bg-cyan-500 text-white
+                                            @elseif($pet->tier == 4) bg-indigo-500 text-white
+                                            @elseif($pet->tier == 5) bg-purple-500 text-white
+                                            @elseif($pet->tier == 6) bg-amber-500 text-white
+                                            @else bg-gray-600 text-white
                                             @endif">
-                                            {{ ucfirst($pet->rarity) }}
+                                            {{ $tMeta ? "T{$pet->tier} - {$tMeta['name']}" : 'Brak tieru' }}
                                         </span>
                                     </td>
                                     <td class="py-3 px-4 text-sm text-gray-400">

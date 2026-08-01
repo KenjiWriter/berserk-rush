@@ -25,6 +25,7 @@ class PetsComponent extends Component
 
     // --- FUZJA (2 pety tego samego tieru) ---
     public array $selectedFusionPetIds = [];
+    public ?array $fusionResultModal = null;
 
     // --- KARMIENIE ---
     public ?int $feedingPetId = null;
@@ -205,16 +206,14 @@ class PetsComponent extends Component
             return;
         }
 
-        $payload = $result->getPayload();
+        $this->fusionResultModal = $result->getPayload();
         $this->selectedFusionPetIds = [];
-
-        if (!($payload['success'] ?? false)) {
-            $this->errorMessage = $payload['message'] ?? 'Fuzja nie powiodła się!';
-        } else {
-            $this->successMessage = $payload['message'] ?? 'Fuzja zakończona sukcesem!';
-        }
-
         $this->character->refresh();
+    }
+
+    public function closeFusionResultModal(): void
+    {
+        $this->fusionResultModal = null;
     }
 
     // --- KARMIENIE ---

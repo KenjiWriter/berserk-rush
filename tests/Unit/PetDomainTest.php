@@ -11,14 +11,14 @@ use Tests\TestCase;
 
 class PetDomainTest extends TestCase
 {
-    public function test_pet_tier_feed_level_range_and_acceptance(): void
+    public function test_pet_tier_feed_level_min_and_acceptance(): void
     {
-        // T1: 0-20, T6: 75+ (brak górnej granicy)
-        $this->assertSame([0, 20], PetTier::feedLevelRange(1));
-        $this->assertSame([75, null], PetTier::feedLevelRange(6));
+        // Brak górnej granicy - mocniejszy przedmiot zawsze można skarmić.
+        $this->assertSame(0, PetTier::feedLevelMin(1));
+        $this->assertSame(75, PetTier::feedLevelMin(6));
 
         $this->assertTrue(PetTier::isItemLevelAccepted(1, 10));
-        $this->assertFalse(PetTier::isItemLevelAccepted(1, 21));
+        $this->assertTrue(PetTier::isItemLevelAccepted(1, 99)); // T1 może zjeść legendarny item poz. 99
         $this->assertTrue(PetTier::isItemLevelAccepted(6, 999));
         $this->assertFalse(PetTier::isItemLevelAccepted(6, 74));
     }

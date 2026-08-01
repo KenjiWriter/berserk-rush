@@ -30,10 +30,11 @@ class PetFeedingService
     }
 
     /**
-     * Karmienie peta przedmiotami z plecaka. Każdy wybrany przedmiot musi
-     * mieścić się w przedziale poziomowym akceptowanym przez tier peta
-     * (patrz PetTier::feedLevelRange) - w przeciwnym razie cała operacja jest
-     * odrzucana (żeby uniknąć niejednoznacznego częściowego skarmienia).
+     * Karmienie peta przedmiotami z plecaka. Każdy wybrany przedmiot musi mieć
+     * poziom wymagany co najmniej równy minimum tieru peta (patrz
+     * PetTier::feedLevelMin) - brak górnej granicy, więc mocniejszy przedmiot
+     * zawsze można skarmić - w przeciwnym razie cała operacja jest odrzucana
+     * (żeby uniknąć niejednoznacznego częściowego skarmienia).
      */
     public function feedPet(Character $character, int $petId, array $itemInstanceIds): Result
     {
@@ -57,14 +58,13 @@ class PetFeedingService
                 return Result::error('NO_ITEMS_FOUND', 'Nie znaleziono wybranych przedmiotów w Twoim plecaku.');
             }
 
-            [$minLevel, $maxLevel] = PetTier::feedLevelRange($pet->tier);
+            $minLevel = PetTier::feedLevelMin($pet->tier);
             foreach ($items as $item) {
                 $itemLevel = (int) ($item->template->level_requirement ?? 1);
                 if (!PetTier::isItemLevelAccepted($pet->tier, $itemLevel)) {
-                    $rangeLabel = $maxLevel === null ? "{$minLevel}+" : "{$minLevel}-{$maxLevel}";
                     return Result::error(
                         'ITEM_OUT_OF_RANGE',
-                        "{$item->template->name} (poz. {$itemLevel}) nie mieści się w przedziale poziomowym karmienia dla tego chowańca ({$rangeLabel})."
+                        "{$item->template->name} (poz. {$itemLevel}) jest za słaby dla tego chowańca (wymagany poziom {$minLevel}+)."
                     );
                 }
             }

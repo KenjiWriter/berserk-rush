@@ -32,24 +32,18 @@ class PetTier
     }
 
     /**
-     * Zwraca [min, max] wymaganego poziomu przedmiotu akceptowanego przy karmieniu.
-     * max === null oznacza brak górnej granicy (najwyższy tier).
+     * Minimalny wymagany poziom przedmiotu akceptowanego przy karmieniu - bez
+     * górnej granicy, więc mocniejszy (wyższy poziom) przedmiot zawsze można
+     * skarmić petu niższego tieru.
      */
-    public static function feedLevelRange(int $tier): array
+    public static function feedLevelMin(int $tier): int
     {
-        return [
-            config("pets.tiers.{$tier}.feed_level_min", 0),
-            config("pets.tiers.{$tier}.feed_level_max"),
-        ];
+        return (int) config("pets.tiers.{$tier}.feed_level_min", 0);
     }
 
     public static function isItemLevelAccepted(int $tier, int $itemLevelRequirement): bool
     {
-        [$min, $max] = self::feedLevelRange($tier);
-        if ($itemLevelRequirement < $min) {
-            return false;
-        }
-        return $max === null || $itemLevelRequirement <= $max;
+        return $itemLevelRequirement >= self::feedLevelMin($tier);
     }
 
     public static function canFuse(int $tier): bool

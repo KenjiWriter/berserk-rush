@@ -576,14 +576,10 @@ class GlobalChatComponent extends Component
                 return;
             }
             
-            $tier = match ($petTemplate->rarity) {
-                'uncommon' => 2, 'rare' => 3, 'epic' => 4, 'legendary' => 5, default => 1,
-            };
-
             $pet = \App\Infrastructure\Persistence\Pet::create([
                 'character_id' => $character->id,
                 'name' => $petTemplate->name,
-                'tier' => $tier,
+                'tier' => $petTemplate->tier ?? 1,
                 'level' => 1,
                 'exp' => 0,
                 'is_equipped' => false,
