@@ -175,6 +175,7 @@ class Blacksmith extends Component
         $materialTemplates = !empty($allMatIds)
             ? ItemTemplate::whereIn('id', $allMatIds)->get()->keyBy('id')
             : collect();
+        $allMaterialsByName = ItemTemplate::where('type', 'material')->get()->keyBy('name');
 
         $monsterDropsMap = [];
         if (!empty($allMatIds)) {
@@ -206,8 +207,11 @@ class Blacksmith extends Component
             $canCraft = $this->character->gold >= $recipe->gold_cost;
 
             foreach ($recipe->ingredients as $ing) {
-                $mat = $materialTemplates->get($ing['template_id']);
-                $owned = $inventoryMaterials->where('template_id', $ing['template_id'])->sum('stack_size');
+                $mat = isset($ing['template_id']) ? $materialTemplates->get($ing['template_id']) : null;
+                if (!$mat && !empty($ing['name'])) {
+                    $mat = $allMaterialsByName->get($ing['name']);
+                }
+                $owned = $mat ? $inventoryMaterials->where('template_id', $mat->id)->sum('stack_size') : 0;
                 $req = $ing['quantity'];
 
                 if ($owned < $req) $canCraft = false;
@@ -215,7 +219,7 @@ class Blacksmith extends Component
                 $dropMonsters = $mat ? ($monsterDropsMap[$mat->id] ?? []) : [];
 
                 $preparedIngredients[] = [
-                    'name' => $mat ? $mat->name : 'Nieznany',
+                    'name' => $mat ? $mat->name : ($ing['name'] ?? 'Nieznany'),
                     'icon' => $mat ? $mat->icon : null,
                     'owned' => $owned,
                     'required' => $req,
