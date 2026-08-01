@@ -121,6 +121,14 @@ Route::get('/assets/items/{filename}', function ($filename) {
         $filename . '.webp',
     ];
 
+    $hasExt = pathinfo($filename, PATHINFO_EXTENSION) !== '';
+    if ($hasExt) {
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        if (!in_array($base, $candidates)) {
+            $candidates[] = $base;
+        }
+    }
+
     $directories = [
         public_path('assets/items'),
         storage_path('app/assets/items'),
@@ -132,6 +140,7 @@ Route::get('/assets/items/{filename}', function ($filename) {
         foreach ($candidates as $cand) {
             $path = $dir . '/' . $cand;
             if (file_exists($path) && !is_dir($path)) {
+                @chmod($path, 0644);
                 return response()->file($path);
             }
         }
