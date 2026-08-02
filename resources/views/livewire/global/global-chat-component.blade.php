@@ -702,8 +702,8 @@
 
     {{-- ========== CHAT TERMS MODAL ========== --}}
     @if ($showTermsModal)
-        <div class="fixed inset-0 z-[10050] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 pointer-events-auto select-text">
-            <div class="relative bg-slate-900 border-2 border-amber-700/80 rounded-xl p-5 sm:p-6 w-full max-w-lg shadow-2xl text-left flex flex-col max-h-[85vh] overflow-hidden medieval-font">
+        <div class="fixed inset-0 z-[10050] flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4 pointer-events-auto select-text overflow-y-auto">
+            <div class="relative bg-slate-900 border-2 border-amber-700/80 rounded-xl p-4 sm:p-6 w-full max-w-lg shadow-2xl text-left flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto overflow-hidden medieval-font shrink-0">
                 {{-- Decorative Corner accents --}}
                 <div class="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-amber-500"></div>
                 <div class="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-amber-500"></div>
@@ -716,14 +716,14 @@
                     <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-700 to-amber-500 flex items-center justify-center text-slate-950 text-lg shadow-md shrink-0">
                         <i class="fa-solid fa-scroll"></i>
                     </div>
-                    <div>
+                    <div class="pr-6">
                         <h3 class="text-base sm:text-lg font-bold text-amber-400">Regulamin Czatu i Wyłączenie Odpowiedzialności</h3>
                         <p class="text-slate-400 text-xs font-sans">Wymagana akceptacja zasad przed wysłaniem pierwszej wiadomości</p>
                     </div>
                 </div>
 
                 {{-- Scrollable Terms Content --}}
-                <div class="overflow-y-auto pr-2 space-y-3 font-sans text-xs text-slate-300 leading-relaxed max-h-[50vh] scrollbar-thin">
+                <div class="overflow-y-auto pr-2 space-y-3 font-sans text-xs text-slate-300 leading-relaxed flex-1 min-h-0 scrollbar-thin">
                     <div class="p-3 bg-slate-950/60 rounded border border-amber-900/40">
                         <h4 class="font-bold text-amber-400 medieval-font text-sm mb-1">§ 1. Treści Użytkowników (UGC)</h4>
                         <p>Wszystkie wiadomości na czacie stanowią wyłączną treść tworzoną przez graczy. Administracja Berserk Rush nie odpowiada za poglądy ani wypowiedzi użytkowników.</p>

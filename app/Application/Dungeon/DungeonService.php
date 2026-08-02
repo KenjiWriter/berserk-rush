@@ -580,14 +580,19 @@ class DungeonService
             return Result::error('NO_POTION', 'Nie posiadasz tej mikstury.');
         }
 
-        // Sprawdź czy to prawdziwa mikstura lecznicza (wyklucz skrzynie, zwoje i inne consumable bez heal_amount)
+        // Sprawdź czy to prawdziwa mikstura lecznicza (wyklucz skrzynie, zwoje i inne consumable bez heal_amount / heal_pct)
         $template = $potion->template;
-        if (!$template || $template->type !== 'consumable' || !isset($template->base_stats['heal_amount'])) {
+        $stats = $template->base_stats ?? [];
+        if (!$template || $template->type !== 'consumable' || (!isset($stats['heal_amount']) && !isset($stats['heal_pct']))) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
 
-        $healAmount = $template->base_stats['heal_amount'];
         $maxHp = $character->getMaxHp();
+        if (isset($stats['heal_pct'])) {
+            $healAmount = (int) ceil($maxHp * ($stats['heal_pct'] / 100));
+        } else {
+            $healAmount = (int) ($stats['heal_amount'] ?? 0);
+        }
 
         $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
         $run->save();
@@ -1015,16 +1020,19 @@ class DungeonService
         $baseDamage = max(1, $damage - ($defense * 0.2));
         $bonusDamage = 0;
 
+        $bonusPercentage = ($eq['bonus_vs_monsters'] ?? 0) + ($eq['strong_vs_monsters'] ?? 0) + ($eq['bonus_vs_monster'] ?? 0);
+
         if (isset($monster->type)) {
             $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
             $bonusKey = 'strong_vs_' . $typeStr;
             $altBonusKey = 'bonus_vs_' . $typeStr;
             $pluralBonusKey = 'strong_vs_' . $typeStr . 's';
 
-            $bonusPercentage = ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
-            if ($bonusPercentage > 0) {
-                $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
-            }
+            $bonusPercentage += ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
+        }
+
+        if ($bonusPercentage > 0) {
+            $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }
 
         $magicBurstDamage = 0;

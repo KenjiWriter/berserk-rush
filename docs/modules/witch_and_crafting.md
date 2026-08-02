@@ -39,3 +39,9 @@ Widok Czarownicy (`Witch.php`) posiada dedykowane zakładki:
 > **Uwaga (refaktor):** Rzemiosło broni i zbroi zostało wydzielone z Brońmistrza (`Weaponsmith`) i Zbrojmistrza (`Armorsmith`) do osobnej domeny **Kowal** (`Blacksmith.php`) - patrz `docs/modules/blacksmith.md`. Wiedźma nadal obsługuje wyłącznie crafting mikstur (`consumable`).
 
 > **Uwaga (refaktor, 2026-07-28):** Zaczarowanie przedmiotów zostało przeniesione od Czarodzieja (`Wizard.php` / `city.wizard`) do Wiedźmy jako trzecia zakładka (`enchant`). Strona Czarodzieja i trasa `city.wizard` pozostały w kodzie (bez zmian funkcjonalnych), ale zostały odlinkowane ze wszystkich elementów nawigacji (desktop-nav, mobile-nav, kafelki Hub) - "Sklep Magiczny" nie jest już dostępny z poziomu UI. Dodatkowo czas trwania buffu z Eliksiru Wiedzy Absolutnej (+20% exp) wydłużono z 10 minut do 60 minut - zmiana zrealizowana migracją danych `database/migrations/2026_07_28_120000_increase_exp_potion_duration.php`, aktualizującą pole `base_stats.duration_minutes` szablonu `potion-exp-special`.
+
+> **Uwaga (rework mikstur, 2026-08-02):** System mikstur u alchemika/wiedźmy przeszedł pełny rework:
+> 1. Wszystkie mikstury dają bonusy procentowe zamiast płaskich wartości: Mała (S) = **5%**, Średnia (M) = **10%**, Duża (L) = **15%**.
+> 2. Czasy trwania mikstur wydłużono do długich okresów: Mała (S) = **1 godzina** (60 min), Średnia (M) = **3 godziny** (180 min), Duża (L) = **6 godzin** (360 min).
+> 3. Dodano nową serię **Mikstur Łowcy Potworów** (Silne przeciwko potworom): zwiększają obrażenia zadawane wszystkim stworom o 5% / 10% / 15% na 1h / 3h / 6h.
+> 4. Mikstury HP i Many w lochach leczą natychmiastowo 5% / 10% / 15% maksymalnego zdrowia lub many, a użyte jako buff zwiększają maksymalny poziom HP i MP o ten sam procent.

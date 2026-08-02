@@ -156,6 +156,8 @@ class ConsumeItemAction
                 ]);
             }
 
+            $character->clearStatsCache();
+
             // Log
             ItemLedger::create([
                 'id' => (string) Str::ulid(),

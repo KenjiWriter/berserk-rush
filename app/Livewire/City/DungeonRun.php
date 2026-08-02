@@ -323,7 +323,10 @@ class DungeonRun extends Component
             ->where('location', 'inventory')
             ->whereHas('template', function ($q) {
                 $q->where('type', 'consumable')
-                  ->whereNotNull('base_stats->heal_amount');
+                  ->where(function ($sub) {
+                      $sub->whereNotNull('base_stats->heal_amount')
+                          ->orWhereNotNull('base_stats->heal_pct');
+                  });
             })
             ->with('template')
             ->get();

@@ -20,6 +20,9 @@ class ProfileManagementModal extends Component
     // Deletion code field
     public string $deletion_code = '';
 
+    // Account deletion password confirmation field
+    public string $delete_password = '';
+
     public string $successMessage = '';
     public string $errorMessage = '';
 

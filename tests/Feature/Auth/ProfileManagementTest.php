@@ -20,7 +20,9 @@ class ProfileManagementTest extends TestCase
 
         Livewire::actingAs($user)
             ->test(ProfileManagementModal::class)
-            ->assertSee('Zarządzaj profilem');
+            ->call('openModal')
+            ->assertSet('showModal', true)
+            ->assertSee('Zarządzanie Profilem');
     }
 
     public function test_user_can_change_password_with_correct_current_password(): void
@@ -112,6 +114,7 @@ class ProfileManagementTest extends TestCase
             ->set('email', 'bohater@example.com')
             ->set('password', 'Haslo1234!')
             ->set('password_confirmation', 'Haslo1234!')
+            ->set('deletion_code', '1234567')
             ->set('terms', true)
             ->set('privacy', true)
             ->call('register')

@@ -155,3 +155,6 @@ Naprawa (`EncounterService::simulate()`):
 - Łup (`DropService::rollLoot()`) losowany jest niezależnie dla każdego z 3-4 potworów z
   jego WŁASNEJ tabeli zrzutów (z tą samą karą 66% szansy na brak dropu per sztuka jak
   wcześniej dla całego starcia) - patrz `docs/modules/loot.md`, sekcja "Walka Grupowa".
+
+### 11. Mikstury Łowcy Potworów (`bonus_vs_monsters`)
+Gracz może używać mikstur alchemicznych z nowej kategorii **Łowca Potworów** (S = 5% / 1h, M = 10% / 3h, L = 15% / 6h). Po wypiciu mikstury jej flaga `bonus_vs_monsters` automatycznie zwiększa bazowe obrażenia zadawane **każdemu** potworowi na dowolnej mapie oraz w lochach (`EncounterService::calculateDamage()` and `DungeonService::calculateDamage()`). Bonus sumuje się z ewentualnymi rasowymi premiami broni (`strong_vs_<rasa>`).

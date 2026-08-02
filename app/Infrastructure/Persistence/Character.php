@@ -608,12 +608,18 @@ class Character extends Model
             }
 
             // Add Active Buffs
+            $attrPcts = ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0];
+
             foreach ($this->getActiveBuffs() as $buff) {
                 $effects = $buff->effects ?? [];
                 foreach (['str', 'int', 'vit', 'agi'] as $stat) {
                     $bonusKey = $stat . '_bonus';
+                    $pctKey = $stat . '_pct';
                     if (isset($effects[$bonusKey])) {
                         $total[$stat] += $effects[$bonusKey];
+                    }
+                    if (isset($effects[$pctKey])) {
+                        $attrPcts[$stat] += $effects[$pctKey];
                     }
                 }
             }
@@ -654,6 +660,13 @@ class Character extends Model
                     if (isset($achStats[$stat . '_bonus'])) {
                         $total[$stat] += $achStats[$stat . '_bonus'];
                     }
+                }
+            }
+
+            // Apply percentage attribute buffs from potions
+            foreach (['str', 'int', 'vit', 'agi'] as $stat) {
+                if ($attrPcts[$stat] > 0) {
+                    $total[$stat] = (int) round($total[$stat] * (1 + $attrPcts[$stat] / 100));
                 }
             }
 
@@ -767,6 +780,7 @@ class Character extends Model
             }
 
             // Add Active Buffs
+            $buffDefensePct = 0;
             foreach ($this->getActiveBuffs() as $buff) {
                 $effects = $buff->effects ?? [];
                 $stats['hp_bonus'] += ($effects['hp_bonus'] ?? 0);
@@ -777,6 +791,23 @@ class Character extends Model
                 $stats['magic_attack_max'] += ($effects['magic_attack_max'] ?? 0);
                 $stats['defense'] += ($effects['defense'] ?? 0);
                 $stats['crit_chance'] += ($effects['crit_chance'] ?? 0);
+
+                if (isset($effects['defense_pct'])) {
+                    $buffDefensePct += $effects['defense_pct'];
+                }
+
+                foreach ($effects as $k => $v) {
+                    if (str_starts_with($k, 'bonus_vs_') || str_starts_with($k, 'strong_vs_')) {
+                        if (!isset($stats[$k])) {
+                            $stats[$k] = 0;
+                        }
+                        $stats[$k] += $v;
+                    }
+                }
+            }
+
+            if ($buffDefensePct > 0) {
+                $stats['defense'] = (int) round($stats['defense'] * (1 + $buffDefensePct / 100));
             }
 
             // Add Title bonuses
@@ -839,7 +870,21 @@ class Character extends Model
         $compute = function () use ($setType) {
             $vitality = $this->getTotalAttributes($setType)['vit'] ?? 1;
             $eq = $this->getEquipmentStats($setType);
-            return 100 + ($vitality * self::ATTRIBUTE_HP_MULTIPLIER) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
+            $baseHp = 100 + ($vitality * self::ATTRIBUTE_HP_MULTIPLIER) + ($this->level * 5) + ($eq['hp_bonus'] ?? 0);
+
+            $hpPct = 0;
+            foreach ($this->getActiveBuffs() as $buff) {
+                $effects = $buff->effects ?? [];
+                if (isset($effects['hp_pct'])) {
+                    $hpPct += $effects['hp_pct'];
+                }
+            }
+
+            if ($hpPct > 0) {
+                return (int) round($baseHp * (1 + $hpPct / 100));
+            }
+
+            return $baseHp;
         };
 
         if ($setType === null) {
@@ -854,7 +899,21 @@ class Character extends Model
         $compute = function () use ($setType) {
             $intelligence = $this->getTotalAttributes($setType)['int'] ?? 0;
             $eq = $this->getEquipmentStats($setType);
-            return 50 + ($intelligence * 10) + ($this->level * 3) + ($eq['mana_bonus'] ?? 0);
+            $baseMana = 50 + ($intelligence * 10) + ($this->level * 3) + ($eq['mana_bonus'] ?? 0);
+
+            $manaPct = 0;
+            foreach ($this->getActiveBuffs() as $buff) {
+                $effects = $buff->effects ?? [];
+                if (isset($effects['mana_pct'])) {
+                    $manaPct += $effects['mana_pct'];
+                }
+            }
+
+            if ($manaPct > 0) {
+                return (int) round($baseMana * (1 + $manaPct / 100));
+            }
+
+            return $baseMana;
         };
 
         if ($setType === null) {

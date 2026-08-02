@@ -1315,16 +1315,19 @@ class EncounterService
         $baseDamage = max(1, $damage - ($defense * 0.2));
         $bonusDamage = 0;
 
+        $bonusPercentage = ($eq['bonus_vs_monsters'] ?? 0) + ($eq['strong_vs_monsters'] ?? 0) + ($eq['bonus_vs_monster'] ?? 0);
+
         if (isset($monster->type)) {
             $typeStr = strtolower(is_object($monster->type) ? $monster->type->value : $monster->type);
             $bonusKey = 'strong_vs_' . $typeStr;
             $altBonusKey = 'bonus_vs_' . $typeStr;
             $pluralBonusKey = 'strong_vs_' . $typeStr . 's';
 
-            $bonusPercentage = ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
-            if ($bonusPercentage > 0) {
-                $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
-            }
+            $bonusPercentage += ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
+        }
+
+        if ($bonusPercentage > 0) {
+            $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }
 
         // "Magic burst": bronie hybrydowe (np. Dzwon) mają szansę zadać dodatkowe,
