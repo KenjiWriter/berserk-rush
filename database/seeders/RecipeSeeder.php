@@ -14,6 +14,8 @@ class RecipeSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(PotionSeeder::class);
+
         $materials = ItemTemplate::where('type', 'material')->get()->keyBy('name');
 
         if ($materials->isEmpty()) {
