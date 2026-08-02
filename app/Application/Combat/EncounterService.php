@@ -1391,15 +1391,10 @@ class EncounterService
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
-        $baseCrit = 0.05 + ($agility * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
+        $baseCrit = 0.05 + ($agility * 0.0015) + (($eq['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
-        // UWAGA (fix 2026-07-28): usunięto górny sufit 50% na życzenie - szansa gracza na
-        // krytyka rośnie teraz bez ograniczenia wraz z AGI oraz crit_chance z ekwipunku
-        // (nowy system itemów opiera się mocno na tej staty, więc stary sztywny cap
-        // psuł skalowanie). Dolny próg 0.03 zostaje, żeby krytyk nigdy nie spadł do zera
-        // przy bardzo dużej przewadze AGI potwora. Krytyk POTWORA (rollMonsterCritical
-        // poniżej) zostaje bez zmian, wciąż capowany na 30%.
-        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
+        // Twardy cap szansy krytyka na 100% (1.00) oraz dolny próg 3% (0.03)
+        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
@@ -1421,7 +1416,8 @@ class EncounterService
     private function rollDodge(int $defenderAgi, int $attackerAgi, float $defenderItemDodge = 0.0): bool
     {
         $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015) + ($defenderItemDodge / 100.0);
+        // Twardy cap szansy na unik na 30% (0.30)
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + ($defenderItemDodge / 100.0)));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

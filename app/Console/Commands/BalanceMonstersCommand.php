@@ -508,8 +508,8 @@ class BalanceMonstersCommand extends Command
         }
         foreach (['armor', 'helmet', 'boots', 'amulet', 'ring'] as $piece) {
             foreach ($this->armorProtos[$piece] as $stat => $base) {
-                // Zbroja/biżuteria sklepowa zawsze capuje crit_chance na 40 (ShopEquipmentSeeder).
-                $eq[$stat] += $this->scaleStat($stat, $base, $armorScale, $armorTierIndex, 40, 60);
+                // Zbroja/biżuteria sklepowa zawsze capuje crit_chance na 15 (ShopEquipmentSeeder).
+                $eq[$stat] += $this->scaleStat($stat, $base, $armorScale, $armorTierIndex, 15, 60);
             }
         }
 
@@ -564,7 +564,7 @@ class BalanceMonstersCommand extends Command
     private function scaleStat(string $stat, float $base, float $scale, int $tierIndex, float $critCap, float $burstCap): float
     {
         if ($stat === 'crit_chance') {
-            return min($critCap, $base + $tierIndex * 2);
+            return min($critCap, $base + $tierIndex * 0.5);
         }
         if ($stat === 'magic_burst_chance') {
             return min($burstCap, $base + $tierIndex * 2);

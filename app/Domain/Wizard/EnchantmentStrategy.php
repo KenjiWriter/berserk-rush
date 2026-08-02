@@ -23,46 +23,32 @@ class EnchantmentStrategy
         // bonus jak reszta puli.
         'attack_power' => [-20, 50],
         'magic_attack' => [-20, 50],
-        'crit_chance' => [1, 10],
+        'crit_chance' => [1, 5],
         'strong_vs_demons' => [5, 20],
         'strong_vs_undead' => [5, 20],
         'strong_vs_animals' => [5, 20],
         'strong_vs_orcs' => [5, 20],
-        // Nowe afiksy (2026-07-29): szansa (%) na dołożenie otrucia/ogłuszenia przy
-        // trafieniu (patrz Character::getEquipmentStats() i silniki walki -
-        // EncounterService/PvPEncounterService/GuildWarService) oraz bonus obrażeń
-        // wyłącznie przeciwko innym graczom (PvP Arena / Wojna Gildii - potwory w PvE
-        // nie są "bohaterami", więc tam ten bonus się nie liczy).
         'poison_chance' => [1, 7],
         'stun_chance' => [1, 7],
         'strong_vs_hero' => [5, 20],
     ];
 
     private array $armorBonuses = [
-        // Ryzykowny afiks (2026-07-29, na życzenie użytkownika, wzorem attack_power/
-        // magic_attack): wyrażone teraz w % zamiast płaskich punktów - zakres obejmuje
-        // wyniki UJEMNE, a wysoki dodatni wynik jest wykładniczo rzadki (patrz
-        // RARE_SCALING_KEYS/rollBonusValue() niżej).
         'hp_bonus' => [-20, 50],
         'defense' => [-5, 15],
-        'dodge_chance' => [1, 5],
+        'dodge_chance' => [1, 3],
         'resist_demons' => [2, 10],
         'resist_undead' => [2, 10],
         'resist_animals' => [2, 10],
         'resist_orcs' => [2, 10],
-        // Odporność (%) redukująca szansę przeciwnika na otrucie/ogłuszenie -
-        // patrz komentarz w $weaponBonuses wyżej.
         'resist_poison' => [1, 7],
         'resist_stun' => [1, 7],
     ];
 
-    // Biżuteria (naszyjnik/pierścień): jedyny wyjątek od zasady "przedmioty nie
-    // dodają atrybutów" - zaklinanie może sporadycznie trafić w niewielki, płaski
-    // bonus do jednego atrybutu (+1..+5), obok zwykłych bonusów obronnych/HP.
     private array $accessoryBonuses = [
         'hp_bonus' => [-20, 50],
         'defense' => [2, 10],
-        'crit_chance' => [1, 5],
+        'crit_chance' => [1, 3],
         'str_bonus' => [1, 5],
         'agi_bonus' => [1, 5],
         'int_bonus' => [1, 5],

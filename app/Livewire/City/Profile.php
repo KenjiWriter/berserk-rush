@@ -594,8 +594,8 @@ class Profile extends Component
             'base_damage_max' => $basePhysDmg + $physAtkMax,
             'magic_damage_min' => $baseMagicDmg + $magicAtkMin,
             'magic_damage_max' => $baseMagicDmg + $magicAtkMax,
-            'crit_chance' => min(50, 5 + ($agi * 0.5) + $eqStats['crit_chance']),
-            'dodge_chance' => 2 + ($agi * 0.3) + ($eqStats['dodge_chance'] ?? 0),
+            'crit_chance' => min(100.0, max(3.0, 5.0 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0))),
+            'dodge_chance' => min(30.0, max(0.0, 3.0 + ($agi * 0.06) + ($eqStats['dodge_chance'] ?? 0))),
             'damage_reduction' => ($vit * 1) + $eqStats['defense'],
         ];
 

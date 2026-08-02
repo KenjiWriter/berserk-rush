@@ -836,15 +836,15 @@ class MapStub extends Component
         $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
         $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
-        // Balanced Crit: Minimum 3% floor, gentle AGI difference penalty
-        $baseCrit = 5 + ($agi * 0.4) + ($eqStats['crit_chance'] ?? 0);
+        // Balanced Crit: Minimum 3% floor, max 100% cap
+        $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);
         $agiCritPenalty = max(0, ($enemyAgi - $agi) * 0.08);
-        $effectiveCrit = max(3.0, min(50, $baseCrit - $agiCritPenalty));
+        $effectiveCrit = max(3.0, min(100.0, $baseCrit - $agiCritPenalty));
 
-        // Balanced Dodge: Base 3% + AGI superiority advantage + item dodge bonus
+        // Balanced Dodge: Base 3% + AGI superiority advantage + item dodge bonus (max 30% cap)
         $agiDodgeAdvantage = max(0, $agi - $enemyAgi);
         $itemDodge = (float)($eqStats['dodge_chance'] ?? 0);
-        $effectiveDodge = 3.0 + ($agiDodgeAdvantage * 0.15) + $itemDodge;
+        $effectiveDodge = min(30.0, 3.0 + ($agiDodgeAdvantage * 0.06) + $itemDodge);
 
         return [
             'crit_chance' => round($effectiveCrit, 1),

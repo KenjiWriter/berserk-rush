@@ -60,14 +60,14 @@ class ShopEquipmentSeeder extends Seeder
             // (nawet <50% na wysokich mapach), podczas gdy miecz/topór/łuk/różdżka go
             // spełniały - to był realny brak balansu MIĘDZY bronami, niezależny od
             // strojenia potworów. Patrz identyczna notatka w ItemTemplateSeeder.php.
-            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 6]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 3]],
             'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.5, 'magic_burst_chance' => 25, 'magic_burst_min' => 2.25, 'magic_burst_max' => 4.5]],
 
             'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 13.5]],
             'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 7.5]],
             'boots'   => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 4.5]],
             'amulet'  => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 11.25, 'mana_bonus' => 10, 'defense' => 1]],
-            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['crit_chance' => 2, 'hp_bonus' => 6]],
+            'ring'    => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['crit_chance' => 1, 'hp_bonus' => 6]],
         ];
 
         // Skala jest niższa niż w craftingu (~80%) -> teraz zmieniona na 1.2 aby Miecz Nowicjusza był lepszy od Zardzewiałego
@@ -171,8 +171,8 @@ class ShopEquipmentSeeder extends Seeder
                     if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
                         // Wartości procentowe nie mnożą się przez skalę poziomu - rosną
                         // liniowo z kolejnym tier'em sklepu i mają sensowny sufit.
-                        $cap = $statName === 'crit_chance' ? 40 : 60;
-                        $critVal = min($cap, $baseValue + ($themeIndex * 2));
+                        $cap = $statName === 'crit_chance' ? 15 : 60;
+                        $critVal = min($cap, $baseValue + ($themeIndex * 0.5));
 
                         if ($statName === 'crit_chance') {
                             $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);

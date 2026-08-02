@@ -279,8 +279,16 @@ class ItemInstance extends Model
 
         foreach ($base as $stat => $val) {
             if (is_numeric($val) && $val > 0) {
-                $calc = (int) round($val * 0.10 * $level);
-                $bonus[$stat] = max(1, $calc);
+                if (in_array($stat, ['crit_chance', 'dodge_chance'], true)) {
+                    // Statystyki procentowe (crit/dodge) ulepszają się umiarkowanie (+1% co 3 poziomy ulepszenia, max +3% na +9)
+                    $calc = (int) floor($level / 3);
+                    if ($calc > 0) {
+                        $bonus[$stat] = $calc;
+                    }
+                } else {
+                    $calc = (int) round($val * 0.10 * $level);
+                    $bonus[$stat] = max(1, $calc);
+                }
             }
         }
 

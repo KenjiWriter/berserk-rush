@@ -709,14 +709,14 @@ class GuildWarService
         $actingAgi = $attrs['agi'] ?? 1;
         $targetAgi = $targetSnap['attributes']['agi'] ?? 1;
 
-        $baseCrit = 0.05 + ($actingAgi * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
+        $baseCrit = 0.05 + ($actingAgi * 0.0015) + (($eq['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.0008);
-        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
+        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
         $isCrit = mt_rand(1, 1000) <= (int) round($critChance * 1000);
 
         $targetEq = $targetSnap['equipment_stats'] ?? [];
         $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015) + (($targetEq['dodge_chance'] ?? 0) / 100);
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + (($targetEq['dodge_chance'] ?? 0) / 100)));
         $isMiss = mt_rand(1, 1000) <= (int) round($dodgeChance * 1000);
 
         $turn = [

@@ -630,21 +630,14 @@ class PvPEncounterService
         // (patrz identyczna zmiana w EncounterService::rollCritical()). Dolny próg
         // 0.03 dla krytyka zostaje, żeby szansa nigdy nie spadła do zera przy dużej
         // przewadze AGI przeciwnika.
-        $baseCrit = 0.05 + ($actingAgi * 0.004) + (($eqStats['crit_chance'] ?? 0) / 100);
+        $baseCrit = 0.05 + ($actingAgi * 0.0015) + (($eqStats['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.0008);
-        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
+        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
         $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
 
-        // UWAGA (fix 2026-07-30): zdjęcie capa z uniku w tym samym commicie z
-        // 2026-07-28 (patrz historia wyżej) okazało się błędem - w PvP obie strony
-        // mogą mocno stackować AGI, co przy mnożniku 0.0015/pkt szybko wpychało unik
-        // w okolice 50% i walka stawała się w praktyce niegrywalna (permanentne
-        // "miss"). Łagodzimy narastanie (0.0006/pkt zamiast 0.0015/pkt) i przywracamy
-        // twardy sufit na 30%, żeby przewaga AGI dawała wyraźny, ale nie dominujący
-        // unik.
         $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
         $targetItemDodge = (($defEq['dodge_chance'] ?? 0) / 100.0);
-        $dodgeChance = min(0.50, 0.03 + ($agiDodgeAdvantage * 0.0006) + $targetItemDodge);
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + $targetItemDodge));
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

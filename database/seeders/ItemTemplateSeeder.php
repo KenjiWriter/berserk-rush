@@ -189,7 +189,7 @@ class ItemTemplateSeeder extends Seeder
             // wartościach obie te bronie systematycznie nie spełniały celu >=90% winrate
             // (symulacja: php artisan balance:monsters), niezależnie od tego jak
             // dobierano staty potworów.
-            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 8]],
+            'dagger'   => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 4]],
 
             'helmet_w' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 3, 'hp_bonus' => 10.5]],
             'armor_w'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 6, 'hp_bonus' => 19.5]],
@@ -199,12 +199,12 @@ class ItemTemplateSeeder extends Seeder
             'armor_m'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 2, 'hp_bonus' => 7.5, 'mana_bonus' => 30]],
             'boots_m'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 1, 'hp_bonus' => 3.75, 'mana_bonus' => 10]],
 
-            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 3]],
-            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'hp_bonus' => 7.5, 'crit_chance' => 4]],
-            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 3]],
+            'helmet_a' => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 1]],
+            'armor_a'  => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 3, 'hp_bonus' => 7.5, 'crit_chance' => 2]],
+            'boots_a'  => ['type' => 'armor', 'slot' => 'feet', 'stats' => ['defense' => 2, 'hp_bonus' => 4.5, 'crit_chance' => 1]],
 
             'amulet'   => ['type' => 'accessory', 'slot' => 'neck', 'stats' => ['hp_bonus' => 15, 'defense' => 1, 'crit_chance' => 1]],
-            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 7.5, 'defense' => 1, 'crit_chance' => 2]],
+            'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 7.5, 'defense' => 1, 'crit_chance' => 1]],
         ];
 
         $themes = [
@@ -343,10 +343,9 @@ class ItemTemplateSeeder extends Seeder
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
                     if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
-                        // Wartości procentowe - rosną liniowo z kolejnym tier'em zamiast
-                        // mnożyć się przez skalę mocy, i mają sensowny sufit.
-                        $cap = $statName === 'crit_chance' ? 50 : 70;
-                        $critVal = min($cap, $baseValue + ($index * 2));
+                        // Wartości procentowe - rosną powoli z kolejnym tier'em i mają cap 15% dla krytyka.
+                        $cap = $statName === 'crit_chance' ? 15 : 70;
+                        $critVal = min($cap, $baseValue + ($index * 0.5));
 
                         if ($statName === 'crit_chance') {
                             $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);

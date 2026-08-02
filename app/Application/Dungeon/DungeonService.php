@@ -1091,9 +1091,9 @@ class DungeonService
         $scaledMonsterStats = $monster->getScaledStats($character->level);
         $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? 0);
 
-        $baseCrit = 0.05 + ($agility * 0.004) + (($eq['crit_chance'] ?? 0) / 100);
+        $baseCrit = 0.05 + ($agility * 0.0015) + (($eq['crit_chance'] ?? 0) / 100);
         $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
-        $critChance = max(0.03, $baseCrit - $agiCritPenalty);
+        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
@@ -1114,7 +1114,7 @@ class DungeonService
     private function rollDodge(int $defenderAgi, int $attackerAgi, float $defenderItemDodge = 0.0): bool
     {
         $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        $dodgeChance = 0.03 + ($agiDodgeAdvantage * 0.0015) + ($defenderItemDodge / 100.0);
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + ($defenderItemDodge / 100.0)));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }
