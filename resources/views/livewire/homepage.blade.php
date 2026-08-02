@@ -509,6 +509,28 @@
         </div>
     </div>
 
+    {{-- Footer --}}
+    <footer class="relative mt-12 py-8 border-t border-amber-900/40 text-center z-20 bg-stone-950/40 backdrop-blur-xs">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-xs sm:text-sm font-semibold medieval-font mb-3">
+                <a href="{{ route('terms') }}" class="text-amber-500/80 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-scroll text-amber-600"></i> Regulamin Gry
+                </a>
+                <span class="text-amber-900/60 font-normal select-none">•</span>
+                <a href="{{ route('privacy') }}" class="text-amber-500/80 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-user-shield text-amber-600"></i> Polityka Prywatności
+                </a>
+                <span class="text-amber-900/60 font-normal select-none">•</span>
+                <a href="{{ route('chat-terms') }}" class="text-amber-500/80 hover:text-amber-400 transition-colors flex items-center gap-1.5">
+                    <i class="fa-solid fa-comments text-amber-600"></i> Regulamin Czatu
+                </a>
+            </div>
+            <p class="text-xs text-amber-900/80 font-medium">
+                &copy; {{ date('Y') }} Berserk Rush. Wszelkie prawa zastrzeżone.
+            </p>
+        </div>
+    </footer>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap');
 
