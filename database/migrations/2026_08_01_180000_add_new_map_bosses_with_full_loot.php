@@ -58,7 +58,7 @@ return new class extends Migration
                 'rank' => 'boss',
                 'level' => 76,
                 'avatar' => 'monsters/avatars/wyvern-cienistego-szczytu.png',
-                'stats' => ['hp' => 3300, 'atk' => 395, 'def' => 92, 'agi' => 16, 'int' => 20, 'crit' => 0.28, 'dodge' => 0.10],
+                'stats' => ['hp' => 8250, 'atk' => 790, 'def' => 276, 'agi' => 16, 'int' => 20, 'crit' => 0.28, 'dodge' => 0.10],
             ],
             'Wieża Magów' => [
                 'name' => 'Arcymag Pustki i Arkanów',
