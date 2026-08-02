@@ -69,6 +69,7 @@
                         <li>Zaszyfrowane hasło dostępowe</li>
                         <li>Postęp w grze, historia rozgrywek i postacie</li>
                         <li>Adres IP oraz podstawowe logi systemowe (w celach bezpieczeństwa)</li>
+                        <li>Historia transakcji mikropłatności (identyfikatory transakcji Stripe, zakupione pakiety Gemów, kwoty i statusy płatności)</li>
                     </ul>
                     <p>
                         2. W przypadku logowania przez dostawców zewnętrznych (Google, Facebook) zbieramy wyłącznie podstawowy identyfikator profilu i publiczny adres e-mail.
@@ -80,10 +81,10 @@
                         <i class="fa-solid fa-bullseye text-amber-600"></i> § 3. Cel i Podstawa Przetwarzania
                     </h2>
                     <p class="mb-2">
-                        1. Dane przetwarzane są w celu realizowania usługi świadczonej drogą elektroniczną (umożliwienie rozgrywki, zapisu stanu gry, logowania).
+                        1. Dane przetwarzane są w celu realizowania usługi świadczonej drogą elektroniczną (umożliwienie rozgrywki, zapisu stanu gry, logowania, realizacja zakupów waluty wirtualnej).
                     </p>
                     <p class="mb-2">
-                        2. Podstawą prawną przetwarzania jest niezbędność wykonania umowy (akceptacja Regulaminu) oraz uzasadniony interes Administratora (ochrona przed oszustwami, zapewnienie bezpieczeństwa).
+                        2. Podstawą prawną przetwarzania jest niezbędność wykonania umowy (akceptacja Regulaminu), wypełnienie obowiązków prawnych ciążących na Administratorze (przepisy podatkowo-księgowe) oraz uzasadniony interes Administratora (ochrona przed oszustwami, obsługa reklamacji i dochodzenie roszczeń).
                     </p>
                 </section>
 
@@ -111,6 +112,21 @@
                     </p>
                     <p>
                         3. Usunięcie konta możesz zrealizować samodzielnie w zakładce "Zarządzaj profilem" na stronie głównej.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-bold text-amber-500 medieval-font mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-credit-card text-amber-600"></i> § 6. Przetwarzanie Danych przy Płatnościach (Stripe)
+                    </h2>
+                    <p class="mb-2">
+                        1. Płatności w Sklepie Premium realizowane są za pośrednictwem licencjonowanego operatora płatności **Stripe Payments Europe, Ltd.** (lub Stripe Inc.).
+                    </p>
+                    <p class="mb-2">
+                        2. Wszelkie wrażliwe dane płatnicze (numery kart kredytowych/debetowych, kody CVC/CVV, dane autoryzacyjne) są wprowadzane bezpośrednio w zaszyfrowanych formularzach operatora Stripe. Serwis **Berserk Rush nie przetwarza ani nie gromadzi pełnych danych kart płatniczych**.
+                    </p>
+                    <p>
+                        3. Dane transakcyjne (identyfikatory płatności, kwoty, waluta) przechowywane są przez okres wymagany przepisami prawa podatkowego i rachunkowego oraz przez okres przedawnienia ewentualnych roszczeń reklamacyjnych.
                     </p>
                 </section>
             </div>

@@ -94,28 +94,64 @@
 
                 <section>
                     <h2 class="text-xl font-bold text-amber-500 medieval-font mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-gem text-amber-600"></i> § 4. Płatności i Wirtualne Przedmioty
+                        <i class="fa-solid fa-gem text-amber-600"></i> § 4. Płatności, Wirtualna Waluta i Sklep Premium
                     </h2>
                     <p class="mb-2">
-                        1. Gra oferuje możliwość zakupu opcjonalnej waluty wirtualnej (Diamenty) oraz konta Premium za pomocą dostępnych operatorów płatności.
+                        1. Gra **Berserk Rush** jest darmowa (Free-to-Play). Użytkownik może opcjonalnie nabywać walutę premium (Gemy / Diamenty) oraz status Premium za pośrednictwem zintegrowanego operatora płatności (Stripe).
                     </p>
                     <p class="mb-2">
-                        2. Waluty wirtualne oraz przedmioty cyfrowe nie posiadają wartości w świecie rzeczywistym i nie podlegają wymianie na pieniądze tradycyjne.
+                        2. **Charakter treści cyfrowych i licencja:** Zakupione Gemy, konto Premium, zwoje oraz inne wirtualne przedmioty mają charakter niewyłącznej, niezbywalnej i ograniczonej czasowo lub ilościowo licencji na ich użycie wyłącznie wewnątrz Gry. Wirtualne zasoby nie mają wartości w świecie rzeczywistym, nie są pieniądzem elektronicznym ani własnością Użytkownika i nie podlegają wymianie na pieniądze tradycyjne (FIAT) ani transferowi na inne konta.
+                    </p>
+                    <p class="mb-2">
+                        3. **Zgoda na natychmiastowe wykonanie umowy i utrata prawa do odstąpienia od umowy:** Dokonując zakupu i finalizując płatność, Użytkownik wyraża wyraźną zgodę na rozpoczęcie świadczenia usługi i dostarczenie treści cyfrowych (przypisanie Gemów lub aktywacja konta Premium) przed upływem 14-dniowego terminu do odstąpienia od umowy. Użytkownik przyjmuje do wiadomości, że z chwilą pełnego dostarczenia treści cyfrowych na Konto **traci prawo do odstąpienia od umowy** zawartej na odległość, zgodnie z art. 38 ust. 1 pkt 13 ustawy z dnia 30 maja 2014 r. o prawach konsumenta.
+                    </p>
+                    <p class="mb-2">
+                        4. **Zakaz handlu poza grą (RMT):** Kategorycznie zabrania się sprzedaży, zakupu, licytowania lub pośredniczenia w obrocie Kontami, walutą wirtualną (Gemy/Złoto) oraz przedmiotami cyfrowymi za realne środki płatnicze lub poza oficjalnymi mechanizmami Gry (tzw. Real Money Trading). Złamanie tego zakazu skutkuje natychmiastową i bezpowrotną blokadą wszystkich powiązanych Kont.
                     </p>
                     <p>
-                        3. Usunięcie konta przez Użytkownika powoduje wygaśnięcie wszystkich wirtualnych zasobów bez prawa do zwrotu poniesionych kosztów.
+                        5. Płatności są przetwarzane w sposób bezpieczny przez zewnętrznego dostawcę Stripe. Administracja nie ponosi odpowiedzialności za opóźnienia wynikające z przerw w działaniu banków lub zewnętrznych dostawców płatności.
                     </p>
                 </section>
 
                 <section>
                     <h2 class="text-xl font-bold text-amber-500 medieval-font mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-user-minus text-amber-600"></i> § 5. Usunięcie Konta i Sancje
+                        <i class="fa-solid fa-user-minus text-amber-600"></i> § 5. Sankcje, Blokada i Usunięcie Konta
                     </h2>
                     <p class="mb-2">
                         1. Użytkownik ma prawo w dowolnym momencie usunąć swoje Konto korzystając z panelu zarządzania profilem.
                     </p>
+                    <p class="mb-2">
+                        2. Administracja zastrzega sobie prawo do nałożenia sankcji (ostrzeżenie, czasowa lub trwała blokada Konta) w przypadku naruszenia postanowień niniejszego Regulaminu lub zasad Fair Play.
+                    </p>
                     <p>
-                        2. Administracja zastrzega sobie prawo do zablokowania lub usunięcia Konta Użytkownika naruszającego postanowienia niniejszego Regulaminu.
+                        3. W przypadku trwałego zablokowania Konta z powodu naruszenia Regulaminu lub dobrowolnego usunięcia Konta przez Użytkownika, wszystkie zgromadzone na Koncie wirtualne zasoby (Gemy, ekwipunek, status Premium) ulegają bezpowrotnemu przepadkowi bez prawa do jakiegokolwiek ekwiwalentu pieniężnego lub zwrotu poniesionych kosztów.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-bold text-amber-500 medieval-font mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-headset text-amber-600"></i> § 6. Procedura Reklamacyjna
+                    </h2>
+                    <p class="mb-2">
+                        1. W przypadku wystąpienia problemów z zaksięgowaniem płatności lub nienależytego wykonania usługi Użytkownik ma prawo złożyć reklamację.
+                    </p>
+                    <p class="mb-2">
+                        2. Zgłoszenia reklamacyjne należy kierować poprzez formularz kontaktowy w grze lub na adres e-mail wsparcia technicznego, podając miano postaci, adres e-mail użyty przy płatności oraz identyfikator transakcji Stripe.
+                    </p>
+                    <p>
+                        3. Reklamacje rozpatrywane są w terminie do 14 dni od daty ich otrzymania. Użytkownik zostanie powiadomiony o decyzji drogą elektroniczną.
+                    </p>
+                </section>
+
+                <section>
+                    <h2 class="text-xl font-bold text-amber-500 medieval-font mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> § 7. Zmiany w Serwisie i Przerwy Techniczne
+                    </h2>
+                    <p class="mb-2">
+                        1. Administracja zastrzega sobie prawo do wprowadzania aktualizacji, zmian w balansie rozgrywki, modyfikacji statystyk przedmiotów oraz parametrów sklepu w celu zapewnienia sprawiedliwej rywalizacji i rozwoju Gry.
+                    </p>
+                    <p>
+                        2. Administracja ma prawo do czasowego wstrzymania dostępności Gry z powodu prac konserwacyjnych lub aktualizacji systemowych, co nie stanowi podstawy do roszczeń odszkodowawczych.
                     </p>
                 </section>
             </div>

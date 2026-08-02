@@ -37,3 +37,11 @@ Zamiast bezpośredniego natychmiastowego resetu konta, gracze mogą kupować w S
   - `User` model tracks `gems` balance and `premium_until` datetime.
   - `Character` model updates `attributes` array and recalculates `character_points` or `skill_points` during scroll consumption.
 - **Combat Integration**: `RewardMultiplierService` checks `$user->hasPremium()` and applies the 1.2x multipliers to base rewards.
+
+## Legal & Terms of Purchase (Postanowienia Prawne)
+- **Digital Content Delivery**: Real-world currency purchases of Gems and Premium perks represent digital content delivered immediately upon successful payment confirmation via Stripe webhooks.
+- **Waiver of Right of Withdrawal**: Under EU Consumer Rights legislation (Art. 38 point 13 of the Polish Act on Consumer Rights), players explicitly request instant fulfillment upon purchase and acknowledge the loss of their 14-day right of withdrawal once Gems are credited.
+- **Non-Refundability & License Nature**: Gems and Premium account status carry no real-world monetary value, cannot be converted into real currency, and represent a limited, non-exclusive license for in-game use. Purchases are non-refundable after immediate delivery.
+- **Account Suspension Policy**: In the event of account suspension or termination due to violation of Game Rules (e.g. cheating, botting, Real Money Trading / RMT), all virtual currency, active Premium status, and items are forfeited without compensation or right of refund.
+- **Payment Processing**: All transaction sensitive data (card details, authentication) is handled exclusively by Stripe Payments Europe, Ltd. The game platform stores only transaction identifiers, timestamps, and order statuses.
+
