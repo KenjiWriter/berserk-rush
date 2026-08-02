@@ -81,15 +81,15 @@ class CharacterMirrorSession extends Model
     }
 
     /**
-     * Calculate current accumulated rewards (60% rate of max exp/min and gold/min, plus material drops).
+     * Calculate current accumulated rewards (40% rate of max exp/min and gold/min, plus material drops).
      */
     public function calculateCurrentRewards(): array
     {
         $elapsedMinutes = $this->getElapsedMinutes();
 
-        // 60% rate of normal yield
-        $accumulatedXp = (int) floor($elapsedMinutes * $this->exp_per_minute * 0.60);
-        $accumulatedGold = (int) floor($elapsedMinutes * $this->gold_per_minute * 0.60);
+        // 40% rate of normal yield
+        $accumulatedXp = (int) floor($elapsedMinutes * $this->exp_per_minute * 0.40);
+        $accumulatedGold = (int) floor($elapsedMinutes * $this->gold_per_minute * 0.40);
 
         // Material drops: 1 roll per 15 minutes of elapsed time
         $materials = [];

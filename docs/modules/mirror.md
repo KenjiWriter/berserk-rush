@@ -59,7 +59,7 @@ Arena), a zwykłe Mapy Przygody są zablokowane.
   na wybranej mapie. Czas trwania: 1-6h, lub 1-10h dla `User::hasPremium()`.
   Zapisuje sesję ze statusem `active` i zamrożonym tempem.
 - `stopAndClaim(Character $character)` - liczy upływ czasu (capowany do
-  zadeklarowanego `duration_hours`), przyznaje **60% zaobserwowanego
+  zadeklarowanego `duration_hours`), przyznaje **40% zaobserwowanego
   tempa** jako XP/złoto (z obsługą level-upu przez `LevelUpService`) oraz
   materiały (1 rzut co 15 minut z tabeli łupów mapy lub fallbackowo wg
   poziomu), oznacza sesję jako `claimed`.

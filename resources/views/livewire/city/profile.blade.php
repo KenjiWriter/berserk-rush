@@ -1019,12 +1019,12 @@
                                     $activeMapObj = $mirrorMaps->firstWhere('id', (int)$selectedMirrorMapId) ?? $mirrorMaps->first();
                                     $selectedRates = $mapRates[$activeMapObj->id ?? 0] ?? ['exp_per_minute' => 0, 'gold_per_minute' => 0, 'has_record' => false];
                                     $totalMins = $selectedMirrorDurationHours * 60;
-                                    $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.60);
-                                    $estGold = (int) floor($totalMins * $selectedRates['gold_per_minute'] * 0.60);
+                                    $estExp = (int) floor($totalMins * $selectedRates['exp_per_minute'] * 0.40);
+                                    $estGold = (int) floor($totalMins * $selectedRates['gold_per_minute'] * 0.40);
                                 @endphp
                                 <div class="bg-stone-900 border border-purple-600/80 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
                                     <div>
-                                        <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider block">Prognozowany plon z Lustra (60% stawki):</span>
+                                        <span class="text-[11px] font-bold text-purple-300 uppercase tracking-wider block">Prognozowany plon z Lustra:</span>
                                         <div class="flex items-center gap-3 mt-1">
                                             <span class="text-xs sm:text-sm font-extrabold text-amber-300"><i class="fa-solid fa-bolt text-yellow-400"></i> ~{{ number_format($estExp) }} XP</span>
                                             <span class="text-xs sm:text-sm font-extrabold text-yellow-300"><i class="fa-solid fa-coins text-yellow-400"></i> ~{{ number_format($estGold) }} Złota</span>
