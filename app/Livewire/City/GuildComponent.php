@@ -25,14 +25,14 @@ class GuildComponent extends Component
     public string $newGuildName = '';
     public string $newGuildTitle = '';
     public int $newGuildMinLevel = 1;
-    public bool $newGuildIsPublic = false;
+    public bool $newGuildIsPublic = true;
 
     // Edit form
     public string $editGuildName = '';
     public string $editGuildTitle = '';
     public string $editGuildDescription = '';
     public int $editGuildMinLevel = 1;
-    public bool $editGuildIsPublic = false;
+    public bool $editGuildIsPublic = true;
 
     // List search
     public string $searchQuery = '';
@@ -345,7 +345,7 @@ class GuildComponent extends Component
                 'title' => $this->editGuildTitle,
                 'description' => $this->editGuildDescription,
                 'min_level' => $this->editGuildMinLevel,
-                'is_public' => $this->editGuildIsPublic,
+                'is_public' => (bool)$this->editGuildIsPublic,
             ]);
 
             \App\Models\GuildLog::create([
@@ -454,6 +454,7 @@ class GuildComponent extends Component
             'newGuildName' => 'required|string|min:3|max:30|unique:guilds,name',
             'newGuildTitle' => 'nullable|string|max:50',
             'newGuildMinLevel' => 'required|integer|min:1|max:100',
+            'newGuildIsPublic' => 'required|boolean',
         ], [
             'newGuildName.required' => 'Nazwa jest wymagana.',
             'newGuildName.min' => 'Nazwa musi mieć min 3 znaki.',
@@ -471,7 +472,7 @@ class GuildComponent extends Component
                 'name' => $this->newGuildName,
                 'title' => $this->newGuildTitle,
                 'min_level' => $this->newGuildMinLevel,
-                'is_public' => $this->newGuildIsPublic,
+                'is_public' => (bool)$this->newGuildIsPublic,
             ]);
 
             GuildMember::create([

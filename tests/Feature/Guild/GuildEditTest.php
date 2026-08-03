@@ -99,4 +99,46 @@ class GuildEditTest extends TestCase
 
         $this->assertEquals('Zakon Rycerzy', $guild->fresh()->name);
     }
+
+    public function test_guild_creation_defaults_to_public_and_can_be_toggled(): void
+    {
+        $user = User::factory()->create(['game_stage' => 35, 'gems' => 500]);
+        $character = Character::create([
+            'user_id' => $user->id,
+            'name' => 'FounderHero',
+            'class' => 'warrior',
+            'level' => 10,
+            'experience' => 0,
+            'gold' => 1000,
+        ]);
+
+        $this->actingAs($user);
+
+        // Test creating default public guild
+        Livewire::test(GuildComponent::class, ['character' => $character])
+            ->set('newGuildName', 'Nowa Otowarta Gildia')
+            ->set('newGuildTitle', 'Tytuł')
+            ->set('newGuildMinLevel', 1)
+            ->call('createGuild');
+
+        $createdGuild = Guild::where('name', 'Nowa Otowarta Gildia')->first();
+        $this->assertNotNull($createdGuild);
+        $this->assertTrue((bool)$createdGuild->is_public);
+
+        // Test toggling settings to false and then true
+        $character->refresh();
+        Livewire::test(GuildComponent::class, ['character' => $character])
+            ->call('initEditGuild')
+            ->set('editGuildIsPublic', false)
+            ->call('updateGuildSettings');
+
+        $this->assertFalse((bool)$createdGuild->fresh()->is_public);
+
+        Livewire::test(GuildComponent::class, ['character' => $character])
+            ->call('initEditGuild')
+            ->set('editGuildIsPublic', true)
+            ->call('updateGuildSettings');
+
+        $this->assertTrue((bool)$createdGuild->fresh()->is_public);
+    }
 }

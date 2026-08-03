@@ -232,10 +232,10 @@
                             <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
                                 Tryb Rekrutacji
                             </label>
-                            <select wire:model="newGuildIsPublic"
+                            <select wire:model.boolean="newGuildIsPublic"
                                     class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
-                                <option value="1">Publiczna (Każdy dołącza)</option>
-                                <option value="0">Zamknięta (Na zaproszenie)</option>
+                                <option value="1" @selected($newGuildIsPublic)>Publiczna (Każdy dołącza)</option>
+                                <option value="0" @selected(!$newGuildIsPublic)>Zamknięta (Na zaproszenie)</option>
                             </select>
                         </div>
                     </div>
@@ -246,8 +246,8 @@
                             Wybierz tryb przyjmowania nowych członków:
                         </label>
                         <div class="grid grid-cols-2 gap-3">
-                            <button type="button" wire:click="$set('newGuildIsPublic', 1)" @click="$dispatch('play-audio', { type: 'hover' })"
-                                    class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between {{ $newGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
+                            <button type="button" wire:click="$set('newGuildIsPublic', true)" @click="$dispatch('play-audio', { type: 'hover' })"
+                                    class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between cursor-pointer {{ $newGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
                                 <div class="flex items-center gap-2 mb-1">
                                     <i class="fa-solid fa-lock-open text-amber-400 text-base"></i>
                                     <span class="font-bold text-xs medieval-font">Bramy Otwarte</span>
@@ -255,8 +255,8 @@
                                 <span class="text-[10px] text-amber-300/60 leading-tight">Każdy gracz spełniający wymóg poziomu może dołączyć natychmiast.</span>
                             </button>
 
-                            <button type="button" wire:click="$set('newGuildIsPublic', 0)" @click="$dispatch('play-audio', { type: 'hover' })"
-                                    class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between {{ !$newGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
+                            <button type="button" wire:click="$set('newGuildIsPublic', false)" @click="$dispatch('play-audio', { type: 'hover' })"
+                                    class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between cursor-pointer {{ !$newGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
                                 <div class="flex items-center gap-2 mb-1">
                                     <i class="fa-solid fa-lock text-amber-400 text-base"></i>
                                     <span class="font-bold text-xs medieval-font">Zakon Zamknięty</span>
@@ -696,11 +696,37 @@
                                         <label class="block text-amber-400 text-xs font-bold mb-1.5 uppercase tracking-wider medieval-font">
                                             Tryb Rekrutacji
                                         </label>
-                                        <select wire:model="editGuildIsPublic"
+                                        <select wire:model.boolean="editGuildIsPublic"
                                                 class="w-full bg-stone-950/90 border border-amber-800/60 rounded-xl px-4 py-2.5 text-sm text-amber-100 focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition">
-                                            <option value="1">Publiczna (Każdy dołącza)</option>
-                                            <option value="0">Zamknięta (Na zaproszenie)</option>
+                                            <option value="1" @selected($editGuildIsPublic)>Publiczna (Każdy dołącza)</option>
+                                            <option value="0" @selected(!$editGuildIsPublic)>Zamknięta (Na zaproszenie)</option>
                                         </select>
+                                    </div>
+                                </div>
+
+                                {{-- Edit Recruitment Mode Cards --}}
+                                <div class="mt-2">
+                                    <label class="block text-amber-400/80 text-[11px] font-semibold mb-2 uppercase tracking-wider">
+                                        Wybierz tryb przyjmowania nowych członków:
+                                    </label>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button type="button" wire:click="$set('editGuildIsPublic', true)" @click="$dispatch('play-audio', { type: 'hover' })"
+                                                class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between cursor-pointer {{ $editGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <i class="fa-solid fa-lock-open text-amber-400 text-base"></i>
+                                                <span class="font-bold text-xs medieval-font">Bramy Otwarte</span>
+                                            </div>
+                                            <span class="text-[10px] text-amber-300/60 leading-tight">Każdy gracz spełniający wymóg poziomu może dołączyć natychmiast.</span>
+                                        </button>
+
+                                        <button type="button" wire:click="$set('editGuildIsPublic', false)" @click="$dispatch('play-audio', { type: 'hover' })"
+                                                class="p-3 rounded-xl border-2 transition-all text-left flex flex-col justify-between cursor-pointer {{ !$editGuildIsPublic ? 'bg-amber-950/60 border-amber-400 text-amber-100 shadow-[0_0_15px_rgba(245,158,11,0.25)]' : 'bg-stone-950/50 border-stone-800 text-stone-400 hover:border-stone-700' }}">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <i class="fa-solid fa-lock text-amber-400 text-base"></i>
+                                                <span class="font-bold text-xs medieval-font">Zakon Zamknięty</span>
+                                            </div>
+                                            <span class="text-[10px] text-amber-300/60 leading-tight">Dołączenie wymaga bezpośredniego zaproszenia przez lidera lub oficera.</span>
+                                        </button>
                                     </div>
                                 </div>
 

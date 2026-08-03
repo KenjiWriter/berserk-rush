@@ -86,7 +86,10 @@ class WorldBossRewardJob
             DB::transaction(function () use ($boss) {
                 $monsterName = $boss->monster->name ?? null;
                 $keyTemplateName = self::MONSTER_KEY_MAP[$monsterName] ?? null;
-                $keyTemplate = $keyTemplateName ? ItemTemplate::where('name', $keyTemplateName)->first() : null;
+                $keyTemplate = $keyTemplateName 
+                    ? (ItemTemplate::where('name', $keyTemplateName)->first() 
+                       ?? ItemTemplate::where('name', 'like', '%' . $keyTemplateName . '%')->first())
+                    : null;
 
                 if (!$keyTemplate) {
                     Log::error("WorldBossRewardJob: Nie znaleziono szablonu klucza dla bossa '{$monsterName}'.");
