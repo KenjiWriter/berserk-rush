@@ -1243,33 +1243,31 @@
                                     this.tooltipStyle = style;
                                 });
                             },
-                            openTooltip() {
+                            toggleTooltip() {
                                 if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
-                             toggleTooltip() {
-                                 if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
-                                 clearTimeout(this.hoverTimeout);
-                                 if (this.open) {
-                                     this.forceClose();
-                                 } else {
-                                     window.dispatchEvent(new CustomEvent('close-all-tooltips'));
-                                     if (activeItemId && activeItemId !== '{{ $item->id }}') {
-                                         window.dispatchEvent(new CustomEvent('close-item-tooltip', { detail: { id: activeItemId } }));
-                                     }
-                                     activeItemId = '{{ $item->id }}';
-                                     this.open = true;
-                                     this.checkPosition();
-                                 }
-                             },
-                             openTooltip() {},
-                             closeTooltip() {},
-                             forceClose() {
-                                 clearTimeout(this.hoverTimeout);
-                                 this.open = false;
-                                 if (activeItemId === '{{ $item->id }}') {
-                                     activeItemId = null;
-                                 }
-                             }
-                         }" @click.outside="forceClose()" 
+                                clearTimeout(this.hoverTimeout);
+                                if (this.open) {
+                                    this.forceClose();
+                                } else {
+                                    window.dispatchEvent(new CustomEvent('close-all-tooltips'));
+                                    if (activeItemId && activeItemId !== '{{ $item->id }}') {
+                                        window.dispatchEvent(new CustomEvent('close-item-tooltip', { detail: { id: activeItemId } }));
+                                    }
+                                    activeItemId = '{{ $item->id }}';
+                                    this.open = true;
+                                    this.checkPosition();
+                                }
+                            },
+                            openTooltip() {},
+                            closeTooltip() {},
+                            forceClose() {
+                                clearTimeout(this.hoverTimeout);
+                                this.open = false;
+                                if (activeItemId === '{{ $item->id }}') {
+                                    activeItemId = null;
+                                }
+                            }
+                        }" @click.outside="forceClose()"
                               @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
                               wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
                               draggable="true"
