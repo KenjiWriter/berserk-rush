@@ -821,6 +821,7 @@
                                 </div>
                             @endif
                         </div>
+                            @endif
 
                         {{-- INVENTORY / EQUIPPED ITEMS (SIDEBAR) --}}
                         <div class="lg:w-1/3 flex flex-col bg-black/40 border border-indigo-900/50 rounded-2xl p-4 backdrop-blur-sm max-h-[800px]">
