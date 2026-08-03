@@ -543,6 +543,15 @@ class GuildWarService
                 $cost = max(0, (int) round(($skill['base_mana_cost'] ?? 0) + (($effLevel - 1) * ($skill['scaling_mana_cost'] ?? 0))));
 
                 if ($cd <= 0 && ($actor['mana'] ?? 0) >= $cost) {
+                    if (($skill['effect_type'] ?? null) === 'heal') {
+                        $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+                        $healAmount = max(1, (int) round($actor['maxHp'] * $effVal));
+                        $maxAllowedHp = min($actor['maxHp'] - 1, $actor['maxHp'] - $healAmount + (int) round($actor['maxHp'] * 0.15));
+                        if ($actor['hp'] > $maxAllowedHp) {
+                            continue; // Nie lecz na pełnym HP ani przy braku potrzeby
+                        }
+                    }
+
                     $skillToUse = $skill;
                     $skillManaCost = $cost;
                     break;
@@ -630,18 +639,47 @@ class GuildWarService
         $int = $attrs['int'] ?? 0;
         $agi = $attrs['agi'] ?? 0;
 
-        $rawStatBonus = match ($weaponType) {
-            'bow', 'sword', 'dagger' => $str + $agi,
-            'bell' => $str + $int,
-            'wand' => $int * 2,
-            'axe' => $str * 2,
-            default => $str * 2,
-        };
-        $statBonus = (int) round($rawStatBonus * Character::ATTRIBUTE_DAMAGE_MULTIPLIER);
+        $isMagicSkill = (bool) ($skillToUse['is_magic'] ?? false);
 
-        $eq = $snap['equipment_stats'] ?? [];
-        $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+        if ($isMagicSkill) {
+            $rawStatBonus = match ($weaponType) {
+                'bow', 'sword', 'dagger' => $str + $agi,
+                'bell' => $str + $int,
+                'wand' => $int * 2,
+                'axe' => $str * 2,
+                default => $str * 2,
+            };
+            if ($weaponType === 'wand') {
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+            } else {
+                $weaponAtkMin = ($eq['magic_attack_min'] ?? 0) > 0 ? ($eq['magic_attack_min'] ?? 0) : ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['magic_attack_max'] ?? 0) > 0 ? ($eq['magic_attack_max'] ?? 0) : ($eq['attack_max'] ?? 0);
+            }
+        } else {
+            // Standard basic auto-attack (lub atak fizyczny)
+            if ($weaponType === 'wand') {
+                $rawStatBonus = $str + $agi;
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $rawStatBonus = $str + $int;
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } else {
+                $rawStatBonus = match ($weaponType) {
+                    'bow', 'sword', 'dagger' => $str + $agi,
+                    'axe' => $str * 2,
+                    default => $str * 2,
+                };
+                $weaponAtkMin = ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0);
+            }
+        }
+        $statBonus = (int) round($rawStatBonus * Character::ATTRIBUTE_DAMAGE_MULTIPLIER);
 
         $baseDmgMin = 10 + $statBonus + ($snap['level'] * 1) + $weaponAtkMin;
         $baseDmgMax = 10 + $statBonus + ($snap['level'] * 1) + $weaponAtkMax;

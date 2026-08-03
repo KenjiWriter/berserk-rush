@@ -583,6 +583,14 @@
                                             <span class="text-purple-300 font-semibold italic">
                                                 Zadano <strong class="text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> obrażeń od statusów.
                                             </span>
+                                        @elseif ($turn['type'] == 'skill_heal')
+                                            <span class="text-emerald-300 font-semibold">
+                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
+                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Leczenie' }}</span> i odnawia <strong class="text-emerald-400 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }} HP</strong>!
+                                                @if (!empty($turn['dotDamage']))
+                                                    <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
+                                                @endif
+                                            </span>
                                         @elseif ($turn['type'] == 'skill')
                                             <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
                                                 <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
@@ -1383,11 +1391,12 @@
                 void playerPanel.offsetWidth;
                 void enemyPanel.offsetWidth;
 
-                const isBuff = effectType === 'buff_phys_dmg' || (type === 'skill' && value === 0);
+                const isHeal = type === 'skill_heal' || effectType === 'heal';
+                const isBuff = isHeal || effectType === 'buff_phys_dmg' || (type === 'skill' && value === 0);
                 const isPoison = effectType === 'poison' || (skillName && skillName.toLowerCase().includes('truj'));
                 const isFire = effectType === 'fire' || (skillName && skillName.toLowerCase().includes('ogien'));
 
-                // 1. Buff / Self Enhancement FX: Particles rise over Caster, Caster Glows!
+                // 1. Buff / Self Enhancement / Heal FX: Particles rise over Caster, Caster Glows!
                 if (isBuff) {
                     spawnSelfParticles(attackerPanel, 'buff');
                     Livewire.dispatch('play-audio', { type: 'tab' });
@@ -1397,7 +1406,11 @@
                     fct.className = 'fct-damage-number';
                     fct.style.left = `${attackerRect.left + attackerRect.width / 2}px`;
                     fct.style.top = `${attackerRect.top + attackerRect.height / 3 - 20}px`;
-                    fct.innerHTML = `<span class="text-emerald-300 font-extrabold text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)]">WZMOCNIENIE! ${skillName ? skillName : ''}</span>`;
+                    if (isHeal) {
+                        fct.innerHTML = `<span class="text-emerald-300 font-extrabold text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)]">+${formatShortNum(value)} HP</span>`;
+                    } else {
+                        fct.innerHTML = `<span class="text-emerald-300 font-extrabold text-2xl sm:text-3xl drop-shadow-[0_0_20px_rgba(52,211,153,1)]">WZMOCNIENIE! ${skillName ? skillName : ''}</span>`;
+                    }
                     fxOverlay.appendChild(fct);
 
                     setTimeout(() => { if (fct.parentNode) fct.parentNode.removeChild(fct); }, 850);

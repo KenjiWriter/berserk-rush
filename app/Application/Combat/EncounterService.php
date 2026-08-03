@@ -969,11 +969,20 @@ class EncounterService
                     continue; // Not enough mana to use skill
                 }
 
+                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+
+                // HEAL check: Nie używaj skilla leczącego na pełnym HP ani gdy brak przestrzeni na leczenie (max 15% overheal)
+                if ($cs->skill->effect_type === 'heal') {
+                    $healAmount = max(1, (int) round($playerMaxHp * $effVal));
+                    $maxAllowedHp = min($playerMaxHp - 1, $playerMaxHp - $healAmount + (int) round($playerMaxHp * 0.15));
+                    if ($playerHp > $maxAllowedHp) {
+                        continue; // Gracz ma zbyt dużo HP, pomijamy ten skill leczący w tej turze
+                    }
+                }
+
                 // Consume mana & set cooldown
                 $this->playerMana -= $manaCost;
                 $this->activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
-                
-                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
                 
                 if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
                     $this->activeDots[] = [
@@ -1076,7 +1085,7 @@ class EncounterService
                 $skillMultiplier = $effVal;
             }
 
-            $damageData = $this->calculateDamage($character, $monster);
+            $damageData = $this->calculateDamage($character, $monster, (bool) $csSkill->is_magic);
             $damage = (int)($damageData['total'] * $skillMultiplier);
             $baseDamage = (int)($damageData['base'] * $skillMultiplier);
             $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
@@ -1290,23 +1299,47 @@ class EncounterService
 
 
 
-    private function calculateDamage(Character $character, Monster $monster): array
+    private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false): array
     {
         $weaponType = $character->getEquippedWeaponType();
-        $statBonus = $character->getAttributeAttackBonus($weaponType);
         $eq = $character->getEquipmentStats();
 
-        $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+        if ($isMagicSkill) {
+            $statBonus = $character->getAttributeAttackBonus($weaponType);
+            if ($weaponType === 'wand') {
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+            } else {
+                $weaponAtkMin = ($eq['magic_attack_min'] ?? 0) > 0 ? ($eq['magic_attack_min'] ?? 0) : ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['magic_attack_max'] ?? 0) > 0 ? ($eq['magic_attack_max'] ?? 0) : ($eq['attack_max'] ?? 0);
+            }
+        } else {
+            // Standard basic auto-attack (lub atak fizyczny)
+            if ($weaponType === 'wand') {
+                $statBonus = $character->getAttributeAttackBonus('sword'); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $statBonus = $character->getAttributeAttackBonus('bell');
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } else {
+                $statBonus = $character->getAttributeAttackBonus($weaponType);
+                $weaponAtkMin = ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0);
+            }
+        }
 
         $baseDamageMin = 10 + $statBonus + ($character->level * 1) + $weaponAtkMin;
         $baseDamageMax = 10 + $statBonus + ($character->level * 1) + $weaponAtkMax;
-        
-        // Ensure max is at least min
+
         if ($baseDamageMax < $baseDamageMin) {
             $baseDamageMax = $baseDamageMin;
         }
-        
+
         $damage = mt_rand($baseDamageMin, $baseDamageMax);
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
@@ -1330,10 +1363,6 @@ class EncounterService
             $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }
 
-        // "Magic burst": bronie hybrydowe (np. Dzwon) mają szansę zadać dodatkowe,
-        // OSOBNE obrażenia magiczne przy trafieniu, poza normalnym atakiem fizycznym.
-        // Mitygowane tą samą obroną przeciwnika co reszta obrażeń (uproszczony model,
-        // bez osobnej "obrony magicznej").
         $magicBurstDamage = 0;
         $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
         if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
@@ -1531,7 +1560,7 @@ class EncounterService
     {
         $skillMultiplier = in_array($csSkill->effect_type, ['direct_dmg', 'aoe_dmg', 'freeze', 'stun'], true) ? $effVal : 1.0;
 
-        $damageData = $this->calculateDamage($character, $monsterModel);
+        $damageData = $this->calculateDamage($character, $monsterModel, (bool) $csSkill->is_magic);
         $damage = (int)($damageData['total'] * $skillMultiplier);
         $baseDamage = (int)($damageData['base'] * $skillMultiplier);
         $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);

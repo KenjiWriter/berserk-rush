@@ -831,10 +831,21 @@ class MapStub extends Component
 
         $enemyAgi = $this->enemy['stats']['agi'] ?? 0;
 
-        $statBonus = $character->getAttributeAttackBonus();
+        $weaponType = $character->getEquippedWeaponType();
+        if ($weaponType === 'wand') {
+            $statBonus = $character->getAttributeAttackBonus('sword');
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        } elseif ($weaponType === 'bell') {
+            $statBonus = $character->getAttributeAttackBonus('bell');
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        } else {
+            $statBonus = $character->getAttributeAttackBonus($weaponType);
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        }
         $baseDmg = 10 + $statBonus + ($level * 1);
-        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
 
         // Balanced Crit: Minimum 3% floor, max 100% cap
         $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);

@@ -405,16 +405,23 @@ class ArenaCombat extends Component
         $oppAttrs = $opponent['stats'] ?? [];
         $oppAgi = $oppAttrs['agi'] ?? 0;
 
-        $statBonus = match ($weaponType) {
-            'bow', 'sword', 'dagger' => $str + $agi,
-            'bell' => $str + $int,
-            'wand' => $int * 2,
-            'axe' => $str * 2,
-            default => $str * 2,
-        };
-
-        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+        if ($weaponType === 'wand') {
+            $statBonus = $str + $agi;
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        } elseif ($weaponType === 'bell') {
+            $statBonus = $str + $int;
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        } else {
+            $statBonus = match ($weaponType) {
+                'bow', 'sword', 'dagger' => $str + $agi,
+                'axe' => $str * 2,
+                default => $str * 2,
+            };
+            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+        }
 
         $baseDmgMin = 10 + $statBonus + ($level * 1) + $weaponAtkMin;
         $baseDmgMax = 10 + $statBonus + ($level * 1) + $weaponAtkMax;

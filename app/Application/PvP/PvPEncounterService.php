@@ -426,6 +426,17 @@ class PvPEncounterService
                 $cost = max(0, (int) round(($skill['base_mana_cost'] ?? 0) + (($effLevel - 1) * ($skill['scaling_mana_cost'] ?? 0))));
 
                 if ($cd <= 0 && ($actorState['mana'] ?? 0) >= $cost) {
+                    if (($skill['effect_type'] ?? null) === 'heal') {
+                        $actingMaxHp = $actingSnapshot['max_hp'] ?? 1;
+                        $currentActingHp = $actor === 'attacker' ? $attackerHp : $defenderHp;
+                        $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+                        $healAmount = max(1, (int) round($actingMaxHp * $effVal));
+                        $maxAllowedHp = min($actingMaxHp - 1, $actingMaxHp - $healAmount + (int) round($actingMaxHp * 0.15));
+                        if ($currentActingHp > $maxAllowedHp) {
+                            continue; // Nie lecz na pełnym HP ani przy braku potrzeby
+                        }
+                    }
+
                     $skillToUse = $skill;
                     $skillManaCost = $cost;
                     break;
@@ -439,32 +450,56 @@ class PvPEncounterService
         $int = $attrs['int'] ?? 0;
         $agi = $attrs['agi'] ?? 0;
 
-        // UWAGA (rebalans obrażeń, 2026-07-28): zduplikowana logika z
-        // Character::getAttributeAttackBonus() (tu operujemy na snapshotach, nie na
-        // żywym modelu, więc nie można po prostu wywołać metody). Mnożnik musi być
-        // trzymany zsynchronizowany z `Character::ATTRIBUTE_DAMAGE_MULTIPLIER`.
-        $rawStatBonus = match ($weaponType) {
-            'bow', 'sword', 'dagger' => $str + $agi,
-            'bell' => $str + $int,
-            'wand' => $int * 2,
-            'axe' => $str * 2,
-            default => $str * 2,
-        };
-        $statBonus = (int) round($rawStatBonus * Character::ATTRIBUTE_DAMAGE_MULTIPLIER);
-
         $eqStats = $actingSnapshot['equipment_stats'] ?? [];
-        $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+        $isMagicSkill = (bool) ($skillToUse['is_magic'] ?? false);
+        $ccEffectType = null;
+        $ccDuration = 0;
+
+        if ($isMagicSkill) {
+            $rawStatBonus = match ($weaponType) {
+                'bow', 'sword', 'dagger' => $str + $agi,
+                'bell' => $str + $int,
+                'wand' => $int * 2,
+                'axe' => $str * 2,
+                default => $str * 2,
+            };
+            if ($weaponType === 'wand') {
+                $weaponAtkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['magic_attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $weaponAtkMin = ($eqStats['attack_min'] ?? 0) + ($eqStats['magic_attack_min'] ?? 0);
+                $weaponAtkMax = ($eqStats['attack_max'] ?? 0) + ($eqStats['magic_attack_max'] ?? 0);
+            } else {
+                $weaponAtkMin = ($eqStats['magic_attack_min'] ?? 0) > 0 ? ($eqStats['magic_attack_min'] ?? 0) : ($eqStats['attack_min'] ?? 0);
+                $weaponAtkMax = ($eqStats['magic_attack_max'] ?? 0) > 0 ? ($eqStats['magic_attack_max'] ?? 0) : ($eqStats['attack_max'] ?? 0);
+            }
+        } else {
+            // Standard basic auto-attack (lub atak fizyczny)
+            if ($weaponType === 'wand') {
+                $rawStatBonus = $str + $agi;
+                $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $rawStatBonus = $str + $int;
+                $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+            } else {
+                $rawStatBonus = match ($weaponType) {
+                    'bow', 'sword', 'dagger' => $str + $agi,
+                    'axe' => $str * 2,
+                    default => $str * 2,
+                };
+                $weaponAtkMin = ($eqStats['attack_min'] ?? 0);
+                $weaponAtkMax = ($eqStats['attack_max'] ?? 0);
+            }
+        }
+        $statBonus = (int) round($rawStatBonus * Character::ATTRIBUTE_DAMAGE_MULTIPLIER);
 
         $baseDmgMin = 10 + $statBonus + ($actingSnapshot['level'] * 1) + $weaponAtkMin;
         $baseDmgMax = 10 + $statBonus + ($actingSnapshot['level'] * 1) + $weaponAtkMax;
         if ($baseDmgMax < $baseDmgMin) $baseDmgMax = $baseDmgMin;
         
         $damage = mt_rand($baseDmgMin, $baseDmgMax);
-        
-        $isMagicSkill = false;
-        $ccEffectType = null;
-        $ccDuration = 0;
 
         if ($skillToUse) {
             $actorState['mana'] = max(0, ($actorState['mana'] ?? 0) - $skillManaCost);
@@ -473,7 +508,6 @@ class PvPEncounterService
             $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
 
             $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
-            $isMagicSkill = (bool) ($skillToUse['is_magic'] ?? false);
 
             // --- HEAL: leczy aktora o % jego maksymalnego HP, zastępuje atak tej tury ---
             if ($effectType === 'heal') {

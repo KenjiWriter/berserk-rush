@@ -525,17 +525,24 @@ class BalanceMonstersCommand extends Command
         }
         $vit = max(0, $attrPoints - $str - $agi - $int);
 
-        $rawStatBonus = match ($weaponType) {
-            'bow', 'sword', 'dagger' => $str + $agi,
-            'bell' => $str + $int,
-            'wand' => $int * 2,
-            'axe' => $str * 2,
-            default => $str * 2,
-        };
+        if ($weaponType === 'wand') {
+            $rawStatBonus = $str + $agi;
+            $weaponAtkMin = $eq['attack_min'];
+            $weaponAtkMax = max($weaponAtkMin, $eq['attack_max']);
+        } elseif ($weaponType === 'bell') {
+            $rawStatBonus = $str + $int;
+            $weaponAtkMin = $eq['attack_min'];
+            $weaponAtkMax = max($weaponAtkMin, $eq['attack_max']);
+        } else {
+            $rawStatBonus = match ($weaponType) {
+                'bow', 'sword', 'dagger' => $str + $agi,
+                'axe' => $str * 2,
+                default => $str * 2,
+            };
+            $weaponAtkMin = $eq['attack_min'];
+            $weaponAtkMax = max($weaponAtkMin, $eq['attack_max']);
+        }
         $statBonus = (int) round($rawStatBonus * self::ATTRIBUTE_DAMAGE_MULTIPLIER);
-
-        $weaponAtkMin = $eq['attack_min'] + $eq['magic_attack_min'];
-        $weaponAtkMax = $eq['attack_max'] + $eq['magic_attack_max'];
 
         $baseFlat = 10 + $statBonus + $level; // "10 + statBonus + level" część wspólna wzoru
         $baseDamageMin = $baseFlat + $weaponAtkMin;

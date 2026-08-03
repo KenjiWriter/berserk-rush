@@ -644,9 +644,18 @@ class DungeonService
                     continue; // Za mało many, by użyć tej umiejętności
                 }
 
+                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+
+                if ($cs->skill->effect_type === 'heal') {
+                    $healAmount = max(1, (int) round($playerMaxHp * $effVal));
+                    $maxAllowedHp = min($playerMaxHp - 1, $playerMaxHp - $healAmount + (int) round($playerMaxHp * 0.15));
+                    if ($playerHp > $maxAllowedHp) {
+                        continue;
+                    }
+                }
+
                 $playerMana -= $manaCost;
                 $activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
-                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
 
                 if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
                     $activeDots[] = [
@@ -733,7 +742,7 @@ class DungeonService
                 $skillMultiplier = $effVal;
             }
 
-            $damageData = $this->calculatePlayerDamage($character, $monster);
+            $damageData = $this->calculatePlayerDamage($character, $monster, 1.0, (bool) $csSkill->is_magic);
             $damage = (int)($damageData['total'] * $skillMultiplier);
             $baseDamage = (int)($damageData['base'] * $skillMultiplier);
             $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
@@ -996,14 +1005,39 @@ class DungeonService
         return ['dot' => $dot, 'cc' => $cc];
     }
 
-    private function calculatePlayerDamage(Character $character, $monster, float $diffMultiplier = 1.0): array
+    private function calculatePlayerDamage(Character $character, $monster, float $diffMultiplier = 1.0, bool $isMagicSkill = false): array
     {
         $weaponType = $character->getEquippedWeaponType();
-        $statBonus = $character->getAttributeAttackBonus($weaponType);
         $eq = $character->getEquipmentStats();
 
-        $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
-        $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+        if ($isMagicSkill) {
+            $statBonus = $character->getAttributeAttackBonus($weaponType);
+            if ($weaponType === 'wand') {
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $weaponAtkMin = ($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0);
+            } else {
+                $weaponAtkMin = ($eq['magic_attack_min'] ?? 0) > 0 ? ($eq['magic_attack_min'] ?? 0) : ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['magic_attack_max'] ?? 0) > 0 ? ($eq['magic_attack_max'] ?? 0) : ($eq['attack_max'] ?? 0);
+            }
+        } else {
+            // Standard basic auto-attack (lub atak fizyczny)
+            if ($weaponType === 'wand') {
+                $statBonus = $character->getAttributeAttackBonus('sword'); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } elseif ($weaponType === 'bell') {
+                $statBonus = $character->getAttributeAttackBonus('bell');
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            } else {
+                $statBonus = $character->getAttributeAttackBonus($weaponType);
+                $weaponAtkMin = ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = ($eq['attack_max'] ?? 0);
+            }
+        }
 
         $baseDamageMin = 10 + $statBonus + ($character->level * 1) + $weaponAtkMin;
         $baseDamageMax = 10 + $statBonus + ($character->level * 1) + $weaponAtkMax;
