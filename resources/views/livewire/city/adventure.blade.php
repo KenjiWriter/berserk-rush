@@ -224,6 +224,39 @@
                     @endphp
                     <div x-show="activeTab === '{{ $cat }}'" x-cloak>
 
+                        {{-- Info o tytułach czasowych dla wybranej kategorii --}}
+                        @php
+                            $categoryTitleInfo = match($cat) {
+                                'monsters_killed'    => ['top1' => 'Top 1 Łowca (+10% Dmg vs Potwory, +50 Atak)', 'top2' => 'Top 2 Łowca (+5%, +30 Atak)', 'top3' => 'Top 3 Łowca (+3%, +15 Atak)'],
+                                'world_boss_damage'  => ['top1' => 'Top 1 Pogromca Bossów (+10% Dmg vs Boss, +5% Kryt)', 'top2' => 'Top 2 (+5%, +3% Kryt)', 'top3' => 'Top 3 (+3%, +2% Kryt)'],
+                                'dungeons_completed' => ['top1' => 'Top 1 Zdobywca Lochów (+10% Przebicie Pancerza, +40 Def)', 'top2' => 'Top 2 (+5%, +25 Def)', 'top3' => 'Top 3 (+3%, +12 Def)'],
+                                'levels_gained'      => ['top1' => 'Top 1 Mistrz Doświadczenia (+10% EXP, +30 Staty)', 'top2' => 'Top 2 (+5%, +20 Staty)', 'top3' => 'Top 3 (+3%, +10 Staty)'],
+                                'map_bosses_killed'  => ['top1' => 'Top 1 Łowca Czempionów (+10% Podwójny Łup, +40 Atak)', 'top2' => 'Top 2 (+5%, +25 Atak)', 'top3' => 'Top 3 (+3%, +12 Atak)'],
+                                'arena_wins'         => ['top1' => 'Top 1 Gladiator (+10% vs Bohaterowie, +5% Unik)', 'top2' => 'Top 2 (+5%, +3% Unik)', 'top3' => 'Top 3 (+3%, +2% Unik)'],
+                                default => null,
+                            };
+                        @endphp
+
+                        @if($categoryTitleInfo)
+                        <div class="mb-3 p-2.5 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 shadow-inner">
+                            <div class="flex items-center gap-2 text-purple-300 font-bold flex-shrink-0">
+                                <i class="fa-solid fa-crown text-purple-400"></i>
+                                <span>Tytuły Czasowe (7 dni):</span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-1.5 text-[11px]">
+                                <span class="bg-purple-900/60 border border-purple-500/40 text-purple-200 px-2 py-0.5 rounded font-semibold" title="{{ $categoryTitleInfo['top1'] }}">
+                                    🥇 {{ $categoryTitleInfo['top1'] }}
+                                </span>
+                                <span class="bg-slate-800/80 border border-slate-600 text-slate-300 px-2 py-0.5 rounded font-medium" title="{{ $categoryTitleInfo['top2'] }}">
+                                    🥈 {{ $categoryTitleInfo['top2'] }}
+                                </span>
+                                <span class="bg-amber-950/60 border border-amber-800 text-amber-300 px-2 py-0.5 rounded font-medium" title="{{ $categoryTitleInfo['top3'] }}">
+                                    🥉 {{ $categoryTitleInfo['top3'] }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
+
                         {{-- Twoja pozycja --}}
                         @php
                             $myAvatar = $character->avatar;
@@ -282,6 +315,7 @@
                                     $entryAvatar .= '.png';
                                 }
                                 $entryAvatarUrl = $entryAvatar ? asset('img/avatars/' . ltrim($entryAvatar, '/')) : asset('img/avatars/plate.png');
+                                $rankTitleName  = \App\Application\Rankings\WeeklyRankingService::getTitleNameForRank($cat, $pos);
                             @endphp
                             <div class="flex items-center gap-3 p-2.5 rounded-xl border {{ $rowBg }} transition-all duration-200
                                         {{ $isMe ? 'ring-1 ring-amber-500/30' : '' }}">
@@ -307,15 +341,23 @@
                                     </span>
                                 </div>
 
-                                {{-- Wynik --}}
+                                {{-- Wynik + Nagrody (Gemy + Tytuł) --}}
                                 <div class="text-right flex-shrink-0">
                                     <p class="text-sm font-black {{ $color }}">{{ number_format($entry->score) }}</p>
-                                    @if($gems > 0)
-                                    <p class="text-[10px] text-amber-500/80 font-semibold flex items-center justify-end gap-0.5">
-                                        +{{ $gems }}
-                                        <i class="fa-solid fa-gem text-purple-400 text-[10px]"></i>
-                                    </p>
-                                    @endif
+                                    <div class="flex flex-col items-end gap-0.5">
+                                        @if($gems > 0)
+                                        <p class="text-[10px] text-amber-500/80 font-semibold flex items-center justify-end gap-0.5">
+                                            +{{ $gems }}
+                                            <i class="fa-solid fa-gem text-purple-400 text-[10px]"></i>
+                                        </p>
+                                        @endif
+                                        @if($rankTitleName)
+                                        <span class="inline-flex items-center gap-1 text-[9px] text-purple-300 font-extrabold bg-purple-950/70 border border-purple-500/40 px-1.5 py-0.5 rounded">
+                                            <i class="fa-solid fa-crown text-purple-400 text-[8px]"></i>
+                                            {{ $rankTitleName }}
+                                        </span>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                             @endforeach

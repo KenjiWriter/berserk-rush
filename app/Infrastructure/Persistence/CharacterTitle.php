@@ -9,13 +9,15 @@ class CharacterTitle extends Model
     protected $fillable = [
         'character_id',
         'title_id',
-        'unlocked_at'
+        'unlocked_at',
+        'expires_at',
     ];
 
     public $timestamps = true;
 
     protected $casts = [
         'unlocked_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     public function title()

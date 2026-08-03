@@ -3,6 +3,9 @@
 namespace App\Application\Rankings;
 
 use App\Infrastructure\Persistence\WeeklyRankingEntry;
+use App\Infrastructure\Persistence\Title;
+use App\Infrastructure\Persistence\CharacterTitle;
+use App\Infrastructure\Persistence\Character;
 use App\Application\Mail\Actions\SendMailAction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -164,11 +167,23 @@ class WeeklyRankingService
     }
 
     /**
-     * Oblicza rankingi za zakończony tydzień i wysyła nagrody gemów mailowo.
+     * Oblicza rankingi za zakończony tydzień i wysyła nagrody gemów oraz czasowe tytuły mailowo.
      * Wywoływane co poniedziałek o 00:01 przez scheduler.
      */
     public function computeAndAwardWeekly(): void
     {
+        // 1. Czyszczenie przeterminowanych tytułów czasowych
+        $expiredCharacterTitles = CharacterTitle::whereNotNull('expires_at')
+            ->where('expires_at', '<=', Carbon::now())
+            ->get();
+
+        foreach ($expiredCharacterTitles as $expiredCT) {
+            Character::where('id', $expiredCT->character_id)
+                ->where('active_title_id', $expiredCT->title_id)
+                ->update(['active_title_id' => null]);
+            $expiredCT->delete();
+        }
+
         // Poprzedni tydzień (tydzień, który właśnie się skończył)
         $weekStart = Carbon::now()->subWeek()->startOfWeek(Carbon::MONDAY)->toDateString();
 
@@ -189,10 +204,28 @@ class WeeklyRankingService
 
             foreach ($leaderboard as $entry) {
                 $gems = $this->gemsForRank($rank);
+                $titleName = self::getTitleNameForRank($category, $rank);
+
+                if ($titleName) {
+                    $title = Title::where('name', $titleName)->first();
+                    if ($title) {
+                        CharacterTitle::updateOrCreate(
+                            [
+                                'character_id' => $entry->character_id,
+                                'title_id'     => $title->id,
+                            ],
+                            [
+                                'unlocked_at' => Carbon::now(),
+                                'expires_at'  => Carbon::now()->addDays(7),
+                            ]
+                        );
+                    }
+                }
 
                 if ($gems > 0) {
                     $subject = "Nagroda za Ranking Tygodniowy — {$categoryLabel}";
-                    $body    = "Gratulacje! Zajął{a/eś} #{$rank} miejsce w rankingu tygodniowym \"{$categoryLabel}\" z wynikiem {$entry->score}.\n\nOtrzymujesz {$gems} gemów!";
+                    $titleInfo = $titleName ? " oraz czasowy 7-dniowy tytuł [{$titleName}]!" : "!";
+                    $body    = "Gratulacje! Zajął{a/eś} #{$rank} miejsce w rankingu tygodniowym \"{$categoryLabel}\" z wynikiem {$entry->score}.\n\nOtrzymujesz {$gems} gemów{$titleInfo}";
 
                     $sendMail->execute(
                         $entry->character_id,
@@ -203,6 +236,7 @@ class WeeklyRankingService
 
                     Log::info("WeeklyRankingService: wysłano {$gems} gemów dla #{$rank} w {$category}", [
                         'character_id' => $entry->character_id,
+                        'title' => $titleName,
                     ]);
                 }
 
@@ -215,6 +249,27 @@ class WeeklyRankingService
         WeeklyRankingEntry::where('week_start', '<', $oldWeek)->delete();
 
         Log::info("WeeklyRankingService: rozliczanie tygodnia {$weekStart} zakończone.");
+    }
+
+    /**
+     * Zwraca nazwę tytułu czasowego dla danej kategorii i miejsca (Top 1-3).
+     */
+    public static function getTitleNameForRank(string $category, int $rank): ?string
+    {
+        if ($rank < 1 || $rank > 3) {
+            return null;
+        }
+
+        $map = [
+            'monsters_killed'    => [1 => 'Top 1 Łowca', 2 => 'Top 2 Łowca', 3 => 'Top 3 Łowca'],
+            'world_boss_damage'  => [1 => 'Top 1 Pogromca Bossów', 2 => 'Top 2 Pogromca Bossów', 3 => 'Top 3 Pogromca Bossów'],
+            'dungeons_completed' => [1 => 'Top 1 Zdobywca Lochów', 2 => 'Top 2 Zdobywca Lochów', 3 => 'Top 3 Zdobywca Lochów'],
+            'levels_gained'      => [1 => 'Top 1 Mistrz Doświadczenia', 2 => 'Top 2 Mistrz Doświadczenia', 3 => 'Top 3 Mistrz Doświadczenia'],
+            'map_bosses_killed'  => [1 => 'Top 1 Łowca Czempionów', 2 => 'Top 2 Łowca Czempionów', 3 => 'Top 3 Łowca Czempionów'],
+            'arena_wins'         => [1 => 'Top 1 Gladiator', 2 => 'Top 2 Gladiator', 3 => 'Top 3 Gladiator'],
+        ];
+
+        return $map[$category][$rank] ?? null;
     }
 
     /**

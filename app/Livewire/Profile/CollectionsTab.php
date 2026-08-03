@@ -38,27 +38,40 @@ class CollectionsTab extends Component
 
     public function selectTitle($titleId)
     {
-        // Sprawdź czy użytkownik posiada ten tytuł
-        $hasTitle = $this->character->unlockedTitles()->where('title_id', $titleId)->exists();
-        if (!$hasTitle && $titleId !== null) {
-            $this->dispatch('notify', type: 'error', message: 'Nie posiadasz tego tytułu.');
-            return;
+        if (!empty($titleId)) {
+            $hasTitle = $this->character->unlockedTitles()
+                ->where('title_id', $titleId)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->exists();
+
+            if (!$hasTitle) {
+                $this->dispatch('notify', type: 'error', message: 'Nie posiadasz tego tytułu lub tytuł wygasł.');
+                return;
+            }
+        } else {
+            $titleId = null;
         }
 
         $this->character->active_title_id = $titleId;
         $this->character->save();
-        $this->character->clearStatsCache(); // Wymuś przeliczenie statystyk
+        $this->character->clearStatsCache();
         $this->dispatch('notify', type: 'success', message: 'Zmieniono aktywny tytuł.');
     }
 
     public function render()
     {
-        $character = $this->character->loadMissing([
-            'unlockedTitles.title'
-        ]);
+        $now = now();
+        $unlockedTitles = $this->character->unlockedTitles()
+            ->where(function ($query) use ($now) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', $now);
+            })
+            ->with('title')
+            ->get();
 
         return view('livewire.profile.collections-tab', [
-            'titles' => $character->unlockedTitles,
+            'titles' => $unlockedTitles,
         ]);
     }
 }

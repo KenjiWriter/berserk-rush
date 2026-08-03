@@ -1431,6 +1431,13 @@ class EncounterService
             $bonusPercentage += ($eq[$bonusKey] ?? 0) + ($eq[$altBonusKey] ?? 0) + ($eq[$pluralBonusKey] ?? 0);
         }
 
+        if (isset($monster->rank)) {
+            $rankStr = strtolower(is_object($monster->rank) ? $monster->rank->value : $monster->rank);
+            if (in_array($rankStr, ['boss', 'worldboss'], true)) {
+                $bonusPercentage += ($eq['strong_vs_bosses'] ?? 0) + ($eq['strong_vs_boss'] ?? 0);
+            }
+        }
+
         if ($bonusPercentage > 0) {
             $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }

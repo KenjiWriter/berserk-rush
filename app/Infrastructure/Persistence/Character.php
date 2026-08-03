@@ -645,6 +645,9 @@ class Character extends Model
                     if (isset($titleStats[$stat . '_bonus'])) {
                         $total[$stat] += $titleStats[$stat . '_bonus'];
                     }
+                    if (isset($titleStats['all_attributes'])) {
+                        $total[$stat] += $titleStats['all_attributes'];
+                    }
                 }
             }
 
@@ -832,16 +835,18 @@ class Character extends Model
                 $titleStats = $this->activeTitle->stats_bonus ?? [];
                 $stats['hp_bonus'] += ($titleStats['hp_bonus'] ?? 0) + ($titleStats['hp'] ?? 0);
                 $stats['mana_bonus'] += ($titleStats['mana_bonus'] ?? 0);
-                $stats['attack_min'] += ($titleStats['attack_min'] ?? 0);
-                $stats['attack_max'] += ($titleStats['attack_max'] ?? 0);
+                $attackFlat = ($titleStats['attack'] ?? 0) + ($titleStats['atk'] ?? 0);
+                $stats['attack_min'] += ($titleStats['attack_min'] ?? 0) + $attackFlat;
+                $stats['attack_max'] += ($titleStats['attack_max'] ?? 0) + $attackFlat;
                 $stats['magic_attack_min'] += ($titleStats['magic_attack_min'] ?? 0);
                 $stats['magic_attack_max'] += ($titleStats['magic_attack_max'] ?? 0);
-                $stats['defense'] += ($titleStats['defense'] ?? 0);
-                $stats['crit_chance'] += ($titleStats['crit_chance'] ?? 0);
+                $stats['defense'] += ($titleStats['defense'] ?? 0) + ($titleStats['def'] ?? 0);
+                $stats['crit_chance'] += ($titleStats['crit_chance'] ?? 0) + (isset($titleStats['crit']) ? ($titleStats['crit'] * 100) : 0);
                 
-                // You might want to copy other non-standard modifiers (like bonus_vs_demon) into stats directly
                 foreach ($titleStats as $k => $v) {
-                    if (!isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
+                    if (in_array($k, ['strong_vs_monsters', 'strong_vs_bosses', 'strong_vs_hero', 'armor_pen_pct', 'exp_bonus', 'double_drop_chance', 'dodge_chance'], true)) {
+                        $stats[$k] = ($stats[$k] ?? 0) + $v;
+                    } elseif (!isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
                         $stats[$k] = $v;
                     }
                 }

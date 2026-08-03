@@ -10,6 +10,7 @@
                 @foreach($titles as $charTitle)
                     <option value="{{ $charTitle->title->id }}" @if($character->active_title_id == $charTitle->title->id) selected @endif>
                         {{ $charTitle->title->name }} @if($charTitle->title->prefix) ({{ $charTitle->title->prefix }}) @endif
+                        @if($charTitle->expires_at) — [Wygasa: {{ $charTitle->expires_at->format('d.m H:i') }}] @endif
                     </option>
                 @endforeach
             </select>

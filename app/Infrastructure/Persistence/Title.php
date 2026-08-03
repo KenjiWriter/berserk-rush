@@ -13,10 +13,12 @@ class Title extends Model
         'name',
         'prefix',
         'description',
-        'stats_bonus'
+        'stats_bonus',
+        'is_temporary',
     ];
 
     protected $casts = [
         'stats_bonus' => 'array',
+        'is_temporary' => 'boolean',
     ];
 }
