@@ -141,9 +141,15 @@ function createSmartTooltip() {
         },
         _applyDesktopStyle(triggerRect, tooltipRect) {
             const minMargin = 12;
+            // Ogranicz lewą krawędź do obszaru treści (<main>), a nie całego okna - inaczej
+            // szeroki tooltip (zwłaszcza wariant z porównaniem) potrafi wylądować pod stałym
+            // panelem nawigacji (<x-desktop-nav>, do 288px), który zajmuje realną przestrzeń
+            // ekranu, mimo że sam viewport jest szerszy.
+            const mainEl = this.$el && this.$el.closest ? this.$el.closest('main') : null;
+            const containerLeft = mainEl ? mainEl.getBoundingClientRect().left : 0;
             const triggerCenter = triggerRect.left + triggerRect.width / 2;
             let left = triggerCenter - (tooltipRect.width / 2);
-            left = Math.max(minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
+            left = Math.max(containerLeft + minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
 
             let top = triggerRect.top - tooltipRect.height - 8;
             if (top < minMargin) {

@@ -119,10 +119,9 @@
         {{-- ====================================================== --}}
         @if($showRankingsModal)
         @php
-            use App\Application\Rankings\WeeklyRankingService;
-            $categoryLabels = WeeklyRankingService::CATEGORY_LABELS;
-            $categoryIcons  = WeeklyRankingService::CATEGORY_ICONS;
-            $categoryColors = WeeklyRankingService::CATEGORY_COLORS;
+            $categoryLabels = \App\Application\Rankings\WeeklyRankingService::CATEGORY_LABELS;
+            $categoryIcons  = \App\Application\Rankings\WeeklyRankingService::CATEGORY_ICONS;
+            $categoryColors = \App\Application\Rankings\WeeklyRankingService::CATEGORY_COLORS;
             $categories     = array_keys($categoryLabels);
             $rewardsMap     = [1 => 300, 2 => 250, 3 => 200];
         @endphp
