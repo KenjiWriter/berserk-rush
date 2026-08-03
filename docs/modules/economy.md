@@ -22,6 +22,12 @@ Widok `livewire/economy/market.blade.php` (obsługiwany przez `GetMarketListings
 - Dozwolone klucze statystyk są zdefiniowane w białej liście `GetMarketListingsQuery::ALLOWED_STAT_FILTERS`, by bezpiecznie osadzać je w wyrażeniach SQL wyciągających wartość z kolumn JSON(B).
 - Wyrażenie SQL do odczytu wartości z JSON jest budowane w zależności od sterownika bazy (`GetMarketListingsQuery::jsonStatExpr`) – składnia PostgreSQL (`jsonb ->> 'klucz'`) różni się od MySQL (`json ->> '$.klucz'`), więc obie są obsługiwane.
 
+## Potwierdzenie Zakupu (Modal)
+Aby zapobiec przypadkowym zakupom ofert na rynku, kliknięcie przycisku "KUP ZA..." w `MarketComponent` wywołuje dwuetapowy proces:
+1. `MarketComponent::confirmBuy($listingId)` weryfikuje ofertę i otwiera modal potwierdzający (`$showConfirmBuyModal = true`).
+2. Modal wyświetla podgląd przedmiotu lub chowańca (nazwa, ikona, rzadkość, poziom, statystyki bonusowe, sprzedawca) oraz zestawienie ceny z aktualnym stanem portfela gracza.
+3. Dopiero kliknięcie "Potwierdzam zakup" w modale wywołuje `MarketComponent::buyItem()` i realizuje akcję `BuyMarketListingAction`. Użytkownik może w każdej chwili anulować zakup przyciskiem "Anuluj" lub klikając w tło modalu.
+
 ## Zastosowane Wzorce
 Wszystkie ważne modyfikacje (zakup, wystawienie) wykorzystują:
 - Wzorzec **Result** (z obsługą błędów).

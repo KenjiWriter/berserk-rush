@@ -260,24 +260,24 @@
                                             <span class="text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</span>
                                         </div>
 
-                                        <button wire:click="buyItem('{{ $listing->id }}')"
-                                            wire:loading.attr="disabled" wire:target="buyItem('{{ $listing->id }}')"
-                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem('{{ $listing->id }}')"
+                                        <button wire:click="confirmBuy('{{ $listing->id }}')"
+                                            wire:loading.attr="disabled" wire:target="confirmBuy('{{ $listing->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="confirmBuy('{{ $listing->id }}')"
                                             class="w-full flex items-center justify-center font-extrabold py-2 px-3 rounded-lg text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer
                                             @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 hover:from-amber-600 hover:to-amber-900 text-yellow-200 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]
                                             @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-b from-purple-700 via-purple-800 to-purple-950 hover:from-purple-600 hover:to-purple-900 text-purple-100 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.3)]
                                             @else bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60 @endif">
 
-                                            <span wire:loading.remove wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-1.5">
+                                            <span wire:loading.remove wire:target="confirmBuy('{{ $listing->id }}')" class="flex items-center gap-1.5">
                                                 <span>KUP ZA</span>
                                                 <span class="font-extrabold text-sm {{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
                                                     {{ number_format($listing->price) }}
                                                     @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5"></i> @else <i class="fa-solid fa-gem ml-0.5"></i> @endif
                                                 </span>
                                             </span>
-                                            <span wire:loading wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-2">
+                                            <span wire:loading wire:target="confirmBuy('{{ $listing->id }}')" class="flex items-center gap-2">
                                                 <i class="fa-solid fa-circle-notch animate-spin"></i>
-                                                <span>Kupowanie...</span>
+                                                <span>Ładowanie...</span>
                                             </span>
                                         </button>
                                     </div>
@@ -375,24 +375,24 @@
                                             <span class="text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</span>
                                         </div>
                                         
-                                        <button wire:click="buyItem('{{ $listing->id }}')" 
-                                            wire:loading.attr="disabled" wire:target="buyItem('{{ $listing->id }}')"
-                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem('{{ $listing->id }}')"
+                                        <button wire:click="confirmBuy('{{ $listing->id }}')" 
+                                            wire:loading.attr="disabled" wire:target="confirmBuy('{{ $listing->id }}')"
+                                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="confirmBuy('{{ $listing->id }}')"
                                             class="w-full flex items-center justify-center font-extrabold py-2 px-3 rounded-lg text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer
                                             @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 hover:from-amber-600 hover:to-amber-900 text-yellow-200 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]
                                             @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-b from-purple-700 via-purple-800 to-purple-950 hover:from-purple-600 hover:to-purple-900 text-purple-100 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.3)]
                                             @else bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60 @endif">
                                             
-                                            <span wire:loading.remove wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-1.5">
+                                            <span wire:loading.remove wire:target="confirmBuy('{{ $listing->id }}')" class="flex items-center gap-1.5">
                                                 <span>KUP ZA</span> 
                                                 <span class="font-extrabold text-sm {{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
                                                     {{ number_format($listing->price) }}
                                                     @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5"></i> @else <i class="fa-solid fa-gem ml-0.5"></i> @endif
                                                 </span>
                                             </span>
-                                            <span wire:loading wire:target="buyItem('{{ $listing->id }}')" class="flex items-center gap-2">
+                                            <span wire:loading wire:target="confirmBuy('{{ $listing->id }}')" class="flex items-center gap-2">
                                                 <i class="fa-solid fa-circle-notch animate-spin"></i>
-                                                <span>Kupowanie...</span>
+                                                <span>Ładowanie...</span>
                                             </span>
                                         </button>
                                     </div>
@@ -620,4 +620,195 @@
             </div>
         @endif
     </div>
+
+    {{-- ===== BUY CONFIRMATION MODAL ===== --}}
+    @if($showConfirmBuyModal && $confirmListing)
+        @php
+            $isPet = $confirmListing->pet_id !== null;
+            $buyerBalance = $confirmListing->currency === 'gold' ? $character->gold : (auth()->user()->gems ?? 0);
+            $hasEnough = $buyerBalance >= $confirmListing->price;
+        @endphp
+        <div class="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4">
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-stone-950/80 backdrop-blur-sm transition-opacity" wire:click="closeConfirmBuyModal"></div>
+
+            {{-- Modal Panel --}}
+            <div class="relative bg-stone-950 border-2 border-amber-500/80 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.9),0_0_20px_rgba(245,158,11,0.3)] max-w-lg w-full p-6 text-amber-100 z-10 overflow-hidden"
+                 style="background: radial-gradient(circle at 50% 0%, #1c1917 0%, #0c0a09 100%);">
+                
+                {{-- Header --}}
+                <div class="flex items-center justify-between border-b-2 border-amber-900/60 pb-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-950/90 border border-amber-500/60 flex items-center justify-center text-amber-400 text-lg shadow-inner">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-amber-400 to-amber-500">POTWIERDZENIE ZAKUPU</h3>
+                            <p class="text-[11px] text-amber-300/60 font-sans">Czy na pewno chcesz kupić ten {{ $isPet ? 'chowaniec' : 'przedmiot' }}?</p>
+                        </div>
+                    </div>
+                    <button wire:click="closeConfirmBuyModal" class="text-stone-400 hover:text-amber-300 transition-colors p-1 cursor-pointer">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Item / Pet Details Card --}}
+                <div class="bg-stone-900/90 border border-amber-900/60 rounded-xl p-4 mb-4 shadow-inner">
+                    @if($isPet)
+                        @php $petTierMeta = $tiers[$confirmListing->pet->tier] ?? ['name' => 'Nieznany']; @endphp
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-14 h-14 rounded-xl border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-3xl shadow-inner relative">
+                                <i class="fa-solid fa-{{ $confirmListing->pet->icon ?: 'paw' }} text-amber-400"></i>
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <h4 class="font-extrabold text-amber-100 text-base truncate leading-snug">{{ $confirmListing->pet->name }}</h4>
+                                <div class="text-xs text-amber-400/80 font-bold uppercase tracking-wider mt-0.5 flex items-center gap-2">
+                                    <span>Lvl {{ $confirmListing->pet->level }}</span>
+                                    <span>•</span>
+                                    <span>{{ $petTierMeta['name'] }}</span>
+                                    @if($confirmListing->pet->fusion_count > 0)
+                                        <span>•</span>
+                                        <span class="text-sky-400">+{{ $confirmListing->pet->fusion_count }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        @if(!empty($confirmListing->pet->stats))
+                            <div class="text-xs text-stone-300 bg-stone-950/80 p-2.5 rounded-lg border border-stone-800 grid grid-cols-2 gap-1.5 font-sans mb-2">
+                                @foreach($confirmListing->pet->stats as $stat => $val)
+                                    <div class="flex justify-between">
+                                        <span class="text-stone-400 uppercase truncate mr-1">{{ $stat }}</span>
+                                        <span class="text-emerald-400 font-bold">+{{ $val }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    @else
+                        <div class="flex items-center space-x-3 mb-3">
+                            <div class="w-14 h-14 rounded-xl border-2 border-amber-500/80 flex items-center justify-center shrink-0 bg-stone-950 text-3xl shadow-inner relative">
+                                @if($confirmListing->item->template->icon)
+                                    <img src="{{ route('assets.items', ['filename' => $confirmListing->item->template->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $confirmListing->item->template->name }}">
+                                @else
+                                    <span class="text-amber-400 text-xl">
+                                        @if($confirmListing->item->template->slot === 'weapon') <i class="fa-solid fa-khanda"></i>
+                                        @elseif($confirmListing->item->template->slot === 'head') <i class="fa-solid fa-helmet-safety"></i>
+                                        @elseif($confirmListing->item->template->slot === 'chest') <i class="fa-solid fa-shield-halved"></i>
+                                        @elseif($confirmListing->item->template->slot === 'legs') <i class="fa-solid fa-vest"></i>
+                                        @elseif($confirmListing->item->template->slot === 'boots') <i class="fa-solid fa-shoe-prints"></i>
+                                        @else <i class="fa-solid fa-box"></i>
+                                        @endif
+                                    </span>
+                                @endif
+                                <x-item-upgrade-overlay :level="$confirmListing->item->upgrade_level ?? 0" :type="$confirmListing->item->template->type ?? ''" />
+                                @if(($confirmListing->item->stack_size ?? 1) > 1)
+                                    <span class="absolute bottom-0.5 right-0.5 text-amber-200 font-extrabold text-[10px] bg-black/80 border border-amber-600/60 px-1 rounded shadow leading-none z-10">x{{ $confirmListing->item->stack_size }}</span>
+                                @endif
+                            </div>
+                            
+                            <div class="min-w-0 flex-1">
+                                <h4 class="font-extrabold text-amber-100 text-base truncate leading-snug">
+                                    {{ $confirmListing->item->template->name }}
+                                    @if(($confirmListing->item->upgrade_level ?? 0) > 0) <span class="text-amber-400 font-bold ml-0.5">+{{ $confirmListing->item->upgrade_level }}</span> @endif
+                                </h4>
+                                <div class="text-xs font-bold uppercase tracking-wider mt-0.5 flex items-center gap-2">
+                                    <span class="text-amber-400/80">Lvl {{ $confirmListing->item->template->level_requirement }}</span>
+                                    <span>•</span>
+                                    <span class="
+                                        @if($confirmListing->item->rarity === 'common') text-stone-400
+                                        @elseif($confirmListing->item->rarity === 'uncommon') text-emerald-400
+                                        @elseif($confirmListing->item->rarity === 'rare') text-sky-400
+                                        @elseif($confirmListing->item->rarity === 'epic') text-purple-400
+                                        @elseif($confirmListing->item->rarity === 'legendary') text-amber-400
+                                        @endif">
+                                        {{ ucfirst($confirmListing->item->rarity) }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @php
+                            $modalPreviewStats = $confirmListing->item->getTotalStats();
+                            $upStats = $confirmListing->item->getUpgradeBonusStats();
+                            foreach ($upStats as $s => $v) {
+                                $modalPreviewStats[$s] = ($modalPreviewStats[$s] ?? 0) + $v;
+                            }
+                        @endphp
+                        @if(!empty($modalPreviewStats))
+                            <div class="text-xs text-stone-300 bg-stone-950/80 p-2.5 rounded-lg border border-stone-800 grid grid-cols-2 gap-1.5 font-sans mb-2">
+                                @foreach($modalPreviewStats as $stat => $val)
+                                    @if($val > 0 && !in_array($stat, ['mint', 'max_mint']))
+                                        <div class="flex justify-between">
+                                            <span class="text-stone-400 capitalize truncate mr-1">{{ str_replace('_', ' ', $stat) }}</span>
+                                            <span class="text-emerald-400 font-bold">+{{ $val }}</span>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+                    @endif
+
+                    <div class="text-xs text-stone-400 font-sans flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
+                        <span>Sprzedawca: <strong class="text-amber-200 font-serif">{{ $confirmListing->seller->name ?? 'Nieznany' }}</strong></span>
+                        <span class="text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $confirmListing->expires_at->diffForHumans() }}</span>
+                    </div>
+                </div>
+
+                {{-- Price & Balance Summary Box --}}
+                <div class="bg-gradient-to-b from-stone-900 to-stone-950 border border-amber-900/80 rounded-xl p-4 mb-6 shadow-inner space-y-3 font-sans">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold uppercase tracking-wider text-amber-300/80">CENA ZAKUPU:</span>
+                        <span class="font-extrabold text-lg sm:text-xl {{ $confirmListing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
+                            {{ number_format($confirmListing->price) }}
+                            @if($confirmListing->currency === 'gold') <i class="fa-solid fa-coins ml-1 text-amber-400"></i> Złota @else <i class="fa-solid fa-gem ml-1 text-purple-400"></i> Klejnotów @endif
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-center border-t border-amber-900/40 pt-2 text-xs">
+                        <span class="text-stone-400">Twój stan posiadania:</span>
+                        <span class="font-bold {{ $hasEnough ? 'text-emerald-400' : 'text-red-400' }}">
+                            {{ number_format($buyerBalance) }}
+                            @if($confirmListing->currency === 'gold') Złota @else Klejnotów @endif
+                        </span>
+                    </div>
+
+                    @if(!$hasEnough)
+                        <div class="p-2 rounded-lg bg-red-950/80 border border-red-800/80 text-red-300 text-xs flex items-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation text-red-400 shrink-0"></i>
+                            <span>Nie masz wystarczającej ilości {{ $confirmListing->currency === 'gold' ? 'złota' : 'klejnotów' }}, aby dokonać zakupu.</span>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Action Buttons --}}
+                <div class="flex items-center gap-3">
+                    <button wire:click="closeConfirmBuyModal"
+                            class="w-1/2 py-2.5 min-h-[44px] rounded-xl bg-stone-900 hover:bg-stone-800 text-stone-300 font-extrabold text-xs uppercase tracking-widest border border-stone-700 transition-all cursor-pointer shadow">
+                        Anuluj
+                    </button>
+
+                    <button wire:click="buyItem"
+                            @if(!$hasEnough) disabled @endif
+                            wire:loading.attr="disabled" wire:target="buyItem"
+                            wire:loading.class="opacity-50 cursor-not-allowed" wire:target="buyItem"
+                            class="w-1/2 py-2.5 min-h-[44px] rounded-xl font-extrabold text-xs uppercase tracking-widest transition-all duration-200 shadow-lg border cursor-pointer flex items-center justify-center gap-2
+                            @if($hasEnough)
+                                @if($confirmListing->currency === 'gold') bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900 hover:from-amber-500 hover:to-amber-800 text-yellow-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)]
+                                @else bg-gradient-to-b from-purple-600 via-purple-700 to-purple-900 hover:from-purple-500 hover:to-purple-800 text-purple-100 border-purple-400 shadow-[0_0_15px_rgba(168,85,247,0.4)]
+                                @endif
+                            @else bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-50 @endif">
+
+                        <span wire:loading.remove wire:target="buyItem" class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Potwierdzam zakup</span>
+                        </span>
+                        <span wire:loading wire:target="buyItem" class="flex items-center gap-2">
+                            <i class="fa-solid fa-circle-notch animate-spin"></i>
+                            <span>Kupowanie...</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

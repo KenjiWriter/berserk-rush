@@ -33,6 +33,9 @@ class MarketComponent extends Component
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
 
+    public bool $showConfirmBuyModal = false;
+    public ?string $selectedListingId = null;
+
     protected $queryString = [
         'activeTab' => ['except' => 'buy'],
         'listingType' => ['except' => 'item'],
@@ -84,19 +87,49 @@ class MarketComponent extends Component
         $this->resetPage();
     }
 
-    public function buyItem(string $listingId, BuyMarketListingAction $action)
+    public function confirmBuy(string $listingId)
     {
-        $character = $this->character;
         $listing = MarketListing::find($listingId);
 
+        if (!$listing || $listing->status !== 'active') {
+            $this->dispatch('notify', message: 'Oferta nie jest już aktywna.', type: 'error');
+            return;
+        }
+
+        $this->selectedListingId = $listingId;
+        $this->showConfirmBuyModal = true;
+    }
+
+    public function closeConfirmBuyModal()
+    {
+        $this->showConfirmBuyModal = false;
+        $this->selectedListingId = null;
+    }
+
+    public function buyItem(?string $listingId = null, ?BuyMarketListingAction $action = null)
+    {
+        $targetId = $listingId ?: $this->selectedListingId;
+
+        if (!$targetId) {
+            $this->dispatch('notify', message: 'Nie wybrano oferty do zakupu.', type: 'error');
+            return;
+        }
+
+        $character = $this->character;
+        $listing = MarketListing::find($targetId);
+
         if (!$listing) {
+            $this->closeConfirmBuyModal();
             $this->dispatch('notify', message: 'Oferta nie została znaleziona.', type: 'error');
             return;
         }
 
         $isPetListing = $listing->pet_id !== null;
 
+        $action = $action ?: app(BuyMarketListingAction::class);
         $result = $action->execute($character, $listing);
+
+        $this->closeConfirmBuyModal();
 
         if ($result->isError()) {
             $this->dispatch('notify', message: $result->getErrorMessage(), type: 'error');
@@ -227,6 +260,16 @@ class MarketComponent extends Component
             $equipped[$eq->template->slot] = $eq;
         }
 
+        $confirmListing = null;
+        if ($this->showConfirmBuyModal && $this->selectedListingId) {
+            $confirmListing = MarketListing::with(['item.template', 'pet', 'seller'])->find($this->selectedListingId);
+            if (!$confirmListing || $confirmListing->status !== 'active') {
+                $this->showConfirmBuyModal = false;
+                $this->selectedListingId = null;
+                $confirmListing = null;
+            }
+        }
+
         return view('livewire.economy.market', [
             'character' => $character,
             'listings' => $listings,
@@ -235,6 +278,7 @@ class MarketComponent extends Component
             'equipped' => $equipped,
             'statOptions' => $this->statOptions(),
             'tiers' => PetTier::all(),
+            'confirmListing' => $confirmListing,
         ]);
     }
 }
