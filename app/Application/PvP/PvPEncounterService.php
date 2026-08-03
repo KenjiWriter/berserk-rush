@@ -7,6 +7,7 @@ use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\Encounter;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CharacterEquipmentSetItem;
+use App\Application\Rankings\WeeklyRankingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -267,6 +268,9 @@ class PvPEncounterService
                 // Give consolation tokens to loser too
                 $loser = $isAttackerWinner ? $pvpEncounter->defender : $pvpEncounter->attacker;
                 $loser->increment('arena_tokens', 3);
+
+                // Ranking tygodniowy: zwycięstwa na arenie
+                app(WeeklyRankingService::class)->incrementScore($winner->id, 'arena_wins');
 
                 Log::info('PvP encounter completed', [
                     'pvp_encounter_id' => $pvpEncounter->id,

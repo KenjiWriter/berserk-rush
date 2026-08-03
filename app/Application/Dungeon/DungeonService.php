@@ -4,6 +4,7 @@ namespace App\Application\Dungeon;
 
 use App\Application\Shared\Result;
 use App\Application\Combat\EncounterService;
+use App\Application\Rankings\WeeklyRankingService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Dungeon;
 use App\Infrastructure\Persistence\DungeonStage;
@@ -527,7 +528,10 @@ class DungeonService
         if ($run->current_stage >= $totalStages) {
             $run->is_completed = true;
             $run->save();
-            
+
+            // Ranking tygodniowy: ukończone lochy (1 run = 1 punkt, niezależnie od mnożnika)
+            app(WeeklyRankingService::class)->incrementScore($run->character_id, 'dungeons_completed');
+
             // Ostatni etap wygrany -> przyznaj cały loot
             $this->grantAccumulatedLoot($run);
 

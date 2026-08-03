@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\Dungeon;
 use App\Infrastructure\Persistence\CharacterDungeonRun;
 use App\Infrastructure\Persistence\WorldBossInstance;
 use App\Infrastructure\Persistence\ItemInstance;
+use App\Application\Rankings\WeeklyRankingService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Layout;
@@ -20,7 +21,8 @@ class Adventure extends Component
 {
     public Character $character;
     public Collection $maps;
-    
+    public bool $showRankingsModal = false;
+
     #[Url]
     public string $tab = 'maps'; // 'maps', 'dungeons' or 'worldboss'
 
@@ -108,6 +110,16 @@ class Adventure extends Component
         $this->redirect(route('city.hub', $this->character), navigate: true);
     }
 
+    public function openRankingsModal(): void
+    {
+        $this->showRankingsModal = true;
+    }
+
+    public function closeRankingsModal(): void
+    {
+        $this->showRankingsModal = false;
+    }
+
     public function render()
     {
         $dungeons = collect();
@@ -180,6 +192,17 @@ class Adventure extends Component
 
         $activeQuestIds = $this->character->activeQuests()->pluck('quest_id')->toArray();
 
+        // Dane rankingów tygodniowych (ładowane lazy — tylko gdy modal otwarty)
+        $weeklyRankings = [];
+        $weekStart = null;
+        $nextReset = null;
+        if ($this->showRankingsModal) {
+            $rankingService  = app(WeeklyRankingService::class);
+            $weeklyRankings  = $rankingService->getAllRankingsForCharacter($this->character->id);
+            $weekStart       = WeeklyRankingService::currentWeekStart();
+            $nextReset       = WeeklyRankingService::nextResetAt();
+        }
+
         return view('livewire.city.adventure', [
             'dungeons'          => $dungeons,
             'dungeonCount'      => $dungeonCount,
@@ -191,6 +214,9 @@ class Adventure extends Component
             'topDamageDealers'  => $topDamageDealers,
             'resetCountdownLabel' => $resetCountdownLabel,
             'activeQuestIds'    => $activeQuestIds,
+            'weeklyRankings'    => $weeklyRankings,
+            'weekStart'         => $weekStart,
+            'nextReset'         => $nextReset,
         ]);
     }
 }

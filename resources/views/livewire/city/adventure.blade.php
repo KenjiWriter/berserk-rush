@@ -89,11 +89,244 @@
                 <div class="mt-4 p-3 bg-purple-950/80 border border-purple-500/50 rounded-xl backdrop-blur-md max-w-xl mx-auto shadow-xl">
                     <p class="text-purple-200 font-semibold text-xs sm:text-sm text-center flex items-center justify-center gap-2">
                         <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i>
-                        <span>Lustro jest aktywne! Zwykłe Mapy są ukryte — możesz walczyć w <strong>Lochach</strong> oraz z <strong>World Bossami</strong>.</span>
+                        <span>Lustro jest aktywne! Zwykłe Mapy są ukryte &mdash; możesz walczyć w <strong>Lochach</strong> oraz z <strong>World Bossami</strong>.</span>
                     </p>
                 </div>
             @endif
+
+            {{-- Przycisk: Rankingi Tygodniowe --}}
+            <div class="mt-5 flex justify-center">
+                <button wire:click="openRankingsModal"
+                    id="btn-weekly-rankings"
+                    class="group relative inline-flex items-center gap-3 px-7 py-3 rounded-xl font-bold text-sm sm:text-base medieval-font
+                           bg-gradient-to-r from-yellow-600/90 via-amber-500/90 to-yellow-600/90
+                           border border-yellow-400/60 text-yellow-100
+                           shadow-[0_0_20px_rgba(234,179,8,0.35)] hover:shadow-[0_0_35px_rgba(234,179,8,0.6)]
+                           transition-all duration-300 hover:scale-105 hover:from-yellow-500 hover:via-amber-400 hover:to-yellow-500">
+                    <i class="fa-solid fa-trophy text-yellow-300 text-lg group-hover:animate-bounce"></i>
+                    <span>Rankingi Tygodniowe</span>
+                    <span class="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-300"></span>
+                    </span>
+                </button>
+            </div>
         </div>
+
+
+        {{-- ====================================================== --}}
+        {{-- MODAL: RANKINGI TYGODNIOWE                              --}}
+        {{-- ====================================================== --}}
+        @if($showRankingsModal)
+        @php
+            use App\Application\Rankings\WeeklyRankingService;
+            $categoryLabels = WeeklyRankingService::CATEGORY_LABELS;
+            $categoryIcons  = WeeklyRankingService::CATEGORY_ICONS;
+            $categoryColors = WeeklyRankingService::CATEGORY_COLORS;
+            $categories     = array_keys($categoryLabels);
+            $rewardsMap     = [1 => 300, 2 => 250, 3 => 200];
+        @endphp
+        <div
+            x-data="{
+                activeTab: '{{ $categories[0] }}',
+                init() {
+                    document.addEventListener('keydown', (e) => { if(e.key === 'Escape') $wire.closeRankingsModal() })
+                }
+            }"
+            class="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+            style="background: rgba(2,6,23,0.92); backdrop-filter: blur(8px);"
+            wire:click.self="closeRankingsModal">
+
+            <div class="relative w-full max-w-3xl max-h-[92vh] flex flex-col
+                        bg-gradient-to-b from-slate-900 to-slate-950
+                        border border-yellow-500/40 rounded-2xl shadow-[0_0_60px_rgba(234,179,8,0.2)] overflow-hidden">
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between px-5 py-4 border-b border-yellow-500/20
+                            bg-gradient-to-r from-yellow-900/30 via-slate-900 to-yellow-900/30 flex-shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-lg bg-yellow-500/20 border border-yellow-500/40 flex items-center justify-center">
+                            <i class="fa-solid fa-trophy text-yellow-400"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-black text-amber-100 medieval-font tracking-wide">Rankingi Tygodniowe</h2>
+                            @if($nextReset)
+                            <p class="text-xs text-slate-400">
+                                <i class="fa-regular fa-clock mr-1 text-amber-500/70"></i>
+                                Reset: <span class="text-amber-400 font-semibold">{{ $nextReset->format('d.m H:i') }}</span>
+                            </p>
+                            @endif
+                        </div>
+                    </div>
+                    <button wire:click="closeRankingsModal"
+                        class="w-8 h-8 rounded-lg bg-slate-800 border border-slate-700 text-slate-400
+                               hover:text-white hover:border-red-500/60 hover:bg-red-900/30 transition-all duration-200
+                               flex items-center justify-center">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                {{-- Legenda nagród --}}
+                <div class="flex items-center justify-center gap-2 sm:gap-4 px-4 py-2.5 border-b border-slate-800 flex-shrink-0
+                            bg-slate-900/60 flex-wrap text-xs">
+                    <span class="text-slate-500 font-semibold uppercase tracking-wider mr-1">Nagrody:</span>
+                    <span class="flex items-center gap-1 text-yellow-300 font-bold">
+                        <i class="fa-solid fa-medal text-yellow-400"></i>#1 — 300
+                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                    </span>
+                    <span class="text-slate-600">•</span>
+                    <span class="flex items-center gap-1 text-slate-300 font-bold">
+                        <i class="fa-solid fa-medal text-slate-400"></i>#2 — 250
+                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                    </span>
+                    <span class="text-slate-600">•</span>
+                    <span class="flex items-center gap-1 text-amber-700 font-bold">
+                        <i class="fa-solid fa-medal text-amber-800"></i>#3 — 200
+                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                    </span>
+                    <span class="text-slate-600">•</span>
+                    <span class="flex items-center gap-1 text-slate-400 font-semibold">
+                        #4-10 — 100
+                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                    </span>
+                </div>
+
+                {{-- Category Tabs --}}
+                <div class="flex overflow-x-auto gap-1 px-3 pt-3 pb-0 flex-shrink-0 scrollbar-hide border-b border-slate-800">
+                    @foreach($categories as $cat)
+                    @php
+                        $icon  = $categoryIcons[$cat] ?? 'fa-star';
+                        $color = $categoryColors[$cat] ?? 'text-slate-400';
+                        $label = $categoryLabels[$cat];
+                    @endphp
+                    <button
+                        @click="activeTab = '{{ $cat }}'"
+                        :class="activeTab === '{{ $cat }}'
+                            ? 'bg-slate-800 border-b-2 border-yellow-400 text-amber-200'
+                            : 'text-slate-500 hover:text-slate-300 border-b-2 border-transparent'"
+                        class="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 flex-shrink-0 rounded-t-lg">
+                        <i class="fa-solid {{ $icon }} {{ $color }} text-xs"></i>
+                        <span>{{ $label }}</span>
+                    </button>
+                    @endforeach
+                </div>
+
+                {{-- Ranking content --}}
+                <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+                    @foreach($categories as $cat)
+                    @php
+                        $data        = $weeklyRankings[$cat] ?? ['leaderboard' => collect(), 'player' => ['rank' => null, 'score' => 0]];
+                        $leaderboard = $data['leaderboard'];
+                        $playerRank  = $data['player'];
+                        $icon        = $categoryIcons[$cat] ?? 'fa-star';
+                        $color       = $categoryColors[$cat] ?? 'text-slate-400';
+                        $label       = $categoryLabels[$cat];
+                    @endphp
+                    <div x-show="activeTab === '{{ $cat }}'" x-cloak>
+
+                        {{-- Twoja pozycja --}}
+                        <div class="mb-4 p-3 rounded-xl border
+                            {{ $playerRank['rank'] === 1 ? 'bg-yellow-950/60 border-yellow-500/50' : ($playerRank['rank'] !== null ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-900/40 border-slate-800') }}
+                            flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg {{ $playerRank['rank'] === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-700/60 border border-slate-600' }} flex items-center justify-center flex-shrink-0">
+                                    <i class="fa-solid fa-user {{ $playerRank['rank'] === 1 ? 'text-yellow-400' : 'text-slate-400' }} text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Twoja pozycja</p>
+                                    <p class="text-sm font-black {{ $playerRank['rank'] === 1 ? 'text-yellow-300' : 'text-amber-100' }}">
+                                        @if($playerRank['rank'] !== null)
+                                            #{{ $playerRank['rank'] }}
+                                        @else
+                                            <span class="text-slate-500">Brak wpisu</span>
+                                        @endif
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-xs text-slate-500">Wynik</p>
+                                <p class="text-base font-black {{ $color }}">{{ number_format($playerRank['score']) }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Top 10 --}}
+                        @if($leaderboard->isEmpty())
+                        <div class="py-10 text-center text-slate-600">
+                            <i class="fa-solid {{ $icon }} text-3xl mb-3 {{ $color }} opacity-30"></i>
+                            <p class="text-sm font-semibold">Brak wyników w tym tygodniu</p>
+                            <p class="text-xs mt-1">Bądź pierwszy!</p>
+                        </div>
+                        @else
+                        <div class="space-y-1.5">
+                            @foreach($leaderboard as $i => $entry)
+                            @php
+                                $pos         = $i + 1;
+                                $isMe        = $entry->character_id === $character->id;
+                                $gems        = $pos === 1 ? 300 : ($pos === 2 ? 250 : ($pos === 3 ? 200 : ($pos <= 10 ? 100 : 0)));
+                                $rowBg       = $isMe ? 'bg-amber-900/25 border-amber-500/40' : 'bg-slate-800/40 border-slate-700/50';
+                                $posBadge    = match($pos) {
+                                    1 => 'bg-gradient-to-br from-yellow-400 to-amber-500 text-yellow-950 shadow-[0_0_10px_rgba(234,179,8,0.5)]',
+                                    2 => 'bg-gradient-to-br from-slate-300 to-slate-400 text-slate-900',
+                                    3 => 'bg-gradient-to-br from-amber-700 to-amber-600 text-amber-100',
+                                    default => 'bg-slate-700 text-slate-300',
+                                };
+                            @endphp
+                            <div class="flex items-center gap-3 p-2.5 rounded-xl border {{ $rowBg }} transition-all duration-200
+                                        {{ $isMe ? 'ring-1 ring-amber-500/30' : '' }}">
+                                {{-- Pozycja --}}
+                                <div class="w-7 h-7 rounded-md flex items-center justify-center text-xs font-black flex-shrink-0 {{ $posBadge }}">
+                                    @if($pos <= 3)
+                                        <i class="fa-solid fa-trophy text-[10px]"></i>
+                                    @else
+                                        {{ $pos }}
+                                    @endif
+                                </div>
+
+                                {{-- Avatar + Imię --}}
+                                <div class="flex items-center gap-2 flex-1 min-w-0">
+                                    <div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                        @if($entry->character?->avatar)
+                                            <img src="{{ asset('img/avatars/' . $entry->character->avatar) }}" class="w-full h-full object-cover" alt="avatar">
+                                        @else
+                                            <i class="fa-solid fa-person text-slate-400 text-xs"></i>
+                                        @endif
+                                    </div>
+                                    <span class="text-sm font-bold truncate {{ $isMe ? 'text-amber-300' : 'text-slate-200' }}">
+                                        {{ $entry->character?->name ?? 'Nieznany' }}
+                                        @if($isMe)
+                                            <span class="ml-1 text-[10px] text-amber-500 font-black">(Ty)</span>
+                                        @endif
+                                    </span>
+                                </div>
+
+                                {{-- Wynik --}}
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-sm font-black {{ $color }}">{{ number_format($entry->score) }}</p>
+                                    @if($gems > 0)
+                                    <p class="text-[10px] text-amber-500/80 font-semibold flex items-center justify-end gap-0.5">
+                                        +{{ $gems }}
+                                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-3 h-3 inline" alt="gem">
+                                    </p>
+                                    @endif
+                                </div>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-5 py-3 border-t border-slate-800 flex-shrink-0 text-center">
+                    <p class="text-xs text-slate-600">
+                        <i class="fa-solid fa-circle-info mr-1"></i>
+                        Ranking resetuje się co poniedziałek o 00:01. Nagrody wysyłane są pocztą w grze.
+                    </p>
+                </div>
+            </div>
+        </div>
+        @endif
 
         {{-- Map access error alert --}}
         @error('map_access')

@@ -14,6 +14,7 @@ use App\Infrastructure\Persistence\Encounter;
 use App\Infrastructure\Persistence\PvpEncounter;
 use App\Infrastructure\Persistence\WorldBossInstance;
 use App\Infrastructure\Persistence\WorldBossDamageLog;
+use App\Application\Rankings\WeeklyRankingService;
 
 class EncounterService
 {
@@ -592,6 +593,13 @@ class EncounterService
                             'damage' => $damageDealt
                         ]);
 
+                        // Ranking tygodniowy: łączny DMG w World Bossy
+                        app(WeeklyRankingService::class)->incrementScore(
+                            $character->id,
+                            'world_boss_damage',
+                            (int) $damageDealt
+                        );
+
                         // UWAGA (fix 2026-07-30, doprecyzowane przez użytkownika): world boss NIE
                         // regeneruje współdzielonej puli current_hp - żadna pojedyncza walka gracza
                         // nie mogłaby jej i tak przypadkiem wyzerować, bo $damageDealt jest liczone
@@ -655,6 +663,10 @@ class EncounterService
 
                             $questService->progressQuest($character, 'hunting', ['monster' => (string)$mModel->id, 'map' => (string)$encounter->map_id]);
                             event(new \App\Domain\Collections\Events\MonsterDefeated($character, $mModel, $encounter->map_id));
+
+                            // Ranking tygodniowy: potwory/bossowie map (walka grupowa)
+                            $rankingCategory = ($mModel->rank === \App\Domain\Combat\Enums\MonsterRank::BOSS) ? 'map_bosses_killed' : 'monsters_killed';
+                            app(WeeklyRankingService::class)->incrementScore($character->id, $rankingCategory);
                         }
                     } else {
                         // Update hunting quests
@@ -662,6 +674,10 @@ class EncounterService
 
                         // Fire MonsterDefeated event for Bestiary and Achievements
                         event(new \App\Domain\Collections\Events\MonsterDefeated($character, $monster, $encounter->map_id));
+
+                        // Ranking tygodniowy: potwory/bossowie map (walka pojedyncza)
+                        $rankingCategory = ($monster->rank === \App\Domain\Combat\Enums\MonsterRank::BOSS) ? 'map_bosses_killed' : 'monsters_killed';
+                        app(WeeklyRankingService::class)->incrementScore($character->id, $rankingCategory);
                     }
 
                     if ($dropResult->isError()) {

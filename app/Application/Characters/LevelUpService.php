@@ -6,6 +6,7 @@ use App\Infrastructure\Persistence\Character;
 use App\Application\Shared\Result;
 use App\Application\Characters\DTOs\LevelUpResult;
 use App\Domain\Characters\Events\CharacterLeveledUp;
+use App\Application\Rankings\WeeklyRankingService;
 use Illuminate\Support\Facades\DB;
 
 class LevelUpService
@@ -93,6 +94,12 @@ class LevelUpService
                             $levelUp['from'],
                             $levelUp['to']
                         ));
+
+                        // Ranking tygodniowy: wbite poziomy
+                        app(WeeklyRankingService::class)->incrementScore(
+                            $character->id,
+                            'levels_gained'
+                        );
                     }
                 }
 
