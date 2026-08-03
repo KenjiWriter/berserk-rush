@@ -126,8 +126,9 @@
             $rewardsMap     = [1 => 300, 2 => 250, 3 => 200];
         @endphp
         <div
+            wire:key="weekly-rankings-modal"
             x-data="{
-                activeTab: '{{ $categories[0] }}',
+                activeTab: '{{ $categories[0] ?? 'monsters_killed' }}',
                 init() {
                     document.addEventListener('keydown', (e) => { if(e.key === 'Escape') $wire.closeRankingsModal() })
                 }
@@ -171,22 +172,22 @@
                     <span class="text-slate-500 font-semibold uppercase tracking-wider mr-1">Nagrody:</span>
                     <span class="flex items-center gap-1 text-yellow-300 font-bold">
                         <i class="fa-solid fa-medal text-yellow-400"></i>#1 — 300
-                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                        <i class="fa-solid fa-gem text-purple-400 text-xs"></i>
                     </span>
                     <span class="text-slate-600">•</span>
                     <span class="flex items-center gap-1 text-slate-300 font-bold">
                         <i class="fa-solid fa-medal text-slate-400"></i>#2 — 250
-                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                        <i class="fa-solid fa-gem text-purple-400 text-xs"></i>
                     </span>
                     <span class="text-slate-600">•</span>
                     <span class="flex items-center gap-1 text-amber-700 font-bold">
                         <i class="fa-solid fa-medal text-amber-800"></i>#3 — 200
-                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                        <i class="fa-solid fa-gem text-purple-400 text-xs"></i>
                     </span>
                     <span class="text-slate-600">•</span>
                     <span class="flex items-center gap-1 text-slate-400 font-semibold">
                         #4-10 — 100
-                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-4 h-4 inline" alt="gem">
+                        <i class="fa-solid fa-gem text-purple-400 text-xs"></i>
                     </span>
                 </div>
 
@@ -304,7 +305,7 @@
                                     @if($gems > 0)
                                     <p class="text-[10px] text-amber-500/80 font-semibold flex items-center justify-end gap-0.5">
                                         +{{ $gems }}
-                                        <img src="{{ asset('img/currencies/gem.png') }}" class="w-3 h-3 inline" alt="gem">
+                                        <i class="fa-solid fa-gem text-purple-400 text-[10px]"></i>
                                     </p>
                                     @endif
                                 </div>
