@@ -569,9 +569,10 @@ class EncounterService
                         $xpRewardData = ['base' => $baseXp, 'bonus' => (int)($baseXp * $xpMult) - $baseXp, 'total' => (int)($baseXp * $xpMult), 'multiplier' => $xpMult];
 
                         // Zapisz log damage
+                        $bracket = WorldBossService::bracketForLevel($character->level);
                         $activeBoss = WorldBossInstance::where('map_id', $encounter->map_id)
                             ->where('monster_id', $monster->id)
-                            ->whereNotNull('level_bracket')
+                            ->where('level_bracket', $bracket)
                             ->latest('id')
                             ->first();
 
@@ -579,7 +580,7 @@ class EncounterService
                             $activeBoss = WorldBossInstance::create([
                                 'map_id' => $encounter->map_id,
                                 'monster_id' => $monster->id,
-                                'level_bracket' => WorldBossService::bracketForLevel($monster->level),
+                                'level_bracket' => $bracket,
                                 'total_hp' => $monster->stats['hp'] ?? 1000000,
                                 'current_hp' => $monster->stats['hp'] ?? 1000000,
                             ]);
@@ -746,7 +747,7 @@ class EncounterService
                 'trace' => $e->getTraceAsString()
             ]);
 
-            return Result::error('SIMULATION_FAILED', 'Symulacja walki nie powiodła się');
+            return Result::error('SIMULATION_FAILED', 'Symulacja walki nie powiodła się: ' . $e->getMessage());
         }
     }
 
@@ -1210,6 +1211,7 @@ class EncounterService
         }
 
         // Standard attack
+        $procs = $this->rollEquipmentProcs($eq);
         $damageData = $this->calculateDamage($character, $monster, false, $procs);
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
@@ -1363,6 +1365,8 @@ class EncounterService
                 $weaponAtkMin = ($eq['magic_attack_min'] ?? 0) > 0 ? ($eq['magic_attack_min'] ?? 0) : ($eq['attack_min'] ?? 0);
                 $weaponAtkMax = ($eq['magic_attack_max'] ?? 0) > 0 ? ($eq['magic_attack_max'] ?? 0) : ($eq['attack_max'] ?? 0);
             }
+            $baseDamageMin = max(1, (int) round($statBonus + $weaponAtkMin));
+            $baseDamageMax = max($baseDamageMin, (int) round($statBonus + $weaponAtkMax));
         } else {
             // Standard basic auto-attack (lub atak fizyczny)
             if ($weaponType === 'wand') {
@@ -1370,8 +1374,16 @@ class EncounterService
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
                 $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
-            $baseDamageMin = $stats['attack_min'] ?? 1;
-            $baseDamageMax = $stats['attack_max'] ?? 1;
+                $statBonus = $character->getAttributeAttackBonus('bell');
+                $weaponAtkMin = (int) (($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0));
+                $weaponAtkMax = (int) max($weaponAtkMin, ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0));
+            } else {
+                $statBonus = $character->getAttributeAttackBonus($weaponType);
+                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+            }
+            $baseDamageMin = max(1, (int) round($statBonus + $weaponAtkMin));
+            $baseDamageMax = max($baseDamageMin, (int) round($statBonus + $weaponAtkMax));
         }
 
         if ($baseDamageMax < $baseDamageMin) {

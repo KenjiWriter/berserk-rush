@@ -189,23 +189,10 @@
                         };
                     },
                     openTooltip() {
-                        if (window.innerWidth < 768) return;
-                        window.dispatchEvent(new CustomEvent('close-all-tooltips'));
-                        clearTimeout(this.timeout);
-                        this.showInfo = true;
-                        this.updatePosition();
+                        // Bezpośrednie najechanie myszką nie otwiera już automatycznie tooltipu.
                     },
                     closeTooltip(event) {
-                        if (window.innerWidth < 768) return;
-                        if (event && event.relatedTarget) {
-                            const tooltipEl = this.getTooltipElement();
-                            const movingIntoTooltip = tooltipEl && tooltipEl.contains(event.relatedTarget);
-                            const movingIntoTrigger = this.$el && this.$el.contains(event.relatedTarget);
-                            const movingIntoSubTooltip = event.relatedTarget.closest && event.relatedTarget.closest('[data-item-tooltip]');
-                            if (movingIntoTooltip || movingIntoTrigger || movingIntoSubTooltip) { return; }
-                        }
-                        clearTimeout(this.timeout);
-                        this.timeout = setTimeout(() => { this.showInfo = false; }, 120);
+                        // Zjechanie myszką nie zamyka automatycznie tooltipu.
                     },
                     toggleTooltip() {
                         clearTimeout(this.timeout);

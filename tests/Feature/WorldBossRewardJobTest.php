@@ -178,6 +178,7 @@ class WorldBossRewardJobTest extends TestCase
         $this->assertTrue($startResult->isOk());
 
         $simResult = $service->simulate($startResult->getPayload());
+        if (!$simResult->isOk()) { dump($simResult->getErrorMessage()); }
         $this->assertTrue($simResult->isOk());
 
         $damageDealt = $simResult->getPayload()['rewards']['damage_dealt'];

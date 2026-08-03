@@ -88,10 +88,8 @@
 
                                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                             @foreach($tierItems as $item)
-                                                <div wire:key="shop-{{ $item->id }}" class="relative smart-tooltip-trigger" x-data="smartTooltip()"
+                                                <div wire:key="shop-{{ $item->id }}" class="relative smart-tooltip-trigger cursor-pointer" x-data="smartTooltip()"
                                                      :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                                     @mouseenter="openTooltip()"
-                                                     @mouseleave="closeTooltip($event)"
                                                      @click="toggleTooltip()"
                                                      @resize.window.debounce.100ms="updatePosition()"
                                                      @tooltip-updated.window="updatePosition()">
@@ -210,10 +208,8 @@
 
                             <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
                                 @forelse($inventoryItems as $item)
-                                    <div wire:key="inv-{{ $item->id }}" class="relative smart-tooltip-trigger" x-data="smartTooltip()"
+                                    <div wire:key="inv-{{ $item->id }}" class="relative smart-tooltip-trigger cursor-pointer" x-data="smartTooltip()"
                                          :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
-                                         @mouseenter="openTooltip()"
-                                         @mouseleave="closeTooltip($event)"
                                          @click="toggleTooltip()"
                                          @resize.window.debounce.100ms="updatePosition()"
                                          @tooltip-updated.window="updatePosition()">
