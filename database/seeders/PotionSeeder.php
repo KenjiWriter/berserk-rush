@@ -14,7 +14,7 @@ class PotionSeeder extends Seeder
     public function run(): void
     {
         $potions = [
-            // --- SIŁA (STR) ---
+            // --- SIŁA (STR) --- złota/amber
             [
                 'id' => 'potion-str-s',
                 'name' => 'Mała Mikstura Siły (S)',
@@ -22,7 +22,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['str_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa Siłę postaci o 5% na 1 godzinę.',
-                'icon' => 'bagienne-ziolo.png',
+                'icon' => 'potion-str.png',
                 'price' => 100,
             ],
             [
@@ -32,7 +32,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['str_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa Siłę postaci o 10% na 3 godziny.',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-str.png',
                 'price' => 500,
             ],
             [
@@ -42,11 +42,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['str_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa Siłę postaci o 15% na 6 godzin.',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-str.png',
                 'price' => 2500,
             ],
 
-            // --- ZWINNOŚĆ (AGI) ---
+            // --- ZWINNOŚĆ (AGI) --- zielona
             [
                 'id' => 'potion-agi-s',
                 'name' => 'Mała Mikstura Zwinności (S)',
@@ -54,7 +54,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['agi_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa Zwinność postaci o 5% na 1 godzinę.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-agi.png',
                 'price' => 100,
             ],
             [
@@ -64,7 +64,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['agi_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa Zwinność postaci o 10% na 3 godziny.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-agi.png',
                 'price' => 500,
             ],
             [
@@ -74,11 +74,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['agi_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa Zwinność postaci o 15% na 6 godzin.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-agi.png',
                 'price' => 2500,
             ],
 
-            // --- INTELIGENCJA (INT) ---
+            // --- INTELIGENCJA (INT) --- fioletowa
             [
                 'id' => 'potion-int-s',
                 'name' => 'Mała Mikstura Inteligencji (S)',
@@ -86,7 +86,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['int_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa Inteligencję postaci o 5% na 1 godzinę.',
-                'icon' => 'metna-woda.png',
+                'icon' => 'potion-purple.png',
                 'price' => 100,
             ],
             [
@@ -96,7 +96,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['int_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa Inteligencję postaci o 10% na 3 godziny.',
-                'icon' => 'metna-woda.png',
+                'icon' => 'potion-purple.png',
                 'price' => 500,
             ],
             [
@@ -106,11 +106,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['int_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa Inteligencję postaci o 15% na 6 godzin.',
-                'icon' => 'metna-woda.png',
+                'icon' => 'potion-purple.png',
                 'price' => 2500,
             ],
 
-            // --- WITALNOŚĆ (VIT) ---
+            // --- WITALNOŚĆ (VIT) --- zielona
             [
                 'id' => 'potion-vit-s',
                 'name' => 'Mała Mikstura Witalności (S)',
@@ -118,7 +118,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['vit_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa Witalność postaci o 5% na 1 godzinę.',
-                'icon' => 'toksyczny-sluz.png',
+                'icon' => 'potion-agi.png',
                 'price' => 100,
             ],
             [
@@ -128,7 +128,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['vit_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa Witalność postaci o 10% na 3 godziny.',
-                'icon' => 'toksyczny-sluz.png',
+                'icon' => 'potion-agi.png',
                 'price' => 500,
             ],
             [
@@ -138,11 +138,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['vit_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa Witalność postaci o 15% na 6 godzin.',
-                'icon' => 'toksyczny-sluz.png',
+                'icon' => 'potion-agi.png',
                 'price' => 2500,
             ],
 
-            // --- OBRONA (DEF) ---
+            // --- OBRONA (DEF) --- fioletowa
             [
                 'id' => 'potion-def-s',
                 'name' => 'Mała Mikstura Obrony (S)',
@@ -150,7 +150,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['defense_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa Pancerz postaci o 5% na 1 godzinę.',
-                'icon' => 'metna-woda.png',
+                'icon' => 'potion-purple.png',
                 'price' => 100,
             ],
             [
@@ -160,7 +160,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['defense_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa Pancerz postaci o 10% na 3 godziny.',
-                'icon' => 'toksyczny-sluz.png',
+                'icon' => 'potion-purple.png',
                 'price' => 500,
             ],
             [
@@ -170,11 +170,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['defense_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa Pancerz postaci o 15% na 6 godzin.',
-                'icon' => 'toksyczny-sluz.png',
+                'icon' => 'potion-purple.png',
                 'price' => 2500,
             ],
 
-            // --- SZAŁ / KRYTYK (CRIT) ---
+            // --- SZAŁ / KRYTYK (CRIT) --- złota/amber
             [
                 'id' => 'potion-crit-s',
                 'name' => 'Mała Mikstura Szału (S)',
@@ -182,7 +182,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['crit_chance' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa szansę na cios krytyczny o 5% na 1 godzinę.',
-                'icon' => 'zar-plomieni.png',
+                'icon' => 'potion-str.png',
                 'price' => 120,
             ],
             [
@@ -192,7 +192,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['crit_chance' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa szansę na cios krytyczny o 10% na 3 godziny.',
-                'icon' => 'zar-plomieni.png',
+                'icon' => 'potion-str.png',
                 'price' => 600,
             ],
             [
@@ -202,11 +202,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['crit_chance' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa szansę na cios krytyczny o 15% na 6 godzin.',
-                'icon' => 'zar-plomieni.png',
+                'icon' => 'potion-str.png',
                 'price' => 3000,
             ],
 
-            // --- MIKSTURA ŁOWCY POTWORÓW (MONSTER HUNTER) ---
+            // --- MIKSTURA ŁOWCY POTWORÓW (MONSTER HUNTER) --- zielona
             [
                 'id' => 'potion-monster-s',
                 'name' => 'Mała Mikstura Łowcy Potworów (S)',
@@ -214,7 +214,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['bonus_vs_monsters' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa obrażenia zadawane wszystkim potworom o 5% na 1 godzinę.',
-                'icon' => 'zar-plomieni.png',
+                'icon' => 'potion-agi.png',
                 'price' => 150,
             ],
             [
@@ -224,7 +224,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['bonus_vs_monsters' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa obrażenia zadawane wszystkim potworom o 10% na 3 godziny.',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-agi.png',
                 'price' => 750,
             ],
             [
@@ -234,11 +234,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['bonus_vs_monsters' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa obrażenia zadawane wszystkim potworom o 15% na 6 godzin.',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-agi.png',
                 'price' => 3500,
             ],
 
-            // --- ELIKSIR ŻYCIA / HP ---
+            // --- ELIKSIR ŻYCIA / HP --- czerwona
             [
                 'id' => 'potion-hp-s',
                 'name' => 'Mały Eliksir Życia (S)',
@@ -246,7 +246,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['hp_pct' => 5, 'heal_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa maksymalne punkty zdrowia o 5% na 1 godzinę (w lochach przywraca 5% HP).',
-                'icon' => 'bagienne-ziolo.png',
+                'icon' => 'potion-hp.png',
                 'price' => 100,
             ],
             [
@@ -256,7 +256,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['hp_pct' => 10, 'heal_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa maksymalne punkty zdrowia o 10% na 3 godziny (w lochach przywraca 10% HP).',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-hp.png',
                 'price' => 500,
             ],
             [
@@ -266,11 +266,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['hp_pct' => 15, 'heal_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa maksymalne punkty zdrowia o 15% na 6 godzin (w lochach przywraca 15% HP).',
-                'icon' => 'mroczne-ziolo.png',
+                'icon' => 'potion-hp.png',
                 'price' => 2500,
             ],
 
-            // --- ELIKSIR MANY / MANA ---
+            // --- ELIKSIR MANY / MANA --- niebieska
             [
                 'id' => 'potion-mana-s',
                 'name' => 'Mały Eliksir Many (S)',
@@ -278,7 +278,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 1,
                 'base_stats' => ['mana_pct' => 5, 'mana_heal_pct' => 5, 'duration_minutes' => 60],
                 'description' => 'Zwiększa maksymalną manę o 5% na 1 godzinę.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-mana.png',
                 'price' => 100,
             ],
             [
@@ -288,7 +288,7 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 10,
                 'base_stats' => ['mana_pct' => 10, 'mana_heal_pct' => 10, 'duration_minutes' => 180],
                 'description' => 'Zwiększa maksymalną manę o 10% na 3 godziny.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-mana.png',
                 'price' => 500,
             ],
             [
@@ -298,11 +298,11 @@ class PotionSeeder extends Seeder
                 'level_requirement' => 25,
                 'base_stats' => ['mana_pct' => 15, 'mana_heal_pct' => 15, 'duration_minutes' => 360],
                 'description' => 'Zwiększa maksymalną manę o 15% na 6 godzin.',
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-mana.png',
                 'price' => 2500,
             ],
 
-            // --- SPECJALNA MIKSTURA DOŚWIADCZENIA ---
+            // --- SPECJALNA MIKSTURA DOŚWIADCZENIA --- złota/amber
             [
                 'id' => 'potion-exp-special',
                 'name' => 'Specjalna Mikstura Doświadczenia',
@@ -311,7 +311,7 @@ class PotionSeeder extends Seeder
                 'base_stats' => ['exp_bonus' => 20, 'duration_minutes' => 60],
                 'description' => 'Tajemniczy wywar zwiększający zdobywane doświadczenie z potworów o 20% przez 60 minut.',
                 'is_tradeable' => false,
-                'icon' => 'czysta-mana.png',
+                'icon' => 'potion-str.png',
                 'price' => 1000,
             ],
         ];
