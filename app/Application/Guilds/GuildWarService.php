@@ -586,6 +586,7 @@ class GuildWarService
                 $cd = $actor['cooldowns'][$skill['id']] ?? 0;
                 $effLevel = max(1, $skill['level'] ?? 1);
                 $cost = max(0, (int) round(($skill['base_mana_cost'] ?? 0) + (($effLevel - 1) * ($skill['scaling_mana_cost'] ?? 0))));
+                $cost = $this->applyPetManaReduction($cost, $snap);
 
                 if ($cd <= 0 && ($actor['mana'] ?? 0) >= $cost) {
                     if (($skill['effect_type'] ?? null) === 'heal') {
@@ -969,6 +970,7 @@ class GuildWarService
             $baseMana = $skill['base_mana_cost'] ?? 0;
             $scalingMana = $skill['scaling_mana_cost'] ?? 0;
             $manaCost = max(0, (int) round($baseMana + (($effLevel - 1) * $scalingMana)));
+            $manaCost = $this->applyPetManaReduction($manaCost, $snapshot);
 
             if ($actorMana < $manaCost) {
                 continue; // Brak wystarczającej ilości MP w tej turze
@@ -986,6 +988,25 @@ class GuildWarService
         }
 
         return $passives;
+    }
+
+    /**
+     * Pasywka Rodzaju Wspomagającego peta (patrz Character::getEquipmentStats(),
+     * docs/modules/pets.md) - obniża koszt many o `mana_cost_reduction_pct` z
+     * migawki ekwipunku aktora. Ograniczone do 90% czysto zabezpieczająco.
+     */
+    private function applyPetManaReduction(int $manaCost, array $snapshot): int
+    {
+        if ($manaCost <= 0) {
+            return $manaCost;
+        }
+
+        $reductionPct = min(90.0, (float) ($snapshot['equipment_stats']['mana_cost_reduction_pct'] ?? 0));
+        if ($reductionPct <= 0) {
+            return $manaCost;
+        }
+
+        return max(0, (int) round($manaCost * (1 - $reductionPct / 100)));
     }
 
     private function rollPassiveChance(float $chance): bool

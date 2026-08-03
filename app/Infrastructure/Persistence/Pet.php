@@ -16,6 +16,7 @@ class Pet extends Model
         'name',
         'rarity',
         'tier',
+        'archetype',
         'stats',
         'stat_profile',
         'level',
@@ -114,13 +115,22 @@ class Pet extends Model
 
     /**
      * Tłumienie mocy: jeśli pet ma wyższy poziom niż postać, jego wkład do
-     * statystyk postaci jest proporcjonalnie zmniejszany
-     * (min(1, poziom_postaci / poziom_peta)). Ekwipunek peta (obroża/charm)
-     * NIE jest tłumiony - dolicza się w pełni.
+     * statystyk/CP/pasywki jest proporcjonalnie zmniejszany
+     * (min(1, poziom_postaci / poziom_peta)).
+     */
+    public function getPowerRatioFor(Character $character): float
+    {
+        return min(1.0, $character->level / max(1, $this->level));
+    }
+
+    /**
+     * Tłumienie mocy: jeśli pet ma wyższy poziom niż postać, jego wkład do
+     * statystyk postaci jest proporcjonalnie zmniejszany. Ekwipunek peta
+     * (obroża/charm) NIE jest tłumiony - dolicza się w pełni.
      */
     public function getEffectiveStatsFor(Character $character): array
     {
-        $ratio = min(1.0, $character->level / max(1, $this->level));
+        $ratio = $this->getPowerRatioFor($character);
         $gearBonus = $this->getGearBonusStats();
 
         $effective = [];
@@ -136,6 +146,46 @@ class Pet extends Model
     {
         $stats = $this->getEffectiveStatsFor($character);
         return array_sum($stats) * max(1, $this->level);
+    }
+
+    /**
+     * Pasywka Rodzaju (Atakujący/Obrony/Wspomagający): % bonus = fusion_count
+     * * tier, tłumiony tym samym mnożnikiem poziomu co reszta wkładu peta.
+     * Pet, który nigdy nie przeszedł fuzji (fusion_count=0 - zawsze prawda
+     * dla T1, bo fuzja zawsze podnosi tier), nie daje żadnej pasywki - patrz
+     * docs/modules/pets.md.
+     */
+    public function getArchetypeBonusPercentFor(Character $character): float
+    {
+        if (!$this->archetype || $this->fusion_count <= 0) {
+            return 0.0;
+        }
+
+        $raw = $this->fusion_count * (float) config('pets.fusion_count_archetype_bonus_percent', 1) * $this->tier;
+
+        return $raw * $this->getPowerRatioFor($character);
+    }
+
+    /**
+     * "Spadek ewolucji" (kara za nieudaną fuzję): cofa peta o jeden etap
+     * dojrzałości (`growth_stage`), obniżając jego poziom (i tym samym EXP)
+     * tuż poniżej progu obecnego etapu - `growth_stage` jest zawsze funkcją
+     * poziomu (patrz recalculateStats()), więc to jedyny spójny sposób na
+     * "cofnięcie" etapu bez rozjeżdżania inwariantu poziom↔etap.
+     * Brak efektu, jeśli pet jest już na najniższym etapie (0 - "Pisklak").
+     */
+    public function demoteGrowthStage(): void
+    {
+        if ($this->growth_stage <= 0) {
+            return;
+        }
+
+        $thresholds = config('pets.growth_stage_thresholds', []);
+        $newLevel = max(1, (int) ($thresholds[$this->growth_stage] ?? 1) - 1);
+
+        $this->level = $newLevel;
+        $this->exp = 0;
+        $this->recalculateStats();
     }
 
     /**

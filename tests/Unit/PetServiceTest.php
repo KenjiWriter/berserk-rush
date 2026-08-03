@@ -103,14 +103,20 @@ class PetServiceTest extends TestCase
         $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
     }
 
-    public function test_fusion_service_consumes_pets_even_on_failure(): void
+    /**
+     * DeterministicRandomProvider consumes values in call order: [0] the
+     * chance roll (float, forced to 99.9% so it always exceeds tier1's 80%
+     * base chance), [1] the failure-outcome roll (int 1-100, chosen to land
+     * in the desired bucket of pets.fusion_failure_outcomes), [2] the
+     * lucky-pet coin flip (0 -> petA survives/is spared where relevant).
+     */
+    public function test_fusion_service_failure_no_loss_outcome_keeps_both_pets(): void
     {
-        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999]));
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 999, 0]));
 
         $character = $this->createTestCharacter();
-        // Tier 5->6 bazowa szansa to tylko 20%, roll wymuszony na ~99.9% -> porażka.
-        $p1 = $this->makePet($character, 5);
-        $p2 = $this->makePet($character, 5);
+        $p1 = $this->makePet($character, 1);
+        $p2 = $this->makePet($character, 1);
 
         $service = app(PetFusionService::class);
         $result = $service->fusePets($character, [$p1->id, $p2->id]);
@@ -118,9 +124,95 @@ class PetServiceTest extends TestCase
         $this->assertFalse($result->isError());
         $payload = $result->getPayload();
         $this->assertFalse($payload['success']);
+        $this->assertSame('no_loss', $payload['outcome']);
+
+        $this->assertDatabaseHas('pets', ['id' => $p1->id]);
+        $this->assertDatabaseHas('pets', ['id' => $p2->id]);
+        $this->assertSame(0, $character->fresh()->gold);
+    }
+
+    public function test_fusion_service_failure_lose_both_outcome_deletes_both_pets(): void
+    {
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 100, 0]));
+
+        $character = $this->createTestCharacter();
+        $p1 = $this->makePet($character, 1);
+        $p2 = $this->makePet($character, 1);
+
+        $service = app(PetFusionService::class);
+        $result = $service->fusePets($character, [$p1->id, $p2->id]);
+
+        $this->assertFalse($result->isError());
+        $payload = $result->getPayload();
+        $this->assertFalse($payload['success']);
+        $this->assertSame('lose_both', $payload['outcome']);
 
         $this->assertDatabaseMissing('pets', ['id' => $p1->id]);
         $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
+    }
+
+    public function test_fusion_service_failure_lose_one_outcome_deletes_unlucky_pet_only(): void
+    {
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 5, 0]));
+
+        $character = $this->createTestCharacter();
+        $p1 = $this->makePet($character, 1);
+        $p2 = $this->makePet($character, 1);
+
+        $service = app(PetFusionService::class);
+        $result = $service->fusePets($character, [$p1->id, $p2->id]);
+
+        $this->assertFalse($result->isError());
+        $payload = $result->getPayload();
+        $this->assertFalse($payload['success']);
+        $this->assertSame('lose_one', $payload['outcome']);
+
+        $this->assertDatabaseHas('pets', ['id' => $p1->id]);
+        $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
+    }
+
+    public function test_fusion_service_failure_devolve_both_outcome_demotes_both_pets(): void
+    {
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 20, 0]));
+
+        $character = $this->createTestCharacter();
+        $p1 = $this->makePet($character, 1, ['level' => 30]);
+        $p2 = $this->makePet($character, 1, ['level' => 30]);
+
+        $service = app(PetFusionService::class);
+        $result = $service->fusePets($character, [$p1->id, $p2->id]);
+
+        $this->assertFalse($result->isError());
+        $payload = $result->getPayload();
+        $this->assertFalse($payload['success']);
+        $this->assertSame('devolve_both', $payload['outcome']);
+
+        $this->assertDatabaseHas('pets', ['id' => $p1->id]);
+        $this->assertDatabaseHas('pets', ['id' => $p2->id]);
+        $this->assertSame(0, $p1->fresh()->growth_stage);
+        $this->assertSame(0, $p2->fresh()->growth_stage);
+    }
+
+    public function test_fusion_service_failure_devolve_one_outcome_demotes_unlucky_pet_only(): void
+    {
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 40, 0]));
+
+        $character = $this->createTestCharacter();
+        $p1 = $this->makePet($character, 1, ['level' => 30]);
+        $p2 = $this->makePet($character, 1, ['level' => 30]);
+
+        $service = app(PetFusionService::class);
+        $result = $service->fusePets($character, [$p1->id, $p2->id]);
+
+        $this->assertFalse($result->isError());
+        $payload = $result->getPayload();
+        $this->assertFalse($payload['success']);
+        $this->assertSame('devolve_one', $payload['outcome']);
+
+        $this->assertDatabaseHas('pets', ['id' => $p1->id]);
+        $this->assertDatabaseHas('pets', ['id' => $p2->id]);
+        $this->assertSame(1, $p1->fresh()->growth_stage);
+        $this->assertSame(0, $p2->fresh()->growth_stage);
     }
 
     public function test_fusion_service_rejects_mismatched_tiers(): void
@@ -243,5 +335,112 @@ class PetServiceTest extends TestCase
         // T1 może zjeść nawet legendarny item poz. 99 - brak górnej granicy.
         $this->assertFalse($result->isError());
         $this->assertDatabaseMissing('item_instances', ['id' => $item->id]);
+    }
+
+    public function test_pet_archetype_bonus_percent_scales_with_fusion_count_and_tier(): void
+    {
+        $character = $this->createTestCharacter(level: 50);
+        $pet = $this->makePet($character, 3, ['level' => 50, 'fusion_count' => 2, 'archetype' => 'attacker']);
+
+        // bonus% = fusion_count(2) * 1% * tier(3) = 6%, bez tłumienia (poziom postaci == poziom peta).
+        $this->assertEqualsWithDelta(6.0, $pet->getArchetypeBonusPercentFor($character), 0.001);
+    }
+
+    public function test_pet_archetype_bonus_percent_is_zero_without_fusion_or_archetype(): void
+    {
+        $character = $this->createTestCharacter(level: 50);
+
+        $unfused = $this->makePet($character, 3, ['level' => 50, 'fusion_count' => 0, 'archetype' => 'attacker']);
+        $this->assertSame(0.0, $unfused->getArchetypeBonusPercentFor($character));
+
+        $noArchetype = $this->makePet($character, 3, ['level' => 50, 'fusion_count' => 2, 'archetype' => null]);
+        $this->assertSame(0.0, $noArchetype->getArchetypeBonusPercentFor($character));
+    }
+
+    public function test_pet_archetype_bonus_percent_is_dampened_by_character_level(): void
+    {
+        $character = $this->createTestCharacter(level: 25);
+        $pet = $this->makePet($character, 3, ['level' => 50, 'fusion_count' => 2, 'archetype' => 'attacker']);
+
+        // Undampened 6%, tłumienie mocy = 25/50 = 0.5 -> 3%.
+        $this->assertEqualsWithDelta(3.0, $pet->getArchetypeBonusPercentFor($character), 0.001);
+    }
+
+    public function test_pet_demote_growth_stage_lowers_level_below_current_threshold(): void
+    {
+        $character = $this->createTestCharacter();
+        $pet = $this->makePet($character, 1, ['level' => 30]); // 25-49 -> growth_stage 1
+
+        $this->assertSame(1, $pet->growth_stage);
+
+        $pet->demoteGrowthStage();
+
+        $this->assertSame(24, $pet->level);
+        $this->assertSame(0, $pet->growth_stage);
+        $this->assertSame(0, $pet->exp);
+    }
+
+    public function test_pet_demote_growth_stage_is_noop_at_stage_zero(): void
+    {
+        $character = $this->createTestCharacter();
+        $pet = $this->makePet($character, 1, ['level' => 10]); // growth_stage 0
+
+        $pet->demoteGrowthStage();
+
+        $this->assertSame(10, $pet->level);
+        $this->assertSame(0, $pet->growth_stage);
+    }
+
+    public function test_character_equipment_stats_apply_support_pet_passive(): void
+    {
+        $character = $this->createTestCharacter(level: 50);
+        $this->makePet($character, 3, [
+            'level' => 50, 'fusion_count' => 2, 'archetype' => 'support', 'is_equipped' => true,
+        ]);
+
+        $stats = $character->fresh()->getEquipmentStats();
+
+        // bonus% = 2 * 1% * 3 = 6%, dodawane wprost do dodge_chance i mana_cost_reduction_pct.
+        $this->assertEqualsWithDelta(6.0, $stats['dodge_chance'], 0.001);
+        $this->assertEqualsWithDelta(6.0, $stats['mana_cost_reduction_pct'], 0.001);
+    }
+
+    public function test_character_equipment_stats_ignore_unequipped_or_unfused_pet(): void
+    {
+        $character = $this->createTestCharacter(level: 50);
+        $this->makePet($character, 3, [
+            'level' => 50, 'fusion_count' => 2, 'archetype' => 'support', 'is_equipped' => false,
+        ]);
+
+        $stats = $character->fresh()->getEquipmentStats();
+
+        $this->assertSame(0, $stats['dodge_chance']);
+        $this->assertSame(0, $stats['mana_cost_reduction_pct']);
+    }
+
+    public function test_combat_skill_mana_cost_is_reduced_by_support_pet_passive(): void
+    {
+        $character = $this->createTestCharacter(level: 50);
+        $this->makePet($character, 3, [
+            'level' => 50, 'fusion_count' => 2, 'archetype' => 'support', 'is_equipped' => true,
+        ]);
+
+        $skill = \App\Infrastructure\Persistence\CombatSkill::create([
+            'name' => 'Testowa Umiejętność',
+            'type' => 'active',
+            'effect_type' => 'direct_dmg',
+            'base_mana_cost' => 100,
+            'scaling_mana_cost' => 0,
+        ]);
+
+        $characterSkill = \App\Infrastructure\Persistence\CharacterCombatSkill::create([
+            'character_id' => $character->id,
+            'combat_skill_id' => $skill->id,
+            'level' => 1,
+            'is_equipped' => true,
+        ]);
+
+        // Koszt bazowy 100, tłumiona pasywka -6% -> 94.
+        $this->assertSame(94, $characterSkill->fresh()->getManaCost());
     }
 }

@@ -249,7 +249,7 @@
                                             <button class="absolute -top-1 -right-1 w-5 h-5 bg-red-600 text-white rounded-full text-[10px] flex items-center justify-center shadow hover:bg-red-500">
                                                 <i class="fa-solid fa-xmark"></i>
                                             </button>
-                                            <i class="fa-solid fa-{{ $selectedPet->icon ?: 'paw' }} text-2xl text-purple-300 mb-1 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"></i>
+                                            <img src="{{ route('assets.items', ['filename' => $selectedPet->icon]) }}" alt="{{ $selectedPet->name }}" class="w-10 h-10 object-contain mb-1 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">
                                             <span class="text-[10px] font-bold text-amber-200 truncate w-full text-center">{{ $selectedPet->name }}</span>
                                             <span class="text-[9px] uppercase font-extrabold text-purple-300">{{ $selectedPet->tierName() }} · {{ $selectedPet->growthStageLabel() }}</span>
                                         </div>
@@ -269,6 +269,8 @@
                                 $fusionB = $pets->firstWhere('id', $selectedFusionPetIds[1]);
                                 $fusionChance = ($fusionA && $fusionB) ? \App\Domain\Pets\PetFusionRules::successChance($fusionA->tier, $fusionA->growth_stage, $fusionB->growth_stage) : 0;
                                 $fusionTargetTier = $fusionA ? \App\Domain\Pets\PetFusionRules::resultTier($fusionA->tier) : null;
+                                $fusionCost = $fusionA ? (int) config("pets.fusion_cost_gold.{$fusionA->tier}", 0) : 0;
+                                $canAffordFusion = $character->gold >= $fusionCost;
                             @endphp
 
                             <div class="bg-stone-950/80 p-3 rounded-xl border border-purple-500/30 text-center space-y-2">
@@ -278,9 +280,19 @@
                                 <div class="text-[11px] text-stone-300">
                                     Szansa powodzenia: <span class="text-emerald-400 font-extrabold">{{ number_format($fusionChance, 2) }}%</span>
                                 </div>
+                                <div class="text-[11px] text-stone-300">
+                                    Koszt próby: <span class="{{ $canAffordFusion ? 'text-yellow-300' : 'text-red-400' }} font-extrabold">{{ number_format($fusionCost) }} złota</span>
+                                </div>
+                                @if(!$canAffordFusion)
+                                    <div class="text-[10px] text-red-400 font-semibold">Nie masz wystarczająco złota na tę próbę fuzji.</div>
+                                @endif
+                                <div class="text-[10px] text-stone-500 leading-relaxed">
+                                    W razie porażki pety mogą przetrwać (bez utraty, z utratą ewolucji lub cofnięciem rozwoju) albo ulec rozproszeniu — wynik losowany, nie wybierany.
+                                </div>
 
                                 <button wire:click="fusePets"
-                                    class="w-full bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-600 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400/50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
+                                    @disabled(!$canAffordFusion)
+                                    class="w-full bg-gradient-to-r from-purple-700 via-indigo-600 to-purple-800 hover:from-purple-600 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl transition-all duration-200 transform hover:scale-[1.02] shadow-[0_0_20px_rgba(168,85,247,0.5)] border border-purple-400/50 flex items-center justify-center gap-2 text-xs uppercase tracking-wider"
                                     style="font-family: 'Cinzel', serif;"
                                     wire:loading.attr="disabled">
                                     <span wire:loading.remove wire:target="fusePets" class="flex items-center gap-2">
@@ -330,6 +342,7 @@
                                     $effectiveStats = $pet->getEffectiveStatsFor($character);
                                     $effectiveCp = $pet->getCombatPowerFor($character);
                                     $isDampened = $character->level < $pet->level;
+                                    $archetypeBonus = $pet->getArchetypeBonusPercentFor($character);
                                 @endphp
 
                                 <div class="relative rounded-2xl p-4 border-2 {{ $pet->is_equipped ? 'border-amber-400 bg-amber-950/30 shadow-[0_0_25px_rgba(245,158,11,0.35)]' : ($isFusionSelected ? 'border-purple-400 bg-purple-950/30 shadow-[0_0_25px_rgba(168,85,247,0.4)]' : $c['border'] . ' bg-gradient-to-r ' . $c['from'] . ' via-stone-900/70 to-stone-950/90 ' . $c['glow']) }} transition-all duration-200">
@@ -337,7 +350,7 @@
 
                                         <div class="flex items-start space-x-4 flex-1">
                                             <div class="relative w-16 h-16 rounded-xl border-2 {{ $pet->is_equipped ? 'border-amber-400 bg-amber-900/40 ring-4 ring-amber-400/30' : 'border-stone-700 bg-stone-950' }} flex items-center justify-center text-3xl shadow-inner shrink-0 mt-0.5">
-                                                <i class="fa-solid fa-{{ $pet->icon ?: 'paw' }} {{ $c['text'] }}"></i>
+                                                <img src="{{ route('assets.items', ['filename' => $pet->icon]) }}" alt="{{ $pet->name }}" class="w-11 h-11 object-contain">
                                                 @if($pet->is_equipped)
                                                     <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-500 rounded-full border-2 border-stone-900 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="Aktywny Towarzysz"></span>
                                                 @endif
@@ -359,6 +372,22 @@
                                                     @if($pet->fusion_count > 0)
                                                         <span class="bg-stone-900 text-sky-300 border border-sky-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">
                                                             +{{ $pet->fusion_count }}
+                                                        </span>
+                                                    @endif
+                                                    @if($pet->archetype)
+                                                        @php
+                                                            $archetypeColors = [
+                                                                'attacker' => 'bg-red-950 text-red-300 border-red-500/40',
+                                                                'defense' => 'bg-blue-950 text-blue-300 border-blue-500/40',
+                                                                'support' => 'bg-emerald-950 text-emerald-300 border-emerald-500/40',
+                                                            ];
+                                                        @endphp
+                                                        <span class="{{ $archetypeColors[$pet->archetype] ?? 'bg-stone-900 text-stone-300 border-stone-600' }} border text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                                              title="{{ \App\Domain\Pets\PetArchetype::passiveDescription($pet->archetype) }}">
+                                                            {{ \App\Domain\Pets\PetArchetype::label($pet->archetype) }}
+                                                            @if($archetypeBonus > 0)
+                                                                (+{{ number_format($archetypeBonus, 1) }}%)
+                                                            @endif
                                                         </span>
                                                     @endif
                                                 </div>
@@ -506,7 +535,7 @@
 
                 <div class="flex items-center space-x-4 pb-4 border-b border-amber-500/20 mb-4 shrink-0">
                     <div class="w-14 h-14 rounded-xl border-2 border-amber-400 bg-stone-950 flex items-center justify-center text-2xl">
-                        <i class="fa-solid fa-{{ $feedingPet->icon ?: 'paw' }} text-yellow-400"></i>
+                        <img src="{{ route('assets.items', ['filename' => $feedingPet->icon]) }}" alt="{{ $feedingPet->name }}" class="w-10 h-10 object-contain">
                     </div>
                     <div>
                         <h3 class="text-lg font-bold text-amber-200" style="font-family: 'Cinzel', serif;">
@@ -665,10 +694,35 @@
 
                     <div>
                         <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Fuzja</h4>
-                        <p>2 pety tego samego tieru → 1 pet o tier wyższy. Bazowa szansa sukcesu rośnie z dojrzałością obu petów (+{{ config('pets.fusion_growth_stage_bonus_percent') }}% za każdą "ewolucję" osiągniętą przez którykolwiek z nich, max +20% gdy oba są "Formą Dorosłą").</p>
+                        <p>2 pety tego samego tieru → 1 pet o tier wyższy. Bazowa szansa sukcesu rośnie z dojrzałością obu petów (+{{ config('pets.fusion_growth_stage_bonus_percent') }}% za każdą "ewolucję" osiągniętą przez którykolwiek z nich, max +20% gdy oba są "Formą Dorosłą"). Każda próba kosztuje złoto zależne od tieru wejściowego.</p>
                         <ul class="mt-2 space-y-1">
                             @foreach(config('pets.fusion_base_chance') as $tier => $chance)
-                                <li>{{ $tiers[$tier]['name'] }} + {{ $tiers[$tier]['name'] }} → {{ $tiers[$tier + 1]['name'] }}: bazowo <strong class="text-emerald-400">{{ $chance }}%</strong></li>
+                                <li>{{ $tiers[$tier]['name'] }} + {{ $tiers[$tier]['name'] }} → {{ $tiers[$tier + 1]['name'] }}: bazowo <strong class="text-emerald-400">{{ $chance }}%</strong>, koszt <strong class="text-yellow-300">{{ number_format((int) config("pets.fusion_cost_gold.{$tier}", 0)) }} złota</strong></li>
+                            @endforeach
+                        </ul>
+                        <p class="mt-3 mb-1">Wynik nieudanej fuzji jest zawsze losowany na podstawie prawdopodobieństwa — nigdy nie wybierasz go sam:</p>
+                        <ul class="space-y-1">
+                            @php
+                                $failureLabels = [
+                                    'lose_both' => 'Utrata dwóch petów',
+                                    'lose_one' => 'Utrata jednego peta',
+                                    'devolve_both' => 'Cofnięcie rozwoju dwóch petów',
+                                    'devolve_one' => 'Cofnięcie rozwoju jednego peta',
+                                    'no_loss' => 'Brak utraty petów',
+                                ];
+                            @endphp
+                            @foreach(config('pets.fusion_failure_outcomes', []) as $outcome => $chance)
+                                <li>{{ $failureLabels[$outcome] ?? $outcome }}: <strong class="text-red-400">{{ $chance }}%</strong></li>
+                            @endforeach
+                        </ul>
+                    </div>
+
+                    <div>
+                        <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Pasywka Rodzaju</h4>
+                        <p class="mb-2">Każdy pet powstały z fuzji (fusion_count &gt; 0) i ustawiony jako aktywny towarzysz daje pasywny bonus bojowy zależny od jego Rodzaju, tieru i licznika fuzji: <strong class="text-amber-300">bonus% = fusion_count × {{ config('pets.fusion_count_archetype_bonus_percent', 1) }}% × tier</strong> (tłumiony poziomem tak samo jak reszta staty peta).</p>
+                        <ul class="space-y-1">
+                            @foreach(\App\Domain\Pets\PetArchetype::all() as $archetype)
+                                <li><strong class="text-amber-200">{{ \App\Domain\Pets\PetArchetype::label($archetype) }}</strong>: {{ \App\Domain\Pets\PetArchetype::passiveDescription($archetype) }}</li>
                             @endforeach
                         </ul>
                     </div>
@@ -698,40 +752,83 @@
             $fr = $fusionResultModal;
             $frSuccess = $fr['success'] ?? false;
             $frPet = $fr['pet'] ?? null;
+            $frOutcome = $fr['outcome'] ?? ($frSuccess ? 'success' : 'lose_both');
+            $frMeta = match ($frOutcome) {
+                'success' => [
+                    'title' => 'Fuzja udana!', 'icon' => 'fa-check',
+                    'border' => 'border-emerald-500', 'iconBorder' => 'border-emerald-400', 'iconBg' => 'bg-emerald-950/40',
+                    'iconText' => 'text-emerald-400', 'titleText' => 'text-emerald-300', 'btn' => 'bg-emerald-700 hover:bg-emerald-600',
+                ],
+                'no_loss' => [
+                    'title' => 'Fuzja nieudana', 'icon' => 'fa-shield-heart',
+                    'border' => 'border-sky-500', 'iconBorder' => 'border-sky-400', 'iconBg' => 'bg-sky-950/40',
+                    'iconText' => 'text-sky-400', 'titleText' => 'text-sky-300', 'btn' => 'bg-sky-700 hover:bg-sky-600',
+                ],
+                'devolve_one' => [
+                    'title' => 'Fuzja nieudana', 'icon' => 'fa-arrow-down',
+                    'border' => 'border-yellow-500', 'iconBorder' => 'border-yellow-400', 'iconBg' => 'bg-yellow-950/40',
+                    'iconText' => 'text-yellow-400', 'titleText' => 'text-yellow-300', 'btn' => 'bg-yellow-700 hover:bg-yellow-600',
+                ],
+                'devolve_both' => [
+                    'title' => 'Fuzja nieudana', 'icon' => 'fa-arrows-down-to-line',
+                    'border' => 'border-orange-500', 'iconBorder' => 'border-orange-400', 'iconBg' => 'bg-orange-950/40',
+                    'iconText' => 'text-orange-400', 'titleText' => 'text-orange-300', 'btn' => 'bg-orange-700 hover:bg-orange-600',
+                ],
+                'lose_one' => [
+                    'title' => 'Fuzja nieudana', 'icon' => 'fa-skull',
+                    'border' => 'border-red-500', 'iconBorder' => 'border-red-400', 'iconBg' => 'bg-red-950/40',
+                    'iconText' => 'text-red-400', 'titleText' => 'text-red-300', 'btn' => 'bg-red-800 hover:bg-red-700',
+                ],
+                default => [
+                    'title' => 'Fuzja nieudana', 'icon' => 'fa-skull-crossbones',
+                    'border' => 'border-red-500', 'iconBorder' => 'border-red-400', 'iconBg' => 'bg-red-950/40',
+                    'iconText' => 'text-red-400', 'titleText' => 'text-red-300', 'btn' => 'bg-red-800 hover:bg-red-700',
+                ],
+            };
         @endphp
         <div class="fixed inset-0 z-[100] flex items-center justify-center bg-stone-950/85 backdrop-blur-md p-4 animate-fade-in">
-            <div class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 {{ $frSuccess ? 'border-emerald-500' : 'border-red-500' }} rounded-2xl max-w-md w-full p-6 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative text-center">
+            <div class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 {{ $frMeta['border'] }} rounded-2xl max-w-md w-full p-6 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative text-center">
                 <button wire:click="closeFusionResultModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
-                <div class="w-20 h-20 mx-auto rounded-full border-4 {{ $frSuccess ? 'border-emerald-400 bg-emerald-950/40' : 'border-red-400 bg-red-950/40' }} flex items-center justify-center mb-4 shadow-lg">
-                    <i class="fa-solid {{ $frSuccess ? 'fa-check text-emerald-400' : 'fa-xmark text-red-400' }} text-4xl"></i>
+                <div class="w-20 h-20 mx-auto rounded-full border-4 {{ $frMeta['iconBorder'] }} {{ $frMeta['iconBg'] }} flex items-center justify-center mb-4 shadow-lg">
+                    <i class="fa-solid {{ $frMeta['icon'] }} {{ $frMeta['iconText'] }} text-4xl"></i>
                 </div>
 
-                <h3 class="text-2xl font-bold mb-2 {{ $frSuccess ? 'text-emerald-300' : 'text-red-300' }}" style="font-family: 'Cinzel', serif;">
-                    {{ $frSuccess ? 'Fuzja udana!' : 'Fuzja nieudana' }}
+                <h3 class="text-2xl font-bold mb-2 {{ $frMeta['titleText'] }}" style="font-family: 'Cinzel', serif;">
+                    {{ $frMeta['title'] }}
                 </h3>
 
                 <p class="text-sm text-stone-300 mb-4">{{ $fr['message'] ?? '' }}</p>
 
-                @if(isset($fr['chance']))
-                    <p class="text-xs text-stone-500 mb-4">Szansa powodzenia wynosiła: <strong class="text-amber-300">{{ number_format($fr['chance'], 2) }}%</strong></p>
-                @endif
+                <div class="flex items-center justify-center gap-4 text-xs text-stone-500 mb-4">
+                    @if(isset($fr['chance']))
+                        <span>Szansa powodzenia: <strong class="text-amber-300">{{ number_format($fr['chance'], 2) }}%</strong></span>
+                    @endif
+                    @if(isset($fr['cost']))
+                        <span>Koszt: <strong class="text-yellow-300">{{ number_format($fr['cost']) }} złota</strong></span>
+                    @endif
+                </div>
 
                 @if($frSuccess && $frPet)
                     <div class="flex items-center gap-3 bg-stone-950/80 border border-emerald-500/30 rounded-xl p-3 text-left">
                         <div class="w-12 h-12 rounded-lg border-2 border-emerald-400 bg-stone-900 flex items-center justify-center text-xl shrink-0">
-                            <i class="fa-solid fa-{{ $frPet->icon ?: 'paw' }} text-emerald-300"></i>
+                            <img src="{{ route('assets.items', ['filename' => $frPet->icon]) }}" alt="{{ $frPet->name }}" class="w-9 h-9 object-contain">
                         </div>
                         <div>
                             <div class="font-bold text-amber-100">{{ $frPet->name }}</div>
-                            <div class="text-xs text-stone-400">{{ $frPet->tierName() }} · Poziom {{ $frPet->level }}</div>
+                            <div class="text-xs text-stone-400">
+                                {{ $frPet->tierName() }} · Poziom {{ $frPet->level }}
+                                @if($frPet->archetype)
+                                    · {{ \App\Domain\Pets\PetArchetype::label($frPet->archetype) }}
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif
 
-                <button wire:click="closeFusionResultModal" class="mt-5 w-full {{ $frSuccess ? 'bg-emerald-700 hover:bg-emerald-600' : 'bg-red-800 hover:bg-red-700' }} text-white font-bold py-2.5 rounded-xl transition-colors">
+                <button wire:click="closeFusionResultModal" class="mt-5 w-full {{ $frMeta['btn'] }} text-white font-bold py-2.5 rounded-xl transition-colors">
                     Zamknij
                 </button>
             </div>
@@ -752,7 +849,7 @@
                 @if($sellPet)
                     <div class="flex items-center space-x-3 mb-6 bg-gray-800 p-3 rounded border border-gray-700">
                         <div class="text-3xl flex items-center justify-center w-10 h-10">
-                            <i class="fa-solid fa-{{ $sellPet->icon ?: 'paw' }} text-amber-400"></i>
+                            <img src="{{ route('assets.items', ['filename' => $sellPet->icon]) }}" alt="{{ $sellPet->name }}" class="w-full h-full object-contain">
                         </div>
                         <div>
                             <div class="font-bold text-amber-200">{{ $sellPet->name }}</div>

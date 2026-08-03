@@ -36,6 +36,19 @@ class CharacterCombatSkill extends Model
 
     public function getManaCost(): int
     {
-        return $this->skill ? $this->skill->getManaCost($this->level) : 0;
+        $baseCost = $this->skill ? $this->skill->getManaCost($this->level) : 0;
+        if ($baseCost <= 0 || !$this->character) {
+            return $baseCost;
+        }
+
+        // Pasywka Rodzaju Wspomagającego peta - obniża koszt many (patrz
+        // Character::getEquipmentStats(), docs/modules/pets.md). Ograniczone do 90%,
+        // czysto zabezpieczająco - realny bonus (fusion_count*tier) nigdy się tam nie zbliża.
+        $reductionPct = min(90.0, (float) ($this->character->getEquipmentStats()['mana_cost_reduction_pct'] ?? 0));
+        if ($reductionPct <= 0) {
+            return $baseCost;
+        }
+
+        return max(0, (int) round($baseCost * (1 - $reductionPct / 100)));
     }
 }

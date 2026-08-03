@@ -37,9 +37,21 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="block text-gray-400 text-sm font-bold mb-2">Ikona (nazwa ikony FontAwesome, np. "dragon", "paw" - bez emoji)</label>
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Ikona (nazwa pliku w public/assets/items/, np. "pet_wolf" - bez rozszerzenia, bez emoji)</label>
                         <input type="text" wire:model="icon" class="shadow appearance-none border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white leading-tight focus:outline-none focus:border-amber-500">
                         @error('icon') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-gray-400 text-sm font-bold mb-2">Rodzaj (Pasywka)</label>
+                        <select wire:model="archetype" class="shadow border border-gray-600 rounded w-full py-2 px-3 bg-gray-700 text-white focus:outline-none focus:border-amber-500">
+                            <option value="">— Brak —</option>
+                            @foreach($archetypeOptions as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                        @error('archetype') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        <p class="text-xs text-gray-500 mt-1">Determinuje pasywkę bojową, gdy pet powstały z tego gatunku ma fusion_count &gt; 0 i jest aktywnym towarzyszem.</p>
                     </div>
 
                     <h3 class="text-lg font-bold mb-2 text-gray-300">Bazowe Atrybuty</h3>
@@ -67,7 +79,7 @@
                             Zapisz
                         </button>
                         @if($editingId)
-                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'tier', 'icon', 'str', 'agi', 'int', 'vit'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
+                            <button type="button" wire:click="$set('editingId', null); $reset(['name', 'tier', 'icon', 'archetype', 'str', 'agi', 'int', 'vit'])" class="bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded transition">
                                 Anuluj
                             </button>
                         @endif
@@ -83,6 +95,7 @@
                             <tr class="bg-gray-700 border-b border-gray-600">
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Ikona & Nazwa</th>
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Tier</th>
+                                <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Rodzaj</th>
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm">Statystyki</th>
                                 <th class="py-3 px-4 text-gray-300 font-bold uppercase text-sm text-right">Akcje</th>
                             </tr>
@@ -92,7 +105,7 @@
                                 <tr class="border-b border-gray-700 hover:bg-gray-750 transition">
                                     <td class="py-3 px-4">
                                         <div class="flex items-center gap-2">
-                                            <i class="fa-solid fa-{{ $pet->icon ?: 'paw' }} text-xl text-amber-400 w-6 text-center"></i>
+                                            <img src="{{ route('assets.items', ['filename' => $pet->icon]) }}" alt="{{ $pet->name }}" class="w-6 h-6 object-contain">
                                             <span class="font-bold text-white">{{ $pet->name }}</span>
                                         </div>
                                     </td>
@@ -110,8 +123,21 @@
                                             {{ $tMeta ? "T{$pet->tier} - {$tMeta['name']}" : 'Brak tieru' }}
                                         </span>
                                     </td>
+                                    <td class="py-3 px-4">
+                                        @if($pet->archetype)
+                                            <span class="px-2 py-1 rounded text-xs font-bold
+                                                @if($pet->archetype === 'attacker') bg-red-600 text-white
+                                                @elseif($pet->archetype === 'defense') bg-blue-600 text-white
+                                                @else bg-emerald-600 text-white
+                                                @endif">
+                                                {{ \App\Domain\Pets\PetArchetype::label($pet->archetype) }}
+                                            </span>
+                                        @else
+                                            <span class="text-gray-500 text-xs">—</span>
+                                        @endif
+                                    </td>
                                     <td class="py-3 px-4 text-sm text-gray-400">
-                                        STR: {{ $pet->base_stats['str'] ?? 0 }} | 
+                                        STR: {{ $pet->base_stats['str'] ?? 0 }} |
                                         AGI: {{ $pet->base_stats['agi'] ?? 0 }} | 
                                         INT: {{ $pet->base_stats['int'] ?? 0 }} | 
                                         VIT: {{ $pet->base_stats['vit'] ?? 0 }}

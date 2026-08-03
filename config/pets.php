@@ -106,4 +106,32 @@ return [
         'collar' => 'pet_collar',
         'charm' => 'pet_charm',
     ],
+
+    // Koszt (złoto) samej PRÓBY fuzji - pobierany zawsze, niezależnie od
+    // wyniku (sukces/porażka). Klucz = tier obu łączonych petów (T6 brak,
+    // bo nie można fuzjonować najwyższego tieru).
+    'fusion_cost_gold' => [
+        1 => 100,
+        2 => 250,
+        3 => 500,
+        4 => 1000,
+        5 => 2000,
+    ],
+
+    // Warianty tego, co się dzieje z petami PRZY NIEUDANEJ fuzji - dokładnie
+    // jeden z nich jest losowany wg wagi (% sumuje się do 100). Koszt fuzji
+    // (wyżej) jest pobierany zawsze, niezależnie od wylosowanego wariantu.
+    // "devolve" = Pet::demoteGrowthStage() (cofnięcie o 1 etap dojrzałości).
+    'fusion_failure_outcomes' => [
+        'lose_both' => 2,
+        'lose_one' => 10,
+        'devolve_both' => 20,
+        'devolve_one' => 25,
+        'no_loss' => 43,
+    ],
+
+    // Pasywka Rodzaju (Atakujący/Obrony/Wspomagający) aktywnego towarzysza:
+    // bonus % = fusion_count * ta_wartość * tier (tłumione tak samo jak
+    // reszta wkładu peta, patrz Pet::getArchetypeBonusPercentFor()).
+    'fusion_count_archetype_bonus_percent' => 1,
 ];

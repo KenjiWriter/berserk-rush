@@ -703,6 +703,11 @@ class Character extends Model
                 'magic_burst_chance' => 0,
                 'magic_burst_min' => 0,
                 'magic_burst_max' => 0,
+                // Pasywka Rodzaju Wspomagającego peta - obniża koszt many skilli.
+                // NIE jest konsumowana automatycznie przez silniki walki (mana cost nigdy
+                // nie płynął przez equipment_stats) - odczytywana jawnie w
+                // CharacterCombatSkill::getManaCost() oraz PvP/GvG (patrz docs/modules/pets.md).
+                'mana_cost_reduction_pct' => 0,
             ];
 
             // 'attack_power'/'magic_attack' (2026-07-29): afiksy z Czarodzieja/Wiedźmy
@@ -861,6 +866,36 @@ class Character extends Model
                         $stats[$k] = $v;
                     } else if (isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
                         $stats[$k] += $v;
+                    }
+                }
+            }
+
+            // Pasywka Rodzaju aktywnego towarzysza (Atakujący/Obrony/Wspomagający) -
+            // % bonus = fusion_count * tier (tłumiony poziomem, patrz
+            // Pet::getArchetypeBonusPercentFor()). Zastosowany na końcu, MNOŻNIKOWO
+            // do już zsumowanego wkładu ekwipunku+buffów+tytułu+osiągnięć - to "więcej %
+            // do całości", nie kolejny płaski dodatek. Pet bez fuzji (fusion_count=0,
+            // zawsze prawda dla T1) nie daje żadnej pasywki.
+            $activePet = $this->activePet;
+            if ($activePet && $activePet->archetype) {
+                $petBonusPct = $activePet->getArchetypeBonusPercentFor($this);
+                if ($petBonusPct > 0) {
+                    $multiplier = 1 + $petBonusPct / 100;
+                    switch ($activePet->archetype) {
+                        case 'attacker':
+                            $stats['attack_min'] = (int) round($stats['attack_min'] * $multiplier);
+                            $stats['attack_max'] = (int) round($stats['attack_max'] * $multiplier);
+                            $stats['magic_attack_min'] = (int) round($stats['magic_attack_min'] * $multiplier);
+                            $stats['magic_attack_max'] = (int) round($stats['magic_attack_max'] * $multiplier);
+                            break;
+                        case 'defense':
+                            $stats['defense'] = (int) round($stats['defense'] * $multiplier);
+                            $stats['hp_bonus'] = (int) round($stats['hp_bonus'] * $multiplier);
+                            break;
+                        case 'support':
+                            $stats['dodge_chance'] += $petBonusPct;
+                            $stats['mana_cost_reduction_pct'] += $petBonusPct;
+                            break;
                     }
                 }
             }

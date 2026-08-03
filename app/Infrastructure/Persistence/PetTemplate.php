@@ -13,6 +13,7 @@ class PetTemplate extends Model
         'name',
         'rarity',
         'tier',
+        'archetype',
         'base_stats',
         'icon',
     ];

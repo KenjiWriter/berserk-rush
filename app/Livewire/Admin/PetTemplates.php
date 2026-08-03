@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin;
 
 use Livewire\Component;
+use App\Domain\Pets\PetArchetype;
 use App\Domain\Pets\PetTier;
 use App\Infrastructure\Persistence\PetTemplate;
 use Livewire\Attributes\Layout;
@@ -11,7 +12,7 @@ use Livewire\Attributes\Layout;
 class PetTemplates extends Component
 {
     public $templates;
-    public $name, $tier = 1, $icon;
+    public $name, $tier = 1, $icon, $archetype = null;
     public $str = 0, $agi = 0, $int = 0, $vit = 0;
     public $editingId = null;
 
@@ -19,6 +20,7 @@ class PetTemplates extends Component
         'name' => 'required|string|max:255',
         'tier' => 'required|integer|between:1,6',
         'icon' => 'nullable|string|max:255',
+        'archetype' => 'nullable|in:attacker,defense,support',
         'str' => 'required|integer|min:0',
         'agi' => 'required|integer|min:0',
         'int' => 'required|integer|min:0',
@@ -44,6 +46,15 @@ class PetTemplates extends Component
         return $options;
     }
 
+    public function archetypeOptions(): array
+    {
+        $options = [];
+        foreach (PetArchetype::all() as $archetype) {
+            $options[$archetype] = PetArchetype::label($archetype);
+        }
+        return $options;
+    }
+
     public function save()
     {
         $this->validate();
@@ -51,6 +62,7 @@ class PetTemplates extends Component
         $data = [
             'name' => $this->name,
             'tier' => (int) $this->tier,
+            'archetype' => $this->archetype ?: null,
             'base_stats' => [
                 'str' => $this->str,
                 'agi' => $this->agi,
@@ -68,7 +80,7 @@ class PetTemplates extends Component
             session()->flash('message', 'Gatunek chowańca dodany!');
         }
 
-        $this->reset(['name', 'tier', 'icon', 'str', 'agi', 'int', 'vit', 'editingId']);
+        $this->reset(['name', 'tier', 'icon', 'archetype', 'str', 'agi', 'int', 'vit', 'editingId']);
         $this->tier = 1;
         $this->loadData();
     }
@@ -80,6 +92,7 @@ class PetTemplates extends Component
         $this->name = $template->name;
         $this->tier = $template->tier ?? 1;
         $this->icon = $template->icon;
+        $this->archetype = $template->archetype;
 
         $stats = $template->base_stats ?? [];
         $this->str = $stats['str'] ?? 0;
@@ -99,6 +112,7 @@ class PetTemplates extends Component
     {
         return view('livewire.admin.pet-templates', [
             'tierOptions' => $this->tierOptions(),
+            'archetypeOptions' => $this->archetypeOptions(),
         ]);
     }
 }

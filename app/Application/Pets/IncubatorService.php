@@ -123,12 +123,13 @@ class IncubatorService
 
             $resultTier = $this->rollHatchTier($eggTier);
             $statProfile = $this->statCalculator->rollStatProfile();
-            [$name, $icon] = $this->speciesPicker->pick($resultTier);
+            [$name, $icon, $archetype] = $this->speciesPicker->pick($resultTier);
 
             $pet = new Pet([
                 'character_id' => $character->id,
                 'name' => $name,
                 'tier' => $resultTier,
+                'archetype' => $archetype,
                 'stat_profile' => $statProfile,
                 'level' => 1,
                 'exp' => 0,
