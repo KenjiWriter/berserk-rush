@@ -273,7 +273,12 @@
                                     <img src="{{ $myAvatarUrl }}" class="w-full h-full object-cover" alt="avatar" onerror="this.src='{{ asset('img/avatars/plate.png') }}'">
                                 </div>
                                 <div>
-                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Twoja pozycja</p>
+                                    <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                                        Twoja pozycja
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-800 border border-slate-700 text-amber-400">
+                                            Poz. {{ $character->level }}
+                                        </span>
+                                    </p>
                                     <p class="text-sm font-black {{ $playerRank['rank'] === 1 ? 'text-yellow-300' : 'text-amber-100' }}">
                                         @if($playerRank['rank'] !== null)
                                             #{{ $playerRank['rank'] }}
@@ -328,17 +333,24 @@
                                     @endif
                                 </div>
 
-                                {{-- Avatar + Imię --}}
+                                {{-- Avatar + Imię + Poziom --}}
                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                     <div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                         <img src="{{ $entryAvatarUrl }}" class="w-full h-full object-cover" alt="avatar" onerror="this.src='{{ asset('img/avatars/plate.png') }}'">
                                     </div>
-                                    <span class="text-sm font-bold truncate {{ $isMe ? 'text-amber-300' : 'text-slate-200' }}">
-                                        {{ $entry->character?->name ?? 'Nieznany' }}
-                                        @if($isMe)
-                                            <span class="ml-1 text-[10px] text-amber-500 font-black">(Ty)</span>
+                                    <div class="flex items-center gap-1.5 min-w-0 truncate">
+                                        <span class="text-sm font-bold truncate {{ $isMe ? 'text-amber-300' : 'text-slate-200' }}">
+                                            {{ $entry->character?->name ?? 'Nieznany' }}
+                                        </span>
+                                        @if($entry->character?->level)
+                                            <span class="px-1.5 py-0.5 rounded text-[10px] font-black bg-slate-800 border border-slate-700 text-amber-400/90 whitespace-nowrap flex-shrink-0">
+                                                Poz. {{ $entry->character->level }}
+                                            </span>
                                         @endif
-                                    </span>
+                                        @if($isMe)
+                                            <span class="text-[10px] text-amber-500 font-black whitespace-nowrap flex-shrink-0">(Ty)</span>
+                                        @endif
+                                    </div>
                                 </div>
 
                                 {{-- Wynik + Nagrody (Gemy + Tytuł) --}}
