@@ -106,18 +106,22 @@
 
                                                     <!-- Infobox Sklepu (teleportowany do <body>) -->
                                                     <template x-teleport="body">
-                                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                                             :style="tooltipStyle"
-                                                             @mouseenter="clearTimeout(timeout)"
-                                                             @mouseleave="closeTooltip($event)"
-                                                             class="fixed z-[10000] w-auto pointer-events-auto">
-                                                            <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                                                <x-slot:actions>
-                                                                    <button wire:click.stop="buyItem('{{ $item->id }}')" @click="showInfo = false" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2 cursor-pointer">
-                                                                        <span>Kup za <i class="fa-solid fa-coins text-yellow-400 mx-1"></i> {{ $shopPrices[$item->id] ?? 0 }}</span>
-                                                                    </button>
-                                                                </x-slot:actions>
-                                                            </x-item-tooltip>
+                                                        <div x-show="showInfo" x-transition.opacity
+                                                             class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs pointer-events-auto"
+                                                             @click.self="showInfo = false"
+                                                             @keydown.escape.window="showInfo = false">
+                                                            <div x-ref="tooltipContainer" data-tooltip-container
+                                                                 :style="tooltipStyle"
+                                                                 class="pointer-events-auto"
+                                                                 @click.stop>
+                                                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                                    <x-slot:actions>
+                                                                        <button wire:click.stop="buyItem('{{ $item->id }}')" @click="showInfo = false" wire:loading.attr="disabled" class="w-full bg-green-700 hover:bg-green-600 text-white font-bold py-2 rounded shadow transition flex items-center justify-center gap-2 cursor-pointer">
+                                                                            <span>Kup za <i class="fa-solid fa-coins text-yellow-400 mx-1"></i> {{ $shopPrices[$item->id] ?? 0 }}</span>
+                                                                        </button>
+                                                                    </x-slot:actions>
+                                                                </x-item-tooltip>
+                                                            </div>
                                                         </div>
                                                     </template>
                                                 </div>
@@ -244,62 +248,66 @@
 
                                         <!-- Infobox Ekwipunku (teleportowany do <body>) -->
                                         <template x-teleport="body">
-                                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                                 :style="tooltipStyle"
-                                                 @mouseenter="clearTimeout(timeout)"
-                                                 @mouseleave="closeTooltip($event)"
-                                                 class="fixed z-[10000] w-auto pointer-events-auto">
-                                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
-                                                    <x-slot:actions>
-                                                        <div class="flex flex-col gap-3 w-full">
-                                                            <div class="flex justify-between border-b border-slate-700 pb-2">
-                                                                <span class="text-gray-400 text-sm">Wartość (szt.):</span>
-                                                                <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $sellPrices[$item->id] ?? 0 }}</span>
-                                                            </div>
+                                            <div x-show="showInfo" x-transition.opacity
+                                                 class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs pointer-events-auto"
+                                                 @click.self="showInfo = false"
+                                                 @keydown.escape.window="showInfo = false">
+                                                <div x-ref="tooltipContainer" data-tooltip-container
+                                                     :style="tooltipStyle"
+                                                     class="pointer-events-auto"
+                                                     @click.stop>
+                                                    <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null">
+                                                        <x-slot:actions>
+                                                            <div class="flex flex-col gap-3 w-full">
+                                                                <div class="flex justify-between border-b border-slate-700 pb-2">
+                                                                    <span class="text-gray-400 text-sm">Wartość (szt.):</span>
+                                                                    <span class="text-yellow-400 font-bold"><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> {{ $sellPrices[$item->id] ?? 0 }}</span>
+                                                                </div>
 
-                                                            <div class="flex flex-col gap-2">
-                                                                @if($item->location !== 'equipped')
-                                                                    @if(($item->stack_size ?? 1) > 1)
-                                                                        <div class="flex flex-col gap-1.5 w-full">
-                                                                            <span class="text-xs text-gray-400 font-semibold">Sprzedaj ilość (posiadasz: <span class="text-amber-400 font-bold">{{ $item->stack_size }}</span>):</span>
-                                                                            <div class="grid grid-cols-5 gap-1">
-                                                                                <button wire:click.stop="sellItem('{{ $item->id }}', 1)" @click="showInfo = false"
-                                                                                    class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer"
-                                                                                    title="Sprzedaj 1 szt. za {{ $sellPrices[$item->id] ?? 0 }} złota">
-                                                                                    x1
-                                                                                </button>
-                                                                                <button wire:click.stop="sellItem('{{ $item->id }}', 5)" @click="showInfo = false"
-                                                                                    class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 5 ? 'opacity-50' : '' }}"
-                                                                                    title="Sprzedaj 5 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(5, $item->stack_size) }} złota">
-                                                                                    x5
-                                                                                </button>
-                                                                                <button wire:click.stop="sellItem('{{ $item->id }}', 10)" @click="showInfo = false"
-                                                                                    class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 10 ? 'opacity-50' : '' }}"
-                                                                                    title="Sprzedaj 10 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(10, $item->stack_size) }} złota">
-                                                                                    x10
-                                                                                </button>
-                                                                                <button wire:click.stop="sellItem('{{ $item->id }}', 50)" @click="showInfo = false"
-                                                                                    class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 50 ? 'opacity-50' : '' }}"
-                                                                                    title="Sprzedaj 50 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(50, $item->stack_size) }} złota">
-                                                                                    x50
-                                                                                </button>
-                                                                                <button wire:click.stop="sellItem('{{ $item->id }}', 'all')" @click="showInfo = false"
-                                                                                    class="bg-red-900 hover:bg-red-700 text-amber-300 text-[10px] font-extrabold py-1.5 px-1 rounded transition text-center border border-red-600/50 cursor-pointer"
-                                                                                    title="Sprzedaj wszystkie {{ $item->stack_size }} szt. za {{ ($sellPrices[$item->id] ?? 0) * $item->stack_size }} złota">
-                                                                                    Wszystko
-                                                                                </button>
+                                                                <div class="flex flex-col gap-2">
+                                                                    @if($item->location !== 'equipped')
+                                                                        @if(($item->stack_size ?? 1) > 1)
+                                                                            <div class="flex flex-col gap-1.5 w-full">
+                                                                                <span class="text-xs text-gray-400 font-semibold">Sprzedaj ilość (posiadasz: <span class="text-amber-400 font-bold">{{ $item->stack_size }}</span>):</span>
+                                                                                <div class="grid grid-cols-5 gap-1">
+                                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 1)" @click="showInfo = false"
+                                                                                        class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer"
+                                                                                        title="Sprzedaj 1 szt. za {{ $sellPrices[$item->id] ?? 0 }} złota">
+                                                                                        x1
+                                                                                    </button>
+                                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 5)" @click="showInfo = false"
+                                                                                        class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 5 ? 'opacity-50' : '' }}"
+                                                                                        title="Sprzedaj 5 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(5, $item->stack_size) }} złota">
+                                                                                        x5
+                                                                                    </button>
+                                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 10)" @click="showInfo = false"
+                                                                                        class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 10 ? 'opacity-50' : '' }}"
+                                                                                        title="Sprzedaj 10 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(10, $item->stack_size) }} złota">
+                                                                                        x10
+                                                                                    </button>
+                                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 50)" @click="showInfo = false"
+                                                                                        class="bg-red-800 hover:bg-red-700 text-white text-[11px] font-bold py-1.5 px-1 rounded transition text-center cursor-pointer {{ $item->stack_size < 50 ? 'opacity-50' : '' }}"
+                                                                                        title="Sprzedaj 50 szt. za {{ ($sellPrices[$item->id] ?? 0) * min(50, $item->stack_size) }} złota">
+                                                                                        x50
+                                                                                    </button>
+                                                                                    <button wire:click.stop="sellItem('{{ $item->id }}', 'all')" @click="showInfo = false"
+                                                                                        class="bg-red-900 hover:bg-red-700 text-amber-300 text-[10px] font-extrabold py-1.5 px-1 rounded transition text-center border border-red-600/50 cursor-pointer"
+                                                                                        title="Sprzedaj wszystkie {{ $item->stack_size }} szt. za {{ ($sellPrices[$item->id] ?? 0) * $item->stack_size }} złota">
+                                                                                        Wszystko
+                                                                                    </button>
+                                                                                </div>
                                                                             </div>
-                                                                        </div>
+                                                                        @else
+                                                                            <button wire:click.stop="sellItem('{{ $item->id }}', 1)" @click="showInfo = false" class="w-full bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition cursor-pointer">Sprzedaj</button>
+                                                                        @endif
                                                                     @else
-                                                                        <button wire:click.stop="sellItem('{{ $item->id }}', 1)" @click="showInfo = false" class="w-full bg-red-700 hover:bg-red-600 text-white text-xs font-bold py-1.5 rounded transition cursor-pointer">Sprzedaj</button>
+                                                                        <button disabled class="w-full bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
                                                                     @endif
-                                                                @else
-                                                                    <button disabled class="w-full bg-gray-700 text-gray-500 text-xs font-bold py-1.5 rounded cursor-not-allowed">Założone</button>
-                                                                @endif
+                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    </x-slot:actions>
-                                                </x-item-tooltip>
+                                                        </x-slot:actions>
+                                                    </x-item-tooltip>
+                                                </div>
                                             </div>
                                         </template>
                                     </div>
