@@ -38,7 +38,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 11,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 240, 'atk' => 30, 'def' => 6, 'agi' => 5, 'int' => 4, 'crit' => 0.20, 'dodge' => 0.08],
+                    'stats' => ['hp' => 204, 'atk' => 26, 'def' => 5, 'agi' => 4, 'int' => 3, 'crit' => 0.20, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -46,7 +46,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 3,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 69, 'atk' => 57, 'def' => 5, 'agi' => 5, 'int' => 3, 'crit' => 0.2, 'dodge' => 0.12],
+                    'stats' => ['hp' => 59, 'atk' => 48, 'def' => 4, 'agi' => 4, 'int' => 3, 'crit' => 0.2, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
@@ -54,7 +54,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 4,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 56, 'atk' => 48, 'def' => 2, 'agi' => 6, 'int' => 3, 'crit' => 0.28, 'dodge' => 0.2],
+                    'stats' => ['hp' => 48, 'atk' => 41, 'def' => 2, 'agi' => 5, 'int' => 3, 'crit' => 0.28, 'dodge' => 0.2],
                     'abilities' => []
                 ],
                 [
@@ -62,7 +62,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 5,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 77, 'atk' => 62, 'def' => 5, 'agi' => 6, 'int' => 4, 'crit' => 0.22, 'dodge' => 0.15],
+                    'stats' => ['hp' => 65, 'atk' => 53, 'def' => 4, 'agi' => 5, 'int' => 3, 'crit' => 0.22, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -70,7 +70,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 6,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 100, 'atk' => 71, 'def' => 8, 'agi' => 2, 'int' => 3, 'crit' => 0.12, 'dodge' => 0.08],
+                    'stats' => ['hp' => 85, 'atk' => 60, 'def' => 7, 'agi' => 2, 'int' => 3, 'crit' => 0.12, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -78,7 +78,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 7,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 92, 'atk' => 73, 'def' => 8, 'agi' => 4, 'int' => 2, 'crit' => 0.18, 'dodge' => 0.10],
+                    'stats' => ['hp' => 78, 'atk' => 62, 'def' => 7, 'agi' => 3, 'int' => 2, 'crit' => 0.18, 'dodge' => 0.10],
                     'abilities' => []
                 ],
                 [
@@ -86,7 +86,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 8,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 86, 'atk' => 79, 'def' => 6, 'agi' => 7, 'int' => 6, 'crit' => 0.32, 'dodge' => 0.24],
+                    'stats' => ['hp' => 73, 'atk' => 67, 'def' => 5, 'agi' => 6, 'int' => 5, 'crit' => 0.32, 'dodge' => 0.24],
                     'abilities' => []
                 ],
                 [
@@ -94,7 +94,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 12,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 273, 'atk' => 32, 'def' => 6, 'agi' => 5, 'int' => 10, 'crit' => 0.25, 'dodge' => 0.08],
+                    'stats' => ['hp' => 232, 'atk' => 27, 'def' => 5, 'agi' => 4, 'int' => 9, 'crit' => 0.25, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -102,7 +102,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 10,
                     'rank' => 'worldboss',
-                    'stats' => ['hp' => 10500, 'atk' => 48, 'def' => 8, 'agi' => 14, 'int' => 8, 'crit' => 0.4, 'dodge' => 0.08],
+                    'stats' => ['hp' => 8925, 'atk' => 41, 'def' => 7, 'agi' => 12, 'int' => 7, 'crit' => 0.4, 'dodge' => 0.08],
                     'abilities' => []
                 ]
             ],
