@@ -164,10 +164,17 @@
                     },
                     _applyDesktopStyle(triggerRect, tooltipRect) {
                         const minMargin = 12;
+                        const desktopNav = document.querySelector('aside');
+                        const navRight = (desktopNav && window.getComputedStyle(desktopNav).display !== 'none')
+                            ? desktopNav.getBoundingClientRect().right
+                            : 0;
                         const mainEl = this.$el && this.$el.closest ? this.$el.closest('main') : null;
-                        const containerLeft = mainEl ? mainEl.getBoundingClientRect().left : 0;
+                        const mainLeft = mainEl ? mainEl.getBoundingClientRect().left : 0;
+                        const containerLeft = Math.max(navRight, mainLeft);
+
                         const triggerCenter = triggerRect.left + triggerRect.width / 2;
                         let left = triggerCenter - (tooltipRect.width / 2);
+
                         left = Math.max(containerLeft + minMargin, Math.min(left, window.innerWidth - minMargin - tooltipRect.width));
 
                         let top = triggerRect.top - tooltipRect.height - 8;
@@ -185,6 +192,7 @@
                             bottom: 'auto',
                             transform: 'none',
                             margin: '0',
+                            maxWidth: `calc(100vw - ${containerLeft + minMargin * 2}px)`,
                             maxHeight: 'calc(100vh - 24px)',
                             overflowY: 'auto',
                             zIndex: '10000',

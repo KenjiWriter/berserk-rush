@@ -191,8 +191,8 @@
                     </span>
                 </div>
 
-                {{-- Category Tabs --}}
-                <div class="flex overflow-x-auto gap-1 px-3 pt-3 pb-0 flex-shrink-0 scrollbar-hide border-b border-slate-800">
+                {{-- Category Tabs (2 rzędy, bez poziomego przewijania) --}}
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 flex-shrink-0 border-b border-slate-800/80 bg-slate-950/40">
                     @foreach($categories as $cat)
                     @php
                         $icon  = $categoryIcons[$cat] ?? 'fa-star';
@@ -202,11 +202,11 @@
                     <button
                         @click="activeTab = '{{ $cat }}'"
                         :class="activeTab === '{{ $cat }}'
-                            ? 'bg-slate-800 border-b-2 border-yellow-400 text-amber-200'
-                            : 'text-slate-500 hover:text-slate-300 border-b-2 border-transparent'"
-                        class="flex items-center gap-1.5 px-3 py-2.5 text-xs font-bold whitespace-nowrap transition-all duration-200 flex-shrink-0 rounded-t-lg">
-                        <i class="fa-solid {{ $icon }} {{ $color }} text-xs"></i>
-                        <span>{{ $label }}</span>
+                            ? 'bg-slate-800 border-yellow-400/80 text-amber-200 shadow-md shadow-amber-500/10 ring-1 ring-yellow-500/30'
+                            : 'bg-slate-900/80 hover:bg-slate-800/80 border-slate-700/60 text-slate-400 hover:text-slate-200'"
+                        class="flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold transition-all duration-200 rounded-lg border text-center cursor-pointer">
+                        <i class="fa-solid {{ $icon }} {{ $color }} text-xs flex-shrink-0"></i>
+                        <span class="truncate">{{ $label }}</span>
                     </button>
                     @endforeach
                 </div>
@@ -225,12 +225,19 @@
                     <div x-show="activeTab === '{{ $cat }}'" x-cloak>
 
                         {{-- Twoja pozycja --}}
+                        @php
+                            $myAvatar = $character->avatar;
+                            if ($myAvatar && !str_contains($myAvatar, '.')) {
+                                $myAvatar .= '.png';
+                            }
+                            $myAvatarUrl = $myAvatar ? asset('img/avatars/' . ltrim($myAvatar, '/')) : asset('img/avatars/plate.png');
+                        @endphp
                         <div class="mb-4 p-3 rounded-xl border
                             {{ $playerRank['rank'] === 1 ? 'bg-yellow-950/60 border-yellow-500/50' : ($playerRank['rank'] !== null ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-900/40 border-slate-800') }}
                             flex items-center justify-between gap-3">
                             <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-lg {{ $playerRank['rank'] === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-700/60 border border-slate-600' }} flex items-center justify-center flex-shrink-0">
-                                    <i class="fa-solid fa-user {{ $playerRank['rank'] === 1 ? 'text-yellow-400' : 'text-slate-400' }} text-sm"></i>
+                                <div class="w-8 h-8 rounded-lg {{ $playerRank['rank'] === 1 ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-slate-700/60 border border-slate-600' }} flex items-center justify-center flex-shrink-0 overflow-hidden">
+                                    <img src="{{ $myAvatarUrl }}" class="w-full h-full object-cover" alt="avatar" onerror="this.src='{{ asset('img/avatars/plate.png') }}'">
                                 </div>
                                 <div>
                                     <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider">Twoja pozycja</p>
@@ -270,6 +277,11 @@
                                     3 => 'bg-gradient-to-br from-amber-700 to-amber-600 text-amber-100',
                                     default => 'bg-slate-700 text-slate-300',
                                 };
+                                $entryAvatar = $entry->character?->avatar;
+                                if ($entryAvatar && !str_contains($entryAvatar, '.')) {
+                                    $entryAvatar .= '.png';
+                                }
+                                $entryAvatarUrl = $entryAvatar ? asset('img/avatars/' . ltrim($entryAvatar, '/')) : asset('img/avatars/plate.png');
                             @endphp
                             <div class="flex items-center gap-3 p-2.5 rounded-xl border {{ $rowBg }} transition-all duration-200
                                         {{ $isMe ? 'ring-1 ring-amber-500/30' : '' }}">
@@ -285,11 +297,7 @@
                                 {{-- Avatar + Imię --}}
                                 <div class="flex items-center gap-2 flex-1 min-w-0">
                                     <div class="w-7 h-7 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                        @if($entry->character?->avatar)
-                                            <img src="{{ asset('img/avatars/' . $entry->character->avatar) }}" class="w-full h-full object-cover" alt="avatar">
-                                        @else
-                                            <i class="fa-solid fa-person text-slate-400 text-xs"></i>
-                                        @endif
+                                        <img src="{{ $entryAvatarUrl }}" class="w-full h-full object-cover" alt="avatar" onerror="this.src='{{ asset('img/avatars/plate.png') }}'">
                                     </div>
                                     <span class="text-sm font-bold truncate {{ $isMe ? 'text-amber-300' : 'text-slate-200' }}">
                                         {{ $entry->character?->name ?? 'Nieznany' }}
