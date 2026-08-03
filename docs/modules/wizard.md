@@ -40,21 +40,16 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > niżej). Pełny opis mechaniki procków otrucia/ogłuszenia oraz `strong_vs_hero` -
 > `docs/modules/combat.md`, sekcje 7-8.
 
-> **Uwaga (obrażenia % z rzadkim rozkładem, 2026-07-29):** `attack_power`/`magic_attack`
-> to teraz **procentowy** bonus (nie płaska wartość) do obrażeń fizycznych/magicznych -
-> `Character::getEquipmentStats()` mnoży nim całościowe `attack_min`/`attack_max`
-> (odpowiednio `magic_attack_min`/`max`) wyliczone z bazowych statystyk broni, rzutów i
-> ulepszeń, zamiast dodawać go jako płaski dodatek. **Losowanie w tym konkretnym afiksie
-> NIE jest jednostajne** jak reszta puli - `EnchantmentStrategy::rollBonusValue()`
-> stosuje rozkład wykładniczy (`roll^3`, wzorem rzadkiego "FMS"/zatrutego miecza z
-> Metin2). Reszta puli (crit_chance, str_bonus, resist_X itd.) losuje się bez zmian,
-> jednostajnie w swoim zakresie.
->
-> **Zakres `[-20, 50]` - prawdziwy hazard (rozszerzenie 2026-07-30):** na
-> życzenie użytkownika afiks `hp_bonus` na wszystkich przedmiotach (w tym biżuterii)
-> również został ujednolicony do zakresu procentowego **`[-20, 50]`** (od -20% do +50%).
-> Rozkład jest silnie przechylony w stronę dołu zakresu za pomocą rozkładu wykładniczego (`roll^4`).
-> Wyniki `>= +40%` są wyjątkowo rzadkie (< 3.8% szansy), a maksimum `+50%` poniżej 0.5% szansy.
+> **Uwaga (rework rozkładu bonusów – algorytm Gaussa, 2026-08-03):** Wszystkie bonusy
+> w systemie zaczarowań (`EnchantmentStrategy::rollBonusValue()`) losują teraz swoje wartości
+> w oparciu o **algorytm Gaussa (rozkład pół-normalny z transformacją Boxa-Mullera)**.
+> Wyniki skupiają się w dolnej części zakresu $[min, max]$, a prawdopodobieństwo wylosowania
+> wyższych i maksymalnych wartości maleje wyznaczoną krzywą dzwonu Gaussa
+> ("im wyższa wartość bonusu, tym trudniej ją osiągnąć").
+> Dla afiksów z zakresem procentowym (np. `attack_power`, `magic_attack`, `hp_bonus` `[-20, 50]`),
+> wyniki bliskie dolnej granicy oraz niskie dodatnie są najczęstsze, natomiast osiągnięcie $+50\%$
+> wymaga odchylenia $3\sigma$ ($< 0.27\%$ szansy). Pozostałe afiksy (np. `crit_chance`, `str_bonus`)
+> działają według tej samej krzywej Gaussa w swoich przedziałach.
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od

@@ -181,34 +181,32 @@ class EnchantmentStrategy
         return $roll <= $chance;
     }
 
-    // Afiksy-hazard (2026-07-29, na życzenie użytkownika, wzorem FMS/zatrutego miecza
-    // z Metin2): 'attack_power'/'magic_attack' są procentowym bonusem do obrażeń
-    // fizycznych/magicznych (patrz Character::getEquipmentStats(), gdzie mnożą
-    // sumaryczne attack_min/max zamiast dodawać do nich płaską wartość). Zakres
-    // [-20, 50] obejmuje wyniki UJEMNE (osłabienie broni!) - losowanie NIE jest
-    // jednostajne: rozkład wykładniczy (roll^skew) skupia większość wyników nisko/
-    // ujemnie, a wysoki dodatni wynik jest wykładniczo rzadszy. Empirycznie (skew=3,
-    // 20k prób): P(wynik ujemny) ~34%, P(>=+30%) ~11%, P(>=+45%) ~2%, P(+50%, max)
-    // <1% - prawdziwy hazard, nie gwarantowany bonus jak reszta puli.
-    // 'hp_bonus'/'defense' (2026-07-29, na życzenie użytkownika): ten sam hazard,
-    // przeniesiony na pancerz - procentowe wzmocnienie/osłabienie sumarycznego HP/Obrony
-    // z ekwipunku (patrz Character::getEquipmentStats()).
-    private const RARE_SCALING_KEYS = ['attack_power', 'magic_attack', 'hp_bonus', 'defense'];
-    private const RARE_SCALING_SKEW = 4.0;
-
+    /**
+     * Wyznacza wartość bonusu w przedziale [min, max] przy użyciu algorytmu Gaussa (rozkład pół-normalny).
+     * Transformacja Boxa-Mullera generuje zmienną z rozkładu normalnego N(0, 1).
+     * Wartość bezwzględna |Z| skupia większość rzutów blisko minimum zakresu (dół krzywej Gaussa),
+     * a szansa na osiągnięcie wyższych i maksymalnych wartości maleje zgodnie z kształtem dzwonu Gaussa
+     * ("im więcej tym ciężej osiągnąć dany bonus").
+     */
     private function rollBonusValue(string $bonusKey, array $range): int
     {
-        if (!in_array($bonusKey, self::RARE_SCALING_KEYS, true)) {
-            return $this->rng->int($range[0], $range[1]);
+        $min = $range[0];
+        $max = $range[1];
+
+        if ($min >= $max) {
+            return $min;
         }
 
-        // roll^skew skupia wynik blisko dolnej granicy zakresu (tu: -20%) - im wyższy
-        // skew, tym rzadziej trafia się górny kraniec (+50%), praktycznie nieosiągalny
-        // ale nie niemożliwy.
-        $roll = $this->rng->float(0.0, 1.0);
-        $skewed = $roll ** self::RARE_SCALING_SKEW;
+        // Transformacja Boxa-Mullera dla standardowego rozkładu normalnego N(0, 1)
+        $u1 = max(1e-10, $this->rng->float(0.0, 1.0));
+        $u2 = $this->rng->float(0.0, 1.0);
+        $z = sqrt(-2.0 * log($u1)) * cos(2.0 * M_PI * $u2);
 
-        return $range[0] + (int) round($skewed * ($range[1] - $range[0]));
+        // Rozkład pół-normalny |Z|: wartości w okolicach 0 są najczęstsze.
+        // Skalowanie przez 3.0 (zasada 3-sigma): |Z| >= 3.0 zdarza się wyjątkowo rzadko (<0.27%).
+        $scaledZ = min(1.0, abs($z) / 3.0);
+
+        return $min + (int) round($scaledZ * ($max - $min));
     }
 
     public function generateRandomEnchantment(ItemInstance $item): array
