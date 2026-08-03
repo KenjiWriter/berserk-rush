@@ -17,11 +17,12 @@ class WipeServerCommandTest extends TestCase
 
     public function test_game_wipe_command_preserves_users_and_characters_and_resets_game_stage(): void
     {
-        // 1. Arrange: Create user with game_stage 40
+        // 1. Arrange: Create user with game_stage 40 and 500 gems
         $user = User::factory()->create([
             'email' => 'player_test1@example.com',
             'name' => 'Player One',
             'game_stage' => 40,
+            'gems' => 500,
         ]);
 
         $character = Character::create([
@@ -37,11 +38,12 @@ class WipeServerCommandTest extends TestCase
         $this->artisan('game:wipe', ['--force' => true])
             ->assertExitCode(0);
 
-        // 3. Assert: User and Character still exist in DB, and game_stage is 3
+        // 3. Assert: User and Character still exist in DB, game_stage is 3 and gems are 0
         $this->assertDatabaseHas('users', [
             'email' => 'player_test1@example.com',
             'name' => 'Player One',
             'game_stage' => 3,
+            'gems' => 0,
         ]);
 
         $this->assertDatabaseHas('characters', [
@@ -55,6 +57,7 @@ class WipeServerCommandTest extends TestCase
         $user = User::factory()->create([
             'email' => 'player_test2@example.com',
             'game_stage' => 25,
+            'gems' => 1200,
         ]);
 
         Character::create([
@@ -70,6 +73,7 @@ class WipeServerCommandTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => 'player_test2@example.com',
             'game_stage' => 3,
+            'gems' => 0,
         ]);
 
         $this->assertDatabaseMissing('characters', [

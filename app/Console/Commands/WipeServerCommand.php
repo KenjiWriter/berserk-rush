@@ -47,6 +47,8 @@ class WipeServerCommand extends Command
             $data = (array) $row;
             // Resetujemy game_stage do 3, aby po wejściu na postać od razu uruchamiał się pierwszy samouczek w obozie (Step 4: Witaj w Głównym Obozie)
             $data['game_stage'] = 3;
+            // Resetujemy gemy konta do 0 przy wipe serwera
+            $data['gems'] = 0;
 
             foreach ($data as $k => $v) {
                 if (is_array($v) || is_object($v)) {
