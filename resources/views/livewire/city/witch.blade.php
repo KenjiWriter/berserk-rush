@@ -149,7 +149,7 @@
                             <div class="flex flex-col items-center justify-center bg-black/50 p-5 rounded-2xl border border-fuchsia-500/30 backdrop-blur-md min-w-[250px] shadow-2xl">
                                 <div class="text-amber-300 font-extrabold text-xl mb-4 flex items-center gap-2 drop-shadow-md">
                                     <i class="fa-solid fa-coins text-amber-400"></i>
-                                    <span>1 500 Złota</span>
+                                    <span>100 000 Złota</span>
                                 </div>
                                 @if($canBuySpecial)
                                     <button wire:click="buySpecialExpPotion" wire:loading.attr="disabled" 

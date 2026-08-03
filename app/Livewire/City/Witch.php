@@ -72,7 +72,7 @@ class Witch extends Component
             return;
         }
 
-        $price = 1500;
+        $price = 100000;
         $template = ItemTemplate::where('id', 'potion-exp-special')->first();
 
         if (!$template) {
