@@ -49,6 +49,9 @@ class WipeServerCommand extends Command
             $data['game_stage'] = 3;
             // Resetujemy gemy konta do 0 przy wipe serwera
             $data['gems'] = 0;
+            // Resetujemy status VIP (premium_until) oraz sloty magazynu (stash_slots)
+            $data['premium_until'] = null;
+            $data['stash_slots'] = 2;
 
             foreach ($data as $k => $v) {
                 if (is_array($v) || is_object($v)) {
