@@ -17,11 +17,11 @@ class GladiatorShopTest extends TestCase
 
     public function test_character_can_buy_item_from_gladiator_shop(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['game_stage' => 35]);
         $character = Character::create([
             'user_id' => $user->id,
             'name' => 'GladiatorHero',
-            'level' => 10,
+            'level' => 15,
             'gold' => 1000,
             'arena_tokens' => 50,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],

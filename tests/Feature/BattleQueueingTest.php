@@ -26,7 +26,7 @@ class BattleQueueingTest extends TestCase
         $attacker = Character::create([
             'user_id' => $user1->id,
             'name' => 'Attacker',
-            'level' => 1,
+            'level' => 20,
             'gold' => 100,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
@@ -34,7 +34,7 @@ class BattleQueueingTest extends TestCase
         $defender1 = Character::create([
             'user_id' => $user2->id,
             'name' => 'Defender1',
-            'level' => 1,
+            'level' => 20,
             'gold' => 100,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
@@ -42,7 +42,7 @@ class BattleQueueingTest extends TestCase
         $defender2 = Character::create([
             'user_id' => $user3->id,
             'name' => 'Defender2',
-            'level' => 1,
+            'level' => 20,
             'gold' => 100,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
@@ -157,11 +157,10 @@ class BattleQueueingTest extends TestCase
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
 
-        $highLevelMap = Map::create([
-            'name' => 'Bagna Grozy',
-            'level_min' => 50,
-            'level_max' => 70,
-        ]);
+        $highLevelMap = Map::firstOrCreate(
+            ['name' => 'Bagna Grozy'],
+            ['level_min' => 50, 'level_max' => 70]
+        );
 
         // Service should reject starting battle on high level map
         $service = app(EncounterService::class);
@@ -181,13 +180,13 @@ class BattleQueueingTest extends TestCase
         $highLevelCharacter = Character::create([
             'user_id' => $user->id,
             'name' => 'HighLevelHero',
-            'level' => 30,
+            'level' => 40,
             'gold' => 100,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
 
         $lowLevelMap = Map::create([
-            'name' => 'Mroczny Las',
+            'name' => 'Test Low Level Map',
             'level_min' => 0,
             'level_max' => 15,
         ]);
@@ -200,14 +199,22 @@ class BattleQueueingTest extends TestCase
             'stats' => ['hp' => 1000, 'atk' => 10, 'def' => 5, 'agi' => 2],
         ]);
 
-        // Level 30 character is outside level 0-15 range -> isAccessibleBy must return false
-        $this->assertFalse($lowLevelMap->isAccessibleBy($highLevelCharacter));
+        \App\Infrastructure\Persistence\WorldBossInstance::create([
+            'monster_id' => $bossMonster->id,
+            'map_id' => $lowLevelMap->id,
+            'level_bracket' => 'low',
+            'total_hp' => 1000,
+            'current_hp' => 1000,
+        ]);
 
-        // EncounterService start must be rejected
+        // Level 40 character is above map max level
+        $this->assertTrue($lowLevelMap->isOverLevel($highLevelCharacter));
+
+        // EncounterService start must be rejected for World Boss outside bracket
         $service = app(EncounterService::class);
         $startResult = $service->start($highLevelCharacter, $lowLevelMap, $bossMonster);
         $this->assertTrue($startResult->isError());
-        $this->assertEquals('LEVEL_OUT_OF_RANGE', $startResult->getErrorCode());
+        $this->assertEquals('WRONG_LEVEL_BRACKET', $startResult->getErrorCode());
     }
 
     public function test_world_boss_can_be_challenged_via_map_stub_without_double_encounter_error(): void

@@ -246,6 +246,26 @@
 
                     <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
                         <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
+                            🪞
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-amber-200 text-sm">Dłuższy Czas w Lustrze</h4>
+                            <p class="text-xs text-stone-400">Możliwość sesji polowania w Lustrze do 10 godzin</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
+                        <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
+                            🔮
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-amber-200 text-sm">Szybsze Losowanie u Wiedźmy</h4>
+                            <p class="text-xs text-stone-400">Błyskawiczne przelosowywanie bonusów w Switchbocie</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all">
+                        <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
                             🛡️
                         </div>
                         <div>
@@ -254,7 +274,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center gap-4 shadow-lg hover:border-amber-500/60 transition-all sm:col-span-2 lg:col-span-1">
+                    <div class="bg-stone-900/80 border border-amber-800/40 p-4 rounded-xl flex items-center justify-center gap-4 shadow-lg hover:border-amber-500/60 transition-all sm:col-span-2 lg:col-span-3">
                         <div class="w-12 h-12 rounded-xl bg-amber-950 flex items-center justify-center text-2xl border border-amber-500/40 shrink-0">
                             👑
                         </div>
