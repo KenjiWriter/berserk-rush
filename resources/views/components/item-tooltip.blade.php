@@ -203,6 +203,10 @@
             'double_exp_chance' => 'Szansa na Podwójne EXP',
             'double_gold_chance' => 'Szansa na Podwójne Złoto',
             'double_drop_chance' => 'Szansa na Podwójny Łup',
+            'bleed_chance' => 'Szansa na Krwawienie',
+            'double_strike_chance' => 'Szansa na Podwójny Cios',
+            'armor_pen_pct' => 'Przebicie Pancerza',
+            'magic_infusion_chance' => 'Infuzja Magiczna',
         ];
         if (isset($map[$statKey])) {
             return $map[$statKey];

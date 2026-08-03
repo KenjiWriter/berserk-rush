@@ -24,7 +24,7 @@ class WipeServerCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Wipe serwera: czyści i re-seeduje świat gry (migrate:fresh --seed), zachowując konta graczy (users) oraz opcjonalnie postacie.';
+    protected $description = 'Wipe serwera: czyści i re-seeduje świat gry (migrate:fresh --seed), zachowując konta graczy (users) z resetem game_stage do 3 (pierwszy samouczek) oraz opcjonalnie postacie.';
 
     /**
      * Execute the console command.
@@ -41,10 +41,13 @@ class WipeServerCommand extends Command
 
         $this->info('--- ROZPOCZĘCIE PROCEDURY WIPE SERWERA ---');
 
-        // 1. Kopia zapasowa tabeli users
-        $this->comment('1. Tworzenie kopii zapasowej tabeli `users`...');
+        // 1. Kopia zapasowa tabeli users (z resetem game_stage do 3)
+        $this->comment('1. Tworzenie kopii zapasowej tabeli `users` (reset game_stage do etapu 3 - start samouczka w Głównym Obozie)...');
         $users = DB::table('users')->get()->map(function ($row) {
             $data = (array) $row;
+            // Resetujemy game_stage do 3, aby po wejściu na postać od razu uruchamiał się pierwszy samouczek w obozie (Step 4: Witaj w Głównym Obozie)
+            $data['game_stage'] = 3;
+
             foreach ($data as $k => $v) {
                 if (is_array($v) || is_object($v)) {
                     $data[$k] = json_encode($v);
@@ -104,7 +107,7 @@ class WipeServerCommand extends Command
             foreach (array_chunk($users, 100) as $chunk) {
                 DB::table('users')->insert($chunk);
             }
-            $this->info('-> Przywrócono ' . count($users) . ' użytkowników.');
+            $this->info('-> Przywrócono ' . count($users) . ' użytkowników z ustawionym `game_stage = 3`.');
 
             // Naprawa sekwencji id w PostgreSQL
             if (DB::getDriverName() === 'pgsql') {

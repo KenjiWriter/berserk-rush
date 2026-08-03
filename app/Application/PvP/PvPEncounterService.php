@@ -22,9 +22,16 @@ class PvPEncounterService
     private function rollEquipmentProcs(array $eq, array $resistEq): array
     {
         $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
+        $bleedChance = max(0, $eq['bleed_chance'] ?? 0);
         $stunChance = max(0, ($eq['stun_chance'] ?? 0) - ($resistEq['resist_stun'] ?? 0));
+        $doubleStrikeChance = max(0, $eq['double_strike_chance'] ?? 0);
+        $magicInfusionChance = max(0, $eq['magic_infusion_chance'] ?? 0);
 
         $dot = null;
+        $cc = null;
+        $doubleStrike = false;
+        $infusionArmorPen = 0;
+
         if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
             $dot = [
                 'type' => 'poison',
@@ -32,14 +39,52 @@ class PvPEncounterService
                 'duration' => self::EQUIPMENT_POISON_DURATION,
                 'value' => self::EQUIPMENT_POISON_VALUE,
             ];
+        } elseif ($bleedChance > 0 && mt_rand(1, 100) <= $bleedChance) {
+            $dot = [
+                'type' => 'bleed',
+                'name' => 'Krwawienie (Ekwipunek)',
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+                'value' => self::EQUIPMENT_POISON_VALUE,
+            ];
         }
 
-        $cc = null;
         if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
             $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
         }
 
-        return ['dot' => $dot, 'cc' => $cc];
+        if ($doubleStrikeChance > 0 && mt_rand(1, 100) <= $doubleStrikeChance) {
+            $doubleStrike = true;
+        }
+
+        if ($magicInfusionChance > 0 && mt_rand(1, 100) <= $magicInfusionChance) {
+            $infusionRoll = mt_rand(1, 4);
+            if ($infusionRoll === 1 && !$dot) {
+                $dot = [
+                    'type' => 'bleed',
+                    'name' => 'Infuzja Krwawienia',
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                ];
+            } elseif ($infusionRoll === 2 && !$dot) {
+                $dot = [
+                    'type' => 'poison',
+                    'name' => 'Infuzja Otrucia',
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                ];
+            } elseif ($infusionRoll === 3) {
+                $doubleStrike = true;
+            } elseif ($infusionRoll === 4) {
+                $infusionArmorPen = 50;
+            }
+        }
+
+        return [
+            'dot' => $dot,
+            'cc' => $cc,
+            'double_strike' => $doubleStrike,
+            'infusion_armor_pen' => $infusionArmorPen,
+        ];
     }
 
     /**
@@ -609,8 +654,13 @@ class PvPEncounterService
             foreach ($targetState['effects'] as $id => &$eff) {
                 if (($eff['type'] ?? '') === 'buff_phys_dmg') continue;
 
-                if (($eff['duration'] ?? 0) > 0 && in_array($eff['type'] ?? '', ['poison', 'dot_poison', 'fire', 'dot_fire'])) {
-                    $dmg = max(1, (int)($targetMaxHp * $eff['value']));
+                if (($eff['duration'] ?? 0) > 0 && in_array($eff['type'] ?? '', ['poison', 'dot_poison', 'fire', 'dot_fire', 'bleed', 'dot_bleed'])) {
+                    if (in_array($eff['type'] ?? '', ['bleed', 'dot_bleed'], true)) {
+                        $targetCurrentHp = $targetState['hp'] ?? $targetMaxHp;
+                        $dmg = max(1, (int)($targetCurrentHp * $eff['value']));
+                    } else {
+                        $dmg = max(1, (int)($targetMaxHp * $eff['value']));
+                    }
                     $dotDamage += $dmg;
                     $dotType = $eff['type'];
 
@@ -634,11 +684,22 @@ class PvPEncounterService
             }
         }
 
-        // Defender's defense
+        // Defender's defense & Armor Penetration (Łuk / Infuzja różdżki)
         $defVit = $targetSnapshot['attributes']['vit'] ?? 1;
         $defEq = $targetSnapshot['equipment_stats'] ?? [];
         $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
+
+        $armorPenPct = min(85, max(0, ($eqStats['armor_pen_pct'] ?? 0) + ($procs['infusion_armor_pen'] ?? 0)));
+        if ($armorPenPct > 0) {
+            $defense = (int) round($defense * (1.0 - ($armorPenPct / 100.0)));
+        }
+
         $damage = max(1, $damage - ($defense * 0.2));
+
+        // Podwójny Cios (Miecz / Infuzja różdżki)
+        if (!empty($procs['double_strike'])) {
+            $damage += max(1, (int) round($damage * 0.5));
+        }
 
         // "Silny vs Bohaterów": w PvE ten bonus nie ma zastosowania (potwór to nie
         // bohater) - liczy się wyłącznie tutaj i w Wojnie Gildii, bezwarunkowo (obie

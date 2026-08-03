@@ -50,17 +50,13 @@ Wewnątrz tury występują 3 stany ataku:
 > punktów, tabela wartości per poziom) - patrz `docs/modules/profile_and_equipment.md`,
 > sekcja 4.
 >
-> **Dzwon (`bell`) - broń hybrydowa "Magic Burst":** Dzwony zadają normalny atak
-> fizyczny jak inna broń walki wręcz (`attack_min`/`attack_max`), ale dodatkowo mają
-> szansę (`magic_burst_chance`, %) na dołożenie do trafienia OSOBNYCH, dodatkowych
-> obrażeń magicznych (`magic_burst_min`-`magic_burst_max`). Ten dodatkowy komponent
-> magiczny jest mitygowany tą samą obroną przeciwnika co reszta obrażeń (nie ma osobnej
-> "obrony magicznej" - to celowe uproszczenie) i w pełni uczestniczy w mnożniku trafienia
-> krytycznego. Logika: `EncounterService::calculateDamage()` (PvE, zwraca dodatkowy klucz
-> `magic` w tablicy wyniku obok `base`/`bonus`/`total`), `PvPEncounterService::performAttack()`
-> (Arena 1v1) oraz `GuildWarService::resolveTeamAttack()` (Wojny Gildii 5v5, patrz
-> `docs/modules/guilds.md`, sekcja "Wojny Gildii") - wszystkie trzy ścieżki liczą
-> "magic burst" niezależnie, ale w ten sam sposób.
+> **Specjalizacje Klas Broni (Unikalne Mechaniki Bojowe, 2026-08-03):** Każda z 6 typów broni w grze posiada własną, unikalną mechanikę bojową rozliczaną symetrycznie we wszystkich silnikach walki (`EncounterService`, `PvPEncounterService`, `GuildWarService`, `DungeonService`):
+> 1. **Dzwon (`bell`) - Rozbłysk Magii:** Broń hybrydowa zadająca atak fizyczny oraz mająca szansę (`magic_burst_chance`, %) na dołożenie osobnych, dodatkowych obrażeń magicznych (`magic_burst_min`-`magic_burst_max`).
+> 2. **Topór (`axe`) - Krwawienie:** Szansa (`bleed_chance`, %) na wywołanie krwawienia u celu zadającego obrażenia co turę w oparciu o **% z CURRENT HP (aktualnego HP celu)**.
+> 3. **Sztylety (`dagger`) - Otrucie:** Szansa (`poison_chance`, %) na wywołanie otrucia celu zadającego obrażenia co turę w oparciu o **% z MAX HP (maksymalnego HP celu)**.
+> 4. **Miecz (`sword`) - Podwójny Cios:** Szansa (`double_strike_chance`, %) na natychmiastowe wyprowadzenie drugiego ataku w tej samej turze o mocy 50% obrażeń głównego ciosu.
+> 5. **Łuk (`bow`) - Przebicie Pancerza:** Procentowe przebicie pancerza (`armor_pen_pct`, %) redukujące obronę przeciwnika (`defense`) przed wyliczeniem obrażeń ciosu.
+> 6. **Różdżka / Laska (`wand`) - Infuzja Magiczna:** Szansa (`magic_infusion_chance`, %) przy trafieniu na nasycenie ciosu **losowym efektem specjalnym** (Krwawienie, Otrucie, Podwójny Cios lub 50% Przebicie Pancerza).
 
 ### 3. Wynik Walki i Nagrody
 Na sam koniec symulacji:

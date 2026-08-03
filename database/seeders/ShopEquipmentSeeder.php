@@ -50,17 +50,17 @@ class ShopEquipmentSeeder extends Seeder
         // mnożnikiem atrybutów w formule obrażeń/HP - patrz identyczna notatka i
         // wyjaśnienie w `ItemTemplateSeeder.php`.
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1]],
-            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 6.75]],
-            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.75, 'crit_chance' => 2]],
-            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2.25, 'magic_attack_max' => 5.25, 'crit_chance' => 1]],
+            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1, 'double_strike_chance' => 20]],
+            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 6.75, 'bleed_chance' => 25]],
+            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.75, 'crit_chance' => 2, 'armor_pen_pct' => 20]],
+            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2.25, 'magic_attack_max' => 5.25, 'crit_chance' => 1, 'magic_infusion_chance' => 25]],
             // UWAGA (rebalans dagger/bell, 2026-07-29): attack_min/max podniesione -
             // symulacja (php artisan balance:monsters) pokazała, że przy oryginalnych
             // wartościach sztylet i dzwon systematycznie przegrywały cel >=90% winrate
             // (nawet <50% na wysokich mapach), podczas gdy miecz/topór/łuk/różdżka go
             // spełniały - to był realny brak balansu MIĘDZY bronami, niezależny od
             // strojenia potworów. Patrz identyczna notatka w ItemTemplateSeeder.php.
-            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 3]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 3, 'poison_chance' => 25]],
             'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.5, 'magic_burst_chance' => 25, 'magic_burst_min' => 2.25, 'magic_burst_max' => 4.5]],
 
             'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 13.5]],

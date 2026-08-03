@@ -696,6 +696,8 @@ class DungeonService
         $dotType = null;
         foreach ($activeDots as $k => $dot) {
             if ($dot['type'] === 'poison') {
+                $dmg = (int)($monsterMaxHp * $dot['value']);
+            } elseif ($dot['type'] === 'bleed') {
                 $dmg = (int)($monsterHp * $dot['value']);
             } elseif ($dot['type'] === 'fire') {
                 $dmg = (int)($monsterMaxHp * $dot['value']);
@@ -985,9 +987,16 @@ class DungeonService
     private function rollEquipmentProcs(array $eq): array
     {
         $poisonChance = max(0, $eq['poison_chance'] ?? 0);
+        $bleedChance = max(0, $eq['bleed_chance'] ?? 0);
         $stunChance = max(0, $eq['stun_chance'] ?? 0);
+        $doubleStrikeChance = max(0, $eq['double_strike_chance'] ?? 0);
+        $magicInfusionChance = max(0, $eq['magic_infusion_chance'] ?? 0);
 
         $dot = null;
+        $cc = null;
+        $doubleStrike = false;
+        $infusionArmorPen = 0;
+
         if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
             $dot = [
                 'type' => 'poison',
@@ -995,14 +1004,52 @@ class DungeonService
                 'value' => self::EQUIPMENT_POISON_VALUE,
                 'duration' => self::EQUIPMENT_POISON_DURATION,
             ];
+        } elseif ($bleedChance > 0 && mt_rand(1, 100) <= $bleedChance) {
+            $dot = [
+                'type' => 'bleed',
+                'name' => 'Krwawienie (Ekwipunek)',
+                'value' => self::EQUIPMENT_POISON_VALUE,
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+            ];
         }
 
-        $cc = null;
         if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
             $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
         }
 
-        return ['dot' => $dot, 'cc' => $cc];
+        if ($doubleStrikeChance > 0 && mt_rand(1, 100) <= $doubleStrikeChance) {
+            $doubleStrike = true;
+        }
+
+        if ($magicInfusionChance > 0 && mt_rand(1, 100) <= $magicInfusionChance) {
+            $infusionRoll = mt_rand(1, 4);
+            if ($infusionRoll === 1 && !$dot) {
+                $dot = [
+                    'type' => 'bleed',
+                    'name' => 'Infuzja Krwawienia',
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                ];
+            } elseif ($infusionRoll === 2 && !$dot) {
+                $dot = [
+                    'type' => 'poison',
+                    'name' => 'Infuzja Otrucia',
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                ];
+            } elseif ($infusionRoll === 3) {
+                $doubleStrike = true;
+            } elseif ($infusionRoll === 4) {
+                $infusionArmorPen = 50;
+            }
+        }
+
+        return [
+            'dot' => $dot,
+            'cc' => $cc,
+            'double_strike' => $doubleStrike,
+            'infusion_armor_pen' => $infusionArmorPen,
+        ];
     }
 
     private function calculatePlayerDamage(Character $character, $monster, float $diffMultiplier = 1.0, bool $isMagicSkill = false): array

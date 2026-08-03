@@ -693,6 +693,11 @@ class Character extends Model
                 'defense' => 0,
                 'crit_chance' => 0,
                 'dodge_chance' => 0,
+                'poison_chance' => 0,
+                'bleed_chance' => 0,
+                'double_strike_chance' => 0,
+                'armor_pen_pct' => 0,
+                'magic_infusion_chance' => 0,
                 // "Magic burst": dodatkowe, oddzielne obrażenia magiczne z pewną szansą
                 // na trafienie (używane przez Dzwony - patrz EncounterService).
                 'magic_burst_chance' => 0,
@@ -731,6 +736,11 @@ class Character extends Model
                 $stats['defense'] += ($base['defense'] ?? 0) + ($roll['defense'] ?? 0) + ($upgrade['defense'] ?? 0);
                 $stats['crit_chance'] += ($base['crit_chance'] ?? 0) + ($roll['crit_chance'] ?? 0) + ($upgrade['crit_chance'] ?? 0);
                 $stats['dodge_chance'] += ($base['dodge_chance'] ?? 0) + ($roll['dodge_chance'] ?? 0) + ($upgrade['dodge_chance'] ?? 0);
+                $stats['poison_chance'] += ($base['poison_chance'] ?? 0) + ($roll['poison_chance'] ?? 0) + ($upgrade['poison_chance'] ?? 0);
+                $stats['bleed_chance'] += ($base['bleed_chance'] ?? 0) + ($roll['bleed_chance'] ?? 0) + ($upgrade['bleed_chance'] ?? 0);
+                $stats['double_strike_chance'] += ($base['double_strike_chance'] ?? 0) + ($roll['double_strike_chance'] ?? 0) + ($upgrade['double_strike_chance'] ?? 0);
+                $stats['armor_pen_pct'] += ($base['armor_pen_pct'] ?? 0) + ($roll['armor_pen_pct'] ?? 0) + ($upgrade['armor_pen_pct'] ?? 0);
+                $stats['magic_infusion_chance'] += ($base['magic_infusion_chance'] ?? 0) + ($roll['magic_infusion_chance'] ?? 0) + ($upgrade['magic_infusion_chance'] ?? 0);
                 $stats['magic_burst_chance'] += ($base['magic_burst_chance'] ?? 0) + ($roll['magic_burst_chance'] ?? 0) + ($upgrade['magic_burst_chance'] ?? 0);
                 $stats['magic_burst_min'] += ($base['magic_burst_min'] ?? 0) + ($roll['magic_burst_min'] ?? 0) + ($upgrade['magic_burst_min'] ?? 0);
                 $stats['magic_burst_max'] += ($base['magic_burst_max'] ?? 0) + ($roll['magic_burst_max'] ?? 0) + ($upgrade['magic_burst_max'] ?? 0);

@@ -44,32 +44,79 @@ class EncounterService
 
 
     /**
-     * Rzuca procki otrucia/ogłuszenia z ekwipunku po wylądowanym trafieniu.
-     * $resistEq to statystyki ekwipunku CELU (puste dla potworów w PvE - nie mają
-     * własnego ekwipunku/odporności).
+     * Rzuca procki specjalności broni (otrucie, krwawienie, ogłuszenie, podwójny cios, infuzję magiczną) z ekwipunku po trafieniu.
+     * $resistEq to statystyki ekwipunku CELU (puste dla potworów w PvE - nie mają odporności).
      */
     private function rollEquipmentProcs(array $eq, array $resistEq = []): array
     {
         $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
+        $bleedChance = max(0, $eq['bleed_chance'] ?? 0);
         $stunChance = max(0, ($eq['stun_chance'] ?? 0) - ($resistEq['resist_stun'] ?? 0));
+        $doubleStrikeChance = max(0, $eq['double_strike_chance'] ?? 0);
+        $magicInfusionChance = max(0, $eq['magic_infusion_chance'] ?? 0);
 
         $dot = null;
+        $cc = null;
+        $doubleStrike = false;
+        $infusionArmorPen = 0;
+
         if ($poisonChance > 0 && mt_rand(1, 100) <= $poisonChance) {
             $dot = [
                 'type' => 'poison',
                 'name' => 'Zatrucie (Ekwipunek)',
-                'description' => 'Zadaje obrażenia od otrucia co turę.',
+                'description' => 'Zadaje obrażenia od otrucia co turę (% od max HP).',
+                'value' => self::EQUIPMENT_POISON_VALUE,
+                'duration' => self::EQUIPMENT_POISON_DURATION,
+            ];
+        } elseif ($bleedChance > 0 && mt_rand(1, 100) <= $bleedChance) {
+            $dot = [
+                'type' => 'bleed',
+                'name' => 'Krwawienie (Ekwipunek)',
+                'description' => 'Zadaje obrażenia od krwawienia co turę (% od aktualnego HP).',
                 'value' => self::EQUIPMENT_POISON_VALUE,
                 'duration' => self::EQUIPMENT_POISON_DURATION,
             ];
         }
 
-        $cc = null;
         if ($stunChance > 0 && mt_rand(1, 100) <= $stunChance) {
             $cc = ['type' => 'stun', 'duration' => self::EQUIPMENT_STUN_DURATION];
         }
 
-        return ['dot' => $dot, 'cc' => $cc];
+        if ($doubleStrikeChance > 0 && mt_rand(1, 100) <= $doubleStrikeChance) {
+            $doubleStrike = true;
+        }
+
+        if ($magicInfusionChance > 0 && mt_rand(1, 100) <= $magicInfusionChance) {
+            $infusionRoll = mt_rand(1, 4);
+            if ($infusionRoll === 1 && !$dot) {
+                $dot = [
+                    'type' => 'bleed',
+                    'name' => 'Infuzja Krwawienia',
+                    'description' => 'Magiczna infuzja wywołuje krwawienie (% od aktualnego HP).',
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                ];
+            } elseif ($infusionRoll === 2 && !$dot) {
+                $dot = [
+                    'type' => 'poison',
+                    'name' => 'Infuzja Otrucia',
+                    'description' => 'Magiczna infuzja wywołuje otrucie (% od max HP).',
+                    'value' => self::EQUIPMENT_POISON_VALUE,
+                    'duration' => self::EQUIPMENT_POISON_DURATION,
+                ];
+            } elseif ($infusionRoll === 3) {
+                $doubleStrike = true;
+            } elseif ($infusionRoll === 4) {
+                $infusionArmorPen = 50;
+            }
+        }
+
+        return [
+            'dot' => $dot,
+            'cc' => $cc,
+            'double_strike' => $doubleStrike,
+            'infusion_armor_pen' => $infusionArmorPen,
+        ];
     }
 
     public function start(Character $character, Map $map, ?Monster $forcedMonster = null, string $targetStrategy = 'random', ?int $initialMana = null): Result
@@ -1163,7 +1210,7 @@ class EncounterService
         }
 
         // Standard attack
-        $damageData = $this->calculateDamage($character, $monster);
+        $damageData = $this->calculateDamage($character, $monster, false, $procs);
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
         $bonusDamage = $damageData['bonus'];
@@ -1299,7 +1346,7 @@ class EncounterService
 
 
 
-    private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false): array
+    private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false, array $procs = []): array
     {
         $weaponType = $character->getEquippedWeaponType();
         $eq = $character->getEquipmentStats();
@@ -1323,18 +1370,9 @@ class EncounterService
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
                 $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
-                $statBonus = $character->getAttributeAttackBonus('bell');
-                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
-            } else {
-                $statBonus = $character->getAttributeAttackBonus($weaponType);
-                $weaponAtkMin = ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = ($eq['attack_max'] ?? 0);
-            }
+            $baseDamageMin = $stats['attack_min'] ?? 1;
+            $baseDamageMax = $stats['attack_max'] ?? 1;
         }
-
-        $baseDamageMin = 10 + $statBonus + ($character->level * 1) + $weaponAtkMin;
-        $baseDamageMax = 10 + $statBonus + ($character->level * 1) + $weaponAtkMax;
 
         if ($baseDamageMax < $baseDamageMin) {
             $baseDamageMax = $baseDamageMin;
@@ -1344,6 +1382,12 @@ class EncounterService
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
         $defense = $scaledMonsterStats['def'];
+
+        // Przebicie pancerza (Łuk / Infuzja różdżki)
+        $armorPenPct = min(85, max(0, ($eq['armor_pen_pct'] ?? 0) + ($procs['infusion_armor_pen'] ?? 0)));
+        if ($armorPenPct > 0) {
+            $defense = (int) round($defense * (1.0 - ($armorPenPct / 100.0)));
+        }
 
         $baseDamage = max(1, $damage - ($defense * 0.2));
         $bonusDamage = 0;
@@ -1374,11 +1418,18 @@ class EncounterService
             }
         }
 
+        // Podwójny Cios (Miecz / Infuzja różdżki)
+        $doubleStrikeDamage = 0;
+        if (!empty($procs['double_strike'])) {
+            $doubleStrikeDamage = max(1, (int) round(($baseDamage + $bonusDamage) * 0.5));
+        }
+
         return [
             'base' => $baseDamage,
             'bonus' => $bonusDamage,
             'magic' => $magicBurstDamage,
-            'total' => $baseDamage + $bonusDamage + $magicBurstDamage,
+            'double_strike' => $doubleStrikeDamage,
+            'total' => $baseDamage + $bonusDamage + $magicBurstDamage + $doubleStrikeDamage,
         ];
     }
 

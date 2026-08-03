@@ -15,12 +15,13 @@ class WipeServerCommandTest extends TestCase
         Artisan::call('migrate');
     }
 
-    public function test_game_wipe_command_preserves_users_and_characters(): void
+    public function test_game_wipe_command_preserves_users_and_characters_and_resets_game_stage(): void
     {
-        // 1. Arrange: Create user and character
+        // 1. Arrange: Create user with game_stage 40
         $user = User::factory()->create([
             'email' => 'player_test1@example.com',
             'name' => 'Player One',
+            'game_stage' => 40,
         ]);
 
         $character = Character::create([
@@ -36,10 +37,11 @@ class WipeServerCommandTest extends TestCase
         $this->artisan('game:wipe', ['--force' => true])
             ->assertExitCode(0);
 
-        // 3. Assert: User and Character still exist in DB
+        // 3. Assert: User and Character still exist in DB, and game_stage is 3
         $this->assertDatabaseHas('users', [
             'email' => 'player_test1@example.com',
             'name' => 'Player One',
+            'game_stage' => 3,
         ]);
 
         $this->assertDatabaseHas('characters', [
@@ -52,6 +54,7 @@ class WipeServerCommandTest extends TestCase
     {
         $user = User::factory()->create([
             'email' => 'player_test2@example.com',
+            'game_stage' => 25,
         ]);
 
         Character::create([
@@ -66,6 +69,7 @@ class WipeServerCommandTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'email' => 'player_test2@example.com',
+            'game_stage' => 3,
         ]);
 
         $this->assertDatabaseMissing('characters', [
