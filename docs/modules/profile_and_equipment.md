@@ -52,6 +52,11 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
 - **Porównywanie Sprzętu (Compare):** W trybie porównywania z założoną bronią wyświetlany jest zakres różnicy statystyk `(+<diff_min>-+<diff_max>)` lub straty, a prawa strona podglądu założonego przedmiotu stosuje ten sam spójny format.
 - **Pochodzenie Materiałów w Plecaku/Magazynie:** Tooltip przedmiotu (`x-item-tooltip`) dla materiałów (`type === 'material'`) wyświetlanych w plecaku oraz w magazynie materiałów pokazuje sekcję "Wypada z" z listą potworów i krain, z których dany surowiec można zdobyć (np. "Wilk Leśny · Mroczny Las"). Źródła łupów są zbierane zbiorczo w `Profile::render()` (`$materialDropSources`, zapytanie do `LootTableEntry` z eager-loadem `lootTable.monsters.map`) i przekazywane do komponentu jako opcjonalny prop `dropSources`.
 
+### 3b. Otwieranie Skrzyń (Modal Otwierania Skrzyń i Przycisk "Otwórz kolejne")
+- **Otwieranie Skrzyń z Plecaka/Magazynu (`CaseOpeningModal`):** Kliknięcie skrzyni w plecaku wywołuje zdarzenie `open-case-modal` z identyfikatorem instancji i liczbą skrzyń do otwarcia (1 lub seria). Otwiera to pełnoekranowy modal ruletki CS z animowanym bębnem losowania i prezentacją wygranych materiałów.
+- **Opcja "Otwórz kolejne":** Po zakończeniu losowania (`isFinished`), jeśli postać posiada w plecaku lub magazynie materiałów kolejne sztuki tej samej skrzyni (`remaining_chests > 0`), pod podsumowaniem pojawia się przycisk **"Otwórz kolejne (X)"**. Pozwala on na natychmiastowe ponowienie otwarcia bez konieczności zamykania modalu, szukania skrzyni w plecaku i ponownego jej klikania (`CaseOpeningModal::openAgain()`). Taśma ruletki resetuje pozycję błyskawicznie (0ms) i rozpoczyna nowe 6-sekundowe losowanie.
+
+
 
 ### 4. Rozwój Atrybutów
 Postać zdobywa punkty postaci (`character_points`) za każdy zdobyty poziom (np. +3 punkty za każdy awans).

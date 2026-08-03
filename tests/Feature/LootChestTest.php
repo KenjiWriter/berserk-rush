@@ -182,4 +182,70 @@ class LootChestTest extends TestCase
             ->assertSet('isOpen', true)
             ->assertDispatched('start-case-spin');
     }
+
+    public function test_case_opening_modal_allows_opening_next_chest_seamlessly(): void
+    {
+        $user = User::factory()->create();
+        $character = Character::create([
+            'id' => (string) Str::ulid(),
+            'user_id' => $user->id,
+            'name' => 'Bohater Testowy',
+            'level' => 50,
+            'attributes' => ['str' => 50, 'int' => 10, 'vit' => 50, 'agi' => 30],
+        ]);
+
+        $chestTemplate = ItemTemplate::where('name', 'Skrzynia Mrocznego Lasu')->first();
+        $chestInstance = ItemInstance::create([
+            'id' => (string) Str::ulid(),
+            'owner_character_id' => $character->id,
+            'template_id' => $chestTemplate->id,
+            'location' => 'inventory',
+            'stack_size' => 3,
+        ]);
+
+        $this->actingAs($user->refresh());
+        session(['active_character' => $character->id]);
+
+        $test = \Livewire\Livewire::test(\App\Livewire\City\CaseOpeningModal::class)
+            ->dispatch('open-case-modal', itemInstanceId: $chestInstance->id, count: 1, characterId: $character->id)
+            ->assertSet('errorMessage', null)
+            ->assertSet('isOpen', true)
+            ->assertSet('isSpinning', true)
+            ->assertDispatched('start-case-spin');
+
+        $payload1 = $test->get('chestData');
+        $this->assertEquals(2, $payload1['remaining_chests']);
+
+        // Finish spin
+        $test->call('onSpinCompleted')
+            ->assertSet('isFinished', true)
+            ->assertSet('isSpinning', false);
+
+        // Open next chest
+        $test->call('openAgain')
+            ->assertSet('errorMessage', null)
+            ->assertSet('isSpinning', true)
+            ->assertDispatched('start-case-spin');
+
+        $payload2 = $test->get('chestData');
+        $this->assertEquals(1, $payload2['remaining_chests']);
+
+        // Finish spin again
+        $test->call('onSpinCompleted');
+
+        // Open third (and last) chest
+        $test->call('openAgain')
+            ->assertSet('errorMessage', null)
+            ->assertSet('isSpinning', true);
+
+        $payload3 = $test->get('chestData');
+        $this->assertEquals(0, $payload3['remaining_chests']);
+
+        // Finish spin
+        $test->call('onSpinCompleted');
+
+        // Attempting openAgain when 0 left should show error
+        $test->call('openAgain')
+            ->assertSet('errorMessage', 'Brak kolejnych skrzyń tego typu w ekwipunku.');
+    }
 }

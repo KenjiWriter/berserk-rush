@@ -179,7 +179,10 @@ class OpenLootChestAction
                 ];
             }
 
-            $remainingChests = $chestInstance->exists ? $chestInstance->stack_size : 0;
+            $remainingChests = ItemInstance::where('owner_character_id', $character->id)
+                ->where('template_id', $chestTemplate->id)
+                ->whereIn('location', ['inventory', 'material_stash'])
+                ->sum('stack_size');
 
             return Result::ok([
                 'chest_template' => [

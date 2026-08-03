@@ -3,7 +3,9 @@
     isSpinning: @entangle('isSpinning'),
     isFinished: @entangle('isFinished'),
     translates: [0, 0, 0],
+    spinDuration: 0,
     itemWidth: 144, // 132px width + 12px gap
+    tickInterval: null,
 
     handleSpin(data) {
         let payload = data;
@@ -11,6 +13,12 @@
         if (payload && payload.payload) payload = payload.payload;
         if (!payload) return;
 
+        if (this.tickInterval) {
+            clearInterval(this.tickInterval);
+            this.tickInterval = null;
+        }
+
+        this.spinDuration = 0;
         this.translates = [0, 0, 0];
         
         setTimeout(() => {
@@ -38,14 +46,16 @@
             this.translates[idx] = targetPos;
         });
         this.translates = [...this.translates];
+        this.spinDuration = 6000;
 
         let startTime = Date.now();
         let duration = 6000;
 
-        let tickInterval = setInterval(() => {
+        this.tickInterval = setInterval(() => {
             let elapsed = Date.now() - startTime;
             if (elapsed >= duration) {
-                clearInterval(tickInterval);
+                clearInterval(this.tickInterval);
+                this.tickInterval = null;
                 setTimeout(() => {
                     this.$wire.call('onSpinCompleted');
                 }, 300);
@@ -147,7 +157,7 @@
 
                                     {{-- Moving Reel Strip --}}
                                     <div class="flex gap-3 py-3 px-2 absolute top-0 bottom-0 left-0 items-center transition-transform"
-                                         :style="`transform: translateX(-${translates[{{ $sIdx }}] || 0}px); transition-duration: ${isSpinning ? '6000ms' : '0ms'}; transition-timing-function: cubic-bezier(0.12, 0.8, 0.15, 1.0);`">
+                                         :style="`transform: translateX(-${translates[{{ $sIdx }}] || 0}px); transition-duration: ${isSpinning ? spinDuration : 0}ms; transition-timing-function: cubic-bezier(0.12, 0.8, 0.15, 1.0);`">
                                         
                                         @foreach($sData['roulette_items'] as $item)
                                             @php
@@ -232,12 +242,26 @@
                 @endif
 
                 {{-- Action Buttons --}}
-                <div class="flex items-center justify-center gap-4 w-full max-w-md mt-2">
+                <div class="flex flex-wrap items-center justify-center gap-3 w-full max-w-md mt-2">
                     @if($isFinished)
-                        <button @click="$wire.call('closeModal')" 
-                                class="px-6 py-3 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold rounded-xl shadow-lg border border-amber-400 medieval-font text-sm transition-all transform hover:-translate-y-0.5">
-                            <i class="fa-solid fa-check mr-1.5"></i> Odbierz i Zamknij
-                        </button>
+                        @if(($chestData['remaining_chests'] ?? 0) > 0)
+                            <button @click="$wire.call('openAgain')" 
+                                    wire:loading.attr="disabled"
+                                    class="px-6 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black rounded-xl shadow-[0_0_20px_rgba(245,158,11,0.4)] border border-amber-300 medieval-font text-sm transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i>
+                                <span>Otwórz kolejne ({{ $chestData['remaining_chests'] }})</span>
+                            </button>
+
+                            <button @click="$wire.call('closeModal')" 
+                                    class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-600 medieval-font text-sm transition-colors">
+                                Odbierz i Zamknij
+                            </button>
+                        @else
+                            <button @click="$wire.call('closeModal')" 
+                                    class="px-6 py-3 bg-gradient-to-r from-amber-700 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold rounded-xl shadow-lg border border-amber-400 medieval-font text-sm transition-all transform hover:-translate-y-0.5">
+                                <i class="fa-solid fa-check mr-1.5"></i> Odbierz i Zamknij
+                            </button>
+                        @endif
                     @elseif(!$isSpinning)
                         <button @click="$wire.call('closeModal')" 
                                 class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-600 medieval-font text-xs transition-colors">

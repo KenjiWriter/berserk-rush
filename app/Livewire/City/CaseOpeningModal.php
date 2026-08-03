@@ -7,6 +7,8 @@ use App\Application\Items\Actions\OpenLootChestAction;
 use App\Infrastructure\Persistence\Character;
 use Livewire\Attributes\On;
 
+use App\Infrastructure\Persistence\ItemInstance;
+
 class CaseOpeningModal extends Component
 {
     public bool $isOpen = false;
@@ -16,6 +18,8 @@ class CaseOpeningModal extends Component
     public ?string $itemInstanceId = null;
     public ?array $chestData = null;
     public ?string $errorMessage = null;
+    public int $openCount = 1;
+    public ?string $characterId = null;
 
     #[On('open-case-modal')]
     public function openCaseModal($itemInstanceId = null, int $count = 1, $payload = null, $characterId = null): void
@@ -51,7 +55,9 @@ class CaseOpeningModal extends Component
 
         $this->resetState();
         $this->itemInstanceId = $id;
-        $this->startOpening($count, $charId);
+        $this->openCount = max(1, $count);
+        $this->characterId = $charId;
+        $this->startOpening($this->openCount, $charId);
     }
 
     public function startOpening(int $count = 1, ?string $characterId = null): void
@@ -102,6 +108,63 @@ class CaseOpeningModal extends Component
         $this->dispatch('start-case-spin', payload: $this->chestData);
     }
 
+    public function openAgain(): void
+    {
+        if ($this->isSpinning) {
+            return;
+        }
+
+        if (!$this->chestData || !isset($this->chestData['chest_template']['id'])) {
+            return;
+        }
+
+        $templateId = $this->chestData['chest_template']['id'];
+
+        $user = auth()->user();
+        if (!$user) {
+            $this->errorMessage = 'Nie odnaleziono zalogowanego użytkownika.';
+            return;
+        }
+
+        $character = null;
+        if ($this->characterId) {
+            $character = Character::where('id', $this->characterId)->where('user_id', $user->id)->first();
+        }
+        if (!$character) {
+            $activeCharId = session('active_character');
+            if ($activeCharId) {
+                $character = Character::where('id', $activeCharId)->where('user_id', $user->id)->first();
+            }
+        }
+        if (!$character) {
+            $character = $user->character ?? $user->characters()->first();
+        }
+
+        if (!$character) {
+            $this->errorMessage = 'Nie znaleziono postaci gracza.';
+            return;
+        }
+
+        $chestInstance = ItemInstance::where('owner_character_id', $character->id)
+            ->where('template_id', $templateId)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->where('stack_size', '>=', 1)
+            ->first();
+
+        if (!$chestInstance) {
+            $this->errorMessage = 'Brak kolejnych skrzyń tego typu w ekwipunku.';
+            return;
+        }
+
+        $this->itemInstanceId = $chestInstance->id;
+        $countToOpen = min($this->openCount, $chestInstance->stack_size);
+        if ($countToOpen < 1) {
+            $countToOpen = 1;
+        }
+
+        $this->startOpening($countToOpen, $character->id);
+    }
+
     public function onSpinCompleted(): void
     {
         $this->isSpinning = false;
@@ -122,6 +185,8 @@ class CaseOpeningModal extends Component
         $this->isFinished = false;
         $this->chestData = null;
         $this->errorMessage = null;
+        $this->openCount = 1;
+        $this->characterId = null;
     }
 
     public function render()
