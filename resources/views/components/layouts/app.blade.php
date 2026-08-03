@@ -34,33 +34,26 @@
     <script>
         if (typeof window.smartTooltip === 'undefined') {
             window.smartTooltip = function() {
-                const isMobile = window.innerWidth < 768;
-                const defaultStyle = isMobile ? {
-                    position: 'fixed',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    margin: '0',
-                    width: 'calc(100vw - 1.5rem)',
-                    maxWidth: '420px',
-                    maxHeight: '85vh',
-                    overflowY: 'auto',
-                    zIndex: '10000',
-                } : {
-                    position: 'fixed',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
-                    margin: '0',
-                    maxHeight: 'calc(100vh - 24px)',
-                    overflowY: 'auto',
-                    zIndex: '10000',
+                const getStyle = () => {
+                    const isMobile = window.innerWidth < 768;
+                    return {
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        margin: '0',
+                        width: isMobile ? 'calc(100vw - 1.5rem)' : 'auto',
+                        maxWidth: 'min(calc(100vw - 1.5rem), 780px)',
+                        maxHeight: isMobile ? '88vh' : 'calc(100vh - 24px)',
+                        overflowY: 'auto',
+                        zIndex: '10000',
+                    };
                 };
 
                 return {
                     showInfo: false,
                     timeout: null,
-                    tooltipStyle: { ...defaultStyle },
+                    tooltipStyle: getStyle(),
                     _onCloseAllTooltips: null,
                     _onWindowClick: null,
                     init() {
@@ -111,7 +104,7 @@
                             const activeContainers = document.body.querySelectorAll('[data-tooltip-container]');
                             for (let i = 0; i < activeContainers.length; i++) {
                                 if (activeContainers[i].offsetParent !== null || window.getComputedStyle(activeContainers[i]).display !== 'none') {
-                                    return activeContainers[i];
+                                    return activeContainers[activeContainers.length - 1];
                                 }
                             }
                             if (activeContainers.length > 0) {
@@ -121,18 +114,7 @@
                         return document.querySelector('[data-tooltip-container]');
                     },
                     updatePosition() {
-                        this.tooltipStyle = {
-                            position: 'fixed',
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)',
-                            margin: '0',
-                            width: 'calc(100vw - 1.5rem)',
-                            maxWidth: '440px',
-                            maxHeight: '88vh',
-                            overflowY: 'auto',
-                            zIndex: '10000',
-                        };
+                        this.tooltipStyle = getStyle();
                     },
                     openTooltip() {
                         // Bezpośrednie najechanie myszką nie otwiera już automatycznie tooltipu.
