@@ -50,18 +50,12 @@ class ShopEquipmentSeeder extends Seeder
         // mnożnikiem atrybutów w formule obrażeń/HP - patrz identyczna notatka i
         // wyjaśnienie w `ItemTemplateSeeder.php`.
         $prototypes = [
-            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1, 'double_strike_chance' => 20]],
-            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 6.75, 'bleed_chance' => 25]],
-            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.75, 'crit_chance' => 2, 'armor_pen_pct' => 20]],
-            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2.25, 'magic_attack_max' => 5.25, 'crit_chance' => 1, 'magic_infusion_chance' => 25]],
-            // UWAGA (rebalans dagger/bell, 2026-07-29): attack_min/max podniesione -
-            // symulacja (php artisan balance:monsters) pokazała, że przy oryginalnych
-            // wartościach sztylet i dzwon systematycznie przegrywały cel >=90% winrate
-            // (nawet <50% na wysokich mapach), podczas gdy miecz/topór/łuk/różdżka go
-            // spełniały - to był realny brak balansu MIĘDZY bronami, niezależny od
-            // strojenia potworów. Patrz identyczna notatka w ItemTemplateSeeder.php.
-            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 3, 'poison_chance' => 25]],
-            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.5, 'magic_burst_chance' => 25, 'magic_burst_min' => 2.25, 'magic_burst_max' => 4.5]],
+            'sword'   => ['type' => 'weapon', 'sub_type' => 'sword', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 4.5, 'crit_chance' => 1, 'double_strike_chance' => 10]],
+            'axe'     => ['type' => 'weapon', 'sub_type' => 'axe', 'slot' => 'main_hand', 'stats' => ['attack_min' => 0.75, 'attack_max' => 6.75, 'bleed_chance' => 15]],
+            'bow'     => ['type' => 'weapon', 'sub_type' => 'bow', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.75, 'crit_chance' => 2, 'armor_pen_pct' => 12]],
+            'wand'    => ['type' => 'weapon', 'sub_type' => 'wand', 'slot' => 'main_hand', 'stats' => ['magic_attack_min' => 2.25, 'magic_attack_max' => 5.25, 'crit_chance' => 1, 'magic_infusion_chance' => 12]],
+            'dagger'  => ['type' => 'weapon', 'sub_type' => 'dagger', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.2, 'attack_max' => 4.8, 'crit_chance' => 3, 'poison_chance' => 15]],
+            'bell'    => ['type' => 'weapon', 'sub_type' => 'bell', 'slot' => 'main_hand', 'stats' => ['attack_min' => 1.5, 'attack_max' => 3.5, 'magic_burst_chance' => 15, 'magic_burst_min' => 2.25, 'magic_burst_max' => 4.5]],
 
             'armor'   => ['type' => 'armor', 'slot' => 'chest', 'stats' => ['defense' => 4, 'hp_bonus' => 13.5]],
             'helmet'  => ['type' => 'armor', 'slot' => 'head', 'stats' => ['defense' => 2, 'hp_bonus' => 7.5]],
@@ -168,19 +162,20 @@ class ShopEquipmentSeeder extends Seeder
                 // zamiast stałej liczby - patrz statRange() powyżej i ItemStatRoller.
                 $scaledStats = [];
                 foreach ($proto['stats'] as $statName => $baseValue) {
-                    if (in_array($statName, ['crit_chance', 'magic_burst_chance'], true)) {
-                        // Wartości procentowe nie mnożą się przez skalę poziomu - rosną
-                        // liniowo z kolejnym tier'em sklepu i mają sensowny sufit.
-                        $cap = $statName === 'crit_chance' ? 15 : 60;
+                    if (in_array($statName, ['double_strike_chance', 'bleed_chance', 'poison_chance', 'armor_pen_pct', 'magic_infusion_chance', 'magic_burst_chance'], true)) {
+                        // Stałe, zbalansowane wartości procentowe specjalizacji broni (np. Miecz: 5-15%)
+                        $variance = $statName === 'double_strike_chance' ? 0.50 : 0.33;
+                        $scaledStats[$statName] = $this->statRange($baseValue, $variance);
+                        continue;
+                    }
+                    if ($statName === 'crit_chance') {
+                        $cap = 15;
                         $critVal = min($cap, $baseValue + ($themeIndex * 0.5));
+                        $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);
+                        $isRingOrNecklace = in_array($protoKey, ['ring', 'amulet'], true) || in_array($proto['slot'] ?? '', ['ring', 'neck'], true);
 
-                        if ($statName === 'crit_chance') {
-                            $isWeaponAbove15 = (($proto['type'] ?? '') === 'weapon' && ($theme['level'] ?? 0) > 15);
-                            $isRingOrNecklace = in_array($protoKey, ['ring', 'amulet'], true) || in_array($proto['slot'] ?? '', ['ring', 'neck'], true);
-
-                            if ($isWeaponAbove15 || $isRingOrNecklace) {
-                                $critVal = $critVal * 0.5;
-                            }
+                        if ($isWeaponAbove15 || $isRingOrNecklace) {
+                            $critVal = $critVal * 0.5;
                         }
 
                         $scaledStats[$statName] = $this->statRange($critVal, 0.25, $cap);

@@ -902,10 +902,18 @@ class Character extends Model
                         case 'support':
                             $stats['dodge_chance'] += $petBonusPct;
                             $stats['mana_cost_reduction_pct'] += $petBonusPct;
-                            break;
                     }
                 }
             }
+
+            $stats['double_strike_chance'] = min(50, max(0, $stats['double_strike_chance'] ?? 0));
+            $stats['crit_chance'] = min(75, max(0, $stats['crit_chance'] ?? 0));
+            $stats['dodge_chance'] = min(50, max(0, $stats['dodge_chance'] ?? 0));
+            $stats['armor_pen_pct'] = min(50, max(0, $stats['armor_pen_pct'] ?? 0));
+            $stats['poison_chance'] = min(50, max(0, $stats['poison_chance'] ?? 0));
+            $stats['bleed_chance'] = min(50, max(0, $stats['bleed_chance'] ?? 0));
+            $stats['magic_infusion_chance'] = min(50, max(0, $stats['magic_infusion_chance'] ?? 0));
+            $stats['magic_burst_chance'] = min(50, max(0, $stats['magic_burst_chance'] ?? 0));
 
             return $stats;
         };
