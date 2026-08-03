@@ -190,8 +190,8 @@ class CombatSkillManaTest extends TestCase
         // Player starts with 80 MP. In first turn, passive drains 15 MP => 65 MP remaining.
         $this->assertEquals(65, $playerTurns[0]['playerMana']);
         if (isset($playerTurns[1])) {
-            // Second turn, passive drains another 15 MP => 50 MP remaining.
-            $this->assertEquals(50, $playerTurns[1]['playerMana']);
+            // Second turn, passive drains another 15 MP and regenerates 5 MP => 55 MP remaining.
+            $this->assertEquals(55, $playerTurns[1]['playerMana']);
         }
     }
 }

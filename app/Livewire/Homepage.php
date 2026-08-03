@@ -35,12 +35,14 @@ class Homepage extends Component
 
         $topCharacters = \App\Infrastructure\Persistence\Character::with('guild')
             ->orderByDesc('level')
-            ->orderByDesc('xp')
+            // Przy tym samym poziomie wygrywa TEN, kto osiągnął go WCZEŚNIEJ.
+            // NULLS FIRST = postaci sprzed wdrożenia tej funkcji traktowane jako "najstarsze"
+            ->orderByRaw('max_level_reached_at ASC NULLS FIRST')
             ->limit(10)
             ->get()
             ->map(function ($c) {
                 return [
-                    'name' => $c->name,
+                    'name'  => $c->name,
                     'level' => $c->level,
                     'guild' => $c->guild ? $c->guild->name : '-',
                 ];

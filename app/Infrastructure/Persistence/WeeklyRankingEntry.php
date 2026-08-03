@@ -18,7 +18,7 @@ class WeeklyRankingEntry extends Model
     ];
 
     protected $casts = [
-        'week_start' => 'date',
+        'week_start' => 'date:Y-m-d',
         'score'      => 'integer',
     ];
 

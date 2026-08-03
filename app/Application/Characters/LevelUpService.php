@@ -79,11 +79,15 @@ class LevelUpService
                     $pointsGained = count($levelUps) * 3;
 
                     $character->update([
-                        'level' => $currentLevel,
-                        'character_points' => ($character->character_points ?? 0) + $pointsGained,
-                        'skill_points' => ($character->skill_points ?? 0) + (count($levelUps) * 3),
-                        'xp' => $currentXp,
+                        'level'              => $currentLevel,
+                        'character_points'   => ($character->character_points ?? 0) + $pointsGained,
+                        'skill_points'       => ($character->skill_points ?? 0) + (count($levelUps) * 3),
+                        'xp'                 => $currentXp,
+                        // Aktualizujemy timestamp każdego nowego poziomu — ranking sortuje ASC,
+                        // więc kto WCZEŚNIEJ osiągnął dany poziom, jest wyżej w tabeli.
+                        'max_level_reached_at' => !empty($levelUps) ? now() : $character->max_level_reached_at,
                     ]);
+
 
                     $character->syncMissingPoints();
 

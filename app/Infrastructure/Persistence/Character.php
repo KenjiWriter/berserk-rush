@@ -60,6 +60,7 @@ class Character extends Model
         'discord_user_id',
         'discord_link_reward_claimed_at',
         'mirror_access_until',
+        'max_level_reached_at',
     ];
 
     protected $casts = [
@@ -80,6 +81,7 @@ class Character extends Model
         'last_active_at' => 'datetime',
         'discord_link_reward_claimed_at' => 'datetime',
         'mirror_access_until' => 'datetime',
+        'max_level_reached_at' => 'datetime',
     ];
 
     public function hasClaimedDiscordLinkReward(): bool

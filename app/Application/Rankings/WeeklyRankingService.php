@@ -70,6 +70,10 @@ class WeeklyRankingService
      */
     public function incrementScore(string $characterId, string $category, int $amount = 1): void
     {
+        if ($amount <= 0) {
+            return;
+        }
+
         if (!in_array($category, WeeklyRankingEntry::CATEGORIES)) {
             Log::warning("WeeklyRankingService: nieznana kategoria '{$category}'");
             return;
@@ -78,19 +82,29 @@ class WeeklyRankingService
         $weekStart = self::currentWeekStart();
 
         try {
-            DB::statement("
-                INSERT INTO weekly_ranking_entries (id, character_id, week_start, category, score, created_at, updated_at)
-                VALUES (gen_random_uuid(), ?, ?, ?, ?, NOW(), NOW())
-                ON CONFLICT (character_id, week_start, category)
-                DO UPDATE SET score = weekly_ranking_entries.score + EXCLUDED.score, updated_at = NOW()
-            ", [$characterId, $weekStart, $category, $amount]);
-        } catch (\Exception $e) {
+            $entry = WeeklyRankingEntry::firstOrCreate(
+                [
+                    'character_id' => $characterId,
+                    'week_start'   => $weekStart,
+                    'category'     => $category,
+                ],
+                [
+                    'score' => 0,
+                ]
+            );
+
+            $entry->increment('score', $amount);
+        } catch (\Throwable $e) {
             Log::error("WeeklyRankingService::incrementScore failed", [
                 'character_id' => $characterId,
                 'category'     => $category,
                 'amount'       => $amount,
                 'error'        => $e->getMessage(),
             ]);
+
+            if (DB::transactionLevel() > 0) {
+                throw $e;
+            }
         }
     }
 
