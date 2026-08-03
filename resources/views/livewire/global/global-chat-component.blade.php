@@ -19,11 +19,24 @@
         justOpened: false,
         isIdleHidden: false,
         idleTimer: null,
-        resetIdleTimer() {
-            this.isIdleHidden = false;
+        unhideTimeout: null,
+        resetIdleTimer(immediate = true) {
             if (this.idleTimer) {
                 clearTimeout(this.idleTimer);
                 this.idleTimer = null;
+            }
+            if (this.unhideTimeout) {
+                clearTimeout(this.unhideTimeout);
+                this.unhideTimeout = null;
+            }
+            if (immediate) {
+                this.isIdleHidden = false;
+            } else if (this.isIdleHidden) {
+                this.unhideTimeout = setTimeout(() => {
+                    if (!this.isOpen) {
+                        this.isIdleHidden = false;
+                    }
+                }, 400);
             }
             if (!this.isOpen) {
                 this.idleTimer = setTimeout(() => {
@@ -175,8 +188,9 @@
             }
         },
         init() {
-            const handleActivity = () => {
-                this.resetIdleTimer();
+            const handleActivity = (evt) => {
+                const isTouch = evt && (evt.type === 'touchstart' || evt.type === 'pointerdown');
+                this.resetIdleTimer(!isTouch);
             };
 
             ['mousemove', 'touchstart', 'pointerdown', 'keydown', 'scroll'].forEach(evt => {

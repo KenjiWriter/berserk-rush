@@ -90,9 +90,10 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > rerollem ma swoją cenę. Cena widoczna w UI aktualizuje się na żywo wraz z
 > (od)blokowaniem kolejnych bonusów. Jeśli wszystkie bonusy są zablokowane, przycisk
 > rerolla jest zablokowany z komunikatem - nie ma czego przelosować.
-> `ItemInstance::getEnchantLocks()` odfiltrowuje "osierocone" wpisy (typ zablokowany,
-> którego już nie ma wśród bonusów przedmiotu), więc stan nigdy nie rozjeżdża się z
-> rzeczywistą zawartością `roll_stats['enchants']`.
+> **Uwaga (Bonus Switcher / Switchbot, 2026-08-03):** U Wiedźmy w zakładce zaczarowania dostępny jest interaktywny moduł **Bonus Switchera (Switchbota)**. Gracz może skonfigurować do 5 kryteriów docelowych (wybór typu bonusu z puli przedmiotu + minimalna oczekiwana wartość) oraz wybrać walutę (Złoto lub Klejnoty). Przelosowywanie wykonywane jest automatycznie (`Witch::rerollStep()`):
+> - Zwykli gracze: 1 rzut co **0.3 s (300 ms)**.
+> - Gracze ze statusem **VIP** (`User::hasPremium()`): **2x szybciej** — 1 rzut co **0.15 s (150 ms)** (ze złotą odznaką VIP w UI).
+> Losowanie można zatrzymać w dowolnej chwili przyciskiem "Zatrzymaj". Switchbot zatrzymuje się automatycznie po trafieniu zestawu celów, po wyczerpaniu waluty lub po wystąpieniu błędu. Rozliczanie walut i zasady blokad kłódek pozostają w 100% spójne z ręcznym rerollem (`RerollEnchantments`).
 
 ### 5. Ekonomia i Waluty
 - System Czarodzieja obsługuje mikropłatności dwuwalutowe: gracz zawsze ma wybór, by zapłacić zwykłym wewnątrzgrowym **Złotem (Gold)** lub walutą premium **Klejnotami (Gems)**.

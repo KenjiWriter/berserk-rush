@@ -561,6 +561,217 @@
                                                     </div>
                                                 @endif
                                             </div>
+                                        @if($enchantCount > 0 && $unlockedCount > 0)
+                                            {{-- BONUS SWITCHER (SWITCHBOT) SECTION --}}
+                                            <div class="mt-6 pt-5 border-t border-purple-800/50"
+                                                 x-data="{
+                                                     isRunning: false,
+                                                     timer: null,
+                                                     isVip: {{ auth()->user()->hasPremium() ? 'true' : 'false' }},
+                                                     rollInterval: {{ auth()->user()->hasPremium() ? 150 : 300 }},
+                                                     currency: 'gold',
+                                                     targetCriteria: [
+                                                         { type: '', min: 1 }
+                                                     ],
+                                                     rollCount: 0,
+                                                     statusText: '',
+                                                     statusType: '',
+
+                                                     init() {
+                                                         this.$watch('$wire.activeItemId', () => this.stopSwitcher());
+                                                     },
+                                                     addCriterion() {
+                                                         if (this.targetCriteria.length < 5) {
+                                                             this.targetCriteria.push({ type: '', min: 1 });
+                                                         }
+                                                     },
+                                                     removeCriterion(index) {
+                                                         if (this.targetCriteria.length > 1) {
+                                                             this.targetCriteria.splice(index, 1);
+                                                         }
+                                                     },
+                                                     async startSwitcher() {
+                                                         const validCriteria = this.targetCriteria.filter(c => c.type && c.min !== null && c.min !== '');
+                                                         if (validCriteria.length === 0) {
+                                                             this.statusText = 'Wybierz co najmniej jeden docelowy bonus!';
+                                                             this.statusType = 'error';
+                                                             return;
+                                                         }
+
+                                                         this.isRunning = true;
+                                                         this.statusText = 'Bonus Switcher aktywny... Poszukiwanie bonusów...';
+                                                         this.statusType = 'info';
+                                                         this.rollCount = 0;
+
+                                                         const loop = async () => {
+                                                             if (!this.isRunning) return;
+
+                                                             try {
+                                                                 const res = await $wire.rerollStep(this.currency, validCriteria);
+
+                                                                 if (!res.success) {
+                                                                     this.stopSwitcher();
+                                                                     this.statusText = res.error || 'Brak wystarczających środków na dalsze losowanie.';
+                                                                     this.statusType = 'error';
+                                                                     $dispatch('play-audio', { type: 'enchant-fail' });
+                                                                     return;
+                                                                 }
+
+                                                                 this.rollCount++;
+                                                                 $dispatch('stats-updated', { gold: res.gold, gems: res.gems });
+
+                                                                 if (res.isMatch) {
+                                                                     this.stopSwitcher();
+                                                                     this.statusText = 'SUKCES! Wylosowano wszystkie wyznaczone bonusy!';
+                                                                     this.statusType = 'success';
+                                                                     $dispatch('play-audio', { type: 'enchant-success' });
+                                                                     return;
+                                                                 }
+
+                                                                 if (this.isRunning) {
+                                                                     this.timer = setTimeout(loop, this.rollInterval);
+                                                                 }
+                                                             } catch (err) {
+                                                                 this.stopSwitcher();
+                                                                 this.statusText = 'Błąd połączenia podczas przelosowywania.';
+                                                                 this.statusType = 'error';
+                                                             }
+                                                         };
+
+                                                         loop();
+                                                     },
+                                                     stopSwitcher() {
+                                                         this.isRunning = false;
+                                                         if (this.timer) {
+                                                             clearTimeout(this.timer);
+                                                             this.timer = null;
+                                                         }
+                                                     }
+                                                 }">
+                                                <div class="bg-gradient-to-b from-purple-950/80 via-slate-950/90 to-black border-2 border-purple-600/60 rounded-2xl p-4 sm:p-5 shadow-[0_0_25px_rgba(147,51,234,0.3)] backdrop-blur-md">
+                                                    {{-- Header --}}
+                                                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-purple-800/40 pb-3 mb-4">
+                                                        <div class="flex items-center gap-2">
+                                                            <div class="w-8 h-8 rounded-lg bg-purple-900/80 border border-purple-400/60 flex items-center justify-center text-purple-300 shadow-md">
+                                                                <i class="fa-solid fa-rotate text-sm"></i>
+                                                            </div>
+                                                            <div>
+                                                                <h4 class="font-extrabold text-base text-amber-200 medieval-font tracking-wide">Bonus Switcher (Switchbot)</h4>
+                                                                <p class="text-[11px] text-purple-300/70 font-sans">Automatyczne losowanie do momentu trafienia wybranych bonusów</p>
+                                                            </div>
+                                                        </div>
+
+                                                        {{-- VIP Speed Badge --}}
+                                                        @if(auth()->user()->hasPremium())
+                                                            <span class="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-950 to-amber-900 text-amber-300 border border-amber-500/80 px-3 py-1 rounded-full text-xs font-bold shadow-[0_0_12px_rgba(245,158,11,0.4)] animate-pulse">
+                                                                <i class="fa-solid fa-crown text-amber-400"></i>
+                                                                VIP 2x Szybciej (150ms)
+                                                            </span>
+                                                        @else
+                                                            <span class="inline-flex items-center gap-1.5 bg-slate-900/90 text-slate-300 border border-slate-700/80 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+                                                                <i class="fa-solid fa-stopwatch text-indigo-400"></i>
+                                                                Prędkość: 300ms
+                                                            </span>
+                                                        @endif
+                                                    </div>
+
+                                                    {{-- Target Criteria Inputs --}}
+                                                    <div class="mb-4">
+                                                        <label class="block text-xs font-extrabold text-purple-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                            <i class="fa-solid fa-bullseye text-amber-400"></i>
+                                                            Docelowe Bonusy i Min. Wartości:
+                                                        </label>
+
+                                                        <div class="space-y-2">
+                                                            <template x-for="(criterion, index) in targetCriteria" :key="index">
+                                                                <div class="flex items-center gap-2 bg-black/50 p-2 rounded-xl border border-purple-900/50">
+                                                                    <span class="text-xs text-purple-400 font-bold w-5 text-center" x-text="index + 1 + '.'"></span>
+
+                                                                    <select x-model="criterion.type"
+                                                                            :disabled="isRunning"
+                                                                            class="flex-1 bg-stone-900 border border-purple-700/60 rounded-lg px-2.5 py-1.5 text-xs text-amber-100 focus:outline-none focus:border-amber-500 disabled:opacity-50">
+                                                                        <option value="">-- Wybierz bonus --</option>
+                                                                        @foreach($possibleBonuses as $bonusKey => $range)
+                                                                            @php
+                                                                                $isPct = !in_array($bonusKey, ['str_bonus', 'agi_bonus', 'int_bonus', 'vit_bonus'], true);
+                                                                                $unit = $isPct ? '%' : '';
+                                                                            @endphp
+                                                                            <option value="{{ $bonusKey }}">{{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($bonusKey) }} (max +{{ $range[1] }}{{ $unit }})</option>
+                                                                        @endforeach
+                                                                    </select>
+
+                                                                    <div class="flex items-center gap-1 shrink-0">
+                                                                        <span class="text-xs text-purple-300/80 font-bold">Min:</span>
+                                                                        <input type="number"
+                                                                               x-model.number="criterion.min"
+                                                                               :disabled="isRunning"
+                                                                               placeholder="1"
+                                                                               class="w-16 bg-stone-900 border border-purple-700/60 rounded-lg px-2 py-1.5 text-xs font-mono text-amber-300 text-center focus:outline-none focus:border-amber-500 disabled:opacity-50" />
+                                                                    </div>
+
+                                                                    <button @click="removeCriterion(index)"
+                                                                            :disabled="isRunning || targetCriteria.length <= 1"
+                                                                            class="w-7 h-7 rounded-lg bg-red-950/60 border border-red-700/60 text-red-400 hover:bg-red-900 hover:text-red-200 flex items-center justify-center text-xs transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                                                                        <i class="fa-solid fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+
+                                                        <div class="mt-2 flex justify-between items-center">
+                                                            <button @click="addCriterion()"
+                                                                    :disabled="isRunning || targetCriteria.length >= 5"
+                                                                    class="text-xs text-purple-300 hover:text-purple-100 font-bold flex items-center gap-1 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+                                                                <i class="fa-solid fa-plus-circle text-amber-400"></i> Dodaj kolejny cel (max 5)
+                                                            </button>
+
+                                                            {{-- Currency Selector --}}
+                                                            <div class="flex items-center gap-3 bg-black/40 px-3 py-1 rounded-lg border border-purple-900/40">
+                                                                <label class="inline-flex items-center gap-1 text-xs text-amber-300 font-bold cursor-pointer">
+                                                                    <input type="radio" name="switchbot_currency" value="gold" x-model="currency" :disabled="isRunning" class="text-amber-500 focus:ring-0">
+                                                                    <i class="fa-solid fa-coins text-amber-400"></i> Złoto
+                                                                </label>
+                                                                <label class="inline-flex items-center gap-1 text-xs text-blue-300 font-bold cursor-pointer">
+                                                                    <input type="radio" name="switchbot_currency" value="gems" x-model="currency" :disabled="isRunning" class="text-blue-500 focus:ring-0">
+                                                                    <i class="fa-solid fa-gem text-blue-400"></i> Klejnoty
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {{-- Status & Controls --}}
+                                                    <div class="pt-3 border-t border-purple-900/40">
+                                                        <div x-show="statusText" class="mb-3 text-center p-2 rounded-lg text-xs font-bold border shadow-inner"
+                                                             :class="{
+                                                                 'bg-green-950/80 border-green-500 text-green-200': statusType === 'success',
+                                                                 'bg-red-950/80 border-red-500 text-red-200': statusType === 'error',
+                                                                 'bg-purple-950/80 border-purple-500 text-purple-200 animate-pulse': statusType === 'info'
+                                                             }"
+                                                             x-text="statusText">
+                                                        </div>
+
+                                                        <div class="flex items-center justify-between gap-3">
+                                                            <div class="text-xs text-purple-300 font-mono">
+                                                                Wykonane rzuty: <span class="text-amber-300 font-bold text-sm" x-text="rollCount">0</span>
+                                                            </div>
+
+                                                            <div class="flex items-center gap-2">
+                                                                <button x-show="!isRunning"
+                                                                        @click="startSwitcher()"
+                                                                        class="bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold py-2.5 px-5 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.4)] border border-emerald-400/60 transition-all duration-200 transform hover:scale-105 text-xs uppercase tracking-wider cursor-pointer flex items-center gap-2">
+                                                                    <i class="fa-solid fa-play"></i> Uruchom Switchera
+                                                                </button>
+
+                                                                <button x-show="isRunning"
+                                                                        @click="stopSwitcher(); statusText = 'Zatrzymano losowanie.'; statusType = 'error';"
+                                                                        class="bg-gradient-to-r from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white font-extrabold py-2.5 px-5 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-400/60 transition-all duration-200 transform hover:scale-105 text-xs uppercase tracking-wider cursor-pointer flex items-center gap-2 animate-pulse">
+                                                                    <i class="fa-solid fa-stop"></i> Zatrzymaj
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         @endif
 
                                         {{-- Możliwe zaklęcia dla tego typu przedmiotu --}}

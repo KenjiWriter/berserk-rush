@@ -287,6 +287,88 @@ class Witch extends Component
         }
     }
 
+    /**
+     * Wykonuje pojedynczy krok losowania w ramach Bonus Switchera (Switchbot).
+     */
+    public function rerollStep(string $currencyType, array $targetCriteria, RerollEnchantments $rerollAction): array
+    {
+        if (!$this->activeItemId) {
+            return ['success' => false, 'error' => 'Brak wybranego przedmiotu na stole.'];
+        }
+
+        $item = ItemInstance::find($this->activeItemId);
+        if (!$item || $item->owner_character_id !== $this->character->id) {
+            return ['success' => false, 'error' => 'Wybrany przedmiot nie należy do Twojej postaci.'];
+        }
+
+        try {
+            $result = $rerollAction->execute($item, $this->character, $currencyType);
+
+            if ($result->isError()) {
+                return [
+                    'success' => false,
+                    'stop' => true,
+                    'error' => $result->getErrorMessage(),
+                    'gold' => $this->character->gold,
+                    'gems' => $this->character->user?->gems ?? 0,
+                ];
+            }
+
+            $this->character->refresh();
+            $item->refresh();
+
+            $enchants = $item->getEnchantments();
+            $isMatch = $this->checkCriteriaMatch($enchants, $targetCriteria);
+
+            if ($isMatch) {
+                $this->actionType = 'success';
+                $this->actionMessage = 'Bonus Switcher: Osiągnięto wyznaczone kryteria bonusów!';
+            }
+
+            return [
+                'success' => true,
+                'stop' => $isMatch,
+                'isMatch' => $isMatch,
+                'enchants' => $enchants,
+                'gold' => $this->character->gold,
+                'gems' => $this->character->user?->gems ?? 0,
+            ];
+        } catch (\Exception $e) {
+            return [
+                'success' => false,
+                'stop' => true,
+                'error' => $e->getMessage(),
+                'gold' => $this->character->gold,
+                'gems' => $this->character->user?->gems ?? 0,
+            ];
+        }
+    }
+
+    public function checkCriteriaMatch(array $itemEnchants, array $targetCriteria): bool
+    {
+        $validCriteriaCount = 0;
+
+        foreach ($targetCriteria as $criterion) {
+            $type = $criterion['type'] ?? null;
+            if (!$type) {
+                continue;
+            }
+
+            $validCriteriaCount++;
+            $minValue = (int) ($criterion['min'] ?? 0);
+
+            if (!isset($itemEnchants[$type])) {
+                return false;
+            }
+
+            if ($itemEnchants[$type] < $minValue) {
+                return false;
+            }
+        }
+
+        return $validCriteriaCount > 0;
+    }
+
     public function render(ShopService $shopService)
     {
         // Special Potion Cooldown Logic
