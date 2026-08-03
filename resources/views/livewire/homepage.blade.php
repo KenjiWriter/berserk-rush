@@ -145,7 +145,7 @@
 
                         {{-- Top-Left Half (Stwórz Konto) --}}
                         <a href="{{ route('register') }}"
-                           class="absolute inset-0 group/left transition-colors duration-300 hover:bg-amber-100/10 z-20 flex flex-col items-start justify-start pt-6 sm:pt-8 pl-5 sm:pl-7 w-full h-full"
+                           class="absolute inset-0 group/left transition-colors duration-300 hover:bg-amber-100/10 z-20 flex flex-col items-start justify-start pt-12 sm:pt-16 pl-6 sm:pl-10 w-full h-full"
                            style="clip-path: url(#clip-yin-left); -webkit-clip-path: url(#clip-yin-left);">
                             <div class="transform transition-transform duration-300 group-hover/left:scale-105 rpg-medallion-label flex flex-col items-center text-center max-w-[120px] sm:max-w-[150px]">
                                 <span class="rpg-medallion-title">Stwórz Konto</span>
@@ -155,7 +155,7 @@
 
                         {{-- Bottom-Right Half (Zaloguj się) --}}
                         <div @click="$dispatch('open-login-modal')"
-                             class="absolute inset-0 group/right cursor-pointer transition-colors duration-300 hover:bg-slate-100/10 z-20 flex flex-col items-end justify-end pb-6 sm:pb-8 pr-5 sm:pr-7 w-full h-full"
+                             class="absolute inset-0 group/right cursor-pointer transition-colors duration-300 hover:bg-slate-100/10 z-20 flex flex-col items-end justify-end pb-12 sm:pb-16 pr-6 sm:pr-10 w-full h-full"
                              style="clip-path: url(#clip-yin-right); -webkit-clip-path: url(#clip-yin-right);">
                             <div class="transform transition-transform duration-300 group-hover/right:scale-105 rpg-medallion-label flex flex-col items-center text-center max-w-[120px] sm:max-w-[150px]">
                                 <span class="rpg-medallion-title">Zaloguj się</span>

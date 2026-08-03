@@ -17,7 +17,7 @@ class GuildEditTest extends TestCase
 
     public function test_guild_leader_can_update_guild_settings_and_description(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['game_stage' => 35]);
         $guild = Guild::create([
             'name' => 'Stary Zakon',
             'title' => 'Stary Tytuł',
@@ -64,7 +64,7 @@ class GuildEditTest extends TestCase
 
     public function test_regular_guild_member_cannot_update_guild_settings(): void
     {
-        $user = User::factory()->create();
+        $user = User::factory()->create(['game_stage' => 35]);
         $guild = Guild::create([
             'name' => 'Zakon Rycerzy',
             'title' => 'Tytuł',
