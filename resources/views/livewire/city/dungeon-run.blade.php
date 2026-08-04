@@ -231,7 +231,7 @@
                             <div class="text-center">
                                 <div class="relative w-20 h-20 sm:w-24 sm:h-24 mx-auto">
                                     <div class="w-full h-full rounded-2xl overflow-hidden ring-4 ring-amber-500/80 shadow-[0_0_25px_rgba(245,158,11,0.35)] bg-slate-900">
-                                        <img src="{{ $character->avatar ? asset('img/avatars/' . $character->avatar . '.png') : asset('img/avatars/default.png') }}" alt="{{ $character->name }}" class="w-full h-full object-cover">
+                                        <img src="{{ $character->getEffectiveAvatarUrl() }}" alt="{{ $character->name }}" class="w-full h-full object-cover">
                                     </div>
                                     <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-amber-600 to-amber-500 text-amber-950 text-xs font-black px-2.5 py-0.5 rounded-full border border-amber-300 shadow-lg medieval-font">Lvl {{ $character->level }}</span>
                                 </div>

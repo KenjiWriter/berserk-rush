@@ -224,7 +224,7 @@
                                         <img src="{{ $player['avatar'] }}" alt="{{ $player['name'] }}"
                                             class="w-full h-full object-cover">
                                     @else
-                                        <img src="{{ $character->avatar ? asset('img/avatars/' . $character->avatar . '.png') : asset('img/avatars/default.png') }}" alt="{{ $character->name }}"
+                                        <img src="{{ $character->getEffectiveAvatarUrl() }}" alt="{{ $character->name }}"
                                             class="w-full h-full object-cover">
                                     @endif
                                 </div>

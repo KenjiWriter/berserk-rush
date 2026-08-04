@@ -272,7 +272,9 @@
                                         <div class="flex items-center space-x-2.5 h-full">
                                             <div class="relative flex-shrink-0">
                                                 <div class="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center rpg-avatar-badge">
-                                                    @if ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                                    @if (auth()->check() && auth()->user()->hasCustomAvatar())
+                                                        <img src="{{ auth()->user()->getCustomAvatarUrl() }}" alt="Avatar" class="w-full h-full object-cover">
+                                                    @elseif ($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                                                         <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar {{ $character->avatar }}" class="w-full h-full object-cover">
                                                     @else
                                                         <i class="fa-solid fa-user-ninja text-lg"></i>
