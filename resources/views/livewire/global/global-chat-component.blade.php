@@ -303,8 +303,8 @@
                     {{-- Character header --}}
                     <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
                         @if(!empty($avatarUrl))
-                            <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
-                                <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
+                            <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md ml-[5px]">
+                                <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'"> 
                             </div>
                         @endif
                         <div class="min-w-0 flex-1">
@@ -350,7 +350,7 @@
                                             @endif
                                         </span>
                                     </span>
-                                    <span class="text-amber-700 text-[10px] ml-1 shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
+                                    <span class="text-amber-700 text-[10px] ml-1 mr-[5px] shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
                                 </div>
                             @endforeach
                         </div>
@@ -402,8 +402,8 @@
                 {{-- Character header --}}
                 <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
                     @if(!empty($avatarUrl))
-                        <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
-                            <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
+                        <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md ml-[5px]">
+                            <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'"> 
                         </div>
                     @endif
                     <div class="min-w-0 flex-1">
@@ -449,7 +449,7 @@
                                         @endif
                                     </span>
                                 </span>
-                                <span class="text-amber-700 text-[10px] ml-1 shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
+                                <span class="text-amber-700 text-[10px] ml-1 mr-[5px] shrink-0">{{ number_format($ei['combat_power']) }} CP</span>
                             </div>
                         @endforeach
                     </div>
