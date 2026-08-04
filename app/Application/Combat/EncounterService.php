@@ -360,7 +360,9 @@ class EncounterService
                 }
 
                 // Determine turn order using scaled stats (apply tier multiplier to single monster too)
-                $totalAttributes = $character->getTotalAttributes();
+                $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
+                $startSetType = ($isWorldBossFight || $rankVal === 'worldboss') ? \App\Infrastructure\Persistence\CharacterEquipmentSetItem::SET_WORLD_BOSS : null;
+                $totalAttributes = $character->getTotalAttributes($startSetType);
                 $playerAgi = $totalAttributes['agi'] ?? 0;
                 $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
 
@@ -457,8 +459,12 @@ class EncounterService
                 $scaledStatOverride = $encounter->combat_data['scaled_monster_stats'] ?? null;
                 $scaledStats = $scaledStatOverride ?? $monster->getScaledStats($character->level, $isTutorial);
 
+                $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
+                $isWorldBoss = ($rankVal === 'worldboss');
+                $setType = $isWorldBoss ? \App\Infrastructure\Persistence\CharacterEquipmentSetItem::SET_WORLD_BOSS : null;
+
                 // Initialize HP
-                $playerHp = $character->getMaxHp();
+                $playerHp = $character->getMaxHp($setType);
                 $monsterHp = $scaledStats['hp'];
                 $playerMaxHp = $playerHp;
                 $monsterMaxHp = $monsterHp;
@@ -470,8 +476,6 @@ class EncounterService
 
                 // Simulate combat
                 $isOverLevel = $encounter->combat_data['is_overlevel'] ?? false;
-                $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
-                $isWorldBoss = ($rankVal === 'worldboss');
                 if ($isWorldBoss) {
                     $monsterMaxHp = 999999999;
                     $monsterHp = $monsterMaxHp;
@@ -546,7 +550,7 @@ class EncounterService
                     }
                 } else {
                     $initialMana = $encounter->combat_data['initial_mana'] ?? null;
-                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss, $playerMaxHp, $initialMana);
+                    $turns = $this->simulateCombat($character, $monster, $playerHp, $monsterHp, $isWorldBoss, $playerMaxHp, $initialMana, $setType);
                     $lastTurn = end($turns);
                     $finalMonsterHp = $lastTurn ? $lastTurn['enemyHp'] : $monsterHp;
 
@@ -810,27 +814,27 @@ class EncounterService
         }
     }
 
-    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false, int $playerMaxHp = 0, ?int $initialMana = null): array
+    private function simulateCombat(Character $character, Monster $monster, int $playerHp, int $monsterHp, bool $isWorldBoss = false, int $playerMaxHp = 0, ?int $initialMana = null, ?string $setType = null): array
     {
+        if ($isWorldBoss && !$setType) {
+            $setType = \App\Infrastructure\Persistence\CharacterEquipmentSetItem::SET_WORLD_BOSS;
+        }
+
         // Reset state for new combat
         $this->activeCooldowns = [];
         $this->activeDots = [];
         $this->activeBuffs = [];
         $this->activePassives = [];
         $this->monsterCcTurns = 0;
-        $this->equippedSkills = \App\Infrastructure\Persistence\CharacterCombatSkill::with('skill')
-            ->where('character_id', $character->id)
-            ->where('is_equipped', true)
-            ->orderBy('equip_slot')
-            ->get();
+        $this->equippedSkills = $character->resolveEffectiveSkills($setType);
 
         foreach ($this->equippedSkills as $cs) {
             if ($cs->skill->type === 'active') {
-                $this->activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1); // ready slightly earlier
+                $this->activeCooldowns[$cs->id] = max(0, $cs->getCooldown() - 1); // ready slightly earlier
             }
         }
 
-        $this->playerMaxMana = $character->getMaxMana();
+        $this->playerMaxMana = $character->getMaxMana($setType);
         $this->playerMana = $this->playerMaxMana;
 
         if ($playerMaxHp <= 0) {
@@ -840,7 +844,7 @@ class EncounterService
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
 
-        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $playerAgi = $character->getTotalAttributes($setType)['agi'] ?? 0;
         $monsterAgi = $scaledMonsterStats['agi'];
         $playerFirst = $playerAgi >= $monsterAgi;
 
@@ -870,7 +874,7 @@ class EncounterService
                 // Pobranie many i ocena efektów pasywnych na tę turę
                 $this->evaluatePassivesForTurn($character);
 
-                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
+                $turn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp, $setType);
                 $playerHp = $turn['playerHp'];
                 $monsterHp = $turn['enemyHp'];
 
@@ -892,7 +896,7 @@ class EncounterService
 
                 // Pasywna szansa na natychmiastowy dodatkowy atak (np. "Furia Berserkera" - topór)
                 if ($monsterHp > 0 && $this->rollExtraAttack()) {
-                    $bonusTurn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp);
+                    $bonusTurn = $this->playerAttack($character, $monster, $playerHp, $monsterHp, $monsterMaxHp, $isWorldBoss, $playerMaxHp, $setType);
                     $bonusTurn['extra_attack'] = true;
                     $playerHp = $bonusTurn['playerHp'];
                     $monsterHp = $bonusTurn['enemyHp'];
@@ -929,7 +933,7 @@ class EncounterService
                     'enemyHp' => $monsterHp,
                 ];
             } else {
-                $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp);
+                $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp, $setType);
                 $playerHp = $turn['playerHp'];
             }
 
@@ -981,7 +985,7 @@ class EncounterService
 
             $this->playerMana -= $manaCost;
 
-            $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+            $effVal = $cs->getEffectiveValue();
 
             if ($cs->skill->effect_type === 'passive_aura_dmg') {
                 $this->activePassives['aura_dmg'] = ($this->activePassives['aura_dmg'] ?? 0) + $effVal;
@@ -1007,14 +1011,14 @@ class EncounterService
         return mt_rand(1, 10000) <= (int) round($chance * 10000);
     }
 
-    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp, bool $isWorldBoss = false, int $playerMaxHp = 0): array
+    private function playerAttack(Character $character, Monster $monster, int $playerHp, int $monsterHp, int $monsterMaxHp, bool $isWorldBoss = false, int $playerMaxHp = 0, ?string $setType = null): array
     {
         if ($playerMaxHp <= 0) {
             $playerMaxHp = $playerHp;
         }
 
-        $equippedWeaponType = $character->getEquippedWeaponType();
-        $eq = $character->getEquipmentStats();
+        $equippedWeaponType = $character->getEquippedWeaponType($setType);
+        $eq = $character->getEquipmentStats($setType);
 
         $usedSkill = null;
 
@@ -1033,7 +1037,7 @@ class EncounterService
                     continue; // Not enough mana to use skill
                 }
 
-                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+                $effVal = $cs->getEffectiveValue();
 
                 // HEAL check: Nie używaj skilla leczącego na pełnym HP ani gdy brak przestrzeni na leczenie (max 15% overheal)
                 if ($cs->skill->effect_type === 'heal') {
@@ -1046,7 +1050,7 @@ class EncounterService
 
                 // Consume mana & set cooldown
                 $this->playerMana -= $manaCost;
-                $this->activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
+                $this->activeCooldowns[$cs->id] = $cs->getCooldown();
                 
                 if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
                     $this->activeDots[] = [
@@ -1149,7 +1153,7 @@ class EncounterService
                 $skillMultiplier = $effVal;
             }
 
-            $damageData = $this->calculateDamage($character, $monster, (bool) $csSkill->is_magic);
+            $damageData = $this->calculateDamage($character, $monster, (bool) $csSkill->is_magic, [], $setType);
             $damage = (int)($damageData['total'] * $skillMultiplier);
             $baseDamage = (int)($damageData['base'] * $skillMultiplier);
             $bonusDamage = (int)($damageData['bonus'] * $skillMultiplier);
@@ -1162,7 +1166,7 @@ class EncounterService
                 $baseDamage = (int)($baseDamage * (1 + $physBuffValue));
             }
 
-            $isCrit = $this->rollCritical($character, $monster);
+            $isCrit = $this->rollCritical($character, $monster, $setType);
             if ($isCrit) {
                 $damage = (int)($damage * 1.5);
                 $baseDamage = (int)($baseDamage * 1.5);
@@ -1228,7 +1232,7 @@ class EncounterService
 
         // Standard attack
         $procs = $this->rollEquipmentProcs($eq);
-        $damageData = $this->calculateDamage($character, $monster, false, $procs);
+        $damageData = $this->calculateDamage($character, $monster, false, $procs, $setType);
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
         $bonusDamage = $damageData['bonus'];
@@ -1243,10 +1247,10 @@ class EncounterService
 
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
-        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $playerAgi = $character->getTotalAttributes($setType)['agi'] ?? 0;
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
-        $isCrit = $this->rollCritical($character, $monster);
+        $isCrit = $this->rollCritical($character, $monster, $setType);
         $isMiss = $this->rollDodge($monsterAgi, $playerAgi);
 
         if ($isMiss) {
@@ -1303,20 +1307,20 @@ class EncounterService
         return $turn;
     }
 
-    private function monsterAttack(Monster $monster, Character $character, int $playerHp, int $monsterHp): array
+    private function monsterAttack(Monster $monster, Character $character, int $playerHp, int $monsterHp, ?string $setType = null): array
     {
-        $damageData = $this->calculateMonsterDamage($monster, $character);
+        $damageData = $this->calculateMonsterDamage($monster, $character, $setType);
         $damage = $damageData['total'];
         $baseDamage = $damageData['base'];
         $resistDamage = $damageData['resist'];
 
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
-        $playerAgi = $character->getTotalAttributes()['agi'] ?? 0;
+        $playerAgi = $character->getTotalAttributes($setType)['agi'] ?? 0;
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
         $isCrit = $this->rollMonsterCritical($monster, $character);
-        $playerItemDodge = (float)($character->getEquipmentStats()['dodge_chance'] ?? 0);
+        $playerItemDodge = (float)($character->getEquipmentStats($setType)['dodge_chance'] ?? 0);
         $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge);
 
         if ($isMiss) {
@@ -1364,13 +1368,13 @@ class EncounterService
 
 
 
-    private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false, array $procs = []): array
+    private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false, array $procs = [], ?string $setType = null): array
     {
-        $weaponType = $character->getEquippedWeaponType();
-        $eq = $character->getEquipmentStats();
+        $weaponType = $character->getEquippedWeaponType($setType);
+        $eq = $character->getEquipmentStats($setType);
 
         if ($isMagicSkill) {
-            $statBonus = $character->getAttributeAttackBonus($weaponType);
+            $statBonus = $character->getAttributeAttackBonus($weaponType, $setType);
             if ($weaponType === 'wand') {
                 $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
                 $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
@@ -1386,15 +1390,15 @@ class EncounterService
         } else {
             // Standard basic auto-attack (lub atak fizyczny)
             if ($weaponType === 'wand') {
-                $statBonus = $character->getAttributeAttackBonus('sword'); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
+                $statBonus = $character->getAttributeAttackBonus('sword', $setType); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
                 $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
-                $statBonus = $character->getAttributeAttackBonus('bell');
+                $statBonus = $character->getAttributeAttackBonus('bell', $setType);
                 $weaponAtkMin = (int) (($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0));
                 $weaponAtkMax = (int) max($weaponAtkMin, ($eq['attack_max'] ?? 0) + ($eq['magic_attack_max'] ?? 0));
             } else {
-                $statBonus = $character->getAttributeAttackBonus($weaponType);
+                $statBonus = $character->getAttributeAttackBonus($weaponType, $setType);
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
                 $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
             }
@@ -1468,13 +1472,13 @@ class EncounterService
         ];
     }
 
-    private function calculateMonsterDamage(Monster $monster, Character $character): array
+    private function calculateMonsterDamage(Monster $monster, Character $character, ?string $setType = null): array
     {
         $isTutorial = ($character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
         $baseDamage = $scaledMonsterStats['atk'];
-        $vitality = $character->getTotalAttributes()['vit'] ?? 1;
-        $eq = $character->getEquipmentStats();
+        $vitality = $character->getTotalAttributes($setType)['vit'] ?? 1;
+        $eq = $character->getEquipmentStats($setType);
         $defense = $vitality + ($character->level / 2) + ($eq['defense'] ?? 0);
 
         $damage = max(1, $baseDamage - ($defense * 0.2));
@@ -1498,10 +1502,10 @@ class EncounterService
         ];
     }
 
-    private function rollCritical(Character $character, Monster $monster): bool
+    private function rollCritical(Character $character, Monster $monster, ?string $setType = null): bool
     {
-        $agility = $character->getTotalAttributes()['agi'] ?? 1;
-        $eq = $character->getEquipmentStats();
+        $agility = $character->getTotalAttributes($setType)['agi'] ?? 1;
+        $eq = $character->getEquipmentStats($setType);
 
         $baseCrit = 0.05 + ($agility * 0.0015) + (($eq['crit_chance'] ?? 0) / 100);
         // Twardy cap szansy krytyka na 100% (1.00) oraz dolny próg 3% (0.03) - bez redukcji z AGI przeciwnika
@@ -1716,7 +1720,7 @@ class EncounterService
 
         foreach ($this->equippedSkills as $cs) {
             if ($cs->skill->type === 'active') {
-                $this->activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1);
+                $this->activeCooldowns[$cs->id] = max(0, $cs->getCooldown() - 1);
             }
         }
 
@@ -1829,8 +1833,8 @@ class EncounterService
 
             if ($aoeSkillCs) {
                 $this->playerMana -= $aoeSkillCs->getManaCost();
-                $this->activeCooldowns[$aoeSkillCs->id] = $aoeSkillCs->skill->base_cooldown;
-                $effVal = $aoeSkillCs->skill->base_value + ($aoeSkillCs->skill->scaling_value * ($aoeSkillCs->level - 1));
+                $this->activeCooldowns[$aoeSkillCs->id] = $aoeSkillCs->getCooldown();
+                $effVal = $aoeSkillCs->getEffectiveValue();
 
                 foreach ($monsters as $mIdx => &$m) {
                     if (($m['hp'] ?? 0) <= 0) {

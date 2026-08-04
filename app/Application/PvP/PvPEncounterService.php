@@ -430,7 +430,7 @@ class PvPEncounterService
 
             $actorMana -= $manaCost;
 
-            $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+            $effVal = $skill['effective_value'] ?? (($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0)));
 
             if (($skill['effect_type'] ?? null) === 'passive_aura_dmg') {
                 $passives['aura_dmg'] += $effVal;
@@ -499,7 +499,7 @@ class PvPEncounterService
                     if (($skill['effect_type'] ?? null) === 'heal') {
                         $actingMaxHp = $actingSnapshot['max_hp'] ?? 1;
                         $currentActingHp = $actor === 'attacker' ? $attackerHp : $defenderHp;
-                        $effVal = ($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0));
+                        $effVal = $skill['effective_value'] ?? (($skill['base_value'] ?? 0) + (($effLevel - 1) * ($skill['scaling_value'] ?? 0)));
                         $healAmount = max(1, (int) round($actingMaxHp * $effVal));
                         $maxAllowedHp = min($actingMaxHp - 1, $actingMaxHp - $healAmount + (int) round($actingMaxHp * 0.15));
                         if ($currentActingHp > $maxAllowedHp) {
@@ -575,7 +575,7 @@ class PvPEncounterService
             $actorState['mana'] = max(0, ($actorState['mana'] ?? 0) - $skillManaCost);
             $actorState['cooldowns'][$skillToUse['id']] = $skillToUse['base_cooldown'];
             $effLevel = max(1, $skillToUse['level'] ?? 1);
-            $bonus = $skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']);
+            $bonus = $skillToUse['effective_value'] ?? ($skillToUse['base_value'] + (($effLevel - 1) * $skillToUse['scaling_value']));
 
             $effectType = $skillToUse['effect_type'] ?? 'direct_dmg';
 

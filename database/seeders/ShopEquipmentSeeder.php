@@ -76,7 +76,7 @@ class ShopEquipmentSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 10, 'scale' => 4.0,
+                'level' => 10, 'scale' => 4.6,
                 'names' => [
                     'sword' => 'Rycerski Miecz', 'armor' => 'Stalowa Zbroja', 'helmet' => 'Hełm Rycerza', 
                     'boots' => 'Trzewiki Rycerza', 'amulet' => 'Amulet Rycerza', 'ring' => 'Pierścień Rycerza'
@@ -185,6 +185,11 @@ class ShopEquipmentSeeder extends Seeder
                     $scaledStats[$statName] = $this->statRange(max(1, $scaledValue));
                 }
 
+                // Dodanie delikatnego bonusu szansy na podwójny drop (5% na lvl 1 do 15% dla lvl 50+)
+                $itemLvl = $theme['level'] ?? 1;
+                $doubleDropBase = min(15.0, max(5.0, 5.0 + ($itemLvl - 1) * (10.0 / 49.0)));
+                $scaledStats['double_drop_chance'] = $this->statRange($doubleDropBase, 0.25, 15.0);
+
                 if ($merchantTarget === 'gladiator') {
                     // Zestaw Gladiatora to ekwipunek pod Arenę PvP - dokłada stały
                     // afiks "Silny przeciwko Bohaterom" (patrz docs/modules/combat.md,
@@ -242,6 +247,6 @@ class ShopEquipmentSeeder extends Seeder
             }
         }
 
-        $this->command->info('Created ' . $generatedCount . ' shop equipments and assigned them to merchants.');
+        $this->command?->info('Created ' . $generatedCount . ' shop equipments and assigned them to merchants.');
     }
 }

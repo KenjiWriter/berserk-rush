@@ -16,12 +16,24 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 
 ## Mechaniki
 
-### 1. Punkty Umiejętności (Skill Points)
+### 1. Rozwój Umiejętności w Stylu Metin2 (Poziomy 1-17, M1-M10, G1-G10, P)
 - Postać otrzymuje **3 Punkty Umiejętności** za każdy zdobyty poziom (łączna pula punktów = `(poziom_postaci - 1) * 3`).
-- Punkty wykorzystuje się u Czarnoksiężnika do odblokowywania nowych skilli (koszt odblokowania zależy od skilla) oraz podnoszenia ich poziomu (1 punkt za poziom).
-- **Maksymalny poziom umiejętności wynosi 5 (Max Lv. 5).**
-- Synchronizacja punktów (`syncMissingPoints`) automatycznie wylicza pozostałe nieprzydzielone punkty na podstawie zdobytych punktów minus koszty odblokowanych i ulepszonych skilli.
-- Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest poprzez użycie w ekwipunku **Zwoju Resetu Umiejętności** lub **Zwoju Pełnego Resetu**, które można kupić w Sklepie (ItemShop) lub zdobyć w lochach.
+- **Wielopoziomowa Progresja Umiejętności:**
+  - **Poziomy Podstawowe (Lv. 1 - 17):** Odblokowanie daje Lv. 1. Gracze inwestują **Punkty Umiejętności (SP)** od Lv. 1 do Lv. 17 (1 SP / poziom, max 17 SP per skill). Reaching Lv. 17 odblokowuje awans na **M1**.
+  - **Mistrz / Master (M1 - M10):** Awans z poziomu M1 do M10 wymaga użycia **1x Księga Umiejętności** (`skill_book`) oraz 500 Golda per poziom. Po ukończeniu M10 skill awansuje na **G1**.
+  - **Arcymistrz / Grand Master (G1 - G10):** Awans z poziomu G1 do G10 wymaga użycia **1x Kamień Duchowy** (`soul_stone`) oraz 2,500 Golda per poziom. Po ukończeniu G10 skill wchodzi w stan gotowości do awansu na **P**.
+  - **Perfekcyjny Mistrz / Perfect (P):** Osiągany poprzez użycie **1x Kamień Duchowy** + 10,000 Golda po opanowaniu G10. Jest to ostateczny, maksymalny poziom umiejętności (poziom 38) z legendarną złotą oprawą wizualną (+65% premii do mocy).
+- **Dynamiczne Skracanie Czasu Odnowienia (CD):**
+  - **Normal (Lv. 1-17):** Domyślny czas odnowienia (`base_cooldown`).
+  - **Master (M1-M10):** Redukcja CD o **-1 Turę** (`base_cooldown - 1`).
+  - **Grand Master (G1-G10):** Redukcja CD o **-2 Tury** (`base_cooldown - 2`).
+  - **Perfect Master (P):** Redukcja CD o **-3 Tury** (`base_cooldown - 3`, min. 1 tura).
+- **Źródła Przedmiotów:**
+  - **Skrzynia Ksiąg Umiejętności:** Po otwarciu przyznaje Księgę Umiejętności. Wypada ze WSZYSTKICH bossów na mapach (T1-T5+) oraz we wszystkich lochach (D1+).
+  - **Kamień Duchowy:** Wypada z bossów na mapach od **Tier 5** wzwyż oraz z lochów od **Dungeon 3** wzwyż.
+  - **Klucze do Lochów:** Znacznie podniesiona szansa dropu ze wszystkich bossów map.
+- Synchronizacja punktów (`syncMissingPoints`) wylicza zużyte SP z uwzględnieniem limitu inwestycji 17 SP per skill.
+- Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest poprzez użycie w ekwipunku **Zwoju Resetu Umiejętności** lub **Zwoju Pełnego Resetu**.
 
 ### 2. Deck Umiejętności i Wyposażanie
 - Postać może posiadać **maksymalnie 3 aktywne skille** wyposażone jednocześnie w swoim Decku.

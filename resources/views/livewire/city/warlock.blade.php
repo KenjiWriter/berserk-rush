@@ -19,15 +19,37 @@
                 </div>
             </div>
             
-            <div class="flex flex-wrap items-center gap-4">
+            <div class="flex flex-wrap items-center gap-3">
                 {{-- Skill Points Badge --}}
-                <div class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 border-emerald-600/80 px-4 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_15px_rgba(16,185,129,0.2)] flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-lg bg-emerald-950 border border-emerald-500 flex items-center justify-center text-emerald-400 text-base shrink-0">
+                <div class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 border-emerald-600/80 px-3.5 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_15px_rgba(16,185,129,0.2)] flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-950 border border-emerald-500 flex items-center justify-center text-emerald-400 text-sm shrink-0">
                         <i class="fa-solid fa-sparkles"></i>
                     </div>
                     <div>
-                        <span class="text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest block leading-none">PUNKTY SKILLI</span>
-                        <span class="text-xl sm:text-2xl font-black text-emerald-300 drop-shadow">{{ $character->skill_points }}</span>
+                        <span class="text-[9px] text-emerald-400 font-extrabold uppercase tracking-widest block leading-none">PKT SKILLI</span>
+                        <span class="text-lg font-black text-emerald-300 drop-shadow">{{ $character->skill_points }}</span>
+                    </div>
+                </div>
+
+                {{-- Skill Books Badge --}}
+                <div class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 border-sky-600/80 px-3.5 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_15px_rgba(56,189,248,0.2)] flex items-center gap-2.5" title="Księgi Umiejętności w ekwipunku">
+                    <div class="w-8 h-8 rounded-lg bg-sky-950 border border-sky-500 flex items-center justify-center text-sky-400 text-sm shrink-0">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-sky-400 font-extrabold uppercase tracking-widest block leading-none">KSIĘGI (M)</span>
+                        <span class="text-lg font-black text-sky-300 drop-shadow">{{ $skillBooksCount }}</span>
+                    </div>
+                </div>
+
+                {{-- Soul Stones Badge --}}
+                <div class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 border-amber-600/80 px-3.5 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-2.5" title="Kamienie Duchowe w ekwipunku">
+                    <div class="w-8 h-8 rounded-lg bg-amber-950 border border-amber-500 flex items-center justify-center text-amber-400 text-sm shrink-0">
+                        <i class="fa-solid fa-gem"></i>
+                    </div>
+                    <div>
+                        <span class="text-[9px] text-amber-400 font-extrabold uppercase tracking-widest block leading-none">KAMIENIE (G)</span>
+                        <span class="text-lg font-black text-amber-300 drop-shadow">{{ $soulStonesCount }}</span>
                     </div>
                 </div>
 
@@ -142,14 +164,42 @@
                         $mySkill = $mySkills[$skill->id] ?? null;
                         $isUnlocked = $mySkill !== null;
                         $level = $isUnlocked ? $mySkill->level : 1;
+                        $tier = $isUnlocked ? $mySkill->getTier() : 'normal';
+                        $displayLevel = $isUnlocked ? $mySkill->getDisplayLevel() : 'Lv. 1';
+                        $effectiveLevel = $isUnlocked ? $mySkill->getEffectiveLevel() : 1;
+                        $cooldown = $isUnlocked ? $mySkill->getCooldown() : $skill->base_cooldown;
                         
-                        $isMaxLevel = $isUnlocked && $mySkill->level >= 5;
+                        $isMaxLevel = $isUnlocked && $mySkill->level >= 38;
                         $canUnlock = !$isUnlocked && $character->level >= $skill->required_level && $character->skill_points >= $skill->unlock_cost;
-                        $canUpgrade = $isUnlocked && !$isMaxLevel && $character->skill_points >= 1;
+
+                        $reqWeapon = $skill->required_weapon_type ?? 'all';
+                        $reqBookSubType = \App\Application\Skills\UpgradeSkill::getRequiredBookSubType($reqWeapon);
+                        $reqBookName = \App\Application\Skills\UpgradeSkill::getRequiredBookName($reqWeapon);
+                        $ownedSpecificBooks = $ownedSkillBooksBySubType[$reqBookSubType] ?? 0;
+
+                        // Calculation of upgrade eligibility based on tier stage:
+                        $canUpgrade = false;
+                        $costText = '';
+
+                        if ($isUnlocked && !$isMaxLevel) {
+                            if ($level < 17) {
+                                $canUpgrade = $character->skill_points >= 1;
+                                $costText = '1 PKT SKILLA';
+                            } elseif ($level >= 17 && $level < 27) {
+                                $canUpgrade = $ownedSpecificBooks >= 1 && $character->gold >= 500;
+                                $costText = "1x {$reqBookName} + 500 Gold";
+                            } elseif ($level >= 27 && $level < 37) {
+                                $canUpgrade = $soulStonesCount >= 1 && $character->gold >= 2500;
+                                $costText = '1x Kamień Duchowy + 2.5k Gold';
+                            } elseif ($level === 37) {
+                                $canUpgrade = $soulStonesCount >= 1 && $character->gold >= 10000;
+                                $costText = '1x Kamień Duchowy + 10k Gold';
+                            }
+                        }
 
                         // Calculation of current values & scaling
-                        $currentValue = $skill->base_value + ($skill->scaling_value * ($level - 1));
-                        $nextValue = $skill->base_value + ($skill->scaling_value * $level);
+                        $currentValue = $isUnlocked ? $mySkill->getEffectiveValue() : $skill->base_value;
+                        $nextValue = $isUnlocked ? ($skill->base_value + ($skill->scaling_value * $effectiveLevel)) : ($skill->base_value + $skill->scaling_value);
 
                         // Base damage range and stat influence computed specifically for this skill
                         $baseDamageRange = $skill->getBaseDamageRange($character);
@@ -252,7 +302,7 @@
                     @endphp
 
                     <div class="bg-gradient-to-b from-stone-900 via-stone-950 to-black border-2 rounded-2xl p-5 sm:p-6 shadow-[0_4px_20px_rgba(0,0,0,0.9)] transition-all duration-300 flex flex-col justify-between relative overflow-hidden group
-                        {{ $isUnlocked ? 'border-emerald-600/80 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 'border-stone-800/80 opacity-90 hover:border-stone-700' }}">
+                        {{ $isUnlocked ? ($tier === 'perfect' ? 'border-amber-400 shadow-[0_0_25px_rgba(251,191,36,0.35)]' : ($tier === 'grand_master' ? 'border-orange-500/90 shadow-[0_0_20px_rgba(249,115,22,0.25)]' : ($tier === 'master' ? 'border-sky-500/80 shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'border-emerald-600/80 hover:border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.15)]'))) : 'border-stone-800/80 opacity-90 hover:border-stone-700' }}">
                         
                         {{-- Top Unlock Badge --}}
                         <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -261,14 +311,17 @@
                                     <i class="{{ $weaponIcon }}"></i>
                                     <span>{{ $weaponName }}</span>
                                 </span>
-                                <span class="bg-stone-950/80 px-2.5 py-1 rounded-md text-[11px] font-bold text-sky-300 border border-sky-900/60 flex items-center gap-1.5 font-sans">
+                                <span class="bg-stone-950/80 px-2.5 py-1 rounded-md text-[11px] font-bold text-sky-300 border border-sky-900/60 flex items-center gap-1.5 font-sans" title="Czas odnowienia (CD zredukowany o awans rang)">
                                     <i class="fa-regular fa-clock"></i>
-                                    <span>CD: {{ $skill->base_cooldown }} Tur</span>
+                                    <span>CD: {{ $cooldown }} Tur</span>
+                                    @if($isUnlocked && $tier !== 'normal')
+                                        <span class="text-[9px] text-amber-400 font-extrabold">(-{{ $tier === 'perfect' ? 3 : ($tier === 'grand_master' ? 2 : 1) }})</span>
+                                    @endif
                                 </span>
-                                @if($skill->getManaCost($isUnlocked ? $mySkill->level : 1) > 0)
+                                @if($skill->getManaCost($isUnlocked ? $mySkill->getEffectiveLevel() : 1) > 0)
                                     <span class="bg-stone-950/80 px-2.5 py-1 rounded-md text-[11px] font-bold text-cyan-300 border border-cyan-900/60 flex items-center gap-1.5 font-sans" title="Koszt many">
                                         <i class="fa-solid fa-bolt"></i>
-                                        <span>Mana: {{ $skill->getManaCost($isUnlocked ? $mySkill->level : 1) }} MP</span>
+                                        <span>Mana: {{ $skill->getManaCost($isUnlocked ? $mySkill->getEffectiveLevel() : 1) }} MP</span>
                                     </span>
                                 @endif
                                 @if($skill->base_duration > 1)
@@ -281,10 +334,27 @@
 
                             <div>
                                 @if($isUnlocked)
-                                    <span class="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-600/80 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.3)] inline-flex items-center gap-1">
-                                        <i class="fa-solid fa-circle-check"></i>
-                                        <span>Poziom {{ $mySkill->level }}</span>
-                                    </span>
+                                    @if($tier === 'perfect')
+                                        <span class="px-3 py-1 bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-stone-950 border border-yellow-300 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_15px_rgba(251,191,36,0.6)] inline-flex items-center gap-1.5 animate-pulse">
+                                            <i class="fa-solid fa-crown text-stone-950"></i>
+                                            <span>PERFECT MASTER (P)</span>
+                                        </span>
+                                    @elseif($tier === 'grand_master')
+                                        <span class="px-3 py-1 bg-gradient-to-r from-orange-950 via-amber-950 to-stone-950 text-amber-300 border border-amber-500 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_12px_rgba(249,115,22,0.4)] inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-fire text-amber-400"></i>
+                                            <span>{{ $displayLevel }} (Grand Master)</span>
+                                        </span>
+                                    @elseif($tier === 'master')
+                                        <span class="px-3 py-1 bg-gradient-to-r from-sky-950 via-indigo-950 to-stone-950 text-sky-300 border border-sky-500 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_10px_rgba(56,189,248,0.3)] inline-flex items-center gap-1.5">
+                                            <i class="fa-solid fa-star text-sky-400"></i>
+                                            <span>{{ $displayLevel }} (Master)</span>
+                                        </span>
+                                    @else
+                                        <span class="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-600/80 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.3)] inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-circle-check"></i>
+                                            <span>{{ $displayLevel }} / 17</span>
+                                        </span>
+                                    @endif
                                 @else
                                     <span class="px-3 py-1 bg-stone-950 text-stone-400 border border-stone-800 rounded-lg text-xs font-extrabold uppercase tracking-wider inline-flex items-center gap-1">
                                         <i class="fa-solid fa-lock text-stone-500"></i>
@@ -296,7 +366,7 @@
 
                         {{-- Skill Header & Icon --}}
                         <div class="flex items-start space-x-4 mb-3">
-                            <div class="w-16 h-16 rounded-xl border-2 {{ $isUnlocked ? 'border-emerald-500 bg-emerald-950/60' : 'border-stone-700 bg-stone-950' }} flex items-center justify-center text-3xl shrink-0 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_12px_rgba(16,185,129,0.2)] relative">
+                            <div class="w-16 h-16 rounded-xl border-2 {{ $isUnlocked ? ($tier === 'perfect' ? 'border-yellow-400 bg-amber-950/70 shadow-[0_0_15px_rgba(251,191,36,0.4)]' : ($tier === 'grand_master' ? 'border-amber-500 bg-amber-950/50' : ($tier === 'master' ? 'border-sky-500 bg-sky-950/50' : 'border-emerald-500 bg-emerald-950/60'))) : 'border-stone-700 bg-stone-950' }} flex items-center justify-center text-3xl shrink-0 overflow-hidden shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] relative">
                                 @if($skill->icon)
                                     <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $skill->name }}">
                                 @elseif($skill->effect_type === 'poison' || $skill->effect_type === 'dot_poison')
@@ -323,7 +393,7 @@
                             </div>
 
                             <div class="min-w-0 flex-1">
-                                <h3 class="text-lg font-extrabold {{ $isUnlocked ? 'text-emerald-200' : 'text-stone-300' }} truncate leading-snug">
+                                <h3 class="text-lg font-extrabold {{ $isUnlocked ? ($tier === 'perfect' ? 'text-amber-300' : 'text-emerald-200') : 'text-stone-300' }} truncate leading-snug">
                                     {{ $skill->name }}
                                 </h3>
                                 <p class="text-xs text-stone-400 font-sans leading-relaxed mt-1">
@@ -346,13 +416,13 @@
 
                             @if($isUnlocked && !$isMaxLevel)
                                 <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
-                                    <span>Kolejny Poziom (Lv. {{ $mySkill->level + 1 }}):</span>
+                                    <span>Następny Poziom:</span>
                                     <span class="text-emerald-300 font-bold">{{ $effectNextText }}</span>
                                 </div>
                             @elseif($isMaxLevel)
                                 <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
-                                    <span>Status Poziomu:</span>
-                                    <span class="text-amber-400 font-bold">Maksymalny Poziom (Lv. 5)</span>
+                                    <span>Status Mocy:</span>
+                                    <span class="text-amber-400 font-bold">Maksymalny Poziom Perfect Master (P) (+65% Mocy)</span>
                                 </div>
                             @else
                                 <div class="text-[11px] text-stone-400 flex items-center justify-between border-t border-stone-800/80 pt-2 mt-2">
@@ -459,23 +529,23 @@
                                 </button>
                             @else
                                 <div class="text-xs font-sans text-stone-400 flex items-center gap-1">
-                                    <i class="fa-solid fa-sparkles text-emerald-400"></i>
-                                    <span>Koszt: <strong class="text-emerald-300">{{ $isMaxLevel ? '-' : '1 PKT' }}</strong></span>
+                                    <i class="fa-solid fa-coins text-amber-400"></i>
+                                    <span>Wymagania: <strong class="{{ $canUpgrade ? 'text-amber-300' : 'text-red-400' }}">{{ $isMaxLevel ? '-' : $costText }}</strong></span>
                                 </div>
 
                                 @if($isMaxLevel)
-                                    <button disabled class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-amber-950/40 text-amber-400 border border-amber-800/60 cursor-not-allowed opacity-80 flex items-center gap-2">
-                                        <i class="fa-solid fa-crown text-amber-400"></i>
-                                        <span>MAX (Lv. 5)</span>
+                                    <button disabled class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider bg-gradient-to-r from-amber-600 to-yellow-500 text-stone-950 border border-yellow-300 cursor-not-allowed shadow-[0_0_15px_rgba(251,191,36,0.5)] flex items-center gap-2">
+                                        <i class="fa-solid fa-crown text-stone-950"></i>
+                                        <span>PERFECT (P)</span>
                                     </button>
                                 @else
                                     <button wire:click="upgradeSkill('{{ $mySkill->id }}')" 
                                             wire:loading.attr="disabled"
                                             class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer flex items-center gap-2
-                                            {{ $canUpgrade ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-sky-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
+                                            {{ $canUpgrade ? ($level >= 37 ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-900 hover:from-amber-500 hover:to-yellow-800 text-amber-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : ($level >= 27 ? 'bg-gradient-to-b from-amber-700 via-amber-800 to-stone-950 hover:from-amber-600 hover:to-amber-900 text-amber-100 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : ($level >= 17 ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-gradient-to-b from-emerald-700 via-emerald-800 to-emerald-950 hover:from-emerald-600 hover:to-emerald-900 text-emerald-100 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]'))) : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
                                             @if(!$canUpgrade) disabled @endif>
                                         <i class="fa-solid fa-circle-arrow-up"></i>
-                                        <span>Ulepsz do Lv. {{ $mySkill->level + 1 }}</span>
+                                        <span>{{ $level === 37 ? 'Awansuj na PERFECT (P)' : ($level >= 27 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 17 ? 'Ulepsz (' . $reqBookName . ')' : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
                                     </button>
                                 @endif
                             @endif

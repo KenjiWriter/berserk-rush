@@ -112,15 +112,17 @@ Z poziomu widoku Profilu gracz może ręcznie przydzielać zdobyte punkty do swo
 > postaci, tylko w tym, co seeder faktycznie przydziela przedmiotom
 > (`$classArmorAttributes` w `ItemTemplateSeeder.php`).
 
-### 5. Zestawy Ekwipunku (Arena PvP / Wojna Gildii / Set 1-2-3)
+### 5. Zestawy Ekwipunku (Arena PvP / Wojna Gildii / World Boss / Set 1-2-3)
 
-Postać może zapisać do **5 niezależnych, wirtualnych zestawów** ekwipunku,
+Postać może zapisać do **6 niezależnych, wirtualnych zestawów** ekwipunku,
 niezależnych od tego, co jest aktualnie fizycznie założone:
 - **`pvp`** ("Arena PvP") - używany wyłącznie do wyliczenia snapshotu OBROŃCY,
   gdy ktoś wyzywa naszą postać na Arenie (patrz `docs/modules/pvp_and_arena.md`).
   Atakujący zawsze walczy swoim aktualnie założonym gearem.
 - **`guild_war`** ("Wojna Gildii") - używany dla OBU stron (atak i obrona)
   podczas rozstrzygania starcia 5v5 (patrz `docs/modules/guilds.md`).
+- **`world_boss`** ("World Boss") - używany automatycznie podczas starć
+  z World Bossami dla kalkulacji atrybutów, statystyk ekwipunku i skilli.
 - **`set_1`** - dostępny dla każdego gracza.
 - **`set_2`** / **`set_3`** - wymagają Premium (`User::hasPremium()`), analogicznie
   do limitu plecaka.

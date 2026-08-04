@@ -116,34 +116,34 @@ class TitleSeeder extends Seeder
 
         $weeklyTitles = [
             // Pokonane Potwory
-            ['name' => 'Top 1 Łowca', 'prefix' => 'Top 1 Łowca', 'description' => 'Tytuł tygodniowy za 1. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 10, 'attack' => 50], 'is_temporary' => true],
-            ['name' => 'Top 2 Łowca', 'prefix' => 'Top 2 Łowca', 'description' => 'Tytuł tygodniowy za 2. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 5, 'attack' => 30], 'is_temporary' => true],
-            ['name' => 'Top 3 Łowca', 'prefix' => 'Top 3 Łowca', 'description' => 'Tytuł tygodniowy za 3. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 3, 'attack' => 15], 'is_temporary' => true],
+            ['name' => 'Top 1 Łowca', 'prefix' => 'Top 1 Łowca', 'description' => 'Tytuł tygodniowy za 1. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 5, 'attack' => 20], 'is_temporary' => true],
+            ['name' => 'Top 2 Łowca', 'prefix' => 'Top 2 Łowca', 'description' => 'Tytuł tygodniowy za 2. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 3, 'attack' => 12], 'is_temporary' => true],
+            ['name' => 'Top 3 Łowca', 'prefix' => 'Top 3 Łowca', 'description' => 'Tytuł tygodniowy za 3. miejsce w liczbie pokonanych potworów.', 'stats_bonus' => ['strong_vs_monsters' => 1, 'attack' => 6], 'is_temporary' => true],
 
             // DMG World Bossa
-            ['name' => 'Top 1 Pogromca Bossów', 'prefix' => 'Top 1 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 1. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 10, 'crit_chance' => 5], 'is_temporary' => true],
-            ['name' => 'Top 2 Pogromca Bossów', 'prefix' => 'Top 2 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 2. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 5, 'crit_chance' => 3], 'is_temporary' => true],
-            ['name' => 'Top 3 Pogromca Bossów', 'prefix' => 'Top 3 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 3. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 3, 'crit_chance' => 2], 'is_temporary' => true],
+            ['name' => 'Top 1 Pogromca Bossów', 'prefix' => 'Top 1 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 1. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 5, 'crit_chance' => 2], 'is_temporary' => true],
+            ['name' => 'Top 2 Pogromca Bossów', 'prefix' => 'Top 2 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 2. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 3, 'crit_chance' => 1], 'is_temporary' => true],
+            ['name' => 'Top 3 Pogromca Bossów', 'prefix' => 'Top 3 Pogromca Bossów', 'description' => 'Tytuł tygodniowy za 3. miejsce w obrażeniach World Bossa.', 'stats_bonus' => ['strong_vs_bosses' => 1, 'crit_chance' => 0.5], 'is_temporary' => true],
 
             // Ukończone Lochy
-            ['name' => 'Top 1 Zdobywca Lochów', 'prefix' => 'Top 1 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 1. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 10, 'defense' => 40], 'is_temporary' => true],
-            ['name' => 'Top 2 Zdobywca Lochów', 'prefix' => 'Top 2 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 2. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 5, 'defense' => 25], 'is_temporary' => true],
-            ['name' => 'Top 3 Zdobywca Lochów', 'prefix' => 'Top 3 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 3. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 3, 'defense' => 12], 'is_temporary' => true],
+            ['name' => 'Top 1 Zdobywca Lochów', 'prefix' => 'Top 1 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 1. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 5, 'defense' => 15], 'is_temporary' => true],
+            ['name' => 'Top 2 Zdobywca Lochów', 'prefix' => 'Top 2 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 2. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 3, 'defense' => 10], 'is_temporary' => true],
+            ['name' => 'Top 3 Zdobywca Lochów', 'prefix' => 'Top 3 Zdobywca Lochów', 'description' => 'Tytuł tygodniowy za 3. miejsce w liczbie ukończonych lochów.', 'stats_bonus' => ['armor_pen_pct' => 1, 'defense' => 5], 'is_temporary' => true],
 
             // Wbite Poziomy
-            ['name' => 'Top 1 Mistrz Doświadczenia', 'prefix' => 'Top 1 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 1. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 10, 'all_attributes' => 30], 'is_temporary' => true],
-            ['name' => 'Top 2 Mistrz Doświadczenia', 'prefix' => 'Top 2 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 2. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 5, 'all_attributes' => 20], 'is_temporary' => true],
-            ['name' => 'Top 3 Mistrz Doświadczenia', 'prefix' => 'Top 3 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 3. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 3, 'all_attributes' => 10], 'is_temporary' => true],
+            ['name' => 'Top 1 Mistrz Doświadczenia', 'prefix' => 'Top 1 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 1. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 5, 'all_attributes' => 10], 'is_temporary' => true],
+            ['name' => 'Top 2 Mistrz Doświadczenia', 'prefix' => 'Top 2 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 2. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 3, 'all_attributes' => 6], 'is_temporary' => true],
+            ['name' => 'Top 3 Mistrz Doświadczenia', 'prefix' => 'Top 3 Mistrz Doświadczenia', 'description' => 'Tytuł tygodniowy za 3. miejsce w wbitych poziomach.', 'stats_bonus' => ['exp_bonus' => 1, 'all_attributes' => 3], 'is_temporary' => true],
 
             // Bossowie na Mapach
-            ['name' => 'Top 1 Łowca Czempionów', 'prefix' => 'Top 1 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 1. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 10, 'attack' => 40], 'is_temporary' => true],
-            ['name' => 'Top 2 Łowca Czempionów', 'prefix' => 'Top 2 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 2. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 5, 'attack' => 25], 'is_temporary' => true],
-            ['name' => 'Top 3 Łowca Czempionów', 'prefix' => 'Top 3 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 3. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 3, 'attack' => 12], 'is_temporary' => true],
+            ['name' => 'Top 1 Łowca Czempionów', 'prefix' => 'Top 1 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 1. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 5, 'attack' => 15], 'is_temporary' => true],
+            ['name' => 'Top 2 Łowca Czempionów', 'prefix' => 'Top 2 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 2. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 3, 'attack' => 10], 'is_temporary' => true],
+            ['name' => 'Top 3 Łowca Czempionów', 'prefix' => 'Top 3 Łowca Czempionów', 'description' => 'Tytuł tygodniowy za 3. miejsce w pokonanych bossach map.', 'stats_bonus' => ['double_drop_chance' => 1, 'attack' => 5], 'is_temporary' => true],
 
             // Zwycięstwa na Arenie
-            ['name' => 'Top 1 Gladiator', 'prefix' => 'Top 1 Gladiator', 'description' => 'Tytuł tygodniowy za 1. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 10, 'dodge_chance' => 5], 'is_temporary' => true],
-            ['name' => 'Top 2 Gladiator', 'prefix' => 'Top 2 Gladiator', 'description' => 'Tytuł tygodniowy za 2. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 5, 'dodge_chance' => 3], 'is_temporary' => true],
-            ['name' => 'Top 3 Gladiator', 'prefix' => 'Top 3 Gladiator', 'description' => 'Tytuł tygodniowy za 3. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 3, 'dodge_chance' => 2], 'is_temporary' => true],
+            ['name' => 'Top 1 Gladiator', 'prefix' => 'Top 1 Gladiator', 'description' => 'Tytuł tygodniowy za 1. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 5, 'dodge_chance' => 2], 'is_temporary' => true],
+            ['name' => 'Top 2 Gladiator', 'prefix' => 'Top 2 Gladiator', 'description' => 'Tytuł tygodniowy za 2. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 3, 'dodge_chance' => 1], 'is_temporary' => true],
+            ['name' => 'Top 3 Gladiator', 'prefix' => 'Top 3 Gladiator', 'description' => 'Tytuł tygodniowy za 3. miejsce w wygranych na Arenie.', 'stats_bonus' => ['strong_vs_hero' => 1, 'dodge_chance' => 0.5], 'is_temporary' => true],
         ];
 
         foreach ($weeklyTitles as $wtData) {

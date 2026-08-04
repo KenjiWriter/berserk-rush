@@ -488,14 +488,11 @@ class Character extends Model
 
         $spentSkillPoints = 0;
         foreach ($unlockedSkills as $cs) {
-            // Capping skill level at max 5
-            if ($cs->level > 5) {
-                $cs->level = 5;
-                $cs->save();
-            }
             $unlockCost = $cs->skill->unlock_cost ?? 1;
-            $upgrades = max(0, $cs->level - 1);
-            $spentSkillPoints += ($unlockCost + $upgrades);
+            // Punkty umiejętności (SP) inwestuje się wyłącznie do 17 poziomu.
+            // Poziomy M, G, P rozwijane są za pomocą Ksiąg Umiejętności i Kamieni Duchowych.
+            $spUpgrades = max(0, min(17, $cs->level) - 1);
+            $spentSkillPoints += ($unlockCost + $spUpgrades);
         }
 
         $currentTotalSkillPoints = ($this->skill_points ?? 0) + $spentSkillPoints;
@@ -1034,10 +1031,14 @@ class Character extends Model
                 'effect_type' => $charSkill->skill->effect_type,
                 'is_magic' => (bool) $charSkill->skill->is_magic,
                 'is_aoe' => (bool) $charSkill->skill->is_aoe,
-                'base_cooldown' => $charSkill->skill->base_cooldown,
+                'base_cooldown' => $charSkill->getCooldown(),
                 'base_duration' => $charSkill->skill->base_duration,
                 'base_value' => $charSkill->skill->base_value,
                 'scaling_value' => $charSkill->skill->scaling_value,
+                'effective_value' => $charSkill->getEffectiveValue(),
+                'tier' => $charSkill->getTier(),
+                'display_level' => $charSkill->getDisplayLevel(),
+                'effective_level' => $charSkill->getEffectiveLevel(),
                 'base_mana_cost' => $charSkill->skill->base_mana_cost ?? 0,
                 'scaling_mana_cost' => $charSkill->skill->scaling_mana_cost ?? 0,
                 'level' => $charSkill->level,
@@ -1119,10 +1120,10 @@ class Character extends Model
         return 'sword';
     }
 
-    public function getAttributeAttackBonus(?string $weaponType = null): int
+    public function getAttributeAttackBonus(?string $weaponType = null, ?string $setType = null): int
     {
-        $attributes = $this->getTotalAttributes();
-        $weaponType = $weaponType ?? $this->getEquippedWeaponType();
+        $attributes = $this->getTotalAttributes($setType);
+        $weaponType = $weaponType ?? $this->getEquippedWeaponType($setType);
 
         $str = $attributes['str'] ?? 0;
         $int = $attributes['int'] ?? 0;

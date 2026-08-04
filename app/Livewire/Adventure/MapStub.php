@@ -520,11 +520,14 @@ class MapStub extends Component
             $character = $character->fresh();
         }
 
+        $rankVal = is_object($monster->rank) ? $monster->rank->value : (string)$monster->rank;
+        $setType = ($rankVal === 'worldboss' || $this->isWorldBoss) ? \App\Infrastructure\Persistence\CharacterEquipmentSetItem::SET_WORLD_BOSS : null;
+
         // Get total calculated attributes
-        $playerAttributes = $character->getTotalAttributes();
+        $playerAttributes = $character->getTotalAttributes($setType);
 
         // Calculate HP based on attributes
-        $playerMaxHp = $character->getMaxHp();
+        $playerMaxHp = $character->getMaxHp($setType);
 
         $monsterMaxHp = $combatResult['enemy']['maxHp'] ?? ($monster->stats['hp'] ?? $monster->level * 20);
         $monsterStats = $combatResult['enemy']['stats'] ?? $monster->stats ?? [];

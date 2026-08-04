@@ -227,12 +227,12 @@
                         {{-- Info o tytułach czasowych dla wybranej kategorii --}}
                         @php
                             $categoryTitleInfo = match($cat) {
-                                'monsters_killed'    => ['top1' => 'Top 1 Łowca (+10% Dmg vs Potwory, +50 Atak)', 'top2' => 'Top 2 Łowca (+5%, +30 Atak)', 'top3' => 'Top 3 Łowca (+3%, +15 Atak)'],
-                                'world_boss_damage'  => ['top1' => 'Top 1 Pogromca Bossów (+10% Dmg vs Boss, +5% Kryt)', 'top2' => 'Top 2 (+5%, +3% Kryt)', 'top3' => 'Top 3 (+3%, +2% Kryt)'],
-                                'dungeons_completed' => ['top1' => 'Top 1 Zdobywca Lochów (+10% Przebicie Pancerza, +40 Def)', 'top2' => 'Top 2 (+5%, +25 Def)', 'top3' => 'Top 3 (+3%, +12 Def)'],
-                                'levels_gained'      => ['top1' => 'Top 1 Mistrz Doświadczenia (+10% EXP, +30 Staty)', 'top2' => 'Top 2 (+5%, +20 Staty)', 'top3' => 'Top 3 (+3%, +10 Staty)'],
-                                'map_bosses_killed'  => ['top1' => 'Top 1 Łowca Czempionów (+10% Podwójny Łup, +40 Atak)', 'top2' => 'Top 2 (+5%, +25 Atak)', 'top3' => 'Top 3 (+3%, +12 Atak)'],
-                                'arena_wins'         => ['top1' => 'Top 1 Gladiator (+10% vs Bohaterowie, +5% Unik)', 'top2' => 'Top 2 (+5%, +3% Unik)', 'top3' => 'Top 3 (+3%, +2% Unik)'],
+                                'monsters_killed'    => ['top1' => 'Top 1 Łowca (+5% Dmg vs Potwory, +20 Atak)', 'top2' => 'Top 2 Łowca (+3%, +12 Atak)', 'top3' => 'Top 3 Łowca (+1%, +6 Atak)'],
+                                'world_boss_damage'  => ['top1' => 'Top 1 Pogromca Bossów (+5% Dmg vs Boss, +2% Kryt)', 'top2' => 'Top 2 (+3%, +1% Kryt)', 'top3' => 'Top 3 (+1%, +0.5% Kryt)'],
+                                'dungeons_completed' => ['top1' => 'Top 1 Zdobywca Lochów (+5% Przebicie Pancerza, +15 Def)', 'top2' => 'Top 2 (+3%, +10 Def)', 'top3' => 'Top 3 (+1%, +5 Def)'],
+                                'levels_gained'      => ['top1' => 'Top 1 Mistrz Doświadczenia (+5% EXP, +10 Staty)', 'top2' => 'Top 2 (+3%, +6 Staty)', 'top3' => 'Top 3 (+1%, +3 Staty)'],
+                                'map_bosses_killed'  => ['top1' => 'Top 1 Łowca Czempionów (+5% Podwójny Łup, +15 Atak)', 'top2' => 'Top 2 (+3%, +10 Atak)', 'top3' => 'Top 3 (+1%, +5 Atak)'],
+                                'arena_wins'         => ['top1' => 'Top 1 Gladiator (+5% vs Bohaterowie, +2% Unik)', 'top2' => 'Top 2 (+3%, +1% Unik)', 'top3' => 'Top 3 (+1%, +0.5% Unik)'],
                                 default => null,
                             };
                         @endphp

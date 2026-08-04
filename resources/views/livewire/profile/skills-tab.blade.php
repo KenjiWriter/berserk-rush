@@ -32,7 +32,10 @@
                     $skill = $characterSkill->skill;
                     $isActive = $characterSkill->is_equipped;
                     $level = $characterSkill->level;
-                    $currentValue = $skill->base_value + ($skill->scaling_value * ($level - 1));
+                    $tier = $characterSkill->getTier();
+                    $displayLevel = $characterSkill->getDisplayLevel();
+                    $cooldown = $characterSkill->getCooldown();
+                    $currentValue = $characterSkill->getEffectiveValue();
 
                     // Base damage range and stat influence computed specifically for this skill
                     $baseDamageRange = $skill->getBaseDamageRange($character);
@@ -92,7 +95,7 @@
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                         <div class="flex items-start space-x-3.5 flex-1 min-w-0">
                             {{-- Icon Frame --}}
-                            <div class="w-12 h-12 rounded-xl border-2 border-amber-500/80 bg-stone-950 flex items-center justify-center text-2xl shrink-0 overflow-hidden shadow-inner relative">
+                            <div class="w-12 h-12 rounded-xl border-2 {{ $tier === 'perfect' ? 'border-amber-400 bg-amber-950' : ($tier === 'grand_master' ? 'border-orange-500 bg-amber-950' : ($tier === 'master' ? 'border-sky-500 bg-sky-950' : 'border-amber-500/80 bg-stone-950')) }} flex items-center justify-center text-2xl shrink-0 overflow-hidden shadow-inner relative">
                                 @if($skill->icon)
                                     <img src="{{ route('assets.skills.icons', ['filename' => $skill->icon]) }}" class="w-full h-full object-contain p-0.5" alt="{{ $skill->name }}">
                                 @elseif($skill->effect_type === 'poison' || $skill->effect_type === 'dot_poison')
@@ -111,9 +114,23 @@
                                     <h4 class="font-extrabold text-amber-100 text-sm tracking-wide" style="font-family: 'Cinzel', serif;">
                                         {{ $skill->name }}
                                     </h4>
-                                    <span class="bg-emerald-950 text-emerald-300 border border-emerald-600/80 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
-                                        Poziom {{ $level }}
-                                    </span>
+                                    @if($tier === 'perfect')
+                                        <span class="bg-gradient-to-r from-amber-600 via-yellow-500 to-amber-600 text-stone-950 px-2 py-0.5 rounded text-[10px] font-black uppercase shadow-[0_0_10px_rgba(251,191,36,0.5)] flex items-center gap-1 animate-pulse">
+                                            <i class="fa-solid fa-crown text-stone-950"></i> PERFECT (P)
+                                        </span>
+                                    @elseif($tier === 'grand_master')
+                                        <span class="bg-amber-950 text-amber-300 border border-amber-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                            {{ $displayLevel }} (G)
+                                        </span>
+                                    @elseif($tier === 'master')
+                                        <span class="bg-sky-950 text-sky-300 border border-sky-500 px-2 py-0.5 rounded text-[10px] font-black uppercase">
+                                            {{ $displayLevel }} (M)
+                                        </span>
+                                    @else
+                                        <span class="bg-emerald-950 text-emerald-300 border border-emerald-600/80 px-2 py-0.5 rounded text-[10px] font-extrabold uppercase">
+                                            {{ $displayLevel }}
+                                        </span>
+                                    @endif
                                     @php
                                         $equippedWeaponType = $character->getEquippedWeaponType();
                                         $isWeaponMatched = ($skill->required_weapon_type === 'all' || $skill->required_weapon_type === $equippedWeaponType);
@@ -132,11 +149,11 @@
                                         <i class="fa-solid fa-bolt mr-1"></i>{{ $effectTitle }}: <strong class="text-yellow-300 font-extrabold">{{ $effectValueText }}</strong>
                                     </span>
                                     <span class="bg-stone-900 border border-sky-900/60 text-sky-300 px-2.5 py-1 rounded-md font-bold">
-                                        <i class="fa-regular fa-clock mr-1"></i>CD: {{ $skill->base_cooldown }} Tur
+                                        <i class="fa-regular fa-clock mr-1"></i>CD: {{ $cooldown }} Tur
                                     </span>
-                                    @if($skill->getManaCost($level) > 0)
+                                    @if($characterSkill->getManaCost() > 0)
                                         <span class="bg-stone-900 border border-cyan-900/60 text-cyan-300 px-2.5 py-1 rounded-md font-bold">
-                                            <i class="fa-solid fa-droplet mr-1"></i>Mana: {{ $skill->getManaCost($level) }} MP
+                                            <i class="fa-solid fa-droplet mr-1"></i>Mana: {{ $characterSkill->getManaCost() }} MP
                                         </span>
                                     @endif
                                     @if($skill->base_duration > 1)

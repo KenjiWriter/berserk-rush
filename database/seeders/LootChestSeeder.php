@@ -14,6 +14,21 @@ class LootChestSeeder extends Seeder
     {
         $chestsConfig = [
             [
+                'name' => 'Skrzynia Ksiąg Umiejętności',
+                'desc' => 'Tajemnicza skrzynia zawierająca wiedzę o sztukach walki. Po otwarciu przyznaje losową Księgę Umiejętności.',
+                'icon' => 'skrzynia-ksiag-umiejetnosci.png',
+                'min_level' => 1,
+                'materials' => [
+                    ['name' => 'Księga Walki Mieczem', 'weight' => 15, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Sztuki Topora', 'weight' => 15, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Łucznictwa', 'weight' => 14, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Tajemnic Różdżki', 'weight' => 14, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Magii Dzwonu', 'weight' => 14, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Mistrzostwa Sztyletów', 'weight' => 14, 'min_qty' => 1, 'max_qty' => 1],
+                    ['name' => 'Księga Ogólnych Technik', 'weight' => 14, 'min_qty' => 1, 'max_qty' => 1],
+                ]
+            ],
+            [
                 'name' => 'Skrzynia Mrocznego Lasu',
                 'desc' => 'Pradawna drewniana skrzynia o owiniętych pnączach. Zawiera materiały i ulepszacze z Mrocznego Lasu.',
                 'icon' => 'skrzynia-lesna.png',

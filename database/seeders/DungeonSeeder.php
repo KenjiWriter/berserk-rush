@@ -66,16 +66,17 @@ class DungeonSeeder extends Seeder
                 'min_level' => 12,
                 'key_id' => '01k4jpx94j70x2vv10b835key1',
                 'boss_loot' => [
-                    // Brak lootu chowańców - pety wypadają wyłącznie z lochów 50 lvl+.
+                    // Skill Books Chest
+                    ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 180],
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 20],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
-                    // Upgrade materials
-                    ['reward_type' => 'material', 'ref_name' => 'Wilczy Kieł', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 200],
-                    ['reward_type' => 'material', 'ref_name' => 'Prastara Kora', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 150],
-                    ['reward_type' => 'material', 'ref_name' => 'Pył Grobowy', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 150],
-                    ['reward_type' => 'material', 'ref_name' => 'Strzaskana Kość', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 100],
+                    // Upgrade materials (increased drop quantities)
+                    ['reward_type' => 'material', 'ref_name' => 'Wilczy Kieł', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 200],
+                    ['reward_type' => 'material', 'ref_name' => 'Prastara Kora', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 150],
+                    ['reward_type' => 'material', 'ref_name' => 'Pył Grobowy', 'min_qty' => 3, 'max_qty' => 7, 'weight' => 150],
+                    ['reward_type' => 'material', 'ref_name' => 'Strzaskana Kość', 'min_qty' => 3, 'max_qty' => 9, 'weight' => 100],
                 ],
                 'stages' => [
                     [
@@ -101,17 +102,18 @@ class DungeonSeeder extends Seeder
                 'min_level' => 30,
                 'key_id' => '01k4jpx94j70x2vv10b835key2',
                 'boss_loot' => [
-                    // Brak lootu chowańców - pety wypadają wyłącznie z lochów 50 lvl+.
+                    // Skill Books Chest
+                    ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 200],
                     // Scrolls (consumables)
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Umiejętności', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 15],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 50],
-                    // Upgrade materials
-                    ['reward_type' => 'material', 'ref_name' => 'Ektoplazma', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 200],
-                    ['reward_type' => 'material', 'ref_name' => 'Gruba Skóra Trolla', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 180],
-                    ['reward_type' => 'material', 'ref_name' => 'Ogrzy Pazur', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 120],
-                    ['reward_type' => 'material', 'ref_name' => 'Ruda Żelaza', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 80],
+                    // Upgrade materials (increased quantities)
+                    ['reward_type' => 'material', 'ref_name' => 'Ektoplazma', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 200],
+                    ['reward_type' => 'material', 'ref_name' => 'Gruba Skóra Trolla', 'min_qty' => 3, 'max_qty' => 7, 'weight' => 180],
+                    ['reward_type' => 'material', 'ref_name' => 'Ogrzy Pazur', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 120],
+                    ['reward_type' => 'material', 'ref_name' => 'Ruda Żelaza', 'min_qty' => 5, 'max_qty' => 12, 'weight' => 80],
                 ],
                 'stages' => [
                     [
@@ -137,6 +139,9 @@ class DungeonSeeder extends Seeder
                 'min_level' => 50,
                 'key_id' => '01k4jpx94j70x2vv10b835key3',
                 'boss_loot' => [
+                    // Skill Books & Soul Stones (D3+)
+                    ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 220],
+                    ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 120],
                     // Wejściowy loch z lootem chowańców (50 lvl+): T3-T5 jajka + podstawowa obroża.
                     ['reward_type' => 'item', 'ref_name' => 'Nietypowe Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
@@ -147,11 +152,11 @@ class DungeonSeeder extends Seeder
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 80],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 40],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 90],
-                    // Upgrade materials
-                    ['reward_type' => 'material', 'ref_name' => 'Skrwawiony Totem', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 180],
-                    ['reward_type' => 'material', 'ref_name' => 'Łuska Hydry', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 150],
-                    ['reward_type' => 'material', 'ref_name' => 'Błotnisty Korzeń', 'min_qty' => 3, 'max_qty' => 6, 'weight' => 100],
-                    ['reward_type' => 'material', 'ref_name' => 'Toksyczny Śluz', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 70],
+                    // Upgrade materials (increased quantities)
+                    ['reward_type' => 'material', 'ref_name' => 'Skrwawiony Totem', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 180],
+                    ['reward_type' => 'material', 'ref_name' => 'Łuska Hydry', 'min_qty' => 3, 'max_qty' => 7, 'weight' => 150],
+                    ['reward_type' => 'material', 'ref_name' => 'Błotnisty Korzeń', 'min_qty' => 4, 'max_qty' => 10, 'weight' => 100],
+                    ['reward_type' => 'material', 'ref_name' => 'Toksyczny Śluz', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 70],
                 ],
                 'stages' => [
                     [
@@ -181,6 +186,9 @@ class DungeonSeeder extends Seeder
                 'min_level' => 70,
                 'key_id' => '01k4jpx94j70x2vv10b835key4',
                 'boss_loot' => [
+                    // Skill Books & Soul Stones (D4+)
+                    ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 250],
+                    ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 160],
                     // Loch środkowego poziomu: T4-T6 jajka (mała szansa na Legendarne!) + lepszy ekwipunek peta.
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 300],
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 250],
@@ -192,11 +200,11 @@ class DungeonSeeder extends Seeder
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 140],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 90],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 150],
-                    // Upgrade materials
-                    ['reward_type' => 'material', 'ref_name' => 'Kryształ Cienia', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 180],
-                    ['reward_type' => 'material', 'ref_name' => 'Pióro Harpii', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 120],
-                    ['reward_type' => 'material', 'ref_name' => 'Runiczny Kamień', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 80],
-                    ['reward_type' => 'material', 'ref_name' => 'Magiczny Rdzeń', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 40],
+                    // Upgrade materials (increased quantities)
+                    ['reward_type' => 'material', 'ref_name' => 'Kryształ Cienia', 'min_qty' => 3, 'max_qty' => 9, 'weight' => 180],
+                    ['reward_type' => 'material', 'ref_name' => 'Pióro Harpii', 'min_qty' => 4, 'max_qty' => 12, 'weight' => 120],
+                    ['reward_type' => 'material', 'ref_name' => 'Runiczny Kamień', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 80],
+                    ['reward_type' => 'material', 'ref_name' => 'Magiczny Rdzeń', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 40],
                 ],
                 'stages' => [
                     [
@@ -226,6 +234,9 @@ class DungeonSeeder extends Seeder
                 'min_level' => 88,
                 'key_id' => '01k4jpx94j70x2vv10b835key5',
                 'boss_loot' => [
+                    // Skill Books & Soul Stones (D5+)
+                    ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 280],
+                    ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 200],
                     // Najlepszy loot chowańców w grze: głównie T5, spora szansa na T6 Legendarne + rzadki ekwipunek.
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
                     ['reward_type' => 'item', 'ref_name' => 'Legendarne Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
@@ -236,11 +247,11 @@ class DungeonSeeder extends Seeder
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Resetu Atrybutów', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Pełnego Resetu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 160],
                     ['reward_type' => 'item', 'ref_name' => 'Zwój Areny Walki', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 240],
-                    // Upgrade materials
-                    ['reward_type' => 'material', 'ref_name' => 'Skażona Kość', 'min_qty' => 3, 'max_qty' => 8, 'weight' => 150],
-                    ['reward_type' => 'material', 'ref_name' => 'Przeklęta Stal', 'min_qty' => 2, 'max_qty' => 6, 'weight' => 100],
-                    ['reward_type' => 'material', 'ref_name' => 'Esencja Zniszczenia', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 60],
-                    ['reward_type' => 'material', 'ref_name' => 'Czarny Kamień Dusz', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 40],
+                    // Upgrade materials (increased quantities)
+                    ['reward_type' => 'material', 'ref_name' => 'Skażona Kość', 'min_qty' => 4, 'max_qty' => 12, 'weight' => 150],
+                    ['reward_type' => 'material', 'ref_name' => 'Przeklęta Stal', 'min_qty' => 3, 'max_qty' => 9, 'weight' => 100],
+                    ['reward_type' => 'material', 'ref_name' => 'Esencja Zniszczenia', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 60],
+                    ['reward_type' => 'material', 'ref_name' => 'Czarny Kamień Dusz', 'min_qty' => 2, 'max_qty' => 5, 'weight' => 40],
                 ],
                 'stages' => [
                     [

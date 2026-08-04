@@ -18,6 +18,10 @@ Handlarz **nie** obsługuje ulepszania (`forge`) ani rzemiosła (`crafting`) - d
 ## 4. Asortyment (`MerchantItem`)
 Asortyment Handlarza to wszystkie wpisy `MerchantItem` z `merchant_id = 'merchant'` o `required_level <= poziom postaci`. Seeder `database/seeders/ShopEquipmentSeeder.php` generuje asortyment w "tematycznych" grupach (`themes`) rosnących wraz z poziomem (1, 10, 20, 30, 40, 50, 60, 70, 80, 90) - każda grupa zawiera pełny zestaw: 6 typów broni (miecz/topór/łuk/różdżka/sztylet/dzwon) oraz zbroję/hełm/buty/naszyjnik/pierścień. Sklep gladiatora (`merchant_id = 'gladiator'`, poziom 55, NPC `GladiatorShop`) jest osobnym asortymentem i nie jest częścią Handlarza.
 
+> **Balans Ekwipunku Sklepowego:**
+> - **Statystyki Tieru 10 (Rycerski)**: Zostały podniesione o **+15%** (skala 4.0 → 4.6), dając więcej pancerza, HP oraz ataku, aby ułatwić postęp postaci na 15 mapie.
+> - **Bonus Szansa na Podwójny Łup (`double_drop_chance`)**: Każdy element ekwipunku u Handlarza posiada wbudowaną delikatną szansę na podwójny drop przedmiotu – płynnie skalowaną od **5%** (dla poziomu 1) do **15%** (dla poziomu 50+).
+
 Widok jest dwukolumnowy: **lewa** kolumna to Asortyment Sklepu, **prawa** to Plecak/Magazyn Materiałów gracza (kolejność celowo odwrotna niż w dawnych `Weaponsmith`/`Armorsmith`, gdzie plecak był po lewej).
 
 ## 5. Tiery (podział wg poziomu)

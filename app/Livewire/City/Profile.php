@@ -174,6 +174,7 @@ class Profile extends Component
     public const EQUIPMENT_SET_LABELS = [
         CharacterEquipmentSetItem::SET_PVP => 'Arena PvP',
         CharacterEquipmentSetItem::SET_GUILD_WAR => 'Wojna Gildii',
+        CharacterEquipmentSetItem::SET_WORLD_BOSS => 'World Boss',
         CharacterEquipmentSetItem::SET_1 => 'Set 1',
         CharacterEquipmentSetItem::SET_2 => 'Set 2',
         CharacterEquipmentSetItem::SET_3 => 'Set 3',

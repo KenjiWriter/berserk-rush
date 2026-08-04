@@ -12,13 +12,14 @@ class CharacterEquipmentSetItem extends Model
 
     public const SET_PVP = 'pvp';
     public const SET_GUILD_WAR = 'guild_war';
+    public const SET_WORLD_BOSS = 'world_boss';
     public const SET_1 = 'set_1';
     public const SET_2 = 'set_2';
     public const SET_3 = 'set_3';
 
     public const WEARABLE_SETS = [self::SET_1, self::SET_2, self::SET_3];
     public const VIP_ONLY_SETS = [self::SET_2, self::SET_3];
-    public const ALL_SETS = [self::SET_PVP, self::SET_GUILD_WAR, self::SET_1, self::SET_2, self::SET_3];
+    public const ALL_SETS = [self::SET_PVP, self::SET_GUILD_WAR, self::SET_WORLD_BOSS, self::SET_1, self::SET_2, self::SET_3];
 
     public const SLOTS = ['head', 'chest', 'main_hand', 'neck', 'ring', 'feet'];
 

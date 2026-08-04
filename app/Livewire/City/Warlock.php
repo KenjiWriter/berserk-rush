@@ -67,7 +67,9 @@ class Warlock extends Component
         $result = $upgradeAction->execute($this->character, $charSkill);
 
         if ($result->isOk()) {
-            $this->dispatch('notify', type: 'success', message: 'Umiejętność została rozwinięta!');
+            $data = $result->getData();
+            $message = is_array($data) && !empty($data['message']) ? $data['message'] : 'Umiejętność została rozwinięta!';
+            $this->dispatch('notify', type: 'success', message: $message);
             $this->dispatch('play-audio', type: 'upgrade-success');
             $this->character->refresh();
             $this->dispatch('stats-updated');
@@ -106,9 +108,48 @@ class Warlock extends Component
             ->get()
             ->keyBy('combat_skill_id');
 
+        $skillBookSubTypes = [
+            'skill_book_sword',
+            'skill_book_axe',
+            'skill_book_bow',
+            'skill_book_wand',
+            'skill_book_bell',
+            'skill_book_dagger',
+            'skill_book_all',
+        ];
+
+        $bookTplMap = \App\Infrastructure\Persistence\ItemTemplate::whereIn('sub_type', $skillBookSubTypes)
+            ->pluck('id', 'sub_type')
+            ->toArray();
+
+        $ownedSkillBooksBySubType = [];
+        $skillBooksCount = 0;
+
+        foreach ($skillBookSubTypes as $subType) {
+            $tplId = $bookTplMap[$subType] ?? null;
+            $count = $tplId ? \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $this->character->id)
+                ->where('template_id', $tplId)
+                ->whereIn('location', ['inventory', 'material_stash'])
+                ->sum('stack_size') : 0;
+            $ownedSkillBooksBySubType[$subType] = (int) $count;
+            $skillBooksCount += (int) $count;
+        }
+
+        $stoneTplId = \App\Infrastructure\Persistence\ItemTemplate::where('name', 'Kamień Duchowy')
+            ->orWhere('sub_type', 'soul_stone')
+            ->value('id');
+
+        $soulStonesCount = $stoneTplId ? \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $this->character->id)
+            ->where('template_id', $stoneTplId)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->sum('stack_size') : 0;
+
         return view('livewire.city.warlock', [
             'allSkills' => $allSkills,
             'mySkills' => $mySkills,
+            'skillBooksCount' => $skillBooksCount,
+            'ownedSkillBooksBySubType' => $ownedSkillBooksBySubType,
+            'soulStonesCount' => $soulStonesCount,
         ])->layout('components.layouts.app');
     }
 }

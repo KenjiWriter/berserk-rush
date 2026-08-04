@@ -25,18 +25,18 @@ System rankingów tygodniowych umożliwia graczom rywalizację w 6 kategoriach. 
 
 | Miejsce | Gemy | Tytuł Czasowy (7 dni) | Bonusy Pasywne Tytułu |
 |---------|------|------------------------|------------------------|
-| **1**   | 300  | `[Top 1 ...]` | **+10% Dedykowany Bonus** + Bazowe Statystyki |
-| **2**   | 250  | `[Top 2 ...]` | **+5% Dedykowany Bonus** + Bazowe Statystyki |
-| **3**   | 200  | `[Top 3 ...]` | **+3% Dedykowany Bonus** + Bazowe Statystyki |
+| **1**   | 300  | `[Top 1 ...]` | **+5% Dedykowany Bonus** + Bazowe Statystyki |
+| **2**   | 250  | `[Top 2 ...]` | **+3% Dedykowany Bonus** + Bazowe Statystyki |
+| **3**   | 200  | `[Top 3 ...]` | **+1% Dedykowany Bonus** + Bazowe Statystyki |
 | **4–10**| 100  | — | — |
 
 ### Zestaw Tytułów Czasowych per Kategoria:
-- **Pokonane Potwory**: `[Top 1/2/3 Łowca]` → **+10%/5%/3% Obrażeń vs Potwory (PvE)** (`strong_vs_monsters`) + Atak (+50/+30/+15)
-- **DMG World Bossa**: `[Top 1/2/3 Pogromca Bossów]` → **+10%/5%/3% Obrażeń vs Bossowie** (`strong_vs_bosses`) + Szansa na Kryta (+5%/3%/2%)
-- **Ukończone Lochy**: `[Top 1/2/3 Zdobywca Lochów]` → **+10%/5%/3% Przebicie Pancerza** (`armor_pen_pct`) + Obrona (+40/+25/+12)
-- **Wbite Poziomy**: `[Top 1/2/3 Mistrz Doświadczenia]` → **+10%/5%/3% EXP Bonus** (`exp_bonus`) + Wszystkie Statystyki (+30/+20/+10)
-- **Bossowie na Mapach**: `[Top 1/2/3 Łowca Czempionów]` → **+10%/5%/3% Szansa na Podwójny Łup** (`double_drop_chance`) + Atak (+40/+25/+12)
-- **Zwycięstwa na Arenie**: `[Top 1/2/3 Gladiator]` → **+10%/5%/3% Silny vs Bohaterów (PvP)** (`strong_vs_hero`) + Szansa na Unik (+5%/3%/2%)
+- **Pokonane Potwory**: `[Top 1/2/3 Łowca]` → **+5%/3%/1% Obrażeń vs Potwory (PvE)** (`strong_vs_monsters`) + Atak (+20/+12/+6)
+- **DMG World Bossa**: `[Top 1/2/3 Pogromca Bossów]` → **+5%/3%/1% Obrażeń vs Bossowie** (`strong_vs_bosses`) + Szansa na Kryta (+2%/1%/0.5%)
+- **Ukończone Lochy**: `[Top 1/2/3 Zdobywca Lochów]` → **+5%/3%/1% Przebicie Pancerza** (`armor_pen_pct`) + Obrona (+15/+10/+5)
+- **Wbite Poziomy**: `[Top 1/2/3 Mistrz Doświadczenia]` → **+5%/3%/1% EXP Bonus** (`exp_bonus`) + Wszystkie Statystyki (+10/+6/+3)
+- **Bossowie na Mapach**: `[Top 1/2/3 Łowca Czempionów]` → **+5%/3%/1% Szansa na Podwójny Łup** (`double_drop_chance`) + Atak (+15/+10/+5)
+- **Zwycięstwa na Arenie**: `[Top 1/2/3 Gladiator]` → **+5%/3%/1% Silny vs Bohaterów (PvP)** (`strong_vs_hero`) + Szansa na Unik (+2%/1%/0.5%)
 
 Nagrody wysyłane mailem przez `SendMailAction` z załącznikiem `{'type': 'gems', 'qty': N}` oraz automatycznym odblokowaniem 7-dniowego tytułu czasowego. Tytuły wygasają automatycznie po 7 dniach.
 

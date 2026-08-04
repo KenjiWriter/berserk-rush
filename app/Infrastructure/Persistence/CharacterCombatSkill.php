@@ -36,7 +36,7 @@ class CharacterCombatSkill extends Model
 
     public function getManaCost(): int
     {
-        $baseCost = $this->skill ? $this->skill->getManaCost($this->level) : 0;
+        $baseCost = $this->skill ? $this->skill->getManaCost($this->getEffectiveLevel()) : 0;
         if ($baseCost <= 0 || !$this->character) {
             return $baseCost;
         }
@@ -50,5 +50,79 @@ class CharacterCombatSkill extends Model
         }
 
         return max(0, (int) round($baseCost * (1 - $reductionPct / 100)));
+    }
+
+    public function getTier(): string
+    {
+        if ($this->level >= 38) {
+            return 'perfect';
+        }
+        if ($this->level >= 28) {
+            return 'grand_master';
+        }
+        if ($this->level >= 18) {
+            return 'master';
+        }
+
+        return 'normal';
+    }
+
+    public function getDisplayLevel(): string
+    {
+        $tier = $this->getTier();
+
+        return match ($tier) {
+            'perfect' => 'P',
+            'grand_master' => 'G' . ($this->level - 27),
+            'master' => 'M' . ($this->level - 17),
+            default => 'Lv. ' . $this->level,
+        };
+    }
+
+    public function getEffectiveLevel(): int
+    {
+        return min(38, max(1, $this->level));
+    }
+
+    public function getCooldown(): int
+    {
+        if (!$this->skill) {
+            return 1;
+        }
+
+        $baseCd = max(1, $this->skill->base_cooldown);
+        if ($baseCd <= 1) {
+            return $baseCd;
+        }
+
+        $tierBonus = match ($this->getTier()) {
+            'perfect' => 3,
+            'grand_master' => 2,
+            'master' => 1,
+            default => 0,
+        };
+
+        // Minimalny limit CD to 2 tury, aby zapobiec używaniu skilli co turę
+        return max(2, $baseCd - $tierBonus);
+    }
+
+    public function getEffectiveValue(): float
+    {
+        if (!$this->skill) {
+            return 0.0;
+        }
+
+        $effLvl = $this->getEffectiveLevel();
+        $baseVal = (float) $this->skill->base_value;
+        $scalingVal = (float) $this->skill->scaling_value;
+
+        $tierMultiplier = match ($this->getTier()) {
+            'perfect' => 1.65,
+            'grand_master' => 1.35,
+            'master' => 1.15,
+            default => 1.0,
+        };
+
+        return ($baseVal + ($scalingVal * ($effLvl - 1))) * $tierMultiplier;
     }
 }

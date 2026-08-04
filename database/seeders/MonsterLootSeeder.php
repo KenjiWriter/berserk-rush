@@ -509,7 +509,7 @@ class MonsterLootSeeder extends Seeder
                     ]);
                 }
 
-                // 4. Mała szansa na drop Klucza do Lochu z Bossa mapy (Waga 3 vs materiały 25)
+                // 4. Znacznie podniesiony drop Klucza do Lochu z Bossa mapy (Waga 25 równa materiałom)
                 $bossKeyMapping = [
                     'Strażnik Puszczy' => 'Klucz Katakumb',
                     'Rycerz Ruin' => 'Klucz Krypty',
@@ -526,19 +526,19 @@ class MonsterLootSeeder extends Seeder
                     $template = $itemTemplates->get($keyName);
 
                     if ($template) {
-                        LootTableEntry::firstOrCreate([
+                        LootTableEntry::updateOrCreate([
                             'loot_table_id' => $lootTable->id,
-                            'reward_type' => 'material',
                             'ref_ulid' => $template->id,
                         ], [
-                            'weight' => 3, // Niska szansa na klucz (znacznie mniejsza niż na materiały)
+                            'reward_type' => 'material',
+                            'weight' => 25, // Wysoka szansa na klucz z bossa mapy
                             'min_qty' => 1,
                             'max_qty' => 1
                         ]);
                     }
                 }
 
-                // 5. Drop Skrzynek z łupami z Bossów map (waga 15 vs materiały 25)
+                // 5. Drop Skrzynek z łupami oraz Skrzyni Ksiąg Umiejętności z Bossów map
                 $bossChestMapping = [
                     'Strażnik Puszczy' => 'Skrzynia Mrocznego Lasu',
                     'Rycerz Ruin' => 'Skrzynia Starych Ruin',
@@ -555,15 +555,46 @@ class MonsterLootSeeder extends Seeder
                     $template = $itemTemplates->get($chestName);
 
                     if ($template) {
-                        LootTableEntry::firstOrCreate([
+                        LootTableEntry::updateOrCreate([
                             'loot_table_id' => $lootTable->id,
-                            'reward_type' => 'item',
                             'ref_ulid' => $template->id,
                         ], [
+                            'reward_type' => 'item',
                             'weight' => 15,
                             'min_qty' => 1,
                             'max_qty' => 1
                         ]);
+                    }
+
+                    // Dodanie Skrzyni Ksiąg Umiejętności do WSZYSTKICH bossów na mapach
+                    $skillBookChestTpl = $itemTemplates->get('Skrzynia Ksiąg Umiejętności');
+                    if ($skillBookChestTpl) {
+                        LootTableEntry::updateOrCreate([
+                            'loot_table_id' => $lootTable->id,
+                            'ref_ulid' => $skillBookChestTpl->id,
+                        ], [
+                            'reward_type' => 'item',
+                            'weight' => 20,
+                            'min_qty' => 1,
+                            'max_qty' => 1
+                        ]);
+                    }
+
+                    // Dodanie Kamienia Duchowego do bossów od T5 wzwyż
+                    $tier5Bosses = ['Królowa Wiedźm', 'Władca Cieni', 'Wielki Inkwizytor', 'Książę Zniszczenia'];
+                    if (in_array($monsterName, $tier5Bosses, true)) {
+                        $soulStoneTpl = $itemTemplates->get('Kamień Duchowy');
+                        if ($soulStoneTpl) {
+                            LootTableEntry::updateOrCreate([
+                                'loot_table_id' => $lootTable->id,
+                                'ref_ulid' => $soulStoneTpl->id,
+                            ], [
+                                'reward_type' => 'material',
+                                'weight' => 15,
+                                'min_qty' => 1,
+                                'max_qty' => 1
+                            ]);
+                        }
                     }
                 }
             }

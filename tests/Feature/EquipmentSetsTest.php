@@ -175,3 +175,18 @@ test('profile livewire component saves and applies a set through the actual UI a
     expect($character->fresh()->equippedItems()->first()->id)->toBe($originalHelmet->id);
     expect($otherHelmet->fresh()->location)->toBe('inventory');
 });
+
+test('world_boss set can be saved and cannot be physically worn', function () {
+    $user = User::factory()->create();
+    [$character] = makeCharacterWithHelmet($user, 'WorldBossSet');
+
+    $service = new EquipmentSetService();
+    $saveResult = $service->saveCurrentAsSet($character, CharacterEquipmentSetItem::SET_WORLD_BOSS);
+    expect($saveResult->isOk())->toBeTrue();
+    expect(CharacterEquipmentSetItem::where('character_id', $character->id)->where('set_type', 'world_boss')->count())->toBe(1);
+
+    $applyResult = $service->applySet($character, CharacterEquipmentSetItem::SET_WORLD_BOSS);
+    expect($applyResult->isError())->toBeTrue();
+    expect($applyResult->getErrorCode())->toBe('NOT_WEARABLE');
+});
+

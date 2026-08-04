@@ -116,7 +116,7 @@ class WeeklyRankingTitlesTest extends TestCase
         $char->save();
 
         $eqStats = $char->getEquipmentStats();
-        $this->assertEquals(10, $eqStats['strong_vs_hero'] ?? 0);
-        $this->assertEquals(5, $eqStats['dodge_chance'] ?? 0);
+        $this->assertEquals(5, $eqStats['strong_vs_hero'] ?? 0);
+        $this->assertEquals(2, $eqStats['dodge_chance'] ?? 0);
     }
 }
