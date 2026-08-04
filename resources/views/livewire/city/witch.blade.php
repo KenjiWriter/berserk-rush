@@ -22,8 +22,8 @@
     <div class="relative container mx-auto px-4 py-6 sm:py-8 min-h-screen z-10 max-w-7xl flex flex-col">
         
         {{-- Header Section --}}
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 border-b-2 border-purple-900/60 pb-6 bg-gradient-to-b from-purple-950/90 via-slate-950/80 to-transparent p-4 rounded-2xl shadow-2xl backdrop-blur-md">
-            <div class="flex items-center space-x-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 sm:mb-8 border-b-2 border-purple-900/60 pb-4 sm:pb-6 bg-gradient-to-b from-purple-950/90 via-slate-950/80 to-transparent p-4 rounded-2xl shadow-2xl backdrop-blur-md text-center sm:text-left">
+            <div class="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
                 <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-b from-fuchsia-800 via-purple-950 to-black border-2 border-fuchsia-500 flex items-center justify-center text-2xl sm:text-3xl text-fuchsia-300 shadow-[0_0_20px_rgba(217,70,239,0.4)] shrink-0">
                     <i class="fa-solid fa-mortar-pestle"></i>
                 </div>
@@ -37,13 +37,13 @@
                 </div>
             </div>
             
-            <div class="flex flex-wrap items-center gap-4">
+            <div class="flex flex-wrap items-center justify-center sm:justify-end gap-3 sm:gap-4 w-full md:w-auto">
                 {{-- Gold Badge --}}
                 <div class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 border-amber-600/80 px-4 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_0_15px_rgba(245,158,11,0.2)] flex items-center gap-3">
                     <div class="w-9 h-9 rounded-lg bg-amber-950/80 border border-amber-500/60 flex items-center justify-center text-amber-400 text-base shrink-0">
                         <i class="fa-solid fa-coins"></i>
                     </div>
-                    <div>
+                    <div class="text-left">
                         <span class="text-[9px] text-amber-400/80 font-extrabold uppercase tracking-widest block leading-none">POSIADANE ZŁOTO</span>
                         <span class="text-lg sm:text-xl font-black text-amber-300 drop-shadow">{{ number_format($character->gold, 0, ',', ' ') }}</span>
                     </div>
@@ -69,52 +69,52 @@
         @endif
 
         {{-- Navigation Tabs --}}
-        <div class="flex justify-center gap-4 mb-8">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mb-6 sm:mb-8 max-w-5xl mx-auto w-full">
             <button wire:click="switchTab('shop')" 
-                class="relative px-6 sm:px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-base sm:text-lg tracking-wider cursor-pointer
+                class="relative px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-xs sm:text-base lg:text-lg tracking-wider cursor-pointer text-center flex items-center justify-center
                 {{ $activeTab === 'shop' 
-                    ? 'bg-gradient-to-r from-fuchsia-800 to-purple-800 border-fuchsia-400 text-white shadow-[0_0_25px_rgba(217,70,239,0.4)] scale-105' 
+                    ? 'bg-gradient-to-r from-fuchsia-800 to-purple-800 border-fuchsia-400 text-white shadow-[0_0_25px_rgba(217,70,239,0.4)] scale-[1.02] sm:scale-105 z-10' 
                     : 'bg-stone-950/70 border-purple-900/60 text-purple-300 hover:bg-purple-900/50 hover:border-purple-500 hover:text-purple-100 backdrop-blur-md' }}">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <span class="relative flex items-center gap-2">
-                    <i class="fa-solid fa-shop text-amber-400"></i>
-                    Sklep Alchemiczny
+                <span class="relative flex flex-row items-center justify-center gap-1.5 sm:gap-2 leading-tight">
+                    <i class="fa-solid fa-shop text-amber-400 text-sm sm:text-base shrink-0"></i>
+                    <span class="truncate">Sklep Alchemiczny</span>
                 </span>
             </button>
             
             <button wire:click="switchTab('crafting')" 
-                class="relative px-6 sm:px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-base sm:text-lg tracking-wider cursor-pointer
+                class="relative px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-xs sm:text-base lg:text-lg tracking-wider cursor-pointer text-center flex items-center justify-center
                 {{ $activeTab === 'crafting' 
-                    ? 'bg-gradient-to-r from-emerald-800 to-teal-800 border-emerald-400 text-white shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-105' 
+                    ? 'bg-gradient-to-r from-emerald-800 to-teal-800 border-emerald-400 text-white shadow-[0_0_25px_rgba(16,185,129,0.4)] scale-[1.02] sm:scale-105 z-10' 
                     : 'bg-stone-950/70 border-purple-900/60 text-purple-300 hover:bg-emerald-950/50 hover:border-emerald-500 hover:text-emerald-100 backdrop-blur-md' }}">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <span class="relative flex items-center gap-2">
-                    <i class="fa-solid fa-flask-vial text-emerald-400"></i>
-                    Warzenie Mikstur
+                <span class="relative flex flex-row items-center justify-center gap-1.5 sm:gap-2 leading-tight">
+                    <i class="fa-solid fa-flask-vial text-emerald-400 text-sm sm:text-base shrink-0"></i>
+                    <span class="truncate">Warzenie Mikstur</span>
                 </span>
             </button>
 
             <button wire:click="switchTab('enchant')"
-                class="relative px-6 sm:px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-base sm:text-lg tracking-wider cursor-pointer
+                class="relative px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-xs sm:text-base lg:text-lg tracking-wider cursor-pointer text-center flex items-center justify-center
                 {{ $activeTab === 'enchant'
-                    ? 'bg-gradient-to-r from-indigo-800 to-purple-800 border-indigo-400 text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] scale-105'
+                    ? 'bg-gradient-to-r from-indigo-800 to-purple-800 border-indigo-400 text-white shadow-[0_0_25px_rgba(99,102,241,0.4)] scale-[1.02] sm:scale-105 z-10'
                     : 'bg-stone-950/70 border-purple-900/60 text-purple-300 hover:bg-indigo-950/50 hover:border-indigo-500 hover:text-indigo-100 backdrop-blur-md' }} {{ $gameStage == 31 ? 'ring-4 ring-amber-500 animate-pulse' : '' }}">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <span class="relative flex items-center gap-2">
-                    <i class="fa-solid fa-hat-wizard text-indigo-300"></i>
-                    Zaczarowanie
+                <span class="relative flex flex-row items-center justify-center gap-1.5 sm:gap-2 leading-tight">
+                    <i class="fa-solid fa-hat-wizard text-indigo-300 text-sm sm:text-base shrink-0"></i>
+                    <span class="truncate">Zaczarowanie</span>
                 </span>
             </button>
 
             <button wire:click="switchTab('mirror')"
-                class="relative px-6 sm:px-8 py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-base sm:text-lg tracking-wider cursor-pointer
+                class="relative px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 rounded-xl font-bold transition-all duration-300 overflow-hidden group border-2 medieval-font text-xs sm:text-base lg:text-lg tracking-wider cursor-pointer text-center flex items-center justify-center
                 {{ $activeTab === 'mirror'
-                    ? 'bg-gradient-to-r from-purple-800 to-fuchsia-800 border-purple-400 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] scale-105'
+                    ? 'bg-gradient-to-r from-purple-800 to-fuchsia-800 border-purple-400 text-white shadow-[0_0_25px_rgba(168,85,247,0.4)] scale-[1.02] sm:scale-105 z-10'
                     : 'bg-stone-950/70 border-purple-900/60 text-purple-300 hover:bg-purple-950/50 hover:border-purple-500 hover:text-purple-100 backdrop-blur-md' }} {{ in_array($gameStage, [41, 42]) ? 'ring-4 ring-amber-500 animate-pulse' : '' }}">
                 <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                <span class="relative flex items-center gap-2">
-                    <i class="fa-solid fa-gem text-purple-300"></i>
-                    Lustro
+                <span class="relative flex flex-row items-center justify-center gap-1.5 sm:gap-2 leading-tight">
+                    <i class="fa-solid fa-gem text-purple-300 text-sm sm:text-base shrink-0"></i>
+                    <span class="truncate">Lustro</span>
                 </span>
             </button>
         </div>
@@ -432,8 +432,8 @@
                                 @endphp
 
                                 {{-- Magical Runes Ring --}}
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[350px] h-[350px] rounded-full border-2 border-dashed border-purple-500/30 animate-[spin_20s_linear_infinite] pointer-events-none"></div>
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full border border-indigo-500/20 animate-[spin_30s_linear_infinite_reverse] pointer-events-none">
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[270px] h-[270px] sm:w-[350px] sm:h-[350px] rounded-full border-2 border-dashed border-purple-500/30 animate-[spin_20s_linear_infinite] pointer-events-none"></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[310px] h-[310px] sm:w-[450px] sm:h-[450px] rounded-full border border-indigo-500/20 animate-[spin_30s_linear_infinite_reverse] pointer-events-none">
                                     <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-400/50 text-2xl medieval-font blur-[1px]">ᚠ</div>
                                     <div class="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 text-purple-400/50 text-2xl medieval-font blur-[1px]">ᛞ</div>
                                     <div class="absolute left-0 top-1/2 -translate-x-1/2 -translate-y-1/2 text-purple-400/50 text-2xl medieval-font blur-[1px]">ᚱ</div>
