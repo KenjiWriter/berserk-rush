@@ -28,7 +28,8 @@ class MatchmakingService
             $minElo = (int) round($baseElo * (1 - $tolerance));
             $maxElo = (int) round($baseElo * (1 + $tolerance));
             
-            $query = Character::where('id', '!=', $character->id)
+            $query = Character::with('user')
+                ->where('id', '!=', $character->id)
                 ->whereNotIn('id', $excludedIds)
                 ->where('level', '>=', 15)
                 ->whereBetween('elo', [$minElo, $maxElo])

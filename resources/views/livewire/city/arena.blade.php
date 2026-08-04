@@ -139,9 +139,13 @@
                                 $oppName = is_array($opponent) ? $opponent['name'] : $opponent->name;
                                 $oppLvl = is_array($opponent) ? $opponent['level'] : $opponent->level;
                                 $oppElo = is_array($opponent) ? $opponent['elo'] : $opponent->elo;
-                                $oppAvatar = is_array($opponent) ? ($opponent['avatar'] ?? 'default.png') : ($opponent->avatar ?? 'default.png');
-                                if (!str_contains($oppAvatar, '.')) { $oppAvatar .= '.png'; }
-                                $avatarSrc = asset('img/avatars/' . ltrim($oppAvatar, '/'));
+                                if (is_array($opponent)) {
+                                    $oppAvatar = $opponent['avatar'] ?? 'default.png';
+                                    if (!str_contains($oppAvatar, '.')) { $oppAvatar .= '.png'; }
+                                    $avatarSrc = asset('img/avatars/' . ltrim($oppAvatar, '/'));
+                                } else {
+                                    $avatarSrc = $opponent->getEffectiveAvatarUrl();
+                                }
                             @endphp
                             <div class="relative rounded-xl overflow-hidden shadow-lg border border-amber-800/30 group hover:border-amber-500/50 transition-colors">
                                 <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover">
@@ -230,9 +234,7 @@
                                         @php
                                             $rankNumber = ($ranking->currentPage() - 1) * $ranking->perPage() + $loop->iteration;
                                             $isCurrentCharacter = $rowChar->id === $character->id;
-                                            $avatar = $rowChar->avatar ?? 'default.png';
-                                            if (!str_contains($avatar, '.')) { $avatar .= '.png'; }
-                                            $avatarSrc = asset('img/avatars/' . ltrim($avatar, '/'));
+                                            $avatarSrc = $rowChar->getEffectiveAvatarUrl();
                                         @endphp
                                         <tr class="transition-colors hover:bg-amber-900/30 {{ $isCurrentCharacter ? 'bg-amber-900/40 border-l-4 border-l-amber-400' : '' }}">
                                             {{-- Miejsce --}}
@@ -382,9 +384,7 @@
                                             $oppName = $oppChar ? $oppChar->name : 'Nieznany';
                                             $oppLvl = $oppChar ? $oppChar->level : '?';
                                             $oppId = $oppChar ? $oppChar->id : null;
-                                            $avatar = $oppChar->avatar ?? 'default.png';
-                                            if (!str_contains($avatar, '.')) { $avatar .= '.png'; }
-                                            $avatarSrc = asset('img/avatars/' . ltrim($avatar, '/'));
+                                            $avatarSrc = $oppChar ? $oppChar->getEffectiveAvatarUrl() : asset('img/avatars/default.png');
                                         @endphp
                                         <tr class="transition-colors hover:bg-amber-900/30">
                                             {{-- Rola --}}

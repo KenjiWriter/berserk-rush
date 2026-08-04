@@ -128,6 +128,7 @@ class Arena extends Component
         $rankingEquipment = [];
         if ($this->activeTab === 'ranking') {
             $ranking = Character::query()
+                ->with('user')
                 ->where('level', '>=', 15)
                 ->orderBy('elo', 'desc')
                 ->orderBy('level', 'desc')
@@ -141,7 +142,7 @@ class Arena extends Component
         $history = null;
         $historyEquipment = [];
         if ($this->activeTab === 'history') {
-            $history = PvpEncounter::with(['attacker', 'defender', 'winner'])
+            $history = PvpEncounter::with(['attacker.user', 'defender.user', 'winner'])
                 ->forCharacter($this->character->id)
                 ->finished()
                 ->orderBy('created_at', 'desc')
