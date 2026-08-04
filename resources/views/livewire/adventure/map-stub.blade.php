@@ -1166,6 +1166,40 @@
             if (window._mapStubListenersBound) return;
             window._mapStubListenersBound = true;
 
+            // Licznik zabójstw i czas farmienia w tej sesji (widoczne po najechaniu na
+            // zakładkę przeglądarki - dokument.title jest tym, co pokazuje natywny tooltip
+            // karty, gdy tytuł jest przycięty). Liczy zwycięskie starcia (result === 'win'/
+            // 'finished'), więc przy walkach grupowych/over-level (kilka potworów na jedno
+            // starcie) jest to przybliżenie liczby starć, nie ścisła liczba zabitych sztuk.
+            const farmSessionStartedAt = Date.now();
+            let farmSessionKills = 0;
+            const originalDocumentTitle = document.title;
+
+            function formatFarmDuration(ms) {
+                const totalSeconds = Math.floor(ms / 1000);
+                const h = Math.floor(totalSeconds / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                const pad = (n) => String(n).padStart(2, '0');
+                return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+            }
+
+            function updateFarmSessionTitle() {
+                const elapsed = formatFarmDuration(Date.now() - farmSessionStartedAt);
+                document.title = `⚔️ ${farmSessionKills} • ${elapsed} - ${originalDocumentTitle}`;
+            }
+
+            updateFarmSessionTitle();
+            setInterval(updateFarmSessionTitle, 1000);
+
+            Livewire.on('play-audio', (event) => {
+                const payload = (event && event[0]) ? event[0] : event;
+                if (payload && payload.type === 'victory') {
+                    farmSessionKills++;
+                    updateFarmSessionTitle();
+                }
+            });
+
             // Create inline Web Worker Blob for un-throttled background timers
             let bgWorker = null;
             try {
@@ -1229,6 +1263,7 @@
 
             let turnTimer = null;
             let autoChainTimeout = null;
+            let autoChainWatchdog = null;
             let watchdogTimer = null;
             let isExecutingTurn = false;
             let isPaused = false;
@@ -1238,6 +1273,7 @@
                 clearUnthrottledTimeout('turnTimer', turnTimer);
                 clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
                 if (watchdogTimer) clearTimeout(watchdogTimer);
+                if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
                 turnTimer = null;
                 autoChainTimeout = null;
                 watchdogTimer = null;
@@ -1670,6 +1706,7 @@
 
             Livewire.on('auto-chain-next-battle', (event) => {
                 clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
+                if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
                 if (isPaused) return;
 
                 let delay = 700; // fast chain between battles after a win
@@ -1682,11 +1719,26 @@
                     delay = Math.min(delay, 400);
                 }
 
-                autoChainTimeout = setUnthrottledTimeout(() => {
-                    if (isPaused) return;
+                let chainTriggered = false;
+                const triggerNextBattle = () => {
+                    if (chainTriggered || isPaused) return;
+                    chainTriggered = true;
+                    if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
                     const component = getComponent();
                     if (component) component.call('startBattle');
-                }, delay, 'autoChainTimeout');
+                };
+
+                autoChainTimeout = setUnthrottledTimeout(triggerNextBattle, delay, 'autoChainTimeout');
+
+                // Watchdog: gdyby normalny auto-chain z jakiegoś powodu "utknął" (zgubiony
+                // event/timer przy przełączaniu kart, race w Livewire itp.), wymuś start
+                // kolejnej walki 5s po planowanym momencie. startBattle() jest już i tak
+                // zabezpieczony server-side (rate-limit/COMBAT_IN_PROGRESS w EncounterService),
+                // więc ewentualne nadmiarowe wywołanie jest bezpiecznie odrzucane.
+                autoChainWatchdog = setTimeout(() => {
+                    autoChainWatchdog = null;
+                    triggerNextBattle();
+                }, delay + 5000);
             });
 
             Livewire.on('encounter-finished', () => {

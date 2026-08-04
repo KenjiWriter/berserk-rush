@@ -148,7 +148,7 @@ class DungeonService
         $activeCooldowns = [];
         foreach ($equippedSkills as $cs) {
             if ($cs->skill->type === 'active') {
-                $activeCooldowns[$cs->id] = max(0, $cs->skill->base_cooldown - 1);
+                $activeCooldowns[$cs->id] = max(0, $cs->getCooldown() - 1);
             }
         }
         $activeDots = [];
@@ -156,7 +156,9 @@ class DungeonService
         $activePassives = [];
         $monsterCcTurns = 0;
 
-        // Symuluj walkę z aktualnym HP i MP gracza (brak automatycznej regeneracji!)
+        // Symuluj walkę z aktualnym HP i MP gracza. HP i mana przenoszą się między etapami
+        // (brak pełnego resetu jak w EncounterService::start()) - regeneracja many w trakcie
+        // walki działa tak samo jak w EncounterService (5% maxMana/turę gracza, min 5 MP).
         $playerHp = $run->current_hp;
         $startPlayerHp = $playerHp;
         $playerMaxHp = $character->getMaxHp();
@@ -183,6 +185,9 @@ class DungeonService
             $monsterMaxHp = $monsterHp;
 
             while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
+                // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
+                $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+
                 foreach ($activeCooldowns as $id => $cd) {
                     if ($cd > 0) $activeCooldowns[$id]--;
                 }
@@ -264,6 +269,9 @@ class DungeonService
                 $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
 
                 if ($isPlayerTurn && !empty($aliveMobs)) {
+                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
+                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+
                     foreach ($activeCooldowns as $id => $cd) {
                         if ($cd > 0) $activeCooldowns[$id]--;
                     }
@@ -401,6 +409,9 @@ class DungeonService
                 $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
                 if ($isPlayerTurn) {
+                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
+                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+
                     foreach ($activeCooldowns as $id => $cd) {
                         if ($cd > 0) $activeCooldowns[$id]--;
                     }
@@ -648,7 +659,7 @@ class DungeonService
                     continue; // Za mało many, by użyć tej umiejętności
                 }
 
-                $effVal = $cs->skill->base_value + ($cs->skill->scaling_value * ($cs->level - 1));
+                $effVal = $cs->getEffectiveValue();
 
                 if ($cs->skill->effect_type === 'heal') {
                     $healAmount = max(1, (int) round($playerMaxHp * $effVal));
@@ -659,7 +670,7 @@ class DungeonService
                 }
 
                 $playerMana -= $manaCost;
-                $activeCooldowns[$cs->id] = $cs->skill->base_cooldown;
+                $activeCooldowns[$cs->id] = $cs->getCooldown();
 
                 if ($cs->skill->effect_type === 'poison' || $cs->skill->effect_type === 'fire') {
                     $activeDots[] = [
