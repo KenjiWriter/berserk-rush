@@ -410,11 +410,10 @@
                     <div class="flex items-center gap-4 bg-gray-900/60 border border-gray-700 rounded-xl p-4">
                         <div class="w-24 h-24 rounded-xl border-2 border-purple-500/50 overflow-hidden bg-gray-950 flex items-center justify-center shrink-0 relative">
                             {{-- Podgląd URL (live) --}}
-                            <img x-show="tab === 'url' && previewUrl"
+                            <img x-show="tab === 'url' && previewUrl && !previewError"
                                  :src="previewUrl"
-                                 @error="previewError = true"
-                                 @load="previewError = false"
-                                 x-show="!previewError"
+                                 x-on:error="previewError = true"
+                                 x-on:load="previewError = false"
                                  class="w-full h-full object-cover" alt="Podgląd">
                             <span x-show="tab === 'url' && previewError" class="text-2xl">❌</span>
 
