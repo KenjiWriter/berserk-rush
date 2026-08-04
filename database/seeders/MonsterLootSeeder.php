@@ -509,15 +509,30 @@ class MonsterLootSeeder extends Seeder
                     ]);
                 }
 
-                // 4. Znacznie podniesiony drop Klucza do Lochu z Bossa mapy (Waga 25 równa materiałom)
+                // 4. Drop Klucza do Lochu z Bossa mapy (Waga 25 równa materiałom)
                 $bossKeyMapping = [
+                    'Widmowy Leśny Niedźwiedź' => 'Klucz Katakumb',
                     'Strażnik Puszczy' => 'Klucz Katakumb',
+
+                    'Starożytny Golem Kamienny' => 'Klucz Krypty',
                     'Rycerz Ruin' => 'Klucz Krypty',
+
+                    'Mroczny Władca Trolli' => 'Klucz Krypty',
                     'Starożytny Ogr' => 'Klucz Krypty',
+
+                    'Wojownik Cienia Orków' => 'Klucz Pustkowi',
                     'Niszczyciel Pustkowi' => 'Klucz Pustkowi',
+
+                    'Bagnisty Behemot Cienia' => 'Klucz Cytadeli',
                     'Królowa Wiedźm' => 'Klucz Cytadeli',
+
+                    'Wyvern Cienistego Szczytu' => 'Klucz Cytadeli',
                     'Władca Cieni' => 'Klucz Cytadeli',
+
+                    'Arcymag Pustki i Arkanów' => 'Klucz Otchłani',
                     'Wielki Inkwizytor' => 'Klucz Otchłani',
+
+                    'Władca Skażenia i Plagi' => 'Klucz Otchłani',
                     'Książę Zniszczenia' => 'Klucz Otchłani',
                 ];
 
@@ -540,30 +555,47 @@ class MonsterLootSeeder extends Seeder
 
                 // 5. Drop Skrzynek z łupami oraz Skrzyni Ksiąg Umiejętności z Bossów map
                 $bossChestMapping = [
+                    'Widmowy Leśny Niedźwiedź' => 'Skrzynia Mrocznego Lasu',
                     'Strażnik Puszczy' => 'Skrzynia Mrocznego Lasu',
+
+                    'Starożytny Golem Kamienny' => 'Skrzynia Starych Ruin',
                     'Rycerz Ruin' => 'Skrzynia Starych Ruin',
+
+                    'Mroczny Władca Trolli' => 'Skrzynia Jaskini Trolli',
                     'Starożytny Ogr' => 'Skrzynia Jaskini Trolli',
+
+                    'Wojownik Cienia Orków' => 'Skrzynia Pustkowi Orków',
                     'Niszczyciel Pustkowi' => 'Skrzynia Pustkowi Orków',
+
+                    'Bagnisty Behemot Cienia' => 'Skrzynia Bagien Grozy',
                     'Królowa Wiedźm' => 'Skrzynia Bagien Grozy',
+
+                    'Wyvern Cienistego Szczytu' => 'Skrzynia Gór Cienia',
                     'Władca Cieni' => 'Skrzynia Gór Cienia',
+
+                    'Arcymag Pustki i Arkanów' => 'Skrzynia Wieży Magów',
                     'Wielki Inkwizytor' => 'Skrzynia Wieży Magów',
+
+                    'Władca Skażenia i Plagi' => 'Skrzynia Skażonego Miasta',
                     'Książę Zniszczenia' => 'Skrzynia Skażonego Miasta',
                 ];
 
-                if ($isBoss && isset($bossChestMapping[$monsterName])) {
-                    $chestName = $bossChestMapping[$monsterName];
-                    $template = $itemTemplates->get($chestName);
+                if ($isBoss) {
+                    if (isset($bossChestMapping[$monsterName])) {
+                        $chestName = $bossChestMapping[$monsterName];
+                        $template = $itemTemplates->get($chestName);
 
-                    if ($template) {
-                        LootTableEntry::updateOrCreate([
-                            'loot_table_id' => $lootTable->id,
-                            'ref_ulid' => $template->id,
-                        ], [
-                            'reward_type' => 'item',
-                            'weight' => 15,
-                            'min_qty' => 1,
-                            'max_qty' => 1
-                        ]);
+                        if ($template) {
+                            LootTableEntry::updateOrCreate([
+                                'loot_table_id' => $lootTable->id,
+                                'ref_ulid' => $template->id,
+                            ], [
+                                'reward_type' => 'item',
+                                'weight' => 15,
+                                'min_qty' => 1,
+                                'max_qty' => 1
+                            ]);
+                        }
                     }
 
                     // Dodanie Skrzyni Ksiąg Umiejętności do WSZYSTKICH bossów na mapach
@@ -581,7 +613,7 @@ class MonsterLootSeeder extends Seeder
                     }
 
                     // Dodanie Kamienia Duchowego do bossów od T5 wzwyż
-                    $tier5Bosses = ['Królowa Wiedźm', 'Władca Cieni', 'Wielki Inkwizytor', 'Książę Zniszczenia'];
+                    $tier5Bosses = ['Królowa Wiedźm', 'Bagnisty Behemot Cienia', 'Władca Cieni', 'Wyvern Cienistego Szczytu', 'Wielki Inkwizytor', 'Arcymag Pustki i Arkanów', 'Książę Zniszczenia', 'Władca Skażenia i Plagi'];
                     if (in_array($monsterName, $tier5Bosses, true)) {
                         $soulStoneTpl = $itemTemplates->get('Kamień Duchowy');
                         if ($soulStoneTpl) {

@@ -95,12 +95,15 @@ class DropService
     {
         $empty = ['gold' => 0, 'gems' => 0, 'items' => [], 'materials' => [], 'hadDrops' => false];
 
-        // 66% chance penalty to drop no items/materials for this monster
-        if ($this->rng->int(1, 100) > 33) {
+        if (!$monster || !$monster->loot_table_id) {
             return $empty;
         }
 
-        if (!$monster || !$monster->loot_table_id) {
+        $isBoss = $monster->rank === 'boss';
+
+        // Boss na mapie ma 50% szansy na łup po pokonaniu, zwykły potwór 33% szansy (66% braku łupu)
+        $dropChance = $isBoss ? 50 : 33;
+        if ($this->rng->int(1, 100) > $dropChance) {
             return $empty;
         }
 
@@ -129,44 +132,87 @@ class DropService
             return $empty;
         }
 
-        $selectedEntry = $this->picker->pick($entries);
-        if (!$selectedEntry) {
-            return $empty;
-        }
-
         $gold = 0;
         $gems = 0;
         $items = [];
         $materials = [];
 
-        $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
-        $templateUlid = $selectedEntry['ref_ulid'] ?? null;
-        $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
-        $itemName = $template ? $template->name : "Przedmiot";
-
         $eventService = app(\App\Application\Events\WeekendEventService::class);
         $gemsMult = $eventService->getGemsMultiplier();
         $dropMult = $eventService->getDropMultiplier();
 
-        // Biżuteria - szansa (%) na podwojenie ilości wypadniętego przedmiotu/
-        // materiału, patrz EnchantmentStrategy::$accessoryBonuses['double_drop_chance'].
         $doubleDropChance = $encounter->character->getEquipmentStats()['double_drop_chance'] ?? 0;
         if ($doubleDropChance > 0 && $this->rng->int(1, 100) <= $doubleDropChance) {
             $dropMult *= 2;
         }
 
+        if ($isBoss) {
+            // Dla Bossa mapy (po trafieniu 50% szansy):
+            // 1. Losujemy specjalny drop: Klucz LUB Skrzynię (ksiąg umiejętności / mapową)
+            $specialEntries = array_filter($entries, function ($entry) {
+                $tpl = $entry['item_template'] ?? null;
+                if (!$tpl) return false;
+                $subType = $tpl['sub_type'] ?? '';
+                $name = $tpl['name'] ?? '';
+                return $subType === 'key' || $subType === 'chest' || str_contains($name, 'Klucz') || str_contains($name, 'Skrzynia');
+            });
+
+            if (!empty($specialEntries)) {
+                $pickedSpecial = $this->picker->pick(array_values($specialEntries));
+                if ($pickedSpecial) {
+                    $this->processEntry($encounter, $pickedSpecial, $gold, $gems, $items, $materials, $dropMult, $gemsMult);
+                }
+            }
+
+            // 2. Dodatkowo losujemy normalny drop (materiały, złoto, ekwipunek)
+            $normalEntries = array_filter($entries, function ($entry) {
+                $tpl = $entry['item_template'] ?? null;
+                if (!$tpl) return true;
+                $subType = $tpl['sub_type'] ?? '';
+                $name = $tpl['name'] ?? '';
+                return !($subType === 'key' || $subType === 'chest' || str_contains($name, 'Klucz') || str_contains($name, 'Skrzynia'));
+            });
+
+            $pickedNormal = !empty($normalEntries) ? $this->picker->pick(array_values($normalEntries)) : $this->picker->pick($entries);
+            if ($pickedNormal) {
+                $this->processEntry($encounter, $pickedNormal, $gold, $gems, $items, $materials, $dropMult, $gemsMult);
+            }
+        } else {
+            // Zwykły potwór: losujemy 1 pozycję z tabeli
+            $selectedEntry = $this->picker->pick($entries);
+            if ($selectedEntry) {
+                $this->processEntry($encounter, $selectedEntry, $gold, $gems, $items, $materials, $dropMult, $gemsMult);
+            }
+        }
+
+        return [
+            'gold' => $gold,
+            'gems' => $gems,
+            'items' => $items,
+            'materials' => $materials,
+            'hadDrops' => (!empty($items) || !empty($materials) || $gold > 0 || $gems > 0),
+        ];
+    }
+
+    private function processEntry(Encounter $encounter, array $selectedEntry, int &$gold, int &$gems, array &$items, array &$materials, float $dropMult, float $gemsMult): void
+    {
+        $quantity = $this->rng->int($selectedEntry['min_qty'], $selectedEntry['max_qty']);
+        $templateUlid = $selectedEntry['ref_ulid'] ?? null;
+        $template = $templateUlid ? \App\Infrastructure\Persistence\ItemTemplate::find($templateUlid) : null;
+        $itemName = $template ? $template->name : "Przedmiot";
+
         switch ($selectedEntry['reward_type']) {
             case 'gold':
-                $gold = $quantity;
+                $gold += $quantity;
                 break;
 
             case 'gems':
-                $gems = (int) round($quantity * $gemsMult);
+                $gems += (int) round($quantity * $gemsMult);
                 break;
 
             case 'item':
                 $finalQty = (int) round($quantity * $dropMult);
-                $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency']);
+                $isStackable = $template && in_array($template->type, ['material', 'consumable', 'currency', 'egg', 'key']);
                 $hasExisting = $isStackable && ItemInstance::where('owner_character_id', $encounter->character_id)
                     ->where('template_id', $templateUlid)
                     ->where('location', 'inventory')
@@ -199,14 +245,6 @@ class DropService
                 }
                 break;
         }
-
-        return [
-            'gold' => $gold,
-            'gems' => $gems,
-            'items' => $items,
-            'materials' => $materials,
-            'hadDrops' => true,
-        ];
     }
 
     public function applyLoot(Encounter $encounter): Result

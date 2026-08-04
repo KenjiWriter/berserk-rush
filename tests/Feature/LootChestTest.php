@@ -31,7 +31,7 @@ class LootChestTest extends TestCase
     public function test_eight_chests_seeded_successfully(): void
     {
         $chests = ItemTemplate::where('type', 'consumable')->where('sub_type', 'chest')->get();
-        $this->assertCount(8, $chests);
+        $this->assertCount(9, $chests);
 
         $chestNames = $chests->pluck('name')->toArray();
         $this->assertContains('Skrzynia Mrocznego Lasu', $chestNames);

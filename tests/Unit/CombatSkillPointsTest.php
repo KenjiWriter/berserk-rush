@@ -88,13 +88,12 @@ class CombatSkillPointsTest extends TestCase
 
         $character->syncMissingPoints();
 
-        // Level should be capped to 5
-        $this->assertEquals(5, $charSkill->fresh()->level);
-        // Level 30 -> 29 * 3 = 87 earned points. Spent: 5 + (5-1=4) = 9 points. Remaining: 78 points.
-        $this->assertEquals(78, $character->fresh()->skill_points);
+        // Level 30 -> 29 * 3 = 87 earned points.
+        // Spent: unlockCost (5) + max SP upgrades min(17, 100)-1 (16) = 21 points. Remaining: 87 - 21 = 66 points.
+        $this->assertEquals(66, $character->fresh()->skill_points);
     }
 
-    public function test_upgrade_skill_blocks_upgrade_above_level_5()
+    public function test_upgrade_skill_blocks_upgrade_above_level_38()
     {
         $user = \App\Models\User::factory()->create();
         $character = Character::create([
@@ -122,7 +121,7 @@ class CombatSkillPointsTest extends TestCase
         $charSkill = CharacterCombatSkill::create([
             'character_id' => $character->id,
             'combat_skill_id' => $skill->id,
-            'level' => 5,
+            'level' => 38,
             'is_equipped' => true,
         ]);
 
@@ -131,7 +130,7 @@ class CombatSkillPointsTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertEquals('MAX_LEVEL_REACHED', $result->getErrorCode());
-        $this->assertEquals(5, $charSkill->fresh()->level);
+        $this->assertEquals(38, $charSkill->fresh()->level);
     }
 
     public function test_skills_reset_all_command()

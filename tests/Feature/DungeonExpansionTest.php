@@ -108,7 +108,7 @@ class DungeonExpansionTest extends TestCase
             ->first();
 
         $this->assertNotNull($keyEntry);
-        $this->assertEquals(3, $keyEntry->weight); // Small weight (3) vs materials (25)
+        $this->assertEquals(25, $keyEntry->weight); // Key weight (25) on map bosses
     }
 
     public function test_dungeon_completion_guarantees_1_to_3_chests(): void

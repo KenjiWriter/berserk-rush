@@ -202,27 +202,8 @@ class PetSeeder extends Seeder
             ->whereIn('ref_ulid', ['egg-common', 'egg-rare', 'egg-epic'])
             ->delete();
 
-        // 5. Update Dungeon to have a specific Boss
-        $dungeon = Dungeon::first();
-        if ($dungeon) {
-            $bossMonster = Monster::firstOrCreate(
-                ['name' => 'Władca Lochów'],
-                [
-                    'map_id' => Monster::first()->map_id ?? 1,
-                    'type' => 'undead',
-                    'level' => 15,
-                    'rank' => 'boss',
-                    'stats' => ['hp' => 500, 'atk' => 30, 'def' => 15, 'crit' => 5],
-                    'loot_table_id' => $bossLootTable->id
-                ]
-            );
-
-            // Replace the last stage of the dungeon with this boss
-            $lastStage = DungeonStage::where('dungeon_id', $dungeon->id)->orderByDesc('stage_order')->first();
-            if ($lastStage) {
-                $lastStage->update(['monster_id' => $bossMonster->id]);
-            }
-        }
+        // 5. Cleanup legacy dummy boss monster "Władca Lochów" if it exists
+        Monster::where('name', 'Władca Lochów')->delete();
 
         $this->command->info('Pet tiers, eggs, gear and dungeon boss drops seeded.');
     }
