@@ -344,7 +344,7 @@ class GlobalChatComponent extends Component
                 return;
             }
 
-            $character = Character::with(['equippedItems.template', 'guild', 'activeTitle'])
+            $character = Character::with(['equippedItems.template', 'guild', 'activeTitle', 'user'])
                 ->find($characterId);
 
             if (! $character) {
@@ -369,7 +369,7 @@ class GlobalChatComponent extends Component
                 'name'          => $character->name,
                 'level'         => $character->level,
                 'combat_power'  => $character->getTotalCombatPower(),
-                'avatar'        => $character->avatar ?? 'plate.png',
+                'avatar'        => $character->getEffectiveAvatarUrl(),
                 'guild'         => $character->guild ? $character->guild->name : null,
                 'title'         => $character->activeTitle ? $character->activeTitle->prefix : null,
                 'equipped_items' => $equippedItems,

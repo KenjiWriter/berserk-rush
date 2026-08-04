@@ -284,11 +284,7 @@
         @if ($isOpen && $activeTooltipId && isset($tooltipData[$activeTooltipId]))
             @php
                 $td = $tooltipData[$activeTooltipId];
-                $avatarName = $td['avatar'] ?? 'plate.png';
-                if (!str_contains($avatarName, '.')) {
-                    $avatarName .= '.png';
-                }
-                $avatarUrl = asset('img/avatars/' . ltrim($avatarName, '/'));
+                $avatarUrl = $td['avatar'] ?? asset('img/avatars/plate.png');
             @endphp
             
             {{-- Mobile Centered Modal Backdrop --}}
@@ -306,7 +302,7 @@
 
                     {{-- Character header --}}
                     <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
-                        @if(!empty($td['avatar']))
+                        @if(!empty($avatarUrl))
                             <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
                                 <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
                             </div>
@@ -405,7 +401,7 @@
 
                 {{-- Character header --}}
                 <div class="mb-3 border-b border-amber-800/50 pb-2.5 flex items-center gap-3">
-                    @if(!empty($td['avatar']))
+                    @if(!empty($avatarUrl))
                         <div class="w-12 h-12 rounded-lg border border-amber-600/50 overflow-hidden shrink-0 bg-stone-900 shadow-md">
                             <img src="{{ $avatarUrl }}" class="w-full h-full object-cover" alt="" onError="this.src='{{ asset('img/avatars/plate.png') }}'">
                         </div>

@@ -189,11 +189,6 @@
                         @if(auth()->user()->hasCustomAvatar())
                             {{-- Indywidualny avatar ustawiony przez admina --}}
                             <img src="{{ auth()->user()->getCustomAvatarUrl() }}" alt="Avatar" class="object-cover w-full h-full">
-                            <div class="absolute bottom-1 left-1 right-1 flex justify-center">
-                                <span class="inline-flex items-center gap-1 bg-purple-950/90 border border-purple-500/60 text-purple-300 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg backdrop-blur-sm" title="{{ auth()->user()->custom_avatar_label ?: 'Indywidualny avatar' }}">
-                                    🖼️ {{ auth()->user()->custom_avatar_label ?: 'Custom Avatar' }}
-                                </span>
-                            </div>
                         @elseif($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
