@@ -608,7 +608,7 @@ class MonsterLootSeeder extends Seeder
                             'reward_type' => 'item',
                             'weight' => 20,
                             'min_qty' => 1,
-                            'max_qty' => 1
+                            'max_qty' => 3
                         ]);
                     }
 
