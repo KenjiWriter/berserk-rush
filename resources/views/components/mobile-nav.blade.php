@@ -129,7 +129,9 @@
                     <div class="flex items-center gap-3">
                         @if($character)
                             <div class="w-10 h-10 rounded-lg bg-stone-900 border border-amber-500/80 overflow-hidden shrink-0 shadow">
-                                @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                @if(auth()->check() && auth()->user()->hasCustomAvatar())
+                                    <img src="{{ auth()->user()->getCustomAvatarUrl() }}" alt="Avatar" class="w-full h-full object-cover">
+                                @elseif($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                                     <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="w-full h-full object-cover">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
