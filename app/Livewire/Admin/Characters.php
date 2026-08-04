@@ -31,6 +31,11 @@ class Characters extends Component
     public bool $showMuteModal = false;
     public int $muteMinutes = 60;
 
+    // Custom Avatar Modal State
+    public bool $showAvatarModal = false;
+    public string $customAvatarUrl = '';
+    public string $customAvatarLabel = '';
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -168,6 +173,69 @@ class Characters extends Component
             $user->save();
 
             $this->dispatch('notify', message: "Odciszono użytkownika {$user->name}!", type: 'success');
+        }
+    }
+
+    // --- Custom Avatar Actions ---
+    public function openAvatarModal(string $userId, string $charName): void
+    {
+        $this->selectedUserId = $userId;
+        $this->selectedCharacterName = $charName;
+        $user = User::find($userId);
+        $this->customAvatarUrl = $user?->custom_avatar_url ?? '';
+        $this->customAvatarLabel = $user?->custom_avatar_label ?? '';
+        $this->showAvatarModal = true;
+    }
+
+    public function closeAvatarModal(): void
+    {
+        $this->showAvatarModal = false;
+        $this->selectedUserId = null;
+        $this->selectedCharacterName = null;
+        $this->customAvatarUrl = '';
+        $this->customAvatarLabel = '';
+    }
+
+    public function saveCustomAvatar(): void
+    {
+        if (!$this->selectedUserId) {
+            return;
+        }
+
+        $url = trim($this->customAvatarUrl);
+        $label = trim($this->customAvatarLabel);
+
+        // Walidacja URL (musi być http/https lub pusty – usunięcie avatara)
+        if ($url !== '' && !filter_var($url, FILTER_VALIDATE_URL)) {
+            $this->addError('customAvatarUrl', 'Podaj poprawny URL (http/https).');
+            return;
+        }
+
+        $user = User::find($this->selectedUserId);
+        if ($user) {
+            $user->custom_avatar_url = $url ?: null;
+            $user->custom_avatar_label = $label ?: null;
+            $user->save();
+
+            if ($url) {
+                $this->dispatch('notify', message: "Ustawiono indywidualny avatar dla konta {$user->name}!", type: 'success');
+            } else {
+                $this->dispatch('notify', message: "Usunięto indywidualny avatar dla konta {$user->name}.", type: 'success');
+            }
+        }
+
+        $this->closeAvatarModal();
+    }
+
+    public function removeCustomAvatar(string $userId): void
+    {
+        $user = User::find($userId);
+        if ($user) {
+            $user->custom_avatar_url = null;
+            $user->custom_avatar_label = null;
+            $user->save();
+
+            $this->dispatch('notify', message: "Usunięto indywidualny avatar dla konta {$user->name}.", type: 'success');
         }
     }
 

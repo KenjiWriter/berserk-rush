@@ -536,7 +536,7 @@ class MapStub extends Component
         $this->player = [
             'name' => $character->name,
             'level' => $character->level,
-            'avatar' => $character->avatar ? asset("img/avatars/{$character->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $character->getEffectiveAvatarUrl(),
             'maxHp' => $playerMaxHp,
             'hp' => $playerMaxHp,
             'stats' => $playerAttributes // Use our explicitly mapped attributes
@@ -844,7 +844,7 @@ class MapStub extends Component
         $this->player = [
             'name' => $character->name,
             'level' => $character->level,
-            'avatar' => $character->avatar ? asset("img/avatars/{$character->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $character->getEffectiveAvatarUrl(),
             'maxHp' => $playerMaxHp,
             'hp' => $playerMaxHp,
             'stats' => $playerAttributes

@@ -186,7 +186,15 @@
                 <!-- Portrait & Info -->
                 <div class="flex flex-col items-center w-36 xs:w-44 sm:w-48 lg:w-44 xl:w-52 shrink-0 min-w-0 max-w-full" x-data="{ avatarModalOpen: false }">
                     <div class="w-full h-[180px] xs:h-[210px] sm:h-[240px] lg:h-[230px] xl:h-[260px] bg-stone-950/90 border-2 sm:border-4 border-amber-600/80 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center mb-2 sm:mb-3 shadow-[0_0_20px_rgba(245,158,11,0.25)] relative group">
-                        @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                        @if(auth()->user()->hasCustomAvatar())
+                            {{-- Indywidualny avatar ustawiony przez admina --}}
+                            <img src="{{ auth()->user()->getCustomAvatarUrl() }}" alt="Avatar" class="object-cover w-full h-full">
+                            <div class="absolute bottom-1 left-1 right-1 flex justify-center">
+                                <span class="inline-flex items-center gap-1 bg-purple-950/90 border border-purple-500/60 text-purple-300 text-[10px] px-2 py-0.5 rounded-full font-bold shadow-lg backdrop-blur-sm" title="{{ auth()->user()->custom_avatar_label ?: 'Indywidualny avatar' }}">
+                                    🖼️ {{ auth()->user()->custom_avatar_label ?: 'Custom Avatar' }}
+                                </span>
+                            </div>
+                        @elseif($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
                             <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="object-cover w-full h-full">
                         @else
                             <div class="text-gray-500 flex flex-col items-center">
@@ -195,10 +203,13 @@
                             </div>
                         @endif
 
-                        <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400 text-xs sm:text-sm">
-                            <i class="fa-solid fa-pen text-amber-100"></i>
-                        </button>
+                        @unless(auth()->user()->hasCustomAvatar())
+                            <button @click="avatarModalOpen = true" class="absolute top-2 right-2 w-7 h-7 sm:w-8 sm:h-8 bg-amber-600/80 hover:bg-amber-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg backdrop-blur-sm border border-amber-400 text-xs sm:text-sm">
+                                <i class="fa-solid fa-pen text-amber-100"></i>
+                            </button>
+                        @endunless
                     </div>
+
 
                     <!-- Avatar Modal -->
                     <div x-show="avatarModalOpen" style="display: none;" class="fixed inset-0 z-[150] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 text-left cursor-default">

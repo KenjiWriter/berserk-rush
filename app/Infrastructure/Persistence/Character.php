@@ -84,6 +84,28 @@ class Character extends Model
         'max_level_reached_at' => 'datetime',
     ];
 
+    /**
+     * Zwraca efektywny URL avatara postaci z uwzględnieniem priorytetu:
+     * 1. custom_avatar_url usera (ustawiony przez admina – np. dla youtuberów/streamerów)
+     * 2. avatar postaci (standardowy lub premium z folderu img/avatars/)
+     * 3. domyślny avatar (img/avatars/default.png)
+     */
+    public function getEffectiveAvatarUrl(): string
+    {
+        // Priorytet 1: indywidualny avatar ustawiony przez admina
+        if ($this->user && $this->user->hasCustomAvatar()) {
+            return $this->user->getCustomAvatarUrl();
+        }
+
+        // Priorytet 2: avatar postaci (premium lub standardowy)
+        if ($this->avatar) {
+            return asset("img/avatars/{$this->avatar}.png");
+        }
+
+        // Priorytet 3: domyślny
+        return asset('img/avatars/default.png');
+    }
+
     public function hasClaimedDiscordLinkReward(): bool
     {
         return $this->discord_link_reward_claimed_at !== null;

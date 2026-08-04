@@ -52,7 +52,7 @@ class EncounterStub
                 'level' => $character->level,
                 'hp' => $characterHp,
                 'maxHp' => $characterHp,
-                'avatar' => $character->avatar ? asset("img/avatars/{$character->avatar}.png") : null,
+                'avatar' => $character->getEffectiveAvatarUrl(),
                 'stats' => [
                     'str' => $characterStats['str'] ?? 5,
                     'int' => $characterStats['int'] ?? 5,

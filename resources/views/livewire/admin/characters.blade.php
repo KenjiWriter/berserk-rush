@@ -98,6 +98,11 @@
                                             <div class="flex items-center gap-2">
                                                 <span class="font-bold text-gray-100 text-base">{{ $char->name }}</span>
                                                 <span class="text-xs bg-amber-950 text-amber-400 border border-amber-800/60 px-1.5 py-0.5 rounded font-mono">Poz. {{ $char->level }}</span>
+                                                @if($user?->hasCustomAvatar())
+                                                    <span class="inline-flex items-center gap-1 bg-purple-950/80 border border-purple-500/60 text-purple-300 text-[10px] px-1.5 py-0.5 rounded font-bold" title="{{ $user->custom_avatar_label ?: 'Indywidualny avatar' }}">
+                                                        🖼️ Custom
+                                                    </span>
+                                                @endif
                                             </div>
                                             <div class="text-xs text-gray-400 mt-0.5 flex items-center gap-2">
                                                 <span>📧 {{ $user?->email ?? 'Brak email' }}</span>
@@ -249,6 +254,15 @@
                                                 🔇 Wycisz
                                             </button>
                                         @endif
+
+                                        {{-- Custom Avatar Button --}}
+                                        <button
+                                            wire:click="openAvatarModal('{{ $user?->id }}', '{{ $char->name }}')"
+                                            class="{{ $user?->hasCustomAvatar() ? 'bg-purple-800/80 hover:bg-purple-700/80 border-purple-500/60 text-purple-200' : 'bg-gray-700/60 hover:bg-gray-600/80 border-gray-600/60 text-gray-300' }} border px-2.5 py-1 rounded text-xs font-bold transition flex items-center gap-1"
+                                            title="Ustaw indywidualny avatar"
+                                        >
+                                            🖼️ Avatar
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -363,6 +377,95 @@
                     <div class="flex justify-end gap-2 pt-2">
                         <button wire:click="closeMuteModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 font-semibold transition">Anuluj</button>
                         <button wire:click="muteUser" class="px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg text-sm text-white font-bold transition">Wycisz gracza</button>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        {{-- ========== MODAL: INDYWIDUALNY AVATAR ========== --}}
+        @if ($showAvatarModal)
+            @php
+                $modalAvatarUser = $selectedUserId ? \App\Models\User::find($selectedUserId) : null;
+            @endphp
+            <div class="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+                <div class="bg-gray-800 border border-purple-600/60 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+                    <h3 class="text-xl font-bold text-purple-300 flex items-center gap-2">
+                        🖼️ Indywidualny Avatar — <span class="text-white">{{ $selectedCharacterName }}</span>
+                    </h3>
+
+                    <p class="text-sm text-gray-400 leading-relaxed">
+                        Ustaw niestandardowy avatar dla tego konta (np. twarz YouTubera/streamera).
+                        Avatar będzie wyświetlany zamiast standardowego we wszystkich miejscach gry.
+                        Wklej bezpośredni URL do obrazka (PNG/JPG/WebP).
+                    </p>
+
+                    {{-- Podgląd na żywo --}}
+                    <div class="flex items-center gap-4 bg-gray-900/60 border border-gray-700 rounded-xl p-4">
+                        <div class="w-20 h-20 rounded-xl border-2 border-purple-500/50 overflow-hidden bg-gray-950 flex items-center justify-center shrink-0">
+                            @if($customAvatarUrl)
+                                <img src="{{ $customAvatarUrl }}" alt="Podgląd" class="w-full h-full object-cover" onerror="this.src=''; this.parentElement.innerHTML='<span class=\'text-2xl\'>❌</span>'">
+                            @elseif($modalAvatarUser?->hasCustomAvatar())
+                                <img src="{{ $modalAvatarUser->getCustomAvatarUrl() }}" alt="Obecny" class="w-full h-full object-cover">
+                            @else
+                                <span class="text-3xl">🧙‍♂️</span>
+                            @endif
+                        </div>
+                        <div class="flex-1 text-sm">
+                            @if($modalAvatarUser?->hasCustomAvatar())
+                                <div class="text-purple-300 font-bold text-xs mb-1">✅ Aktywny custom avatar:</div>
+                                <div class="text-gray-300 text-xs break-all mb-1">{{ $modalAvatarUser->custom_avatar_url }}</div>
+                                @if($modalAvatarUser->custom_avatar_label)
+                                    <div class="text-gray-400 text-xs">Etykieta: <span class="text-purple-300">{{ $modalAvatarUser->custom_avatar_label }}</span></div>
+                                @endif
+                            @else
+                                <div class="text-gray-500 text-xs italic">Brak niestandardowego avatara.<br>Wklej URL poniżej, aby ustawić.</div>
+                            @endif
+                        </div>
+                    </div>
+
+                    {{-- URL avatara --}}
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">URL Avatara (PNG / JPG / WebP):</label>
+                        <input
+                            type="url"
+                            wire:model.live="customAvatarUrl"
+                            placeholder="https://example.com/avatar.png"
+                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition font-mono"
+                        >
+                        @error('customAvatarUrl')
+                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    {{-- Etykieta (opcjonalna, np. "MrBeast", "Linus Tech Tips") --}}
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Etykieta / Opis (opcjonalne):</label>
+                        <input
+                            type="text"
+                            wire:model="customAvatarLabel"
+                            placeholder="np. Linus Tech Tips, MrBeast, xQc..."
+                            maxlength="100"
+                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition"
+                        >
+                        <p class="text-[11px] text-gray-500 mt-1">Wyświetlana jako tooltip przy znaczku 🖼️ Custom przy nazwie postaci.</p>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-gray-700">
+                        @if($modalAvatarUser?->hasCustomAvatar())
+                            <button
+                                wire:click="removeCustomAvatar('{{ $selectedUserId }}')"
+                                onclick="confirm('Czy na pewno chcesz usunąć indywidualny avatar tego gracza?') || event.stopImmediatePropagation()"
+                                class="px-3 py-2 bg-red-900/80 hover:bg-red-700 text-red-200 border border-red-600 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
+                            >
+                                🗑️ Usuń avatar
+                            </button>
+                        @else
+                            <div></div>
+                        @endif
+                        <div class="flex gap-2">
+                            <button wire:click="closeAvatarModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 font-semibold transition cursor-pointer">Anuluj</button>
+                            <button wire:click="saveCustomAvatar" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm text-white font-bold transition cursor-pointer">💾 Zapisz avatar</button>
+                        </div>
                     </div>
                 </div>
             </div>

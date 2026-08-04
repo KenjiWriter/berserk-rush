@@ -29,6 +29,8 @@ class User extends Authenticatable
         'game_stage',
         'premium_until',
         'unlocked_avatars',
+        'custom_avatar_url',
+        'custom_avatar_label',
         'auth_provider',
         'auth_provider_id',
         'gender',
@@ -114,6 +116,22 @@ class User extends Authenticatable
     public function isAdmin(): bool
     {
         return $this->permission_level >= 9;
+    }
+
+    /**
+     * Czy konto posiada indywidualny avatar ustawiony przez admina.
+     */
+    public function hasCustomAvatar(): bool
+    {
+        return !empty($this->custom_avatar_url);
+    }
+
+    /**
+     * Zwraca URL indywidualnego avatara (ustawionego przez admina) lub null.
+     */
+    public function getCustomAvatarUrl(): ?string
+    {
+        return $this->custom_avatar_url ?: null;
     }
 
     public function hasAdminAccess(): bool

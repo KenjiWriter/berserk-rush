@@ -123,11 +123,13 @@
                        :class="collapsed ? 'justify-center' : 'pr-5 mb-2.5'"
                        class="flex items-center gap-3 group cursor-pointer">
                         <div :class="collapsed ? 'w-10 h-10 mx-auto' : 'w-11 h-11'" class="rounded-lg bg-stone-900 border-2 border-amber-500/80 overflow-hidden shrink-0 shadow-[0_0_12px_rgba(245,158,11,0.3)] group-hover:scale-105 transition-all duration-300 relative">
-                            @if($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
-                                <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="w-full h-full object-cover">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
-                            @endif
+                             @if(auth()->check() && auth()->user()->hasCustomAvatar())
+                                 <img src="{{ auth()->user()->getEffectiveAvatarUrl() }}" alt="Avatar" class="w-full h-full object-cover">
+                             @elseif($character->avatar && file_exists(public_path('img/avatars/' . $character->avatar . '.png')))
+                                 <img src="{{ asset('img/avatars/' . $character->avatar . '.png') }}" alt="Avatar" class="w-full h-full object-cover">
+                             @else
+                                 <div class="w-full h-full flex items-center justify-center text-amber-400 text-xs font-bold">HERO</div>
+                             @endif
                             <div x-show="collapsed" class="absolute bottom-0 inset-x-0 bg-stone-950/90 text-amber-400 text-[8px] font-bold text-center leading-tight">
                                 Lvl <span x-text="navLevel">{{ $character->level }}</span>
                             </div>
