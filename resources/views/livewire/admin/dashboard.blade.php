@@ -96,7 +96,22 @@
             @php
                 $newSuggestionsCount = \App\Infrastructure\Persistence\Suggestion::where('status', 'new')->count();
                 $activeEvent = app(\App\Application\Events\WeekendEventService::class)->getActiveEvent();
+                $openAntiCheatFlags = \App\Infrastructure\Persistence\AntiCheatFlag::where('status', 'open')->count();
             @endphp
+
+            <a href="{{ route('admin.anti-cheat') }}" class="bg-gradient-to-br from-red-950/60 to-stone-900/90 p-6 rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.15)] border border-red-700/60 hover:border-red-400 hover:shadow-[0_0_20px_rgba(239,68,68,0.35)] transition-all relative">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-xl font-bold text-red-400 flex items-center gap-2">
+                        <i class="fa-solid fa-user-secret"></i> Anti-Cheat
+                    </h2>
+                    @if($openAntiCheatFlags > 0)
+                        <span class="px-2.5 py-0.5 bg-red-500 text-stone-950 font-extrabold text-xs rounded-full animate-pulse shadow">
+                            {{ $openAntiCheatFlags }} otwarte
+                        </span>
+                    @endif
+                </div>
+                <p class="text-gray-300">Postacie o podejrzanie wysokim tempie polowań, wykryte automatycznie do ręcznej weryfikacji.</p>
+            </a>
             <a href="{{ route('admin.suggestions') }}" class="bg-gradient-to-br from-indigo-950/60 to-purple-950/60 p-6 rounded-lg shadow-[0_0_15px_rgba(99,102,241,0.15)] border border-indigo-600/60 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.35)] transition-all relative">
                 <div class="flex items-center justify-between mb-2">
                     <h2 class="text-xl font-bold text-indigo-300">💡 Sugestie i Uwagi</h2>

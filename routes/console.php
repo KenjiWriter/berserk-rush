@@ -7,6 +7,7 @@ use App\Application\Economy\Jobs\ExpireMarketListingsJob;
 use App\Application\Mail\Jobs\ExpireOldMailJob;
 use App\Jobs\WorldBossRewardJob;
 use App\Jobs\WeeklyRankingRewardJob;
+use App\Jobs\DetectSuspiciousActivityJob;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -19,3 +20,6 @@ Schedule::job(new ExpireOldMailJob())->daily();
 
 // Rankingi tygodniowe: rozliczenie i nagrody co poniedziałek o 00:01
 Schedule::job(new WeeklyRankingRewardJob())->weeklyOn(1, '00:01');
+
+// Anti-cheat: wykrywanie nienaturalnego tempa polowań
+Schedule::job(new DetectSuspiciousActivityJob())->everyMinute();

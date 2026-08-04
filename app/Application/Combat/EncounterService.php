@@ -166,6 +166,19 @@ class EncounterService
                     return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki!');
                 }
 
+                // Anti-cheat: minimalny odstęp między kolejnymi walkami (patrz config/anticheat.php)
+                $lastEncounter = Encounter::where('character_id', $char->id)
+                    ->orderByDesc('started_at')
+                    ->first(['started_at']);
+
+                if ($lastEncounter) {
+                    $minIntervalMs = config('anticheat.min_encounter_interval_ms', 1300);
+                    $elapsedMs = $lastEncounter->started_at->diffInMilliseconds(now());
+                    if ($elapsedMs < $minIntervalMs) {
+                        return Result::error('TOO_FAST', 'Zwolnij! Odczekaj chwilę przed kolejną walką.');
+                    }
+                }
+
                 // Check for active/recent PvP encounter (< 5s ago or pending/calculating)
                 $recentPvP = PvpEncounter::where('attacker_character_id', $char->id)
                     ->where(function ($query) {

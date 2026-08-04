@@ -109,6 +109,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/characters', \App\Livewire\Admin\Characters::class)->name('characters');
         Route::get('/suggestions', \App\Livewire\Admin\Suggestions::class)->name('suggestions');
         Route::get('/events', \App\Livewire\Admin\Events::class)->name('events');
+        Route::get('/anti-cheat', \App\Livewire\Admin\AntiCheat::class)->name('anti-cheat');
     });
 });
 
