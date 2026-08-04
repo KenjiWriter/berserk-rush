@@ -77,6 +77,13 @@ Gdy `autoChain` jest włączony (`MapStub::completeBattle`), po zakończeniu wal
 - **Przegrana (2026-07-29):** zamiast zatrzymywać automat (co wcześniej wymagało ręcznego kliknięcia "Kolejna Walka"), system czeka **3000 ms jako karę** za przegraną, po czym normalnie losuje nowego przeciwnika i wznawia walkę. Dzięki temu postać można bezpiecznie zostawić na farmie AFK bez ryzyka, że automat "utknie" na ekranie klęski.
 - Automat zatrzymuje się na stałe tylko, gdy postać zdobędzie poziom (`levelUps`) - wymaga to ręcznej reakcji gracza (przydział punktów atrybutów).
 - Zdarzenie `auto-chain-next-battle` niesie parametr `delay` (ms) konsumowany po stronie JS (`resources/views/livewire/adventure/map-stub.blade.php`), sterujący czasem oczekiwania przed wywołaniem `startBattle()`.
+- **Działanie w Tle i Odporność na Throttling (2026-08-04):** Odliczanie czasu przerwy między turami i walkami w JS opiera się na natywnym **Web Worker Timer Blob**, dzięki czemu timery nie są spowalniane przez przeglądarkę po przełączeniu karty lub zminimalizowaniu aplikacji na smartfonie. Dodatkowo, w nieaktywnej karcie (`document.hidden`) system pomija klatkowanie animacji UI i błyskawicznie kończy walkę (`finishAllTurns()`), eliminując opóźnienia i zacięcia w trybie AFK.
+
+### 5b. Prędkość Odtwarzania Walki (Speed x1, x2, x5)
+Gracz może dostosować szybkość animacji starć w interfejsie walki:
+- **x1**: Standardowe tempo animacji (550 ms przerwy między turami).
+- **x2**: Podwójne tempo (200 ms przerwy).
+- **x5 (2026-08-04):** Pięciokrotne przyspieszenie (60 ms przerwy). Opcja x5 odblokowuje się automatycznie od **30 poziomu postaci** lub natychmiast dla kont z aktywnym **statusem VIP** (`hasPremium()`). Wcześniej przycisk pozostaje zablokowany z oznaczeniem "Lvl 30+ / VIP".
 
 ### 6. Rasy Potworów (`MonsterType`)
 Każdy potwór (`Monster::type`) ma przypisaną jedną z **6 głównych ras** (rework ras,

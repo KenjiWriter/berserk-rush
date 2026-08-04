@@ -111,16 +111,15 @@ class MapStub extends Component
     public function mount(Character $character, Map $map): void
     {
         $this->sessionStartTime = time();
-        $this->playbackSpeed = session('combat_playback_speed', 1);
+        $this->character = $character;
+
+        $rawSpeed = session('combat_playback_speed', 1);
+        if ($rawSpeed === 5 && !$this->canUseSpeed5()) {
+            $rawSpeed = 2;
+        }
+        $this->playbackSpeed = in_array($rawSpeed, [1, 2, 5], true) ? $rawSpeed : 1;
         $this->autoChain = session('combat_auto_chain', true);
         $this->targetStrategy = session('combat_target_strategy', 'random');
-
-        // Authorization check
-        if (Auth::user()->id !== $character->user_id) {
-            abort(403, 'Nie możesz wejść do postaci innego gracza.');
-        }
-
-        $this->character = $character;
 
         if ($this->character->hasActiveMirror() && !request()->has('world_boss')) {
             session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
@@ -382,14 +381,43 @@ class MapStub extends Component
         }
     }
 
+    public function canUseSpeed5(): bool
+    {
+        if (!$this->character) {
+            return false;
+        }
+
+        $hasVip = $this->character->user?->hasPremium() ?? false;
+        return $this->character->level >= 30 || $hasVip;
+    }
+
     public function setPlaybackSpeed(int $speed): void
     {
+        if ($speed === 5 && !$this->canUseSpeed5()) {
+            $speed = 2;
+        }
+
+        if (!in_array($speed, [1, 2, 5], true)) {
+            $speed = 1;
+        }
+
         $this->playbackSpeed = $speed;
         session(['combat_playback_speed' => $speed]);
 
         if ($this->isPlaying) {
             $this->dispatch('update-playback-speed', speed: $speed);
         }
+    }
+
+    public function finishAllTurns(): void
+    {
+        if (!$this->isPlaying) {
+            return;
+        }
+
+        $this->visibleTurns = $this->allTurns;
+        $this->currentTurnIndex = count($this->allTurns);
+        $this->completeBattle();
     }
 
     public function toggleAutoChain(?bool $status = null): void

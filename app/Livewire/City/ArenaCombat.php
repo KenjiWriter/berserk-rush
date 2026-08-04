@@ -523,8 +523,26 @@ class ArenaCombat extends Component
         $this->isPlaying = !$this->isPlaying;
     }
 
+    public function canUseSpeed5(): bool
+    {
+        if (!$this->character) {
+            return false;
+        }
+
+        $hasVip = $this->character->user?->hasPremium() ?? false;
+        return $this->character->level >= 30 || $hasVip;
+    }
+
     public function setPlaybackSpeed(int $speed): void
     {
+        if ($speed === 5 && !$this->canUseSpeed5()) {
+            $speed = 2;
+        }
+
+        if (!in_array($speed, [1, 2, 5], true)) {
+            $speed = 1;
+        }
+
         $this->playbackSpeed = $speed;
         session(['combat_playback_speed' => $speed]);
     }

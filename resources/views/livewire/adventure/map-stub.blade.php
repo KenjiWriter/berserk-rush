@@ -2,7 +2,7 @@
      x-data="{ 
          travelingTo: null,
          isPaused: false,
-         speed: 1,
+         speed: {{ $playbackSpeed }},
          autoChain: @entangle('autoChain')
      }">
 
@@ -730,6 +730,9 @@
 
                                 {{-- Speed Controls --}}
                                 @if (!empty($visibleTurns))
+                                    @php
+                                        $canSpeed5 = $this->canUseSpeed5();
+                                    @endphp
                                     <div class="flex gap-1.5 sm:gap-2">
                                         <button @click="speed = 1; window.setCombatSpeed(1)"
                                             :class="speed === 1 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
@@ -741,6 +744,19 @@
                                             class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">
                                             x2
                                         </button>
+                                        @if ($canSpeed5)
+                                            <button @click="speed = 5; window.setCombatSpeed(5)"
+                                                :class="speed === 5 ? 'bg-purple-600/90 border-purple-300 text-white shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-105' : 'bg-slate-900/80 border-slate-700 text-purple-200/70 hover:bg-slate-800'"
+                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">
+                                                x5
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                title="Wymagany 30 poziom postaci lub aktywne konto VIP"
+                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border border-slate-800 bg-slate-950/60 text-slate-500 cursor-not-allowed opacity-60 flex items-center gap-1">
+                                                <i class="fa-solid fa-lock text-[10px]"></i> x5
+                                            </button>
+                                        @endif
                                     </div>
                                 @endif
 
@@ -1150,21 +1166,91 @@
             if (window._mapStubListenersBound) return;
             window._mapStubListenersBound = true;
 
+            // Create inline Web Worker Blob for un-throttled background timers
+            let bgWorker = null;
+            try {
+                const workerBlob = new Blob([`
+                    let timers = {};
+                    onmessage = function(e) {
+                        const { id, action, delay } = e.data;
+                        if (action === 'start') {
+                            if (timers[id]) clearTimeout(timers[id]);
+                            timers[id] = setTimeout(() => {
+                                postMessage({ id, type: 'tick' });
+                                delete timers[id];
+                            }, delay);
+                        } else if (action === 'cancel') {
+                            if (timers[id]) clearTimeout(timers[id]);
+                            delete timers[id];
+                        }
+                    };
+                `], { type: 'application/javascript' });
+                bgWorker = new Worker(URL.createObjectURL(workerBlob));
+            } catch (e) {
+                console.warn('Web Worker not supported, falling back to setTimeout', e);
+            }
+
+            let bgTimerCallbacks = {};
+
+            if (bgWorker) {
+                bgWorker.onmessage = function(e) {
+                    const { id } = e.data;
+                    if (bgTimerCallbacks[id]) {
+                        const cb = bgTimerCallbacks[id];
+                        delete bgTimerCallbacks[id];
+                        cb();
+                    }
+                };
+            }
+
+            function setUnthrottledTimeout(callback, delayMs, timerIdName) {
+                if (bgWorker) {
+                    if (bgTimerCallbacks[timerIdName]) {
+                        bgWorker.postMessage({ id: timerIdName, action: 'cancel' });
+                    }
+                    bgTimerCallbacks[timerIdName] = callback;
+                    bgWorker.postMessage({ id: timerIdName, action: 'start', delay: delayMs });
+                    return timerIdName;
+                } else {
+                    return setTimeout(callback, delayMs);
+                }
+            }
+
+            function clearUnthrottledTimeout(timerIdName, fallbackTimerRef) {
+                if (bgWorker && typeof timerIdName === 'string') {
+                    if (bgTimerCallbacks[timerIdName]) {
+                        delete bgTimerCallbacks[timerIdName];
+                    }
+                    bgWorker.postMessage({ id: timerIdName, action: 'cancel' });
+                } else if (fallbackTimerRef) {
+                    clearTimeout(fallbackTimerRef);
+                }
+            }
+
             let turnTimer = null;
             let autoChainTimeout = null;
+            let watchdogTimer = null;
             let isExecutingTurn = false;
             let isPaused = false;
-            let currentSpeed = 1;
+            let currentSpeed = {{ $playbackSpeed }};
 
             function cleanUp() {
-                if (turnTimer) clearTimeout(turnTimer);
-                if (autoChainTimeout) clearTimeout(autoChainTimeout);
+                clearUnthrottledTimeout('turnTimer', turnTimer);
+                clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
+                if (watchdogTimer) clearTimeout(watchdogTimer);
                 turnTimer = null;
                 autoChainTimeout = null;
+                watchdogTimer = null;
                 isExecutingTurn = false;
             }
 
             window.addEventListener('beforeunload', cleanUp);
+
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && !isPaused) {
+                    scheduleNextTurn(50);
+                }
+            });
 
             function getComponent() {
                 const el = document.getElementById('adventure-map-component');
@@ -1172,19 +1258,41 @@
             }
 
             function triggerNextTurn() {
-                if (isExecutingTurn || isPaused) return;
+                if (isPaused) return;
+                if (document.hidden) {
+                    const component = getComponent();
+                    if (component) {
+                        component.call('finishAllTurns');
+                    }
+                    return;
+                }
+
+                if (isExecutingTurn) return;
+
                 const component = getComponent();
                 if (component) {
+                    isExecutingTurn = true;
+                    if (watchdogTimer) clearTimeout(watchdogTimer);
+                    watchdogTimer = setTimeout(() => {
+                        isExecutingTurn = false;
+                    }, 2500);
                     component.call('nextTurn');
                 }
             }
 
             function scheduleNextTurn(delayMs) {
                 if (isPaused) return;
-                if (turnTimer) clearTimeout(turnTimer);
-                turnTimer = setTimeout(() => {
+                clearUnthrottledTimeout('turnTimer', turnTimer);
+
+                if (document.hidden) {
+                    const component = getComponent();
+                    if (component) component.call('finishAllTurns');
+                    return;
+                }
+
+                turnTimer = setUnthrottledTimeout(() => {
                     triggerNextTurn();
-                }, delayMs);
+                }, delayMs, 'turnTimer');
             }
 
             window.setCombatSpeed = function(s) {
@@ -1201,12 +1309,9 @@
                 }
 
                 if (isPaused) {
-                    if (turnTimer) clearTimeout(turnTimer);
-                    if (autoChainTimeout) clearTimeout(autoChainTimeout);
-                    turnTimer = null;
-                    autoChainTimeout = null;
+                    cleanUp();
                 } else {
-                    scheduleNextTurn(100);
+                    scheduleNextTurn(50);
                 }
 
                 const component = getComponent();
@@ -1226,10 +1331,19 @@
                 if (evtSpeed) {
                     currentSpeed = evtSpeed;
                 }
+
+                if (document.hidden) {
+                    const component = getComponent();
+                    if (component) component.call('finishAllTurns');
+                    return;
+                }
+
                 setTimeout(() => scrollCombatLogToBottom(true), 10);
                 setTimeout(() => scrollCombatLogToBottom(true), 50);
                 setTimeout(() => scrollCombatLogToBottom(true), 150);
-                scheduleNextTurn(currentSpeed === 2 ? 100 : 200);
+
+                const startDelay = currentSpeed === 5 ? 30 : (currentSpeed === 2 ? 100 : 200);
+                scheduleNextTurn(startDelay);
             });
 
             Livewire.on('stop-playback', () => {
@@ -1417,11 +1531,12 @@
 
                     setTimeout(() => {
                         isExecutingTurn = false;
+                        if (watchdogTimer) clearTimeout(watchdogTimer);
                         if (!isPaused) {
-                            const basePause = currentSpeed === 2 ? 200 : 550;
+                            const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
                             scheduleNextTurn(basePause);
                         }
-                    }, 500);
+                    }, currentSpeed === 5 ? 120 : 500);
                     return;
                 }
 
@@ -1545,15 +1660,16 @@
                 // 5. After turn animation settles (~500ms), schedule next turn sequentially!
                 setTimeout(() => {
                     isExecutingTurn = false;
+                    if (watchdogTimer) clearTimeout(watchdogTimer);
                     if (!isPaused) {
-                        const basePause = currentSpeed === 2 ? 200 : 550;
+                        const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
                         scheduleNextTurn(basePause);
                     }
-                }, 500);
+                }, currentSpeed === 5 ? 120 : (currentSpeed === 2 ? 250 : 500));
             });
 
             Livewire.on('auto-chain-next-battle', (event) => {
-                if (autoChainTimeout) clearTimeout(autoChainTimeout);
+                clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
                 if (isPaused) return;
 
                 let delay = 700; // fast chain between battles after a win
@@ -1562,11 +1678,15 @@
                     delay = payload.delay; // e.g. 3000ms penalty after a loss
                 }
 
-                autoChainTimeout = setTimeout(() => {
+                if (currentSpeed === 5) {
+                    delay = Math.min(delay, 400);
+                }
+
+                autoChainTimeout = setUnthrottledTimeout(() => {
                     if (isPaused) return;
                     const component = getComponent();
                     if (component) component.call('startBattle');
-                }, delay);
+                }, delay, 'autoChainTimeout');
             });
 
             Livewire.on('encounter-finished', () => {

@@ -553,6 +553,9 @@
                                 @endif
 
                                 @if (!empty($visibleTurns))
+                                    @php
+                                        $canSpeed5 = $this->canUseSpeed5();
+                                    @endphp
                                     <div class="flex gap-2">
                                         <button wire:click="setPlaybackSpeed(1)" 
                                             class="rounded-xl px-3.5 py-2 {{ $playbackSpeed == 1 ? 'bg-amber-900/90 text-amber-200 border-amber-400/80 font-black' : 'bg-slate-900/80 text-amber-300/70 border-slate-700 hover:bg-slate-800' }} border font-mono text-xs flex items-center gap-1.5 transition-all shadow-md">
@@ -562,6 +565,18 @@
                                             class="rounded-xl px-3.5 py-2 {{ $playbackSpeed == 2 ? 'bg-amber-900/90 text-amber-200 border-amber-400/80 font-black' : 'bg-slate-900/80 text-amber-300/70 border-slate-700 hover:bg-slate-800' }} border font-mono text-xs flex items-center gap-1.5 transition-all shadow-md">
                                             <i class="fa-solid fa-forward text-[10px]"></i> x2
                                         </button>
+                                        @if ($canSpeed5)
+                                            <button wire:click="setPlaybackSpeed(5)" 
+                                                class="rounded-xl px-3.5 py-2 {{ $playbackSpeed == 5 ? 'bg-purple-900/90 text-purple-200 border-purple-400/80 font-black' : 'bg-slate-900/80 text-purple-300/70 border-slate-700 hover:bg-slate-800' }} border font-mono text-xs flex items-center gap-1.5 transition-all shadow-md">
+                                                <i class="fa-solid fa-forward-fast text-[10px]"></i> x5
+                                            </button>
+                                        @else
+                                            <button disabled
+                                                title="Wymagany 30 poziom postaci lub aktywne konto VIP"
+                                                class="rounded-xl px-3 py-2 border border-slate-800 bg-slate-950/60 text-slate-500 font-mono text-xs flex items-center gap-1.5 cursor-not-allowed opacity-60">
+                                                <i class="fa-solid fa-lock text-[10px]"></i> x5
+                                            </button>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
