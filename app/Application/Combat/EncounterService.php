@@ -3,6 +3,7 @@
 namespace App\Application\Combat;
 
 use App\Application\Shared\Result;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Application\Loot\DropService;
@@ -166,18 +167,21 @@ class EncounterService
                     return Result::error('COMBAT_IN_PROGRESS', 'Twój bohater jest już w trakcie innej walki!');
                 }
 
-                // Anti-cheat: minimalny odstęp między kolejnymi walkami (patrz config/anticheat.php)
-                $lastEncounter = Encounter::where('character_id', $char->id)
-                    ->orderByDesc('started_at')
-                    ->first(['started_at']);
+                // Anti-cheat: minimalny odstęp między kolejnymi walkami (patrz config/anticheat.php).
+                // Używamy Cache z microtime zamiast kolumny started_at, bo ta ma tylko
+                // precyzję sekundową w Postgresie - za mało dla progu liczonego w ms.
+                $rateLimitKey = "anticheat:last_encounter_start:{$char->id}";
+                $minIntervalMs = config('anticheat.min_encounter_interval_ms', 350);
+                $lastStartedAtMicro = Cache::get($rateLimitKey);
 
-                if ($lastEncounter) {
-                    $minIntervalMs = config('anticheat.min_encounter_interval_ms', 1300);
-                    $elapsedMs = $lastEncounter->started_at->diffInMilliseconds(now());
+                if ($lastStartedAtMicro !== null) {
+                    $elapsedMs = (microtime(true) - $lastStartedAtMicro) * 1000;
                     if ($elapsedMs < $minIntervalMs) {
                         return Result::error('TOO_FAST', 'Zwolnij! Odczekaj chwilę przed kolejną walką.');
                     }
                 }
+
+                Cache::put($rateLimitKey, microtime(true), now()->addSeconds(5));
 
                 // Check for active/recent PvP encounter (< 5s ago or pending/calculating)
                 $recentPvP = PvpEncounter::where('attacker_character_id', $char->id)
