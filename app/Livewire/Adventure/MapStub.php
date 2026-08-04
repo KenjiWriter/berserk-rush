@@ -847,15 +847,13 @@ class MapStub extends Component
         }
         $baseDmg = 10 + $statBonus + ($level * 1);
 
-        // Balanced Crit: Minimum 3% floor, max 100% cap
+        // Balanced Crit: Minimum 3% floor, max 100% cap (bez redukcji z AGI przeciwnika)
         $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);
-        $agiCritPenalty = max(0, ($enemyAgi - $agi) * 0.08);
-        $effectiveCrit = max(3.0, min(100.0, $baseCrit - $agiCritPenalty));
+        $effectiveCrit = max(3.0, min(100.0, $baseCrit));
 
-        // Balanced Dodge: Base 3% + AGI superiority advantage + item dodge bonus (max 30% cap)
-        $agiDodgeAdvantage = max(0, $agi - $enemyAgi);
+        // Balanced Dodge: Base 3% + AGI bonus + item dodge bonus (max 30% cap, bez redukcji z AGI przeciwnika)
         $itemDodge = (float)($eqStats['dodge_chance'] ?? 0);
-        $effectiveDodge = min(30.0, 3.0 + ($agiDodgeAdvantage * 0.06) + $itemDodge);
+        $effectiveDodge = min(30.0, max(0.0, 3.0 + ($agi * 0.06) + $itemDodge));
 
         return [
             'crit_chance' => round($effectiveCrit, 1),
@@ -918,14 +916,11 @@ class MapStub extends Component
 
         $enemyStats = $activeEnemy['stats'] ?? [];
         $enemyAgi = $enemyStats['agi'] ?? 0;
-        $playerAgi = $this->player['stats']['agi'] ?? 0;
 
         $baseCrit = 3 + ($enemyAgi * 0.3);
-        $agiCritPenalty = max(0, ($playerAgi - $enemyAgi) * 0.08);
-        $effectiveCrit = max(2.0, min(30, $baseCrit - $agiCritPenalty));
+        $effectiveCrit = max(2.0, min(30.0, $baseCrit));
 
-        $agiDodgeAdvantage = max(0, $enemyAgi - $playerAgi);
-        $effectiveDodge = min(18.0, 3.0 + ($agiDodgeAdvantage * 0.15));
+        $effectiveDodge = min(18.0, max(0.0, 3.0 + ($enemyAgi * 0.15)));
 
         return [
             'crit_chance' => round($effectiveCrit, 1),

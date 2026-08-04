@@ -1502,14 +1502,10 @@ class EncounterService
     {
         $agility = $character->getTotalAttributes()['agi'] ?? 1;
         $eq = $character->getEquipmentStats();
-        $isTutorial = ($character->user && $character->user->game_stage <= 12);
-        $scaledMonsterStats = $monster->getScaledStats($character->level, $isTutorial);
-        $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
         $baseCrit = 0.05 + ($agility * 0.0015) + (($eq['crit_chance'] ?? 0) / 100);
-        $agiCritPenalty = max(0, ($monsterAgi - $agility) * 0.0008);
-        // Twardy cap szansy krytyka na 100% (1.00) oraz dolny próg 3% (0.03)
-        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
+        // Twardy cap szansy krytyka na 100% (1.00) oraz dolny próg 3% (0.03) - bez redukcji z AGI przeciwnika
+        $critChance = max(0.03, min(1.00, $baseCrit));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
@@ -1519,20 +1515,18 @@ class EncounterService
         $isTutorial = ($character && $character->user && $character->user->game_stage <= 12);
         $scaledMonsterStats = $monster->getScaledStats($character ? $character->level : $monster->level, $isTutorial);
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
-        $playerAgi = $character ? ($character->getTotalAttributes()['agi'] ?? 0) : 0;
 
         $baseCrit = 0.03 + ($monsterAgi * 0.003);
-        $agiCritPenalty = max(0, ($playerAgi - $monsterAgi) * 0.0008);
-        $critChance = max(0.02, min(0.30, $baseCrit - $agiCritPenalty));
+        // Bez redukcji z AGI gracza
+        $critChance = max(0.02, min(0.30, $baseCrit));
 
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollDodge(int $defenderAgi, int $attackerAgi, float $defenderItemDodge = 0.0): bool
+    private function rollDodge(int $defenderAgi, int $attackerAgi = 0, float $defenderItemDodge = 0.0): bool
     {
-        $agiDodgeAdvantage = max(0, $defenderAgi - $attackerAgi);
-        // Twardy cap szansy na unik na 30% (0.30)
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + ($defenderItemDodge / 100.0)));
+        // Szansa na unik bazuje bezpośrednio na AGI obrońcy + ekwipunek, bez redukcji z AGI atakującego
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($defenderAgi * 0.0006) + ($defenderItemDodge / 100.0)));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

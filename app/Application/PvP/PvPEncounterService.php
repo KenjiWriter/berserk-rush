@@ -745,19 +745,12 @@ class PvPEncounterService
         $actingAgi = $actingSnapshot['attributes']['agi'] ?? 1;
         $targetAgi = $targetSnapshot['attributes']['agi'] ?? 1;
 
-        // UWAGA (fix 2026-07-28): usunięto górny sufit krytyka (był capowany na 50%).
-        // W PvP obie strony to gracze, więc zdjęcie capa dotyczy ich symetrycznie
-        // (patrz identyczna zmiana w EncounterService::rollCritical()). Dolny próg
-        // 0.03 dla krytyka zostaje, żeby szansa nigdy nie spadła do zera przy dużej
-        // przewadze AGI przeciwnika.
         $baseCrit = 0.05 + ($actingAgi * 0.0015) + (($eqStats['crit_chance'] ?? 0) / 100);
-        $agiCritPenalty = max(0, ($targetAgi - $actingAgi) * 0.0008);
-        $critChance = max(0.03, min(1.00, $baseCrit - $agiCritPenalty));
+        $critChance = max(0.03, min(1.00, $baseCrit));
         $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
 
-        $agiDodgeAdvantage = max(0, $targetAgi - $actingAgi);
         $targetItemDodge = (($defEq['dodge_chance'] ?? 0) / 100.0);
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($agiDodgeAdvantage * 0.0006) + $targetItemDodge));
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($targetAgi * 0.0006) + $targetItemDodge));
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

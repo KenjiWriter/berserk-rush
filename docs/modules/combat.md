@@ -19,8 +19,8 @@ Serwis w ułamku sekundy symuluje całe starcie, maksymalnie do 50 tur, wymienia
 
 Wewnątrz tury występują 3 stany ataku:
 - **Trafienie (`hit`):** Standardowy atak zadający obrażenia.
-- **Trafienie Krytyczne (`crit`):** Obrażenia x 1.5. Szansa obliczana jest na bazie atrybutu `AGI` (0.15% per pkt) oraz ekwipunku i zaklęć. Szansa na krytyk jest twardo limitowana (hard cap) do maksymalnie **100%** (gracz) oraz 30% (potwór).
-- **Unik / Chybienie (`miss`):** Szansa na całkowity brak obrażeń z racji przewagi AGI oraz obrony z ekwipunku (`dodge_chance`), z twardym sufitem (hard cap) wynoszącym maksymalnie **30%**.
+- **Trafienie Krytyczne (`crit`):** Obrażenia x 1.5. Szansa obliczana jest na bazie własnego atrybutu `AGI` (0.15% per pkt u gracza) oraz ekwipunku i zaklęć (bez redukcji ze strony AGI przeciwnika). Szansa na krytyk jest twardo limitowana (hard cap) do maksymalnie **100%** (gracz) oraz 30% (potwór).
+- **Unik / Chybienie (`miss`):** Szansa na całkowity brak obrażeń z racji własnego atrybutu `AGI` obrońcy (0.06% per pkt) oraz obrony z ekwipunku (`dodge_chance`), bez redukcji ze strony AGI atakującego, z twardym sufitem (hard cap) wynoszącym maksymalnie **30%**.
 
 **Kalkulacja Obrażeń i Skalowanie Statystyk Potworów:**
 - **Progresywne Skalowanie Potworów (`getScaledStats`):** Statystyki bazowe potworów (`hp`, `atk`, `def`, `agi`) skalują się z poziomem gracza, jeśli poziom gracza jest wyższy niż poziom bazowy potwora. Za każdy poziom różnicy statystyki potwora wzrastają o 10% (`multiplier = 1 + (player_level - monster_level) * 0.10`).

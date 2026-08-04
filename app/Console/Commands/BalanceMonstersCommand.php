@@ -609,10 +609,10 @@ class BalanceMonstersCommand extends Command
 
                 $totalDmg = $baseDmg + $magicBurstDmg;
 
-                $critChance = max(0.03, (0.05 + $playerAgi * 0.004 + $a['critGearPct'] / 100) - max(0, ($monsterAgi - $playerAgi) * 0.0008));
+                $critChance = max(0.03, (0.05 + $playerAgi * 0.004 + $a['critGearPct'] / 100));
                 $isCrit = (mt_rand(1, 1000000) / 1000000) < $critChance;
 
-                $missChance = 0.03 + max(0, ($monsterAgi - $playerAgi)) * 0.0015;
+                $missChance = min(0.30, 0.03 + $monsterAgi * 0.0006);
                 $isMiss = (mt_rand(1, 1000000) / 1000000) < $missChance;
 
                 if ($isMiss) {
@@ -630,10 +630,10 @@ class BalanceMonstersCommand extends Command
                 $rawDmg = $monster['atk'];
                 $dmg = max(1, $rawDmg - $a['playerDefBase'] * 0.2);
 
-                $monsterCrit = max(0.02, min(0.30, 0.03 + $monsterAgi * 0.003 - max(0, ($playerAgi - $monsterAgi) * 0.0008)));
+                $monsterCrit = max(0.02, min(0.30, 0.03 + $monsterAgi * 0.003));
                 $isCrit = (mt_rand(1, 1000000) / 1000000) < $monsterCrit;
 
-                $monsterMiss = 0.03 + max(0, ($playerAgi - $monsterAgi)) * 0.0015;
+                $monsterMiss = min(0.30, 0.03 + $playerAgi * 0.0006);
                 $isMiss = (mt_rand(1, 1000000) / 1000000) < $monsterMiss;
 
                 if ($isMiss) {
