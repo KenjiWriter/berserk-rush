@@ -62,8 +62,8 @@ class CombatSkillSeeder extends Seeder
                 'is_magic' => true,
                 'base_cooldown' => 6,
                 'base_duration' => 3,
-                'base_value' => 0.02,
-                'scaling_value' => 0.005,
+                'base_value' => 0.01,
+                'scaling_value' => 0.0008,
                 'required_level' => 10,
                 'unlock_cost' => 5,
                 'icon' => 'fireball.png',
@@ -139,8 +139,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'poison',
                 'base_cooldown' => 5,
                 'base_duration' => 3,
-                'base_value' => 0.05,
-                'scaling_value' => 0.01,
+                'base_value' => 0.015,
+                'scaling_value' => 0.001,
                 'required_level' => 10,
                 'unlock_cost' => 5,
                 'icon' => 'poison-arrow.png',
@@ -236,8 +236,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'fire',
                 'base_cooldown' => 7,
                 'base_duration' => 3,
-                'base_value' => 0.03,
-                'scaling_value' => 0.01,
+                'base_value' => 0.012,
+                'scaling_value' => 0.001,
                 'required_level' => 25,
                 'unlock_cost' => 15,
                 'icon' => 'fire-arrow.png',
@@ -251,8 +251,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'poison',
                 'base_cooldown' => 5,
                 'base_duration' => 4,
-                'base_value' => 0.06,
-                'scaling_value' => 0.01,
+                'base_value' => 0.018,
+                'scaling_value' => 0.0012,
                 'required_level' => 25,
                 'unlock_cost' => 15,
                 'icon' => 'poison-dagger.png',
@@ -270,8 +270,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'fire',
                 'base_cooldown' => 6,
                 'base_duration' => 3,
-                'base_value' => 0.035,
-                'scaling_value' => 0.01,
+                'base_value' => 0.015,
+                'scaling_value' => 0.001,
                 'required_level' => 45,
                 'unlock_cost' => 30,
                 'icon' => 'crushing-axe.png',
@@ -300,9 +300,9 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'fire',
                 'is_magic' => true,
                 'base_cooldown' => 8,
-                'base_duration' => 4,
-                'base_value' => 0.045,
-                'scaling_value' => 0.01,
+                'base_duration' => 3,
+                'base_value' => 0.018,
+                'scaling_value' => 0.0012,
                 'required_level' => 45,
                 'unlock_cost' => 30,
                 'icon' => 'hellfire.png',
@@ -478,8 +478,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'fire',
                 'base_cooldown' => 7,
                 'base_duration' => 4,
-                'base_value' => 0.06,
-                'scaling_value' => 0.015,
+                'base_value' => 0.02,
+                'scaling_value' => 0.0012,
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'infernal-slash.png',
@@ -494,8 +494,8 @@ class CombatSkillSeeder extends Seeder
                 'is_magic' => true,
                 'base_cooldown' => 9,
                 'base_duration' => 4,
-                'base_value' => 0.07,
-                'scaling_value' => 0.015,
+                'base_value' => 0.022,
+                'scaling_value' => 0.0015,
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'dark-meteor.png',
@@ -526,8 +526,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'poison',
                 'base_cooldown' => 8,
                 'base_duration' => 4,
-                'base_value' => 0.12,
-                'scaling_value' => 0.02,
+                'base_value' => 0.025,
+                'scaling_value' => 0.0015,
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'venom-rain.png',
@@ -591,8 +591,8 @@ class CombatSkillSeeder extends Seeder
                 'is_magic' => true,
                 'base_cooldown' => 10,
                 'base_duration' => 5,
-                'base_value' => 0.09,
-                'scaling_value' => 0.02,
+                'base_value' => 0.025,
+                'scaling_value' => 0.0015,
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'elemental-apocalypse.png',
@@ -637,8 +637,8 @@ class CombatSkillSeeder extends Seeder
                 'effect_type' => 'poison',
                 'base_cooldown' => 7,
                 'base_duration' => 5,
-                'base_value' => 0.15,
-                'scaling_value' => 0.025,
+                'base_value' => 0.03,
+                'scaling_value' => 0.002,
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'void-blade.png',
@@ -895,7 +895,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 10,
                 'unlock_cost' => 5,
                 'icon' => 'soothing-tone.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -912,7 +911,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 45,
                 'unlock_cost' => 30,
                 'icon' => 'healing-chorus.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -929,7 +927,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'sacred-renewal-hymn.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -946,7 +943,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'resurrection-requiem.png',
-                'icon' => null,
             ],
 
             // --- AOE tam, gdzie dotąd nie było żadnej opcji obszarowej ---
@@ -982,7 +978,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 10,
                 'unlock_cost' => 5,
                 'icon' => 'double-slash.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -999,7 +994,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'earthquake.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1017,7 +1011,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'luminous-circle.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1034,7 +1027,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 99,
                 'unlock_cost' => 80,
                 'icon' => 'blade-doomsday.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1051,7 +1043,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'destruction-rain.png',
-                'icon' => null,
             ],
 
             // --- Crowd Control (freeze/stun) na przedziałach, gdzie go dotąd nie było ---
@@ -1085,7 +1076,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'paralyzing-shot.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1101,7 +1091,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'shadow-shackles.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1118,7 +1107,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'absolute-zero.png',
-                'icon' => null,
             ],
 
             // --- Trucizna / Podpalenie na poziomie 60 (dotąd zero DoT-ów w tym przedziale) ---
@@ -1136,7 +1124,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'caustic-venom.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1152,7 +1139,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'burning-impetus.png',
-                'icon' => null,
             ],
 
             // --- Obrona: zupełnie nowa kategoria (buff_defense), po jednym skillu na broń ---
@@ -1170,7 +1156,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 10,
                 'unlock_cost' => 5,
                 'icon' => 'shield-stance.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1186,7 +1171,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 25,
                 'unlock_cost' => 15,
                 'icon' => 'iron-skin.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1202,7 +1186,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 45,
                 'unlock_cost' => 30,
                 'icon' => 'swift-evade.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1219,7 +1202,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 45,
                 'unlock_cost' => 30,
                 'icon' => 'astral-shield.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1236,7 +1218,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'divine-barrier.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1252,7 +1233,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 60,
                 'unlock_cost' => 45,
                 'icon' => 'shadow-stealth.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1268,7 +1248,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 80,
                 'unlock_cost' => 60,
                 'icon' => 'stone-stance.png',
-                'icon' => null,
             ],
             [
                 'id' => Str::ulid(),
@@ -1284,7 +1263,6 @@ class CombatSkillSeeder extends Seeder
                 'required_level' => 99,
                 'unlock_cost' => 100,
                 'icon' => 'unyielding-will.png',
-                'icon' => null,
             ],
         ];
 
