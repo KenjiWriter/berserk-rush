@@ -67,7 +67,7 @@ class Warlock extends Component
         $result = $upgradeAction->execute($this->character, $charSkill);
 
         if ($result->isOk()) {
-            $data = $result->getData();
+            $data = $result->getPayload();
             $message = is_array($data) && !empty($data['message']) ? $data['message'] : 'Umiejętność została rozwinięta!';
             $this->dispatch('notify', type: 'success', message: $message);
             $this->dispatch('play-audio', type: 'upgrade-success');
