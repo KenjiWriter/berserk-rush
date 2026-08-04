@@ -450,7 +450,27 @@
                                 @foreach($myItemListings as $listing)
                                     <tr class="hover:bg-amber-950/20 transition-colors">
                                         <td class="p-3">
-                                            <div class="flex items-center space-x-3">
+                                            <div class="flex items-center space-x-3 cursor-pointer relative"
+                                                 x-data="smartTooltip()"
+                                                 @click="toggleTooltip()"
+                                                 @resize.window.debounce.100ms="updatePosition()"
+                                                 @tooltip-updated.window="updatePosition()">
+
+                                                {{-- Item Infobox Modal (teleportowany do <body>) --}}
+                                                <template x-teleport="body">
+                                                    <div x-show="showInfo" x-transition.opacity
+                                                         class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs pointer-events-auto"
+                                                         @click.self="showInfo = false"
+                                                         @keydown.escape.window="showInfo = false">
+                                                        <div x-ref="tooltipContainer" data-tooltip-container
+                                                             :style="tooltipStyle"
+                                                             class="pointer-events-auto"
+                                                             @click.stop>
+                                                            <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
+                                                        </div>
+                                                    </div>
+                                                </template>
+
                                                 <div class="w-9 h-9 rounded-lg border border-amber-600/80 bg-stone-900 flex items-center justify-center shrink-0 text-amber-400 text-base shadow-inner relative">
                                                     @if($listing->item->template->icon)
                                                         <img src="{{ route('assets.items', ['filename' => $listing->item->template->icon]) }}" class="w-full h-full object-contain p-0.5" alt="{{ $listing->item->template->name }}">

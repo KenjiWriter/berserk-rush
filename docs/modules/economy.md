@@ -22,6 +22,13 @@ Widok `livewire/economy/market.blade.php` (obsługiwany przez `GetMarketListings
 - Dozwolone klucze statystyk są zdefiniowane w białej liście `GetMarketListingsQuery::ALLOWED_STAT_FILTERS`, by bezpiecznie osadzać je w wyrażeniach SQL wyciągających wartość z kolumn JSON(B).
 - Wyrażenie SQL do odczytu wartości z JSON jest budowane w zależności od sterownika bazy (`GetMarketListingsQuery::jsonStatExpr`) – składnia PostgreSQL (`jsonb ->> 'klucz'`) różni się od MySQL (`json ->> '$.klucz'`), więc obie są obsługiwane.
 
+## Infobox i Porównywanie Przedmiotów (Item Comparison)
+Kliknięcie w kartę dowolnego przedmiotu na rynku (`market.blade.php`) wywołuje wyśrodkowany, interaktywny modal infobox (`<x-item-tooltip>`) działający w oparciu o dyrektywę Alpine `smartTooltip()` z podpiętą nakładką `fixed inset-0 z-[9999] pointer-events-auto`.
+- **Porównanie z założonym ekwipunkiem (`:equippedItem`)**: Komponent `MarketComponent` wyciąga z bazy i przekazuje do widoku słownik założonych przedmiotów gracza (`$equipped[$slot]`). Infobox automatycznie porównuje statystyki oferty ze znajdującym się w tym samym slocie ekwipunkiem postaci, prezentując różnice wartości (zielony kolor dla zysku, czerwony dla straty).
+- **Przełącznik Porównywania**: Gracz może w każdej chwili przełączać widok porównania przyciskiem ("Pokaż/Ukryj porównanie z założonym"). Preferencja ta jest zapisywana w `localStorage` (`global_show_item_comparison`).
+- **Przycisk Akcji Zakupu**: Wewnątrz modalu infobox znajduje się przycisk "KUP ZA [cena]", który pozwala przejść do dwuetapowego zakupu przedmiotu bezpośrednio po przeanalizowaniu jego statystyk i porównania.
+- **Moje Oferty**: Podgląd infoboxa i porównania dostępny jest również w tabeli "Moje Aktywne Oferty Aukcyjne" po kliknięciu w wystawiony przedmiot.
+
 ## Potwierdzenie Zakupu (Modal)
 Aby zapobiec przypadkowym zakupom ofert na rynku, kliknięcie przycisku "KUP ZA..." w `MarketComponent` wywołuje dwuetapowy proces:
 1. `MarketComponent::confirmBuy($listingId)` weryfikuje ofertę i otwiera modal potwierdzający (`$showConfirmBuyModal = true`).
@@ -34,3 +41,4 @@ Wszystkie ważne modyfikacje (zakup, wystawienie) wykorzystują:
 - Transakcje bazodanowe (`DB::transaction`).
 - Klucze idempotencji i wpisy w dziennikach (Ledgers).
 - Zdarzenia domenowe (Events: `MarketListingCreated`, `MarketListingSold`, `MarketListingExpired`).
+
