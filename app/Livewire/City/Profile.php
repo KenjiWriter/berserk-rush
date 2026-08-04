@@ -2,6 +2,7 @@
 
 namespace App\Livewire\City;
 
+use App\Application\Items\BackpackSlotService;
 use App\Application\Items\EquipItem;
 use App\Application\Items\EquipmentSetService;
 use App\Application\Items\ItemSorter;
@@ -94,9 +95,64 @@ class Profile extends Component
         $this->character->load('equippedSkills.skill');
     }
 
-    public function sortInventory()
+    public function sortInventory(BackpackSlotService $slotService)
     {
+        // Wyczyść manualne pozycje slotów – ItemSorter potem nada kolejność automatyczną
+        $slotService->clearAllSlots($this->character, 'backpack_slot', 'inventory');
+
+        $this->character->refresh();
         $this->dispatch('notify', type: 'success', message: 'Przedmioty zostały posortowane wg kategorii i mocy.');
+    }
+
+    /**
+     * Przesuń item w plecaku do wskazanego slotu (0-based).
+     * Jeśli slot docelowy jest zajęty – wykonaj swap.
+     * Wywoływane przez drag & drop wewnątrz siatki plecaka.
+     */
+    public function moveBackpackItem(string $itemId, int $targetSlot, BackpackSlotService $slotService): void
+    {
+        $capacity = $this->character->getBackpackCapacity();
+        if ($targetSlot < 0 || $targetSlot >= $capacity) {
+            return;
+        }
+
+        $ok = $slotService->moveItem(
+            $this->character,
+            $itemId,
+            $targetSlot,
+            'backpack_slot',
+            'inventory'
+        );
+
+        if ($ok) {
+            $this->character->unsetRelation('inventoryItems');
+            $this->character->refresh();
+        }
+    }
+
+    /**
+     * Przesuń item w magazynie materiałów do wskazanego slotu (0-based).
+     * Jeśli slot docelowy jest zajęty – wykonaj swap.
+     */
+    public function moveMaterialItem(string $itemId, int $targetSlot, BackpackSlotService $slotService): void
+    {
+        $capacity = $this->character->getMaterialStashCapacity();
+        if ($targetSlot < 0 || $targetSlot >= $capacity) {
+            return;
+        }
+
+        $ok = $slotService->moveItem(
+            $this->character,
+            $itemId,
+            $targetSlot,
+            'material_slot',
+            'material_stash'
+        );
+
+        if ($ok) {
+            $this->character->unsetRelation('materialStashItems');
+            $this->character->refresh();
+        }
     }
 
     public function unequipSkill(string $characterSkillId)
@@ -600,15 +656,27 @@ class Profile extends Component
             'damage_reduction' => ($vit * 1) + $eqStats['defense'],
         ];
 
+        $backpackCapacity = $this->character->getBackpackCapacity();
         $inventory = $this->character->inventoryItems;
         if ($this->inventoryFilter !== 'all') {
             $inventory = $inventory->filter(function ($item) {
                 return $item->template->type === $this->inventoryFilter;
             });
         }
-        $inventory = ItemSorter::sort($inventory);
-        // Safety cap to prevent memory exhaustion if a character has an excessive number of items in DB
-        $inventory = $inventory->take(64);
+        // Sort wg backpack_slot (manualna kolejność), potem pozostałe auto-sorted wg kategorii/mocy
+        $inventorySorted = $inventory->filter(fn ($i) => $i->backpack_slot !== null)
+            ->sortBy('backpack_slot')
+            ->merge(
+                ItemSorter::sort($inventory->filter(fn ($i) => $i->backpack_slot === null))
+            );
+        $inventorySorted = $inventorySorted->take(64);
+
+        // Slot map: array[0..capacity-1] => ItemInstance|null – do renderowania siatki
+        $slotService = app(BackpackSlotService::class);
+        $inventorySlotMap = $slotService->buildSlotMap($inventorySorted, $backpackCapacity, 'backpack_slot');
+
+        // Potrzebne do filtrów i licznika (oryginalna kolekcja bez mapy)
+        $inventory = $inventorySorted;
 
         $user = auth()->user();
         $playerStashItems = $user ? $user->playerStashItems()->with('template')->get() : collect();
@@ -634,6 +702,8 @@ class Profile extends Component
         }
 
         $materialStashItems = $this->character->materialStashItems->take(100);
+        $materialStashCapacity = $this->character->getMaterialStashCapacity();
+        $materialSlotMap = $slotService->buildSlotMap($materialStashItems, $materialStashCapacity, 'material_slot');
 
         // Batch fetch monster/map drop sources for materials shown in plecak + magazyn materiałów (eliminuje N+1).
         $materialTemplateIds = $inventory->filter(fn ($item) => ($item->template->type ?? null) === 'material')->pluck('template_id')
@@ -695,29 +765,31 @@ class Profile extends Component
         $mirrorRewardsPreview = $activeMirrorSession ? $activeMirrorSession->calculateCurrentRewards() : null;
 
         return view('livewire.city.profile', [
-            'equipped' => $equipped,
-            'inventory' => $inventory,
-            'playerStashItems' => $playerStashItems,
+            'equipped'           => $equipped,
+            'inventory'          => $inventory,
+            'inventorySlotMap'   => $inventorySlotMap,
+            'backpackCapacity'   => $backpackCapacity,
+            'playerStashItems'   => $playerStashItems,
             'materialStashItems' => $materialStashItems,
-            'materialDropSources' => $materialDropSources,
-            'materialStashCount' => $this->character->getMaterialStashCount(),
-            'materialStashCapacity' => $this->character->getMaterialStashCapacity(),
-            'stashCapacity' => $user?->getStashCapacity() ?? 2,
-            'backpackCount' => $this->character->getBackpackCount(),
-            'backpackCapacity' => $this->character->getBackpackCapacity(),
-            'totalAttributes' => $totalAttributes,
-            'baseAttributes' => $this->character->getBaseAttributes(),
-            'bonusAttributes' => $this->character->getBonusAttributes(),
-            'derivedStats' => $derivedStats,
-            'eqStats' => $eqStats,
-            'activeWeaponType' => $activeWeaponType,
+            'materialSlotMap'    => $materialSlotMap,
+            'materialStashCapacity' => $materialStashCapacity,
+            'materialDropSources'   => $materialDropSources,
+            'materialStashCount'    => $this->character->getMaterialStashCount(),
+            'stashCapacity'      => $user?->getStashCapacity() ?? 2,
+            'backpackCount'      => $this->character->getBackpackCount(),
+            'totalAttributes'    => $totalAttributes,
+            'baseAttributes'     => $this->character->getBaseAttributes(),
+            'bonusAttributes'    => $this->character->getBonusAttributes(),
+            'derivedStats'       => $derivedStats,
+            'eqStats'            => $eqStats,
+            'activeWeaponType'   => $activeWeaponType,
             'activeScalingStats' => $activeScalingStats,
-            'baseAvatars' => $baseAvatars,
-            'equipmentSets' => $equipmentSets,
-            'mirrorMaps' => $mirrorMaps,
-            'mapRates' => $mapRates,
-            'activeMirrorSession' => $activeMirrorSession,
-            'mirrorRewardsPreview' => $mirrorRewardsPreview,
+            'baseAvatars'        => $baseAvatars,
+            'equipmentSets'      => $equipmentSets,
+            'mirrorMaps'         => $mirrorMaps,
+            'mapRates'           => $mapRates,
+            'activeMirrorSession'    => $activeMirrorSession,
+            'mirrorRewardsPreview'   => $mirrorRewardsPreview,
         ]);
     }
 

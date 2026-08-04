@@ -1191,261 +1191,451 @@
                  class="grid grid-cols-5 gap-1.5 xs:gap-2 bg-gray-800/90 p-1.5 xs:p-2 rounded-xl flex-grow content-start transition-all"
                  :class="{ 'ring-4 ring-blue-400 border-2 border-blue-400 bg-blue-950/40': isInventoryDragOver }"
             >
-                @if($inventoryTab === 'backpack')
-                    @foreach($inventory as $item)
+                                @if($inventoryTab === 'backpack')
+                    {{-- === SIATKA PLECAKA (fizyczne sloty z drag & drop) === --}}
+                    @foreach($inventorySlotMap as $slotIndex => $item)
                         @php
-                            $isRustySwordTutorial = $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
+                            $isRustySwordTutorial = $item && $gameStage == 6 && $item->template_id === '01k4jpx94j70x2vv10b835prm4';
+                            $slotNum = $slotIndex + 1;
                         @endphp
-                        <div id="backpack-item-{{ $item->id }}" wire:key="backpack-item-{{ $item->id }}" x-data="{ 
-                            open: false, 
-                            hoverTimeout: null,
-                            isDraggingThis: false,
-                            posClass: 'sm:bottom-full sm:mb-2',
-                            tooltipStyle: {},
-                            init() {
-                                this._onInventoryUpdated = () => { this.open = false; };
-                                window.addEventListener('inventory-updated', this._onInventoryUpdated);
-                                this._onCloseAllTooltips = () => { this.forceClose(); };
-                                window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
-                            },
-                            destroy() {
-                                window.removeEventListener('inventory-updated', this._onInventoryUpdated);
-                                window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
-                            },
-                            checkPosition() { 
-                                if (window.innerWidth < 640) return;
-                                this.$nextTick(() => {
-                                    const triggerRect = this.$el.getBoundingClientRect();
-                                    const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
-                                    if (!triggerRect.width || !tooltipEl) return;
-                                    const tooltipRect = tooltipEl.getBoundingClientRect();
-                                    const triggerCenter = triggerRect.left + triggerRect.width / 2;
-                                    const halfWidth = tooltipRect.width / 2;
-                                    const minMargin = 12;
-                                    let style = {};
-                                    if (triggerCenter - halfWidth < minMargin) {
-                                        style.left = (minMargin - triggerRect.left) + 'px';
-                                        style.transform = 'none';
-                                    } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
-                                        style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
-                                        style.transform = 'none';
-                                    } else {
-                                        style.left = '50%';
-                                        style.transform = 'translateX(-50%)';
-                                    }
-                                    if (triggerRect.top < tooltipRect.height + 16) {
-                                        style.top = '100%';
-                                        style.bottom = 'auto';
-                                        style.marginTop = '8px';
-                                        style.marginBottom = '0';
-                                        this.posClass = 'sm:top-full sm:mt-2';
-                                    } else {
-                                        style.bottom = '100%';
-                                        style.top = 'auto';
-                                        style.marginBottom = '8px';
-                                        style.marginTop = '0';
-                                        this.posClass = 'sm:bottom-full sm:mb-2';
-                                    }
-                                    this.tooltipStyle = style;
-                                });
-                            },
-                            toggleTooltip() {
-                                if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
-                                clearTimeout(this.hoverTimeout);
-                                if (this.open) {
-                                    this.forceClose();
-                                } else {
-                                    window.dispatchEvent(new CustomEvent('close-all-tooltips'));
-                                    if (activeItemId && activeItemId !== '{{ $item->id }}') {
-                                        window.dispatchEvent(new CustomEvent('close-item-tooltip', { detail: { id: activeItemId } }));
-                                    }
-                                    activeItemId = '{{ $item->id }}';
-                                    this.open = true;
-                                    this.checkPosition();
-                                }
-                            },
-                            openTooltip() {},
-                            closeTooltip() {},
-                            forceClose() {
-                                clearTimeout(this.hoverTimeout);
-                                this.open = false;
-                                if (activeItemId === '{{ $item->id }}') {
-                                    activeItemId = null;
-                                }
-                            }
-                        }" @click.outside="forceClose()"
-                              @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
-                              wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
-                              draggable="true"
-                              @dragstart="
-                                  forceClose(); 
-                                  isDraggingThis = true;
-                                  window.currentDragItem = { 
-                                      id: '{{ $item->id }}', 
-                                      slot: '{{ $item->template->slot ?? '' }}', 
-                                      type: '{{ $item->template->type ?? '' }}', 
-                                      levelReq: {{ $item->template->level_requirement ?? 1 }}, 
-                                      charLevel: {{ $character->level }}, 
-                                      source: 'backpack', 
-                                      domId: 'backpack-item-{{ $item->id }}' 
-                                  };
-                              "
-                              @dragend="isDraggingThis = false; window.currentDragItem = null;"
-                              @dblclick="
-                                  forceClose();
-                                  @if($character->level < ($item->template->level_requirement ?? 1))
-                                      $dispatch('notify', { type: 'error', message: 'Zbyt niski poziom aby założyć ten przedmiot!' });
-                                  @else
-                                      @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']) && ($item->template->slot ?? null))
-                                          flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ $item->template->slot }}', () => $wire.equipItem('{{ $item->id }}'));
-                                      @elseif(($item->template->type ?? '') === 'consumable')
-                                          $wire.consumeItem('{{ $item->id }}');
-                                      @elseif(($item->template->type ?? '') === 'egg')
-                                          $dispatch('notify', { type: 'info', message: 'Przejdź do zakładki Pety w menu, aby umieścić jajko w inkubatorze.' });
-                                      @endif
-                                  @endif
-                              "
-                              class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-300 {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
-                              :class="{ 
-                                  'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
-                                  'opacity-40 scale-95 border-amber-400': isDraggingThis,
-                                  '!z-[99999]': open && !{{ $bulkStashMode ? 'true' : 'false' }}
-                              }"
-                              @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { toggleTooltip(); }">
 
-                            <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
-                                 class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-cyan-950/10 border-2 border-slate-700/50 hover:border-cyan-400/50 hover:bg-cyan-500/10' }}">
-                                <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
-                                    @if(in_array($item->id, $selectedStashItemIds))
-                                        <i class="fa-solid fa-check"></i>
-                                    @endif
-                                </div>
-                            </div>
+                        @if($item)
+                            {{-- SLOT ZAJĘTY --}}
+                            <div id="backpack-item-{{ $item->id }}"
+                                 wire:key="backpack-slot-{{ $slotIndex }}-{{ $item->id }}"
+                                 x-data="{
+                                    open: false,
+                                    hoverTimeout: null,
+                                    isDraggingThis: false,
+                                    posClass: 'sm:bottom-full sm:mb-2',
+                                    tooltipStyle: {},
+                                    init() {
+                                        this._onInventoryUpdated = () => { this.open = false; };
+                                        window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                                        this._onCloseAllTooltips = () => { this.forceClose(); };
+                                        window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
+                                    },
+                                    destroy() {
+                                        window.removeEventListener('inventory-updated', this._onInventoryUpdated);
+                                        window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
+                                    },
+                                    checkPosition() {
+                                        if (window.innerWidth < 640) return;
+                                        this.$nextTick(() => {
+                                            const triggerRect = this.$el.getBoundingClientRect();
+                                            const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                                            if (!triggerRect.width || !tooltipEl) return;
+                                            const tooltipRect = tooltipEl.getBoundingClientRect();
+                                            const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                                            const halfWidth = tooltipRect.width / 2;
+                                            const minMargin = 12;
+                                            let style = {};
+                                            if (triggerCenter - halfWidth < minMargin) {
+                                                style.left = (minMargin - triggerRect.left) + 'px';
+                                                style.transform = 'none';
+                                            } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {
+                                                style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px';
+                                                style.transform = 'none';
+                                            } else {
+                                                style.left = '50%';
+                                                style.transform = 'translateX(-50%)';
+                                            }
+                                            if (triggerRect.top < tooltipRect.height + 16) {
+                                                style.top = '100%'; style.bottom = 'auto'; style.marginTop = '8px'; style.marginBottom = '0';
+                                                this.posClass = 'sm:top-full sm:mt-2';
+                                            } else {
+                                                style.bottom = '100%'; style.top = 'auto'; style.marginBottom = '8px'; style.marginTop = '0';
+                                                this.posClass = 'sm:bottom-full sm:mb-2';
+                                            }
+                                            this.tooltipStyle = style;
+                                        });
+                                    },
+                                    toggleTooltip() {
+                                        if ({{ $bulkStashMode ? 'true' : 'false' }}) return;
+                                        clearTimeout(this.hoverTimeout);
+                                        if (this.open) { this.forceClose(); }
+                                        else {
+                                            window.dispatchEvent(new CustomEvent('close-all-tooltips'));
+                                            this.open = true;
+                                            this.checkPosition();
+                                        }
+                                    },
+                                    forceClose() {
+                                        clearTimeout(this.hoverTimeout);
+                                        this.open = false;
+                                    }
+                                 }"
+                                 @click.outside="forceClose()"
+                                 @close-item-tooltip.window="if ($event.detail.id === '{{ $item->id }}') forceClose()"
+                                 wire:loading.class="opacity-50 scale-95 pointer-events-none" wire:target="equipItem('{{ $item->id }}')"
+                                 draggable="true"
+                                 @dragstart="
+                                     forceClose();
+                                     isDraggingThis = true;
+                                     window.currentDragItem = {
+                                         id: '{{ $item->id }}',
+                                         slot: '{{ $item->template->slot ?? '' }}',
+                                         type: '{{ $item->template->type ?? '' }}',
+                                         levelReq: {{ $item->template->level_requirement ?? 1 }},
+                                         charLevel: {{ $character->level }},
+                                         source: 'backpack',
+                                         domId: 'backpack-item-{{ $item->id }}',
+                                         backpackSlot: {{ $slotIndex }}
+                                     };
+                                 "
+                                 @dragend="isDraggingThis = false; window.currentDragItem = null;"
+                                 @dblclick="
+                                     forceClose();
+                                     @if($character->level < ($item->template->level_requirement ?? 1))
+                                         $dispatch('notify', { type: 'error', message: 'Zbyt niski poziom aby założyć ten przedmiot!' });
+                                     @else
+                                         @if(in_array($item->template->type ?? '', ['weapon', 'armor', 'accessory']) && ($item->template->slot ?? null))
+                                             flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ $item->template->slot }}', () => $wire.equipItem('{{ $item->id }}'));
+                                         @elseif(($item->template->type ?? '') === 'consumable')
+                                             $wire.consumeItem('{{ $item->id }}');
+                                         @elseif(($item->template->type ?? '') === 'egg')
+                                             $dispatch('notify', { type: 'info', message: 'Przejdź do zakładki Pety w menu, aby umieścić jajko w inkubatorze.' });
+                                         @endif
+                                     @endif
+                                 "
+                                 class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-200 backpack-grid-slot {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
+                                 :class="{
+                                     'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
+                                     'opacity-40 scale-95 border-amber-400': isDraggingThis,
+                                     '!z-[99999]': open && !{{ $bulkStashMode ? 'true' : 'false' }}
+                                 }"
+                                 @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { toggleTooltip(); }"
+                                 @dragover.prevent="
+                                     if (window.currentDragItem && window.currentDragItem.source === 'backpack') {
+                                         $el.classList.add('ring-2', 'ring-yellow-400', 'bg-yellow-900/30');
+                                     }
+                                 "
+                                 @dragleave="$el.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-900/30')"
+                                 @drop.prevent="
+                                     $el.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-900/30');
+                                     if (window.currentDragItem && window.currentDragItem.source === 'backpack' && window.currentDragItem.id !== '{{ $item->id }}') {
+                                         const srcId = window.currentDragItem.id;
+                                         const srcDomId = window.currentDragItem.domId;
+                                         window.currentDragItem = null;
+                                         flyItem(srcDomId, 'backpack-item-{{ $item->id }}', () => $wire.moveBackpackItem(srcId, {{ $slotIndex }}));
+                                     } else if (window.currentDragItem && window.currentDragItem.source === 'equipped') {
+                                         let dragItem = window.currentDragItem;
+                                         window.currentDragItem = null;
+                                         flyItem('equip-slot-' + dragItem.slot, 'inventory-grid', () => $wire.unequipItem(dragItem.id));
+                                     }
+                                 "
+                            >
+                                {{-- Numer slotu --}}
+                                <span class="absolute top-0.5 left-1 text-[8px] font-bold text-stone-500 pointer-events-none select-none z-10 leading-none">{{ $slotNum }}</span>
 
-                            @if($item->template->icon)
-                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
-                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
-
-                                    <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
-                                        @if($item->stack_size > 1)
-                                            <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
+                                {{-- Checkbox bulk stash --}}
+                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-cyan-950/10 border-2 border-slate-700/50 hover:border-cyan-400/50 hover:bg-cyan-500/10' }}">
+                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                        @if(in_array($item->id, $selectedStashItemIds))
+                                            <i class="fa-solid fa-check"></i>
                                         @endif
                                     </div>
-                                    <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
                                 </div>
-                            @else
-                                <div class="text-center text-xs text-white">
-                                    <span class="block truncate w-14">{{ $item->template->name }}</span>
-                                    @if($item->upgrade_level > 0)
-                                        <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
-                                    @endif
-                                    @if($item->stack_size > 1)
-                                        <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
-                                    @endif
-                                </div>
-                            @endif
 
-                            <!-- Tooltip / Modal -->
-                            <div x-show="open && !{{ $bulkStashMode ? 'true' : 'false' }}" x-transition.opacity style="display: none;" 
-                                 :style="window.innerWidth >= 640 ? tooltipStyle : {}"
-                                 class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
-                                <template x-if="open">
-                                    <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
-                                        <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" :dropSources="($item->template->type ?? null) === 'material' ? ($materialDropSources[$item->template_id] ?? []) : null">
+                                @if($item->template->icon)
+                                    <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center relative">
+                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-lg p-1" alt="{{ $item->template->name }}">
+                                        <div class="absolute bottom-0 right-0 flex flex-col items-end gap-0.5 pointer-events-none">
+                                            @if($item->stack_size > 1)
+                                                <span class="text-blue-300 font-bold text-[10px] bg-black/70 px-1 rounded-tl">{{ $item->stack_size }}x</span>
+                                            @endif
+                                        </div>
+                                        <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
+                                    </div>
+                                @else
+                                    <div class="text-center text-xs text-white">
+                                        <span class="block truncate w-14">{{ $item->template->name }}</span>
+                                        @if($item->upgrade_level > 0)
+                                            <span class="text-yellow-400">+{{ $item->upgrade_level }}</span>
+                                        @endif
+                                        @if($item->stack_size > 1)
+                                            <span class="text-blue-300 font-bold block">{{ $item->stack_size }}x</span>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                {{-- Tooltip --}}
+                                <div x-show="open && !{{ $bulkStashMode ? 'true' : 'false' }}" x-transition.opacity style="display: none;"
+                                     :style="window.innerWidth >= 640 ? tooltipStyle : {}"
+                                     class="fixed inset-0 sm:absolute sm:inset-auto sm:left-1/2 sm:-translate-x-1/2 sm:w-auto z-[99999] sm:z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default" @click.stop="forceClose()">
+                                    <template x-if="open">
+                                        <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none" x-ref="tooltipContainer" data-tooltip-container>
+                                            <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" :dropSources="($item->template->type ?? null) === 'material' ? ($materialDropSources[$item->template_id] ?? []) : null">
+                                                <x-slot:actions>
+                                                    <div class="flex flex-col gap-2 w-full">
+                                                        @if($character->level < $item->template->level_requirement)
+                                                            <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
+                                                        @else
+                                                            @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
+                                                                <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="forceClose(); flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
+                                                                    Załóż sprzęt
+                                                                </button>
+                                                            @elseif($item->template->type === 'consumable')
+                                                                @if(($item->template->sub_type ?? '') === 'chest')
+                                                                    <div class="flex flex-col gap-1.5 w-full">
+                                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}', 1); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs">
+                                                                            <i class="fa-solid fa-box-open"></i> Otwórz 1x
+                                                                        </button>
+                                                                        @if(($item->stack_size ?? 1) >= 2)
+                                                                            <button @click.stop="$wire.consumeItem('{{ $item->id }}', 2); $nextTick(() => forceClose())" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
+                                                                                <i class="fa-solid fa-boxes-packing"></i> Otwórz 2x Na Raz
+                                                                            </button>
+                                                                        @endif
+                                                                        @if(($item->stack_size ?? 1) >= 3)
+                                                                            <button @click.stop="$wire.consumeItem('{{ $item->id }}', 3); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
+                                                                                <i class="fa-solid fa-fire text-amber-950"></i> Otwórz 3x Na Raz
+                                                                            </button>
+                                                                        @endif
+                                                                    </div>
+                                                                @else
+                                                                    <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer">
+                                                                        <i class="fa-solid fa-flask"></i> Użyj przedmiotu
+                                                                    </button>
+                                                                @endif
+                                                            @elseif(($item->template->type ?? '') === 'egg')
+                                                                <a href="{{ route('city.pets', $character) }}" wire:navigate @click.stop class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
+                                                                    <i class="fa-solid fa-egg text-amber-200"></i> Idź do Petów
+                                                                </a>
+                                                            @endif
+                                                        @endif
+                                                        <button @click.stop="$wire.moveToStash('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5 cursor-pointer">
+                                                            <i class="fa-solid fa-vault"></i> Przenieś do magazynu
+                                                        </button>
+                                                        @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
+                                                            <button @click.stop="$wire.openSellModal('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors cursor-pointer">
+                                                                Wystaw na targowisko
+                                                            </button>
+                                                        @endif
+                                                    </div>
+                                                </x-slot:actions>
+                                            </x-item-tooltip>
+                                            <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
+                                                 :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        @else
+                            {{-- SLOT PUSTY - drop target --}}
+                            <div class="empty-slot aspect-square bg-gray-800/60 border border-gray-700/70 rounded relative transition-all duration-150 backpack-grid-slot"
+                                 wire:key="backpack-empty-{{ $slotIndex }}"
+                                 data-slot-index="{{ $slotIndex }}"
+                                 @dragover.prevent="
+                                     if (window.currentDragItem && window.currentDragItem.source === 'backpack') {
+                                         $el.classList.add('ring-2', 'ring-green-400', 'bg-green-900/20', 'border-green-600');
+                                     } else if (window.currentDragItem && window.currentDragItem.source === 'equipped') {
+                                         $el.classList.add('ring-2', 'ring-blue-400', 'bg-blue-900/20');
+                                     }
+                                 "
+                                 @dragleave="$el.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/20', 'border-green-600', 'ring-blue-400', 'bg-blue-900/20')"
+                                 @drop.prevent="
+                                     $el.classList.remove('ring-2', 'ring-green-400', 'bg-green-900/20', 'border-green-600', 'ring-blue-400', 'bg-blue-900/20');
+                                     if (window.currentDragItem && window.currentDragItem.source === 'backpack') {
+                                         const srcId = window.currentDragItem.id;
+                                         const srcDomId = window.currentDragItem.domId;
+                                         const tgtSlot = {{ $slotIndex }};
+                                         window.currentDragItem = null;
+                                         flyItem(srcDomId, $el, () => $wire.moveBackpackItem(srcId, tgtSlot));
+                                     } else if (window.currentDragItem && window.currentDragItem.source === 'equipped') {
+                                         let dragItem = window.currentDragItem;
+                                         window.currentDragItem = null;
+                                         flyItem('equip-slot-' + dragItem.slot, 'inventory-grid', () => $wire.unequipItem(dragItem.id));
+                                     }
+                                 "
+                            >
+                                <span class="absolute top-0.5 left-1 text-[8px] font-bold text-stone-600/60 pointer-events-none select-none leading-none">{{ $slotNum }}</span>
+                                <span class="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
+                                    <i class="fa-solid fa-plus text-stone-500 text-[10px]"></i>
+                                </span>
+                            </div>
+                        @endif
+                    @endforeach
+                                @elseif($inventoryTab === 'materials')
+                    {{-- === SIATKA MAGAZYNU MATERIAŁÓW (fizyczne sloty z drag & drop) === --}}
+                    @foreach($materialSlotMap as $matSlotIndex => $item)
+                        @php $matSlotNum = $matSlotIndex + 1; @endphp
+
+                        @if($item)
+                            {{-- SLOT ZAJĘTY --}}
+                            <div id="material-item-{{ $item->id }}" wire:key="material-slot-{{ $matSlotIndex }}-{{ $item->id }}"
+                                 x-data="{
+                                    showInfo: false,
+                                    hoverTimeout: null,
+                                    isDraggingThis: false,
+                                    posClass: 'sm:bottom-full sm:mb-2',
+                                    tooltipStyle: {},
+                                    init() {
+                                        this._onInventoryUpdated = () => { this.showInfo = false; };
+                                        window.addEventListener('inventory-updated', this._onInventoryUpdated);
+                                        this._onCloseAllTooltips = () => { this.showInfo = false; };
+                                        window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
+                                    },
+                                    destroy() {
+                                        window.removeEventListener('inventory-updated', this._onInventoryUpdated);
+                                        window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
+                                    },
+                                    checkPosition() {
+                                        if (window.innerWidth < 640) return;
+                                        this.$nextTick(() => {
+                                            const triggerRect = this.$el.getBoundingClientRect();
+                                            const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
+                                            if (!triggerRect.width || !tooltipEl) return;
+                                            const tooltipRect = tooltipEl.getBoundingClientRect();
+                                            const triggerCenter = triggerRect.left + triggerRect.width / 2;
+                                            const halfWidth = tooltipRect.width / 2;
+                                            const minMargin = 12;
+                                            let style = {};
+                                            if (triggerCenter - halfWidth < minMargin) { style.left = (minMargin - triggerRect.left) + 'px'; style.transform = 'none'; }
+                                            else if (triggerCenter + halfWidth > window.innerWidth - minMargin) { style.left = ((window.innerWidth - minMargin) - triggerRect.left - tooltipRect.width) + 'px'; style.transform = 'none'; }
+                                            else { style.left = '50%'; style.transform = 'translateX(-50%)'; }
+                                            if (triggerRect.top < tooltipRect.height + 16) {
+                                                style.top = '100%'; style.bottom = 'auto'; style.marginTop = '8px'; style.marginBottom = '0';
+                                                this.posClass = 'sm:top-full sm:mt-2';
+                                            } else {
+                                                style.bottom = '100%'; style.top = 'auto'; style.marginBottom = '8px'; style.marginTop = '0';
+                                                this.posClass = 'sm:bottom-full sm:mb-2';
+                                            }
+                                            this.tooltipStyle = style;
+                                        });
+                                    },
+                                    openTooltip() { if ({{ $bulkStashMode ? 'true' : 'false' }}) return; clearTimeout(this.hoverTimeout); this.showInfo = true; this.checkPosition(); },
+                                    closeTooltip() { clearTimeout(this.hoverTimeout); this.hoverTimeout = setTimeout(() => { this.showInfo = false; }, 120); },
+                                    toggleTooltip() { if ({{ $bulkStashMode ? 'true' : 'false' }}) return; clearTimeout(this.hoverTimeout); this.showInfo = !this.showInfo; if (this.showInfo) this.checkPosition(); }
+                                 }"
+                                 wire:key="material-item-slot-{{ $item->id }}"
+                                 :class="{ 'z-50': showInfo && !{{ $bulkStashMode ? 'true' : 'false' }}, 'z-10': !showInfo }"
+                                 @click="if ({{ $bulkStashMode ? 'true' : 'false' }}) { $wire.toggleSelectStashItem('{{ $item->id }}'); } else { toggleTooltip(); }"
+                                 @resize.window.debounce.100ms="checkPosition()"
+                                 @tooltip-updated.window="checkPosition()"
+                                 draggable="true"
+                                 @dragstart="isDraggingThis = true; window.currentDragItem = { id: '{{ $item->id }}', source: 'material', domId: 'material-item-{{ $item->id }}', materialSlot: {{ $matSlotIndex }} };"
+                                 @dragend="isDraggingThis = false; window.currentDragItem = null;"
+                                 @dragover.prevent="
+                                     if (window.currentDragItem && window.currentDragItem.source === 'material') {
+                                         $el.classList.add('ring-2', 'ring-yellow-400', 'bg-yellow-900/30');
+                                     }
+                                 "
+                                 @dragleave="$el.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-900/30')"
+                                 @drop.prevent="
+                                     $el.classList.remove('ring-2', 'ring-yellow-400', 'bg-yellow-900/30');
+                                     if (window.currentDragItem && window.currentDragItem.source === 'material' && window.currentDragItem.id !== '{{ $item->id }}') {
+                                         const srcId = window.currentDragItem.id;
+                                         const srcDomId = window.currentDragItem.domId;
+                                         window.currentDragItem = null;
+                                         $wire.moveMaterialItem(srcId, {{ $matSlotIndex }});
+                                     }
+                                 "
+                                 class="aspect-square bg-amber-950/40 border border-amber-600/50 hover:border-amber-400 rounded flex items-center justify-center cursor-grab active:cursor-grabbing relative transition-all duration-200 shadow"
+                                 :class="{ 'opacity-40 scale-95': isDraggingThis }"
+                            >
+                                {{-- Numer slotu materiału --}}
+                                <span class="absolute top-0.5 left-1 text-[8px] font-bold text-amber-700/60 pointer-events-none select-none z-10 leading-none">{{ $matSlotNum }}</span>
+
+                                <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
+                                     class="absolute inset-0 z-30 rounded cursor-pointer flex items-start justify-end p-1 transition-all {{ $bulkStashMode ? '' : 'hidden' }} {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500/30 border-2 border-cyan-400 shadow-[0_0_10px_rgba(6,182,212,0.5)]' : 'bg-cyan-950/10 border-2 border-slate-700/50 hover:border-cyan-400/50 hover:bg-cyan-500/10' }}">
+                                    <div class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold {{ in_array($item->id, $selectedStashItemIds) ? 'bg-cyan-500 text-slate-950' : 'bg-slate-900/90 text-gray-400 border border-gray-600' }}">
+                                        @if(in_array($item->id, $selectedStashItemIds))
+                                            <i class="fa-solid fa-check"></i>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-1">
+                                    @if($item->template->icon)
+                                        <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
+                                    @else
+                                        <span class="block truncate w-14 text-[10px]">{{ $item->template->name }}</span>
+                                    @endif
+                                    <span class="absolute bottom-0.5 right-0.5 text-amber-200 font-extrabold text-[10px] bg-black/80 border border-amber-600/60 px-1 py-0.2 rounded shadow">x{{ $item->stack_size }}</span>
+                                </div>
+
+                                {{-- Infobox Materiału --}}
+                                <div x-ref="tooltipContainer"
+                                     data-tooltip-container="true"
+                                     x-show="showInfo && !{{ $bulkStashMode ? 'true' : 'false' }}"
+                                     x-transition.opacity
+                                     style="display: none;"
+                                     :style="tooltipStyle"
+                                     :class="posClass"
+                                     class="fixed inset-0 sm:absolute sm:inset-auto z-[99999] flex items-center justify-center sm:block bg-black/80 sm:bg-transparent backdrop-blur-sm sm:backdrop-blur-none p-4 sm:p-0 cursor-default"
+                                     @click.stop="closeTooltip()">
+                                    <div class="relative w-full max-w-[420px] sm:w-auto sm:max-w-none" @click.stop>
+                                        <x-item-tooltip :item="$item" :dropSources="$materialDropSources[$item->template_id] ?? []">
                                             <x-slot:actions>
                                                 <div class="flex flex-col gap-2 w-full">
-                                                    @if($character->level < $item->template->level_requirement)
-                                                        <p class="text-red-500 font-bold text-center mb-2">Zbyt niski poziom!</p>
-                                                    @else
-                                                        @if($item->template->type === 'weapon' || $item->template->type === 'armor' || $item->template->type === 'accessory')
-                                                            <button wire:click.stop="equipItem('{{ $item->id }}')" @click.stop="forceClose(); flyItem('backpack-item-{{ $item->id }}', 'equip-slot-{{ strtolower($item->template->slot) }}')" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2 rounded transition-colors shadow">
-                                                                Załóż sprzęt
-                                                            </button>
-                                                        @elseif($item->template->type === 'consumable')
-                                                            @if(($item->template->sub_type ?? '') === 'chest')
-                                                                <div class="flex flex-col gap-1.5 w-full">
-                                                                    <button @click.stop="$wire.consumeItem('{{ $item->id }}', 1); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs">
-                                                                        <i class="fa-solid fa-box-open"></i> Otwórz 1x
+                                                    @if(($item->template->type ?? '') === 'consumable')
+                                                        @if(($item->template->sub_type ?? '') === 'chest')
+                                                            <div class="flex flex-col gap-1.5 w-full">
+                                                                <button @click.stop="$wire.consumeItem('{{ $item->id }}', 1); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs">
+                                                                    <i class="fa-solid fa-box-open"></i> Otwórz 1x
+                                                                </button>
+                                                                @if(($item->stack_size ?? 1) >= 2)
+                                                                    <button @click.stop="$wire.consumeItem('{{ $item->id }}', 2); $nextTick(() => closeTooltip())" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
+                                                                        <i class="fa-solid fa-boxes-packing"></i> Otwórz 2x Na Raz
                                                                     </button>
-                                                                    @if(($item->stack_size ?? 1) >= 2)
-                                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}', 2); $nextTick(() => forceClose())" class="w-full bg-amber-700 hover:bg-amber-600 text-amber-100 font-bold py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-500/50">
-                                                                            <i class="fa-solid fa-boxes-packing"></i> Otwórz 2x Na Raz
-                                                                        </button>
-                                                                    @endif
-                                                                    @if(($item->stack_size ?? 1) >= 3)
-                                                                        <button @click.stop="$wire.consumeItem('{{ $item->id }}', 3); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
-                                                                            <i class="fa-solid fa-fire text-amber-950"></i> Otwórz 3x Na Raz
-                                                                        </button>
-                                                                    @endif
-                                                                </div>
+                                                                @endif
+                                                        @if(($item->stack_size ?? 1) >= 3)
+                                                                    <button @click.stop="$wire.consumeItem('{{ $item->id }}', 3); $nextTick(() => closeTooltip())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-slate-950 font-black py-1.5 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer text-xs border border-amber-300">
+                                                                        <i class="fa-solid fa-fire text-amber-950"></i> Otwórz 3x Na Raz
+                                                                    </button>
+                                                                @endif
                                                             @else
-                                                                <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer">
+                                                                <button @click.stop="$wire.consumeItem('{{ $item->id }}'); $nextTick(() => closeTooltip())" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer">
                                                                     <i class="fa-solid fa-flask"></i> Użyj przedmiotu
                                                                 </button>
                                                             @endif
                                                         @elseif(($item->template->type ?? '') === 'egg')
-                                                            <a href="{{ route('city.pets', $character) }}" wire:navigate @click.stop class="w-full bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white font-bold py-2 rounded transition-colors shadow medieval-font flex items-center justify-center gap-1.5 cursor-pointer border border-amber-400">
+                                                            <a href="{{ route('city.pets', $character) }}" wire:navigate @click.stop class="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-1.5 rounded transition-colors shadow text-xs flex items-center justify-center gap-1.5 medieval-font cursor-pointer border border-amber-400">
                                                                 <i class="fa-solid fa-egg text-amber-200"></i> Idź do Petów
                                                             </a>
                                                         @endif
                                                     @endif
-
-                                                    <button @click.stop="$wire.moveToStash('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-2 rounded transition-colors shadow flex items-center justify-center gap-1.5 cursor-pointer">
+                                                    <button wire:click.stop="moveToStash('{{ $item->id }}')" @click.stop="closeTooltip()" class="w-full bg-cyan-700 hover:bg-cyan-600 text-white font-bold py-1.5 rounded transition-colors shadow flex items-center justify-center gap-1.5 text-xs">
                                                         <i class="fa-solid fa-vault"></i> Przenieś do magazynu
                                                     </button>
-                                                    
                                                     @if(!($item->bound_to_character ?? false) && ($item->template->is_tradeable ?? true))
-                                                        <button @click.stop="$wire.openSellModal('{{ $item->id }}'); $nextTick(() => forceClose())" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-2 rounded font-bold shadow transition-colors cursor-pointer">
+                                                        <button wire:click.stop="openSellModal('{{ $item->id }}'); closeTooltip();" class="w-full bg-yellow-600 hover:bg-yellow-500 text-white py-1.5 rounded font-bold shadow transition-colors text-xs">
                                                             Wystaw na targowisko
                                                         </button>
                                                     @endif
                                                 </div>
                                             </x-slot:actions>
                                         </x-item-tooltip>
-                                        <!-- Arrow (Desktop only) -->
                                         <div class="hidden sm:block absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-gray-900 transform rotate-45 z-[-1]"
-                                             :class="posClass === 'sm:top-full sm:mt-2' ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
+                                             :class="posClass.includes('sm:top-full') ? '-top-2 border-t border-l border-slate-600' : '-bottom-2 border-b border-r border-slate-600'"></div>
                                     </div>
-                                </template>
+                                </div>
                             </div>
-                        </div>
+                        @else
+                            {{-- SLOT PUSTY (materiały) --}}
+                            <div class="empty-slot aspect-square bg-stone-900/30 border border-amber-900/15 rounded flex items-center justify-center relative transition-all duration-150"
+                                 wire:key="material-empty-{{ $matSlotIndex }}"
+                                 @dragover.prevent="
+                                     if (window.currentDragItem && window.currentDragItem.source === 'material') {
+                                         $el.classList.add('ring-2', 'ring-amber-400', 'bg-amber-900/20', 'border-amber-600');
+                                     }
+                                 "
+                                 @dragleave="$el.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-900/20', 'border-amber-600')"
+                                 @drop.prevent="
+                                     $el.classList.remove('ring-2', 'ring-amber-400', 'bg-amber-900/20', 'border-amber-600');
+                                     if (window.currentDragItem && window.currentDragItem.source === 'material') {
+                                         const srcId = window.currentDragItem.id;
+                                         window.currentDragItem = null;
+                                         $wire.moveMaterialItem(srcId, {{ $matSlotIndex }});
+                                     }
+                                 "
+                            >
+                                <span class="absolute top-0.5 left-1 text-[8px] font-bold text-amber-800/40 pointer-events-none select-none leading-none">{{ $matSlotNum }}</span>
+                                <span class="opacity-10 pointer-events-none"><i class="fa-solid fa-cubes text-amber-700 text-[10px]"></i></span>
+                            </div>
+                        @endif
                     @endforeach
-
-                    <!-- Empty Slots Filler -->
-                    @php $emptySlots = max(0, $backpackCapacity - count($inventory)) @endphp
-                    @for($i = 0; $i < $emptySlots; $i++)
-                        <div class="empty-slot aspect-square bg-gray-800 border border-gray-700 rounded"></div>
-                    @endfor
-                @elseif($inventoryTab === 'materials')
-                    {{-- Material Stash View --}}
-                    @foreach($materialStashItems as $item)
-                        <div id="material-item-{{ $item->id }}" wire:key="material-item-{{ $item->id }}" x-data="{
-                            showInfo: false,
-                            hoverTimeout: null,
-                            posClass: 'sm:bottom-full sm:mb-2',
-                            tooltipStyle: {},
-                            init() {
-                                this._onInventoryUpdated = () => { this.showInfo = false; };
-                                window.addEventListener('inventory-updated', this._onInventoryUpdated);
-                                this._onCloseAllTooltips = () => { this.showInfo = false; };
-                                window.addEventListener('close-all-tooltips', this._onCloseAllTooltips);
-                            },
-                            destroy() {
-                                window.removeEventListener('inventory-updated', this._onInventoryUpdated);
-                                window.removeEventListener('close-all-tooltips', this._onCloseAllTooltips);
-                            },
-                            checkPosition() {
-                                if (window.innerWidth < 640) return;
-                                this.$nextTick(() => {
-                                    const triggerRect = this.$el.getBoundingClientRect();
-                                    const tooltipEl = this.$refs.tooltipContainer || this.$el.querySelector('[data-tooltip-container]');
-                                    if (!triggerRect.width || !tooltipEl) return;
-                                    const tooltipRect = tooltipEl.getBoundingClientRect();
-                                    const triggerCenter = triggerRect.left + triggerRect.width / 2;
-                                    const halfWidth = tooltipRect.width / 2;
-                                    const minMargin = 12;
-                                    let style = {};
-                                    if (triggerCenter - halfWidth < minMargin) {
                                         style.left = (minMargin - triggerRect.left) + 'px';
                                         style.transform = 'none';
                                     } else if (triggerCenter + halfWidth > window.innerWidth - minMargin) {

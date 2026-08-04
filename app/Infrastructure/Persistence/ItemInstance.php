@@ -17,6 +17,8 @@ class ItemInstance extends Model
         'user_id',
         'guild_id',
         'location',
+        'backpack_slot',
+        'material_slot',
         'stack_size',
         'rarity',
         'roll_stats',
@@ -27,13 +29,16 @@ class ItemInstance extends Model
     ];
 
     protected $casts = [
-        'stack_size' => 'integer',
-        'upgrade_level' => 'integer',
-        'roll_stats' => 'array',
-        'rolled_stats' => 'array',
+        'stack_size'         => 'integer',
+        'upgrade_level'      => 'integer',
+        'backpack_slot'      => 'integer',
+        'material_slot'      => 'integer',
+        'roll_stats'         => 'array',
+        'rolled_stats'       => 'array',
         'bound_to_character' => 'boolean',
-        'version' => 'integer',
+        'version'            => 'integer',
     ];
+
 
     protected static function booted()
     {
