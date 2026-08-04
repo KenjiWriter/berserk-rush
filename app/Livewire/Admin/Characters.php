@@ -4,15 +4,17 @@ namespace App\Livewire\Admin;
 
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use App\Infrastructure\Persistence\Character;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('components.layouts.app')]
 class Characters extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     public string $filter = 'all'; // all, online, vip, muted
@@ -35,6 +37,8 @@ class Characters extends Component
     public bool $showAvatarModal = false;
     public string $customAvatarUrl = '';
     public string $customAvatarLabel = '';
+    public string $avatarTab = 'url'; // 'url' | 'upload'
+    public $avatarFile = null; // plik do przesłania (Livewire TemporaryUploadedFile)
 
     public function updatingSearch(): void
     {
@@ -182,8 +186,10 @@ class Characters extends Component
         $this->selectedUserId = $userId;
         $this->selectedCharacterName = $charName;
         $user = User::find($userId);
-        $this->customAvatarUrl = $user?->custom_avatar_url ?? '';
+        $this->customAvatarUrl   = $user?->custom_avatar_url ?? '';
         $this->customAvatarLabel = $user?->custom_avatar_label ?? '';
+        $this->avatarTab  = 'url';
+        $this->avatarFile = null;
         $this->showAvatarModal = true;
     }
 
@@ -192,8 +198,11 @@ class Characters extends Component
         $this->showAvatarModal = false;
         $this->selectedUserId = null;
         $this->selectedCharacterName = null;
-        $this->customAvatarUrl = '';
+        $this->customAvatarUrl   = '';
         $this->customAvatarLabel = '';
+        $this->avatarTab  = 'url';
+        $this->avatarFile = null;
+        $this->resetErrorBag();
     }
 
     public function saveCustomAvatar(): void
@@ -202,27 +211,60 @@ class Characters extends Component
             return;
         }
 
-        $url = trim($this->customAvatarUrl);
         $label = trim($this->customAvatarLabel);
+        $finalUrl = null;
 
-        // Walidacja URL (musi być http/https lub pusty – usunięcie avatara)
-        if ($url !== '' && !filter_var($url, FILTER_VALIDATE_URL)) {
-            $this->addError('customAvatarUrl', 'Podaj poprawny URL (http/https).');
-            return;
-        }
+        if ($this->avatarTab === 'upload') {
+            // --- Tryb przesyłania pliku ---
+            $this->validate([
+                'avatarFile' => 'required|image|mimes:png,jpg,jpeg,webp|max:2048',
+            ], [
+                'avatarFile.required' => 'Wybierz plik avatara.',
+                'avatarFile.image'    => 'Plik musi być obrazkiem.',
+                'avatarFile.mimes'    => 'Dozwolone formaty: PNG, JPG, WebP.',
+                'avatarFile.max'      => 'Plik może mieć maksymalnie 2 MB.',
+            ]);
 
-        $user = User::find($this->selectedUserId);
-        if ($user) {
-            $user->custom_avatar_url = $url ?: null;
-            $user->custom_avatar_label = $label ?: null;
-            $user->save();
+            $user = User::find($this->selectedUserId);
+            if (!$user) { $this->closeAvatarModal(); return; }
 
-            if ($url) {
-                $this->dispatch('notify', message: "Ustawiono indywidualny avatar dla konta {$user->name}!", type: 'success');
-            } else {
-                $this->dispatch('notify', message: "Usunięto indywidualny avatar dla konta {$user->name}.", type: 'success');
+            // Usuń stary plik, jeśli był uploadem (nie zewnętrznym URL)
+            if ($user->custom_avatar_url) {
+                $oldPath = str_replace(Storage::disk('public')->url(''), '', $user->custom_avatar_url);
+                if (Storage::disk('public')->exists($oldPath)) {
+                    Storage::disk('public')->delete($oldPath);
+                }
             }
+
+            // Zapisz nowy plik
+            $path = $this->avatarFile->store('custom-avatars', 'public');
+            $finalUrl = Storage::disk('public')->url($path);
+
+        } else {
+            // --- Tryb URL ---
+            $url = trim($this->customAvatarUrl);
+
+            if ($url !== '' && !filter_var($url, FILTER_VALIDATE_URL)) {
+                $this->addError('customAvatarUrl', 'Podaj poprawny URL (http/https).');
+                return;
+            }
+
+            $finalUrl = $url ?: null;
+            $user = User::find($this->selectedUserId);
+            if (!$user) { $this->closeAvatarModal(); return; }
         }
+
+        $user->custom_avatar_url   = $finalUrl;
+        $user->custom_avatar_label = $label ?: null;
+        $user->save();
+
+        $this->dispatch(
+            'notify',
+            message: $finalUrl
+                ? "Ustawiono indywidualny avatar dla konta {$user->name}!"
+                : "Usunięto indywidualny avatar dla konta {$user->name}.",
+            type: 'success'
+        );
 
         $this->closeAvatarModal();
     }
@@ -231,11 +273,26 @@ class Characters extends Component
     {
         $user = User::find($userId);
         if ($user) {
-            $user->custom_avatar_url = null;
+            // Jeśli avatar był przesłany na serwer (URL wskazuje na /storage/custom-avatars/), usuń plik z dysku
+            if ($user->custom_avatar_url && str_contains($user->custom_avatar_url, 'custom-avatars/')) {
+                $oldPath = ltrim(parse_url($user->custom_avatar_url, PHP_URL_PATH), '/');
+                // Usuń prefix "storage/" żeby dostać ścieżkę względem public disk
+                $diskPath = preg_replace('#^storage/#', '', $oldPath);
+                if (Storage::disk('public')->exists($diskPath)) {
+                    Storage::disk('public')->delete($diskPath);
+                }
+            }
+
+            $user->custom_avatar_url   = null;
             $user->custom_avatar_label = null;
             $user->save();
 
             $this->dispatch('notify', message: "Usunięto indywidualny avatar dla konta {$user->name}.", type: 'success');
+        }
+
+        // Zamknij modal jeśli był otwarty na tym samym userze
+        if ($this->showAvatarModal && $this->selectedUserId === $userId) {
+            $this->closeAvatarModal();
         }
     }
 

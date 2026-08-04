@@ -387,74 +387,152 @@
             @php
                 $modalAvatarUser = $selectedUserId ? \App\Models\User::find($selectedUserId) : null;
             @endphp
-            <div class="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-                <div class="bg-gray-800 border border-purple-600/60 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-                    <h3 class="text-xl font-bold text-purple-300 flex items-center gap-2">
-                        🖼️ Indywidualny Avatar — <span class="text-white">{{ $selectedCharacterName }}</span>
-                    </h3>
+            <div class="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-sm flex items-center justify-center p-4"
+                 x-data="avatarModal()"
+                 x-init="init('{{ $customAvatarUrl }}')">
+                <div class="bg-gray-800 border border-purple-600/60 rounded-xl max-w-lg w-full p-6 shadow-2xl space-y-5">
 
-                    <p class="text-sm text-gray-400 leading-relaxed">
-                        Ustaw niestandardowy avatar dla tego konta (np. twarz YouTubera/streamera).
-                        Avatar będzie wyświetlany zamiast standardowego we wszystkich miejscach gry.
-                        Wklej bezpośredni URL do obrazka (PNG/JPG/WebP).
-                    </p>
+                    {{-- Nagłówek --}}
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold text-purple-300 flex items-center gap-2">
+                            🖼️ Custom Avatar — <span class="text-white">{{ $selectedCharacterName }}</span>
+                        </h3>
+                        <button wire:click="closeAvatarModal" class="text-gray-500 hover:text-gray-200 text-xl transition cursor-pointer">✕</button>
+                    </div>
 
-                    {{-- Podgląd na żywo --}}
+                    {{-- Info box --}}
+                    <div class="bg-purple-950/40 border border-purple-700/50 rounded-lg px-3 py-2 text-xs text-purple-200 flex items-start gap-2">
+                        <span class="text-base shrink-0 mt-0.5">ℹ️</span>
+                        <span>Avatar dotyczy <strong>całego konta</strong> – wszystkie postacie tego gracza będą go automatycznie używać zamiast standardowego avatara.</span>
+                    </div>
+
+                    {{-- Podgląd --}}
                     <div class="flex items-center gap-4 bg-gray-900/60 border border-gray-700 rounded-xl p-4">
-                        <div class="w-20 h-20 rounded-xl border-2 border-purple-500/50 overflow-hidden bg-gray-950 flex items-center justify-center shrink-0">
-                            @if($customAvatarUrl)
-                                <img src="{{ $customAvatarUrl }}" alt="Podgląd" class="w-full h-full object-cover" onerror="this.src=''; this.parentElement.innerHTML='<span class=\'text-2xl\'>❌</span>'">
-                            @elseif($modalAvatarUser?->hasCustomAvatar())
-                                <img src="{{ $modalAvatarUser->getCustomAvatarUrl() }}" alt="Obecny" class="w-full h-full object-cover">
-                            @else
-                                <span class="text-3xl">🧙‍♂️</span>
-                            @endif
+                        <div class="w-24 h-24 rounded-xl border-2 border-purple-500/50 overflow-hidden bg-gray-950 flex items-center justify-center shrink-0 relative">
+                            {{-- Podgląd URL (live) --}}
+                            <img x-show="tab === 'url' && previewUrl"
+                                 :src="previewUrl"
+                                 @error="previewError = true"
+                                 @load="previewError = false"
+                                 x-show="!previewError"
+                                 class="w-full h-full object-cover" alt="Podgląd">
+                            <span x-show="tab === 'url' && previewError" class="text-2xl">❌</span>
+
+                            {{-- Podgląd pliku (upload) --}}
+                            <img x-show="tab === 'upload' && filePreview"
+                                 :src="filePreview"
+                                 class="w-full h-full object-cover" alt="Podgląd pliku">
+
+                            {{-- Brak podglądu --}}
+                            <span x-show="(tab === 'url' && !previewUrl && !previewError) || (tab === 'upload' && !filePreview)"
+                                  class="text-4xl">🧙‍♂️</span>
                         </div>
-                        <div class="flex-1 text-sm">
+                        <div class="flex-1 text-sm min-w-0">
                             @if($modalAvatarUser?->hasCustomAvatar())
                                 <div class="text-purple-300 font-bold text-xs mb-1">✅ Aktywny custom avatar:</div>
-                                <div class="text-gray-300 text-xs break-all mb-1">{{ $modalAvatarUser->custom_avatar_url }}</div>
+                                <div class="text-gray-400 text-[11px] break-all mb-1 font-mono truncate" title="{{ $modalAvatarUser->custom_avatar_url }}">
+                                    {{ $modalAvatarUser->custom_avatar_url }}
+                                </div>
                                 @if($modalAvatarUser->custom_avatar_label)
-                                    <div class="text-gray-400 text-xs">Etykieta: <span class="text-purple-300">{{ $modalAvatarUser->custom_avatar_label }}</span></div>
+                                    <div class="text-gray-400 text-xs">Etykieta: <span class="text-purple-300 font-bold">{{ $modalAvatarUser->custom_avatar_label }}</span></div>
                                 @endif
+                                <div class="text-gray-500 text-[10px] mt-1">Wyświetlany na wszystkich postaciach tego konta.</div>
                             @else
-                                <div class="text-gray-500 text-xs italic">Brak niestandardowego avatara.<br>Wklej URL poniżej, aby ustawić.</div>
+                                <div class="text-gray-500 text-xs italic">Brak niestandardowego avatara.<br>Ustaw poniżej.</div>
                             @endif
                         </div>
                     </div>
 
-                    {{-- URL avatara --}}
-                    <div>
-                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">URL Avatara (PNG / JPG / WebP):</label>
-                        <input
-                            type="url"
-                            wire:model.live="customAvatarUrl"
-                            placeholder="https://example.com/avatar.png"
-                            class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition font-mono"
-                        >
-                        @error('customAvatarUrl')
-                            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
+                    {{-- Zakładki URL / Upload --}}
+                    <div class="flex rounded-lg overflow-hidden border border-gray-700 text-sm font-bold">
+                        <button
+                            @click="tab = 'url'; $wire.set('avatarTab', 'url')"
+                            :class="tab === 'url' ? 'bg-purple-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'"
+                            class="flex-1 py-2 flex items-center justify-center gap-2 transition cursor-pointer"
+                        >🔗 Link URL</button>
+                        <button
+                            @click="tab = 'upload'; $wire.set('avatarTab', 'upload')"
+                            :class="tab === 'upload' ? 'bg-purple-700 text-white' : 'bg-gray-900 text-gray-400 hover:text-gray-200'"
+                            class="flex-1 py-2 flex items-center justify-center gap-2 transition cursor-pointer border-l border-gray-700"
+                        >📤 Prześlij plik</button>
                     </div>
 
-                    {{-- Etykieta (opcjonalna, np. "MrBeast", "Linus Tech Tips") --}}
+                    {{-- Panel: Link URL --}}
+                    <div x-show="tab === 'url'" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">URL Avatara (PNG / JPG / WebP):</label>
+                            <input
+                                type="url"
+                                wire:model.live="customAvatarUrl"
+                                x-model="previewUrl"
+                                placeholder="https://example.com/avatar.png"
+                                class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition font-mono"
+                            >
+                            @error('customAvatarUrl')
+                                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
+
+                    {{-- Panel: Upload pliku --}}
+                    <div x-show="tab === 'upload'" class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Plik avatara (PNG / JPG / WebP, max 2 MB):</label>
+                            <div
+                                class="relative border-2 border-dashed border-gray-600 hover:border-purple-500 rounded-xl p-6 text-center transition cursor-pointer group"
+                                @click="$refs.fileInput.click()"
+                                @dragover.prevent
+                                @drop.prevent="handleDrop($event)"
+                            >
+                                <div x-show="!filePreview" class="pointer-events-none">
+                                    <div class="text-3xl mb-2">📁</div>
+                                    <p class="text-gray-400 text-sm">Kliknij lub przeciągnij plik tutaj</p>
+                                    <p class="text-gray-600 text-xs mt-1">PNG, JPG, WebP – maks. 2 MB</p>
+                                </div>
+                                <div x-show="filePreview" class="pointer-events-none">
+                                    <p class="text-purple-300 text-sm font-bold">✅ Plik gotowy do przesłania</p>
+                                    <p x-text="fileName" class="text-gray-400 text-xs mt-1 truncate"></p>
+                                    <p class="text-gray-600 text-[10px] mt-1">Kliknij by zmienić</p>
+                                </div>
+                                <input
+                                    x-ref="fileInput"
+                                    type="file"
+                                    wire:model="avatarFile"
+                                    accept="image/png,image/jpeg,image/webp"
+                                    class="hidden"
+                                    @change="handleFileChange($event)"
+                                >
+                            </div>
+                            @error('avatarFile')
+                                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                            {{-- Wskaźnik postępu uploadu Livewire --}}
+                            <div wire:loading wire:target="avatarFile" class="mt-2 flex items-center gap-2 text-purple-300 text-xs">
+                                <svg class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                Przesyłanie pliku...
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Etykieta wspólna --}}
                     <div>
-                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Etykieta / Opis (opcjonalne):</label>
+                        <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Etykieta konta (opcjonalne):</label>
                         <input
                             type="text"
                             wire:model="customAvatarLabel"
-                            placeholder="np. Linus Tech Tips, MrBeast, xQc..."
+                            placeholder="np. MrBeast, Linus Tech Tips, xQc..."
                             maxlength="100"
                             class="w-full bg-gray-900 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 transition"
                         >
-                        <p class="text-[11px] text-gray-500 mt-1">Wyświetlana jako tooltip przy znaczku 🖼️ Custom przy nazwie postaci.</p>
+                        <p class="text-[11px] text-gray-500 mt-1">Wyświetlana przy znaczku 🖼️ Custom obok nazwy postaci w tabeli.</p>
                     </div>
 
+                    {{-- Przyciski --}}
                     <div class="flex items-center justify-between gap-2 pt-2 border-t border-gray-700">
                         @if($modalAvatarUser?->hasCustomAvatar())
                             <button
                                 wire:click="removeCustomAvatar('{{ $selectedUserId }}')"
-                                onclick="confirm('Czy na pewno chcesz usunąć indywidualny avatar tego gracza?') || event.stopImmediatePropagation()"
+                                onclick="confirm('Usunąć indywidualny avatar? Dotyczy wszystkich postaci tego konta.') || event.stopImmediatePropagation()"
                                 class="px-3 py-2 bg-red-900/80 hover:bg-red-700 text-red-200 border border-red-600 rounded-lg text-xs font-bold transition flex items-center gap-1 cursor-pointer"
                             >
                                 🗑️ Usuń avatar
@@ -464,7 +542,18 @@
                         @endif
                         <div class="flex gap-2">
                             <button wire:click="closeAvatarModal" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 font-semibold transition cursor-pointer">Anuluj</button>
-                            <button wire:click="saveCustomAvatar" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm text-white font-bold transition cursor-pointer">💾 Zapisz avatar</button>
+                            <button
+                                wire:click="saveCustomAvatar"
+                                wire:loading.attr="disabled"
+                                wire:loading.class="opacity-60 cursor-not-allowed"
+                                class="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg text-sm text-white font-bold transition cursor-pointer flex items-center gap-2"
+                            >
+                                <span wire:loading.remove wire:target="saveCustomAvatar">💾 Zapisz avatar</span>
+                                <span wire:loading wire:target="saveCustomAvatar" class="flex items-center gap-2">
+                                    <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                                    Zapisywanie...
+                                </span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -473,3 +562,45 @@
 
     </div>
 </div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('avatarModal', () => ({
+        tab: 'url',
+        previewUrl: '',
+        previewError: false,
+        filePreview: null,
+        fileName: '',
+
+        init(currentUrl) {
+            this.previewUrl = currentUrl || '';
+        },
+
+        handleFileChange(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            this.fileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => { this.filePreview = e.target.result; };
+            reader.readAsDataURL(file);
+        },
+
+        handleDrop(event) {
+            const file = event.dataTransfer.files[0];
+            if (!file || !file.type.startsWith('image/')) return;
+
+            // Przekaż plik do inputa Livewire
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            const input = this.$refs.fileInput;
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+
+            this.fileName = file.name;
+            const reader = new FileReader();
+            reader.onload = (e) => { this.filePreview = e.target.result; };
+            reader.readAsDataURL(file);
+        },
+    }));
+});
+</script>
