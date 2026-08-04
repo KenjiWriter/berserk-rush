@@ -123,8 +123,8 @@ class MonsterLootSeeder extends Seeder
                 'boss_general' => ['Odłamek Skarbu'],
                 'monsters' => [
                     'Mroczny Władca Trolli' => [
-                        'materials' => ["Trolla Skóra","Kieł Trolla","Pustynna Ruda Żelaza","Gęsty Śluz","Pęd Pełzacza","Szamański Totem","Kość Ogra","Prastara Runa Głębin"],
-                        'items' => ["Maczuga Trolla Paskudnika","Zbroja z Grubej Skóry Trolla","Pancerz z Pancerza Pełzacza","Różdżka Mrocznej Jaskini","Szamański Dzwon Trolla","Szata Trolla Szamana","Wielki Topór Ogra","Kask z Prastarej Stali","Łuk z Kości Ogra","Płaszcz Nocnego Łowcy","Miecz ze Stali Trolli","Pierścień Siły Trolla","Tarcza Starożytnego Ogra","Sygnet Podziemi","Amulet Ogrzej Krwi"]
+                        'materials' => ["Gruba Skóra Trolla","Szamański Koralik","Ogrzy Pazur","Krew Jaskiniowca","Ruda Żelaza","Błyszczący Grzyb","Śluz Jaskiniowy","Odłamek Skarbu"],
+                        'items' => ["Gruboskórny Pancerz Trolla","Masywne Buciska","Sztylety z Zębów Nietoperza","Buty Cichego Kroku","Dzwon Szamana Trolli","Szamański Kaptur Trolli","Maczuga Ogra","Rozłupywacz Czaszek","Szata z Futer Nietoperzy","Maska Łowcy Ogrów","Różdżka Ziemnej Magii","Płaszcz Skalnego Cienia","Hełm z Czaszki Ogra","Łuk z Kości Jaskiniowca","Amulet Skalnego Trolla","Kamienny Pierścień"]
                     ],
                     'Troll Paskudnik' => [
                         'materials' => ['Gruba Skóra Trolla'],
@@ -171,8 +171,8 @@ class MonsterLootSeeder extends Seeder
                 'boss_general' => ['Szczątki Pancerza'],
                 'monsters' => [
                     'Wojownik Cienia Orków' => [
-                        'materials' => ["Orczy Kieł","Symbol Watahy","Ruda Stali Orków","Kolcowy Pancerz Skorpiona","Skorpionowy Jad","Tymiankowy Susz","Runiczny Kamień Orków","Czaszka Wodza Orków"],
-                        'items' => ["Miecz Orczego Zwiadowcy","Lekka Kolczuga Pustkowi","Sztylety Skorpionowego Kła","Pancerz z Łusek Skorpiona","Topór Orczego Berserkera","Rozpruwacz z Pustkowi","Ciężki Pancerz Orków","Maska Berserkera","Kostur Szamana Krwi","Szata Szamana Orków","Wielki Topór Dowódca Watahy","Zbroja Płytowa Watahy","Miecz Niszczyciela Pustkowi","Naszyjnik z Kłów Orka","Pierścień Pustynnego Wiatru","Amulet Wodza Orków"]
+                        'materials' => ["Złamany Kieł Orka","Skrwawiony Totem","Twarde Rzemienie","Symbol Wodza","Skóra Pustynna","Wyschnięty Krzew","Kamień Szlifierski","Szczątki Pancerza"],
+                        'items' => ["Łuk Krwawego Zwiadu","Buty Burzy Piaskowej","Maska Pustynnego Wiatru","Sztylety Pustkowi","Topór Berserkera Orków","Pierścień Berserkera","Pancerz z Hartowanej Stali","Buty Orkowego Wojownika","Kostur Szamana Krwi","Kaptur Szamana Krwi","Szata Nasączona Krwią","Dzwon Krwawego Rytuału","Skórznia Orkowego Zabójcy","Hełm Wodza Orków","Trzewiki Rytualne","Glewia Wodza Orków","Naszyjnik Orkowego Wodza"]
                     ],
                     'Orczy Zwiad' => [
                         'materials' => ['Złamany Kieł Orka'],
