@@ -256,7 +256,7 @@
     };
 @endphp
 
-<div class="p-4 relative bg-gray-900 border-2 border-slate-600 rounded-lg shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)]"
+<div class="p-4 sm:p-5 relative bg-gray-900 border-2 border-slate-600 rounded-xl shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)] overflow-x-hidden"
      x-data="{
          showComparePref: localStorage.getItem('global_show_item_comparison') !== 'false',
          get compare() {
@@ -357,7 +357,7 @@
         </div>
     @endif
 
-    <div class="flex flex-col sm:flex-row gap-3 sm:gap-4" :class="compare ? 'w-full sm:min-w-[580px] md:min-w-[640px]' : 'w-full sm:min-w-[340px] md:min-w-[380px]'">
+    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6" :class="compare ? 'w-full sm:min-w-[680px] md:min-w-[800px] lg:min-w-[880px]' : 'w-full sm:min-w-[340px] md:min-w-[380px]'">
         <!-- Ten przedmiot -->
         <div class="flex-1">
             @if($hasAnyStats)

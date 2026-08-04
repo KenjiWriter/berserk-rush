@@ -43,7 +43,7 @@
                         transform: 'translate(-50%, -50%)',
                         margin: '0',
                         width: isMobile ? 'calc(100vw - 1.5rem)' : 'auto',
-                        maxWidth: 'min(calc(100vw - 1.5rem), 780px)',
+                        maxWidth: 'min(calc(100vw - 1.5rem), 960px)',
                         maxHeight: isMobile ? '88vh' : 'calc(100vh - 24px)',
                         overflowY: 'auto',
                         zIndex: '10000',

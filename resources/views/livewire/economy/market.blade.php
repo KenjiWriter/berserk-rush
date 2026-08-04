@@ -298,14 +298,35 @@
                                       @resize.window.debounce.100ms="updatePosition()"
                                       @tooltip-updated.window="updatePosition()">
                                      
-                                    {{-- Item Tooltip (teleportowany do <body>) --}}
-                                    <template x-teleport="body">
-                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
-                                             :style="tooltipStyle"
-                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-none">
-                                            <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null" />
-                                        </div>
-                                    </template>
+                                     <template x-teleport="body">
+                                         <div x-show="showInfo" x-transition.opacity
+                                              class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs pointer-events-auto"
+                                              @click.self="showInfo = false"
+                                              @keydown.escape.window="showInfo = false">
+                                             <div x-ref="tooltipContainer" data-tooltip-container
+                                                  :style="tooltipStyle"
+                                                  class="pointer-events-auto"
+                                                  @click.stop>
+                                                 <x-item-tooltip :item="$listing->item" :equippedItem="$equipped[$listing->item->template->slot ?? ''] ?? null">
+                                                     <x-slot:actions>
+                                                         <button @click.stop="$wire.confirmBuy('{{ $listing->id }}'); showInfo = false"
+                                                             class="w-full flex items-center justify-center font-extrabold py-2.5 px-4 rounded-xl text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer
+                                                             @if($listing->currency === 'gold' && $character->gold >= $listing->price) bg-gradient-to-b from-amber-700 via-amber-800 to-amber-950 hover:from-amber-600 hover:to-amber-900 text-yellow-200 border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]
+                                                             @elseif($listing->currency === 'gems' && auth()->user()->gems >= $listing->price) bg-gradient-to-b from-purple-700 via-purple-800 to-purple-950 hover:from-purple-600 hover:to-purple-900 text-purple-100 border-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.3)]
+                                                             @else bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60 @endif">
+                                                             <span class="flex items-center gap-1.5">
+                                                                 <span>KUP ZA</span> 
+                                                                 <span class="font-extrabold text-sm {{ $listing->currency === 'gold' ? 'text-yellow-300' : 'text-purple-300' }}">
+                                                                     {{ number_format($listing->price) }}
+                                                                     @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5"></i> @else <i class="fa-solid fa-gem ml-0.5"></i> @endif
+                                                                 </span>
+                                                             </span>
+                                                         </button>
+                                                     </x-slot:actions>
+                                                 </x-item-tooltip>
+                                             </div>
+                                         </div>
+                                     </template>
 
                                     <div class="flex items-start space-x-3 mb-3">
                                         {{-- Item Icon Frame --}}
@@ -375,7 +396,7 @@
                                             <span class="text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</span>
                                         </div>
                                         
-                                        <button wire:click="confirmBuy('{{ $listing->id }}')" 
+                                        <button @click.stop="$wire.confirmBuy('{{ $listing->id }}')" 
                                             wire:loading.attr="disabled" wire:target="confirmBuy('{{ $listing->id }}')"
                                             wire:loading.class="opacity-50 cursor-not-allowed" wire:target="confirmBuy('{{ $listing->id }}')"
                                             class="w-full flex items-center justify-center font-extrabold py-2 px-3 rounded-lg text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer
