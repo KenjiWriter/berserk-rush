@@ -1,9 +1,7 @@
 # Moduł Eventów Lokacji (Location Events)
 
-Faza 1 (2026-08-05): backend i dane. **UI (modal wyboru, ekran przebiegu, animacje)
-nie jest jeszcze podpięty** - `MapStub::startBattle()` nie wywołuje jeszcze
-`LocationEventService::rollEventTrigger()`. Ten moduł opisuje gotowy, przetestowany
-jednostkowo backend, czekający na integrację z eksploracją mapy.
+Faza 1 (2026-08-05): backend i dane. Faza 2 (2026-08-05): integracja UI - event
+jest teraz w pełni podpięty do eksploracji mapy i grywalny.
 
 ## Koncepcja
 
@@ -109,13 +107,50 @@ wylosowana w `startRun()`: każdy slot ma `monster_id`, `is_boss` (tylko ostatni
 `combat_state !== 'calculating'`, woła `simulateStage()`, zapisuje `combat_data` i
 `combat_state = 'completed'`/`'error'`.
 
-## Co NIE jest jeszcze zrobione (Faza 2, UI)
+## Integracja UI (Faza 2)
 
-- Podpięcie `LocationEventService::rollEventTrigger()` do `MapStub::startBattle()`.
-- Modal wyboru trybu (Normalny/Hardcore) z podglądem nagród przy wylosowaniu eventu.
-- Ekran przebiegu eventu (pasek postępu przez sloty, animacje walk, podsumowanie po
-  ukończeniu/porażce) - analogiczny do `resources/views/livewire/city/dungeon-run.blade.php`.
-- Weryfikacja przy wdrożeniu: czy każda z 8 map ma już tematyczną skrzynię w
+Event jest **wbudowany w ekran eksploracji** (`MapStub`/`map-stub.blade.php`), nie
+jako osobna strona - podobnie jak lochy mają własną `DungeonRun`, ale tu cały
+przepływ żyje wewnątrz komponentu mapy, żeby event mógł "wpaść" w trakcie
+eksploracji bez przełączania widoku.
+
+- **Wyzwolenie:** `MapStub::startBattle()` (tylko naturalna eksploracja, nie world
+  boss/wymuszony potwór) woła `LocationEventService::rollEventTrigger()` tuż po
+  `resetBattleState()`. Jeśli event wypadnie, normalna walka NIE startuje - zamiast
+  tego ustawiane są `pendingEventId`/`pendingUpgradeLevelId`/`pendingEventPreview`,
+  co renderuje modal wyboru trybu (Normalny/Hardcore) w blade.
+- **Wybór trybu:** `chooseEventMode(bool $isHardcore)` woła `startRun()`, ustawia
+  `activeEventRunId`/`inLocationEvent=true`, od razu startuje pierwszą walkę
+  (`fightNextEventStage()`). `declineEvent()` pozwala pominąć i wrócić do zwykłej
+  eksploracji.
+- **Silnik asynchroniczny:** ponieważ `LocationEventService::fightNextMonster()`
+  dispatchuje job (w przeciwieństwie do synchronicznej normalnej walki w
+  `startBattle()`), UI używa osobnego pollingu -
+  `checkEventCombatStatus()`/`wire:poll.500ms`, równoległego do (i wzajemnie
+  wykluczającego z) istniejącego `checkCombatStatus()` normalnej walki.
+- **Reużycie silnika odtwarzania tur:** `nextTurn()`/`finishAllTurns()`
+  (`MapStub.php`) mają jedną dodatkową gałąź `if ($this->inLocationEvent)`, która
+  woła nowe `completeEventStage()` zamiast `completeBattle()` - poza tym CAŁA
+  reszta odtwarzania (Web Worker timery, prędkość x1/x2/x5, dźwięki, FX) jest
+  w 100% generyczna i nietknięta.
+- **Auto-przejście przez łańcuch:** po pokonaniu potwora (`slot_clear`)
+  `completeEventStage()` dispatchuje JS event `auto-chain-next-event-stage`
+  (analogiczny do istniejącego `auto-chain-next-battle`), który po ~700ms woła
+  `fightNextEventStage()` - gracz nie musi klikać "Walcz" na każdego z do 10
+  przeciwników. Przycisk "Pauza"/"Wznów łańcuch" (`pauseEventAutoAdvance()`/
+  `resumeEventAutoAdvance()`) pozwala zatrzymać automat między potworami (np. żeby
+  użyć mikstury w trybie hardcore - `useEventPotion()`).
+- **Zakończenie:** na `event_complete`/`lose` pokazywany jest pełnoekranowy ekran
+  podsumowania (trofeum + zdobycz / czaszka), zamykany przyciskiem "Kontynuuj
+  eksplorację" → `dismissEventRun()`, który resetuje cały stan eventu i wraca do
+  normalnej eksploracji. Złoto/exp/itemy są przyznawane już wcześniej, server-side,
+  wewnątrz `LocationEventService::simulateStage()`/`grantAccumulatedLoot()` - UI
+  tylko odświeża postać i pokazuje wynik.
+- **Wznowienie po odświeżeniu strony:** `MapStub::mount()` sprawdza aktywny
+  `CharacterLocationEventRun` dla postaci i, jeśli jest na TEJ samej mapie, wznawia
+  stan (polling albo od razu wynik, jeśli walka zdążyła się skończyć w tle). Aktywny
+  run na INNEJ mapie pokazuje tylko baner-link, nie auto-wznawia.
+- **Weryfikacja przy wdrożeniu:** czy każda z 8 map ma już tematyczną skrzynię w
   `ItemTemplate` (potwierdzone dla wszystkich 8 w `LootChestSeeder` na 2026-08-05) -
   jeśli lista się zmieni, zaktualizować `LocationEventService::MAP_CHEST_NAMES`.
 

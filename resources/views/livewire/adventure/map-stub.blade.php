@@ -40,6 +40,119 @@
          </div>
     </div>
 
+    {{-- Event Lokacji: modal wyboru trybu (Normalny/Hardcore) --}}
+    @if ($pendingEventPreview)
+        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+             x-data="{ visible: false }" x-init="setTimeout(() => visible = true, 50)"
+             x-show="visible"
+             x-transition:enter="transition ease-out duration-500 transform"
+             x-transition:enter-start="opacity-0 scale-50"
+             x-transition:enter-end="opacity-100 scale-100"
+             x-transition:leave="transition ease-in duration-300 transform"
+             x-transition:leave-start="opacity-100 scale-100"
+             x-transition:leave-end="opacity-0 scale-90">
+            <div class="bg-gradient-to-b from-stone-900 to-black border-4 border-purple-600 rounded-2xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(168,85,247,0.4)] relative mx-4">
+                <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                    <div class="w-24 h-24 bg-gradient-to-br from-purple-400 to-purple-700 rounded-full border-4 border-stone-900 flex items-center justify-center shadow-lg shadow-purple-500/50">
+                        <span class="text-4xl">⚔️</span>
+                    </div>
+                </div>
+
+                <div class="mt-10 mb-6">
+                    <h2 class="text-purple-400 font-bold uppercase tracking-widest text-sm mb-1" style="font-family: 'Cinzel', serif;">Wylosowano event!</h2>
+                    <h3 class="text-3xl font-bold text-white drop-shadow-md" style="font-family: 'Cinzel', serif;">{{ $pendingEventPreview['name'] }}</h3>
+                </div>
+
+                <p class="text-stone-300 mb-4 px-2 text-sm sm:text-base">
+                    Łańcuch <strong class="text-amber-300">{{ $pendingEventPreview['monster_count_min'] }}-{{ $pendingEventPreview['monster_count_max'] }}</strong> potworów
+                    (ostatni to boss), nagrody x<strong class="text-amber-300">{{ $pendingEventPreview['reward_multiplier'] }}</strong>.
+                </p>
+
+                <div class="flex flex-col gap-3">
+                    <button wire:click="chooseEventMode(false)"
+                            class="rounded-xl px-5 py-3 bg-gradient-to-r from-emerald-700 via-emerald-600 to-green-600 border border-emerald-400/60 text-white font-extrabold medieval-font shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+                        Wejdź (Normalny)
+                    </button>
+                    <button wire:click="chooseEventMode(true)"
+                            class="rounded-xl px-5 py-3 bg-gradient-to-r from-red-800 via-red-700 to-rose-700 border border-red-400/60 text-white font-extrabold medieval-font shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+                        Wejdź (Hardcore, +50% nagród)
+                        <span class="block text-[11px] font-normal text-red-200 mt-0.5 normal-case">Brak regeneracji HP między potworami - tylko skille i mikstury</span>
+                    </button>
+                    <button wire:click="declineEvent"
+                            class="rounded-xl px-5 py-2 bg-slate-900/80 border border-slate-700 text-stone-300 font-semibold hover:bg-slate-800 transition-all text-sm">
+                        Pomiń
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    {{-- Event Lokacji: ekran podsumowania runu --}}
+    @if ($eventRunResult)
+        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+             x-data="{ visible: false }" x-init="setTimeout(() => visible = true, 50)"
+             x-show="visible"
+             x-transition:enter="transition ease-out duration-500 transform"
+             x-transition:enter-start="opacity-0 scale-50"
+             x-transition:enter-end="opacity-100 scale-100">
+            @if ($eventRunResult === 'event_complete')
+                <div class="bg-gradient-to-b from-stone-900 to-black border-4 border-amber-600 rounded-2xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(245,158,11,0.4)] relative mx-4">
+                    <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                        <div class="w-24 h-24 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-full border-4 border-stone-900 flex items-center justify-center shadow-lg shadow-amber-500/50">
+                            <span class="text-4xl">🏆</span>
+                        </div>
+                    </div>
+                    <div class="mt-10 mb-4">
+                        <h2 class="text-amber-500 font-bold uppercase tracking-widest text-sm mb-1" style="font-family: 'Cinzel', serif;">Event ukończony!</h2>
+                        <h3 class="text-2xl font-bold text-white drop-shadow-md" style="font-family: 'Cinzel', serif;">{{ $eventName }}</h3>
+                    </div>
+
+                    <div class="bg-slate-900/90 border border-amber-500/30 rounded-xl p-4 text-left mb-6 space-y-1.5 text-sm">
+                        <div class="text-indigo-200">+{{ \App\Helpers\FormatHelper::short($eventRunFinalLoot['xp'] ?? 0) }} XP</div>
+                        <div class="text-amber-200">+{{ \App\Helpers\FormatHelper::short($eventRunFinalLoot['gold'] ?? 0) }} Złota</div>
+                        @foreach ($eventRunFinalLoot['items'] ?? [] as $item)
+                            @if ($item['type'] !== 'gems')
+                                <div class="text-purple-300 font-semibold">{{ $item['name'] }} ({{ $item['quantity'] }}x)</div>
+                            @else
+                                <div class="text-blue-300">+{{ $item['quantity'] }} Klejnotów</div>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <button wire:click="dismissEventRun"
+                        class="rounded-xl px-6 py-3 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all w-full">
+                        Kontynuuj eksplorację
+                    </button>
+                </div>
+            @else
+                <div class="bg-gradient-to-b from-stone-900 to-black border-4 border-red-700 rounded-2xl p-8 max-w-md w-full text-center shadow-[0_0_50px_rgba(220,38,38,0.4)] relative mx-4">
+                    <div class="absolute -top-12 left-1/2 transform -translate-x-1/2">
+                        <div class="w-24 h-24 bg-gradient-to-br from-red-700 to-red-900 rounded-full border-4 border-stone-900 flex items-center justify-center shadow-lg shadow-red-500/50">
+                            <span class="text-4xl">💀</span>
+                        </div>
+                    </div>
+                    <div class="mt-10 mb-4">
+                        <h2 class="text-red-400 font-bold uppercase tracking-widest text-sm mb-1" style="font-family: 'Cinzel', serif;">Porażka!</h2>
+                        <h3 class="text-xl font-bold text-white drop-shadow-md" style="font-family: 'Cinzel', serif;">{{ $eventName }}</h3>
+                        <p class="text-stone-400 text-sm mt-3">Cała zdobycz z tego eventu przepadła.</p>
+                    </div>
+
+                    <button wire:click="dismissEventRun"
+                        class="rounded-xl px-6 py-3 bg-gradient-to-r from-red-800 to-red-700 border border-red-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all w-full">
+                        Powrót do eksploracji
+                    </button>
+                </div>
+            @endif
+        </div>
+    @endif
+
+    {{-- Baner: aktywny event lokacji na innej mapie --}}
+    @if ($otherMapEventMapName && !$inLocationEvent)
+        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-purple-950/90 border border-purple-500/50 text-purple-200 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">
+            Masz aktywny event na mapie "{{ $otherMapEventMapName }}" - wróć tam, aby go dokończyć.
+        </div>
+    @endif
+
     {{-- Warning message --}}
     @if (session('warning'))
         <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50">
@@ -520,6 +633,19 @@
                         <h3 class="font-serif text-base sm:text-lg lg:text-xl text-amber-200 tracking-wider medieval-font drop-shadow">
                             Kronika Bitwy
                         </h3>
+                        @if ($inLocationEvent)
+                            <div class="mt-1.5 flex items-center justify-center gap-2 flex-wrap">
+                                <span class="text-xs sm:text-sm font-bold text-purple-300 medieval-font">
+                                    {{ $eventName }} - Potwór {{ $eventRunProgressCurrent }}/{{ $eventRunProgressTotal }}
+                                </span>
+                                @if ($eventIsHardcore)
+                                    <span class="text-[10px] font-bold text-red-300 bg-red-950/70 border border-red-500/40 rounded-full px-2 py-0.5">HARDCORE</span>
+                                @endif
+                            </div>
+                            <div class="mt-1.5 h-1.5 w-full max-w-xs mx-auto bg-slate-800 rounded-full overflow-hidden">
+                                <div class="h-full bg-purple-500 transition-all" style="width: {{ $eventRunProgressTotal > 0 ? min(100, ($eventRunProgressCurrent / $eventRunProgressTotal) * 100) : 0 }}%"></div>
+                            </div>
+                        @endif
                     </header>
 
                     {{-- Battle Log Scroll Area --}}
@@ -544,6 +670,17 @@
                                     Obliczanie walki...
                                 </h3>
                                 <p class="text-amber-300/80 italic mt-2 font-semibold text-sm">Krzyżowanie mieczy...</p>
+                            </div>
+                        @elseif($isEventCalculating)
+                            <div class="h-full flex flex-col items-center justify-center text-center" wire:poll.500ms="checkEventCombatStatus">
+                                <div class="relative w-24 h-24 sm:w-28 sm:h-28 mb-4">
+                                    <div class="absolute inset-0 rounded-full border-4 border-purple-500/30 border-t-purple-400 animate-spin"></div>
+                                    <div class="absolute inset-2 rounded-full border-4 border-purple-700/30 border-b-purple-600 animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                                </div>
+                                <h3 class="font-serif text-2xl sm:text-3xl text-purple-200 tracking-wider medieval-font drop-shadow animate-pulse">
+                                    Obliczanie walki eventu...
+                                </h3>
+                                <p class="text-purple-300/80 italic mt-2 font-semibold text-sm">{{ $eventRunProgressCurrent }}/{{ $eventRunProgressTotal }} - Krzyżowanie mieczy...</p>
                             </div>
                         @else
                             <ul class="space-y-2 text-amber-100">
@@ -705,6 +842,70 @@
                     {{-- Battle Controls (100% Instant Client-Side Reactive Controls) --}}
                     <footer wire:key="battle-controls-footer" class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md">
 
+                        @if ($inLocationEvent)
+                            <div class="flex flex-col gap-2.5 items-center">
+                                @if ($eventRunResult)
+                                    <button wire:click="dismissEventRun"
+                                        class="rounded-xl px-6 py-2.5 sm:px-7 sm:py-3 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all text-sm sm:text-base">
+                                        Kontynuuj eksplorację
+                                    </button>
+                                @elseif (!$isEventCalculating && !$isPlaying)
+                                    <button wire:click="{{ $eventAutoAdvancePaused ? 'resumeEventAutoAdvance' : 'pauseEventAutoAdvance' }}"
+                                        class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-amber-900/70 border border-amber-500/50 text-amber-100 font-bold hover:bg-amber-800/80 active:scale-95 transition-all medieval-font shadow-md text-sm sm:text-base">
+                                        {{ $eventAutoAdvancePaused ? 'Wznów łańcuch' : 'Pauza' }}
+                                    </button>
+                                @elseif (!$battleCompleted)
+                                    <button @click="isPaused = !isPaused; window.toggleCombatPlayback(isPaused)"
+                                        class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-amber-900/70 border border-amber-500/50 text-amber-100 font-bold hover:bg-amber-800/80 active:scale-95 transition-all medieval-font shadow-md text-sm sm:text-base">
+                                        <span x-text="isPaused ? 'Wznów' : 'Pauza'"></span>
+                                    </button>
+                                @endif
+
+                                @if (!empty($visibleTurns))
+                                    @php $canSpeed5Event = $this->canUseSpeed5(); @endphp
+                                    <div class="flex gap-1.5 sm:gap-2">
+                                        <button @click="speed = 1; window.setCombatSpeed(1)"
+                                            :class="speed === 1 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
+                                            class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x1</button>
+                                        <button @click="speed = 2; window.setCombatSpeed(2)"
+                                            :class="speed === 2 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
+                                            class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x2</button>
+                                        @if ($canSpeed5Event)
+                                            <button @click="speed = 5; window.setCombatSpeed(5)"
+                                                :class="speed === 5 ? 'bg-purple-600/90 border-purple-300 text-white shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-105' : 'bg-slate-900/80 border-slate-700 text-purple-200/70 hover:bg-slate-800'"
+                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x5</button>
+                                        @endif
+                                    </div>
+                                @endif
+
+                                @if ($eventIsHardcore && !$eventRunResult)
+                                    @php
+                                        $eventPotions = \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $character->id)
+                                            ->where('location', 'inventory')
+                                            ->whereHas('template', function ($q) {
+                                                $q->where('type', 'consumable')
+                                                  ->where(function ($sub) {
+                                                      $sub->whereNotNull('base_stats->heal_amount')
+                                                          ->orWhereNotNull('base_stats->heal_pct');
+                                                  });
+                                            })
+                                            ->with('template')
+                                            ->get();
+                                    @endphp
+                                    @if ($eventPotions->isNotEmpty())
+                                        <div class="flex flex-wrap gap-1.5 justify-center">
+                                            @foreach ($eventPotions as $potion)
+                                                <button wire:click="useEventPotion('{{ $potion->id }}')"
+                                                    wire:loading.attr="disabled" wire:target="useEventPotion"
+                                                    class="rounded-xl px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 font-semibold hover:bg-emerald-900/80 transition-all text-xs">
+                                                    {{ $potion->template->name }} ({{ $potion->stack_size }}x)
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                @endif
+                            </div>
+                        @else
                         <div class="flex flex-col gap-2.5">
                             {{-- Main Controls --}}
                             <div class="flex items-center justify-center gap-2.5">
@@ -783,6 +984,7 @@
                                 </div>
                             @endif
                         </div>
+                        @endif
                     </footer>
                 </section>
             </div>
@@ -1762,6 +1964,7 @@
 
                 autoChainTimeout = setUnthrottledTimeout(triggerNextBattle, delay, 'autoChainTimeout');
 
+
                 // Watchdog: gdyby normalny auto-chain z jakiegoś powodu "utknął" (zgubiony
                 // event/timer przy przełączaniu kart, race w Livewire itp.), wymuś start
                 // kolejnej walki 5s po planowanym momencie. startBattle() jest już i tak
@@ -1770,6 +1973,39 @@
                 autoChainWatchdog = setTimeout(() => {
                     autoChainWatchdog = null;
                     triggerNextBattle();
+                }, delay + 5000);
+            });
+
+            // Event lokacji (Faza 2): auto-przejście do kolejnego potwora w łańcuchu po
+            // pokonaniu poprzedniego - analogicznie do auto-chain-next-battle powyżej,
+            // ale wywołuje fightNextEventStage() zamiast startBattle().
+            Livewire.on('auto-chain-next-event-stage', (event) => {
+                clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
+                if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
+                if (isPaused) return;
+
+                let delay = 700;
+                const payload = (event && event[0]) ? event[0] : event;
+                if (payload && typeof payload.delay === 'number') {
+                    delay = payload.delay;
+                }
+                if (currentSpeed === 5) {
+                    delay = Math.min(delay, 300);
+                }
+
+                let chainTriggered = false;
+                const triggerNextStage = () => {
+                    if (chainTriggered || isPaused) return;
+                    chainTriggered = true;
+                    if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
+                    const component = getComponent();
+                    if (component) component.call('fightNextEventStage');
+                };
+
+                autoChainTimeout = setUnthrottledTimeout(triggerNextStage, delay, 'autoChainTimeout');
+                autoChainWatchdog = setTimeout(() => {
+                    autoChainWatchdog = null;
+                    triggerNextStage();
                 }, delay + 5000);
             });
 

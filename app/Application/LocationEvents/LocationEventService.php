@@ -263,6 +263,19 @@ class LocationEventService
         $turns = [];
         $turnCount = 0;
 
+        // Dane do wyświetlenia w UI (Faza 2) - nie wpływają na symulację, dokładane do
+        // wszystkich 3 gałęzi zwracanego payloadu poniżej.
+        $monsterDisplay = [
+            'name' => $monster->name,
+            'avatar' => $monster->avatar,
+            'level' => $monster->level,
+            'is_group' => (bool) $slot['is_group'],
+            'group_size' => (int) $slot['group_size'],
+        ];
+        $monsterMaxHpDisplay = $slot['is_group']
+            ? $scaledMonster['hp'] * max(2, (int) $slot['group_size'])
+            : $scaledMonster['hp'];
+
         if ($slot['is_group']) {
             $groupSize = max(2, (int) $slot['group_size']);
             $mobs = [];
@@ -435,6 +448,10 @@ class LocationEventService
                 'slot' => $run->current_monster_index,
                 'player_hp' => $playerHp,
                 'start_player_hp' => $startPlayerHp,
+                'monster' => $monsterDisplay,
+                'monster_max_hp' => $monsterMaxHpDisplay,
+                'event_name' => $event->name,
+                'is_hardcore' => $run->is_hardcore,
             ]);
         }
 
@@ -485,6 +502,10 @@ class LocationEventService
                 'loot' => $slotLoot,
                 'total_loot' => $accumulatedLoot,
                 'chests_awarded' => $chestQuantity,
+                'monster' => $monsterDisplay,
+                'monster_max_hp' => $monsterMaxHpDisplay,
+                'event_name' => $event->name,
+                'is_hardcore' => $run->is_hardcore,
             ]);
         }
 
@@ -499,6 +520,10 @@ class LocationEventService
             'player_hp' => $playerHp,
             'start_player_hp' => $startPlayerHp,
             'loot' => $slotLoot,
+            'monster' => $monsterDisplay,
+            'monster_max_hp' => $monsterMaxHpDisplay,
+            'event_name' => $event->name,
+            'is_hardcore' => $run->is_hardcore,
         ]);
     }
 

@@ -9,6 +9,10 @@ use App\Application\Combat\EncounterService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
 use App\Application\Characters\LevelUpService;
+use App\Application\LocationEvents\LocationEventService;
+use App\Infrastructure\Persistence\LocationEvent;
+use App\Infrastructure\Persistence\LocationEventUpgradeLevel;
+use App\Infrastructure\Persistence\CharacterLocationEventRun;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Computed;
 
@@ -80,6 +84,27 @@ class MapStub extends Component
     public bool $isWorldBoss = false;
     public ?int $worldBossMonsterId = null;
     public array $pendingNotifications = [];
+
+    // Location Event state (Faza 2) - równoległy tryb walki obok normalnej eksploracji,
+    // patrz docs/modules/location_events.md. Cały przepływ (async job + polling) jest
+    // odizolowany od powyższego stanu normalnej walki (synchronicznej) - jedyne punkty
+    // styku to guard w startBattle() i gałąź w nextTurn()/finishAllTurns().
+    public ?int $pendingEventId = null;
+    public ?int $pendingUpgradeLevelId = null;
+    public ?array $pendingEventPreview = null;
+    public ?int $activeEventRunId = null;
+    public bool $inLocationEvent = false;
+    public bool $isEventCalculating = false;
+    public ?string $eventStageResult = null;
+    public ?string $eventRunResult = null;
+    public array $eventRunFinalLoot = [];
+    public array $eventMonsterInfo = [];
+    public int $eventRunProgressCurrent = 0;
+    public int $eventRunProgressTotal = 0;
+    public bool $eventAutoAdvancePaused = false;
+    public ?string $eventName = null;
+    public bool $eventIsHardcore = false;
+    public ?string $otherMapEventMapName = null;
 
     #[On('tutorial-completed')]
     public function refreshOnTutorial()
@@ -199,6 +224,43 @@ class MapStub extends Component
         }
 
         $this->currentMana = $character->getMaxMana();
+
+        $this->resumeActiveEventRunIfAny();
+    }
+
+    /**
+     * Wznawia stan eventu lokacji po odświeżeniu strony/ponownym wejściu na mapę -
+     * wzorem DungeonRun::mount(). Aktywny run na INNEJ mapie tylko sygnalizuje banner
+     * (nie auto-resume tam), bo gracz jest teraz na innej mapie.
+     */
+    private function resumeActiveEventRunIfAny(): void
+    {
+        $activeRun = CharacterLocationEventRun::where('character_id', $this->character->id)
+            ->where('is_completed', false)
+            ->where('is_failed', false)
+            ->first();
+
+        if (!$activeRun) {
+            return;
+        }
+
+        if ($activeRun->map_id !== $this->map->id) {
+            $this->otherMapEventMapName = $activeRun->map->name ?? null;
+            return;
+        }
+
+        $this->activeEventRunId = $activeRun->id;
+        $this->inLocationEvent = true;
+        $this->eventRunProgressCurrent = $activeRun->current_monster_index;
+        $this->eventRunProgressTotal = $activeRun->total_monsters;
+        $this->eventIsHardcore = $activeRun->is_hardcore;
+        $this->eventName = $activeRun->locationEvent->name ?? null;
+
+        if ($activeRun->combat_state === 'calculating') {
+            $this->isEventCalculating = true;
+        } elseif ($activeRun->combat_state === 'completed' && $activeRun->combat_data) {
+            $this->setupEventBattleData($activeRun);
+        }
     }
 
     public function setTargetStrategy(string $strategy): void
@@ -211,6 +273,13 @@ class MapStub extends Component
 
     public function startBattle(?int $monsterId = null): void
     {
+        if ($this->inLocationEvent) {
+            // Gracz jest w trakcie eventu lokacji - normalna eksploracja jest wstrzymana
+            // do końca runu (event_complete/lose + dismissEventRun()). UI i tak ukrywa
+            // przycisk "Walcz" w tym stanie, to tylko dodatkowe zabezpieczenie server-side.
+            return;
+        }
+
         if ($this->character->hasActiveMirror() && !$this->isWorldBoss) {
             $this->autoChain = false;
             session(['combat_auto_chain' => false]);
@@ -231,6 +300,30 @@ class MapStub extends Component
         \Illuminate\Support\Facades\Cache::put("adventure_active_tab:{$this->character->id}", $this->tabSessionToken, now()->addMinutes(10));
 
         $this->resetBattleState();
+
+        // Rzut eventu lokacji - tylko dla naturalnej eksploracji (nie world boss, nie
+        // wymuszony potwór). Jeśli wypadnie, wstrzymujemy normalną walkę i pokazujemy
+        // modal wyboru trybu (Normalny/Hardcore) - patrz chooseEventMode()/declineEvent().
+        if (!$this->isWorldBoss && $monsterId === null) {
+            $trigger = app(LocationEventService::class)->rollEventTrigger();
+            if ($trigger) {
+                /** @var LocationEvent $event */
+                $event = $trigger['event'];
+                /** @var LocationEventUpgradeLevel $upgradeLevel */
+                $upgradeLevel = $trigger['upgrade_level'];
+
+                $this->pendingEventId = $event->id;
+                $this->pendingUpgradeLevelId = $upgradeLevel->id;
+                $this->pendingEventPreview = [
+                    'name' => $event->name,
+                    'monster_count_min' => $event->monster_count_min + $upgradeLevel->monster_count_delta_min,
+                    'monster_count_max' => $event->monster_count_max + $upgradeLevel->monster_count_delta_max,
+                    'reward_multiplier' => round($event->reward_multiplier * $upgradeLevel->exp_multiplier, 2),
+                ];
+                $this->isCalculating = false;
+                return;
+            }
+        }
 
         // Start new encounter
         $encounterService = app(EncounterService::class);
@@ -315,6 +408,212 @@ class MapStub extends Component
             // Start playback
             $this->isPlaying = true;
             $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        }
+    }
+
+    public function chooseEventMode(bool $isHardcore): void
+    {
+        if (!$this->pendingEventId || !$this->pendingUpgradeLevelId) {
+            return;
+        }
+
+        $event = LocationEvent::find($this->pendingEventId);
+        $upgradeLevel = LocationEventUpgradeLevel::find($this->pendingUpgradeLevelId);
+        $this->pendingEventId = null;
+        $this->pendingUpgradeLevelId = null;
+        $this->pendingEventPreview = null;
+
+        if (!$event || !$upgradeLevel) {
+            return;
+        }
+
+        $result = app(LocationEventService::class)->startRun($this->character, $this->map, $event, $upgradeLevel, $isHardcore);
+
+        if ($result->isError()) {
+            $this->addError('battle', $result->getErrorMessage());
+            return;
+        }
+
+        $run = $result->getPayload();
+        $this->activeEventRunId = $run->id;
+        $this->inLocationEvent = true;
+        $this->eventRunProgressCurrent = 0;
+        $this->eventRunProgressTotal = $run->total_monsters;
+        $this->eventIsHardcore = $run->is_hardcore;
+        $this->eventName = $event->name;
+        $this->eventRunResult = null;
+        $this->eventRunFinalLoot = [];
+
+        $this->fightNextEventStage();
+    }
+
+    public function declineEvent(): void
+    {
+        $this->pendingEventId = null;
+        $this->pendingUpgradeLevelId = null;
+        $this->pendingEventPreview = null;
+    }
+
+    public function fightNextEventStage(): void
+    {
+        if (!$this->activeEventRunId) {
+            return;
+        }
+
+        $run = CharacterLocationEventRun::find($this->activeEventRunId);
+        if (!$run || $run->is_completed || $run->is_failed) {
+            return;
+        }
+
+        $this->resetBattleState();
+        $this->isEventCalculating = true;
+
+        app(LocationEventService::class)->fightNextMonster($run);
+    }
+
+    public function checkEventCombatStatus(): void
+    {
+        if (!$this->isEventCalculating || !$this->activeEventRunId) {
+            return;
+        }
+
+        $run = CharacterLocationEventRun::find($this->activeEventRunId);
+
+        if (!$run) {
+            $this->addError('battle', 'Event nie istnieje.');
+            $this->isEventCalculating = false;
+            return;
+        }
+
+        if ($run->combat_state === 'error') {
+            $this->addError('battle', 'Wystąpił błąd podczas obliczania walki eventu.');
+            $this->isEventCalculating = false;
+            return;
+        }
+
+        if ($run->combat_state === 'completed') {
+            $this->isEventCalculating = false;
+            $this->setupEventBattleData($run);
+            $this->isPlaying = true;
+            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        }
+    }
+
+    private function setupEventBattleData(CharacterLocationEventRun $run): void
+    {
+        $data = $run->combat_data ?? [];
+
+        $this->allTurns = $data['turns'] ?? [];
+        $this->eventStageResult = $data['result'] ?? null;
+        $this->result = ($this->eventStageResult === 'lose') ? 'lose' : 'win';
+        $this->eventMonsterInfo = $data['monster'] ?? [];
+        $this->eventName = $data['event_name'] ?? $this->eventName;
+        $this->eventIsHardcore = $data['is_hardcore'] ?? $this->eventIsHardcore;
+
+        $monsterMaxHp = $data['monster_max_hp'] ?? 0;
+        $this->enemy = [
+            'name' => $this->eventMonsterInfo['name'] ?? '',
+            'level' => $this->eventMonsterInfo['level'] ?? 0,
+            'maxHp' => $monsterMaxHp,
+            'hp' => $monsterMaxHp,
+            'avatar' => $this->eventMonsterInfo['avatar'] ?? null,
+            'stats' => [],
+        ];
+
+        $this->player = [
+            'name' => $this->character->name,
+            'level' => $this->character->level,
+            'avatar' => $this->character->getEffectiveAvatarUrl(),
+            'maxHp' => $this->character->getMaxHp(),
+            'hp' => $data['start_player_hp'] ?? $run->current_hp,
+            'stats' => $this->character->getTotalAttributes(),
+        ];
+
+        $slotIndex = $data['slot'] ?? $run->current_monster_index;
+        $this->eventRunProgressCurrent = min($run->total_monsters, $slotIndex + 1);
+        $this->eventRunProgressTotal = $run->total_monsters;
+    }
+
+    /**
+     * Wywoływane z nextTurn()/finishAllTurns() zamiast completeBattle() podczas
+     * aktywnego eventu lokacji. Złoto/exp/itemy są już przyznane server-side
+     * (LocationEventService::grantAccumulatedLoot(), wołane wewnątrz simulateStage()) -
+     * tu tylko aktualizujemy UI.
+     */
+    private function completeEventStage(): void
+    {
+        $this->isPlaying = false;
+        $this->dispatch('stop-playback');
+
+        if ($this->eventStageResult === 'slot_clear') {
+            $this->dispatch('play-audio', type: 'victory');
+            if (!$this->eventAutoAdvancePaused) {
+                $this->dispatch('auto-chain-next-event-stage', delay: 700);
+            }
+            return;
+        }
+
+        $run = $this->activeEventRunId ? CharacterLocationEventRun::find($this->activeEventRunId) : null;
+
+        if ($this->eventStageResult === 'event_complete') {
+            $this->dispatch('play-audio', type: 'victory');
+
+            $oldLevel = $this->character->level;
+            $this->character = $this->character->fresh();
+            $this->eventRunFinalLoot = $run?->accumulated_loot ?? [];
+            $this->eventRunResult = 'event_complete';
+
+            if ($this->character->level > $oldLevel) {
+                $this->dispatch('play-audio', type: 'levelup');
+                $this->dispatch('open-level-up-modal', level: $this->character->level);
+            }
+            $this->dispatch('stats-updated', level: $this->character->level, xp: $this->character->xp, gold: $this->character->gold);
+        } elseif ($this->eventStageResult === 'lose') {
+            $this->dispatch('play-audio', type: 'defeat');
+            $this->eventRunResult = 'lose';
+        }
+    }
+
+    public function dismissEventRun(): void
+    {
+        $this->inLocationEvent = false;
+        $this->activeEventRunId = null;
+        $this->eventRunResult = null;
+        $this->eventStageResult = null;
+        $this->eventRunFinalLoot = [];
+        $this->eventMonsterInfo = [];
+        $this->eventRunProgressCurrent = 0;
+        $this->eventRunProgressTotal = 0;
+        $this->eventAutoAdvancePaused = false;
+        $this->eventName = null;
+        $this->resetBattleState();
+    }
+
+    public function pauseEventAutoAdvance(): void
+    {
+        $this->eventAutoAdvancePaused = true;
+    }
+
+    public function resumeEventAutoAdvance(): void
+    {
+        $this->eventAutoAdvancePaused = false;
+        $this->fightNextEventStage();
+    }
+
+    public function useEventPotion(string $itemInstanceId): void
+    {
+        if (!$this->activeEventRunId || $this->isEventCalculating || $this->isPlaying) {
+            return;
+        }
+
+        $run = CharacterLocationEventRun::find($this->activeEventRunId);
+        if (!$run) {
+            return;
+        }
+
+        $result = app(LocationEventService::class)->usePotion($run, $itemInstanceId);
+        if ($result->isError()) {
+            $this->addError('battle', $result->getErrorMessage());
         }
     }
 
@@ -417,7 +716,12 @@ class MapStub extends Component
 
         $this->visibleTurns = $this->allTurns;
         $this->currentTurnIndex = count($this->allTurns);
-        $this->completeBattle();
+
+        if ($this->inLocationEvent) {
+            $this->completeEventStage();
+        } else {
+            $this->completeBattle();
+        }
     }
 
     public function toggleAutoChain(?bool $status = null): void
@@ -471,7 +775,11 @@ class MapStub extends Component
             );
 
             if ($this->currentTurnIndex >= count($this->allTurns)) {
-                $this->completeBattle();
+                if ($this->inLocationEvent) {
+                    $this->completeEventStage();
+                } else {
+                    $this->completeBattle();
+                }
             }
         }
     }
@@ -728,6 +1036,12 @@ class MapStub extends Component
     #[On('resume-auto-battle')]
     public function resumeAutoBattle(): void
     {
+        if ($this->inLocationEvent) {
+            // Awans po ukończeniu eventu lokacji - normalna eksploracja i tak jest
+            // zablokowana dopóki gracz nie zamknie ekranu podsumowania (dismissEventRun()).
+            return;
+        }
+
         if (Auth::user()->game_stage > 12) {
             $this->autoChain = true;
             if ($this->battleCompleted || !$this->isPlaying) {
