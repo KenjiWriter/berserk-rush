@@ -65,10 +65,15 @@ class Map extends Model
 
     /**
      * Stat multiplier applied to monsters on this map for this character.
-     * Formula: 1.0 + (playerTier * 0.20) when tierDiff > 0, else 1.0.
+     * Formula: 1.0 + (playerTier * 0.20) when player has out-leveled this map (isOverLevel)
+     * and tierDiff > 0, else 1.0.
      */
     public function getMonsterTierMultiplier(Character $character): float
     {
+        if (!$this->isOverLevel($character)) {
+            return 1.0;
+        }
+
         $playerTier = $this->getPlayerTier($character);
         $tierDiff = $this->getTierDiff($character);
 
