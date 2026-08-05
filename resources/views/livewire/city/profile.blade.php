@@ -181,6 +181,37 @@
                             @endif
                         </div>
                     @endforeach
+
+                    {{-- Pet tile --}}
+                    @php $activePet = $character->activePet; @endphp
+                    <a href="{{ route('pets') }}"
+                       title="{{ $activePet ? $activePet->name . ' · Poz. ' . $activePet->level : 'Brak aktywnego chowańca — przejdź do Petów' }}"
+                       class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 group
+                              {{ $activePet
+                                    ? 'bg-emerald-950/80 border-2 border-emerald-500/70 hover:border-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.25)] hover:shadow-[0_0_18px_rgba(52,211,153,0.4)] hover:scale-105'
+                                    : 'bg-stone-900/90 border-2 border-dashed border-stone-600/70 hover:border-emerald-500/50 hover:scale-105' }}">
+                        @if($activePet)
+                            @if($activePet->icon)
+                                <img src="{{ route('assets.items', ['filename' => $activePet->icon]) }}"
+                                     class="w-full h-full object-contain p-1 sm:p-1.5 drop-shadow-xl"
+                                     alt="{{ $activePet->name }}">
+                            @else
+                                <i class="fa-solid fa-paw text-emerald-400 text-lg sm:text-xl"></i>
+                            @endif
+                            {{-- Level badge --}}
+                            <span class="absolute -bottom-1 -right-1 bg-emerald-900 border border-emerald-500/80 text-emerald-300 text-[8px] sm:text-[9px] font-extrabold px-1 py-0.5 rounded-md shadow-lg leading-none">
+                                L{{ $activePet->level }}
+                            </span>
+                            {{-- Fusion count badge --}}
+                            @if($activePet->fusion_count > 0)
+                                <span class="absolute -top-1 -right-1 bg-sky-900 border border-sky-500/80 text-sky-300 text-[8px] font-extrabold px-1 py-0.5 rounded-md shadow leading-none">
+                                    +{{ $activePet->fusion_count }}
+                                </span>
+                            @endif
+                        @else
+                            <i class="fa-solid fa-paw text-stone-600 text-base sm:text-lg group-hover:text-emerald-500/60 transition-colors"></i>
+                        @endif
+                    </a>
                 </div>
 
                 <!-- Portrait & Info -->

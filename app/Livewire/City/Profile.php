@@ -584,7 +584,7 @@ class Profile extends Component
 
     public function render()
     {
-        $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template', 'equippedSkills.skill']);
+        $this->character->loadMissing(['equippedItems.template', 'inventoryItems.template', 'equippedSkills.skill', 'activePet']);
 
         $equipped = [];
         foreach ($this->character->equippedItems as $item) {
