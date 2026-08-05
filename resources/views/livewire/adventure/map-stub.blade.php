@@ -1482,13 +1482,6 @@
 
             function triggerNextTurn() {
                 if (isPaused) return;
-                if (document.hidden) {
-                    const component = getComponent();
-                    if (component) {
-                        component.call('finishAllTurns');
-                    }
-                    return;
-                }
 
                 if (isExecutingTurn) return;
 
@@ -1506,12 +1499,6 @@
             function scheduleNextTurn(delayMs) {
                 if (isPaused) return;
                 clearUnthrottledTimeout('turnTimer', turnTimer);
-
-                if (document.hidden) {
-                    const component = getComponent();
-                    if (component) component.call('finishAllTurns');
-                    return;
-                }
 
                 turnTimer = setUnthrottledTimeout(() => {
                     triggerNextTurn();
@@ -1553,12 +1540,6 @@
                 let evtSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : null);
                 if (evtSpeed) {
                     currentSpeed = evtSpeed;
-                }
-
-                if (document.hidden) {
-                    const component = getComponent();
-                    if (component) component.call('finishAllTurns');
-                    return;
                 }
 
                 setTimeout(() => scrollCombatLogToBottom(true), 10);

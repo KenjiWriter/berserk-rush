@@ -244,6 +244,7 @@ class OverLevelCombatTest extends TestCase
 
         // Run 20 starts to verify no group ever exceeds 2 duplicates of any monster
         for ($k = 0; $k < 20; $k++) {
+            \Illuminate\Support\Facades\Cache::forget("anticheat:last_encounter_start:{$character->id}");
             $startRes = $service->start($character, $map);
             $this->assertTrue($startRes->isOk());
             $encounter = $startRes->getPayload();
