@@ -967,7 +967,7 @@
              <div class="relative pt-[56.25%] w-full bg-black rounded border border-amber-800 overflow-hidden">
                  <template x-if="trailerOpen">
                      <iframe class="absolute inset-0 w-full h-full"
-                             src="https://www.youtube.com/embed/GuD7lisUF3E?autoplay=1"
+                             src="https://www.youtube.com/embed/mNF8HmcoJkI?autoplay=1"
                              title="YouTube video player"
                              frameborder="0"
                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
