@@ -161,7 +161,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 25,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 480, 'atk' => 68, 'def' => 18, 'agi' => 4, 'int' => 6, 'crit' => 0.15, 'dodge' => 0.05],
+                    'stats' => ['hp' => 260, 'atk' => 75, 'def' => 18, 'agi' => 4, 'int' => 6, 'crit' => 0.15, 'dodge' => 0.05],
                     'abilities' => []
                 ],
                 [
@@ -169,7 +169,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 14,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 431, 'atk' => 129, 'def' => 22, 'agi' => 13, 'int' => 8, 'crit' => 0.24, 'dodge' => 0.12],
+                    'stats' => ['hp' => 130, 'atk' => 48, 'def' => 8, 'agi' => 13, 'int' => 8, 'crit' => 0.24, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
@@ -177,7 +177,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 16,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 392, 'atk' => 122, 'def' => 17, 'agi' => 15, 'int' => 45, 'crit' => 0.26, 'dodge' => 0.14],
+                    'stats' => ['hp' => 145, 'atk' => 52, 'def' => 9, 'agi' => 15, 'int' => 45, 'crit' => 0.26, 'dodge' => 0.14],
                     'abilities' => []
                 ],
                 [
@@ -185,7 +185,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 18,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 372, 'atk' => 115, 'def' => 14, 'agi' => 19, 'int' => 32, 'crit' => 0.28, 'dodge' => 0.2],
+                    'stats' => ['hp' => 160, 'atk' => 56, 'def' => 10, 'agi' => 19, 'int' => 32, 'crit' => 0.28, 'dodge' => 0.2],
                     'abilities' => []
                 ],
                 [
@@ -193,7 +193,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 20,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 509, 'atk' => 158, 'def' => 24, 'agi' => 13, 'int' => 12, 'crit' => 0.24, 'dodge' => 0.12],
+                    'stats' => ['hp' => 180, 'atk' => 60, 'def' => 12, 'agi' => 13, 'int' => 12, 'crit' => 0.24, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
@@ -201,7 +201,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 22,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 411, 'atk' => 173, 'def' => 19, 'agi' => 24, 'int' => 16, 'crit' => 0.4, 'dodge' => 0.32],
+                    'stats' => ['hp' => 195, 'atk' => 65, 'def' => 13, 'agi' => 24, 'int' => 16, 'crit' => 0.4, 'dodge' => 0.32],
                     'abilities' => []
                 ],
                 [
@@ -209,7 +209,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 23,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 470, 'atk' => 151, 'def' => 29, 'agi' => 11, 'int' => 10, 'crit' => 0.20, 'dodge' => 0.08],
+                    'stats' => ['hp' => 210, 'atk' => 68, 'def' => 15, 'agi' => 11, 'int' => 10, 'crit' => 0.20, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -217,7 +217,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 27,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 1004, 'atk' => 82, 'def' => 15, 'agi' => 12, 'int' => 40, 'crit' => 0.35, 'dodge' => 0.12],
+                    'stats' => ['hp' => 290, 'atk' => 80, 'def' => 18, 'agi' => 12, 'int' => 40, 'crit' => 0.35, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
