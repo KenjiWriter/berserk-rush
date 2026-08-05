@@ -21,6 +21,8 @@ Każdy z atrybutów podczas początkowego losowania nie może spaść poniżej 0
 
 Podczas tworzenia nowej postaci, każda postać (zarówno pierwsza, jak i kolejne postacie tworzone na koncie) automatycznie otrzymuje do plecaka broń startową: **Zardzewiały Miecz**.
 
+Jeśli gracz ukończył już podstawowy poradnik (`game_stage >= 21`), nowo tworzona postać otrzymuje dodatkowo od razu pełny zestaw startowy: **Zardzewiały Hełm** i **Skórzaną Zbroję** — czyli przedmioty, które pierwsza postać zdobywa w trakcie samouczka. Dzięki temu doświadczeni gracze nie startują z kolejną postacią gorzej wyposażoną niż po ukończeniu poradnika.
+
 
 ### 2. Poziomy i XP (`LevelUpService`)
 Gracz awansuje na wyższe poziomy poprzez zdobywanie doświadczenia (XP). Wymagane doświadczenie na kolejny poziom obliczane jest w oparciu o zbalansowaną krzywą wygładzającą progi EXP:

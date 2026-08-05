@@ -91,6 +91,37 @@ class CreateCharacter
                     ]);
                 }
 
+                // Jeśli gracz ukończył już podstawowy poradnik (etap 21 = Skórzana Zbroja),
+                // nowa postać otrzymuje od razu pełny zestaw startowy (hełm + zbroja),
+                // który normalnie zdobywa się w trakcie samouczka.
+                if ($user->game_stage >= 21) {
+                    $starterHelmet = ItemTemplate::find('01k4jpx94j70x2vv10b835hlm1');
+                    if ($starterHelmet) {
+                        ItemInstance::create([
+                            'template_id' => $starterHelmet->id,
+                            'owner_character_id' => $character->id,
+                            'location' => 'inventory',
+                            'stack_size' => 1,
+                            'rarity' => 'common',
+                            'roll_stats' => [],
+                            'upgrade_level' => 0,
+                        ]);
+                    }
+
+                    $starterArmor = ItemTemplate::find('01k4jpx94j70x2vv10b835arm1');
+                    if ($starterArmor) {
+                        ItemInstance::create([
+                            'template_id' => $starterArmor->id,
+                            'owner_character_id' => $character->id,
+                            'location' => 'inventory',
+                            'stack_size' => 1,
+                            'rarity' => 'common',
+                            'roll_stats' => [],
+                            'upgrade_level' => 0,
+                        ]);
+                    }
+                }
+
                 return Result::ok($character);
             });
 
