@@ -259,11 +259,7 @@
 
                         {{-- Twoja pozycja --}}
                         @php
-                            $myAvatar = $character->avatar;
-                            if ($myAvatar && !str_contains($myAvatar, '.')) {
-                                $myAvatar .= '.png';
-                            }
-                            $myAvatarUrl = $myAvatar ? asset('img/avatars/' . ltrim($myAvatar, '/')) : asset('img/avatars/plate.png');
+                            $myAvatarUrl = $character->getEffectiveAvatarUrl();
                         @endphp
                         <div class="mb-4 p-3 rounded-xl border
                             {{ $playerRank['rank'] === 1 ? 'bg-yellow-950/60 border-yellow-500/50' : ($playerRank['rank'] !== null ? 'bg-slate-800/60 border-slate-700' : 'bg-slate-900/40 border-slate-800') }}
@@ -313,11 +309,7 @@
                                     3 => 'bg-gradient-to-br from-amber-700 to-amber-600 text-amber-100',
                                     default => 'bg-slate-700 text-slate-300',
                                 };
-                                $entryAvatar = $entry->character?->avatar;
-                                if ($entryAvatar && !str_contains($entryAvatar, '.')) {
-                                    $entryAvatar .= '.png';
-                                }
-                                $entryAvatarUrl = $entryAvatar ? asset('img/avatars/' . ltrim($entryAvatar, '/')) : asset('img/avatars/plate.png');
+                                $entryAvatarUrl = $entry->character?->getEffectiveAvatarUrl() ?? asset('img/avatars/default.png');
                                 $rankTitleName  = \App\Application\Rankings\WeeklyRankingService::getTitleNameForRank($cat, $pos);
                             @endphp
                             <div class="flex items-center gap-3 p-2.5 rounded-xl border {{ $rowBg }} transition-all duration-200

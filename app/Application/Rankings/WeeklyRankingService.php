@@ -113,13 +113,16 @@ class WeeklyRankingService
 
     /**
      * Zwraca Top 10 graczy dla danej kategorii i tygodnia.
+     * Sortowanie: score DESC, następnie updated_at ASC (kto pierwszy osiągnął
+     * dany wynik, zajmuje wyższe miejsce – fair tie-breaker).
      */
     public function getLeaderboard(string $category, string $weekStart): Collection
     {
-        return WeeklyRankingEntry::with('character')
+        return WeeklyRankingEntry::with('character.user')
             ->where('week_start', $weekStart)
             ->where('category', $category)
             ->orderByDesc('score')
+            ->orderBy('updated_at', 'asc')
             ->limit(10)
             ->get();
     }
