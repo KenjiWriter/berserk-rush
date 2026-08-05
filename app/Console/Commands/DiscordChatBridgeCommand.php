@@ -80,6 +80,26 @@ class DiscordChatBridgeCommand extends Command
     private const SINGLETON_LOCK_KEY = 'discord_bridge_singleton_owner';
     private const SINGLETON_LOCK_TTL_SECONDS = 45;
 
+    /**
+     * The polling cursor ($lastMessageId) used to live only in a local
+     * variable, reset from "whatever is latest on Discord right now" on every
+     * process start/restart. Persisting it means a restart can never lose its
+     * place and accidentally fall back further than intended.
+     */
+    private const LAST_MESSAGE_ID_CACHE_KEY = 'discord_bridge_last_message_id';
+    private const LAST_UPDATE_LOG_ID_CACHE_KEY = 'discord_bridge_last_update_log_id';
+
+    /**
+     * Defense in depth against replaying old messages as if they were new
+     * (regardless of the exact cause - cursor bugs, Discord API quirks,
+     * whatever): a live chat bridge has no legitimate reason to relay
+     * anything older than a couple of poll cycles. sent_at on a relayed
+     * message is always "now" (see handleIncomingMessage), so a replayed old
+     * message from the past would otherwise show up with a fresh, misleading
+     * timestamp and (if the sender's level/name changed since) stale data.
+     */
+    private const STALE_MESSAGE_THRESHOLD_SECONDS = 120;
+
     private string $token;
     private string $channelId;
     private ?string $updateLogChannelId;
@@ -110,15 +130,35 @@ class DiscordChatBridgeCommand extends Command
             return self::FAILURE;
         }
 
+        // Supervisor's "restart"/"stop" send SIGTERM, which by default kills a
+        // PHP CLI process immediately WITHOUT running finally blocks - so
+        // without this, every graceful restart would leak the lock and the
+        // freshly spawned process would immediately fail to acquire it (seen
+        // as Supervisor "spawn error" / FATAL). Release the lock ourselves
+        // before the process actually dies.
+        if (function_exists('pcntl_async_signals')) {
+            pcntl_async_signals(true);
+            $releaseAndExit = function () {
+                $this->releaseSingletonLock();
+                exit(0);
+            };
+            pcntl_signal(SIGTERM, $releaseAndExit);
+            pcntl_signal(SIGINT, $releaseAndExit);
+        }
+
         try {
             return $this->poll();
         } finally {
-            // Best-effort release; if we lost the lock (e.g. a stall past the
-            // TTL) another process may already own it, so only clear it if
-            // it's still ours.
-            if (Cache::get(self::SINGLETON_LOCK_KEY) === $this->lockOwner) {
-                Cache::forget(self::SINGLETON_LOCK_KEY);
-            }
+            $this->releaseSingletonLock();
+        }
+    }
+
+    private function releaseSingletonLock(): void
+    {
+        // Only clear it if it's still ours - if we lost it (e.g. a stall past
+        // the TTL), another process may already own it.
+        if (Cache::get(self::SINGLETON_LOCK_KEY) === $this->lockOwner) {
+            Cache::forget(self::SINGLETON_LOCK_KEY);
         }
     }
 
@@ -126,19 +166,33 @@ class DiscordChatBridgeCommand extends Command
     {
         $channelId = $this->channelId;
 
-        $lastMessageId = $this->fetchLatestMessageIdForChannel($this->channelId);
+        // Resume from the persisted cursor if we have one (a previous run
+        // already established our place in the channel's history); only ask
+        // Discord "what's latest right now" on a genuine first-ever run.
+        $lastMessageId = Cache::get(self::LAST_MESSAGE_ID_CACHE_KEY);
 
         if ($lastMessageId === null) {
-            $this->error(
-                'Could not reach Discord (bad token, wrong channel ID, or bot missing '.
-                '"View Channel"/"Read Message History" permission on that channel). Check storage/logs/laravel.log.'
-            );
-            return self::FAILURE;
+            $lastMessageId = $this->fetchLatestMessageIdForChannel($this->channelId);
+
+            if ($lastMessageId === null) {
+                $this->error(
+                    'Could not reach Discord (bad token, wrong channel ID, or bot missing '.
+                    '"View Channel"/"Read Message History" permission on that channel). Check storage/logs/laravel.log.'
+                );
+                return self::FAILURE;
+            }
+
+            Cache::forever(self::LAST_MESSAGE_ID_CACHE_KEY, $lastMessageId);
         }
 
-        $lastUpdateLogId = null;
-        if (!empty($this->updateLogChannelId)) {
+        $lastUpdateLogId = Cache::get(self::LAST_UPDATE_LOG_ID_CACHE_KEY);
+        if (!empty($this->updateLogChannelId) && $lastUpdateLogId === null) {
             $lastUpdateLogId = $this->fetchLatestMessageIdForChannel($this->updateLogChannelId);
+            if ($lastUpdateLogId !== null) {
+                Cache::forever(self::LAST_UPDATE_LOG_ID_CACHE_KEY, $lastUpdateLogId);
+            }
+        }
+        if (!empty($this->updateLogChannelId)) {
             $this->info("Discord update-log bridge listening on channel {$this->updateLogChannelId}.");
         }
 
@@ -164,6 +218,7 @@ class DiscordChatBridgeCommand extends Command
                 // ordering in the game chat matches the order they were sent.
                 foreach (array_reverse($messages) as $message) {
                     $lastMessageId = $message['id'];
+                    Cache::forever(self::LAST_MESSAGE_ID_CACHE_KEY, $lastMessageId);
 
                     try {
                         $this->handleIncomingMessage($message);
@@ -184,6 +239,7 @@ class DiscordChatBridgeCommand extends Command
 
                     foreach (array_reverse($updateLogs) as $logMessage) {
                         $lastUpdateLogId = $logMessage['id'];
+                        Cache::forever(self::LAST_UPDATE_LOG_ID_CACHE_KEY, $lastUpdateLogId);
 
                         try {
                             $this->handleIncomingUpdateLogMessage($logMessage);
@@ -283,6 +339,25 @@ class DiscordChatBridgeCommand extends Command
         // channel, and we must not treat those as new incoming chat.
         if (($message['author']['bot'] ?? false) || !empty($message['webhook_id'])) {
             return;
+        }
+
+        // Staleness guard: never relay a message older than a couple of poll
+        // cycles, no matter how it ended up in our "new messages" batch. This
+        // is a hard backstop against ever replaying old chat history into the
+        // game with a fresh (and therefore misleading) timestamp.
+        if (isset($message['timestamp'])) {
+            $sentAt = Carbon::parse($message['timestamp']);
+            $ageSeconds = now()->diffInSeconds($sentAt, absolute: true);
+
+            if ($ageSeconds > self::STALE_MESSAGE_THRESHOLD_SECONDS) {
+                Log::warning('Discord chat bridge: skipping stale message (older than threshold)', [
+                    'discord_message_id' => $message['id'] ?? null,
+                    'content' => $message['content'] ?? null,
+                    'message_timestamp' => $sentAt->toDateTimeString(),
+                    'age_seconds' => $ageSeconds,
+                ]);
+                return;
+            }
         }
 
         // Deduplication guard: if multiple bridge processes are running

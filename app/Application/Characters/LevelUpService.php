@@ -47,6 +47,16 @@ class LevelUpService
                     ));
                 }
 
+                // Automatyczna donacja EXP do gildii: gdy pasek doświadczenia
+                // przekroczy 50%, nadwyżka ponad ten próg trafia do skarbca
+                // gildii, a graczowi zostaje dokładnie połowa paska. Przycinanie
+                // wykonujemy po KAŻDYM pojedynczym awansie wewnątrz pętli (nie
+                // dopiero raz na końcu), żeby duża jednorazowa premia XP (np.
+                // odbiór nagrody z Lustra po kilku godzinach) nie mogła nabić
+                // kilku poziomów naraz, zanim nadwyżka zostanie oddana gildii.
+                $autoDonatedXp = 0;
+                $autoDonateActive = $character->auto_donate_exp_guild && $character->guild_id;
+
                 // Check for level ups
                 while ($currentLevel < self::MAX_LEVEL && $currentXp >= $this->xpToNext($currentLevel)) {
                     $currentXp -= $this->xpToNext($currentLevel);
@@ -56,21 +66,23 @@ class LevelUpService
                         'from' => $currentLevel - 1,
                         'to' => $currentLevel
                     ];
+
+                    if ($autoDonateActive && $currentLevel < self::MAX_LEVEL) {
+                        $donateThreshold = (int) floor($this->xpToNext($currentLevel) * 0.5);
+                        if ($currentXp > $donateThreshold) {
+                            $autoDonatedXp += $currentXp - $donateThreshold;
+                            $currentXp = $donateThreshold;
+                        }
+                    }
                 }
 
                 if ($currentLevel >= self::MAX_LEVEL) {
                     $currentLevel = self::MAX_LEVEL;
                     $currentXp = min($currentXp, $maxXpAtMaxLevel);
-                }
-
-                // Automatyczna donacja EXP do gildii: gdy pasek doświadczenia
-                // przekroczy 50%, nadwyżka ponad ten próg trafia do skarbca
-                // gildii, a graczowi zostaje dokładnie połowa paska.
-                $autoDonatedXp = 0;
-                if ($currentLevel < self::MAX_LEVEL && $character->auto_donate_exp_guild && $character->guild_id) {
+                } elseif ($autoDonateActive) {
                     $donateThreshold = (int) floor($this->xpToNext($currentLevel) * 0.5);
                     if ($currentXp > $donateThreshold) {
-                        $autoDonatedXp = $currentXp - $donateThreshold;
+                        $autoDonatedXp += $currentXp - $donateThreshold;
                         $currentXp = $donateThreshold;
                     }
                 }
