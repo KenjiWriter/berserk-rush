@@ -25,16 +25,20 @@ class UpgradeRuleSeeder extends Seeder
             10 => ['primary' => 'Skażona Kość',        'secondary' => 'Czarny Kamień Dusz',  'rare' => 'Esencja Zniszczenia'],
         ];
 
+        // Faza 5 rebalansu (2026-08-05): nowe szanse powodzenia podane wprost przez
+        // gracza (100/100/95/90/85/75/65/55/45), i kara za porażkę - od +6 wzwyż
+        // nieudane ulepszenie obniża przedmiot o 1 poziom ('downgrade'), do +5 bez
+        // kary (tylko strata surowców/złota, jak dotychczas).
         $upgradeSteps = [
-            0 => ['to' => 1, 'chance' => 0.95, 'gold' => 100,  'mats' => []],
-            1 => ['to' => 2, 'chance' => 0.90, 'gold' => 250,  'mats' => []],
-            2 => ['to' => 3, 'chance' => 0.80, 'gold' => 500,  'mats' => [['key' => 'primary', 'qty' => 1]]],
-            3 => ['to' => 4, 'chance' => 0.70, 'gold' => 1000, 'mats' => [['key' => 'primary', 'qty' => 2]]],
-            4 => ['to' => 5, 'chance' => 0.60, 'gold' => 2000, 'mats' => [['key' => 'primary', 'qty' => 2], ['key' => 'secondary', 'qty' => 1]]],
-            5 => ['to' => 6, 'chance' => 0.50, 'gold' => 4000, 'mats' => [['key' => 'primary', 'qty' => 3], ['key' => 'secondary', 'qty' => 2]]],
-            6 => ['to' => 7, 'chance' => 0.40, 'gold' => 8000, 'mats' => [['key' => 'secondary', 'qty' => 3], ['key' => 'rare', 'qty' => 1]]],
-            7 => ['to' => 8, 'chance' => 0.28, 'gold' => 16000, 'mats' => [['key' => 'secondary', 'qty' => 4], ['key' => 'rare', 'qty' => 2]]],
-            8 => ['to' => 9, 'chance' => 0.15, 'gold' => 32000, 'mats' => [['key' => 'secondary', 'qty' => 5], ['key' => 'rare', 'qty' => 3]]],
+            0 => ['to' => 1, 'chance' => 1.00, 'onFail' => 'nothing',   'gold' => 100,  'mats' => []],
+            1 => ['to' => 2, 'chance' => 1.00, 'onFail' => 'nothing',   'gold' => 250,  'mats' => []],
+            2 => ['to' => 3, 'chance' => 0.95, 'onFail' => 'nothing',   'gold' => 500,  'mats' => [['key' => 'primary', 'qty' => 1]]],
+            3 => ['to' => 4, 'chance' => 0.90, 'onFail' => 'nothing',   'gold' => 1000, 'mats' => [['key' => 'primary', 'qty' => 2]]],
+            4 => ['to' => 5, 'chance' => 0.85, 'onFail' => 'nothing',   'gold' => 2000, 'mats' => [['key' => 'primary', 'qty' => 2], ['key' => 'secondary', 'qty' => 1]]],
+            5 => ['to' => 6, 'chance' => 0.75, 'onFail' => 'downgrade', 'gold' => 4000, 'mats' => [['key' => 'primary', 'qty' => 3], ['key' => 'secondary', 'qty' => 2]]],
+            6 => ['to' => 7, 'chance' => 0.65, 'onFail' => 'downgrade', 'gold' => 8000, 'mats' => [['key' => 'secondary', 'qty' => 3], ['key' => 'rare', 'qty' => 1]]],
+            7 => ['to' => 8, 'chance' => 0.55, 'onFail' => 'downgrade', 'gold' => 16000, 'mats' => [['key' => 'secondary', 'qty' => 4], ['key' => 'rare', 'qty' => 2]]],
+            8 => ['to' => 9, 'chance' => 0.45, 'onFail' => 'downgrade', 'gold' => 32000, 'mats' => [['key' => 'secondary', 'qty' => 5], ['key' => 'rare', 'qty' => 3]]],
         ];
 
         $templates = ItemTemplate::whereIn('type', ['weapon', 'armor', 'accessory'])->get();
@@ -83,7 +87,7 @@ class UpgradeRuleSeeder extends Seeder
                     [
                         'to_level' => $step['to'],
                         'success_chance' => $step['chance'],
-                        'on_fail' => 'nothing',
+                        'on_fail' => $step['onFail'],
                         'cost' => [
                             'gold' => $goldCost,
                             'materials' => $materialsReq,
@@ -119,7 +123,7 @@ class UpgradeRuleSeeder extends Seeder
                     [
                         'to_level' => $step['to'],
                         'success_chance' => $step['chance'],
-                        'on_fail' => 'nothing',
+                        'on_fail' => $step['onFail'],
                         'cost' => [
                             'gold' => $step['gold'],
                             'materials' => $materialsReq,

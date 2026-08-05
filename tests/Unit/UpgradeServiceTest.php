@@ -83,7 +83,7 @@ test('UpgradeService upgrades item consuming materials from material_stash', fun
         ->and($materialInstance->fresh()->stack_size)->toBe(3);
 });
 
-test('ItemInstance getUpgradeBonusStats calculates 10% per level of base stats', function () {
+test('ItemInstance getUpgradeBonusStats uses the Faza 5 accelerating curve per level', function () {
     $template = ItemTemplate::create([
         'id' => (string) Str::ulid(),
         'name' => 'Topór Kamiennego Golema',
@@ -111,18 +111,18 @@ test('ItemInstance getUpgradeBonusStats calculates 10% per level of base stats',
         'upgrade_level' => 2,
     ]);
 
-    // +1 level should give 10% of base stats (+40 attack_min, +320 attack_max, +120 str_bonus)
+    // Faza 5 rebalansu (2026-08-05): +1 daje 4% bazowych statów (ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL)
     expect($itemPlus1->getUpgradeBonusStats())->toBe([
-        'attack_min' => 40,
-        'attack_max' => 320,
-        'str_bonus' => 120,
+        'attack_min' => 16,
+        'attack_max' => 128,
+        'str_bonus' => 48,
     ]);
 
-    // +2 level should give 20% of base stats (+80 attack_min, +640 attack_max, +240 str_bonus)
+    // +2 daje 8% bazowych statów
     expect($itemPlus2->getUpgradeBonusStats())->toBe([
-        'attack_min' => 80,
-        'attack_max' => 640,
-        'str_bonus' => 240,
+        'attack_min' => 32,
+        'attack_max' => 256,
+        'str_bonus' => 96,
     ]);
 });
 

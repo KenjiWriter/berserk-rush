@@ -103,7 +103,7 @@ test('ItemInstance getResolvedBaseStats resolves ranged stats to the rolled valu
     expect($legacyItem->getResolvedBaseStats())->toBe(['defense' => 15, 'hp_bonus' => 50]);
 });
 
-test('ItemInstance getUpgradeBonusStats computes 10% per level off the resolved (rolled) value', function () {
+test('ItemInstance getUpgradeBonusStats computes the Faza 5 curve % off the resolved (rolled) value', function () {
     $template = ItemTemplate::create([
         'id' => (string) Str::ulid(),
         'name' => 'Testowy Topor Przedzialowy',
@@ -124,8 +124,10 @@ test('ItemInstance getUpgradeBonusStats computes 10% per level off the resolved 
         'rolled_stats' => ['attack_min' => 100, 'attack_max' => 400],
     ]);
 
+    // Faza 5 rebalansu (2026-08-05): +2 daje 8% (ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL)
+    // liczone od zrolowanej (rolled_stats), nie przedziałowej wartości szablonu.
     expect($item->getUpgradeBonusStats())->toBe([
-        'attack_min' => 20,
-        'attack_max' => 80,
+        'attack_min' => 8,
+        'attack_max' => 32,
     ]);
 });

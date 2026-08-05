@@ -68,23 +68,59 @@ przewyższają ten punkt odniesienia.
 - `tests/Unit/ExpBalancingTest.php` zaktualizowany pod nowe wartości (w tym fixture
   poziomu 98→99, który wcześniej nie miał wystarczająco XP względem nowego progu).
 
+### Faza 5 (rozdziały A/B/C/E) — Rework krzywej ulepszeń **- limit ZOSTAJE na +0..+9**
+
+> **Ważna korekta w trakcie implementacji:** oryginalna specyfikacja gracza mówiła o
+> rozszerzeniu do +0..+15 z nowymi progami/karami reset/zniszczenie. Gracz **wycofał
+> to w trakcie wdrożenia** i doprecyzował: limit zostaje na +9, zmienia się WYŁĄCZNIE
+> kształt krzywej bonusu % - mniej na +1-+3, "trochę więcej" +4-+6, "jeszcze więcej"
+> +7-+9. Poniższy opis to już wersja PO korekcie (finalna).
+
+- `app/Infrastructure/Persistence/ItemInstance.php`: nowa stała
+  `UPGRADE_BONUS_PERCENT_BY_LEVEL` (4/8/12/20/30/42/58/78/100% dla +1..+9) zastępuje
+  płaskie +10%/poziom w `getUpgradeBonusStats()`. Konkretne liczby to moja propozycja
+  (gracz podał tylko kierunek "mniej/trochę więcej/jeszcze więcej", nie wartości) -
+  do zweryfikowania w praktyce. `MAX_UPGRADE_LEVEL = 9` jako nazwana stała (dawniej
+  dwa osobne hardkody `9` w `UpgradeService.php` i `ItemInstance.php`).
+- `database/seeders/UpgradeRuleSeeder.php`: nowe szanse powodzenia podane wprost przez
+  gracza - **100/100/95/90/85/75/65/55/45%** dla +1..+9 (wcześniej 95/90/80/70/60/50/
+  40/28/15%). Kara za porażkę: `on_fail = 'downgrade'` (-1 poziom) od +6 wzwyż, do +5
+  bez kary (tylko strata surowców/złota) - **bez** resetu do +0 i bez zniszczenia
+  (to było częścią wycofanej propozycji +15).
+- `app/Application/Items/UpgradeService.php`: `>= 9` zastąpione
+  `ItemInstance::MAX_UPGRADE_LEVEL`, logika porażki niezmieniona względem oryginału
+  (obsługuje `on_fail='downgrade'`/`'break'`/`'nothing'` - `'break'` był i jest
+  zaimplementowany, ale żadna reguła go nie używa).
+- Przesiane: `php artisan db:seed --class=UpgradeRuleSeeder` na dev DB.
+- **Wciąż DO ZROBIENIA z potwierdzonego zakresu:** progi `+3` (darmowy bonus z puli
+  `EnchantmentStrategy::poolFor()`) i `+5` (wzmocnienie głównej mechaniki specjalnej
+  broni o +5pp) - patrz "Do zrobienia" niżej.
+
 ### Weryfikacja
 - `php -l` czysty na wszystkich zmienionych plikach.
-- Pełny `php artisan test`: **te same 13 awarii przed i po zmianach** (potwierdzone
-  przez `git stash` + ponowny przebieg) — to pre-existing problemy środowiska (503 na
-  kilku trasach Feature, jeden flaky test `OverLevelCombatTest`), niezwiązane z tą pracą.
-  `ExpBalancingTest` (3/3) i cała reszta przechodzi.
+- Pełny `php artisan test` (na branchu `rebalance-phase-0-1`, po Fazie 0+1+5A-C+E):
+  **te same 13 awarii co przed jakąkolwiek zmianą w tej serii** (potwierdzone kilka
+  razy przez `git stash` + ponowny przebieg) - to pre-existing problemy środowiska
+  (503 na kilku trasach Feature, jeden flaky test `OverLevelCombatTest`), niezwiązane
+  z tą pracą. `ExpBalancingTest`, `UpgradeServiceTest`, `ItemStatRollerTest` - wszystkie
+  zielone (zaktualizowane fixture pod nowe krzywe).
 
-### Zmienione pliki (niescommitowane, `git status` na 2026-08-05)
+### Stan brancha/commitów
+- **Faza 0 + Faza 1 są SCOMMITOWANE** na branchu `rebalance-phase-0-1` (commit
+  `aa35311`, wypchnięty na `origin/rebalance-phase-0-1`).
+- **Faza 5 (A/B/C/E) jest NIESCOMMITOWANA**, zrobiona na tym samym branchu
+  (`rebalance-phase-0-1`), na wierzchu commita Fazy 0+1:
 ```
-M app/Application/Characters/LevelUpService.php
-M app/Console/Commands/BalanceMonstersCommand.php
-M database/seeders/MonsterSeeder.php
-M docs/modules/combat.md
-M tests/Unit/ExpBalancingTest.php
+M app/Application/Items/UpgradeService.php
+M app/Infrastructure/Persistence/ItemInstance.php
+M database/seeders/UpgradeRuleSeeder.php
+M tests/Unit/ItemStatRollerTest.php
+M tests/Unit/UpgradeServiceTest.php
 ```
-**Uwaga:** nic z tego nie zostało jeszcze scommitowane ani wypchnięte — trzeba to zrobić
-świadomą decyzją (nie zrobiłem tego automatycznie).
+**Uwaga:** praca powstała najpierw na `main` (bo sesja nie wiedziała o istnieniu tego
+brancha), a w trakcie zauważono rozjazd i przełączono się (`git checkout
+rebalance-phase-0-1`, uncommitted changes pojechały razem) - stąd całość Fazy 0+1+5
+jest teraz na jednym branchu, gotowa do docelowego review/PR.
 
 ---
 
@@ -126,14 +162,29 @@ M tests/Unit/ExpBalancingTest.php
   też nowych ikon/nazw (grafika, poza zakresem programistycznym).
 - 4b: specjalne mechaniki na zbroi/biżuterii (kolce, regeneracja, odporność na CC) w
   `EnchantmentStrategy` + silniki walki.
-- 4c: spłaszczenie krzywej % ulepszeń (+0..+9) — **musi iść PRZED kolejnym przebiegiem
-  Fazy 0**, jeśli obie zmiany wchodzą w tym samym cyklu (patrz zależność w pełnym planie).
+
+### Faza 5 — dokończenie (progi +3/+5) - następny krok
+- **+3 "odblokowuje pierwszy bonus":** przy przekroczeniu +3 przedmiot automatycznie
+  dostaje jeden losowy bonus z puli `EnchantmentStrategy::poolFor()`, zapisany osobno
+  (`roll_stats['upgrade_bonuses']`, NIE `roll_stats['enchants']`) - nie konkuruje o
+  5-slotowy limit zwykłego zaklinania, usuwany jeśli poziom spadnie z powrotem
+  poniżej +3 (downgrade od +6).
+- **+5 "wzmacnia efekt broni":** +5 punktów procentowych do głównej mechaniki
+  specjalnej broni (Miecz→`double_strike_chance`, Topór→`bleed_chance`,
+  Łuk→`armor_pen_pct`, Sztylet→`poison_chance`, Dzwon→`magic_burst_chance`,
+  Różdżka→`magic_infusion_chance`) - flaga `upgrade_level >= 5`, do dodania w
+  silnikach walki (`EncounterService`, `DungeonService`, `LocationEventService`,
+  `PvPEncounterService`, `GuildWarService` - parytet 5 silników, patrz Faza 0c/2).
+- Rozdział D planu (spłaszczenie `scale` tierów `ItemTemplateSeeder`/
+  `ShopEquipmentSeeder`) - NIE zaczęte, wciąż aktualne niezależnie od korekty +9
+  (root cause przykładu z różdżką, patrz plan).
 
 ---
 
 ## Jak kontynuować w nowej sesji
 
 1. Przeczytaj ten plik + pełny plan `C:\Users\macie\.claude\plans\distributed-greeting-thimble.md`.
-2. `git status`/`git diff` żeby zobaczyć dokładny stan niescommitowanych zmian z Fazy 0+1.
-3. Zdecyduj: commitować teraz Fazę 0+1, czy kontynuować od razu Fazą 2-4 na tym samym stanie roboczym.
-4. Zacznij od follow-upów (bug różdżki, kalibracja bossów) — są małe i odblokowują resztę.
+2. Upewnij się, że jesteś na branchu **`rebalance-phase-0-1`** (`git branch --show-current`) - tam jest cała dotychczasowa praca (Faza 0+1 scommitowane, Faza 5 A-C+E niescommitowane).
+3. `git status`/`git diff` żeby zobaczyć dokładny stan niescommitowanych zmian z Fazy 5.
+4. Zdecyduj: commitować teraz Fazę 5 (A-C+E), czy kontynuować od razu progami +3/+5 na tym samym stanie roboczym.
+5. Zacznij od progów +3/+5 (potwierdzone w zakresie, opisane wyżej) - potem follow-upy (bug różdżki, kalibracja bossów), potem rozdział D (spłaszczenie tierów).

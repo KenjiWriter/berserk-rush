@@ -11,6 +11,31 @@ class ItemInstance extends Model
 {
     use HasUlids;
 
+    /**
+     * Faza 5 rebalansu (2026-08-05): limit ulepszeń zostaje na +9 (gracz cofnął
+     * wcześniejszą propozycję rozszerzenia do +15 - patrz
+     * `docs/rebalance_2026_08_progress.md`).
+     */
+    public const MAX_UPGRADE_LEVEL = 9;
+
+    /**
+     * Krzywa bonusu % (do surowych, dodatnich statów: attack_min/max, defense,
+     * hp_bonus itd. - NIE do $percentageStats w getUpgradeBonusStats()) - zastępuje
+     * dawne płaskie +10%/poziom. Na wyraźne życzenie gracza (2026-08-05): pierwsze 3
+     * poziomy dają WYRAŹNIE mniej niż dotychczasowe +10/+20/+30%, +4-+6 przyspieszają
+     * ("trochę więcej"), +7-+9 przyspieszają najmocniej ("jeszcze więcej") - żeby
+     * tani, nisko ulepszony przedmiot (np. "+2 i expić") przestał być trywialnie
+     * mocny, a realna przewaga inwestycji ujawniała się dopiero bliżej +9. Indeks =
+     * poziom ulepszenia (1-9). Konkretne wartości są moją propozycją (gracz podał
+     * tylko kierunek "mniej/trochę więcej/jeszcze więcej", nie liczby) - do
+     * weryfikacji w praktyce.
+     */
+    public const UPGRADE_BONUS_PERCENT_BY_LEVEL = [
+        1 => 4, 2 => 8, 3 => 12,
+        4 => 20, 5 => 30, 6 => 42,
+        7 => 58, 8 => 78, 9 => 100,
+    ];
+
     protected $fillable = [
         'template_id',
         'owner_character_id',
@@ -146,7 +171,7 @@ class ItemInstance extends Model
 
     public function canBeUpgraded(): bool
     {
-        return $this->upgrade_level < 9; // Max upgrade level
+        return $this->upgrade_level < self::MAX_UPGRADE_LEVEL;
     }
 
     /**
@@ -297,7 +322,9 @@ class ItemInstance extends Model
                         $bonus[$stat] = $calc;
                     }
                 } else {
-                    $calc = (int) round($val * 0.10 * $level);
+                    // Faza 5 rebalansu: krzywa UPGRADE_BONUS_PERCENT_BY_LEVEL zamiast płaskich +10%/poziom.
+                    $pct = self::UPGRADE_BONUS_PERCENT_BY_LEVEL[$level] ?? (self::UPGRADE_BONUS_PERCENT_BY_LEVEL[self::MAX_UPGRADE_LEVEL] ?? 0);
+                    $calc = (int) round($val * ($pct / 100));
                     $bonus[$stat] = max(1, $calc);
                 }
             }

@@ -84,7 +84,7 @@ class UpgradeService
             return ['success' => false, 'message' => 'Nie jesteś właścicielem tego przedmiotu.'];
         }
 
-        if ($item->upgrade_level >= 9) {
+        if ($item->upgrade_level >= ItemInstance::MAX_UPGRADE_LEVEL) {
             return ['success' => false, 'message' => 'Przedmiot osiągnął maksymalny poziom ulepszenia.'];
         }
 
@@ -150,7 +150,9 @@ class UpgradeService
                 'message' => "Ulepszenie zakończone sukcesem! {$item->template->name} ma teraz poziom +{$item->upgrade_level}."
             ];
         } else {
-            // Failure logic
+            // Failure logic (Faza 5 rebalansu, 2026-08-05): od +6 wzwyż nieudane
+            // ulepszenie obniża poziom o 1 (`on_fail = 'downgrade'`, ustawiane w
+            // UpgradeRuleSeeder) - do +5 bez kary, tylko strata surowców/złota.
             $failAction = $cost['on_fail'] ?? 'nothing';
             $failMessage = "Ulepszenie nie powiodło się. Straciłeś materiały.";
 
@@ -166,7 +168,7 @@ class UpgradeService
             }
 
             return [
-                'success' => false, 
+                'success' => false,
                 'message' => $failMessage
             ];
         }
