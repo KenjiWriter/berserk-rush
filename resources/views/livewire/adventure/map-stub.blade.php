@@ -1272,6 +1272,7 @@
             function cleanUp() {
                 clearUnthrottledTimeout('turnTimer', turnTimer);
                 clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
+                clearUnthrottledTimeout('turnAnimTimer', null); // timer animacji tury (turn-played)
                 if (watchdogTimer) clearTimeout(watchdogTimer);
                 if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
                 turnTimer = null;
@@ -1284,6 +1285,10 @@
 
             document.addEventListener('visibilitychange', () => {
                 if (!document.hidden && !isPaused) {
+                    // Po powrocie do karty resetuj blokadę isExecutingTurn - throttlowane
+                    // timery z turn-played mogły nie odpalić gdy karta była ukryta,
+                    // co powodowało deadlock (isExecutingTurn=true na zawsze).
+                    isExecutingTurn = false;
                     scheduleNextTurn(50);
                 }
             });
@@ -1565,14 +1570,14 @@
 
                     setTimeout(() => { if (fct.parentNode) fct.parentNode.removeChild(fct); }, 850);
 
-                    setTimeout(() => {
+                    setUnthrottledTimeout(() => {
                         isExecutingTurn = false;
                         if (watchdogTimer) clearTimeout(watchdogTimer);
                         if (!isPaused) {
                             const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
                             scheduleNextTurn(basePause);
                         }
-                    }, currentSpeed === 5 ? 120 : 500);
+                    }, currentSpeed === 5 ? 120 : 500, 'turnAnimTimer');
                     return;
                 }
 
@@ -1694,14 +1699,18 @@
                 }, 170);
 
                 // 5. After turn animation settles (~500ms), schedule next turn sequentially!
-                setTimeout(() => {
+                // Używamy setUnthrottledTimeout (Web Worker) zamiast zwykłego setTimeout,
+                // żeby timer NIE był throttlowany przez przeglądarkę gdy karta jest ukryta.
+                // Dzięki temu nie kumulują się opóźnione timery które po powrocie do karty
+                // odpalałyby wszystkie naraz i wywoływały wielokrotny nextTurn (bug x5 speed).
+                setUnthrottledTimeout(() => {
                     isExecutingTurn = false;
                     if (watchdogTimer) clearTimeout(watchdogTimer);
                     if (!isPaused) {
                         const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
                         scheduleNextTurn(basePause);
                     }
-                }, currentSpeed === 5 ? 120 : (currentSpeed === 2 ? 250 : 500));
+                }, currentSpeed === 5 ? 120 : (currentSpeed === 2 ? 250 : 500), 'turnAnimTimer');
             });
 
             Livewire.on('auto-chain-next-battle', (event) => {
@@ -1716,7 +1725,9 @@
                 }
 
                 if (currentSpeed === 5) {
-                    delay = Math.min(delay, 400);
+                    // Przy x5 skracamy opóźnienie, ale nie poniżej 300ms dla wygranej
+                    // (i zachowujemy pełne 3000ms kary za przegraną - nie skracamy jej).
+                    delay = delay <= 700 ? Math.min(delay, 300) : delay;
                 }
 
                 let chainTriggered = false;
