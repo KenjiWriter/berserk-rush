@@ -291,8 +291,20 @@ class DiscordChatBridgeCommand extends Command
         // Cache::add() is atomic - returns false if the key already exists.
         $messageId = $message['id'] ?? null;
         if ($messageId && ! Cache::add('discord_bridge_msg:' . $messageId, 1, 60)) {
+            Log::info('Discord chat bridge: DEDUP SKIP - message already claimed', [
+                'discord_message_id' => $messageId,
+                'content' => $message['content'] ?? null,
+                'lock_owner' => $this->lockOwner ?? null,
+            ]);
             return;
         }
+
+        Log::info('Discord chat bridge: handling incoming message', [
+            'discord_message_id' => $messageId,
+            'author_id' => $message['author']['id'] ?? null,
+            'content' => $message['content'] ?? null,
+            'lock_owner' => $this->lockOwner ?? null,
+        ]);
 
         $content = trim($message['content'] ?? '');
 
@@ -335,6 +347,15 @@ class DiscordChatBridgeCommand extends Command
         if ($character->active_title_id && $character->activeTitle) {
             $titlePrefix = $character->activeTitle->prefix;
         }
+
+        Log::info('Discord chat bridge: broadcasting resolved character', [
+            'discord_message_id' => $messageId,
+            'author_id' => $authorId,
+            'character_id' => $character->id,
+            'character_name' => $character->name,
+            'character_level' => $character->level,
+            'lock_owner' => $this->lockOwner ?? null,
+        ]);
 
         broadcast(new MessageSent(
             characterName: $character->name,
