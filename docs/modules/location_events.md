@@ -21,6 +21,14 @@ Porażka w KTÓRYMKOLWIEK starciu (niezależnie od trybu) kończy cały event i 
 cały skumulowany łup** z tego runu - to realna stawka nawet w trybie normalnym, nie
 tylko hardcore.
 
+**Częstotliwość:** bazowe `spawn_chance_pct` z tabeli `location_events` (suma 56%,
+1:1 z arkusza) opisują tylko WZGLĘDNY udział poszczególnych rang między sobą - realna,
+łączna szansa na jakikolwiek event jest przeskalowywana do stałej
+`LocationEventService::TARGET_TOTAL_SPAWN_CHANCE_PCT` (~1% na walkę). Skalibrowana
+2026-08-05 na podstawie zgłoszenia użytkownika (przy surowych 56% event trafiał się
+niemal przy każdej walce) - cel: średnio 1 event na ~5 minut eksploracji, przy
+zaobserwowanym tempie ~20 walk/minutę.
+
 ## Architektura
 
 Wzorowana 1:1 na lochach (`App\Application\Dungeon\DungeonService` +

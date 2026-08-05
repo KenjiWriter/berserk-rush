@@ -42,7 +42,7 @@
 
     {{-- Event Lokacji: modal wyboru trybu (Normalny/Hardcore) --}}
     @if ($pendingEventPreview)
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        <div wire:key="location-event-choice-modal" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/80 backdrop-blur-sm"
              x-data="{ visible: false }" x-init="setTimeout(() => visible = true, 50)"
              x-show="visible"
              x-transition:enter="transition ease-out duration-500 transform"
@@ -89,7 +89,7 @@
 
     {{-- Event Lokacji: ekran podsumowania runu --}}
     @if ($eventRunResult)
-        <div class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+        <div wire:key="location-event-summary-overlay" class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/85 backdrop-blur-sm"
              x-data="{ visible: false }" x-init="setTimeout(() => visible = true, 50)"
              x-show="visible"
              x-transition:enter="transition ease-out duration-500 transform"
@@ -148,7 +148,7 @@
 
     {{-- Baner: aktywny event lokacji na innej mapie --}}
     @if ($otherMapEventMapName && !$inLocationEvent)
-        <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-purple-950/90 border border-purple-500/50 text-purple-200 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">
+        <div wire:key="location-event-other-map-banner" class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 bg-purple-950/90 border border-purple-500/50 text-purple-200 px-4 py-2 rounded-xl text-sm font-semibold shadow-lg">
             Masz aktywny event na mapie "{{ $otherMapEventMapName }}" - wróć tam, aby go dokończyć.
         </div>
     @endif
@@ -634,16 +634,18 @@
                             Kronika Bitwy
                         </h3>
                         @if ($inLocationEvent)
-                            <div class="mt-1.5 flex items-center justify-center gap-2 flex-wrap">
-                                <span class="text-xs sm:text-sm font-bold text-purple-300 medieval-font">
-                                    {{ $eventName }} - Potwór {{ $eventRunProgressCurrent }}/{{ $eventRunProgressTotal }}
-                                </span>
-                                @if ($eventIsHardcore)
-                                    <span class="text-[10px] font-bold text-red-300 bg-red-950/70 border border-red-500/40 rounded-full px-2 py-0.5">HARDCORE</span>
-                                @endif
-                            </div>
-                            <div class="mt-1.5 h-1.5 w-full max-w-xs mx-auto bg-slate-800 rounded-full overflow-hidden">
-                                <div class="h-full bg-purple-500 transition-all" style="width: {{ $eventRunProgressTotal > 0 ? min(100, ($eventRunProgressCurrent / $eventRunProgressTotal) * 100) : 0 }}%"></div>
+                            <div wire:key="location-event-header-progress">
+                                <div class="mt-1.5 flex items-center justify-center gap-2 flex-wrap">
+                                    <span class="text-xs sm:text-sm font-bold text-purple-300 medieval-font">
+                                        {{ $eventName }} - Potwór {{ $eventRunProgressCurrent }}/{{ $eventRunProgressTotal }}
+                                    </span>
+                                    @if ($eventIsHardcore)
+                                        <span class="text-[10px] font-bold text-red-300 bg-red-950/70 border border-red-500/40 rounded-full px-2 py-0.5">HARDCORE</span>
+                                    @endif
+                                </div>
+                                <div class="mt-1.5 h-1.5 w-full max-w-xs mx-auto bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-purple-500 transition-all" style="width: {{ $eventRunProgressTotal > 0 ? min(100, ($eventRunProgressCurrent / $eventRunProgressTotal) * 100) : 0 }}%"></div>
+                                </div>
                             </div>
                         @endif
                     </header>
@@ -672,7 +674,7 @@
                                 <p class="text-amber-300/80 italic mt-2 font-semibold text-sm">Krzyżowanie mieczy...</p>
                             </div>
                         @elseif($isEventCalculating)
-                            <div class="h-full flex flex-col items-center justify-center text-center" wire:poll.500ms="checkEventCombatStatus">
+                            <div wire:key="location-event-calculating" class="h-full flex flex-col items-center justify-center text-center" wire:poll.500ms="checkEventCombatStatus">
                                 <div class="relative w-24 h-24 sm:w-28 sm:h-28 mb-4">
                                     <div class="absolute inset-0 rounded-full border-4 border-purple-500/30 border-t-purple-400 animate-spin"></div>
                                     <div class="absolute inset-2 rounded-full border-4 border-purple-700/30 border-b-purple-600 animate-[spin_1.5s_linear_infinite_reverse]"></div>
@@ -843,7 +845,7 @@
                     <footer wire:key="battle-controls-footer" class="relative p-3 lg:p-3.5 bg-amber-950/40 border-t border-amber-500/20 backdrop-blur-md">
 
                         @if ($inLocationEvent)
-                            <div class="flex flex-col gap-2.5 items-center">
+                            <div wire:key="location-event-footer-controls" class="flex flex-col gap-2.5 items-center">
                                 @if ($eventRunResult)
                                     <button wire:click="dismissEventRun"
                                         class="rounded-xl px-6 py-2.5 sm:px-7 sm:py-3 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all text-sm sm:text-base">
@@ -906,7 +908,7 @@
                                 @endif
                             </div>
                         @else
-                        <div class="flex flex-col gap-2.5">
+                        <div wire:key="normal-footer-controls" class="flex flex-col gap-2.5">
                             {{-- Main Controls --}}
                             <div class="flex items-center justify-center gap-2.5">
                                 @if ($isCalculating)

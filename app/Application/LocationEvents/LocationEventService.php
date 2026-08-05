@@ -47,6 +47,18 @@ class LocationEventService
      */
     private const HARDCORE_REWARD_BONUS_MULTIPLIER = 1.5;
 
+    /**
+     * Docelowa SUMARYCZNA szansa (%) na wylosowanie JAKIEGOKOLWIEK eventu na pojedynczą
+     * walkę - NIE to samo co suma `spawn_chance_pct` w tabeli `location_events` (56%,
+     * 1:1 z arkusza), która opisuje tylko WZGLĘDNY udział poszczególnych rang względem
+     * siebie. Rzeczywista łączna szansa jest przeskalowywana do tej stałej w
+     * rollEventTrigger() poniżej. Kalibrowane 2026-08-05 na podstawie zgłoszenia
+     * użytkownika (przy 56% event trafiał się praktycznie przy każdej walce) - cel:
+     * średnio 1 event na ~5 minut eksploracji, przy zaobserwowanym tempie ~20
+     * walk/minutę (103 zabitych potworów w 5 min) => ~1 walka na 100 => ~1%.
+     */
+    private const TARGET_TOTAL_SPAWN_CHANCE_PCT = 1.0;
+
     /** Mapa nazw lokacji -> tematyczna skrzynia (1:1 z LootChestSeeder). */
     private const MAP_CHEST_NAMES = [
         'Mroczny Las' => 'Skrzynia Mrocznego Lasu',
@@ -73,12 +85,18 @@ class LocationEventService
             return null;
         }
 
-        $roll = mt_rand(1, 10000); // precyzja 0.01%
+        $baseTotalPct = (float) $events->sum('spawn_chance_pct');
+        if ($baseTotalPct <= 0) {
+            return null;
+        }
+        $scale = self::TARGET_TOTAL_SPAWN_CHANCE_PCT / $baseTotalPct;
+
+        $roll = mt_rand(1, 1000000); // precyzja 0.0001% - potrzebna przy szansach < 1%
         $cumulative = 0;
         $chosenEvent = null;
 
         foreach ($events as $event) {
-            $cumulative += (int) round($event->spawn_chance_pct * 100);
+            $cumulative += (int) round($event->spawn_chance_pct * $scale * 10000);
             if ($roll <= $cumulative) {
                 $chosenEvent = $event;
                 break;
