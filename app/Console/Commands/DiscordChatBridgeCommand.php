@@ -9,6 +9,7 @@ use App\Infrastructure\Persistence\DiscordLinkCode;
 use App\Infrastructure\Persistence\News;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -233,6 +234,15 @@ class DiscordChatBridgeCommand extends Command
             return;
         }
 
+        // Deduplication guard: if multiple bridge processes are running
+        // simultaneously (e.g. two Supervisor workers), only the first one
+        // that claims this Discord message ID should actually broadcast it.
+        // Cache::add() is atomic - returns false if the key already exists.
+        $messageId = $message['id'] ?? null;
+        if ($messageId && ! Cache::add('discord_bridge_msg:' . $messageId, 1, 60)) {
+            return;
+        }
+
         $content = trim($message['content'] ?? '');
 
         if ($content === '') {
@@ -256,7 +266,11 @@ class DiscordChatBridgeCommand extends Command
             return;
         }
 
-        $character = Character::where('discord_user_id', (string) $authorId)->first();
+        // Prefer the most recently linked character in case multiple characters
+        // somehow share the same discord_user_id (data integrity edge case).
+        $character = Character::where('discord_user_id', (string) $authorId)
+            ->orderBy('id', 'desc')
+            ->first();
 
         if (! $character) {
             $this->replyToDiscord(
