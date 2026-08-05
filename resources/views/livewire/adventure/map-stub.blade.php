@@ -985,6 +985,14 @@
                                     </button>
                                 </div>
                             @endif
+
+                            {{-- Udział w eventach lokacji: opt-out --}}
+                            <div class="flex items-center justify-center">
+                                <button wire:click="toggleEventsEnabled" wire:loading.attr="disabled" wire:target="toggleEventsEnabled"
+                                    class="rounded-xl px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all active:scale-95 hover:brightness-110 {{ $eventsEnabled ? 'bg-purple-950/90 border-purple-500/80 text-purple-200 shadow-[0_0_15px_rgba(168,85,247,0.45)] ring-1 ring-purple-400/50' : 'bg-slate-900/80 border-slate-700 text-slate-400' }}">
+                                    Eventy Lokacji: {{ $eventsEnabled ? 'ON' : 'OFF' }}
+                                </button>
+                            </div>
                         </div>
                         @endif
                     </footer>

@@ -105,6 +105,7 @@ class MapStub extends Component
     public ?string $eventName = null;
     public bool $eventIsHardcore = false;
     public ?string $otherMapEventMapName = null;
+    public bool $eventsEnabled = true;
 
     #[On('tutorial-completed')]
     public function refreshOnTutorial()
@@ -145,6 +146,7 @@ class MapStub extends Component
         $this->playbackSpeed = in_array($rawSpeed, [1, 2, 5], true) ? $rawSpeed : 1;
         $this->autoChain = session('combat_auto_chain', true);
         $this->targetStrategy = session('combat_target_strategy', 'random');
+        $this->eventsEnabled = session('combat_events_enabled', true);
 
         if ($this->character->hasActiveMirror() && !request()->has('world_boss')) {
             session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
@@ -304,7 +306,7 @@ class MapStub extends Component
         // Rzut eventu lokacji - tylko dla naturalnej eksploracji (nie world boss, nie
         // wymuszony potwór). Jeśli wypadnie, wstrzymujemy normalną walkę i pokazujemy
         // modal wyboru trybu (Normalny/Hardcore) - patrz chooseEventMode()/declineEvent().
-        if (!$this->isWorldBoss && $monsterId === null) {
+        if ($this->eventsEnabled && !$this->isWorldBoss && $monsterId === null) {
             $trigger = app(LocationEventService::class)->rollEventTrigger();
             if ($trigger) {
                 /** @var LocationEvent $event */
@@ -739,6 +741,12 @@ class MapStub extends Component
         }
 
         session(['combat_auto_chain' => $this->autoChain]);
+    }
+
+    public function toggleEventsEnabled(?bool $status = null): void
+    {
+        $this->eventsEnabled = $status !== null ? (bool) $status : !$this->eventsEnabled;
+        session(['combat_events_enabled' => $this->eventsEnabled]);
     }
 
     public function stopAuto(): void

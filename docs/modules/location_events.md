@@ -158,6 +158,10 @@ eksploracji bez przełączania widoku.
   `CharacterLocationEventRun` dla postaci i, jeśli jest na TEJ samej mapie, wznawia
   stan (polling albo od razu wynik, jeśli walka zdążyła się skończyć w tle). Aktywny
   run na INNEJ mapie pokazuje tylko baner-link, nie auto-wznawia.
+- **Opt-out:** przycisk "Eventy Lokacji: ON/OFF" w stopce eksploracji
+  (`MapStub::toggleEventsEnabled()`, stan trzymany w `session('combat_events_enabled')`,
+  domyślnie ON) - gdy OFF, `startBattle()` w ogóle pomija wywołanie
+  `rollEventTrigger()` i normalna eksploracja przebiega tak jak dziś.
 - **Weryfikacja przy wdrożeniu:** czy każda z 8 map ma już tematyczną skrzynię w
   `ItemTemplate` (potwierdzone dla wszystkich 8 w `LootChestSeeder` na 2026-08-05) -
   jeśli lista się zmieni, zaktualizować `LocationEventService::MAP_CHEST_NAMES`.
