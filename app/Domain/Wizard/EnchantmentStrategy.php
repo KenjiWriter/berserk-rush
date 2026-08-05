@@ -210,6 +210,14 @@ class EnchantmentStrategy
         // Skalowanie przez 3.0 (zasada 3-sigma): |Z| >= 3.0 zdarza się wyjątkowo rzadko (<0.27%).
         $scaledZ = min(1.0, abs($z) / 3.0);
 
+        // Dla afiksów kluczowych (obrażenia fizyczne, obrażenia magiczne, HP bonus),
+        // stosujemy dodatkowy wykładnik stromości krzywej (exponent = 2.5).
+        // Dzięki temu uzyskanie wartości > +40% staje się ekstremalnie rzadkie (~0.1%),
+        // a przedmioty z najwyższymi bonusami (+40%..+50%) zyskują gigantyczną wartość rynkową.
+        if (in_array($bonusKey, ['attack_power', 'magic_attack', 'hp_bonus'], true)) {
+            $scaledZ = pow($scaledZ, 2.5);
+        }
+
         return $min + (int) round($scaledZ * ($max - $min));
     }
 

@@ -40,16 +40,13 @@ W zależności od typu przedmiotu (`EnchantmentStrategy::poolFor()`) losowane s�
 > niżej). Pełny opis mechaniki procków otrucia/ogłuszenia oraz `strong_vs_hero` -
 > `docs/modules/combat.md`, sekcje 7-8.
 
-> **Uwaga (rework rozkładu bonusów – algorytm Gaussa, 2026-08-03):** Wszystkie bonusy
-> w systemie zaczarowań (`EnchantmentStrategy::rollBonusValue()`) losują teraz swoje wartości
+> **Uwaga (rework rozkładu bonusów – algorytm Gaussa + stromość krzywej, 2026-08-03 / 2026-08-05):** Wszystkie bonusy
+> w systemie zaczarowań (`EnchantmentStrategy::rollBonusValue()`) losują swoje wartości
 > w oparciu o **algorytm Gaussa (rozkład pół-normalny z transformacją Boxa-Mullera)**.
 > Wyniki skupiają się w dolnej części zakresu $[min, max]$, a prawdopodobieństwo wylosowania
-> wyższych i maksymalnych wartości maleje wyznaczoną krzywą dzwonu Gaussa
-> ("im wyższa wartość bonusu, tym trudniej ją osiągnąć").
-> Dla afiksów z zakresem procentowym (np. `attack_power`, `magic_attack`, `hp_bonus` `[-20, 50]`),
-> wyniki bliskie dolnej granicy oraz niskie dodatnie są najczęstsze, natomiast osiągnięcie $+50\%$
-> wymaga odchylenia $3\sigma$ ($< 0.27\%$ szansy). Pozostałe afiksy (np. `crit_chance`, `str_bonus`)
-> działają według tej samej krzywej Gaussa w swoich przedziałach.
+> wyższych i maksymalnych wartości maleje wyznaczoną krzywą dzwonu Gaussa.
+> Dla kluczowych afiksów wartościowych (`attack_power`, `magic_attack`, `hp_bonus` w zakresie `[-20, 50]`),
+> zastosowano **wykładnik stromości krzywej ($p = 2.5$)**, sprawiający że uzyskanie wyskoków $> +40\%$ jest ekstremalnie rzadkie (~0.1% szansy), a trafienie $+50\%$ to prawdziwy rarytas na rynku (~0.01% szansy).
 
 > **Uwaga (itemizacja klasowa, 2026-07-28):** Powyższe dotyczy wyłącznie *losowych
 > zaklęć* (`roll_stats['enchants']`) dokładanych u Czarodzieja/Wiedźmy. Niezależnie od
