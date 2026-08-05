@@ -13,6 +13,18 @@ class LevelUpService
 {
     public const MAX_LEVEL = 99;
 
+    /**
+     * Globalny mnożnik krzywej XP (Faza 1 rebalansu, 2026-08-05 - patrz feedback
+     * graczy aso666/Swiiezzy/swag: max poziom wbijany w ~3 dni, "nawet tydzień byłby
+     * za szybko"). Kształt krzywej (`xpToNext()`) pozostaje BEZ ZMIAN - mnożnik tylko
+     * proporcjonalnie wydłuża czas na każdym poziomie, żeby relacje tempa pomiędzy
+     * wczesną/środkową/późną grą się nie rozjechały. x6 orientacyjnie przekłada
+     * dotychczasowe ~3 dni do maxa w ~2.5-3 tygodnie - do doprecyzowania realnymi
+     * danymi telemetrycznymi XP/h po wdrożeniu (patrz `Session Tracker`,
+     * `docs/modules/combat.md` pkt 4).
+     */
+    private const XP_CURVE_MULTIPLIER = 6.0;
+
     public function checkAndApply(Character $character): Result
     {
         try {
@@ -159,6 +171,6 @@ class LevelUpService
         if ($level > 85) {
             $base += 0.025 * pow($level - 85, 5.5);
         }
-        return (int) round($base);
+        return (int) round($base * self::XP_CURVE_MULTIPLIER);
     }
 }

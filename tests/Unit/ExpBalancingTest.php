@@ -17,23 +17,29 @@ class ExpBalancingTest extends TestCase
     {
         $service = new LevelUpService();
 
-        // Level 1: 65
-        $this->assertEquals(65, $service->xpToNext(1));
+        // Faza 1 rebalansu (2026-08-05): krzywa przemnożona globalnie x6 (patrz
+        // LevelUpService::XP_CURVE_MULTIPLIER), żeby spowolnić tempo progresji -
+        // wartości bazowe (przed mnożnikiem) pozostają identyczne co wcześniej.
 
-        // Level 3: 299
-        $this->assertEquals(299, $service->xpToNext(3));
+        // Wartości = round(base * 6) - liczone na nieprzybliżonym `base`, więc NIE są
+        // dokładnie "stara zaokrąglona wartość razy 6" (podwójne zaokrąglanie).
+        // Level 1
+        $this->assertEquals(391, $service->xpToNext(1));
 
-        // Level 10: 3888
-        $this->assertEquals(3888, $service->xpToNext(10));
+        // Level 3
+        $this->assertEquals(1791, $service->xpToNext(3));
 
-        // Level 50: 1426335
-        $this->assertEquals(1426335, $service->xpToNext(50));
+        // Level 10
+        $this->assertEquals(23330, $service->xpToNext(10));
 
-        // Level 70: 5584991
-        $this->assertEquals(5584991, $service->xpToNext(70));
+        // Level 50
+        $this->assertEquals(8558012, $service->xpToNext(50));
 
-        // Level 80: 9622702
-        $this->assertEquals(9622702, $service->xpToNext(80));
+        // Level 70
+        $this->assertEquals(33509946, $service->xpToNext(70));
+
+        // Level 80
+        $this->assertEquals(57736214, $service->xpToNext(80));
     }
 
     public function test_monster_xp_reward_scales_progressively(): void
@@ -68,7 +74,11 @@ class ExpBalancingTest extends TestCase
             'user_id' => $user->id,
             'name' => 'MaxHero',
             'level' => 98,
-            'xp' => 100000000,
+            // Faza 1 rebalansu (x6 na krzywej XP): xpToNext(98)=~132.4M, xpToNext(99)=~138.1M
+            // (wcześniej ~22.1M/~23.0M) - musi przekraczać SUMĘ obu, by po awansie na 99
+            // zostająca nadwyżka XP nadal przekraczała cap i realnie ćwiczyła capowanie
+            // (nie tylko sam awans z 98 na 99).
+            'xp' => 300000000,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
 

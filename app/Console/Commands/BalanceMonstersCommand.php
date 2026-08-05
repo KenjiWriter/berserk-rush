@@ -17,9 +17,7 @@ use Illuminate\Console\Command;
  * - Dla każdej z 8 map budujemy 6 postaci referencyjnych - po jednej na każdy z 6
  *   typów broni w grze (sword/axe/bow/dagger/bell = fizyczne, wand = magiczna).
  * - Poziom postaci = level_min mapy + 1. Ekwipunek = najlepszy dostępny na ten poziom
- *   TIER SKLEPOWY (ShopEquipmentSeeder) - celowo klasyczny/uniwersalny, bez surowych
- *   bonusów atrybutów (to właśnie znaczy "bez dodatkowych atrybutów" z prośby
- *   użytkownika - zestawy klasowe _w/_m/_a z ItemTemplateSeeder NIE są tu używane).
+ *   TIER SKLEPOWY (ShopEquipmentSeeder) - celowo klasyczny/uniwersalny.
  * - Punkty atrybutów postaci (10 + (lvl-1)*3) rozdzielone 40/30/30: fizyczne
  *   archetypy -> STR/AGI/VIT, wand -> INT/AGI/VIT.
  * - Cel: >=90% winrate (z wielu tysięcy symulacji), zabicie potwora w 3-4 trafieniach,
@@ -27,6 +25,32 @@ use Illuminate\Console\Command;
  * - Pola 'crit'/'dodge' w danych potworów są MARTWE (EncounterService liczy je zawsze
  *   z formuł opartych o AGI, nigdy nie czyta monster.stats['crit'/'dodge']) - dlatego
  *   solver dobiera tylko HP/ATK/DEF/AGI.
+ *
+ * > **UWAGA (rekalibracja pod "realnego gracza", 2026-08-05 - patrz feedback gracza
+ * > aso666 o trywializacji walk "wystarczy ubrać +2 i expić"):** postać referencyjna
+ * > NIE jest już "gołym" bohaterem bez ulepszeń/zaklęć/zestawu klasowego. Zgodnie z
+ * > diagnozą root cause (kalibracja bazowa nie uwzględniała realnego progresu gracza,
+ * > przez co monstra padały w 1-2 hity), archetyp teraz zakłada:
+ * > 1. **Ulepszenie +2** (`EXPECTED_UPGRADE_LEVEL`) na broni i całej zbroi - dosłownie
+ * >    to, co gracz zgłosił jako trywializujące walkę. +10% bazowych statystyk za
+ * >    poziom ulepszenia (zgodnie z `docs/modules/upgrades.md`), więc x1.20 na
+ * >    wszystkich skalowanych statach (`attack_min/max`, `defense`, `hp_bonus` itd.).
+ * > 2. **Skromny, jeden przeciętny naroll zaklęcia na każdej sztuce ekwipunku**
+ * >    (`EXPECTED_ENCHANT_BONUS_PCT`, dodatkowe x1.05) - przybliżenie dolnego zakresu
+ * >    rozkładu Gaussa opisanego w `docs/modules/wizard.md` (zaklęcia skupiają się w
+ * >    dolnej części przedziału), a nie realistycznego maksimum 5 bonusów.
+ * > 3. **Bonus atrybutu z zestawu klasowego zbroi** (`_w`/`_m`/`_a`, patrz
+ * >    `ItemTemplateSeeder::$classArmorAttributes`) - dobrany wg typu broni
+ * >    (sword/axe/bow -> Wojownik STR+VIT, wand/bell -> Mag INT, dagger -> Skrytobójca
+ * >    AGI), tylko dla poziomów >=5 (poniżej tego progu crafting/zestawy klasowe
+ * >    jeszcze nie istnieją w grze).
+ * > Docelowe stałe (`TARGET_WINRATE`/`TARGET_HITS_MID`/`TARGET_DMG_TAKEN_FRACTION`)
+ * > pozostały BEZ ZMIAN - to nadal poprawny opis pożądanego odczucia z walki (3-4
+ * > trafienia, 90% winrate). To, co się zmieniło, to WEJŚCIE do solvera: teraz dobiera
+ * > staty potworów tak, by ten cel był spełniony względem gracza z typowym progresem,
+ * > a nie względem nierealistycznie słabej postaci - to bezpośrednio podnosi HP/ATK/DEF
+ * > potworów proporcjonalnie do mocy, jaką realnie daje +2 ulepszenia + zestaw klasowy
+ * > + skromne zaklęcia, eliminując rozjazd, który prowadził do zabijania w 1-2 hity.
  */
 class BalanceMonstersCommand extends Command
 {
@@ -49,6 +73,33 @@ class BalanceMonstersCommand extends Command
     private const TARGET_WINRATE_BOSS = 0.65;
     private const TARGET_HITS_MID_BOSS = 10.0;
     private const TARGET_DMG_TAKEN_FRACTION_BOSS = 0.90;
+
+    // --- Rekalibracja pod realnego gracza (2026-08-05) - patrz notatka w docblocku klasy ---
+    /** Przeciętny poziom ulepszenia zakładany na broni i całej zbroi referencyjnej postaci. */
+    private const EXPECTED_UPGRADE_LEVEL = 2;
+    /** Przybliżenie skromnego, jednego przeciętnego (nisko wylosowanego) narolla zaklęcia na sztukę ekwipunku. */
+    private const EXPECTED_ENCHANT_BONUS_PCT = 0.05;
+
+    /**
+     * Zsumowane bonusy atrybutów zestawu klasowego (hełm+klatka+buty) per tier
+     * poziomowy - 1:1 przepisane z `ItemTemplateSeeder::$classArmorAttributes`
+     * (suma 3 sztuk zbroi per klasa/poziom). Klucz zewnętrzny = poziom tieru
+     * (taki sam zestaw poziomów co `$craftTiers`), klucz wewnętrzny = klasa
+     * ('w' = Wojownik STR+VIT, 'm' = Mag INT, 'a' = Skrytobójca AGI).
+     */
+    private array $classArmorBonusByTierLevel = [
+        5  => ['w' => ['str' => 7,   'vit' => 5],   'm' => ['int' => 12],  'a' => ['agi' => 12]],
+        15 => ['w' => ['str' => 16,  'vit' => 19],  'm' => ['int' => 35],  'a' => ['agi' => 35]],
+        25 => ['w' => ['str' => 30,  'vit' => 29],  'm' => ['int' => 59],  'a' => ['agi' => 59]],
+        35 => ['w' => ['str' => 40,  'vit' => 42],  'm' => ['int' => 82],  'a' => ['agi' => 82]],
+        45 => ['w' => ['str' => 53,  'vit' => 53],  'm' => ['int' => 106], 'a' => ['agi' => 106]],
+        55 => ['w' => ['str' => 64,  'vit' => 65],  'm' => ['int' => 129], 'a' => ['agi' => 129]],
+        65 => ['w' => ['str' => 76,  'vit' => 77],  'm' => ['int' => 153], 'a' => ['agi' => 153]],
+        75 => ['w' => ['str' => 88,  'vit' => 88],  'm' => ['int' => 176], 'a' => ['agi' => 176]],
+        85 => ['w' => ['str' => 100, 'vit' => 100], 'm' => ['int' => 200], 'a' => ['agi' => 200]],
+        95 => ['w' => ['str' => 112, 'vit' => 112], 'm' => ['int' => 224], 'a' => ['agi' => 224]],
+        99 => ['w' => ['str' => 116, 'vit' => 117], 'm' => ['int' => 233], 'a' => ['agi' => 233]],
+    ];
 
     /**
      * Tiery sklepowe (ShopEquipmentSeeder::$themes), BEZ tieru gladiatora (lvl 55,
@@ -366,7 +417,23 @@ class BalanceMonstersCommand extends Command
                 ], $archetypes, array_keys($archetypes))
             );
 
-            [$monster, $verification] = $this->solveMonster($archetypes, $tuneIterations, $tuneSims, $verifySims, $targetWinrate, $targetHitsMid, $targetDmgFraction);
+            // UWAGA (odkryte 2026-08-05 przy rekalibracji): `EncounterService::calculateDamage()`
+            // dla PODSTAWOWEGO ataku (nie-skillowego) różdżką (`wand`) czyta `getAttributeAttackBonus('sword', ...)`
+            // (STR+AGI, nie INT*2!) oraz `eq['attack_min'/'attack_max']` (nie `magic_attack_min/max`!)
+            // - `ItemTemplate` różdżek NIGDY nie ustawia `attack_min/max`, więc auto-atak
+            // różdżką bez czynnego skilla zadaje obrażenia bliskie zeru. To realny bug w
+            // silniku walki (poza zakresem tej rekalibracji - zgłoszony osobno), ale w TYM
+            // kalkulatorze - który celowo 1:1 odwzorowuje formuły z EncounterService.php -
+            // ten sam efekt objawia się jako trwałe, niepokonywalne 0% winrate archetypu
+            // `wand`. Włączenie takiego archetypu do UŚREDNIONEGO celu dobierania statystyk
+            // potwora (`solveMonster`) systematycznie zaniżałoby ATK/HP potworów dla
+            // WSZYSTKICH pozostałych, sprawnych archetypów (bo solver nigdy nie osiągnie
+            // 90% średniego winrate i bez końca lekko osłabia potwora) - dlatego `wand` jest
+            // wykluczony z fazy strojenia, ale nadal w pełni raportowany w tabeli weryfikacji
+            // poniżej dla widoczności problemu.
+            $tuningArchetypes = array_filter($archetypes, fn (string $w) => $w !== 'wand', ARRAY_FILTER_USE_KEY);
+
+            [$monster, $verification] = $this->solveMonster($tuningArchetypes, $archetypes, $tuneIterations, $tuneSims, $verifySims, $targetWinrate, $targetHitsMid, $targetDmgFraction);
 
             $this->line("<fg=yellow>Dobrane staty potwora '{$rank}': HP={$monster['hp']} ATK={$monster['atk']} DEF={$monster['def']} AGI={$monster['agi']}</>");
 
@@ -503,13 +570,19 @@ class BalanceMonstersCommand extends Command
             'magic_burst_min' => 0, 'magic_burst_max' => 0,
         ];
 
+        // Gracz realnie nie chodzi w "gołym" +0 sprzęcie bez zaklęć - patrz notatka o
+        // rekalibracji w docblocku klasy. Mnożnik dokłada się do WSZYSTKICH skalowanych
+        // statów (broń + zbroja + biżuteria), tak jak w prawdziwej grze ulepszenie i
+        // zaklęcia dotyczą każdej noszonej sztuki niezależnie.
+        $gearMultiplier = 1 + (self::EXPECTED_UPGRADE_LEVEL * 0.10) + self::EXPECTED_ENCHANT_BONUS_PCT;
+
         foreach ($weaponProto as $stat => $base) {
-            $eq[$stat] += $this->scaleStat($stat, $base, $weaponScale, $weaponTierIndex, $weaponCritCap, $weaponBurstCap);
+            $eq[$stat] += $this->scaleStat($stat, $base, $weaponScale, $weaponTierIndex, $weaponCritCap, $weaponBurstCap, $gearMultiplier);
         }
         foreach (['armor', 'helmet', 'boots', 'amulet', 'ring'] as $piece) {
             foreach ($this->armorProtos[$piece] as $stat => $base) {
                 // Zbroja/biżuteria sklepowa zawsze capuje crit_chance na 15 (ShopEquipmentSeeder).
-                $eq[$stat] += $this->scaleStat($stat, $base, $armorScale, $armorTierIndex, 15, 60);
+                $eq[$stat] += $this->scaleStat($stat, $base, $armorScale, $armorTierIndex, 15, 60, $gearMultiplier);
             }
         }
 
@@ -524,6 +597,15 @@ class BalanceMonstersCommand extends Command
             $int = 0;
         }
         $vit = max(0, $attrPoints - $str - $agi - $int);
+
+        // Bonus atrybutu z zestawu klasowego zbroi (_w/_m/_a) - patrz notatka o
+        // rekalibracji w docblocku klasy. Dokładany NA WIERZCH ręcznie rozdanych
+        // punktów, dokładnie tak jak `Character::getTotalAttributes()` sumuje je w grze.
+        $classBonus = $this->classArmorBonusForLevel($level, $weaponType);
+        $str += $classBonus['str'] ?? 0;
+        $vit += $classBonus['vit'] ?? 0;
+        $int += $classBonus['int'] ?? 0;
+        $agi += $classBonus['agi'] ?? 0;
 
         if ($weaponType === 'wand') {
             $rawStatBonus = $str + $agi;
@@ -568,7 +650,7 @@ class BalanceMonstersCommand extends Command
         ];
     }
 
-    private function scaleStat(string $stat, float $base, float $scale, int $tierIndex, float $critCap, float $burstCap): float
+    private function scaleStat(string $stat, float $base, float $scale, int $tierIndex, float $critCap, float $burstCap, float $gearMultiplier = 1.0): float
     {
         if ($stat === 'crit_chance') {
             return min($critCap, $base + $tierIndex * 0.5);
@@ -576,7 +658,31 @@ class BalanceMonstersCommand extends Command
         if ($stat === 'magic_burst_chance') {
             return min($burstCap, $base + $tierIndex * 2);
         }
-        return $base * $scale;
+        // Ulepszenie (+0..+9) i zaklęcia dokładają procent do statystyk WARTOŚCIOWYCH
+        // (attack_min/max, defense, hp_bonus, magic_burst_min/max...), nie do samych
+        // "szans" (crit_chance/magic_burst_chance obsłużone wyżej z osobną formułą).
+        return $base * $scale * $gearMultiplier;
+    }
+
+    /** Bonus atrybutu zestawu klasowego zbroi (suma hełm+klatka+buty) dla danego poziomu i typu broni. Puste poniżej poziomu 5 (crafting jeszcze niedostępny). */
+    private function classArmorBonusForLevel(int $level, string $weaponType): array
+    {
+        if ($level < 5) {
+            return [];
+        }
+        $classKey = match ($weaponType) {
+            'sword', 'axe', 'bow' => 'w',
+            'wand', 'bell' => 'm',
+            'dagger' => 'a',
+            default => 'w',
+        };
+        $best = 5;
+        foreach (array_keys($this->classArmorBonusByTierLevel) as $tierLevel) {
+            if ($tierLevel <= $level && $tierLevel >= $best) {
+                $best = $tierLevel;
+            }
+        }
+        return $this->classArmorBonusByTierLevel[$best][$classKey] ?? [];
     }
 
     /** Symuluje JEDNĄ walkę (bez skilli/pasywek - "goła" postać referencyjna). */
@@ -690,6 +796,7 @@ class BalanceMonstersCommand extends Command
      */
     private function solveMonster(
         array $archetypes,
+        array $verifyArchetypes,
         int $iterations,
         int $tuneSims,
         int $verifySims,
@@ -738,9 +845,11 @@ class BalanceMonstersCommand extends Command
             }
         }
 
-        // Finalna weryfikacja z dużą liczbą symulacji, per archetyp.
+        // Finalna weryfikacja z dużą liczbą symulacji, per archetyp - na PEŁNYM zestawie
+        // (włącznie z ewentualnie wykluczonymi ze strojenia, np. `wand` - patrz komentarz
+        // przy wywołaniu w handle()), żeby problem był widoczny w raporcie, a nie ukryty.
         $verification = [];
-        foreach ($archetypes as $weaponType => $a) {
+        foreach ($verifyArchetypes as $weaponType => $a) {
             $verification[$weaponType] = $this->monteCarlo($a, $monster, $verifySims);
         }
 
