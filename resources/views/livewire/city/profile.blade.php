@@ -184,7 +184,7 @@
 
                     {{-- Pet tile --}}
                     @php $activePet = $character->activePet; @endphp
-                    <a href="{{ route('pets') }}"
+                    <a href="{{ route('city.pets', $character) }}"
                        title="{{ $activePet ? $activePet->name . ' · Poz. ' . $activePet->level : 'Brak aktywnego chowańca — przejdź do Petów' }}"
                        class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 group
                               {{ $activePet
