@@ -708,9 +708,11 @@ class GuildWarService
         } else {
             // Standard basic auto-attack (lub atak fizyczny)
             if ($weaponType === 'wand') {
-                $rawStatBonus = $str + $agi;
-                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+                // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
+                // notatka w EncounterService::calculateDamage().
+                $rawStatBonus = $int * 2;
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
                 $rawStatBonus = $str + $int;
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);

@@ -32,9 +32,11 @@ use Illuminate\Console\Command;
  * > diagnozą root cause (kalibracja bazowa nie uwzględniała realnego progresu gracza,
  * > przez co monstra padały w 1-2 hity), archetyp teraz zakłada:
  * > 1. **Ulepszenie +2** (`EXPECTED_UPGRADE_LEVEL`) na broni i całej zbroi - dosłownie
- * >    to, co gracz zgłosił jako trywializujące walkę. +10% bazowych statystyk za
- * >    poziom ulepszenia (zgodnie z `docs/modules/upgrades.md`), więc x1.20 na
- * >    wszystkich skalowanych statach (`attack_min/max`, `defense`, `hp_bonus` itd.).
+ * >    to, co gracz zgłosił jako trywializujące walkę. Bonus % czytany z REALNEJ
+ * >    krzywej ulepszeń (`ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL[2]` = 8%,
+ * >    Faza 5 rebalansu 2026-08-05 - przyspieszająca krzywa, NIE stare płaskie
+ * >    10%/poziom) na wszystkich skalowanych statach (`attack_min/max`, `defense`,
+ * >    `hp_bonus` itd.).
  * > 2. **Skromny, jeden przeciętny naroll zaklęcia na każdej sztuce ekwipunku**
  * >    (`EXPECTED_ENCHANT_BONUS_PCT`, dodatkowe x1.05) - przybliżenie dolnego zakresu
  * >    rozkładu Gaussa opisanego w `docs/modules/wizard.md` (zaklęcia skupiają się w
@@ -106,18 +108,22 @@ class BalanceMonstersCommand extends Command
      * dostępny tylko przez Arenę, nie przez zwykły zakup) - indeks tutaj = indeks
      * w oryginalnym $themes (potrzebny do formuły crit_chance = base + themeIndex*2).
      */
+    // Faza 5 rebalansu, rozdział D (2026-08-05): zsynchronizowane z nowym,
+    // spłaszczonym `scale` w `ShopEquipmentSeeder::$themes` (x1.20/tier). Przy okazji
+    // poprawiony pre-existing drift na tierze lvl10 (kalkulator miał 4.0, seeder
+    // faktycznie miał 4.6 - już nieistotne, oba teraz 1.44).
     private array $shopTiers = [
         0  => ['level' => 1,  'scale' => 1.2],
-        1  => ['level' => 10, 'scale' => 4.0],
-        2  => ['level' => 20, 'scale' => 10.0],
-        3  => ['level' => 30, 'scale' => 22.0],
-        4  => ['level' => 40, 'scale' => 45.0],
-        5  => ['level' => 50, 'scale' => 100.0],
-        // themeIndex 6 = gladiator (lvl 55) - pominięty w merchantTiers poniżej
-        7  => ['level' => 60, 'scale' => 250.0],
-        8  => ['level' => 70, 'scale' => 600.0],
-        9  => ['level' => 80, 'scale' => 1800.0],
-        10 => ['level' => 90, 'scale' => 4500.0],
+        1  => ['level' => 10, 'scale' => 1.44],
+        2  => ['level' => 20, 'scale' => 1.73],
+        3  => ['level' => 30, 'scale' => 2.07],
+        4  => ['level' => 40, 'scale' => 2.49],
+        5  => ['level' => 50, 'scale' => 2.99],
+        // themeIndex 6 = gladiator (lvl 55, scale 4.78) - pominięty w merchantTiers poniżej
+        7  => ['level' => 60, 'scale' => 3.58],
+        8  => ['level' => 70, 'scale' => 4.30],
+        9  => ['level' => 80, 'scale' => 5.16],
+        10 => ['level' => 90, 'scale' => 6.19],
     ];
 
     /**
@@ -170,18 +176,20 @@ class BalanceMonstersCommand extends Command
      * $themes (potrzebne do formuły crit_chance/magic_burst_chance = base + idx*2,
      * capowanej na 50/70 - INNE caps niż w sklepie, patrz scaleStat()).
      */
+    // Faza 5 rebalansu, rozdział D (2026-08-05): zsynchronizowane z nowym,
+    // spłaszczonym `scale` w `ItemTemplateSeeder::$themes` (x1.20/tier).
     private array $craftTiers = [
         0  => ['level' => 5,  'scale' => 2.0],
-        1  => ['level' => 15, 'scale' => 6.0],
-        2  => ['level' => 25, 'scale' => 15.0],
-        3  => ['level' => 35, 'scale' => 35.0],
-        4  => ['level' => 45, 'scale' => 80.0],
-        5  => ['level' => 55, 'scale' => 180.0],
-        6  => ['level' => 65, 'scale' => 400.0],
-        7  => ['level' => 75, 'scale' => 1000.0],
-        8  => ['level' => 85, 'scale' => 3000.0],
-        9  => ['level' => 95, 'scale' => 7000.0],
-        10 => ['level' => 99, 'scale' => 15000.0],
+        1  => ['level' => 15, 'scale' => 2.4],
+        2  => ['level' => 25, 'scale' => 2.88],
+        3  => ['level' => 35, 'scale' => 3.46],
+        4  => ['level' => 45, 'scale' => 4.15],
+        5  => ['level' => 55, 'scale' => 4.98],
+        6  => ['level' => 65, 'scale' => 5.97],
+        7  => ['level' => 75, 'scale' => 7.17],
+        8  => ['level' => 85, 'scale' => 8.60],
+        9  => ['level' => 95, 'scale' => 10.32],
+        10 => ['level' => 99, 'scale' => 12.38],
     ];
 
     /**
@@ -417,21 +425,19 @@ class BalanceMonstersCommand extends Command
                 ], $archetypes, array_keys($archetypes))
             );
 
-            // UWAGA (odkryte 2026-08-05 przy rekalibracji): `EncounterService::calculateDamage()`
-            // dla PODSTAWOWEGO ataku (nie-skillowego) różdżką (`wand`) czyta `getAttributeAttackBonus('sword', ...)`
-            // (STR+AGI, nie INT*2!) oraz `eq['attack_min'/'attack_max']` (nie `magic_attack_min/max`!)
-            // - `ItemTemplate` różdżek NIGDY nie ustawia `attack_min/max`, więc auto-atak
-            // różdżką bez czynnego skilla zadaje obrażenia bliskie zeru. To realny bug w
-            // silniku walki (poza zakresem tej rekalibracji - zgłoszony osobno), ale w TYM
-            // kalkulatorze - który celowo 1:1 odwzorowuje formuły z EncounterService.php -
-            // ten sam efekt objawia się jako trwałe, niepokonywalne 0% winrate archetypu
-            // `wand`. Włączenie takiego archetypu do UŚREDNIONEGO celu dobierania statystyk
-            // potwora (`solveMonster`) systematycznie zaniżałoby ATK/HP potworów dla
-            // WSZYSTKICH pozostałych, sprawnych archetypów (bo solver nigdy nie osiągnie
-            // 90% średniego winrate i bez końca lekko osłabia potwora) - dlatego `wand` jest
-            // wykluczony z fazy strojenia, ale nadal w pełni raportowany w tabeli weryfikacji
-            // poniżej dla widoczności problemu.
-            $tuningArchetypes = array_filter($archetypes, fn (string $w) => $w !== 'wand', ARRAY_FILTER_USE_KEY);
+            // UWAGA (naprawione 2026-08-05, follow-up rebalansu): `wand` był tu wcześniej
+            // wykluczany z fazy strojenia, bo `EncounterService::calculateDamage()` miał
+            // bug w PODSTAWOWYM ataku (nie-skillowym) różdżką - czytał fizyczny
+            // `getAttributeAttackBonus('sword', ...)` (STR+AGI) i `attack_min/max`
+            // zamiast magicznego `getAttributeAttackBonus('wand', ...)` (INT*2) i
+            // `magic_attack_min/max`, przez co auto-atak różdżką bez czynnego skilla
+            // zadawał obrażenia bliskie zeru (stałe 0% winrate). Bug naprawiony we
+            // wszystkich 5 silnikach walki (EncounterService, PvPEncounterService,
+            // GuildWarService, DungeonService, LocationEventService) oraz w tym
+            // kalkulatorze (`buildArchetype()`, gałąź `wand` przy obliczaniu
+            // `$rawStatBonus`/`$weaponAtkMin`/`$weaponAtkMax`) - `wand` z powrotem
+            // uczestniczy w strojeniu na równi z pozostałymi archetypami.
+            $tuningArchetypes = $archetypes;
 
             [$monster, $verification] = $this->solveMonster($tuningArchetypes, $archetypes, $tuneIterations, $tuneSims, $verifySims, $targetWinrate, $targetHitsMid, $targetDmgFraction);
 
@@ -574,7 +580,15 @@ class BalanceMonstersCommand extends Command
         // rekalibracji w docblocku klasy. Mnożnik dokłada się do WSZYSTKICH skalowanych
         // statów (broń + zbroja + biżuteria), tak jak w prawdziwej grze ulepszenie i
         // zaklęcia dotyczą każdej noszonej sztuki niezależnie.
-        $gearMultiplier = 1 + (self::EXPECTED_UPGRADE_LEVEL * 0.10) + self::EXPECTED_ENCHANT_BONUS_PCT;
+        //
+        // UWAGA (Faza 5 rebalansu, 2026-08-05): wcześniej liczone jako płaskie
+        // EXPECTED_UPGRADE_LEVEL*10% - to była 1:1 kopia STAREJ krzywej ulepszeń
+        // (10%/poziom). Po reworku Kuźni (przyspieszająca krzywa, patrz
+        // `ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL`) kalkulator musi czytać z
+        // TEJ SAMEJ tabeli, żeby nie liczyć wobec nieaktualnej, znacznie silniejszej
+        // (przy niskich poziomach) starej krzywej.
+        $upgradeBonusPct = \App\Infrastructure\Persistence\ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL[self::EXPECTED_UPGRADE_LEVEL] ?? 0;
+        $gearMultiplier = 1 + ($upgradeBonusPct / 100) + self::EXPECTED_ENCHANT_BONUS_PCT;
 
         foreach ($weaponProto as $stat => $base) {
             $eq[$stat] += $this->scaleStat($stat, $base, $weaponScale, $weaponTierIndex, $weaponCritCap, $weaponBurstCap, $gearMultiplier);
@@ -608,9 +622,14 @@ class BalanceMonstersCommand extends Command
         $agi += $classBonus['agi'] ?? 0;
 
         if ($weaponType === 'wand') {
-            $rawStatBonus = $str + $agi;
-            $weaponAtkMin = $eq['attack_min'];
-            $weaponAtkMax = max($weaponAtkMin, $eq['attack_max']);
+            // Naprawiony bug (2026-08-05, follow-up rebalansu): kalkulator do tej pory
+            // celowo odwzorowywał 1:1 STARĄ, błędną formułę auto-ataku różdżką z
+            // EncounterService (fizyczny STR+AGI + attack_min/max zamiast INT*2 +
+            // magic_attack_min/max) - teraz, gdy silnik walki został naprawiony,
+            // kalkulator musi liczyć tak samo, żeby dalej wiernie odzwierciedlać grę.
+            $rawStatBonus = $int * 2;
+            $weaponAtkMin = $eq['magic_attack_min'];
+            $weaponAtkMax = max($weaponAtkMin, $eq['magic_attack_max']);
         } elseif ($weaponType === 'bell') {
             $rawStatBonus = $str + $int;
             $weaponAtkMin = $eq['attack_min'];

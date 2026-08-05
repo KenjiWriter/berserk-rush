@@ -1186,9 +1186,12 @@ class MapStub extends Component
 
         $weaponType = $character->getEquippedWeaponType();
         if ($weaponType === 'wand') {
-            $statBonus = $character->getAttributeAttackBonus('sword');
-            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
-            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+            // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
+            // notatka w EncounterService::calculateDamage(). To tylko podgląd w UI,
+            // ale bez naprawy pokazywał graczowi zaniżone, mylące obrażenia.
+            $statBonus = $character->getAttributeAttackBonus('wand');
+            $weaponAtkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['magic_attack_max'] ?? 0);
         } elseif ($weaponType === 'bell') {
             $statBonus = $character->getAttributeAttackBonus('bell');
             $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);

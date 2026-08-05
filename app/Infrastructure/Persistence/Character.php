@@ -774,6 +774,28 @@ class Character extends Model
                 $stats['magic_burst_min'] += ($base['magic_burst_min'] ?? 0) + ($roll['magic_burst_min'] ?? 0) + ($upgrade['magic_burst_min'] ?? 0);
                 $stats['magic_burst_max'] += ($base['magic_burst_max'] ?? 0) + ($roll['magic_burst_max'] ?? 0) + ($upgrade['magic_burst_max'] ?? 0);
 
+                // Próg +5 Kuźni (Faza 5 rebalansu, 2026-08-05): broń główna ręka na
+                // poziomie ulepszenia +5 lub wyższym dostaje jednorazowy, płaski +5pp
+                // do SWOJEJ głównej mechaniki specjalnej (patrz docs/modules/combat.md
+                // pkt 2 "Specjalizacje Klas Broni"). Dodane tutaj (nie w każdym silniku
+                // walki osobno), żeby automatycznie objąć wszystkie 5 silników, które
+                // czytają $eq z tej metody (EncounterService, DungeonService,
+                // LocationEventService, PvPEncounterService, GuildWarService).
+                if (($item->template->slot ?? null) === 'main_hand' && $item->upgrade_level >= 5) {
+                    $weaponEffectStat = match ($item->template->sub_type ?? null) {
+                        'sword' => 'double_strike_chance',
+                        'axe' => 'bleed_chance',
+                        'bow' => 'armor_pen_pct',
+                        'dagger' => 'poison_chance',
+                        'bell' => 'magic_burst_chance',
+                        'wand' => 'magic_infusion_chance',
+                        default => null,
+                    };
+                    if ($weaponEffectStat !== null) {
+                        $stats[$weaponEffectStat] += 5;
+                    }
+                }
+
                 if (isset($roll['enchants']) && is_array($roll['enchants'])) {
                     foreach ($roll['enchants'] as $enchantType => $enchantValue) {
                         if ($enchantType === 'attack_power') {

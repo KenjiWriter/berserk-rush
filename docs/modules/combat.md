@@ -50,7 +50,20 @@ Wewnątrz tury występują 3 stany ataku:
 > punktów, tabela wartości per poziom) - patrz `docs/modules/profile_and_equipment.md`,
 > sekcja 4.
 >
-> **Specjalizacje Klas Broni (Unikalne Mechaniki Bojowe, 2026-08-03):** Każda z 6 typów broni w grze posiada własną, unikalną mechanikę bojową rozliczaną symetrycznie we wszystkich silnikach walki (`EncounterService`, `PvPEncounterService`, `GuildWarService`, `DungeonService`):
+> **Naprawiony bug auto-ataku różdżką (2026-08-05, follow-up rebalansu):** podstawowy
+> atak (bez aktywnego skilla) różdżką błędnie czytał fizyczny przelicznik
+> `getAttributeAttackBonus('sword', ...)` (STR+AGI) oraz `attack_min`/`attack_max`
+> zamiast magicznego `getAttributeAttackBonus('wand', ...)` (INT*2) oraz
+> `magic_attack_min`/`magic_attack_max` - ponieważ różdżki NIGDY nie ustawiają
+> `attack_min`/`attack_max` (patrz `ItemTemplateSeeder`), auto-atak różdżką bez
+> czynnego skilla zadawał obrażenia bliskie zeru. Naprawione we wszystkich 5
+> silnikach walki (`EncounterService`, `PvPEncounterService`, `GuildWarService`,
+> `DungeonService`, `LocationEventService`) oraz w dwóch miejscach UI liczących
+> podgląd statystyk (`MapStub::getPlayerCombatStats()`,
+> `ArenaCombat::getCombatStats()`) i w kalkulatorze balansu
+> (`BalanceMonstersCommand::buildArchetype()`).
+>
+> **Specjalizacje Klas Broni (Unikalne Mechaniki Bojowe, 2026-08-03):** Każda z 6 typów broni w grze posiada własną, unikalną mechanikę bojową rozliczaną symetrycznie we wszystkich silnikach walki (`EncounterService`, `PvPEncounterService`, `GuildWarService`, `DungeonService`, `LocationEventService`):
 > 1. **Dzwon (`bell`) - Rozbłysk Magii:** Broń hybrydowa zadająca atak fizyczny oraz mająca szansę (`magic_burst_chance`, %) na dołożenie osobnych, dodatkowych obrażeń magicznych (`magic_burst_min`-`magic_burst_max`).
 > 2. **Topór (`axe`) - Krwawienie:** Szansa (`bleed_chance`, %) na wywołanie krwawienia u celu zadającego obrażenia co turę w oparciu o **% z CURRENT HP (aktualnego HP celu)**.
 > 3. **Sztylety (`dagger`) - Otrucie:** Szansa (`poison_chance`, %) na wywołanie otrucia celu zadającego obrażenia co turę w oparciu o **% z MAX HP (maksymalnego HP celu)**.
@@ -123,6 +136,40 @@ dzięki nowym afiksom zaklęć `poison_chance`/`stun_chance` (bronie, 1-7%) oraz
   `PvPEncounterService` (Arena 1v1, obie strony), `GuildWarService` (Wojna Gildii 5v5,
   obie strony - przy tej okazji dodano tam też samą **infrastrukturę ogłuszenia**
   (`cc_turns` per uczestnik), której wcześniej brakowało w starciach 5v5).
+
+### 7b. Umiejętności Potworów i Archetyp Maga (Faza 2 rebalansu, 2026-08-05)
+Potwory przestały być czystymi workami HP - część z nich ma własne umiejętności bojowe,
+a wybrane (magowie) walczą obrażeniami magicznymi. To odpowiedź na feedback graczy
+("potwory powinny mieć swoje skille", "powinien być też mag wśród potworów").
+
+- **Przechowywanie:** skille potwora leżą w istniejącej kolumnie JSON `monsters.abilities`
+  (klucz `skills`), a NIE w osobnej tabeli - `Monster::getCombatSkills()` zwraca
+  znormalizowaną listę, `Monster::isCaster()` mówi czy potwór to mag (flaga
+  `is_caster` lub dowolny skill `is_magic`). Zero nowych tabel/FK - patrz seeder
+  `database/seeders/MonsterSeeder.php` (`$monsterSkills`).
+- **Obsługiwane `effect_type`** (podzbiór słownika skilli gracza z `docs/modules/skills.md`):
+  - `direct_dmg` - wzmocniony cios (mnożnik `value`). Z `is_magic:true` = pocisk maga,
+    obrażenia tagowane jako `magicDamage`.
+  - `poison`/`fire` - nakłada DoT na GRACZA (`poison` = % aktualnego HP gracza/turę,
+    `fire` = % max HP gracza/turę), przez `duration` tur, bez bezpośrednich obrażeń w turze rzutu.
+  - `stun`/`freeze` - cios (mnożnik `value`) + unieruchomienie GRACZA na `duration` tur
+    (gracz traci turę - lustro `monsterCcTurns`).
+  - `heal` - potwór leczy się o `value` % swojego max HP (nie atakuje tej tury).
+- **AI:** co turę potwora, jeśli skill ma `cooldown` 0 i rzut na `chance` (%) się powiedzie,
+  potwór go rzuca zamiast zwykłego ataku (niedeterministyczne). Skille potwora - jak skille
+  gracza w PvE - **zawsze trafiają** (bez rzutu na unik).
+- **Nowy stan po stronie gracza:** `playerDots` (DoT-y nałożone NA gracza, tykają na
+  turze potwora) i `playerCcTurns` (ogłuszenie/zamrożenie gracza) - lustrzane odbicie
+  istniejącego `activeDots`/`monsterCcTurns` (które działały tylko gracz→potwór).
+- **Parytet silników:** logika zreplikowana w `EncounterService` (PvE), `DungeonService`
+  (Lochy) i `LocationEventService` (Eventy Lokacji) - trzy osobne, zduplikowane
+  implementacje pętli walki (ta sama zasada duplikacji co dla skilli gracza, patrz
+  `docs/modules/skills.md` pkt 9). `PvPEncounterService`/`GuildWarService` NIE dotyczy
+  (tam nie ma potworów). Zmiana balansu skilli potworów wymaga ręcznej synchronizacji
+  tych 3 silników.
+- **Zakres MVP:** obsługiwane są direct_dmg/poison/fire/stun/freeze/heal dla walk 1v1.
+  Skille potworów w starciach grupowych (over-level, AOE) oraz monster-buffy
+  (`buff_phys_dmg`) to możliwe przyszłe rozszerzenie.
 
 ### 8. "Silny Przeciwko Bohaterom" (`strong_vs_hero`)
 Nowy afiks broni (5-20%, ten sam zakres co `strong_vs_<rasa>` - patrz

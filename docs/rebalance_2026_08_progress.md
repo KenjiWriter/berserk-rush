@@ -25,6 +25,26 @@ przewyższają ten punkt odniesienia.
 
 ---
 
+## 📊 Status w skrócie (2026-08-05)
+
+| Faza | Zakres | Status |
+|---|---|---|
+| **Faza 0** | Rekalibracja HP/ATK/DEF potworów `regular` pod realnego gracza (Monte Carlo) | ✅ Zrobione (3x przeliczone: początkowo, po rozdziale D, po naprawie różdżki) |
+| **Faza 1** | Spowolnienie krzywej XP (×6) | ✅ Zrobione |
+| **Faza 5** | Rework Kuźni: nowa krzywa bonusu +0..+9, szanse, kara `downgrade` od +6, progi +3/+5, spłaszczenie skali tierów (rozdz. D) | ✅ Zrobione (A-F) |
+| **Follow-upy** | Bug auto-ataku różdżką (5 silników), widoczność bonusu +3 w tooltipie, zbadanie kalibracji bossów | ✅ Zrobione (kalibracja `boss` celowo odłożona - patrz niżej) |
+| **Faza 2** | Umiejętności potworów (DoT/CC/heal/nuke) + archetyp Maga | ✅ Zrobione |
+| **Faza 3** | Czytelność logu walki (etykiety/ikony DoT/procków/CC, pasek statusów) | ⬜ Niezaczęte |
+| **Faza 4a** | Hybrydowe zestawy klasowe (STR+INT, AGI+INT) - wymaga też grafik | ⬜ Niezaczęte |
+| **Faza 4b** | Specjalne afiksy na zbroi/biżuterii (kolce, regen, odporność na CC) | ⬜ Niezaczęte |
+| **Ranga `boss`** | Rekalibracja Monte Carlo dla bossów | ⬜ Odłożone (metodologia kalkulatora niespójna z rosterem - patrz niżej) |
+| **Wdrożenie prod** | Reseed na produkcyjnej bazie + deploy | ⬜ Decyzja użytkownika |
+
+**Cała praca jest na branchu `rebalance-phase-0-1`.** Nie jest zmergowana do `main`
+(świadomie - rebalans niekompletny, a merge poszedłby na produkcję do graczy).
+
+---
+
 ## ✅ Zrobione
 
 ### Faza 0 — Rekalibracja potworów pod realnego gracza
@@ -92,63 +112,170 @@ przewyższają ten punkt odniesienia.
   (obsługuje `on_fail='downgrade'`/`'break'`/`'nothing'` - `'break'` był i jest
   zaimplementowany, ale żadna reguła go nie używa).
 - Przesiane: `php artisan db:seed --class=UpgradeRuleSeeder` na dev DB.
-- **Wciąż DO ZROBIENIA z potwierdzonego zakresu:** progi `+3` (darmowy bonus z puli
-  `EnchantmentStrategy::poolFor()`) i `+5` (wzmocnienie głównej mechaniki specjalnej
-  broni o +5pp) - patrz "Do zrobienia" niżej.
+### Faza 5 rozdział F — Progi +3/+5 (ZROBIONE)
+- **+3 darmowy bonus:** `UpgradeService::syncThresholdBonus()` wywoływane po każdej
+  próbie ulepszenia (sukces i porażka z `downgrade`) - przy przekroczeniu +3 w górę
+  losuje jeden bonus (`EnchantmentStrategy::generateRandomEnchantment()`) i zapisuje
+  w `roll_stats['upgrade_bonuses']` (`ItemInstance::setUpgradeBonus()`), przy spadku
+  poniżej +3 czyści go (`clearUpgradeBonuses()`). Wliczane do `getTotalStats()`
+  analogicznie do `enchants`.
+- **+5 wzmocnienie efektu broni:** dodane w JEDNYM miejscu -
+  `Character::getEquipmentStats()` - +5pp do głównej mechaniki specjalnej broni
+  głównej ręki (mapowanie broń→stat identyczne z `docs/modules/combat.md` pkt 2).
+  Dzięki temu automatycznie działa we wszystkich silnikach walki (PvE, Lochy, Eventy
+  Lokacji, PvP, Wojna Gildii) bez duplikowania kodu w każdym z nich.
+- Materiały do ulepszenia poprawione: krok do +3 bez materiałów (tylko złoto) - "sam
+  wstęp" do darmowego bonusu ma być tani, materiały wracają od +4.
+- Testy: `tests/Unit/UpgradeServiceTest.php` (próg +3 grant/clear),
+  `tests/Unit/UpgradeWeaponEffectBoostTest.php` (próg +5 na `poison_chance` sztyletu).
+- **Nie zrobione:** widoczność darmowego bonusu z +3 w UI tooltipa przedmiotu -
+  zgłoszone jako osobne zadanie w tle (task_id: `task_49bedf03`).
 
-### Weryfikacja
-- `php -l` czysty na wszystkich zmienionych plikach.
-- Pełny `php artisan test` (na branchu `rebalance-phase-0-1`, po Fazie 0+1+5A-C+E):
-  **te same 13 awarii co przed jakąkolwiek zmianą w tej serii** (potwierdzone kilka
-  razy przez `git stash` + ponowny przebieg) - to pre-existing problemy środowiska
-  (503 na kilku trasach Feature, jeden flaky test `OverLevelCombatTest`), niezwiązane
-  z tą pracą. `ExpBalancingTest`, `UpgradeServiceTest`, `ItemStatRollerTest` - wszystkie
-  zielone (zaktualizowane fixture pod nowe krzywe).
+### Faza 5 rozdział D — Spłaszczenie skalowania tierów przedmiotów (ZROBIONE)
+- **`ItemTemplateSeeder::$themes`** (`scale`): `2, 6, 15, 35, 80, 180, 400, 1000, 3000,
+  7000, 15000` → **`2.0, 2.4, 2.88, 3.46, 4.15, 4.98, 5.97, 7.17, 8.60, 10.32, 12.38`**
+  (stały mnożnik x1.20/tier, zakotwiczony na tierze 1 = 2.0).
+- **`ShopEquipmentSeeder::$themes`** (`scale`): `1.2, 4.6, 10, 22, 45, 100, [160
+  gladiator], 250, 600, 1800, 4500` → **`1.2, 1.44, 1.73, 2.07, 2.49, 2.99, [4.78
+  gladiator], 3.58, 4.30, 5.16, 6.19`** (gladiator - lvl 55, poza sekwencyjną
+  progresją - zachowuje swój stosunek x1.6 do tieru lvl 50, nie kolejny krok x1.20).
+- **`BalanceMonstersCommand`**: naprawiony `gearMultiplier` - wcześniej liczył bonus
+  ulepszenia jako `EXPECTED_UPGRADE_LEVEL * 0.10` (1:1 kopia STAREJ, płaskiej krzywej
+  Kuźni) - teraz czyta z realnej `ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL[2]` (8%).
+  Zsynchronizowane `$shopTiers`/`$craftTiers` z nowymi tabelami `scale` (przy okazji
+  naprawiony pre-existing drift: kalkulator miał `4.0` dla lvl10 sklepowego, realny
+  seeder miał `4.6` - teraz oba `1.44`).
+- **Zweryfikowane w DB:** różdżka lvl95→99 - `magic_attack` mediana ~31→37 (min) i
+  ~70→83.5 (max) = **+19%**, dokładnie w zakresie 15-25% zgłoszonym przez gracza
+  (wcześniej >110%, np. `15.8-26.3k` → `33.8-56.3k`).
+- **`php artisan balance:monsters --rank=regular` uruchomiony PONOWNIE** (drugi raz w
+  tej serii) z nowym `scale` + naprawionym `gearMultiplier` - nowe, dużo niższe
+  bezwzględnie staty (proporcjonalnie do dużo słabszej bazowej mocy przedmiotów po
+  spłaszczeniu) wklejone do `MonsterSeeder.php`, dev DB przesiana ponownie (`ItemTemplateSeeder`,
+  `ShopEquipmentSeeder`, `MonsterSeeder`).
+- Względna trudność (3-4 trafienia/90% winrate dla `regular`) - bez zmian, tylko
+  bezwzględne liczby są teraz dużo mniejsze (np. Mroczny Las HP~113 zamiast ~1600+
+  sprzed całego rebalansu).
 
-### Stan brancha/commitów
-- **Faza 0 + Faza 1 są SCOMMITOWANE** na branchu `rebalance-phase-0-1` (commit
-  `aa35311`, wypchnięty na `origin/rebalance-phase-0-1`).
-- **Faza 5 (A/B/C/E) jest NIESCOMMITOWANA**, zrobiona na tym samym branchu
-  (`rebalance-phase-0-1`), na wierzchu commita Fazy 0+1:
-```
-M app/Application/Items/UpgradeService.php
-M app/Infrastructure/Persistence/ItemInstance.php
-M database/seeders/UpgradeRuleSeeder.php
-M tests/Unit/ItemStatRollerTest.php
-M tests/Unit/UpgradeServiceTest.php
-```
-**Uwaga:** praca powstała najpierw na `main` (bo sesja nie wiedziała o istnieniu tego
-brancha), a w trakcie zauważono rozjazd i przełączono się (`git checkout
-rebalance-phase-0-1`, uncommitted changes pojechały razem) - stąd całość Fazy 0+1+5
-jest teraz na jednym branchu, gotowa do docelowego review/PR.
+### Follow-upy po Fazie 5 — WSZYSTKIE ZROBIONE (2026-08-05)
+- **Bug auto-ataku różdżką — NAPRAWIONY** we wszystkich 5 silnikach walki
+  (`EncounterService`, `PvPEncounterService`, `GuildWarService`, `DungeonService`,
+  `LocationEventService`), w 2 miejscach podglądu UI (`MapStub::getPlayerCombatStats()`,
+  `ArenaCombat::getCombatStats()`) oraz w kalkulatorze balansu
+  (`BalanceMonstersCommand::buildArchetype()`). Auto-atak różdżką czyta teraz
+  poprawnie `getAttributeAttackBonus('wand')` (INT*2) + `magic_attack_min/max` zamiast
+  fizycznego STR+AGI + `attack_min/max`. Weryfikacja: różdżka w kalkulatorze skoczyła
+  z 38% do 99.9% winrate. `wand` wróciła do fazy strojenia (wcześniej wykluczona jako
+  obejście buga), staty `regular` przeliczone TRZECI raz z pełnym zestawem 6
+  archetypów i wgrane do `MonsterSeeder.php`. Notatka w `docs/modules/combat.md` pkt 2.
+- **Kalibracja rangi `boss` — ZBADANA, CELOWO ODŁOŻONA.** Powód drastycznie niższych
+  HP z solvera to NIE błąd solvera, tylko niespójność `BalanceMonstersCommand::$allMonstersRaw`
+  (statyczna tabela referencyjna) z realnym rosterem: (1) każda mapa ma dziś 2 bossy,
+  kalkulator śledzi 1; (2) nazwa "Władca Krypty" w kalkulatorze koliduje z bossem
+  LOCHU z `DungeonSeeder.php` (inny potwór, inny poziom). Zastosowanie surowego wyniku
+  `--rank=boss` bez naprawy tej rozbieżności groziło cichym uszkodzeniem rosteru
+  bossów. Staty bossów cofnięte do oryginału - pełne uzasadnienie w docblocku
+  `MonsterSeeder.php`. Rekalibracja `boss` odłożona do osobnej sesji (wymaga
+  rozszerzenia `$allMonstersRaw` o drugi slot bossa per mapa + usunięcia kolizji nazw).
+- **Widoczność bonusu z +3 w tooltipie — ZROBIONA.** `resources/views/components/item-tooltip.blade.php`
+  renderuje teraz `roll_stats['upgrade_bonuses']` jako osobną, bursztynową sekcję
+  "Bonus Kuźni (+3)" (zarówno dla podglądanego przedmiotu, jak i w kolumnie porównania
+  z założonym). Zweryfikowane renderem: pokazuje np. "Bonus Kuźni (+3) — Crit Chance
+  +3%", ukryte gdy brak bonusu. Brak podwójnego liczenia (getResolvedBaseStats() nie
+  widzi upgrade_bonuses).
 
----
-
-## ⬜ Do zrobienia
-
-### Natychmiastowe follow-upy z Fazy 0
-- [ ] **Zbadać i naprawić bug auto-ataku różdżką** (patrz task_68da4768) — realny,
-  poważny bug osłabiający całą ścieżkę "mag" niezależnie od tego rebalansu.
-- [ ] **Osobno przeanalizować kalibrację rangi `boss`** — dlaczego solver z celami
-  8-12 trafień/65% winrate chce drastycznie obniżyć HP bossów względem obecnych
-  wartości. Dopiero potem ewentualnie zastosować `--rank=boss`.
+### Pozostałe (nie blokujące)
 - [ ] Rozważyć doprecyzowanie `EXPECTED_UPGRADE_LEVEL`/`EXPECTED_ENCHANT_BONUS_PCT`/
   `XP_CURVE_MULTIPLIER` na podstawie realnej telemetrii graczy po wdrożeniu (to były
   świadome, udokumentowane przybliżenia, nie idealnie zmierzone wartości).
-- [ ] **Zdecydować o wdrożeniu na produkcję**: reseed `MonsterSeeder` na prod DB +
-  deploy zmiany `LevelUpService` — to wpłynie na wszystkich obecnych graczy (postacie
-  w trakcie gry na starych, teraz nieaktualnych postępach paska XP nie zostaną
-  cofnięte, ale próg do następnego poziomu się zmieni).
+- [ ] **Zdecydować o wdrożeniu na produkcję**: reseed `MonsterSeeder`+`ItemTemplateSeeder`+
+  `ShopEquipmentSeeder`+`UpgradeRuleSeeder` na prod DB + deploy zmian kodu — to wpłynie
+  na wszystkich obecnych graczy (postacie w trakcie gry na starych progach paska XP nie
+  zostaną cofnięte, ale próg do następnego poziomu się zmieni; już posiadany ekwipunek
+  zachowa stare, wysokie wartości `roll_stats` aż do naturalnej wymiany — nowe dropy/
+  crafty/zakupy będą już na spłaszczonej skali).
 
-### Faza 2 — Umiejętności potworów + archetyp Maga (niezaczęte)
-- Nowy model `MonsterSkill` (migracja + relacja `Monster hasMany MonsterSkill`),
-  reużywający słownik `effect_type` z `CombatSkill`.
-- Rozszerzenie `EncounterService` (i `DungeonService` — reguła parytetu) o wykonywanie
-  skilla potwora w jego turze (cooldown + `chance_to_use`).
-- Oznaczenie 1-2 potworów/mapę jako `is_caster` z magicznym skillem (kandydaci już
-  istnieją w seederze z wysokim `int`: Szaman Krwi, Wędrowny Czarownik, Żywiołak
-  Płomieni, Mistrz Iluzji).
-- Rozszerzenie panelu `/admin/combat-skills` (lub nowy `/admin/monster-skills`).
+### Weryfikacja
+- `php -l` czysty na wszystkich zmienionych plikach; `php artisan view:cache` przechodzi
+  (tooltip Blade kompiluje się bez błędów).
+- Pełny `php artisan test` (na branchu `rebalance-phase-0-1`, po Fazie 0+1+5 A-F +
+  wszystkich follow-upach, wielokrotnie powtórzony po każdym kroku): **te same 13 awarii
+  co przed jakąkolwiek zmianą w tej serii** (potwierdzone przez `git stash` + ponowny
+  przebieg) - pre-existing problemy środowiska (503 na kilku trasach Feature, jeden
+  flaky test `OverLevelCombatTest`), niezwiązane z tą pracą. Cała reszta (237 testów)
+  zielona, w tym `ExpBalancingTest`, `UpgradeServiceTest`, `ItemStatRollerTest`,
+  `UpgradeWeaponEffectBoostTest`.
+
+### Stan brancha/commitów
+- **Faza 0 + Faza 1 + Faza 5 (A-C+E, stara wersja przed korektą) są SCOMMITOWANE** na
+  branchu `rebalance-phase-0-1` (commity `aa35311`, `90bb1c5`, plus merge `88cd99c` z
+  `main` - wypchnięte na `origin/rebalance-phase-0-1`).
+- **Faza 5 progi F (+3/+5), rozdział D ORAZ wszystkie follow-upy SĄ NIESCOMMITOWANE**,
+  zrobione na tym samym branchu, na wierzchu powyższych commitów. Zmienione pliki:
+```
+M app/Application/Combat/EncounterService.php
+M app/Application/Dungeon/DungeonService.php
+M app/Application/Guilds/GuildWarService.php
+M app/Application/Items/UpgradeService.php
+M app/Application/LocationEvents/LocationEventService.php
+M app/Application/PvP/PvPEncounterService.php
+M app/Console/Commands/BalanceMonstersCommand.php
+M app/Infrastructure/Persistence/Character.php
+M app/Infrastructure/Persistence/ItemInstance.php
+M app/Livewire/Adventure/MapStub.php
+M app/Livewire/City/ArenaCombat.php
+M database/seeders/ItemTemplateSeeder.php
+M database/seeders/MonsterSeeder.php
+M database/seeders/ShopEquipmentSeeder.php
+M database/seeders/UpgradeRuleSeeder.php
+M docs/modules/combat.md
+M docs/modules/upgrades.md
+M docs/rebalance_2026_08_progress.md
+M resources/views/components/item-tooltip.blade.php
+M tests/Unit/UpgradeServiceTest.php
+?? tests/Unit/UpgradeWeaponEffectBoostTest.php
+```
+(`tests/Unit/ItemStatRollerTest.php` był zmieniony wcześniej, ale trafił już do
+wcześniejszego commita Fazy 5 A-C+E - nie ma go więc w powyższej liście niescommitowanych.)
+
+**Dodatkowo Faza 2 (skille potworów) - też niescommitowane:**
+```
+M app/Infrastructure/Persistence/Monster.php          (getCombatSkills/isCaster)
+M app/Application/Combat/EncounterService.php          (playerDots/playerCc/monsterCastSkill)
+M app/Application/Dungeon/DungeonService.php           (parytet)
+M app/Application/LocationEvents/LocationEventService.php (parytet)
+M database/seeders/MonsterSeeder.php                   ($monsterSkills)
+M docs/modules/combat.md                               (sekcja 7b)
+?? tests/Feature/MonsterSkillsTest.php
+```
+
+### Faza 2 — Umiejętności potworów + archetyp Maga (ZROBIONA 2026-08-05)
+- **Przechowywanie bez nowej tabeli:** skille potwora w istniejącej kolumnie JSON
+  `monsters.abilities` (klucz `skills`). `Monster::getCombatSkills()` (normalizuje) +
+  `Monster::isCaster()`. Zero migracji/FK/N+1 - świadoma decyzja (kolumna już istniała,
+  udokumentowana jako "efekty specjalne", zawsze pusta `[]`).
+- **Silnik walki:** nowy stan po stronie gracza `playerDots` (DoT NA graczu) i
+  `playerCcTurns` (ogłuszenie gracza) - lustro istniejącego `activeDots`/`monsterCcTurns`
+  (dotąd tylko gracz→potwór). Potwór co turę może rzucić skill (cooldown 0 + rzut
+  `chance`) zamiast ataku. Obsługa `direct_dmg`(+is_magic=Mag)/`poison`/`fire`/`stun`/
+  `freeze`/`heal`. Skille potwora zawsze trafiają (bez uniku), jak skille gracza w PvE.
+- **Parytet 3 silników:** zreplikowane w `EncounterService`, `DungeonService`,
+  `LocationEventService` (potwory w Eventach Lokacji). PvP/GvG nie dotyczy.
+- **Seeder:** `MonsterSeeder::$monsterSkills` - ~18 potworów na 8 mapach dostało skille;
+  magowie (`is_caster`+`is_magic` direct_dmg): Mroczny Kultysta, Troll Szaman, Szaman
+  Krwi, Wędrowny Czarownik, Adepci Run, Żywiołak Lodu (freeze), Żywiołak Płomieni (fire),
+  Mistrz Iluzji, Czarownica Zgnilizny. Reszta: poison (pająki/skorpion), stun
+  (golemy/ogr), heal (troll/wiedźma). NIE wszystkie potwory - zwykłe walki nadal istnieją.
+- **Test:** `tests/Feature/MonsterSkillsTest.php` (4 testy: poison DoT tyka na graczu,
+  magic nuke tagowany, stun = gracz traci turę, brak skilli = zero zmian).
+- **Frontend:** tury skilli potworów degradują się gracefully w istniejącym silniku
+  animacji (`map-stub.blade.php` - `type:'skill_heal'`/`effectType:'heal'` pokazuje
+  leczenie, `type:'skill'`+`value:0` pokazuje rzut; paski HP czytają `playerHp`/`enemyHp`
+  z tury, więc DoT/heal odzwierciedlają się poprawnie). Bogatsze etykiety (osobne ikony
+  DoT gracza, licznik CC nad HP) to zakres Fazy 3 - tu tylko poprawność + brak zawieszenia.
+- **Poza MVP (przyszłość):** skille potworów w starciach grupowych/AOE, monster-buffy
+  (`buff_phys_dmg`), panel admina do edycji skilli potworów (dziś edycja przez JSON
+  `abilities` / seeder).
 
 ### Faza 3 — Czytelność logu walki (niezaczęte)
 - Jawne, otagowane wpisy w strukturze tury dla: krwawienia, przebicia pancerza,
@@ -163,28 +290,21 @@ jest teraz na jednym branchu, gotowa do docelowego review/PR.
 - 4b: specjalne mechaniki na zbroi/biżuterii (kolce, regeneracja, odporność na CC) w
   `EnchantmentStrategy` + silniki walki.
 
-### Faza 5 — dokończenie (progi +3/+5) - następny krok
-- **+3 "odblokowuje pierwszy bonus":** przy przekroczeniu +3 przedmiot automatycznie
-  dostaje jeden losowy bonus z puli `EnchantmentStrategy::poolFor()`, zapisany osobno
-  (`roll_stats['upgrade_bonuses']`, NIE `roll_stats['enchants']`) - nie konkuruje o
-  5-slotowy limit zwykłego zaklinania, usuwany jeśli poziom spadnie z powrotem
-  poniżej +3 (downgrade od +6).
-- **+5 "wzmacnia efekt broni":** +5 punktów procentowych do głównej mechaniki
-  specjalnej broni (Miecz→`double_strike_chance`, Topór→`bleed_chance`,
-  Łuk→`armor_pen_pct`, Sztylet→`poison_chance`, Dzwon→`magic_burst_chance`,
-  Różdżka→`magic_infusion_chance`) - flaga `upgrade_level >= 5`, do dodania w
-  silnikach walki (`EncounterService`, `DungeonService`, `LocationEventService`,
-  `PvPEncounterService`, `GuildWarService` - parytet 5 silników, patrz Faza 0c/2).
-- Rozdział D planu (spłaszczenie `scale` tierów `ItemTemplateSeeder`/
-  `ShopEquipmentSeeder`) - NIE zaczęte, wciąż aktualne niezależnie od korekty +9
-  (root cause przykładu z różdżką, patrz plan).
+### Faza 5 — CAŁA ZROBIONA (rozdziały A-F)
+- Progi +3/+5, rozdział D (spłaszczenie tierów) - **ZROBIONE**, patrz wyżej.
+- Widoczność bonusu z +3 w tooltipie przedmiotu - zgłoszone jako osobne zadanie
+  (`task_49bedf03`), nie blokuje reszty.
+- Jedyny pozostały wątek: `EXPECTED_UPGRADE_LEVEL`/`EXPECTED_ENCHANT_BONUS_PCT` w
+  kalkulatorze to wciąż moje przybliżenia (patrz follow-upy niżej) - do
+  doprecyzowania po realnej telemetrii.
 
 ---
 
 ## Jak kontynuować w nowej sesji
 
 1. Przeczytaj ten plik + pełny plan `C:\Users\macie\.claude\plans\distributed-greeting-thimble.md`.
-2. Upewnij się, że jesteś na branchu **`rebalance-phase-0-1`** (`git branch --show-current`) - tam jest cała dotychczasowa praca (Faza 0+1 scommitowane, Faza 5 A-C+E niescommitowane).
-3. `git status`/`git diff` żeby zobaczyć dokładny stan niescommitowanych zmian z Fazy 5.
-4. Zdecyduj: commitować teraz Fazę 5 (A-C+E), czy kontynuować od razu progami +3/+5 na tym samym stanie roboczym.
-5. Zacznij od progów +3/+5 (potwierdzone w zakresie, opisane wyżej) - potem follow-upy (bug różdżki, kalibracja bossów), potem rozdział D (spłaszczenie tierów).
+2. Upewnij się, że jesteś na branchu **`rebalance-phase-0-1`** (`git branch --show-current`) - tam jest cała dotychczasowa praca. Faza 0+1+5(A-C+E stara wersja) scommitowane, progi +3/+5 i rozdział D (najnowsze) niescommitowane.
+3. `git status`/`git diff` żeby zobaczyć dokładny stan niescommitowanych zmian.
+4. **Faza 5 jest w całości zrobiona** (A-F) - zdecyduj czy commitować teraz, czy kontynuować dalej na tym samym stanie roboczym.
+5. Następny krok wg planu: **Faza 2** (skille potworów + archetyp Maga) - albo najpierw follow-upy (bug różdżki `task_68da4768`, kalibracja rangi `boss`, widoczność bonusu +3 w tooltipie `task_49bedf03`), jeśli chcesz je odhaczyć przed nowymi funkcjami.
+6. **Uwaga o merge do `main`:** branch NIE jest jeszcze zmergowany do `main` (świadoma decyzja - rebalans niekompletny). Nie mergować bez wyraźnej prośby - to trafi na produkcję do prawdziwych graczy.

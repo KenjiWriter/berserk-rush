@@ -260,6 +260,13 @@ class LocationEventService
         $activeBuffs = [];
         $activePassives = [];
         $monsterCcTurns = 0;
+        // Skille potworów (Faza 2 rebalansu, parytet z EncounterService/DungeonService).
+        $playerDots = [];
+        $playerCcTurns = 0;
+        $monsterSkillCooldowns = [];
+        foreach ($monster->getCombatSkills() as $i => $mSkill) {
+            $monsterSkillCooldowns[$i] = max(0, (int) $mSkill['cooldown'] - 1);
+        }
 
         // HP/mana startowe tej walki: w evencie normalnym resetujemy do pełna
         // (jak zwykła eksploracja), w hardcore przenosimy 1:1 z poprzedniej walki w
@@ -406,6 +413,15 @@ class LocationEventService
                         $activeBuffs[$k]['duration']--;
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
+
+                    // Gracz ogłuszony/zamrożony przez skill potwora (Faza 2) - traci turę.
+                    if ($playerCcTurns > 0) {
+                        $playerCcTurns--;
+                        $turns[] = ['actor' => 'player', 'type' => 'crowd_controlled', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp, 'playerMana' => $playerMana];
+                        $turnCount++;
+                        continue;
+                    }
+
                     $activePassives = $this->evaluatePassivesForTurn($character, $equippedSkills, $playerMana);
 
                     $turn = $this->playerAttackStep($character, $monster, $scaledMonster, $playerHp, $monsterHp, $monsterMaxHp, $playerMaxHp, $equippedSkills, $activeCooldowns, $activeDots, $activeBuffs, $activePassives, $playerMana, $playerMaxMana);
@@ -435,12 +451,35 @@ class LocationEventService
                     continue;
                 }
 
-                if ($monsterCcTurns > 0) {
+                // --- Tura potwora (Faza 2: DoT na graczu tyka, cooldowny skilli maleją) ---
+                $playerDotDmg = 0;
+                $playerDotType = null;
+                if (!empty($playerDots)) {
+                    [$playerHp, $playerDotDmg, $playerDotType] = $this->tickPlayerDotsEvent($playerDots, $playerHp, $playerMaxHp);
+                }
+                foreach ($monsterSkillCooldowns as $i => $cd) {
+                    if ($cd > 0) $monsterSkillCooldowns[$i]--;
+                }
+
+                if ($playerHp <= 0) {
+                    $turn = ['actor' => 'enemy', 'type' => 'player_dot', 'value' => 0, 'crit' => false, 'playerHp' => 0, 'enemyHp' => $monsterHp];
+                } elseif ($monsterCcTurns > 0) {
                     $monsterCcTurns--;
                     $turn = ['actor' => 'enemy', 'type' => 'crowd_controlled', 'value' => 0, 'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => $monsterHp];
                 } else {
-                    $turn = $this->monsterAttackStep($monster, $scaledMonster, $character, $playerHp, $monsterHp, $activeBuffs);
+                    $chosenSkill = $this->chooseMonsterSkillEvent($monster, $monsterSkillCooldowns);
+                    if ($chosenSkill !== null) {
+                        $turn = $this->monsterCastSkillEvent($monster, $scaledMonster, $character, $playerHp, $monsterHp, $monsterMaxHp, $chosenSkill, $monsterSkillCooldowns, $playerDots, $playerCcTurns, $activeBuffs);
+                    } else {
+                        $turn = $this->monsterAttackStep($monster, $scaledMonster, $character, $playerHp, $monsterHp, $activeBuffs);
+                    }
                     $playerHp = $turn['playerHp'];
+                    $monsterHp = $turn['enemyHp'] ?? $monsterHp;
+                }
+
+                if ($playerDotDmg > 0) {
+                    $turn['playerDotDamage'] = $playerDotDmg;
+                    $turn['playerDotType'] = $playerDotType;
                 }
 
                 $turns[] = $turn;
@@ -851,6 +890,86 @@ class LocationEventService
         return ['actor' => 'enemy', 'type' => 'hit', 'value' => $damage, 'crit' => $isCrit, 'playerHp' => $newPlayerHp, 'enemyHp' => $monsterHp];
     }
 
+    // ==== Skille potworów (Faza 2 rebalansu, parytet z EncounterService/DungeonService) ====
+
+    private function tickPlayerDotsEvent(array &$playerDots, int $playerHp, int $playerMaxHp): array
+    {
+        $total = 0;
+        $lastType = null;
+        foreach ($playerDots as $k => $dot) {
+            $base = ($dot['type'] ?? 'poison') === 'fire' ? $playerMaxHp : $playerHp;
+            $dmg = max(1, (int) round($base * (float) ($dot['value'] ?? 0)));
+            $total += $dmg;
+            $lastType = $dot['type'] ?? 'poison';
+            $playerDots[$k]['duration']--;
+            if ($playerDots[$k]['duration'] <= 0) unset($playerDots[$k]);
+        }
+        return [max(0, $playerHp - $total), $total, $lastType];
+    }
+
+    private function chooseMonsterSkillEvent(Monster $monster, array $monsterSkillCooldowns): ?int
+    {
+        foreach ($monster->getCombatSkills() as $i => $skill) {
+            if (($monsterSkillCooldowns[$i] ?? 0) > 0) continue;
+            if ($skill['chance'] <= 0) continue;
+            if (mt_rand(1, 100) <= $skill['chance']) return $i;
+        }
+        return null;
+    }
+
+    private function monsterCastSkillEvent(Monster $monster, array $scaledMonster, Character $character, int $playerHp, int $monsterHp, int $monsterMaxHp, int $skillIndex, array &$monsterSkillCooldowns, array &$playerDots, int &$playerCcTurns, array $activeBuffs): array
+    {
+        $skill = $monster->getCombatSkills()[$skillIndex];
+        $monsterSkillCooldowns[$skillIndex] = (int) $skill['cooldown'];
+
+        if ($skill['effect_type'] === 'heal') {
+            $healPct = $skill['value'] > 0 ? $skill['value'] : 0.15;
+            $healAmount = max(1, (int) round($monsterMaxHp * $healPct));
+            return [
+                'actor' => 'enemy', 'type' => 'skill_heal', 'effectType' => 'heal',
+                'skillName' => $skill['name'], 'value' => $healAmount, 'heal' => $healAmount,
+                'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => min($monsterMaxHp, $monsterHp + $healAmount),
+            ];
+        }
+
+        if (in_array($skill['effect_type'], ['poison', 'fire'], true)) {
+            $playerDots[] = [
+                'type' => $skill['effect_type'], 'name' => $skill['name'],
+                'value' => $skill['value'] > 0 ? $skill['value'] : 0.05, 'duration' => max(1, (int) $skill['duration']),
+            ];
+            return [
+                'actor' => 'enemy', 'type' => 'skill', 'effectType' => $skill['effect_type'],
+                'skillName' => $skill['name'], 'value' => 0, 'crit' => false,
+                'playerHp' => $playerHp, 'enemyHp' => $monsterHp,
+            ];
+        }
+
+        $damageData = $this->calculateMonsterDamage($monster, $scaledMonster, $character);
+        $mult = $skill['value'] > 0 ? $skill['value'] : 1.0;
+        $damage = max(1, (int) round($damageData['total'] * $mult));
+        $defenseBuffValue = min(0.75, max(0, $activeBuffs['defense']['value'] ?? 0));
+        if ($defenseBuffValue > 0) {
+            $damage = max(1, (int) ($damage * (1 - $defenseBuffValue)));
+        }
+
+        $turn = [
+            'actor' => 'enemy', 'type' => 'hit', 'effectType' => $skill['effect_type'],
+            'skillName' => $skill['name'], 'value' => $damage, 'crit' => false,
+            'playerHp' => max(0, $playerHp - $damage), 'enemyHp' => $monsterHp,
+        ];
+        if ($skill['is_magic']) {
+            $turn['magicDamage'] = $damage;
+            $turn['isMagic'] = true;
+        }
+        if (in_array($skill['effect_type'], ['stun', 'freeze'], true)) {
+            $ccDuration = max(1, (int) $skill['duration']);
+            $playerCcTurns = max($playerCcTurns, $ccDuration);
+            $turn['ccType'] = $skill['effect_type'];
+            $turn['ccDuration'] = $ccDuration;
+        }
+        return $turn;
+    }
+
     private function evaluatePassivesForTurn(Character $character, $equippedSkills, int &$playerMana): array
     {
         $activePassives = [];
@@ -961,9 +1080,11 @@ class LocationEventService
             }
         } else {
             if ($weaponType === 'wand') {
-                $statBonus = $character->getAttributeAttackBonus('sword');
-                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+                // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
+                // notatka w EncounterService::calculateDamage().
+                $statBonus = $character->getAttributeAttackBonus('wand');
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
                 $statBonus = $character->getAttributeAttackBonus('bell');
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);

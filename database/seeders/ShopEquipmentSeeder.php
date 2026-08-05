@@ -65,6 +65,16 @@ class ShopEquipmentSeeder extends Seeder
         ];
 
         // Skala jest niższa niż w craftingu (~80%) -> teraz zmieniona na 1.2 aby Miecz Nowicjusza był lepszy od Zardzewiałego
+        //
+        // UWAGA (Faza 5 rebalansu, rozdział D, 2026-08-05): analogicznie do
+        // ItemTemplateSeeder - progresja tierów spłaszczona do stałego mnożnika x1.20
+        // (+20%) między kolejnymi poziomami, zakotwiczona na tierze 1 (scale=1.2).
+        // Gladiator (lvl 55, osobny branch pod Arenę - patrz $merchantTarget) NIE jest
+        // częścią sekwencyjnej progresji (gracz nie "przechodzi" przez niego levelując
+        // normalnie) - jego scale (4.78) zachowuje dotychczasowy stosunek do tieru
+        // lvl 50 (x1.6), a nie kolejny krok x1.20 w łańcuchu. WAŻNE:
+        // `BalanceMonstersCommand::$shopTiers` ma WŁASNĄ, zduplikowaną kopię tej
+        // tabeli (kalkulator balansu) - musi być aktualizowana identycznie.
         $themes = [
             [
                 'level' => 1, 'scale' => 1.2,
@@ -76,35 +86,35 @@ class ShopEquipmentSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 10, 'scale' => 4.6,
+                'level' => 10, 'scale' => 1.44,
                 'names' => [
                     'sword' => 'Rycerski Miecz', 'armor' => 'Stalowa Zbroja', 'helmet' => 'Hełm Rycerza', 
                     'boots' => 'Trzewiki Rycerza', 'amulet' => 'Amulet Rycerza', 'ring' => 'Pierścień Rycerza'
                 ]
             ],
             [
-                'level' => 20, 'scale' => 10.0,
+                'level' => 20, 'scale' => 1.73,
                 'names' => [
                     'sword' => 'Wzmocniony Stalowy Miecz', 'armor' => 'Wzmocniona Stalowa Zbroja', 'helmet' => 'Wzmocniony Stalowy Hełm', 
                     'boots' => 'Wzmocnione Stalowe Trzewiki', 'amulet' => 'Wzmocniony Amulet', 'ring' => 'Wzmocniony Pierścień'
                 ]
             ],
             [
-                'level' => 30, 'scale' => 22.0,
+                'level' => 30, 'scale' => 2.07,
                 'names' => [
                     'sword' => 'Ostrze Szlacheckie', 'armor' => 'Zbroja Szlachcica', 'helmet' => 'Hełm Szlachcica', 
                     'boots' => 'Trzewiki Wzmocnione Zaklęciem', 'amulet' => 'Szlachecki Amulet', 'ring' => 'Szlachecki Pierścień'
                 ]
             ],
             [
-                'level' => 40, 'scale' => 45.0,
+                'level' => 40, 'scale' => 2.49,
                 'names' => [
                     'sword' => 'Ostrze Weterana', 'armor' => 'Pancerz Weterana', 'helmet' => 'Hełm Weterana', 
                     'boots' => 'Trzewiki Weterana', 'amulet' => 'Amulet Weterana', 'ring' => 'Pierścień Weterana'
                 ]
             ],
             [
-                'level' => 50, 'scale' => 100.0,
+                'level' => 50, 'scale' => 2.99,
                 'names' => [
                     'sword' => 'Mistrzowski Miecz', 'armor' => 'Mistrzowski Pancerz', 'helmet' => 'Mistrzowski Hełm', 
                     'boots' => 'Mistrzowskie Trzewiki', 'amulet' => 'Mistrzowski Amulet', 'ring' => 'Mistrzowski Pierścień'
@@ -112,35 +122,35 @@ class ShopEquipmentSeeder extends Seeder
             ],
             // Zestaw Gladiatora na poziom 55 (Arena)
             [
-                'level' => 55, 'scale' => 160.0, 'merchant' => 'gladiator',
+                'level' => 55, 'scale' => 4.78, 'merchant' => 'gladiator',
                 'names' => [
                     'sword' => 'Miecz Niezwyciężonego Gladiatora', 'armor' => 'Pancerz Złotego Lwa', 'helmet' => 'Hełm Krwawej Areny', 
                     'boots' => 'Sabatony Triumfu', 'amulet' => 'Amulet Czempiona', 'ring' => 'Pierścień Chwały'
                 ]
             ],
             [
-                'level' => 60, 'scale' => 250.0,
+                'level' => 60, 'scale' => 3.58,
                 'names' => [
                     'sword' => 'Runiczny Miecz', 'armor' => 'Runiczny Pancerz', 'helmet' => 'Runiczny Hełm', 
                     'boots' => 'Runiczne Trzewiki', 'amulet' => 'Runiczny Amulet', 'ring' => 'Runiczny Pierścień'
                 ]
             ],
             [
-                'level' => 70, 'scale' => 600.0,
+                'level' => 70, 'scale' => 4.30,
                 'names' => [
                     'sword' => 'Bojowy Miecz', 'armor' => 'Bojowy Pancerz', 'helmet' => 'Bojowy Hełm', 
                     'boots' => 'Bojowe Trzewiki', 'amulet' => 'Bojowy Amulet', 'ring' => 'Bojowy Pierścień'
                 ]
             ],
             [
-                'level' => 80, 'scale' => 1800.0,
+                'level' => 80, 'scale' => 5.16,
                 'names' => [
                     'sword' => 'Obsydianowy Miecz', 'armor' => 'Obsydianowy Pancerz', 'helmet' => 'Obsydianowy Hełm', 
                     'boots' => 'Obsydianowe Trzewiki', 'amulet' => 'Obsydianowy Amulet', 'ring' => 'Obsydianowy Pierścień'
                 ]
             ],
             [
-                'level' => 90, 'scale' => 4500.0,
+                'level' => 90, 'scale' => 6.19,
                 'names' => [
                     'sword' => 'Tytanowy Miecz', 'armor' => 'Tytanowy Pancerz', 'helmet' => 'Tytanowy Hełm', 
                     'boots' => 'Tytanowe Trzewiki', 'amulet' => 'Tytanowy Amulet', 'ring' => 'Tytanowy Pierścień'

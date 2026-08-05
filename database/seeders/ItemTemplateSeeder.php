@@ -214,6 +214,16 @@ class ItemTemplateSeeder extends Seeder
             'ring'     => ['type' => 'accessory', 'slot' => 'ring', 'stats' => ['hp_bonus' => 7.5, 'defense' => 1, 'crit_chance' => 1]],
         ];
 
+        // UWAGA (Faza 5 rebalansu, rozdział D, 2026-08-05): `scale` między kolejnymi
+        // tierami był wcześniej +150% do +283% (np. 15000/7000 na ostatnim skoku
+        // 95->99, "ponad 110%" zgłoszone przez gracza) - żadna krzywa ulepszeń nie
+        // mogła w takiej sytuacji utrzymać starego, w pełni wykutego przedmiotu
+        // konkurencyjnym choćby z JEDNYM tierem wyżej ("broń 55 lvl +5 > broń 65 lvl
+        // +0" z prośby gracza było matematycznie niemożliwe). Nowa progresja to stały
+        // mnożnik x1.20 (+20%, środek zakresu 15-25% podanego przez gracza) między
+        // kolejnymi tierami, zakotwiczony na dotychczasowej wartości tieru 1 (scale=2).
+        // WAŻNE: `BalanceMonstersCommand::$craftTiers` ma WŁASNĄ, zduplikowaną kopię
+        // tej tabeli (kalkulator balansu) - musi być aktualizowana identycznie.
         $themes = [
             [
                 'level' => 5, 'scale' => 2,
@@ -227,7 +237,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 15, 'scale' => 6,
+                'level' => 15, 'scale' => 2.4,
                 'names' => [
                     'sword' => 'Ostrze Króla Lasu', 'axe' => 'Ciężki Topór Enta', 'bow' => 'Łuk Nocnego Myśliwego',
                     'bell' => 'Dzwon Prastarych Drzew', 'wand' => 'Kostur z Serca Suchodrzewu', 'dagger' => 'Zatrute Sztylety Goblina',
@@ -238,7 +248,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 25, 'scale' => 15,
+                'level' => 25, 'scale' => 2.88,
                 'names' => [
                     'sword' => 'Zardzewiały Miecz Szkieletu', 'axe' => 'Ząbkowany Topór Upiora', 'bow' => 'Łuk z Kości Zjaw',
                     'bell' => 'Dzwon Pokutny', 'wand' => 'Różdżka Potępionych Dusz', 'dagger' => 'Sztylety Skrytobójcy Dusz',
@@ -249,7 +259,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 35, 'scale' => 35,
+                'level' => 35, 'scale' => 3.46,
                 'names' => [
                     'sword' => 'Maczuga Ogra', 'axe' => 'Rozłupywacz Czaszek', 'bow' => 'Łuk z Kości Jaskiniowca',
                     'bell' => 'Dzwon Szamana Trolli', 'wand' => 'Różdżka Ziemnej Magii', 'dagger' => 'Sztylety z Zębów Nietoperza',
@@ -260,7 +270,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 45, 'scale' => 80,
+                'level' => 45, 'scale' => 4.15,
                 'names' => [
                     'sword' => 'Glewia Wodza Orków', 'axe' => 'Topór Berserkera Orków', 'bow' => 'Łuk Krwawego Zwiadu',
                     'bell' => 'Dzwon Krwawego Rytuału', 'wand' => 'Kostur Szamana Krwi', 'dagger' => 'Sztylety Pustkowi',
@@ -271,7 +281,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 55, 'scale' => 180,
+                'level' => 55, 'scale' => 4.98,
                 'names' => [
                     'sword' => 'Ostrze z Zęba Hydry', 'axe' => 'Zbutwiały Topór Topielca', 'bow' => 'Łuk z Wierzby Płaczącej',
                     'bell' => 'Dzwon Utopców', 'wand' => 'Różdżka Wiedźmiej Straży', 'dagger' => 'Zatrute Kły Hydry',
@@ -282,7 +292,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 65, 'scale' => 400,
+                'level' => 65, 'scale' => 5.97,
                 'names' => [
                     'sword' => 'Miecz Wykuty z Bazaltu', 'axe' => 'Topór Kamiennego Golema', 'bow' => 'Łuk z Piór Harpii',
                     'bell' => 'Dzwon Górskiego Echa', 'wand' => 'Różdżka z Górskiego Kryształu', 'dagger' => 'Sztylety Skalnego Kła',
@@ -293,7 +303,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 75, 'scale' => 1000,
+                'level' => 75, 'scale' => 7.17,
                 'names' => [
                     'sword' => 'Piekielny Miecz Smoka', 'axe' => 'Topór Smoczego Gniewu', 'bow' => 'Smoczy Łuk',
                     'bell' => 'Dzwon Oddechu Smoka', 'wand' => 'Różdżka Smoczej Łuski', 'dagger' => 'Sztylety z Cienia Smoka',
@@ -304,7 +314,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 85, 'scale' => 3000,
+                'level' => 85, 'scale' => 8.60,
                 'names' => [
                     'sword' => 'Miecz Runicznego Gwardzisty', 'axe' => 'Topór Magicznego Płomienia', 'bow' => 'Łuk z Eterycznej Energii',
                     'bell' => 'Dzwon Mistrza Iluzji', 'wand' => 'Kostur Arcymaga', 'dagger' => 'Sztylety z Czystej Energii',
@@ -315,7 +325,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 95, 'scale' => 7000,
+                'level' => 95, 'scale' => 10.32,
                 'names' => [
                     'sword' => 'Ostrze Skażonego Rycerza', 'axe' => 'Topór Czarownicy Zgnilizny', 'bow' => 'Łuk Tkany z Pajęczyny Plagi',
                     'bell' => 'Dzwon Ostatniego Tchnienia', 'wand' => 'Różdżka Zmutowanego Czarownika', 'dagger' => 'Sztylety Jadu Pająka Plagi',
@@ -326,7 +336,7 @@ class ItemTemplateSeeder extends Seeder
                 ]
             ],
             [
-                'level' => 99, 'scale' => 15000,
+                'level' => 99, 'scale' => 12.38,
                 'names' => [
                     'sword' => 'Miecz Pana Zniszczenia', 'axe' => 'Rozdzieracz Światów', 'bow' => 'Łuk Apokalipsy',
                     'bell' => 'Dzwon Sądu Ostatecznego', 'wand' => 'Kostur Władcy Mroku', 'dagger' => 'Sztylety Ostatecznego Zniszczenia',

@@ -134,19 +134,22 @@ class UpgradeService
         $chance = $cost['chance'];
         $roll = mt_rand(1, 100);
 
+        $levelBeforeAttempt = $item->upgrade_level;
+
         if ($roll <= $chance) {
             $item->upgrade_level += 1;
             $item->save();
+            $this->syncThresholdBonus($item, $levelBeforeAttempt);
 
             // Quest progress
             app(\App\Application\Quests\QuestService::class)->progressQuest(
-                $character, 
-                'action', 
+                $character,
+                'action',
                 ['upgrade_item', 'upgrade_to_' . $item->upgrade_level]
             );
 
             return [
-                'success' => true, 
+                'success' => true,
                 'message' => "Ulepszenie zakończone sukcesem! {$item->template->name} ma teraz poziom +{$item->upgrade_level}."
             ];
         } else {
@@ -159,6 +162,7 @@ class UpgradeService
             if ($failAction === 'downgrade' && $item->upgrade_level > 0) {
                 $item->upgrade_level -= 1;
                 $item->save();
+                $this->syncThresholdBonus($item, $levelBeforeAttempt);
                 $failMessage .= " Poziom przedmiotu spadł do +{$item->upgrade_level}.";
             } elseif ($failAction === 'break') {
                 $item->delete();
@@ -171,6 +175,28 @@ class UpgradeService
                 'success' => false,
                 'message' => $failMessage
             ];
+        }
+    }
+
+    /**
+     * Próg +3 Kuźni (Faza 5 rebalansu, 2026-08-05): gdy przedmiot PRZEKRACZA +3
+     * (2->3), dostaje darmowy losowy bonus z puli zaklęć (patrz
+     * ItemInstance::setUpgradeBonus()). Gdy SPADA poniżej +3 (3->2, np. przez karę
+     * `downgrade` na wyższych poziomach), bonus jest usuwany. Wywoływana raz na
+     * próbę ulepszenia (poziom zmienia się zawsze o dokładnie 1), więc porównanie
+     * "przed"/"po" jednoznacznie wykrywa przekroczenie progu w dowolną stronę.
+     */
+    private function syncThresholdBonus(ItemInstance $item, int $levelBefore): void
+    {
+        $levelAfter = $item->upgrade_level;
+
+        if ($levelBefore < 3 && $levelAfter >= 3) {
+            $enchantment = app(\App\Domain\Wizard\EnchantmentStrategy::class)->generateRandomEnchantment($item);
+            $item->setUpgradeBonus($enchantment['type'], $enchantment['value']);
+            $item->save();
+        } elseif ($levelBefore >= 3 && $levelAfter < 3) {
+            $item->clearUpgradeBonuses();
+            $item->save();
         }
     }
 }

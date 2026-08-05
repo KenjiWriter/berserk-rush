@@ -155,6 +155,15 @@ class DungeonService
         $activeBuffs = [];
         $activePassives = [];
         $monsterCcTurns = 0;
+        // Skille potworów (Faza 2 rebalansu, parytet z EncounterService) - DoT/CC na
+        // graczu + cooldowny skilli potwora. W lochu HP przenosi się między etapami,
+        // ale te efekty są per-walka (resetowane tu, na starcie każdego etapu).
+        $playerDots = [];
+        $playerCcTurns = 0;
+        $monsterSkillCooldowns = [];
+        foreach ($monster->getCombatSkills() as $i => $mSkill) {
+            $monsterSkillCooldowns[$i] = max(0, (int) $mSkill['cooldown'] - 1);
+        }
 
         // Symuluj walkę z aktualnym HP i MP gracza. HP i mana przenoszą się między etapami
         // (brak pełnego resetu jak w EncounterService::start()) - regeneracja many w trakcie
@@ -420,6 +429,22 @@ class DungeonService
                         if ($activeBuffs[$k]['duration'] <= 0) unset($activeBuffs[$k]);
                     }
 
+                    // Gracz ogłuszony/zamrożony przez skill potwora (Faza 2) - traci turę.
+                    if ($playerCcTurns > 0) {
+                        $playerCcTurns--;
+                        $turns[] = [
+                            'actor' => 'player',
+                            'type' => 'crowd_controlled',
+                            'value' => 0,
+                            'crit' => false,
+                            'playerHp' => $playerHp,
+                            'enemyHp' => $monsterHp,
+                            'playerMana' => $playerMana,
+                        ];
+                        $turnCount++;
+                        continue;
+                    }
+
                     $activePassives = $this->evaluatePassivesForTurn($character, $equippedSkills, $playerMana);
 
                     $turn = $this->playerAttackStep(
@@ -482,7 +507,26 @@ class DungeonService
                     continue;
                 }
 
-                if ($monsterCcTurns > 0) {
+                // --- Tura potwora (Faza 2: DoT na graczu tyka, cooldowny skilli maleją) ---
+                $playerDotDmg = 0;
+                $playerDotType = null;
+                if (!empty($playerDots)) {
+                    [$playerHp, $playerDotDmg, $playerDotType] = $this->tickPlayerDotsDungeon($playerDots, $playerHp, $playerMaxHp);
+                }
+                foreach ($monsterSkillCooldowns as $i => $cd) {
+                    if ($cd > 0) $monsterSkillCooldowns[$i]--;
+                }
+
+                if ($playerHp <= 0) {
+                    $turn = [
+                        'actor' => 'enemy',
+                        'type' => 'player_dot',
+                        'value' => 0,
+                        'crit' => false,
+                        'playerHp' => 0,
+                        'enemyHp' => $monsterHp,
+                    ];
+                } elseif ($monsterCcTurns > 0) {
                     $monsterCcTurns--;
                     $turn = [
                         'actor' => 'enemy',
@@ -493,8 +537,19 @@ class DungeonService
                         'enemyHp' => $monsterHp,
                     ];
                 } else {
-                    $turn = $this->monsterAttackStep($monster, $character, $playerHp, $monsterHp, $activeBuffs, $diffMultiplier);
+                    $chosenSkill = $this->chooseMonsterSkillDungeon($monster, $monsterSkillCooldowns);
+                    if ($chosenSkill !== null) {
+                        $turn = $this->monsterCastSkillDungeon($monster, $character, $playerHp, $monsterHp, $monsterMaxHp, $chosenSkill, $monsterSkillCooldowns, $playerDots, $playerCcTurns, $activeBuffs, $diffMultiplier);
+                    } else {
+                        $turn = $this->monsterAttackStep($monster, $character, $playerHp, $monsterHp, $activeBuffs, $diffMultiplier);
+                    }
                     $playerHp = $turn['playerHp'];
+                    $monsterHp = $turn['enemyHp'] ?? $monsterHp;
+                }
+
+                if ($playerDotDmg > 0) {
+                    $turn['playerDotDamage'] = $playerDotDmg;
+                    $turn['playerDotType'] = $playerDotType;
                 }
 
                 $turns[] = $turn;
@@ -950,6 +1005,88 @@ class DungeonService
         ];
     }
 
+    // ==== Skille potworów (Faza 2 rebalansu, parytet z EncounterService) ====
+    // Wersje operujące na LOKALNYCH zmiennych stanu (DungeonService jest proceduralny,
+    // nie trzyma stanu walki w polach obiektu jak EncounterService).
+
+    private function tickPlayerDotsDungeon(array &$playerDots, int $playerHp, int $playerMaxHp): array
+    {
+        $total = 0;
+        $lastType = null;
+        foreach ($playerDots as $k => $dot) {
+            $base = ($dot['type'] ?? 'poison') === 'fire' ? $playerMaxHp : $playerHp;
+            $dmg = max(1, (int) round($base * (float) ($dot['value'] ?? 0)));
+            $total += $dmg;
+            $lastType = $dot['type'] ?? 'poison';
+            $playerDots[$k]['duration']--;
+            if ($playerDots[$k]['duration'] <= 0) unset($playerDots[$k]);
+        }
+        return [max(0, $playerHp - $total), $total, $lastType];
+    }
+
+    private function chooseMonsterSkillDungeon($monster, array $monsterSkillCooldowns): ?int
+    {
+        foreach ($monster->getCombatSkills() as $i => $skill) {
+            if (($monsterSkillCooldowns[$i] ?? 0) > 0) continue;
+            if ($skill['chance'] <= 0) continue;
+            if (mt_rand(1, 100) <= $skill['chance']) return $i;
+        }
+        return null;
+    }
+
+    private function monsterCastSkillDungeon($monster, Character $character, int $playerHp, int $monsterHp, int $monsterMaxHp, int $skillIndex, array &$monsterSkillCooldowns, array &$playerDots, int &$playerCcTurns, array $activeBuffs, float $diffMultiplier = 1.0): array
+    {
+        $skill = $monster->getCombatSkills()[$skillIndex];
+        $monsterSkillCooldowns[$skillIndex] = (int) $skill['cooldown'];
+
+        if ($skill['effect_type'] === 'heal') {
+            $healPct = $skill['value'] > 0 ? $skill['value'] : 0.15;
+            $healAmount = max(1, (int) round($monsterMaxHp * $healPct));
+            return [
+                'actor' => 'enemy', 'type' => 'skill_heal', 'effectType' => 'heal',
+                'skillName' => $skill['name'], 'value' => $healAmount, 'heal' => $healAmount,
+                'crit' => false, 'playerHp' => $playerHp, 'enemyHp' => min($monsterMaxHp, $monsterHp + $healAmount),
+            ];
+        }
+
+        if (in_array($skill['effect_type'], ['poison', 'fire'], true)) {
+            $playerDots[] = [
+                'type' => $skill['effect_type'], 'name' => $skill['name'],
+                'value' => $skill['value'] > 0 ? $skill['value'] : 0.05, 'duration' => max(1, (int) $skill['duration']),
+            ];
+            return [
+                'actor' => 'enemy', 'type' => 'skill', 'effectType' => $skill['effect_type'],
+                'skillName' => $skill['name'], 'value' => 0, 'crit' => false,
+                'playerHp' => $playerHp, 'enemyHp' => $monsterHp,
+            ];
+        }
+
+        $damageData = $this->calculateMonsterDamage($monster, $character, $diffMultiplier);
+        $mult = $skill['value'] > 0 ? $skill['value'] : 1.0;
+        $damage = max(1, (int) round($damageData['total'] * $mult));
+        $defenseBuffValue = min(0.75, max(0, $activeBuffs['defense']['value'] ?? 0));
+        if ($defenseBuffValue > 0) {
+            $damage = max(1, (int) ($damage * (1 - $defenseBuffValue)));
+        }
+
+        $turn = [
+            'actor' => 'enemy', 'type' => 'hit', 'effectType' => $skill['effect_type'],
+            'skillName' => $skill['name'], 'value' => $damage, 'crit' => false,
+            'playerHp' => max(0, $playerHp - $damage), 'enemyHp' => $monsterHp,
+        ];
+        if ($skill['is_magic']) {
+            $turn['magicDamage'] = $damage;
+            $turn['isMagic'] = true;
+        }
+        if (in_array($skill['effect_type'], ['stun', 'freeze'], true)) {
+            $ccDuration = max(1, (int) $skill['duration']);
+            $playerCcTurns = max($playerCcTurns, $ccDuration);
+            $turn['ccType'] = $skill['effect_type'];
+            $turn['ccDuration'] = $ccDuration;
+        }
+        return $turn;
+    }
+
     private function evaluatePassivesForTurn(Character $character, $equippedSkills, int &$playerMana): array
     {
         $activePassives = [];
@@ -1087,9 +1224,11 @@ class DungeonService
         } else {
             // Standard basic auto-attack (lub atak fizyczny)
             if ($weaponType === 'wand') {
-                $statBonus = $character->getAttributeAttackBonus('sword'); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
-                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+                // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
+                // notatka w EncounterService::calculateDamage().
+                $statBonus = $character->getAttributeAttackBonus('wand');
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
                 $statBonus = $character->getAttributeAttackBonus('bell');
                 $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);

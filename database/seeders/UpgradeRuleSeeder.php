@@ -28,11 +28,14 @@ class UpgradeRuleSeeder extends Seeder
         // Faza 5 rebalansu (2026-08-05): nowe szanse powodzenia podane wprost przez
         // gracza (100/100/95/90/85/75/65/55/45), i kara za porażkę - od +6 wzwyż
         // nieudane ulepszenie obniża przedmiot o 1 poziom ('downgrade'), do +5 bez
-        // kary (tylko strata surowców/złota, jak dotychczas).
+        // kary (tylko strata surowców/złota, jak dotychczas). Materiały ("ulepszacze"):
+        // krok do +3 celowo BEZ materiałów (tylko złoto) - próg +3 daje darmowy bonus
+        // (patrz UpgradeService::syncThresholdBonus()), więc sam koszt wejścia na niego
+        // ma zostać niski. Materiały wracają od kroku do +4 wzwyż.
         $upgradeSteps = [
             0 => ['to' => 1, 'chance' => 1.00, 'onFail' => 'nothing',   'gold' => 100,  'mats' => []],
             1 => ['to' => 2, 'chance' => 1.00, 'onFail' => 'nothing',   'gold' => 250,  'mats' => []],
-            2 => ['to' => 3, 'chance' => 0.95, 'onFail' => 'nothing',   'gold' => 500,  'mats' => [['key' => 'primary', 'qty' => 1]]],
+            2 => ['to' => 3, 'chance' => 0.95, 'onFail' => 'nothing',   'gold' => 500,  'mats' => []],
             3 => ['to' => 4, 'chance' => 0.90, 'onFail' => 'nothing',   'gold' => 1000, 'mats' => [['key' => 'primary', 'qty' => 2]]],
             4 => ['to' => 5, 'chance' => 0.85, 'onFail' => 'nothing',   'gold' => 2000, 'mats' => [['key' => 'primary', 'qty' => 2], ['key' => 'secondary', 'qty' => 1]]],
             5 => ['to' => 6, 'chance' => 0.75, 'onFail' => 'downgrade', 'gold' => 4000, 'mats' => [['key' => 'primary', 'qty' => 3], ['key' => 'secondary', 'qty' => 2]]],

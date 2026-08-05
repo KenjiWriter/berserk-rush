@@ -33,6 +33,16 @@ class EncounterService
     private int $playerMana = 0;
     private int $playerMaxMana = 0;
 
+    // Skille potworów (Faza 2 rebalansu, 2026-08-05): lustrzane odbicie stanu, który do
+    // tej pory istniał tylko dla gracza -> potwora. `$playerDots` to DoT-y NAŁOŻONE NA
+    // GRACZA przez skill potwora (tykają na turze potwora), `$playerCcTurns` to
+    // ogłuszenie/zamrożenie GRACZA (gracz traci turę - lustro `$monsterCcTurns`),
+    // `$monsterSkillCooldowns` to odnowienia skilli potwora (klucz = indeks skilla w
+    // Monster::getCombatSkills()). Cały ten stan jest resetowany na starcie każdej walki.
+    private array $playerDots = [];
+    private int $playerCcTurns = 0;
+    private array $monsterSkillCooldowns = [];
+
     // Procki z ekwipunku (2026-07-29): 'poison_chance'/'stun_chance' na broni dają
     // szansę (%) na dołożenie efektu przy KAŻDYM wylądowanym trafieniu (nie tylko
     // przy użyciu skilla), niezależnie od DoT-ów/CC ze skilli. Potwory nie mają
@@ -843,6 +853,14 @@ class EncounterService
         $this->activeBuffs = [];
         $this->activePassives = [];
         $this->monsterCcTurns = 0;
+        $this->playerDots = [];
+        $this->playerCcTurns = 0;
+        // Skille potworów gotowe "o turę wcześniej" (jak skille gracza), ale nie od
+        // razu na turze 1 - potwór nie powinien nukować z automatu w pierwszej akcji.
+        $this->monsterSkillCooldowns = [];
+        foreach ($monster->getCombatSkills() as $i => $mSkill) {
+            $this->monsterSkillCooldowns[$i] = max(0, (int) $mSkill['cooldown'] - 1);
+        }
         $this->equippedSkills = $character->resolveEffectiveSkills($setType);
 
         foreach ($this->equippedSkills as $cs) {
@@ -886,6 +904,33 @@ class EncounterService
                 foreach ($this->activeBuffs as $k => $b) {
                     $this->activeBuffs[$k]['duration']--;
                     if ($this->activeBuffs[$k]['duration'] <= 0) unset($this->activeBuffs[$k]);
+                }
+
+                // Gracz ogłuszony/zamrożony przez skill potwora (Faza 2) - traci turę
+                // ataku, ale many/cooldowny/buffy tykają normalnie (lustro logiki
+                // `monsterCcTurns`, patrz docs/modules/combat.md pkt 8).
+                if ($this->playerCcTurns > 0) {
+                    $this->playerCcTurns--;
+                    $turn = [
+                        'actor' => 'player',
+                        'type' => 'crowd_controlled',
+                        'value' => 0,
+                        'crit' => false,
+                        'playerHp' => $playerHp,
+                        'enemyHp' => $monsterHp,
+                    ];
+                    $turn['playerMana'] = $this->playerMana;
+                    $turn['playerMaxMana'] = $this->playerMaxMana;
+                    $turn['state'] = [
+                        'dots' => $this->activeDots,
+                        'buffs' => $this->activeBuffs,
+                        'cooldowns' => $this->activeCooldowns,
+                        'playerMana' => $this->playerMana,
+                        'playerMaxMana' => $this->playerMaxMana,
+                    ];
+                    $turns[] = $turn;
+                    $turnCount++;
+                    continue;
                 }
 
                 // Pobranie many i ocena efektów pasywnych na tę turę
@@ -938,7 +983,29 @@ class EncounterService
                 continue;
             }
 
-            if ($this->monsterCcTurns > 0) {
+            // --- Tura potwora ---
+            // Najpierw (Faza 2): DoT-y nałożone na gracza tykają, a cooldowny skilli
+            // potwora maleją - niezależnie od tego, czy potwór jest CC'owany.
+            $playerDotDmg = 0;
+            $playerDotType = null;
+            if (!empty($this->playerDots)) {
+                [$playerHp, $playerDotDmg, $playerDotType] = $this->tickPlayerDots($playerHp, $playerMaxHp);
+            }
+            foreach ($this->monsterSkillCooldowns as $i => $cd) {
+                if ($cd > 0) $this->monsterSkillCooldowns[$i]--;
+            }
+
+            if ($playerHp <= 0) {
+                // Gracz zginął od samego DoT-a (przed akcją potwora).
+                $turn = [
+                    'actor' => 'enemy',
+                    'type' => 'player_dot',
+                    'value' => 0,
+                    'crit' => false,
+                    'playerHp' => 0,
+                    'enemyHp' => $monsterHp,
+                ];
+            } elseif ($this->monsterCcTurns > 0) {
                 // Potwór jest zamrożony/ogłuszony - traci turę ataku
                 $this->monsterCcTurns--;
                 $turn = [
@@ -950,8 +1017,21 @@ class EncounterService
                     'enemyHp' => $monsterHp,
                 ];
             } else {
-                $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp, $setType);
+                $chosenSkill = $this->chooseMonsterSkill($monster);
+                if ($chosenSkill !== null) {
+                    $turn = $this->monsterCastSkill($monster, $character, $playerHp, $monsterHp, $monsterMaxHp, $chosenSkill, $setType);
+                } else {
+                    $turn = $this->monsterAttack($monster, $character, $playerHp, $monsterHp, $setType);
+                }
                 $playerHp = $turn['playerHp'];
+                $monsterHp = $turn['enemyHp'] ?? $monsterHp;
+            }
+
+            // Obrażenia od DoT-a gracza doliczone do tury potwora (playerHp już je
+            // uwzględnia - tu tylko surfacing do UI/logu).
+            if ($playerDotDmg > 0) {
+                $turn['playerDotDamage'] = $playerDotDmg;
+                $turn['playerDotType'] = $playerDotType;
             }
 
             $turn['playerMana'] = $this->playerMana;
@@ -960,6 +1040,8 @@ class EncounterService
                 'dots' => $this->activeDots,
                 'buffs' => $this->activeBuffs,
                 'cooldowns' => $this->activeCooldowns,
+                'playerDots' => array_values($this->playerDots),
+                'playerCc' => $this->playerCcTurns,
                 'playerMana' => $this->playerMana,
                 'playerMaxMana' => $this->playerMaxMana,
             ];
@@ -1383,6 +1465,147 @@ class EncounterService
         return $turn;
     }
 
+    // ==== Skille potworów (Faza 2 rebalansu, 2026-08-05) ====
+
+    /**
+     * Tyka DoT-y nałożone na gracza przez skille potworów. Semantyka identyczna jak
+     * DoT-y gracza na potworze: `poison` = % AKTUALNEGO HP gracza, `fire` = % MAX HP
+     * gracza. Zwraca [nowe playerHp, sumaryczne obrażenia, typ ostatniego DoT-a].
+     */
+    private function tickPlayerDots(int $playerHp, int $playerMaxHp): array
+    {
+        $total = 0;
+        $lastType = null;
+
+        foreach ($this->playerDots as $k => $dot) {
+            $base = ($dot['type'] ?? 'poison') === 'fire' ? $playerMaxHp : $playerHp;
+            $dmg = max(1, (int) round($base * (float) ($dot['value'] ?? 0)));
+            $total += $dmg;
+            $lastType = $dot['type'] ?? 'poison';
+
+            $this->playerDots[$k]['duration']--;
+            if ($this->playerDots[$k]['duration'] <= 0) {
+                unset($this->playerDots[$k]);
+            }
+        }
+
+        $newHp = max(0, $playerHp - $total);
+        return [$newHp, $total, $lastType];
+    }
+
+    /**
+     * Wybiera gotowy skill potwora do rzucenia w tej turze: pierwszy skill z cooldownem
+     * 0, którego rzut na `chance` (%) się powiódł. Zwraca indeks w Monster::getCombatSkills()
+     * albo null (potwór wykonuje zwykły atak). AI celowo niedeterministyczne (chance).
+     */
+    private function chooseMonsterSkill(Monster $monster): ?int
+    {
+        foreach ($monster->getCombatSkills() as $i => $skill) {
+            if (($this->monsterSkillCooldowns[$i] ?? 0) > 0) {
+                continue;
+            }
+            if ($skill['chance'] <= 0) {
+                continue;
+            }
+            if (mt_rand(1, 100) <= $skill['chance']) {
+                return $i;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Potwór rzuca wybrany skill (nakłada cooldown). Obsługiwane effect_type:
+     *  - `heal`        - potwór leczy się o `value` % swojego max HP, nie atakuje.
+     *  - `poison`/`fire` - nakłada DoT na gracza (`value` %/turę, `duration` tur), bez
+     *                    bezpośrednich obrażeń tej tury.
+     *  - `direct_dmg`  - wzmocniony cios (mnożnik `value`), tag `magicDamage` gdy is_magic (Mag).
+     *  - `stun`/`freeze` - cios (mnożnik `value`, min 1x) + unieruchomienie gracza na `duration` tur.
+     * Skille potwora - jak skille gracza w PvE - zawsze trafiają (bez rzutu na unik).
+     */
+    private function monsterCastSkill(Monster $monster, Character $character, int $playerHp, int $monsterHp, int $monsterMaxHp, int $skillIndex, ?string $setType = null): array
+    {
+        $skill = $monster->getCombatSkills()[$skillIndex];
+        $this->monsterSkillCooldowns[$skillIndex] = (int) $skill['cooldown'];
+
+        // HEAL: potwór leczy się, nie atakuje.
+        if ($skill['effect_type'] === 'heal') {
+            $healPct = $skill['value'] > 0 ? $skill['value'] : 0.15;
+            $healAmount = max(1, (int) round($monsterMaxHp * $healPct));
+            $newMonsterHp = min($monsterMaxHp, $monsterHp + $healAmount);
+            return [
+                'actor' => 'enemy',
+                'type' => 'skill_heal',
+                'effectType' => 'heal',
+                'skillName' => $skill['name'],
+                'value' => $healAmount,
+                'heal' => $healAmount,
+                'crit' => false,
+                'playerHp' => $playerHp,
+                'enemyHp' => $newMonsterHp,
+            ];
+        }
+
+        // POISON/FIRE: nakłada DoT na gracza, bez bezpośrednich obrażeń tej tury.
+        if (in_array($skill['effect_type'], ['poison', 'fire'], true)) {
+            $dotValue = $skill['value'] > 0 ? $skill['value'] : 0.05;
+            $this->playerDots[] = [
+                'type' => $skill['effect_type'],
+                'name' => $skill['name'],
+                'value' => $dotValue,
+                'duration' => max(1, (int) $skill['duration']),
+            ];
+            return [
+                'actor' => 'enemy',
+                'type' => 'skill',
+                'effectType' => $skill['effect_type'],
+                'skillName' => $skill['name'],
+                'value' => 0,
+                'crit' => false,
+                'playerHp' => $playerHp,
+                'enemyHp' => $monsterHp,
+            ];
+        }
+
+        // direct_dmg / stun / freeze: cios (potencjalnie magiczny) + ewentualne CC gracza.
+        $damageData = $this->calculateMonsterDamage($monster, $character, $setType);
+        $mult = $skill['value'] > 0 ? $skill['value'] : 1.0;
+        $damage = max(1, (int) round($damageData['total'] * $mult));
+
+        // buff_defense gracza wciąż redukuje obrażenia (jak w monsterAttack).
+        $defenseBuffValue = min(0.75, max(0, $this->activeBuffs['defense']['value'] ?? 0));
+        if ($defenseBuffValue > 0) {
+            $damage = max(1, (int) ($damage * (1 - $defenseBuffValue)));
+        }
+
+        $newPlayerHp = max(0, $playerHp - $damage);
+
+        $turn = [
+            'actor' => 'enemy',
+            'type' => 'hit',
+            'effectType' => $skill['effect_type'],
+            'skillName' => $skill['name'],
+            'value' => $damage,
+            'crit' => false,
+            'playerHp' => $newPlayerHp,
+            'enemyHp' => $monsterHp,
+        ];
+
+        if ($skill['is_magic']) {
+            $turn['magicDamage'] = $damage;
+            $turn['isMagic'] = true;
+        }
+
+        if (in_array($skill['effect_type'], ['stun', 'freeze'], true)) {
+            $ccDuration = max(1, (int) $skill['duration']);
+            $this->playerCcTurns = max($this->playerCcTurns, $ccDuration);
+            $turn['ccType'] = $skill['effect_type'];
+            $turn['ccDuration'] = $ccDuration;
+        }
+
+        return $turn;
+    }
+
 
 
     private function calculateDamage(Character $character, Monster $monster, bool $isMagicSkill = false, array $procs = [], ?string $setType = null): array
@@ -1407,9 +1630,15 @@ class EncounterService
         } else {
             // Standard basic auto-attack (lub atak fizyczny)
             if ($weaponType === 'wand') {
-                $statBonus = $character->getAttributeAttackBonus('sword', $setType); // fizyczny przelicznik atrybutów dla auto-ataku różdżką
-                $weaponAtkMin = (int) ($eq['attack_min'] ?? 0);
-                $weaponAtkMax = (int) max($weaponAtkMin, $eq['attack_max'] ?? 0);
+                // Naprawiony bug (2026-08-05, follow-up rebalansu): auto-atak różdżką
+                // czytał fizyczny przelicznik ('sword', STR+AGI) i attack_min/max
+                // zamiast właściwej formuły magicznej ('wand', INT*2) i
+                // magic_attack_min/max - różdżki nigdy nie mają attack_min/max
+                // (patrz ItemTemplateSeeder), więc auto-atak zadawał obrażenia
+                // bliskie zeru za każdym razem, gdy skill był na cooldownie.
+                $statBonus = $character->getAttributeAttackBonus('wand', $setType);
+                $weaponAtkMin = (int) ($eq['magic_attack_min'] ?? 0);
+                $weaponAtkMax = (int) max($weaponAtkMin, $eq['magic_attack_max'] ?? 0);
             } elseif ($weaponType === 'bell') {
                 $statBonus = $character->getAttributeAttackBonus('bell', $setType);
                 $weaponAtkMin = (int) (($eq['attack_min'] ?? 0) + ($eq['magic_attack_min'] ?? 0));

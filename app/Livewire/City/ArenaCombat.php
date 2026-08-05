@@ -406,9 +406,12 @@ class ArenaCombat extends Component
         $oppAgi = $oppAttrs['agi'] ?? 0;
 
         if ($weaponType === 'wand') {
-            $statBonus = $str + $agi;
-            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
-            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
+            // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
+            // notatka w EncounterService::calculateDamage(). To tylko podgląd w UI,
+            // ale bez naprawy pokazywał graczowi zaniżone, mylące obrażenia.
+            $statBonus = $int * 2;
+            $weaponAtkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['magic_attack_max'] ?? 0);
         } elseif ($weaponType === 'bell') {
             $statBonus = $str + $int;
             $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);

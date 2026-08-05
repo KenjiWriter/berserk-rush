@@ -227,7 +227,7 @@ class ItemInstance extends Model
                 // ItemInstance::toggleEnchantLock()) - nie jest to statystyka.
                 continue;
             }
-            if ($stat === 'enchants' && is_array($value)) {
+            if (($stat === 'enchants' || $stat === 'upgrade_bonuses') && is_array($value)) {
                 foreach ($value as $enchantType => $enchantValue) {
                     $totalStats[$enchantType] = ($totalStats[$enchantType] ?? 0) + $enchantValue;
                 }
@@ -242,6 +242,32 @@ class ItemInstance extends Model
     public function getEnchantments(): array
     {
         return $this->roll_stats['enchants'] ?? [];
+    }
+
+    /**
+     * Próg +3 Kuźni (Faza 5 rebalansu, 2026-08-05): darmowy bonus przyznawany
+     * automatycznie po przekroczeniu +3 - patrz UpgradeService::upgradeItem().
+     * Zapisywany OSOBNO od zwykłych zaklęć (`roll_stats['enchants']`), żeby nie
+     * konkurował o 5-slotowy limit zaklinania ani nie dało się go przelosować/
+     * zablokować u Wiedźmy.
+     */
+    public function getUpgradeBonuses(): array
+    {
+        return $this->roll_stats['upgrade_bonuses'] ?? [];
+    }
+
+    public function setUpgradeBonus(string $type, int $value): void
+    {
+        $stats = $this->roll_stats ?? [];
+        $stats['upgrade_bonuses'] = [$type => $value];
+        $this->roll_stats = $stats;
+    }
+
+    public function clearUpgradeBonuses(): void
+    {
+        $stats = $this->roll_stats ?? [];
+        $stats['upgrade_bonuses'] = [];
+        $this->roll_stats = $stats;
     }
 
     public function addEnchantment(string $type, int $value): void

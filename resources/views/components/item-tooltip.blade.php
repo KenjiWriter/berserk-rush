@@ -31,7 +31,14 @@
         $roll_stats = is_array($item->roll_stats) ? $item->roll_stats : (json_decode($item->roll_stats, true) ?? []);
     }
     $enchants = $roll_stats['enchants'] ?? [];
-    
+
+    // Darmowy bonus z progu +3 Kuźni (Faza 5 rebalansu, patrz docs/modules/upgrades.md
+    // sekcja 4). Zapisywany OSOBNO od zaklęć Wiedźmy (`enchants`) - renderowany więc
+    // jako osobna, oznaczona sekcja, żeby gracz odróżnił go od zwykłego zaczarowania.
+    // NIE jest wliczany do $base_stats (getResolvedBaseStats() go nie widzi), więc nie
+    // ma tu podwójnego liczenia.
+    $upgrade_bonuses = $roll_stats['upgrade_bonuses'] ?? [];
+
     // Calculate upgrade bonus for this item
     $upgrade_bonus = [];
     if (is_object($item) && method_exists($item, 'getUpgradeBonusStats')) {
@@ -48,6 +55,7 @@
     // For comparison:
     $equipped_base_stats = [];
     $equipped_enchants = [];
+    $equipped_upgrade_bonuses = [];
     $equipped_upgrade_bonus = [];
     
     if ($equippedItem) {
@@ -62,6 +70,7 @@
             $eq_roll_stats = is_array($equippedItem->roll_stats) ? $equippedItem->roll_stats : (json_decode($equippedItem->roll_stats, true) ?? []);
         }
         $equipped_enchants = $eq_roll_stats['enchants'] ?? [];
+        $equipped_upgrade_bonuses = $eq_roll_stats['upgrade_bonuses'] ?? [];
 
         $eq_upgrade_level = $equippedItem->upgrade_level ?? 0;
         if (is_object($equippedItem) && method_exists($equippedItem, 'getUpgradeBonusStats')) {
@@ -521,6 +530,21 @@
                                     </div>
                                 @endif
                             @endfor
+
+                            @if(count($upgrade_bonuses) > 0)
+                                <div class="pt-1.5 mt-1 border-t border-amber-500/30">
+                                    <p class="text-[10px] uppercase tracking-wider text-amber-400/90 font-bold mb-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-hammer text-amber-400/90"></i> Bonus Kuźni (+3)
+                                    </p>
+                                    @foreach($upgrade_bonuses as $ub_stat => $ub_val)
+                                        @php $ub_suffix = $isPercentStat($ub_stat, true) ? '%' : ''; @endphp
+                                        <div class="flex items-center justify-between gap-1 text-xs">
+                                            <span class="truncate text-amber-200">{{ $formatStatName($ub_stat) }}</span>
+                                            <span class="font-bold shrink-0 text-amber-300">{{ $ub_val > 0 ? '+' : '' }}{{ $formatNumber($ub_val) }}{{ $ub_suffix }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
@@ -625,6 +649,21 @@
                                     </div>
                                 @endif
                             @endfor
+
+                            @if(count($equipped_upgrade_bonuses) > 0)
+                                <div class="pt-1.5 mt-1 border-t border-amber-500/30">
+                                    <p class="text-[10px] uppercase tracking-wider text-amber-400/90 font-bold mb-1 flex items-center gap-1">
+                                        <i class="fa-solid fa-hammer text-amber-400/90"></i> Bonus Kuźni (+3)
+                                    </p>
+                                    @foreach($equipped_upgrade_bonuses as $equb_stat => $equb_val)
+                                        @php $equb_suffix = $isPercentStat($equb_stat, true) ? '%' : ''; @endphp
+                                        <div class="flex items-center justify-between gap-1 text-xs">
+                                            <span class="truncate text-amber-200">{{ $formatStatName($equb_stat) }}</span>
+                                            <span class="font-bold shrink-0 text-amber-300">{{ $equb_val > 0 ? '+' : '' }}{{ $formatNumber($equb_val) }}{{ $equb_suffix }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </div>
