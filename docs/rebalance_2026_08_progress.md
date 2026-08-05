@@ -34,7 +34,7 @@ przewyższają ten punkt odniesienia.
 | **Faza 5** | Rework Kuźni: nowa krzywa bonusu +0..+9, szanse, kara `downgrade` od +6, progi +3/+5, spłaszczenie skali tierów (rozdz. D) | ✅ Zrobione (A-F) |
 | **Follow-upy** | Bug auto-ataku różdżką (5 silników), widoczność bonusu +3 w tooltipie, zbadanie kalibracji bossów | ✅ Zrobione (kalibracja `boss` celowo odłożona - patrz niżej) |
 | **Faza 2** | Umiejętności potworów (DoT/CC/heal/nuke) + archetyp Maga | ✅ Zrobione |
-| **Faza 3** | Czytelność logu walki (etykiety/ikony DoT/procków/CC, pasek statusów) | ⬜ Niezaczęte |
+| **Faza 3** | Czytelność logu walki (etykiety/ikony DoT/procków/CC, pasek statusów) | ✅ Zrobione |
 | **Faza 4a** | Hybrydowe zestawy klasowe (STR+INT, AGI+INT) - wymaga też grafik | ⬜ Niezaczęte |
 | **Faza 4b** | Specjalne afiksy na zbroi/biżuterii (kolce, regen, odporność na CC) | ⬜ Niezaczęte |
 | **Ranga `boss`** | Rekalibracja Monte Carlo dla bossów | ⬜ Odłożone (metodologia kalkulatora niespójna z rosterem - patrz niżej) |
@@ -207,46 +207,24 @@ przewyższają ten punkt odniesienia.
   `UpgradeWeaponEffectBoostTest`.
 
 ### Stan brancha/commitów
-- **Faza 0 + Faza 1 + Faza 5 (A-C+E, stara wersja przed korektą) są SCOMMITOWANE** na
-  branchu `rebalance-phase-0-1` (commity `aa35311`, `90bb1c5`, plus merge `88cd99c` z
-  `main` - wypchnięte na `origin/rebalance-phase-0-1`).
-- **Faza 5 progi F (+3/+5), rozdział D ORAZ wszystkie follow-upy SĄ NIESCOMMITOWANE**,
-  zrobione na tym samym branchu, na wierzchu powyższych commitów. Zmienione pliki:
+Wszystko na branchu `rebalance-phase-0-1` (niezmergowane do `main` - świadomie).
+- **Faza 0 + Faza 1** - commit `aa35311`.
+- **Faza 5 A-C+E (stara wersja krzywej)** - commit `90bb1c5` (+ merge `88cd99c` z `main`).
+- **Faza 5 F (+3/+5) + rozdział D + wszystkie follow-upy + CAŁA Faza 2** - commit
+  `6f3b907` ("forge rework +0..+9, flatter item tiers, monster skills + Mage archetype").
+- **Faza 3 (czytelność logu walki) - NIESCOMMITOWANA** (bieżąca partia). Zmienione pliki:
 ```
-M app/Application/Combat/EncounterService.php
-M app/Application/Dungeon/DungeonService.php
-M app/Application/Guilds/GuildWarService.php
-M app/Application/Items/UpgradeService.php
-M app/Application/LocationEvents/LocationEventService.php
-M app/Application/PvP/PvPEncounterService.php
-M app/Console/Commands/BalanceMonstersCommand.php
-M app/Infrastructure/Persistence/Character.php
-M app/Infrastructure/Persistence/ItemInstance.php
-M app/Livewire/Adventure/MapStub.php
-M app/Livewire/City/ArenaCombat.php
-M database/seeders/ItemTemplateSeeder.php
-M database/seeders/MonsterSeeder.php
-M database/seeders/ShopEquipmentSeeder.php
-M database/seeders/UpgradeRuleSeeder.php
-M docs/modules/combat.md
-M docs/modules/upgrades.md
+M app/Application/Combat/EncounterService.php          (stateSnapshot na wszystkich turach)
+M app/Livewire/Adventure/MapStub.php                  (getPlayer/EnemyStatusEffects)
+M resources/views/livewire/adventure/map-stub.blade.php (log -> komponent + pasek statusów)
+M resources/views/livewire/city/dungeon-run.blade.php   (log -> komponent)
+M resources/views/livewire/city/arena-combat.blade.php  (log -> komponent)
+M docs/modules/combat.md                              (sekcja 2c)
 M docs/rebalance_2026_08_progress.md
-M resources/views/components/item-tooltip.blade.php
-M tests/Unit/UpgradeServiceTest.php
-?? tests/Unit/UpgradeWeaponEffectBoostTest.php
-```
-(`tests/Unit/ItemStatRollerTest.php` był zmieniony wcześniej, ale trafił już do
-wcześniejszego commita Fazy 5 A-C+E - nie ma go więc w powyższej liście niescommitowanych.)
-
-**Dodatkowo Faza 2 (skille potworów) - też niescommitowane:**
-```
-M app/Infrastructure/Persistence/Monster.php          (getCombatSkills/isCaster)
-M app/Application/Combat/EncounterService.php          (playerDots/playerCc/monsterCastSkill)
-M app/Application/Dungeon/DungeonService.php           (parytet)
-M app/Application/LocationEvents/LocationEventService.php (parytet)
-M database/seeders/MonsterSeeder.php                   ($monsterSkills)
-M docs/modules/combat.md                               (sekcja 7b)
-?? tests/Feature/MonsterSkillsTest.php
+M tests/Feature/MonsterSkillsTest.php                 (assert state.playerDots)
+?? app/Helpers/CombatLogHelper.php
+?? resources/views/components/combat-log-entry.blade.php
+?? resources/views/components/combat-status-bar.blade.php
 ```
 
 ### Faza 2 — Umiejętności potworów + archetyp Maga (ZROBIONA 2026-08-05)
@@ -277,12 +255,26 @@ M docs/modules/combat.md                               (sekcja 7b)
   (`buff_phys_dmg`), panel admina do edycji skilli potworów (dziś edycja przez JSON
   `abilities` / seeder).
 
-### Faza 3 — Czytelność logu walki (niezaczęte)
-- Jawne, otagowane wpisy w strukturze tury dla: krwawienia, przebicia pancerza,
-  rozbłysku magii, podwójnego ciosu, procków otrucia/ogłuszenia z ekwipunku (dziś
-  działają mechanicznie, ale nie mają spójnej reprezentacji w UI).
-- Rozszerzenie `map-stub.blade.php` (+ `dungeon-run`, `arena-combat`) o etykiety/ikony
-  per typ efektu, pasek aktywnych statusów nad HP.
+### Faza 3 — Czytelność logu walki (ZROBIONA 2026-08-05)
+- **Wspólny komponent wpisu logu** `resources/views/components/combat-log-entry.blade.php`
+  - zastąpił zduplikowane, inline'owe bloki logu w `map-stub`, `dungeon-run`,
+  `arena-combat`. Rozpoznaje typy tur z Fazy 2 (`crowd_controlled`, `player_dot`, skille
+  potworów: nuke magiczny z tagiem MAGIA, nałożenie DoT, samoleczenie) oraz tyknięcia
+  DoT-a na graczu. Superset: obsługuje też `actor_name`/`round`/`target_name` (Arena/GvG).
+- **`App\Helpers\CombatLogHelper`** - centralne mapowanie effect_type -> etykieta PL +
+  kolor Tailwind + ikona FA (poison/bleed/fire/stun/freeze/heal/magic/magic_burst/
+  double_strike/armor_pen). Efekty jako kolorowe pigułki (badge).
+- **Pasek statusów nad HP** `resources/views/components/combat-status-bar.blade.php` -
+  ikony aktywnych efektów + licznik tur, dla gracza i przeciwnika. Zasilany migawką
+  `state` doklejaną do każdej tury (`EncounterService::stateSnapshot()` -
+  `dots`/`playerDots`/`playerCc`/`monsterCc`) i czytaną przez
+  `MapStub::getPlayerStatusEffects()`/`getEnemyStatusEffects()`. Na razie w PvE (map-stub).
+- **Test:** rozszerzony `tests/Feature/MonsterSkillsTest.php` (turn `state` niesie
+  `playerDots` pod pasek statusów). Weryfikacja renderu: każda gałąź logu wyrenderowana
+  z realnymi kształtami tur (PvE + Arena) przez `view()->render()` - wszystkie czytelne.
+- **Odłożone (opcjonalny polish):** pasek statusów w Lochach/Arenie (wymaga dołożenia
+  `state` w `DungeonService`/`PvPEncounterService`); per-turowe tagi `armor_pen`/
+  `double_strike` w logu (poison/bleed/fire już płyną przez `dotType`).
 
 ### Faza 4 — Głębsza itemizacja (niezaczęte)
 - 4a: hybrydowe zestawy klasowe (STR+INT, AGI+INT) w `ItemTemplateSeeder.php` — wymaga

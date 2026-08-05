@@ -97,6 +97,20 @@ test('monster stun skill makes the player lose a turn (crowd_controlled)', funct
     expect($playerCc)->not->toBeNull();
 });
 
+test('turn state carries playerDots so the status bar can render it', function () {
+    $turns = makeSkillFight([
+        'skills' => [
+            ['name' => 'Jad Żmii', 'effect_type' => 'poison', 'value' => 0.04, 'duration' => 3, 'cooldown' => 2, 'chance' => 100],
+        ],
+    ]);
+
+    // Któraś tura potwora po nałożeniu trucizny ma w state niepustą listę playerDots
+    // (źródło paska statusów gracza - MapStub::getPlayerStatusEffects()).
+    $withPlayerDot = collect($turns)->first(fn ($t) => !empty($t['state']['playerDots'] ?? []));
+    expect($withPlayerDot)->not->toBeNull();
+    expect($withPlayerDot['state']['playerDots'][0]['type'])->toBe('poison');
+});
+
 test('monster with no abilities behaves exactly as before (no skill turns)', function () {
     $turns = makeSkillFight([]);
 

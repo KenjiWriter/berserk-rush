@@ -357,6 +357,8 @@
 
                         {{-- Player HP Bar (Always loaded!) --}}
                         <div class="space-y-1">
+                            {{-- Faza 3: pasek aktywnych efektów statusowych gracza (DoT/CC nałożone przez potwory) --}}
+                            <x-combat-status-bar :effects="$this->getPlayerStatusEffects()" />
                             <div class="flex justify-between text-xs font-bold text-amber-200 medieval-font drop-shadow">
                                 <span>Życie</span>
                                 <span class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
@@ -703,64 +705,7 @@
                             @else
                                 @foreach ($visibleTurns as $index => $turn)
                                     <li wire:key="turn-{{ $currentEncounterId }}-{{ $index }}" class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
-                                        <span
-                                            class="inline-block w-8 sm:w-9 text-center text-xs font-bold bg-amber-900/80 text-amber-200 rounded-md border border-amber-600/40 px-1 py-0.5 mr-1.5 font-mono">
-                                            T{{ $index + 1 }}
-                                        </span>
-                                        @php
-                                            $turnEnemyName = $turn['enemy_name'] ?? $turn['target_name'] ?? $enemy['name'];
-                                        @endphp
-                                        @if ($turn['type'] == 'miss')
-                                            <span class="text-slate-300 italic font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
-                                                pudłuje atak!
-                                                @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
-                                                @endif
-                                            </span>
-                                        @elseif ($turn['type'] == 'dot')
-                                            <span class="text-purple-300 font-semibold italic">
-                                                Zadano <strong class="text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong> obrażeń od statusów.
-                                            </span>
-                                        @elseif ($turn['type'] == 'skill_heal')
-                                            <span class="text-emerald-300 font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
-                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] ?? 'Leczenie' }}</span> i odnawia <strong class="text-emerald-400 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }} HP</strong>!
-                                                @if (!empty($turn['dotDamage']))
-                                                    <span class="text-purple-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
-                                                @endif
-                                            </span>
-                                        @elseif ($turn['type'] == 'skill')
-                                            <span class="{{ $turn['actor'] == 'player' ? 'text-blue-300' : 'text-red-300' }} font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
-                                                używa <span class="text-indigo-300 font-bold uppercase">{{ $turn['skill_name'] }}</span> i zadaje <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
-                                                @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
-                                                @endif
-                                                obrażeń
-                                                @if (!empty($turn['crit'])) <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span> @endif
-                                            </span>
-                                        @else
-                                            <span
-                                                class="{{ $turn['actor'] == 'player' ? 'text-emerald-300' : 'text-rose-300' }} font-semibold">
-                                                <strong class="text-amber-200">{{ $turn['actor'] == 'player' ? $player['name'] : $turnEnemyName }}</strong>
-                                                zadaje 
-                                                @if($turn['actor'] == 'player' && isset($turn['bonusDamage']) && $turn['bonusDamage'] > 0)
-                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['baseDamage']) }} (+{{ \App\Helpers\FormatHelper::short($turn['bonusDamage']) }})</strong>
-                                                @elseif($turn['actor'] == 'enemy' && isset($turn['resistDamage']) && $turn['resistDamage'] > 0)
-                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['baseDamage']) }} (-{{ \App\Helpers\FormatHelper::short($turn['resistDamage']) }})</strong>
-                                                @else
-                                                    <strong class="text-amber-300 font-mono">{{ \App\Helpers\FormatHelper::short($turn['value']) }}</strong>
-                                                @endif
-                                                @if (!empty($turn['dotDamage']))
-                                                    <span class="text-emerald-400 font-mono font-bold ml-1">(+{{ \App\Helpers\FormatHelper::short($turn['dotDamage']) }})</span>
-                                                @endif
-                                                obrażeń
-                                                @if ($turn['crit'])
-                                                    <span class="font-bold text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.8)]">KRYTYK!</span>
-                                                @endif
-                                            </span>
-                                        @endif
+                                        <x-combat-log-entry :turn="$turn" :index="$index" :player-name="$player['name']" :enemy-name="$enemy['name']" />
                                     </li>
                                 @endforeach
 
@@ -1120,6 +1065,10 @@
                                 $displayHpPercent = max(0, min(100, ($displayHp / max(1, $displayMaxHp)) * 100));
                             @endphp
                             <div class="space-y-1.5">
+                                {{-- Faza 3: pasek aktywnych efektów statusowych przeciwnika (DoT/CC nałożone przez gracza) --}}
+                                @if (!($isOverLevelCombat && !empty($monstersState)))
+                                    <x-combat-status-bar :effects="$this->getEnemyStatusEffects()" />
+                                @endif
                                 <div class="flex justify-between text-xs lg:text-sm font-bold text-red-200 medieval-font drop-shadow">
                                     <span>Życie Przeciwnika</span>
                                     <span class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>

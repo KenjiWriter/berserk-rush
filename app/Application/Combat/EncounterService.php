@@ -946,13 +946,7 @@ class EncounterService
 
                 $turn['playerMana'] = $this->playerMana;
                 $turn['playerMaxMana'] = $this->playerMaxMana;
-                $turn['state'] = [
-                    'dots' => $this->activeDots,
-                    'buffs' => $this->activeBuffs,
-                    'cooldowns' => $this->activeCooldowns,
-                    'playerMana' => $this->playerMana,
-                    'playerMaxMana' => $this->playerMaxMana,
-                ];
+                $turn['state'] = $this->stateSnapshot();
                 $turns[] = $turn;
                 $turnCount++;
 
@@ -969,13 +963,7 @@ class EncounterService
 
                     $bonusTurn['playerMana'] = $this->playerMana;
                     $bonusTurn['playerMaxMana'] = $this->playerMaxMana;
-                    $bonusTurn['state'] = [
-                        'dots' => $this->activeDots,
-                        'buffs' => $this->activeBuffs,
-                        'cooldowns' => $this->activeCooldowns,
-                        'playerMana' => $this->playerMana,
-                        'playerMaxMana' => $this->playerMaxMana,
-                    ];
+                    $bonusTurn['state'] = $this->stateSnapshot();
                     $turns[] = $bonusTurn;
                     $turnCount++;
                 }
@@ -1036,15 +1024,7 @@ class EncounterService
 
             $turn['playerMana'] = $this->playerMana;
             $turn['playerMaxMana'] = $this->playerMaxMana;
-            $turn['state'] = [
-                'dots' => $this->activeDots,
-                'buffs' => $this->activeBuffs,
-                'cooldowns' => $this->activeCooldowns,
-                'playerDots' => array_values($this->playerDots),
-                'playerCc' => $this->playerCcTurns,
-                'playerMana' => $this->playerMana,
-                'playerMaxMana' => $this->playerMaxMana,
-            ];
+            $turn['state'] = $this->stateSnapshot();
 
             $turns[] = $turn;
             $turnCount++;
@@ -1466,6 +1446,28 @@ class EncounterService
     }
 
     // ==== Skille potworów (Faza 2 rebalansu, 2026-08-05) ====
+
+    /**
+     * Migawka stanu efektów walki dołączana do każdej tury (klucz `state`). Zawiera
+     * aktywne DoT-y i CC obu stron - używana przez pasek statusów nad paskami HP
+     * (Faza 3, `MapStub::getPlayerStatusEffects()`/`getEnemyStatusEffects()`).
+     * `dots` = DoT-y na POTWORZE (nałożone przez gracza), `playerDots` = DoT-y na
+     * GRACZU (nałożone przez skille potwora), `playerCc`/`monsterCc` = licznik tur
+     * unieruchomienia odpowiednio gracza/potwora.
+     */
+    private function stateSnapshot(): array
+    {
+        return [
+            'dots' => $this->activeDots,
+            'buffs' => $this->activeBuffs,
+            'cooldowns' => $this->activeCooldowns,
+            'playerDots' => array_values($this->playerDots),
+            'playerCc' => $this->playerCcTurns,
+            'monsterCc' => $this->monsterCcTurns,
+            'playerMana' => $this->playerMana,
+            'playerMaxMana' => $this->playerMaxMana,
+        ];
+    }
 
     /**
      * Tyka DoT-y nałożone na gracza przez skille potworów. Semantyka identyczna jak
@@ -2046,13 +2048,7 @@ class EncounterService
                 $turn['monsters_state'] = $this->getMonstersStateSummary($monsters);
                 $turn['playerMana'] = $this->playerMana;
                 $turn['playerMaxMana'] = $this->playerMaxMana;
-                $turn['state'] = [
-                    'dots' => $this->activeDots,
-                    'buffs' => $this->activeBuffs,
-                    'cooldowns' => $this->activeCooldowns,
-                    'playerMana' => $this->playerMana,
-                    'playerMaxMana' => $this->playerMaxMana,
-                ];
+                $turn['state'] = $this->stateSnapshot();
 
                 $turns[] = $turn;
                 $turnCount++;

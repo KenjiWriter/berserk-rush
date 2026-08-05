@@ -71,6 +71,31 @@ Wewnątrz tury występują 3 stany ataku:
 > 5. **Łuk (`bow`) - Przebicie Pancerza:** Procentowe przebicie pancerza (`armor_pen_pct`, %) redukujące obronę przeciwnika (`defense`) przed wyliczeniem obrażeń ciosu.
 > 6. **Różdżka / Laska (`wand`) - Infuzja Magiczna:** Szansa (`magic_infusion_chance`, %) przy trafieniu na nasycenie ciosu **losowym efektem specjalnym** (Krwawienie, Otrucie, Podwójny Cios lub 50% Przebicie Pancerza).
 
+### 2c. Czytelny Log Walki i Pasek Statusów (Faza 3 rebalansu, 2026-08-05)
+Log walki i UI starcia pokazują teraz WPROST, co w danej turze się dzieje - nie tylko
+suchą liczbę obrażeń. To odpowiedź na feedback graczy ("log nie pokazuje wyraźnie
+efektów specjalnych: trucizna, krwawienie, podpalenie, magia").
+
+- **Wspólny komponent wpisu logu:** `resources/views/components/combat-log-entry.blade.php`
+  - jedno źródło formatowania tur, używane przez `map-stub` (PvE), `dungeon-run` (Lochy)
+  i `arena-combat` (PvP/GvG), żeby te trzy widoki nie rozjechały się w brzmieniu/kolorach.
+  Rozpoznaje wszystkie typy tur, w tym te z Fazy 2: `crowd_controlled` (unieruchomiony,
+  traci turę), `player_dot` (gracz dobity przez DoT), skille potworów (nuke magiczny z
+  tagiem MAGIA, nałożenie Trucizny/Podpalenia, samoleczenie), oraz tyknięcia DoT-a na
+  graczu (`playerDotDamage`). Obsługuje też pola Areny/GvG (`actor_name`, `round`,
+  `target_name`).
+- **Etykiety/kolory/ikony efektów:** centralnie w `App\Helpers\CombatLogHelper`
+  (poison/bleed/fire/stun/freeze/heal/magic/magic_burst/double_strike/armor_pen ->
+  polska etykieta + klasy Tailwind + ikona Font Awesome). Efekty renderowane jako małe
+  kolorowe "pigułki" (badge), żeby ominąć polską odmianę przez przypadki.
+- **Pasek aktywnych statusów nad paskami HP** (`resources/views/components/combat-status-bar.blade.php`):
+  ikony z licznikiem pozostałych tur - dla gracza (DoT/CC nałożone przez potwory) i
+  przeciwnika (DoT/CC nałożone przez gracza). Dane z migawki `state` doklejanej do każdej
+  tury (`EncounterService::stateSnapshot()`: `dots`/`playerDots`/`playerCc`/`monsterCc`),
+  czytane przez `MapStub::getPlayerStatusEffects()`/`getEnemyStatusEffects()`. Pasek na
+  razie w PvE (`map-stub`) - Lochy/Arena mają wzbogacony sam log; ich pasek statusów to
+  możliwe rozszerzenie (wymaga dołożenia `state` w `DungeonService`/`PvPEncounterService`).
+
 ### 3. Wynik Walki i Nagrody
 Na sam koniec symulacji:
 - Ustalany jest zwycięzca.

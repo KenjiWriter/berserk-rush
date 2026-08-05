@@ -1090,6 +1090,56 @@ class MapStub extends Component
         return ($this->getCurrentPlayerHp() / max(1, $this->player['maxHp'])) * 100;
     }
 
+    /**
+     * Aktywne efekty statusowe do paska nad paskiem HP (Faza 3 rebalansu). Czyta
+     * `state` z ostatniej widocznej tury (patrz EncounterService::stateSnapshot()).
+     * Zwraca [typ => pozostałe_tury], np. ['poison' => 3, 'stun' => 1]. DoT-y grupowane
+     * po typie (max pozostałej długości), CC jako syntetyczny wpis 'stun'.
+     */
+    private function statusEffectsFromDots(array $dots): array
+    {
+        $out = [];
+        foreach ($dots as $dot) {
+            $type = $dot['type'] ?? 'poison';
+            $dur = (int) ($dot['duration'] ?? 0);
+            if ($dur <= 0) {
+                continue;
+            }
+            if (!isset($out[$type]) || $out[$type] < $dur) {
+                $out[$type] = $dur;
+            }
+        }
+        return $out;
+    }
+
+    public function getPlayerStatusEffects(): array
+    {
+        if (empty($this->visibleTurns)) {
+            return [];
+        }
+        $state = (end($this->visibleTurns))['state'] ?? [];
+        $effects = $this->statusEffectsFromDots($state['playerDots'] ?? []);
+        $cc = (int) ($state['playerCc'] ?? 0);
+        if ($cc > 0) {
+            $effects['stun'] = $cc;
+        }
+        return $effects;
+    }
+
+    public function getEnemyStatusEffects(): array
+    {
+        if (empty($this->visibleTurns)) {
+            return [];
+        }
+        $state = (end($this->visibleTurns))['state'] ?? [];
+        $effects = $this->statusEffectsFromDots($state['dots'] ?? []);
+        $cc = (int) ($state['monsterCc'] ?? 0);
+        if ($cc > 0) {
+            $effects['stun'] = $cc;
+        }
+        return $effects;
+    }
+
     public function getCurrentPlayerMana(): int
     {
         $char = $this->character ?? Auth::user()?->character;
