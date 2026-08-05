@@ -99,7 +99,7 @@
 
                                 let req = 15 * Math.pow(this.navLevel, 2) + 50 * this.navLevel + 0.15 * Math.pow(this.navLevel, 4.1);
                                 if (this.navLevel > 85) req += 0.025 * Math.pow(this.navLevel - 85, 5.5);
-                                this.navXpReq = Math.round(req);
+                                this.navXpReq = Math.round(req * 6.0);
                             }
                         }
                      }"

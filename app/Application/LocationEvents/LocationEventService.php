@@ -144,13 +144,16 @@ class LocationEventService
             return Result::error('ACTIVE_RUN', 'Masz już aktywny event lokacji.');
         }
 
-        $explorationMonsters = $map->explorationMonsters()->get();
+        $explorationMonsters = $map->explorationMonsters()
+            ->where('rank', '!=', MonsterRank::WORLDBOSS)
+            ->get();
         if ($explorationMonsters->isEmpty()) {
             return Result::error('NO_MONSTERS', 'Brak potworów na tej mapie do rozegrania eventu.');
         }
 
         $bossPool = $explorationMonsters->where('rank', MonsterRank::BOSS);
-        $regularPool = $explorationMonsters->where('rank', '!=', MonsterRank::BOSS);
+        $regularPool = $explorationMonsters->where('rank', '!=', MonsterRank::BOSS)
+            ->where('rank', '!=', MonsterRank::WORLDBOSS);
         if ($regularPool->isEmpty()) {
             $regularPool = $explorationMonsters;
         }

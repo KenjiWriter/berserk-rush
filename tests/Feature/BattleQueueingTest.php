@@ -101,6 +101,7 @@ class BattleQueueingTest extends TestCase
         $this->assertFalse($encounter->fresh()->rewards_applied);
 
         // Starting another encounter after simulation automatically auto-claims rewards and succeeds!
+        \Illuminate\Support\Facades\Cache::forget("anticheat:last_encounter_start:{$character->id}");
         $res3 = $service->start($character, $map);
         $this->assertTrue($res3->isOk());
         $this->assertTrue($encounter->fresh()->rewards_applied);

@@ -86,11 +86,12 @@ class Map extends Model
 
     /**
      * Potwory dostępne w losowej puli eksploracji mapy - wyklucza potwory
-     * przypisane do etapów lochów (te mają map_id ustawione tylko po to,
-     * by spełnić constraint NOT NULL w tabeli monsters, patrz DungeonSeeder).
+     * przypisane do etapów lochów oraz World Bossów (ci mają dedykowany mechanizm spotkań).
      */
     public function explorationMonsters()
     {
-        return $this->monsters()->whereDoesntHave('dungeonStages');
+        return $this->monsters()
+            ->whereDoesntHave('dungeonStages')
+            ->where('rank', '!=', \App\Domain\Combat\Enums\MonsterRank::WORLDBOSS);
     }
 }
