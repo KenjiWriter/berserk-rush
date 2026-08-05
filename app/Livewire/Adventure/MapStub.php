@@ -1225,49 +1225,8 @@ class MapStub extends Component
 
     public function getPlayerCombatStats(): array
     {
-        $character = $this->character;
-        $playerAttributes = $this->player['stats'] ?? $character->getTotalAttributes();
-        $eqStats = $character->getEquipmentStats();
-        $level = $character->level;
-        $agi = $playerAttributes['agi'] ?? 0;
-        $vit = $playerAttributes['vit'] ?? 0;
-
-        $enemyAgi = $this->enemy['stats']['agi'] ?? 0;
-
-        $weaponType = $character->getEquippedWeaponType();
-        if ($weaponType === 'wand') {
-            // Naprawiony bug (2026-08-05, follow-up rebalansu) - patrz identyczna
-            // notatka w EncounterService::calculateDamage(). To tylko podgląd w UI,
-            // ale bez naprawy pokazywał graczowi zaniżone, mylące obrażenia.
-            $statBonus = $character->getAttributeAttackBonus('wand');
-            $weaponAtkMin = (int) ($eqStats['magic_attack_min'] ?? 0);
-            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['magic_attack_max'] ?? 0);
-        } elseif ($weaponType === 'bell') {
-            $statBonus = $character->getAttributeAttackBonus('bell');
-            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
-            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
-        } else {
-            $statBonus = $character->getAttributeAttackBonus($weaponType);
-            $weaponAtkMin = (int) ($eqStats['attack_min'] ?? 0);
-            $weaponAtkMax = (int) max($weaponAtkMin, $eqStats['attack_max'] ?? 0);
-        }
-        $baseDmg = 10 + $statBonus + ($level * 1);
-
-        // Balanced Crit: Minimum 3% floor, max 100% cap (bez redukcji z AGI przeciwnika)
-        $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);
-        $effectiveCrit = max(3.0, min(100.0, $baseCrit));
-
-        // Balanced Dodge: Base 3% + AGI bonus + item dodge bonus (max 30% cap, bez redukcji z AGI przeciwnika)
-        $itemDodge = (float)($eqStats['dodge_chance'] ?? 0);
-        $effectiveDodge = min(30.0, max(0.0, 3.0 + ($agi * 0.06) + $itemDodge));
-
-        return [
-            'crit_chance' => round($effectiveCrit, 1),
-            'dodge_chance' => round($effectiveDodge, 1),
-            'atk_min' => $baseDmg + $weaponAtkMin,
-            'atk_max' => $baseDmg + $weaponAtkMax,
-            'defense' => $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0),
-        ];
+        if (!$this->character) return [];
+        return $this->character->getCombatStats();
     }
 
     public function getActiveMonsterIndex(): int

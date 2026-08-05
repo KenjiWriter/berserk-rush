@@ -1183,4 +1183,46 @@ class Character extends Model
 
         return (int) round($rawBonus * self::ATTRIBUTE_DAMAGE_MULTIPLIER);
     }
+
+    public function getCombatStats(?string $setType = null): array
+    {
+        $playerAttributes = $this->getTotalAttributes($setType);
+        $eqStats = $this->getEquipmentStats($setType);
+        $level = $this->level;
+        $agi = $playerAttributes['agi'] ?? 0;
+        $vit = $playerAttributes['vit'] ?? 0;
+
+        $weaponType = $this->getEquippedWeaponType($setType);
+
+        // Obrażenia fizyczne (miecz/topór/łuk/sztylet/dzwon)
+        $physWeaponType = $weaponType === 'wand' ? 'sword' : $weaponType;
+        $physStatBonus = $this->getAttributeAttackBonus($physWeaponType, $setType);
+        $physWeaponMin = (int) ($eqStats['attack_min'] ?? 0);
+        $physWeaponMax = (int) max($physWeaponMin, $eqStats['attack_max'] ?? 0);
+        $basePhysDmg = 10 + $physStatBonus + ($level * 1);
+
+        // Obrażenia magiczne (różdżka / czary maga)
+        $magicStatBonus = $this->getAttributeAttackBonus('wand', $setType);
+        $magicWeaponMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+        $magicWeaponMax = (int) max($magicWeaponMin, $eqStats['magic_attack_max'] ?? 0);
+        $baseMagicDmg = 10 + $magicStatBonus + ($level * 1);
+
+        // Balanced Crit
+        $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);
+        $effectiveCrit = max(3.0, min(100.0, $baseCrit));
+
+        // Balanced Dodge
+        $itemDodge = (float)($eqStats['dodge_chance'] ?? 0);
+        $effectiveDodge = min(30.0, max(0.0, 3.0 + ($agi * 0.06) + $itemDodge));
+
+        return [
+            'crit_chance' => round($effectiveCrit, 1),
+            'dodge_chance' => round($effectiveDodge, 1),
+            'atk_min' => $basePhysDmg + $physWeaponMin,
+            'atk_max' => $basePhysDmg + $physWeaponMax,
+            'magic_atk_min' => $baseMagicDmg + $magicWeaponMin,
+            'magic_atk_max' => $baseMagicDmg + $magicWeaponMax,
+            'defense' => $vit + (int)($level / 2) + ($eqStats['defense'] ?? 0),
+        ];
+    }
 }

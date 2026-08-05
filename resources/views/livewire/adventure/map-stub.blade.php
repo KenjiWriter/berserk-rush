@@ -614,7 +614,13 @@
                                     </div>
                                     <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ \App\Helpers\FormatHelper::short($playerCombatStats['atk_min']) }} - {{ \App\Helpers\FormatHelper::short($playerCombatStats['atk_max']) }}</div>
                                 </div>
-                                <div class="bg-amber-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                <div class="bg-amber-950/60 border border-purple-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                    <div class="text-[9px] sm:text-[10px] font-semibold text-purple-400 tracking-wider flex items-center justify-center gap-1">
+                                        <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Atak Mag. (DMG)
+                                    </div>
+                                    <div class="text-xs sm:text-sm font-black text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($playerCombatStats['magic_atk_min']) }} - {{ \App\Helpers\FormatHelper::short($playerCombatStats['magic_atk_max']) }}</div>
+                                </div>
+                                <div class="col-span-2 bg-amber-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
                                     <div class="text-[9px] sm:text-[10px] font-semibold text-blue-400 tracking-wider flex items-center justify-center gap-1">
                                         <i class="fa-solid fa-shield text-blue-400"></i> Obrona (DEF)
                                     </div>
