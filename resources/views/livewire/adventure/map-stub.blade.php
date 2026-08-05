@@ -1171,9 +1171,10 @@
             // karty, gdy tytuł jest przycięty). Liczy zwycięskie starcia (result === 'win'/
             // 'finished'), więc przy walkach grupowych/over-level (kilka potworów na jedno
             // starcie) jest to przybliżenie liczby starć, nie ścisła liczba zabitych sztuk.
-            const farmSessionStartedAt = Date.now();
+            let farmSessionStartedAt = Date.now();
             let farmSessionKills = 0;
             const originalDocumentTitle = document.title;
+            let farmTitleInterval = null;
 
             function formatFarmDuration(ms) {
                 const totalSeconds = Math.floor(ms / 1000);
@@ -1189,8 +1190,28 @@
                 document.title = `⚔️ ${farmSessionKills} • ${elapsed} - ${originalDocumentTitle}`;
             }
 
-            updateFarmSessionTitle();
-            setInterval(updateFarmSessionTitle, 1000);
+            function startFarmTitleInterval() {
+                if (farmTitleInterval) clearInterval(farmTitleInterval);
+                updateFarmSessionTitle();
+                farmTitleInterval = setInterval(updateFarmSessionTitle, 1000);
+            }
+
+            function stopFarmTitleInterval() {
+                if (farmTitleInterval) {
+                    clearInterval(farmTitleInterval);
+                    farmTitleInterval = null;
+                }
+                // Przywróć oryginalny tytuł strony po opuszczeniu mapy
+                document.title = originalDocumentTitle;
+            }
+
+            startFarmTitleInterval();
+
+            // Czyść tytuł przy opuszczeniu strony (zamknięcie karty / przeładowanie)
+            window.addEventListener('beforeunload', stopFarmTitleInterval);
+
+            // Czyść tytuł przy nawigacji Livewire (przejście do innej sekcji bez reload)
+            document.addEventListener('livewire:navigate', stopFarmTitleInterval);
 
             Livewire.on('play-audio', (event) => {
                 const payload = (event && event[0]) ? event[0] : event;
@@ -1798,7 +1819,22 @@
                 }
             }
          }"
-         x-init="updateTime(); timer = setInterval(() => updateTime(), 1000)">
+         x-init="
+            updateTime();
+            timer = setInterval(() => updateTime(), 1000);
+            // Gdy Livewire zaktualizuje sessionStartTime (nowa mapa), resetuj licznik
+            $wire.$watch('sessionStartTime', (newVal) => {
+                this.startTime = newVal;
+                this.elapsed = '00:00:00';
+                this.goldPerMin = 0;
+                // Resetuj też licznik kills w tytule karty
+                if (typeof farmSessionKills !== 'undefined') {
+                    farmSessionKills = 0;
+                    farmSessionStartedAt = Date.now();
+                    if (typeof startFarmTitleInterval === 'function') startFarmTitleInterval();
+                }
+            });
+         ">
 
         {{-- Expanded Panel: items collected during this session --}}
         <div x-show="expanded" x-transition.opacity.duration.150ms style="display: none;"
