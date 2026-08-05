@@ -30,6 +30,16 @@ System World Bossów (Światowych Bossów) pozwala na globalne wyzwania, w któr
 
 Ranga `worldboss` nigdy nie była objęta rebalansem Monte Carlo reszty potworów (`MonsterSeeder.php`), przez co część bossów miała ATK wyraźnie niższe niż skalibrowany `boss` mapy na zbliżonym poziomie. Statystyki `atk`/`def` wszystkich 8 world bossów zostały ręcznie przeskalowane względem najbliższego poziomowo skalibrowanego potwora rangi `boss`: **ATK ×1.5, DEF ×1.25** względem tego punktu odniesienia. `hp`, `agi`, `int`, `crit`, `dodge` pozostały bez zmian. Poziom Pana Zniszczenia obniżono ze 100 do 99 (`LevelUpService::MAX_LEVEL = 99`).
 
+### Ujednolicenie HP per przedział (2026-08-05)
+
+Współdzielone `hp` (`MonsterSeeder.php`) zostało ujednolicone w obrębie przedziałów `mid` i `high`, żeby obaj/wszyscy bossowie danego przedziału stanowili porównywalne wyzwanie niezależnie od tego, który zostanie wylosowany na daną godzinę:
+
+| Przedział | HP każdego bossa w puli |
+|---|---|
+| `low` (0-35) | bez zmian - Król Lasu 8 925, Licz Cieni 60 000, Król Trolli 140 000 |
+| `mid` (35-65) | **500 000** (Wódz Orków, Moczarowy Behemot) |
+| `high` (65-99) | **800 000 000** (Smok Cienia, Arcymag, Pan Zniszczenia) |
+
 ## Architektura Systemu
 
 ### 1. `WorldBossInstance` (Model)
