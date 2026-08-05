@@ -95,7 +95,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 3,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 99, 'atk' => 54, 'def' => 5, 'agi' => 5, 'int' => 3, 'crit' => 0.2, 'dodge' => 0.12],
+                    'stats' => ['hp' => 60, 'atk' => 14, 'def' => 3, 'agi' => 5, 'int' => 3, 'crit' => 0.2, 'dodge' => 0.12],
                     'abilities' => []
                 ],
                 [
@@ -103,7 +103,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 4,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 80, 'atk' => 46, 'def' => 2, 'agi' => 6, 'int' => 3, 'crit' => 0.28, 'dodge' => 0.2],
+                    'stats' => ['hp' => 50, 'atk' => 12, 'def' => 2, 'agi' => 6, 'int' => 3, 'crit' => 0.28, 'dodge' => 0.2],
                     'abilities' => []
                 ],
                 [
@@ -111,7 +111,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 5,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 111, 'atk' => 59, 'def' => 5, 'agi' => 6, 'int' => 3, 'crit' => 0.22, 'dodge' => 0.15],
+                    'stats' => ['hp' => 68, 'atk' => 15, 'def' => 3, 'agi' => 6, 'int' => 3, 'crit' => 0.22, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -119,7 +119,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 6,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 143, 'atk' => 67, 'def' => 8, 'agi' => 2, 'int' => 3, 'crit' => 0.12, 'dodge' => 0.08],
+                    'stats' => ['hp' => 85, 'atk' => 19, 'def' => 5, 'agi' => 2, 'int' => 3, 'crit' => 0.12, 'dodge' => 0.08],
                     'abilities' => []
                 ],
                 [
@@ -127,7 +127,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 7,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 133, 'atk' => 70, 'def' => 8, 'agi' => 4, 'int' => 2, 'crit' => 0.18, 'dodge' => 0.10],
+                    'stats' => ['hp' => 80, 'atk' => 18, 'def' => 5, 'agi' => 4, 'int' => 2, 'crit' => 0.18, 'dodge' => 0.10],
                     'abilities' => []
                 ],
                 [
@@ -135,7 +135,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 8,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 124, 'atk' => 75, 'def' => 6, 'agi' => 7, 'int' => 5, 'crit' => 0.32, 'dodge' => 0.24],
+                    'stats' => ['hp' => 75, 'atk' => 17, 'def' => 4, 'agi' => 7, 'int' => 5, 'crit' => 0.32, 'dodge' => 0.24],
                     'abilities' => []
                 ],
                 [
