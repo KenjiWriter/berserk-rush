@@ -47,6 +47,18 @@ class LocationEventService
      */
     private const HARDCORE_REWARD_BONUS_MULTIPLIER = 1.5;
 
+    /**
+     * Docelowa SUMARYCZNA szansa (%) na wylosowanie JAKIEGOKOLWIEK eventu na pojedynczą
+     * walkę - NIE to samo co suma `spawn_chance_pct` w tabeli `location_events` (56%,
+     * 1:1 z arkusza), która opisuje tylko WZGLĘDNY udział poszczególnych rang względem
+     * siebie. Rzeczywista łączna szansa jest przeskalowywana do tej stałej w
+     * rollEventTrigger() poniżej. Kalibrowane 2026-08-05 na podstawie zgłoszenia
+     * użytkownika (przy 56% event trafiał się praktycznie przy każdej walce) - cel:
+     * średnio 1 event na ~5 minut eksploracji, przy zaobserwowanym tempie ~20
+     * walk/minutę (103 zabitych potworów w 5 min) => ~1 walka na 100 => ~1%.
+     */
+    private const TARGET_TOTAL_SPAWN_CHANCE_PCT = 1.0;
+
     /** Mapa nazw lokacji -> tematyczna skrzynia (1:1 z LootChestSeeder). */
     private const MAP_CHEST_NAMES = [
         'Mroczny Las' => 'Skrzynia Mrocznego Lasu',
@@ -73,12 +85,18 @@ class LocationEventService
             return null;
         }
 
-        $roll = mt_rand(1, 10000); // precyzja 0.01%
+        $baseTotalPct = (float) $events->sum('spawn_chance_pct');
+        if ($baseTotalPct <= 0) {
+            return null;
+        }
+        $scale = self::TARGET_TOTAL_SPAWN_CHANCE_PCT / $baseTotalPct;
+
+        $roll = mt_rand(1, 1000000); // precyzja 0.0001% - potrzebna przy szansach < 1%
         $cumulative = 0;
         $chosenEvent = null;
 
         foreach ($events as $event) {
-            $cumulative += (int) round($event->spawn_chance_pct * 100);
+            $cumulative += (int) round($event->spawn_chance_pct * $scale * 10000);
             if ($roll <= $cumulative) {
                 $chosenEvent = $event;
                 break;
@@ -263,6 +281,19 @@ class LocationEventService
         $turns = [];
         $turnCount = 0;
 
+        // Dane do wyświetlenia w UI (Faza 2) - nie wpływają na symulację, dokładane do
+        // wszystkich 3 gałęzi zwracanego payloadu poniżej.
+        $monsterDisplay = [
+            'name' => $monster->name,
+            'avatar' => $monster->avatar,
+            'level' => $monster->level,
+            'is_group' => (bool) $slot['is_group'],
+            'group_size' => (int) $slot['group_size'],
+        ];
+        $monsterMaxHpDisplay = $slot['is_group']
+            ? $scaledMonster['hp'] * max(2, (int) $slot['group_size'])
+            : $scaledMonster['hp'];
+
         if ($slot['is_group']) {
             $groupSize = max(2, (int) $slot['group_size']);
             $mobs = [];
@@ -435,6 +466,10 @@ class LocationEventService
                 'slot' => $run->current_monster_index,
                 'player_hp' => $playerHp,
                 'start_player_hp' => $startPlayerHp,
+                'monster' => $monsterDisplay,
+                'monster_max_hp' => $monsterMaxHpDisplay,
+                'event_name' => $event->name,
+                'is_hardcore' => $run->is_hardcore,
             ]);
         }
 
@@ -485,6 +520,10 @@ class LocationEventService
                 'loot' => $slotLoot,
                 'total_loot' => $accumulatedLoot,
                 'chests_awarded' => $chestQuantity,
+                'monster' => $monsterDisplay,
+                'monster_max_hp' => $monsterMaxHpDisplay,
+                'event_name' => $event->name,
+                'is_hardcore' => $run->is_hardcore,
             ]);
         }
 
@@ -499,6 +538,10 @@ class LocationEventService
             'player_hp' => $playerHp,
             'start_player_hp' => $startPlayerHp,
             'loot' => $slotLoot,
+            'monster' => $monsterDisplay,
+            'monster_max_hp' => $monsterMaxHpDisplay,
+            'event_name' => $event->name,
+            'is_hardcore' => $run->is_hardcore,
         ]);
     }
 

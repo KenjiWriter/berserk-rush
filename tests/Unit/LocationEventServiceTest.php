@@ -53,29 +53,35 @@ class LocationEventServiceTest extends TestCase
     {
         $service = new LocationEventService();
 
-        $iterations = 20000;
+        $iterations = 150000;
         $counts = array_fill(1, 6, 0);
-        $noEvent = 0;
+        $totalEvents = 0;
 
         for ($i = 0; $i < $iterations; $i++) {
             $result = $service->rollEventTrigger();
             if ($result === null) {
-                $noEvent++;
-            } else {
-                $counts[$result['event']->rank]++;
+                continue;
+            }
+            $totalEvents++;
+            $counts[$result['event']->rank]++;
+        }
+
+        // Sumaryczna szansa na JAKIKOLWIEK event jest przeskalowana do stałej
+        // TARGET_TOTAL_SPAWN_CHANCE_PCT (~1%, kalibrowane pod ~1 event/5min - patrz
+        // LocationEventService) - NIE do sumy bazowych spawn_chance_pct z arkusza (56%).
+        $actualTotalPct = ($totalEvents / $iterations) * 100;
+        $this->assertEqualsWithDelta(1.0, $actualTotalPct, 0.3);
+
+        // Relatywne proporcje MIĘDZY rangami (warunkowo, wśród przypadków gdy event
+        // faktycznie wypadł) muszą nadal odzwierciedlać oryginalne wagi z arkusza
+        // (20:15:10:5:4:2), niezależnie od globalnego przeskalowania.
+        if ($totalEvents > 0) {
+            $expectedRatios = [1 => 20 / 56, 2 => 15 / 56, 3 => 10 / 56, 4 => 5 / 56, 5 => 4 / 56, 6 => 2 / 56];
+            foreach ($expectedRatios as $rank => $expectedRatio) {
+                $actualRatio = $counts[$rank] / $totalEvents;
+                $this->assertEqualsWithDelta($expectedRatio, $actualRatio, 0.08, "Rank {$rank} conditional ratio off");
             }
         }
-
-        // Arkusz: 20/15/10/5/4/2% per ranga = 56% event, 44% brak eventu.
-        $expected = [1 => 0.20, 2 => 0.15, 3 => 0.10, 4 => 0.05, 5 => 0.04, 6 => 0.02];
-        $tolerance = 0.02; // +-2 p.p., wystarczające dla 20k prób
-
-        foreach ($expected as $rank => $expectedPct) {
-            $actualPct = $counts[$rank] / $iterations;
-            $this->assertEqualsWithDelta($expectedPct, $actualPct, $tolerance, "Rank {$rank} distribution off");
-        }
-
-        $this->assertEqualsWithDelta(0.44, $noEvent / $iterations, $tolerance);
     }
 
     public function test_roll_upgrade_level_respects_probability_distribution(): void
