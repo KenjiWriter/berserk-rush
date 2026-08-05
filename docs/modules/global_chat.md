@@ -123,6 +123,8 @@ Osobny, długo działający proces bota **odpytuje REST API Discorda co ~2 sekun
 | Plik | Rola |
 |------|------|
 | `app/Console/Commands/DiscordChatBridgeCommand.php` | Komenda `php artisan discord:bridge` — długo działający proces bota (uruchamiany pod Supervisorem, tak jak `reverb:start`/`queue:work`) |
+
+**Singleton lock:** Każda wiadomość ma swój lokalny w pamięci kursor pollingu (`$lastMessageId`), więc jeśli dwa procesy `discord:bridge` działają jednocześnie (np. ktoś ręcznie odpalił drugi obok tego z Supervisora), oba wykryją tę samą nową wiadomość jako nową i oba spróbują ją rozgłosić — stąd duplikaty w czacie w grze (czasem pod inną postacią, jeśli w międzyczasie zmieniło się powiązanie kont). Żeby to wykluczyć u źródła, `handle()` przy starcie zdobywa blokadę cache'a (`discord_bridge_singleton_owner`, TTL 45s, odświeżana co iterację pętli); drugi proces odmawia startu z czytelnym błędem, a proces, który zawiśnie dłużej niż TTL, sam się zatrzymuje zamiast dalej odpytywać bez blokady. To dodatkowa warstwa obok istniejącego per-wiadomościowego `Cache::add('discord_bridge_msg:'.$id, ...)`.
 | `app/Infrastructure/Persistence/DiscordLinkCode.php` | Model jednorazowych kodów łączenia postaci z kontem Discord (tabela `discord_link_codes`) |
 | `characters.discord_user_id` | Kolumna z ID (snowflake) połączonego konta Discord — jedna postać na jedno konto Discord |
 | `characters.discord_link_reward_claimed_at` | Znacznik czasu przyznania jednorazowej nagrody za połączenie (patrz niżej) — chroni przed farmieniem przez unlink/relink |

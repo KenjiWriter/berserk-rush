@@ -68,9 +68,22 @@ class DiscordChatBridgeCommand extends Command
     private const POLL_INTERVAL_SECONDS = 2;
     private const API_BASE = 'https://discord.com/api/v10';
 
+    /**
+     * Singleton guard: only one discord:bridge process is allowed to be
+     * actively polling at a time. Without this, two processes (e.g. a stray
+     * manually-started one alongside the Supervisor-managed one) each keep
+     * their own in-memory polling cursor, both pick up the same new Discord
+     * message, and both broadcast it - which is what makes messages appear
+     * duplicated (sometimes under a different character, if the linked
+     * character changed between the two processes' last restart).
+     */
+    private const SINGLETON_LOCK_KEY = 'discord_bridge_singleton_owner';
+    private const SINGLETON_LOCK_TTL_SECONDS = 45;
+
     private string $token;
     private string $channelId;
     private ?string $updateLogChannelId;
+    private string $lockOwner;
 
     public function handle(): int
     {
@@ -86,6 +99,32 @@ class DiscordChatBridgeCommand extends Command
         $this->token = $token;
         $this->channelId = $channelId;
         $this->updateLogChannelId = $updateLogChannelId;
+        $this->lockOwner = bin2hex(random_bytes(16));
+
+        if (! Cache::add(self::SINGLETON_LOCK_KEY, $this->lockOwner, self::SINGLETON_LOCK_TTL_SECONDS)) {
+            $this->error(
+                'Another discord:bridge process already holds the singleton lock - refusing to start '.
+                'a second instance (it would duplicate every incoming message). Check "ps aux | grep discord:bridge" '.
+                'and "sudo supervisorctl status" for a stray/duplicate process.'
+            );
+            return self::FAILURE;
+        }
+
+        try {
+            return $this->poll();
+        } finally {
+            // Best-effort release; if we lost the lock (e.g. a stall past the
+            // TTL) another process may already own it, so only clear it if
+            // it's still ours.
+            if (Cache::get(self::SINGLETON_LOCK_KEY) === $this->lockOwner) {
+                Cache::forget(self::SINGLETON_LOCK_KEY);
+            }
+        }
+    }
+
+    private function poll(): int
+    {
+        $channelId = $this->channelId;
 
         $lastMessageId = $this->fetchLatestMessageIdForChannel($this->channelId);
 
@@ -106,6 +145,18 @@ class DiscordChatBridgeCommand extends Command
         $this->info("Discord chat bridge polling channel {$channelId} every ".self::POLL_INTERVAL_SECONDS.'s...');
 
         while (true) {
+            // Fencing check: if our singleton lock expired (e.g. we stalled
+            // past SINGLETON_LOCK_TTL_SECONDS on a slow Discord API call) and
+            // another process took over ownership, stop immediately instead
+            // of continuing to poll as an unlocked duplicate.
+            if (Cache::get(self::SINGLETON_LOCK_KEY) !== $this->lockOwner) {
+                Log::warning('Discord chat bridge: lost singleton lock ownership, stopping to avoid duplicate polling.');
+                $this->error('Lost singleton lock ownership (stalled past the TTL?) - stopping this instance.');
+                return self::FAILURE;
+            }
+
+            Cache::put(self::SINGLETON_LOCK_KEY, $this->lockOwner, self::SINGLETON_LOCK_TTL_SECONDS);
+
             try {
                 $messages = $this->fetchNewMessagesForChannel($this->channelId, $lastMessageId);
 
