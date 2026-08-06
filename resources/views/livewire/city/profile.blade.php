@@ -344,9 +344,34 @@
                         $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
                         $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
                     @endphp
-                    <div class="w-full bg-gray-900 rounded-full h-4 sm:h-5 relative border border-gray-700 shadow-inner overflow-hidden cursor-help" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
-                        <div class="bg-gradient-to-r from-blue-700 to-blue-400 h-full transition-all duration-300" style="width: {{ $xpPercent }}%"></div>
-                        <span class="absolute inset-0 flex items-center justify-center text-[9px] sm:text-[10px] text-white font-bold drop-shadow-[0_1px_1px_rgba(0,0,0,0.8)]">
+                    <!-- Magiczny Kontener Cieczy XP -->
+                    <div class="w-full bg-slate-950/90 rounded-full h-5 sm:h-6 relative border border-cyan-500/40 shadow-[inset_0_2px_6px_rgba(0,0,0,0.9),0_0_12px_rgba(6,182,212,0.25)] overflow-hidden cursor-help group" title="Doświadczenie: {{ $character->xp }} / {{ $xpRequired }}">
+                        <!-- Wypełnienie Cieczy -->
+                        <div class="h-full relative transition-[width] duration-700 ease-out rounded-l-full overflow-hidden flex items-center {{ $xpPercent >= 99.5 ? 'rounded-r-full' : '' }}" style="width: {{ max(2, $xpPercent) }}%">
+                            <!-- Główny Płyn z Gradientem i Animacją Przepływu -->
+                            <div class="absolute inset-0 xp-liquid-fill"></div>
+                            
+                            <!-- Fala Powierzchniowa 1 -->
+                            <div class="absolute inset-0 opacity-35 xp-wave-1"></div>
+                            
+                            <!-- Fala Powierzchniowa 2 -->
+                            <div class="absolute inset-0 opacity-30 xp-wave-2"></div>
+                            
+                            <!-- Bąbelki / Iskry Magii -->
+                            <div class="absolute inset-0 xp-liquid-sparkles opacity-60"></div>
+                            
+                            <!-- Błyszcząca Krawędź Cieczy (Mieniskus) -->
+                            @if($xpPercent > 0 && $xpPercent < 100)
+                                <div class="absolute right-0 top-0 bottom-0 w-2.5 bg-gradient-to-r from-transparent via-cyan-200/90 to-white/90 blur-[0.5px] shadow-[0_0_8px_#38bdf8] animate-pulse"></div>
+                            @endif
+                        </div>
+
+                        <!-- Szklane Refleksy Tulei / Kontenera -->
+                        <div class="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-black/35 pointer-events-none rounded-full border-t border-white/25"></div>
+                        <div class="absolute top-0.5 left-2 right-2 h-[2px] bg-white/25 rounded-full blur-[0.5px] pointer-events-none"></div>
+
+                        <!-- Tekst XP -->
+                        <span class="absolute inset-0 flex items-center justify-center text-[10px] sm:text-xs text-white font-black drop-shadow-[0_1.5px_2px_rgba(0,0,0,0.95)] tracking-wider medieval-font select-none">
                             XP: {{ \App\Support\NumberHelper::formatShort($character->xp) }} / {{ \App\Support\NumberHelper::formatShort($xpRequired) }}
                         </span>
                     </div>
@@ -1895,6 +1920,46 @@
         .enchanted-border {
             animation: borderGlow 2s infinite alternate;
             border-width: 2px;
+        }
+
+        /* Keyframes dla Magicznej Cieczy w Pasku XP */
+        @keyframes xpLiquidFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes xpWaveMove1 {
+            0% { transform: translateX(0) scaleY(1); }
+            50% { transform: translateX(-18px) scaleY(1.15); }
+            100% { transform: translateX(0) scaleY(1); }
+        }
+        @keyframes xpWaveMove2 {
+            0% { transform: translateX(0) scaleY(1.1); }
+            50% { transform: translateX(18px) scaleY(0.9); }
+            100% { transform: translateX(0) scaleY(1.1); }
+        }
+        @keyframes xpSparkleFloat {
+            0% { background-position: 0 0; }
+            100% { background-position: 120px -40px; }
+        }
+
+        .xp-liquid-fill {
+            background: linear-gradient(90deg, #1d4ed8, #2563eb, #0284c7, #06b6d4, #3b82f6, #1d4ed8);
+            background-size: 250% 100%;
+            animation: xpLiquidFlow 6s ease-in-out infinite;
+        }
+        .xp-wave-1 {
+            background: radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.45) 0%, transparent 65%);
+            animation: xpWaveMove1 3.5s ease-in-out infinite;
+        }
+        .xp-wave-2 {
+            background: radial-gradient(ellipse at 30% 120%, rgba(56, 189, 248, 0.6) 0%, transparent 70%);
+            animation: xpWaveMove2 4.5s ease-in-out infinite;
+        }
+        .xp-liquid-sparkles {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.2px, transparent 0);
+            background-size: 18px 18px;
+            animation: xpSparkleFloat 7s linear infinite;
         }
     </style>
     <script>
