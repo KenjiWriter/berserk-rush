@@ -94,14 +94,14 @@ class UpgradeRuleSeeder extends Seeder
                     };
 
                     $stepBase = match ($fromLevel) {
-                        5 => 40,   // -> +6
-                        6 => 100,  // -> +7
-                        7 => 220,  // -> +8
-                        8 => 450,  // -> +9
+                        5 => 20,   // -> +6 (zredukowane o 50% z 40)
+                        6 => 50,   // -> +7 (zredukowane o 50% z 100)
+                        7 => 110,  // -> +8 (zredukowane o 50% z 220)
+                        8 => 225,  // -> +9 (zredukowane o 50% z 450)
                         default => 0,
                     };
 
-                    $runicQty = (int) max(5, round($stepBase * $levelFactor));
+                    $runicQty = (int) max(2, round($stepBase * $levelFactor));
 
                     if ($runicMatId && $runicQty > 0) {
                         $materialsReq[] = [

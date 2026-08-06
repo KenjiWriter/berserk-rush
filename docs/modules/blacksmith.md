@@ -47,7 +47,7 @@ Przetapianie przedmiotu u Kowala przekształca broń, zbroję lub akcesorium w m
   - $\text{UpgradeMult}$: $+1 \to +9$ (+10% do +500%)
   - $\text{EnchantMult}$: $1.0 + (\text{liczba zaczarowań} \times 0.15)$
 - **Zastosowania Runicznych Odłamków:**
-  1. Ulepszenia ekwipunku $>70$ lvl na poziomy $+6 \dots +9$ (15, 35, 75, 150 odłamków).
+  1. Ulepszenia ekwipunku na poziomy $+6 \dots +9$ (zredukowane o 50%: np. dla przedmiotu >70 lvl – 20, 50, 110, 225 odłamków).
   2. Wymóg do awansu poziomu Czempiona ($1000 + \text{level} \times 100$ odłamków).
 
 ## 8. Historia zmian
