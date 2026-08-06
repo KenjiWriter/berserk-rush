@@ -274,7 +274,7 @@
     };
 @endphp
 
-<div class="p-4 sm:p-5 relative bg-gray-900 border-2 {{ \App\Helpers\ItemHelper::getRarityBorderClass($rarity) }} rounded-xl shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)] overflow-x-hidden {{ count($enchants) > 0 ? 'enchanted-effect' : '' }}"
+<div class="p-4 sm:p-5 relative bg-gray-900 border-2 {{ \App\Helpers\ItemHelper::getRarityBorderClass($rarity) }} rounded-xl shadow-2xl pointer-events-auto max-w-[calc(100vw-24px)] overflow-x-hidden"
      x-data="{
          showComparePref: localStorage.getItem('global_show_item_comparison') !== 'false',
          get compare() {

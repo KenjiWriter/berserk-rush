@@ -31,15 +31,15 @@ html, body {
     background: linear-gradient(
         115deg,
         transparent 0%,
-        transparent 30%,
-        rgba(236, 190, 254, 0.5) 45%,
-        rgba(255, 255, 255, 0.85) 50%,
-        rgba(236, 190, 254, 0.5) 55%,
-        transparent 70%,
+        transparent 35%,
+        rgba(216, 180, 254, 0.22) 48%,
+        rgba(255, 255, 255, 0.35) 50%,
+        rgba(216, 180, 254, 0.22) 52%,
+        transparent 65%,
         transparent 100%
     );
     background-size: 300% 100%;
-    animation: enchantedShimmer 3.5s infinite linear;
+    animation: enchantedShimmer 4.5s infinite linear;
     pointer-events: none;
     z-index: 4;
 }
