@@ -1,6 +1,6 @@
 <div class="min-h-screen text-amber-100 relative overflow-hidden bg-black">
     {{-- Static Background --}}
-    <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('{{ asset('img/swordmaster.png') }}');"></div>
+    <div class="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-luminosity" style="background-image: url('{{ asset('img/pets-bg.png') }}');"></div>
     <div class="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/80 to-slate-900/95"></div>
 
     @php
