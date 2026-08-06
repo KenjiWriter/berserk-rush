@@ -29,6 +29,31 @@ Zamiast bezpośredniego natychmiastowego resetu konta, gracze mogą kupować w S
 - **Zwój Pełnego Resetu (90 Gemów):** Pozwala zresetować zarówno atrybuty, jak i umiejętności bojowe aktywnej postaci za jednym razem.
 - **Zwój Areny Walki (30 Gemów):** Przywraca 1 wykorzystaną próbę na Arenie Walk w danym dniu dla aktywnej postaci.
 
+### 6. System Reflinków (Poleceń)
+Każdy zarejestrowany gracz posiada unikalny `referral_code` (generowany automatycznie
+przy tworzeniu konta, `User::booted()`) oraz link postaci `{{route('register')}}?ref=KOD`,
+prezentowany w sekcji "Reflinki" Sklepu Premium (`ItemShopComponent`).
+
+- **Przechwytywanie kodu**: parametr `?ref=` jest zapisywany do sesji przy wejściu
+  na stronę główną (`Homepage::mount()`), stronę rejestracji (`Register::mount()`)
+  lub przekierowanie do logowania społecznościowego
+  (`SocialLoginController::redirect()`), dzięki czemu działa niezależnie od tego,
+  czy nowy gracz zakłada konto e-mail/hasłem, czy przez Google/Facebook.
+- **Nagroda za rejestrację** (`ReferralService::applySignupReward()`): nowe konto
+  założone z poprawnym kodem od razu otrzymuje **3 dni Konta VIP** oraz
+  **3 dni darmowego dostępu do Lustra** (Lustro jest per-postać, więc bonus jest
+  "zamrożony" na koncie w `referral_mirror_bonus_until` i przypisywany do
+  pierwszej utworzonej postaci przez `ReferralService::grantPendingMirrorBonus()`,
+  wołane z `CreateCharacter`).
+- **Nagroda za osiągnięcie 30 poziomu przez znajomego**
+  (`ReferralService::grantLevel30ReferralReward()`, wołane z listenera zdarzenia
+  `CharacterLeveledUp` w `AppServiceProvider`): referrer otrzymuje **200 Gemów**
+  wysłanych na pocztę w grze (`SendMailAction`, załącznik `type: 'gems'`) do
+  swojej najaktywniej używanej postaci. Nagroda jest **jednorazowa na całe konto
+  poleconego gracza** — znacznik `users.referral_level30_reward_granted_at` na
+  koncie poleconego blokuje ponowną wypłatę, nawet jeśli kolejna postać na tym
+  samym koncie również osiągnie 30 poziom.
+
 ## Technical Implementation
 - **Livewire Components**: Managed via `ItemShopComponent` for the user interface (obsługuje zakupy Gemów, VIP, avatarów oraz zakupy zwojów przez `buyScroll()`), and `Admin\ItemShopPackages` for backend management.
 - **Consumables Logic**: `ConsumeItemAction` realizuje efekt użycia przedmiotu po kliknięciu w ekwipunku postaci na podstawie pola `effect` w `base_stats` przedmiotu.

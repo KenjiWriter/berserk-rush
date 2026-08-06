@@ -18,6 +18,14 @@ class Homepage extends Component
     public string $deleteCodeInput = '';
     public ?string $deleteErrorMessage = null;
 
+    public function mount()
+    {
+        $refCode = request()->query('ref');
+        if ($refCode && !session('referral_code')) {
+            session(['referral_code' => $refCode]);
+        }
+    }
+
     #[On('user-logged-in')]
     #[On('tutorial-completed')]
     public function refreshAfterLogin()

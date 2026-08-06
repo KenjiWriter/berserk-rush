@@ -44,6 +44,11 @@ class User extends Authenticatable
         'muted_until',
         'chat_terms_accepted_at',
         'last_active_at',
+        'referral_code',
+        'referred_by_user_id',
+        'referral_signup_bonus_claimed_at',
+        'referral_mirror_bonus_until',
+        'referral_level30_reward_granted_at',
     ];
 
     /**
@@ -73,12 +78,43 @@ class User extends Authenticatable
             'unlocked_avatars' => 'array',
             'is_social_setup_pending' => 'boolean',
             'birthday' => 'date',
+            'referral_signup_bonus_claimed_at' => 'datetime',
+            'referral_mirror_bonus_until' => 'datetime',
+            'referral_level30_reward_granted_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            if (empty($user->referral_code)) {
+                do {
+                    $code = strtoupper(\Illuminate\Support\Str::random(8));
+                } while (static::where('referral_code', $code)->exists());
+
+                $user->referral_code = $code;
+            }
+        });
     }
 
     public function characters(): HasMany
     {
         return $this->hasMany(Character::class);
+    }
+
+    public function referredUsers(): HasMany
+    {
+        return $this->hasMany(User::class, 'referred_by_user_id');
+    }
+
+    public function referrer(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(User::class, 'referred_by_user_id');
+    }
+
+    public function getReferralLink(): string
+    {
+        return route('register') . '?ref=' . $this->referral_code;
     }
 
     public function character(): \Illuminate\Database\Eloquent\Relations\HasOne

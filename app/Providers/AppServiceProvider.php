@@ -30,6 +30,10 @@ class AppServiceProvider extends ServiceProvider
             app(\App\Application\Quests\QuestService::class)->cancelExpiredQuests($event->character);
         });
 
+        \Illuminate\Support\Facades\Event::listen(function (\App\Domain\Characters\Events\CharacterLeveledUp $event) {
+            app(\App\Application\Referrals\ReferralService::class)->grantLevel30ReferralReward($event->character);
+        });
+
         \Illuminate\Support\Facades\Event::listen(
             \SocialiteProviders\Manager\SocialiteWasCalled::class,
             [\SocialiteProviders\Apple\AppleExtendSocialite::class, 'handle']

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Application\Referrals\ReferralService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Laravel\Socialite\Facades\Socialite;
@@ -22,6 +23,11 @@ class SocialLoginController extends Controller
     {
         if (!in_array($provider, $this->allowedProviders)) {
             abort(404);
+        }
+
+        $refCode = request()->query('ref');
+        if ($refCode && !session('referral_code')) {
+            session(['referral_code' => $refCode]);
         }
 
         if ($provider === 'facebook') {
@@ -101,6 +107,12 @@ class SocialLoginController extends Controller
             }
 
             $user = User::create($userData);
+
+            $referrer = app(ReferralService::class)->resolveReferrerFromCode(session('referral_code'));
+            if ($referrer) {
+                app(ReferralService::class)->applySignupReward($user, $referrer);
+            }
+            session()->forget('referral_code');
 
             // Wyślij e-mail z hasłem
             Mail::to($user->email)->send(new SocialLoginPasswordGenerated($generatedPassword));

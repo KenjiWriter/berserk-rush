@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use App\Application\Referrals\ReferralService;
 use App\Models\User;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
@@ -51,6 +52,11 @@ class Register extends Component
         if (Auth::check()) {
             return redirect()->route('homepage');
         }
+
+        $refCode = request()->query('ref');
+        if ($refCode && !session('referral_code')) {
+            session(['referral_code' => $refCode]);
+        }
     }
 
     public function updated($propertyName)
@@ -68,6 +74,12 @@ class Register extends Component
             'password' => Hash::make($validated['password']),
             'deletion_code' => $validated['deletion_code'],
         ]);
+
+        $referrer = app(ReferralService::class)->resolveReferrerFromCode(session('referral_code'));
+        if ($referrer) {
+            app(ReferralService::class)->applySignupReward($user, $referrer);
+        }
+        session()->forget('referral_code');
 
         Auth::login($user);
 

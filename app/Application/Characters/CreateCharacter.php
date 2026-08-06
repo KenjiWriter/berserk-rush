@@ -2,6 +2,7 @@
 
 namespace App\Application\Characters;
 
+use App\Application\Referrals\ReferralService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\ItemInstance;
 use App\Infrastructure\Persistence\ItemTemplate;
@@ -121,6 +122,9 @@ class CreateCharacter
                         ]);
                     }
                 }
+
+                $character->setRelation('user', $user);
+                app(ReferralService::class)->grantPendingMirrorBonus($character);
 
                 return Result::ok($character);
             });

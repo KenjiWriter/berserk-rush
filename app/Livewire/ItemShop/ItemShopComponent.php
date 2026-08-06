@@ -11,13 +11,6 @@ use Illuminate\Support\Facades\File;
 
 class ItemShopComponent extends Component
 {
-    public string $activeTab = 'gems'; // 'gems' lub 'premium'
-
-    public function setTab(string $tab)
-    {
-        $this->activeTab = $tab;
-    }
-
     public function buyPremium(int $days, int $gemCost)
     {
         $user = Auth::user();
@@ -318,10 +311,16 @@ class ItemShopComponent extends Component
             }
         }
 
+        $user = Auth::user();
+
         return view('livewire.item-shop.item-shop-component', [
             'packages' => $packages,
             'premiumAvatars' => $premiumAvatars,
-            'user' => Auth::user(),
+            'user' => $user,
+            'referralLink' => $user->getReferralLink(),
+            'referralCode' => $user->referral_code,
+            'referredCount' => $user->referredUsers()->count(),
+            'rewardedCount' => $user->referredUsers()->whereNotNull('referral_level30_reward_granted_at')->count(),
         ])->layout('components.layouts.app');
     }
 }
