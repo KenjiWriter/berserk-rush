@@ -105,7 +105,7 @@
         </div>
 
         {{-- Sticky Section Navigation --}}
-        <div class="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-10 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/40">
+        <div class="sticky top-0 z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 bg-stone-950/90 backdrop-blur-md border-b border-amber-900/40">
             <div class="flex justify-start sm:justify-center overflow-x-auto gap-2 sm:gap-4 no-scrollbar">
 
                 <button type="button" data-shop-nav="sekcja-reflinki" class="shop-nav-jump shop-nav-btn px-5 py-3 rounded-xl font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-200 flex items-center gap-2.5 shrink-0 whitespace-nowrap text-stone-400 hover:text-amber-300 hover:bg-stone-900/60">
@@ -136,8 +136,15 @@
             </div>
         </div>
 
+        {{-- Horizontal Scrollbox (custom, draggable) - sits directly under the nav --}}
+        <div class="px-1 pt-4 pb-6">
+            <div id="shop-carousel-track" class="relative h-3 rounded-full bg-stone-900/80 border border-amber-900/50 cursor-pointer">
+                <div id="shop-carousel-thumb" class="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-amber-600 to-yellow-500 shadow-[0_0_8px_rgba(245,158,11,0.4)] cursor-grab active:cursor-grabbing" style="width: 20%;"></div>
+            </div>
+        </div>
+
         {{-- Horizontal Section Carousel --}}
-        <div id="shop-carousel" class="shop-carousel-scrollbar flex items-stretch overflow-x-auto snap-x snap-mandatory -mx-4 sm:-mx-6 lg:-mx-8">
+        <div id="shop-carousel" class="no-scrollbar flex items-stretch overflow-x-auto snap-x snap-mandatory -mx-4 sm:-mx-6 lg:-mx-8">
 
         {{-- SECTION: REFLINKI --}}
         <section id="sekcja-reflinki" data-shop-section class="shrink-0 w-full snap-start px-4 sm:px-6 lg:px-8 pb-16">
@@ -635,25 +642,13 @@
             scrollbar-width: none;
         }
 
-        /* Horizontal scrollbox under the section carousel */
-        .shop-carousel-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: #d97706 rgba(41, 30, 15, 0.6);
-            padding-bottom: 14px;
+        #shop-carousel-thumb {
+            transition: width 0.15s ease, left 0.15s ease;
+            touch-action: none;
         }
-        .shop-carousel-scrollbar::-webkit-scrollbar {
-            height: 10px;
-        }
-        .shop-carousel-scrollbar::-webkit-scrollbar-track {
-            background: rgba(41, 30, 15, 0.6);
-            border-radius: 999px;
-        }
-        .shop-carousel-scrollbar::-webkit-scrollbar-thumb {
-            background: linear-gradient(90deg, #d97706, #f59e0b);
-            border-radius: 999px;
-        }
-        .shop-carousel-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        #shop-carousel-track:active #shop-carousel-thumb,
+        #shop-carousel-thumb:active {
+            transition: none;
         }
 
         html {
@@ -723,6 +718,8 @@
             const carousel = document.getElementById('shop-carousel');
             const navButtons = document.querySelectorAll('.shop-nav-jump[data-shop-nav]');
             const sections = [...document.querySelectorAll('[data-shop-section]')];
+            const track = document.getElementById('shop-carousel-track');
+            const thumb = document.getElementById('shop-carousel-thumb');
 
             if (!carousel) return;
 
@@ -730,6 +727,21 @@
                 document.querySelectorAll('.shop-nav-btn').forEach((btn) => {
                     btn.classList.toggle('is-active-shop-tab', btn.getAttribute('data-shop-nav') === id);
                 });
+            };
+
+            const updateThumb = () => {
+                if (!track || !thumb) return;
+                const scrollable = carousel.scrollWidth - carousel.clientWidth;
+                if (scrollable <= 0) {
+                    thumb.style.width = '100%';
+                    thumb.style.left = '0%';
+                    return;
+                }
+                const widthPct = Math.max(10, (carousel.clientWidth / carousel.scrollWidth) * 100);
+                const maxLeftPct = 100 - widthPct;
+                const leftPct = (carousel.scrollLeft / scrollable) * maxLeftPct;
+                thumb.style.width = widthPct + '%';
+                thumb.style.left = leftPct + '%';
             };
 
             navButtons.forEach((btn) => {
@@ -744,6 +756,8 @@
 
             let scrollSpyTimeout = null;
             carousel.addEventListener('scroll', () => {
+                updateThumb();
+
                 clearTimeout(scrollSpyTimeout);
                 scrollSpyTimeout = setTimeout(() => {
                     const containerCenter = carousel.scrollLeft + carousel.clientWidth / 2;
@@ -765,7 +779,44 @@
                 }, 100);
             }, { passive: true });
 
+            if (track && thumb) {
+                let dragging = false;
+                let dragStartX = 0;
+                let dragStartScrollLeft = 0;
+
+                thumb.addEventListener('pointerdown', (e) => {
+                    dragging = true;
+                    dragStartX = e.clientX;
+                    dragStartScrollLeft = carousel.scrollLeft;
+                    thumb.setPointerCapture(e.pointerId);
+                    e.preventDefault();
+                });
+
+                thumb.addEventListener('pointermove', (e) => {
+                    if (!dragging) return;
+                    const scrollable = carousel.scrollWidth - carousel.clientWidth;
+                    const draggableTrackWidth = Math.max(1, track.clientWidth - thumb.clientWidth);
+                    const ratio = scrollable / draggableTrackWidth;
+                    carousel.scrollLeft = dragStartScrollLeft + (e.clientX - dragStartX) * ratio;
+                });
+
+                const endDrag = () => { dragging = false; };
+                thumb.addEventListener('pointerup', endDrag);
+                thumb.addEventListener('pointercancel', endDrag);
+
+                track.addEventListener('pointerdown', (e) => {
+                    if (e.target === thumb) return;
+                    const rect = track.getBoundingClientRect();
+                    const clickRatio = (e.clientX - rect.left) / rect.width;
+                    const scrollable = carousel.scrollWidth - carousel.clientWidth;
+                    carousel.scrollTo({ left: clickRatio * scrollable, behavior: 'smooth' });
+                });
+            }
+
+            window.addEventListener('resize', updateThumb);
+
             setActive('sekcja-reflinki');
+            updateThumb();
         }
 
         document.addEventListener('livewire:init', () => {

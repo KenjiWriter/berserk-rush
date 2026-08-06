@@ -313,6 +313,14 @@ class ItemShopComponent extends Component
 
         $user = Auth::user();
 
+        if (empty($user->referral_code)) {
+            do {
+                $code = strtoupper(\Illuminate\Support\Str::random(8));
+            } while (\App\Models\User::where('referral_code', $code)->exists());
+
+            $user->update(['referral_code' => $code]);
+        }
+
         return view('livewire.item-shop.item-shop-component', [
             'packages' => $packages,
             'premiumAvatars' => $premiumAvatars,
