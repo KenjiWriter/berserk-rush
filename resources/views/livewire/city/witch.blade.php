@@ -904,7 +904,10 @@
                                                 </div>
                                             @endif
 
-                                            <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border border-gray-700 mr-3 relative">
+                                            <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} mr-3 relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}">
+                                                @if(\App\Helpers\ItemHelper::isEnchanted($item))
+                                                    <div class="absolute top-0.5 left-0.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                                @endif
                                                 @if($item->template->icon)
                                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain" alt="">
                                                 @endif

@@ -95,7 +95,10 @@
                                      @tooltip-updated.window="updatePosition()"
                                  @endif>
                                 <h3 class="text-xl font-bold text-gray-400 mb-4 medieval-font">Obecny Stan</h3>
-                                <div class="w-24 h-24 bg-slate-800/80 rounded-lg border-2 border-slate-500 p-2 mb-4 flex items-center justify-center cursor-pointer">
+                                <div class="w-24 h-24 bg-slate-800/80 rounded-lg border-2 {{ ($upgradeItem ?? null) ? \App\Helpers\ItemHelper::getRarityBorderClass($upgradeItem->rarity ?? 'common') : 'border-slate-500' }} p-2 mb-4 flex items-center justify-center cursor-pointer relative {{ (($upgradeItem ?? null) && \App\Helpers\ItemHelper::isEnchanted($upgradeItem)) ? 'enchanted-effect' : '' }}">
+                                    @if(($upgradeItem ?? null) && \App\Helpers\ItemHelper::isEnchanted($upgradeItem))
+                                        <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                    @endif
                                     @if($selectedUpgradeItemId && $upgradeItem)
                                         @if($upgradeItem->template->icon)
                                             <img src="{{ route('assets.items', ['filename' => $upgradeItem->template->icon]) }}" class="w-full h-full object-contain" alt="">
@@ -252,7 +255,10 @@
                                              @resize.window.debounce.100ms="updatePosition()"
                                              @tooltip-updated.window="updatePosition()">
 
-                                            <div class="aspect-square bg-black/80 border {{ $selectedUpgradeItemId === $item->id ? 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : 'border-gray-600 hover:border-amber-400' }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative">
+                                            <div class="aspect-square bg-black/80 border {{ $selectedUpgradeItemId === $item->id ? 'border-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]' : \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}">
+                                                @if(\App\Helpers\ItemHelper::isEnchanted($item))
+                                                    <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                                @endif
                                                 @if($item->template->icon)
                                                     <div class="w-full h-full p-2 relative flex items-center justify-center">
                                                         <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">

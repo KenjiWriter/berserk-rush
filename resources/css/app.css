@@ -5,3 +5,56 @@
 html, body {
     background-color: #000000 !important;
 }
+
+/* Magical Enchantment Effects */
+@keyframes enchantedShimmer {
+    0% {
+        transform: translateX(-150%) rotate(25deg);
+    }
+    35% {
+        transform: translateX(250%) rotate(25deg);
+    }
+    100% {
+        transform: translateX(250%) rotate(25deg);
+    }
+}
+
+@keyframes enchantedSparklePulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(0.9);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.15);
+    }
+}
+
+.enchanted-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.enchanted-effect::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.02) 20%,
+        rgba(236, 190, 254, 0.35) 50%,
+        rgba(255, 255, 255, 0.02) 80%,
+        transparent 100%
+    );
+    animation: enchantedShimmer 3.2s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.enchanted-sparkle-icon {
+    animation: enchantedSparklePulse 2s infinite ease-in-out;
+}

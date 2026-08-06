@@ -105,7 +105,10 @@
                 <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
                         <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
-                             @if(isset($equipped[$slot])) 
+                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                 @endif 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
                                  draggable="true"
@@ -132,7 +135,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? \App\Helpers\ItemHelper::getRarityBorderClass($equipped[$slot]->rarity ?? 'common', true) . ' cursor-grab active:cursor-grabbing' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot]) ? 'enchanted-effect' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
@@ -140,6 +143,9 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -425,7 +431,10 @@
                 <div class="flex flex-col gap-1.5 xs:gap-2 sm:gap-3">
                     @foreach(['neck', 'ring', 'feet'] as $slot)
                         <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
-                             @if(isset($equipped[$slot])) 
+                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                 @endif 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
                                  draggable="true"
@@ -452,7 +461,7 @@
                                      isDragOver = false; isDragInvalid = false;
                                  }
                              "
-                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? 'border-amber-500/80 cursor-grab active:cursor-grabbing hover:border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && count($equipped[$slot]->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border' : '' }}"
+                             class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? \App\Helpers\ItemHelper::getRarityBorderClass($equipped[$slot]->rarity ?? 'common', true) . ' cursor-grab active:cursor-grabbing' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot]) ? 'enchanted-effect' : '' }}"
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
@@ -460,6 +469,9 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -1331,7 +1343,7 @@
                                          @endif
                                      @endif
                                  "
-                                 class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-200 backpack-grid-slot {{ count($item->roll_stats['enchants'] ?? []) > 0 ? 'enchanted-border border-gray-600' : 'border-gray-600' }}"
+                                 class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-200 backpack-grid-slot {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}"
                                  :class="{
                                      'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
                                      'opacity-40 scale-95 border-amber-400': isDraggingThis,
@@ -1360,6 +1372,9 @@
                             >
                                 {{-- Numer slotu --}}
                                 <span class="absolute top-0.5 left-1 text-[8px] font-bold text-stone-500 pointer-events-none select-none z-10 leading-none">{{ $slotNum }}</span>
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($item))
+                                     <div class="absolute top-0.5 right-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                 @endif
 
                                 {{-- Checkbox bulk stash --}}
                                 <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
