@@ -9,47 +9,34 @@ html, body {
 /* Magical Enchantment Effects */
 @keyframes enchantedShimmer {
     0% {
-        transform: translateX(-150%) rotate(25deg);
+        background-position: 250% 0;
     }
-    35% {
-        transform: translateX(250%) rotate(25deg);
+    40% {
+        background-position: -250% 0;
     }
     100% {
-        transform: translateX(250%) rotate(25deg);
-    }
-}
-
-@keyframes enchantedSparklePulse {
-    0%, 100% {
-        opacity: 0.6;
-        transform: scale(0.9);
-    }
-    50% {
-        opacity: 1;
-        transform: scale(1.15);
+        background-position: -250% 0;
     }
 }
 
 .enchanted-effect {
     position: relative;
-    overflow: hidden;
 }
 
 .enchanted-effect::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    inset: 0;
+    border-radius: inherit;
     background: linear-gradient(
-        90deg,
+        115deg,
         transparent 0%,
-        rgba(255, 255, 255, 0.02) 20%,
-        rgba(236, 190, 254, 0.35) 50%,
-        rgba(255, 255, 255, 0.02) 80%,
+        transparent 35%,
+        rgba(236, 190, 254, 0.45) 50%,
+        transparent 65%,
         transparent 100%
     );
+    background-size: 250% 100%;
     animation: enchantedShimmer 5.5s infinite ease-in-out;
     pointer-events: none;
     z-index: 5;
