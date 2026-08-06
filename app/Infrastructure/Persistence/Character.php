@@ -898,8 +898,19 @@ class Character extends Model
                     }
                 }
 
-                if (isset($roll['enchants']) && is_array($roll['enchants'])) {
-                    foreach ($roll['enchants'] as $enchantType => $enchantValue) {
+                // Bonus Kuźni (+3, roll_stats['upgrade_bonuses']) jest losowany z tej samej
+                // puli co zaklęcia Wiedźmy (patrz UpgradeService::syncThresholdBonus()), ale
+                // zapisywany osobno - musi więc przejść przez tę samą logikę sumowania
+                // (w tym % Multiplikatywne dla attack_power/magic_attack/hp_bonus/defense
+                // poniżej), inaczej pokazuje się w tooltipie itemu, ale nigdy nie liczy się
+                // do realnych staty postaci (zgłoszenie gracza, 2026-08-06).
+                $enchantLikeBonuses = $roll['enchants'] ?? [];
+                foreach (($roll['upgrade_bonuses'] ?? []) as $bonusType => $bonusValue) {
+                    $enchantLikeBonuses[$bonusType] = ($enchantLikeBonuses[$bonusType] ?? 0) + $bonusValue;
+                }
+
+                if (!empty($enchantLikeBonuses)) {
+                    foreach ($enchantLikeBonuses as $enchantType => $enchantValue) {
                         if ($enchantType === 'attack_power') {
                             $attackPowerPct += $enchantValue;
                             continue;
