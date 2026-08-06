@@ -667,6 +667,47 @@
                                     </div>
                                 </div>
                             </div>
+
+                            {{-- Enemy Combat Stats --}}
+                            @php $enemyCombatStats = $this->getEnemyCombatStats(); @endphp
+                            <div class="mt-2.5 pt-2 border-t border-red-900/40">
+                                <h4 class="text-[11px] sm:text-xs font-bold text-red-200/90 mb-1.5 medieval-font tracking-wide flex items-center justify-between">
+                                    <span>Statystyki podczas Walki</span>
+                                    <span class="text-[9px] text-red-400/80 font-normal">Bieżące wartości</span>
+                                </h4>
+                                <div class="grid grid-cols-2 gap-1.5 lg:gap-2">
+                                    <div class="bg-red-950/60 border border-yellow-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                        <div class="text-[9px] sm:text-[10px] font-semibold text-yellow-400 tracking-wider flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-bolt text-yellow-400"></i> Szansa na Kryt
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-black text-yellow-300 font-mono">{{ $enemyCombatStats['crit_chance'] ?? 0 }}%</div>
+                                    </div>
+                                    <div class="bg-red-950/60 border border-emerald-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                        <div class="text-[9px] sm:text-[10px] font-semibold text-emerald-400 tracking-wider flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield-halved text-emerald-400"></i> Szansa na Unik
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-black text-emerald-300 font-mono">{{ $enemyCombatStats['dodge_chance'] ?? 0 }}%</div>
+                                    </div>
+                                    <div class="bg-red-950/60 border border-red-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                        <div class="text-[9px] sm:text-[10px] font-semibold text-red-400 tracking-wider flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-crosshairs text-red-400"></i> Atak (DMG)
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-black text-red-200 font-mono">{{ \App\Helpers\FormatHelper::short($enemyCombatStats['atk_min'] ?? 0) }} - {{ \App\Helpers\FormatHelper::short($enemyCombatStats['atk_max'] ?? 0) }}</div>
+                                    </div>
+                                    <div class="bg-red-950/60 border border-purple-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                        <div class="text-[9px] sm:text-[10px] font-semibold text-purple-400 tracking-wider flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-wand-magic-sparkles text-purple-400"></i> Atak Mag. (DMG)
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-black text-purple-200 font-mono">{{ \App\Helpers\FormatHelper::short($enemyCombatStats['magic_atk_min'] ?? 0) }} - {{ \App\Helpers\FormatHelper::short($enemyCombatStats['magic_atk_max'] ?? 0) }}</div>
+                                    </div>
+                                    <div class="col-span-2 bg-red-950/60 border border-blue-600/40 rounded-xl p-1.5 text-center shadow-md">
+                                        <div class="text-[9px] sm:text-[10px] font-semibold text-blue-400 tracking-wider flex items-center justify-center gap-1">
+                                            <i class="fa-solid fa-shield text-blue-400"></i> Obrona (DEF)
+                                        </div>
+                                        <div class="text-xs sm:text-sm font-black text-blue-200 font-mono">{{ \App\Helpers\FormatHelper::short($enemyCombatStats['defense'] ?? 0) }}</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 @else

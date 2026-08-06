@@ -21,6 +21,7 @@ class ArenaCombat extends Component
     // Combat state
     public array $player = [];
     public array $enemy = [];
+    public ?int $enemyCharacterId = null;
     public array $allTurns = [];
     public array $visibleTurns = [];
     public string $result = '';
@@ -101,6 +102,7 @@ class ArenaCombat extends Component
 
         // Enemy Character to get their actual avatar
         $enemyChar = Character::find($isAttacker ? $encounter->defender_character_id : $encounter->attacker_character_id);
+        $this->enemyCharacterId = $enemyChar?->id;
 
         // Setup Enemy (Widmo gracza)
         $this->enemy = [
@@ -429,6 +431,12 @@ class ArenaCombat extends Component
         $baseDmgMin = 10 + $statBonus + ($level * 1) + $weaponAtkMin;
         $baseDmgMax = 10 + $statBonus + ($level * 1) + $weaponAtkMax;
 
+        $magicStatBonus = $int * 2;
+        $magicWeaponMin = (int) ($eqStats['magic_attack_min'] ?? 0);
+        $magicWeaponMax = (int) max($magicWeaponMin, $eqStats['magic_attack_max'] ?? 0);
+        $baseMagicDmgMin = 10 + $magicStatBonus + ($level * 1) + $magicWeaponMin;
+        $baseMagicDmgMax = 10 + $magicStatBonus + ($level * 1) + $magicWeaponMax;
+
         $baseCrit = 5 + ($agi * 0.15) + ($eqStats['crit_chance'] ?? 0);
         $effectiveCrit = max(0, min(100.0, $baseCrit));
 
@@ -442,8 +450,21 @@ class ArenaCombat extends Component
             'dodge_chance' => round($effectiveDodge, 1),
             'atk_min' => $baseDmgMin,
             'atk_max' => max($baseDmgMin, $baseDmgMax),
+            'magic_atk_min' => $baseMagicDmgMin,
+            'magic_atk_max' => max($baseMagicDmgMin, $baseMagicDmgMax),
             'defense' => $defense,
         ];
+    }
+
+    public function getEnemyCombatStats(): array
+    {
+        $enemyChar = $this->enemyCharacterId ? Character::find($this->enemyCharacterId) : null;
+
+        if ($enemyChar) {
+            return $enemyChar->getCombatStats('pvp');
+        }
+
+        return $this->getCombatStats($this->enemy, $this->player);
     }
 
     public function checkCombatStatus(): void
