@@ -9,13 +9,10 @@ html, body {
 /* Magical Enchantment Effects */
 @keyframes enchantedShimmer {
     0% {
-        background-position: 250% 0;
-    }
-    40% {
-        background-position: -250% 0;
+        transform: translateX(-120%);
     }
     100% {
-        background-position: -250% 0;
+        transform: translateX(120%);
     }
 }
 
@@ -31,13 +28,12 @@ html, body {
     background: linear-gradient(
         115deg,
         transparent 0%,
-        transparent 35%,
-        rgba(236, 190, 254, 0.45) 50%,
-        transparent 65%,
+        transparent 30%,
+        rgba(236, 190, 254, 0.4) 50%,
+        transparent 70%,
         transparent 100%
     );
-    background-size: 250% 100%;
-    animation: enchantedShimmer 5.5s infinite ease-in-out;
+    animation: enchantedShimmer 4s infinite linear;
     pointer-events: none;
     z-index: 5;
 }
