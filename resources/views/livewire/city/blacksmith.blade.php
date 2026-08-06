@@ -16,6 +16,12 @@
                 <div class="bg-black/80 border border-yellow-600/50 rounded px-4 py-2 min-h-[44px] flex items-center font-bold text-yellow-400 backdrop-blur-sm shadow-inner">
                     <i class="fa-solid fa-coins text-yellow-400 mr-1.5"></i> {{ number_format($character->gold) }}
                 </div>
+                <button wire:click="toggleInfoModal"
+                    class="min-h-[44px] flex items-center gap-2 bg-black/80 border border-sky-600/50 rounded-lg text-sky-300 hover:text-sky-100 hover:border-sky-400 transition-colors shadow-inner px-4"
+                    title="Opis mechanik ulepszania">
+                    <i class="fa-solid fa-circle-info text-lg"></i>
+                    <span class="text-sm font-bold">Opis mechanik</span>
+                </button>
                 <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' })"
                     class="min-h-[44px] bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 border border-slate-500 text-amber-200 font-bold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_15px_rgba(0,0,0,0.5)] medieval-font flex items-center justify-center">
                     <i class="fa-solid fa-archway mr-2 text-amber-400"></i> Powrót
@@ -417,6 +423,122 @@
                 <button wire:click="closeUpgradeModal" class="w-full py-4 px-6 rounded-lg font-bold text-white shadow-lg transition-colors {{ $upgradeModalType === 'success' ? 'bg-green-700 hover:bg-green-600' : 'bg-red-700 hover:bg-red-600' }} tracking-wider">
                     KONTUNUUJ
                 </button>
+            </div>
+        </div>
+    @endif
+
+    {{-- Opis Mechanik --}}
+    @if($showInfoModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-fade-in">
+            <div x-data="{ infoTab: 'levels' }" class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-sky-500/50 rounded-2xl max-w-4xl w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] relative max-h-[90vh] flex flex-col">
+                <button wire:click="toggleInfoModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <h3 class="text-lg font-bold text-sky-200 mb-4 flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+                    <i class="fa-solid fa-circle-info"></i> Opis Mechanik Ulepszania
+                </h3>
+
+                @php
+                    $infoTabBtn = 'px-3 py-1.5 rounded-lg border text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-colors whitespace-nowrap';
+                    $infoTabActive = 'bg-sky-600/20 text-sky-200 border-sky-500/60';
+                    $infoTabInactive = 'text-stone-400 border-transparent hover:text-stone-200 hover:bg-stone-800/60';
+                    $onFailLabels = ['nothing' => 'Brak kary (tylko strata zasobów)', 'downgrade' => 'Spadek o -1 poziom'];
+                @endphp
+
+                {{-- Zakładki --}}
+                <div class="flex flex-wrap gap-2 mb-4 border-b border-stone-800 pb-3">
+                    <button @click="infoTab = 'levels'" :class="infoTab === 'levels' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-arrow-up-9-1 mr-1"></i> Poziomy i Szanse
+                    </button>
+                    <button @click="infoTab = 'stats'" :class="infoTab === 'stats' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-chart-line mr-1"></i> Bonus Statystyk
+                    </button>
+                    <button @click="infoTab = 'thresholds'" :class="infoTab === 'thresholds' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-star mr-1"></i> Progi Specjalne
+                    </button>
+                    <button @click="infoTab = 'risk'" :class="infoTab === 'risk' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-triangle-exclamation mr-1"></i> Ryzyko Porażki
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
+
+                    {{-- POZIOMY I SZANSE --}}
+                    <div x-show="infoTab === 'levels'" class="space-y-6">
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Poziomy Ulepszenia</h4>
+                            <p class="mb-2">Broń i zbroja mają poziom ulepszenia od <strong class="text-amber-200">+0</strong> do <strong class="text-amber-200">+{{ \App\Infrastructure\Persistence\ItemInstance::MAX_UPGRADE_LEVEL }}</strong>. Każda próba kosztuje złoto (rosnące z poziomem przedmiotu) oraz - od kroku do +4 wzwyż - materiały rzemieślnicze ze schowka. Krok do +3 celowo nie wymaga materiałów, tylko złota.</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Krok</th>
+                                            <th class="py-1 px-1">Szansa sukcesu</th>
+                                            <th class="py-1 px-1">Materiały</th>
+                                            <th class="py-1 px-1">Kara porażki</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($upgradeSteps as $step)
+                                            <tr class="border-b border-stone-800">
+                                                <td class="py-1 pr-2 font-bold text-amber-200">+{{ $step->from_level }} → +{{ $step->to_level }}</td>
+                                                <td class="py-1 px-1 text-center"><strong class="text-emerald-400">{{ number_format($step->success_chance * 100, 0) }}%</strong></td>
+                                                <td class="py-1 px-1 text-center">{{ $step->to_level >= 4 ? 'Tak' : 'Nie (samo złoto)' }}</td>
+                                                <td class="py-1 px-1 text-center">{{ $onFailLabels[$step->on_fail] ?? $step->on_fail }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-stone-400">Koszt złota i materiałów rośnie razem z poziomem wymaganym przedmiotu - dokładny koszt widoczny jest przy wybranym przedmiocie w zakładce "Kuźnia Ulepszeń".</p>
+                        </div>
+                    </div>
+
+                    {{-- BONUS STATYSTYK --}}
+                    <div x-show="infoTab === 'stats'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Bonus % za Poziom Ulepszenia</h4>
+                            <p class="mb-2">Sukces podnosi poziom przedmiotu o +1 i dolicza procentowy bonus do jego surowych statystyk (obrażenia, obrona, HP itd.) - krzywa przyspiesza: pierwsze poziomy dają wyraźnie mniej, ostatnie najwięcej:</p>
+                            <ul class="space-y-1">
+                                @foreach(\App\Infrastructure\Persistence\ItemInstance::UPGRADE_BONUS_PERCENT_BY_LEVEL as $lvl => $pct)
+                                    <li>+{{ $lvl }}: <strong class="text-emerald-400">+{{ $pct }}%</strong></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- PROGI SPECJALNE --}}
+                    <div x-show="infoTab === 'thresholds'" class="space-y-6">
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">+3 - Darmowy Bonus</h4>
+                            <p>Przy przekroczeniu poziomu <strong class="text-amber-200">+3</strong> przedmiot automatycznie i bezpłatnie otrzymuje jeden losowy magiczny bonus - z tej samej puli, z której losuje Wiedźma przy zaklinaniu. Bonus NIE zajmuje jednego z 5 slotów zwykłego zaklinania i nie da się go przelosować u Wiedźmy. Jeśli poziom spadnie z powrotem poniżej +3 (kara za porażkę od +6), bonus jest automatycznie usuwany.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">+5 - Wzmocnienie Efektu Broni</h4>
+                            <p class="mb-2">Broń na poziomie <strong class="text-amber-200">+5</strong> lub wyższym dostaje jednorazowy, płaski <strong class="text-emerald-400">+5</strong> punktów procentowych do swojej głównej mechaniki specjalnej, zależnie od typu broni:</p>
+                            <ul class="space-y-1">
+                                <li>Miecz: <strong class="text-amber-200">Podwójne Uderzenie</strong></li>
+                                <li>Topór: <strong class="text-amber-200">Krwawienie</strong></li>
+                                <li>Łuk: <strong class="text-amber-200">Przebicie Pancerza</strong></li>
+                                <li>Sztylet: <strong class="text-amber-200">Zatrucie</strong></li>
+                                <li>Dzwon: <strong class="text-amber-200">Wybuch Magiczny</strong></li>
+                                <li>Różdżka: <strong class="text-amber-200">Infuzja Magiczna</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    {{-- RYZYKO PORAŻKI --}}
+                    <div x-show="infoTab === 'risk'" class="space-y-6">
+                        <div>
+                            <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Skutki Porażki</h4>
+                            <p class="mb-2">Do poziomu <strong class="text-amber-200">+5</strong> porażka kosztuje wyłącznie zużyte złoto i materiały - poziom przedmiotu nie spada. Od kroku do <strong class="text-amber-200">+6</strong> wzwyż porażka obniża poziom przedmiotu o 1 - świadome ryzyko na wyższych poziomach.</p>
+                            <p>Jeśli spadek poniżej +3 usunie darmowy bonus z progu +3 (patrz zakładka "Progi Specjalne") - w razie ponownego osiągnięcia +3 bonus zostanie wylosowany na nowo.</p>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     @endif

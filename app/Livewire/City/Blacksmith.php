@@ -25,6 +25,9 @@ class Blacksmith extends Component
     public string $upgradeModalMessage = '';
     public string $upgradeModalType = 'success';
 
+    // --- INFO / OPIS MECHANIK ---
+    public bool $showInfoModal = false;
+
     public function mount(Character $character): void
     {
         Gate::authorize('view', $character);
@@ -55,6 +58,11 @@ class Blacksmith extends Component
     public function closeUpgradeModal()
     {
         $this->showUpgradeModal = false;
+    }
+
+    public function toggleInfoModal(): void
+    {
+        $this->showInfoModal = !$this->showInfoModal;
     }
 
     public function backToHub(): void
@@ -249,12 +257,24 @@ class Blacksmith extends Component
             $equipped[$eq->template->slot] = $eq;
         }
 
+        // Krzywa szans/kar ulepszenia jest identyczna dla każdego szablonu (patrz
+        // UpgradeRuleSeeder) - pobrana raz jako lista distinct wierszy, żeby panel
+        // "Opis mechanik" nigdy nie rozjechał się z realnymi regułami w DB. Liczone
+        // tylko gdy modal jest otwarty, żeby nie obciążać każdego renderu komponentu.
+        $upgradeSteps = $this->showInfoModal
+            ? \App\Infrastructure\Persistence\UpgradeRule::select('from_level', 'to_level', 'success_chance', 'on_fail')
+                ->distinct()
+                ->orderBy('from_level')
+                ->get()
+            : collect();
+
         return view('livewire.city.blacksmith', [
             'upgradableItems' => $upgradableItems,
             'upgradeCosts' => $upgradeCosts,
             'inventoryMaterials' => $inventoryMaterials,
             'recipes' => $preparedRecipes,
             'equipped' => $equipped,
+            'upgradeSteps' => $upgradeSteps,
         ]);
     }
 }

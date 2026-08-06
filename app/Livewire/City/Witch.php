@@ -35,6 +35,9 @@ class Witch extends Component
     public ?string $actionMessage = null;
     public ?string $actionType = null; // 'success' or 'error'
 
+    // --- INFO / OPIS MECHANIK (Zaczarowania) ---
+    public bool $showInfoModal = false;
+
     #[On('tutorial-completed')]
     public function refreshOnTutorial()
     {
@@ -57,6 +60,11 @@ class Witch extends Component
     public function backToHub(): void
     {
         $this->redirect(route('city.hub', $this->character), navigate: true);
+    }
+
+    public function toggleInfoModal(): void
+    {
+        $this->showInfoModal = !$this->showInfoModal;
     }
 
     public function buySpecialExpPotion()

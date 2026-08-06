@@ -22,6 +22,9 @@ class Warlock extends Component
     public string $typeFilter = 'all';
     public string $categoryFilter = 'all';
 
+    // --- INFO / OPIS MECHANIK ---
+    public bool $showInfoModal = false;
+
     public function mount(Character $character)
     {
         $this->character = $character;
@@ -39,6 +42,11 @@ class Warlock extends Component
     public function backToHub()
     {
         $this->redirect(route('city.hub', $this->character), navigate: true);
+    }
+
+    public function toggleInfoModal(): void
+    {
+        $this->showInfoModal = !$this->showInfoModal;
     }
 
     public function filterByWeapon(string $weaponType): void
@@ -218,12 +226,17 @@ class Warlock extends Component
             ->whereIn('location', ['inventory', 'material_stash'])
             ->sum('stack_size') : 0;
 
+        // Katalog 10 umiejętności Mistrzostwa - niezależny od odblokowania (level 99),
+        // żeby panel "Opis mechanik" mógł je opisać graczom poniżej tego poziomu.
+        $championSkillsCatalog = ChampionSkill::orderBy('sort_order')->get();
+
         return view('livewire.city.warlock', array_merge([
             'allSkills' => $allSkills,
             'mySkills' => $mySkills,
             'skillBooksCount' => $skillBooksCount,
             'ownedSkillBooksBySubType' => $ownedSkillBooksBySubType,
             'soulStonesCount' => $soulStonesCount,
+            'championSkillsCatalog' => $championSkillsCatalog,
         ], $this->getChampionViewData()))->layout('components.layouts.app');
     }
 

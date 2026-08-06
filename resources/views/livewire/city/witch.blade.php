@@ -49,6 +49,14 @@
                     </div>
                 </div>
 
+                {{-- Info Button --}}
+                <button wire:click="toggleInfoModal"
+                    class="px-4 py-2.5 min-h-[44px] rounded-xl bg-black/80 border-2 border-sky-600/50 text-sky-300 hover:text-sky-100 hover:border-sky-400 font-extrabold text-xs uppercase tracking-widest shadow-inner transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                    title="Opis mechanik zaczarowań">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Opis mechanik</span>
+                </button>
+
                 {{-- Back Button --}}
                 <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' }); $dispatch('play-audio', { type: 'tab' })"
                     class="px-4 py-2.5 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-amber-200 font-extrabold text-xs uppercase tracking-widest border-2 border-slate-700 hover:border-fuchsia-500 hover:text-fuchsia-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-200 flex items-center gap-2 group cursor-pointer">
@@ -1016,6 +1024,111 @@
         </div>
 
     </div>
+
+    {{-- Opis Mechanik (Zaczarowania) --}}
+    @if($showInfoModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-fade-in">
+            <div x-data="{ infoTab: 'enchant' }" class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-sky-500/50 rounded-2xl max-w-4xl w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] relative max-h-[90vh] flex flex-col">
+                <button wire:click="toggleInfoModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <h3 class="text-lg font-bold text-sky-200 mb-4 flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+                    <i class="fa-solid fa-circle-info"></i> Opis Mechanik Zaczarowań
+                </h3>
+
+                @php
+                    $infoTabBtn = 'px-3 py-1.5 rounded-lg border text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-colors whitespace-nowrap';
+                    $infoTabActive = 'bg-sky-600/20 text-sky-200 border-sky-500/60';
+                    $infoTabInactive = 'text-stone-400 border-transparent hover:text-stone-200 hover:bg-stone-800/60';
+                @endphp
+
+                {{-- Zakładki --}}
+                <div class="flex flex-wrap gap-2 mb-4 border-b border-stone-800 pb-3">
+                    <button @click="infoTab = 'enchant'" :class="infoTab === 'enchant' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Zaklinanie
+                    </button>
+                    <button @click="infoTab = 'values'" :class="infoTab === 'values' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-dice mr-1"></i> Wartości Bonusów
+                    </button>
+                    <button @click="infoTab = 'reroll'" :class="infoTab === 'reroll' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-rotate mr-1"></i> Przelosowanie
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
+
+                    {{-- ZAKLINANIE --}}
+                    <div x-show="infoTab === 'enchant'" class="space-y-6">
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Sloty Zaklęć</h4>
+                            <p class="mb-2">Broń, zbroja i biżuteria mogą otrzymać maksymalnie <strong class="text-amber-200">5 magicznych bonusów</strong>. Każda próba zaklęcia kosztuje stałą opłatę, pobieraną niezależnie od wyniku:</p>
+                            <ul class="space-y-1">
+                                <li><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> <strong class="text-yellow-300">500 złota</strong> za próbę</li>
+                                <li><i class="fa-solid fa-gem text-blue-400 mr-1"></i> <strong class="text-blue-300">5 gemów</strong> za próbę</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Szansa Sukcesu</h4>
+                            <p class="mb-2">Szansa na powodzenie maleje z każdym już posiadanym bonusem - im więcej zaklęć na przedmiocie, tym trudniej dorzucić kolejne:</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Posiadane bonusy</th>
+                                            <th class="py-1 px-1">Szansa sukcesu</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach([75, 50, 40, 30, 20] as $i => $chance)
+                                            <tr class="border-b border-stone-800">
+                                                <td class="py-1 pr-2 font-bold text-amber-200">{{ $i }} / 5</td>
+                                                <td class="py-1 px-1 text-center"><strong class="text-emerald-400">{{ $chance }}%</strong></td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-stone-400">Porażka nie usuwa istniejących bonusów - traci się jedynie opłatę za próbę.</p>
+                        </div>
+                    </div>
+
+                    {{-- WARTOŚCI BONUSÓW --}}
+                    <div x-show="infoTab === 'values'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Losowanie Wartości</h4>
+                            <p class="mb-2">Każdy udany rzut losuje TYP bonusu (spośród dostępnych dla danego typu przedmiotu - broń/zbroja/biżuteria mają osobne pule) oraz jego WARTOŚĆ w widełkach [min, max] właściwych dla tego typu bonusu. Wartość NIE jest losowana równomiernie - rozkład jest skośny w stronę dolnej granicy (krzywa Gaussa): najczęściej trafiają się wartości blisko minimum, a maksimum jest bardzo rzadkie.</p>
+                            <p>Dla trzech kluczowych afiksów - <strong class="text-amber-200">Obrażenia Fizyczne</strong>, <strong class="text-amber-200">Obrażenia Magiczne</strong> i <strong class="text-amber-200">Punkty Życia (HP)</strong> - krzywa jest dodatkowo stromsza: wartości powyżej +40% są ekstremalnie rzadkie (~0.1%), co czyni je najcenniejszymi przedmiotami na rynku.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Ryzykowne Afiksy</h4>
+                            <p>Bonusy do obrażeń fizycznych/magicznych mogą wylosować wynik <strong class="text-red-400">ujemny (-20%)</strong> aż po dodatni (+50%) - większość rzutów ląduje nisko lub ujemnie, osłabiając przedmiot. Prawdziwy hazard: wysoki dodatni wynik jest wykładniczo rzadki, ale gdy się trafi, jest wyjątkowo silny.</p>
+                        </div>
+                    </div>
+
+                    {{-- PRZELOSOWANIE --}}
+                    <div x-show="infoTab === 'reroll'" class="space-y-6">
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Reroll Bonusów</h4>
+                            <p class="mb-2">Niezadowolony z wylosowanych bonusów? Możesz przelosować WSZYSTKIE naraz - typy i wartości zaklęć losowane są od nowa. Koszt zależy od liczby posiadanych bonusów:</p>
+                            <ul class="space-y-1">
+                                <li><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> <strong class="text-yellow-300">200 złota</strong> za każdy przelosowywany bonus</li>
+                                <li><i class="fa-solid fa-gem text-blue-400 mr-1"></i> <strong class="text-blue-300">2 gemy</strong> za każdy przelosowywany bonus</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Blokada Bonusu</h4>
+                            <p>Każdy pojedynczy bonus można zablokować - zablokowane bonusy nigdy nie zmieniają się przy przelosowaniu (typ i wartość zostają nietknięte). To premium, nie zniżka: <strong class="text-amber-200">każdy zablokowany slot PODWAJA całkowity koszt</strong> przelosowania pozostałych, odblokowanych bonusów (koszt bazowy × 2^liczba_zablokowanych).</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    @endif
 
     <style>
         .animate-bounce-slow {

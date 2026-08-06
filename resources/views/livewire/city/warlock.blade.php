@@ -53,6 +53,14 @@
                     </div>
                 </div>
 
+                {{-- Info Button --}}
+                <button wire:click="toggleInfoModal"
+                    class="px-4 py-2.5 min-h-[44px] rounded-xl bg-black/80 border-2 border-sky-600/50 text-sky-300 hover:text-sky-100 hover:border-sky-400 font-extrabold text-xs uppercase tracking-widest shadow-inner transition-all duration-200 flex items-center gap-2 cursor-pointer"
+                    title="Opis mechanik umiejętności i mistrzostwa">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>Opis mechanik</span>
+                </button>
+
                 {{-- Back Button --}}
                 <button wire:click="backToHub" @click="$dispatch('location-leave', { text: 'Podróż do Miasta...', icon: 'fa-solid fa-archway', url: '{{ route('city.hub', $character->id) }}' }); $dispatch('play-audio', { type: 'tab' })"
                     class="px-4 py-2.5 rounded-xl bg-gradient-to-b from-slate-800 via-slate-900 to-stone-950 text-amber-200 font-extrabold text-xs uppercase tracking-widest border-2 border-slate-700 hover:border-emerald-500 hover:text-emerald-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-200 flex items-center gap-2 group cursor-pointer">
@@ -589,4 +597,203 @@
         </div>
         @endif
     </div>
+
+    {{-- Opis Mechanik --}}
+    @if($showInfoModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-fade-in">
+            <div x-data="{ infoTab: 'skills' }" class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-sky-500/50 rounded-2xl max-w-4xl w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] relative max-h-[90vh] flex flex-col">
+                <button wire:click="toggleInfoModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+
+                <h3 class="text-lg font-bold text-sky-200 mb-4 flex items-center gap-2" style="font-family: 'Cinzel', serif;">
+                    <i class="fa-solid fa-circle-info"></i> Opis Mechanik Umiejętności i Mistrzostwa
+                </h3>
+
+                @php
+                    $infoTabBtn = 'px-3 py-1.5 rounded-lg border text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-colors whitespace-nowrap';
+                    $infoTabActive = 'bg-sky-600/20 text-sky-200 border-sky-500/60';
+                    $infoTabInactive = 'text-stone-400 border-transparent hover:text-stone-200 hover:bg-stone-800/60';
+                @endphp
+
+                {{-- Zakładki --}}
+                <div class="flex flex-wrap gap-2 mb-4 border-b border-stone-800 pb-3">
+                    <button @click="infoTab = 'skills'" :class="infoTab === 'skills' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-book-skull mr-1"></i> Rozwój Umiejętności
+                    </button>
+                    <button @click="infoTab = 'combat'" :class="infoTab === 'combat' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-hourglass-half mr-1"></i> Cooldown i Mana
+                    </button>
+                    <button @click="infoTab = 'rules'" :class="infoTab === 'rules' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-swords mr-1"></i> Zasady Walki
+                    </button>
+                    <button @click="infoTab = 'mastery'" :class="infoTab === 'mastery' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-crown mr-1"></i> Mistrzostwo Championa
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
+
+                    {{-- ROZWÓJ UMIEJĘTNOŚCI --}}
+                    <div x-show="infoTab === 'skills'" class="space-y-6">
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">3 Etapy Rozwoju</h4>
+                            <p class="mb-2">Każda umiejętność rozwija się w 3 etapach, aż do poziomu Perfect (P) - maksimum. Każda próba ulepszenia ma szansę porażki - surowce (PKT/Księgi/Kamienie + złoto) zużywają się NIEZALEŻNIE od wyniku, tak jak przy ulepszaniu przedmiotów u Kowala.</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Etap</th>
+                                            <th class="py-1 px-1">Koszt / poziom</th>
+                                            <th class="py-1 px-1">Szansa sukcesu</th>
+                                            <th class="py-1 px-1">Bonus mocy</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-emerald-300">Podstawowy (Lv. 1-6)</td>
+                                            <td class="py-1 px-1 text-center">1 Punkt Umiejętności</td>
+                                            <td class="py-1 px-1 text-center"><strong class="text-emerald-400">85%</strong></td>
+                                            <td class="py-1 px-1 text-center">×1.00</td>
+                                        </tr>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-sky-300">Mistrz (M1-M10)</td>
+                                            <td class="py-1 px-1 text-center">1..10 Ksiąg Umiejętności + 500 złota</td>
+                                            <td class="py-1 px-1 text-center"><strong class="text-amber-400">50%</strong></td>
+                                            <td class="py-1 px-1 text-center">×1.15</td>
+                                        </tr>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-amber-300">Arcymistrz (G1-G10)</td>
+                                            <td class="py-1 px-1 text-center">1..5 Kamieni Duchowych + 2 500 złota</td>
+                                            <td class="py-1 px-1 text-center"><strong class="text-red-400">20%</strong></td>
+                                            <td class="py-1 px-1 text-center">×1.35</td>
+                                        </tr>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-yellow-300">Perfect (P) - maks.</td>
+                                            <td class="py-1 px-1 text-center">5 Kamieni Duchowych + 10 000 złota</td>
+                                            <td class="py-1 px-1 text-center"><strong class="text-red-400">20%</strong></td>
+                                            <td class="py-1 px-1 text-center">×1.65</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-stone-400">Koszt Ksiąg/Kamieni rośnie stopniowo z każdym kolejnym poziomem w danym etapie (np. M1 wymaga 1 Księgi, M2 - 2 Ksiąg, ..., M10 - 10 Ksiąg). Wymagana Księga zależy od typu broni umiejętności (np. "Księga Walki Mieczem" dla skilli miecza).</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Skąd wziąć surowce</h4>
+                            <ul class="space-y-1">
+                                <li><strong class="text-sky-300">Księgi Umiejętności:</strong> wypadają ze wszystkich bossów map (T1+) oraz wszystkich lochów (D1+).</li>
+                                <li><strong class="text-amber-300">Kamienie Duchowe:</strong> wypadają z bossów map od Tieru 5 wzwyż oraz z lochów od Dungeon 3 wzwyż.</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Reset Umiejętności</h4>
+                            <p>Zainwestowane Punkty Umiejętności można odzyskać przedmiotem "Zwój Resetu Umiejętności" (pojedynczy skill) lub "Zwój Pełnego Resetu" (wszystkie skille naraz).</p>
+                        </div>
+                    </div>
+
+                    {{-- COOLDOWN I MANA --}}
+                    <div x-show="infoTab === 'combat'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Czas Odnowienia (Cooldown)</h4>
+                            <p class="mb-2">Umiejętności dzielą się na 3 kategorie szybkości wg bazowego cooldownu (na poziomie Podstawowym) - każda skaluje się inaczej z mistrzostwem:</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Kategoria</th>
+                                            <th class="py-1 px-1">Podstawowy</th>
+                                            <th class="py-1 px-1">Mistrz</th>
+                                            <th class="py-1 px-1">Arcymistrz / Perfect</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-amber-200">Szybkie (CD 1-2)</td>
+                                            <td class="py-1 px-1 text-center">bez zmian</td>
+                                            <td class="py-1 px-1 text-center">+1 (max 3)</td>
+                                            <td class="py-1 px-1 text-center">+2 (max 4)</td>
+                                        </tr>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-amber-200">Średnie (CD 3-5)</td>
+                                            <td class="py-1 px-1 text-center">bez zmian</td>
+                                            <td class="py-1 px-1 text-center">-1 (min 3)</td>
+                                            <td class="py-1 px-1 text-center">stałe 3</td>
+                                        </tr>
+                                        <tr class="border-b border-stone-800">
+                                            <td class="py-1 pr-2 font-bold text-amber-200">Długie (CD 6+)</td>
+                                            <td class="py-1 px-1 text-center">bez zmian</td>
+                                            <td class="py-1 px-1 text-center">-2 (min 6)</td>
+                                            <td class="py-1 px-1 text-center">stałe 5</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-stone-400">Szybkie skille ROSNĄ czasem odnowienia z mistrzostwem (rekompensata za rosnącą moc), średnie i długie - maleją, aż do wspólnego okna 3-5 tur na Arcymistrzu/Perfect.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Koszt Many</h4>
+                            <p class="font-mono text-[11px] text-amber-200 bg-black/40 rounded-lg px-3 py-2">koszt many = koszt_bazowy + (poziom - 1) × przyrost_na_poziom</p>
+                            <p class="mt-2 text-stone-400">Skille pasywne pobierają manę co turę zamiast przy aktywacji - jeśli zabraknie many, efekt pasywny w danej turze zostaje pominięty.</p>
+                        </div>
+                    </div>
+
+                    {{-- ZASADY WALKI --}}
+                    <div x-show="infoTab === 'rules'" class="space-y-6">
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Deck Umiejętności</h4>
+                            <p>Postać może mieć maksymalnie <strong class="text-amber-200">3 aktywne umiejętności</strong> wyposażone jednocześnie. Wyposażone skille zastępują atak podstawowy, gdy są gotowe (cooldown = 0) i starcza many.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Wymagana Broń</h4>
+                            <p>Każda umiejętność wymaga konkretnego typu broni w ręce głównej (miecz/topór/łuk/różdżka/dzwon/sztylet) lub pasuje do każdej ("all"). Bez wymaganej broni skill jest nieaktywny i nie zostanie użyty w walce.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Pułap Obrażeń</h4>
+                            <p>Umiejętności zadające bezpośrednie obrażenia (atak/AoE/zamrożenie/ogłuszenie) mają mnożnik obrażeń ograniczony do <strong class="text-amber-200">×4.0</strong> niezależnie od poziomu - zabezpieczenie przed jednouderzeniowymi zabójstwami przy pełnej maestrii. Leczenie i wzmocnienia procentowe nie podlegają temu limitowi.</p>
+                        </div>
+                    </div>
+
+                    {{-- MISTRZOSTWO CHAMPIONA --}}
+                    <div x-show="infoTab === 'mastery'" class="space-y-6">
+                        <div>
+                            <h4 class="text-yellow-300 font-bold mb-2 uppercase tracking-wider">Odblokowanie</h4>
+                            <p>Zakładka "Mistrzostwo" pojawia się automatycznie po osiągnięciu <strong class="text-amber-200">99 poziomu</strong> postaci (poziom wyświetlany dalej jako <strong class="text-amber-200">99(X)</strong>, gdzie X to poziom Mistrzostwa, maks. {{ \App\Application\Mastery\ChampionService::LEVEL_CAP }}).</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-yellow-300 font-bold mb-2 uppercase tracking-wider">Warunki Awansu</h4>
+                            <p class="mb-2">Awans na kolejny poziom Mistrzostwa wymaga JEDNOCZEŚNIE:</p>
+                            <ul class="space-y-1">
+                                <li>Pełnego paska EXP (ten sam pasek co zwykłe levelowanie, tylko z dużo wyższym progiem).</li>
+                                <li>Dostarczenia Czarnoksiężnikowi losowo wymaganego zestawu materiałów (sumujących się do 1000 sztuk, z map różnych tierów).</li>
+                            </ul>
+                            <p class="mt-2 text-stone-400">Po awansie pasek EXP resetuje się do zera i losowany jest nowy zestaw materiałów do kolejnego poziomu.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-yellow-300 font-bold mb-2 uppercase tracking-wider">Drzewko 10 Umiejętności Pasywnych</h4>
+                            <p class="mb-2">Każdy poziom Mistrzostwa daje 1 Punkt Mistrzostwa (PKT) do zainwestowania w dowolną z 10 pasywnych umiejętności (max {{ \App\Application\Mastery\ChampionService::LEVEL_CAP }} PKT łącznie na {{ \App\Infrastructure\Persistence\ChampionSkill::count() }} umiejętności - trzeba wybrać, które maksować):</p>
+                            <ul class="space-y-1">
+                                @foreach($championSkillsCatalog as $cs)
+                                    <li><strong class="text-amber-200">{{ $cs->name }}:</strong> {{ $cs->description }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-yellow-300 font-bold mb-2 uppercase tracking-wider">Reset Drzewka</h4>
+                            <p>Koszt <strong class="text-amber-200">{{ number_format(\App\Application\Mastery\ChampionService::RESET_GOLD_COST) }} złota</strong>, dostępny raz na miesiąc. Zwraca wszystkie zainwestowane PKT do ponownego rozdania.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
