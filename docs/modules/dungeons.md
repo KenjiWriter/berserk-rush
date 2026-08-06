@@ -35,11 +35,11 @@ Moduł lochów wprowadza do gry zaawansowaną zawartość PvE typu instancjonowa
    - Interfejs lochów wyświetla w czasie rzeczywistym liczbę posiadanych przez postać kluczy (z ekwipunku i magazynu materiałów).
    - Gracze z większym zasobem kluczy mogą skorzystać z opcji **Multi-Dungeonów** (`1x`, `3x`, `5x` kluczy na raz).
    - Przejście lochu w trybie Multi zużywa wielokrotność kluczy (np. 3 lub 5 sztuk), zmniejszając czas wymagany do farmedowania.
-   - **Skalowanie Trudności:** Aby zrównoważyć dużą oszczędność czasu, potwory w trybie multi posiadają skalowane statystyki (HP, ATK, DEF):
-     - `1x`: Standardowe statystyki (100%)
-     - `3x`: +35% do statystyk potworów (135%)
-     - `5x`: +70% do statystyk potworów (170%)
-   - **Skalowanie Nagród:** Wygrana w wyprawie Multi mnoży przyznawane Złoto, Doświadczenie (XP), liczbę gwarantowanych Skrzyń z Bossa (np. 5x = od 5 do 15 skrzyń) oraz ilość przedmiotów w tabeli dropów przez wybrany mnożnik (`key_multiplier`).
+   - **Skalowanie Trudności (2026-08-06 - zmiana podejścia):** Aby zrównoważyć dużą oszczędność czasu, wyprawy Multi są trudniejsze - ale sposób skalowania różni się w zależności od typu etapu (`DungeonStage::stage_type`):
+     - **Etapy "zwykłe" (`single_mob`, `group_mob`) - skalowanie LICZBĄ przeciwników:** zamiast winglować statystyki, gracz walczy z grupą kopii potwora o BAZOWYCH (nieskalowanych) statystykach - "jak w klasycznym lochu jest 1 potwór, tak tu walczysz z grupą naraz". Liczba przeciwników = (projektowana liczba ze `stage->monster_count`, domyślnie 1 dla `single_mob`) * mnożnik kluczy (`1x` = bez zmian, `3x` = x3 przeciwników, `5x` = x5 przeciwników). Implementacja re-używa istniejącą pętlę walki grupowej (ta sama, która obsługuje projektowo zdefiniowane `group_mob` etapy) - potwory w grupie NIE rzucają własnych skilli/DoT-ów na gracza (tak samo jak przy walkach grupowych over-level na mapach, zasada "AOE/grupa bez DoT", patrz `docs/modules/combat.md` pkt 7b).
+     - **Boss/Miniboss/Gate - skalowanie STATYSTYKAMI (bez zmian):** pojedynek pozostaje 1v1, ale przeciwnik jest silniejszy (`diffMultiplier` na HP/ATK/DEF): `1x` = 100%, `3x` = 135%, `5x` = 170%.
+   - **Skalowanie Nagród:** Wygrana w wyprawie Multi mnoży przyznawane Złoto, Doświadczenie (XP), liczbę gwarantowanych Skrzyń z Bossa (np. 5x = od 5 do 15 skrzyń) oraz ilość przedmiotów w tabeli dropów przez wybrany mnożnik (`key_multiplier`) - bez zmian, ten mnożnik nagród nie zależy od tego, czy trudność etapu skaluje się liczbą przeciwników czy statystykami.
+   - **UI (`dungeon-run.blade.php`):** pasek Życia przeciwnika oraz kafelek "MAX HP" muszą liczyć maksimum tą samą formułą co `DungeonService::simulateStage()` (suma bazowego HP * liczba przeciwników dla etapów "zwykłych", albo HP * `diffMultiplier` dla boss/miniboss/gate) - inaczej licznik pokazuje aktualne (poprawnie przeskalowane z backendu) HP na tle złego maksimum. Etapy z grupą >1 przeciwnika pokazują odznakę `xN` przy nazwie potwora.
 
 ## Baza Danych
 

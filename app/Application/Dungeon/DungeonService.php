@@ -180,13 +180,29 @@ class DungeonService
         $totalStages = $run->dungeon->stages()->count();
         $isBossStage = ($stage->stage_type === 'boss' || $run->current_stage >= $totalStages);
         $stageType = $stage->stage_type ?? 'single_mob';
-        $monsterCount = max(1, $stage->monster_count ?? 1);
         $maxTurns = $stage->max_turns ?? 50;
+        $keyMultiplier = max(1, (int) ($run->key_multiplier ?? 1));
 
         $turns = [];
         $turnCount = 0;
 
-        $diffMultiplier = 1.0 + (($run->key_multiplier ?? 1) - 1) * 0.25;
+        // Multi-Dungeony (x3/x5, docs/modules/dungeons.md pkt 7): etapy "zwykłe"
+        // (single_mob/group_mob) stawiają teraz grupę kopii potwora o BAZOWYCH statystykach
+        // (liczba = projektowana liczba * mnożnik kluczy) zamiast winglować statystyki
+        // jednego potwora - "jak w klasycznym lochu jest 1 potwór, tak tu walczysz z grupą
+        // naraz". Boss/miniboss/gate zostają przy starym podejściu: jeden, ale silniejszy
+        // przeciwnik (diffMultiplier na statystykach) - finałowy pojedynek z bossem ma
+        // pozostać pojedynkiem 1v1, tylko trudniejszym.
+        $isSwarmStageType = in_array($stageType, ['single_mob', 'group_mob'], true);
+        if ($stageType === 'group_mob') {
+            $monsterCount = max(1, $stage->monster_count ?? 1) * $keyMultiplier;
+        } elseif ($stageType === 'single_mob') {
+            $monsterCount = $keyMultiplier;
+        } else {
+            $monsterCount = max(1, $stage->monster_count ?? 1);
+        }
+
+        $diffMultiplier = $isSwarmStageType ? 1.0 : 1.0 + ($keyMultiplier - 1) * 0.25;
 
         if ($stageType === 'gate') {
             $maxTurns = $stage->max_turns ?? 10;
@@ -256,7 +272,7 @@ class DungeonService
             }
 
             $won = $monsterHp <= 0;
-        } elseif ($stageType === 'group_mob' && $monsterCount > 1) {
+        } elseif ($isSwarmStageType && $monsterCount > 1) {
             $singleMaxHp = (int) round(($monster->stats['hp'] ?? ($monster->level * 20)) * $diffMultiplier);
             $mobs = [];
             for ($m = 0; $m < $monsterCount; $m++) {

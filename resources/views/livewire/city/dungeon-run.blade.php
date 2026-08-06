@@ -642,6 +642,27 @@
                 {{-- Right: Enemy Panel --}}
                 <div class="col-span-1 md:col-span-1 lg:col-span-1 order-3 lg:order-3" id="dungeon-enemy-panel-container">
                     @if($monster)
+                        @php
+                            // Multi-Dungeony (x3/x5): etapy "zwykłe" (single_mob/group_mob) stawiają grupę
+                            // kopii potwora o bazowych statystykach zamiast winglować statystyki jednego
+                            // potwora - musi lustrzanie odzwierciedlać DungeonService::simulateStage() (patrz
+                            // docs/modules/dungeons.md pkt 7), inaczej pasek Życia pokazuje złe maksimum.
+                            $dungeonKeyMultiplier = max(1, (int) ($run->key_multiplier ?? 1));
+                            $dungeonStageType = $currentStageModel->stage_type ?? 'single_mob';
+                            $dungeonIsSwarmStage = in_array($dungeonStageType, ['single_mob', 'group_mob'], true);
+                            if ($dungeonStageType === 'group_mob') {
+                                $dungeonEffectiveMonsterCount = max(1, $currentStageModel->monster_count ?? 1) * $dungeonKeyMultiplier;
+                            } elseif ($dungeonStageType === 'single_mob') {
+                                $dungeonEffectiveMonsterCount = $dungeonKeyMultiplier;
+                            } else {
+                                $dungeonEffectiveMonsterCount = 1;
+                            }
+                            $dungeonDiffMultiplier = $dungeonIsSwarmStage ? 1.0 : 1.0 + ($dungeonKeyMultiplier - 1) * 0.25;
+                            $perMonsterBaseHp = $monster->stats['hp'] ?? $monster->level * 20;
+                            $baseMonsterHp = $dungeonIsSwarmStage
+                                ? $perMonsterBaseHp * $dungeonEffectiveMonsterCount
+                                : (int) round($perMonsterBaseHp * $dungeonDiffMultiplier);
+                        @endphp
                         <div id="dungeon-enemy-panel"
                             class="relative rounded-2xl shadow-2xl overflow-hidden bg-slate-950/80 backdrop-blur-xl border border-red-500/30 transition-all duration-300">
                             <div class="absolute inset-0 bg-gradient-to-b from-red-500/10 via-transparent to-black/70 pointer-events-none"></div>
@@ -660,8 +681,13 @@
                                         </div>
                                         <span class="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-red-700 to-rose-600 text-red-100 text-xs font-black px-2.5 py-0.5 rounded-full border border-red-400 shadow-lg medieval-font">Lvl {{ $monster->level }}</span>
                                     </div>
-                                    <h3 class="mt-3 text-base sm:text-lg font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">{{ $monster->name }}</h3>
-                                    <p class="text-xs text-red-400/80">Etap {{ $currentStage }} / {{ $totalStages }} @if($monster->rank) • {{ $monster->rank?->label() }} @endif</p>
+                                    <h3 class="mt-3 text-base sm:text-lg font-extrabold text-red-200 medieval-font drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]">
+                                        {{ $monster->name }}
+                                        @if($dungeonEffectiveMonsterCount > 1)
+                                            <span class="ml-1 text-xs font-black text-amber-300 bg-amber-900/60 border border-amber-500/50 rounded px-1.5 py-0.5 align-middle">x{{ $dungeonEffectiveMonsterCount }}</span>
+                                        @endif
+                                    </h3>
+                                    <p class="text-xs text-red-400/80">Etap {{ $currentStage }} / {{ $totalStages }} @if($monster->rank) • {{ $monster->rank?->label() }} @endif @if($dungeonEffectiveMonsterCount > 1) • Grupa {{ $dungeonEffectiveMonsterCount }} przeciwników @endif</p>
                                 </div>
 
                                 {{-- Enemy HP Bar --}}
@@ -669,7 +695,6 @@
                                     <div class="flex justify-between text-xs font-bold text-red-200 medieval-font">
                                         <span>Życie</span>
                                         @php
-                                            $baseMonsterHp = $monster->stats['hp'] ?? $monster->level * 20;
                                             $displayMonsterHp = ($showBattle && !$isCalculating) ? $animatedEnemyHp : $baseMonsterHp;
                                         @endphp
                                         <span class="font-mono text-red-300">
@@ -690,11 +715,11 @@
                                     <div class="grid grid-cols-2 gap-1.5">
                                         <div class="bg-slate-900/90 border border-red-900/40 rounded-xl p-1.5 text-center">
                                             <div class="text-[10px] font-semibold text-red-400 flex items-center justify-center gap-1"><i class="fa-solid fa-crosshairs"></i> ATK</div>
-                                            <div class="text-sm font-black text-red-200 font-mono">{{ $monster->stats['atk'] ?? $monster->level * 2 }}</div>
+                                            <div class="text-sm font-black text-red-200 font-mono">{{ (int) round(($monster->stats['atk'] ?? $monster->level * 2) * $dungeonDiffMultiplier) }}</div>
                                         </div>
                                         <div class="bg-slate-900/90 border border-blue-900/40 rounded-xl p-1.5 text-center">
                                             <div class="text-[10px] font-semibold text-blue-400 flex items-center justify-center gap-1"><i class="fa-solid fa-shield"></i> DEF</div>
-                                            <div class="text-sm font-black text-blue-200 font-mono">{{ $monster->stats['def'] ?? $monster->level }}</div>
+                                            <div class="text-sm font-black text-blue-200 font-mono">{{ (int) round(($monster->stats['def'] ?? $monster->level) * $dungeonDiffMultiplier) }}</div>
                                         </div>
                                         <div class="bg-slate-900/90 border border-emerald-900/40 rounded-xl p-1.5 text-center">
                                             <div class="text-[10px] font-semibold text-emerald-400 flex items-center justify-center gap-1"><i class="fa-solid fa-wind"></i> AGI</div>
