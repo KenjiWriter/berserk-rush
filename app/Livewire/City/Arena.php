@@ -5,6 +5,7 @@ namespace App\Livewire\City;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Pagination\LengthAwarePaginator;
 use App\Infrastructure\Persistence\Character;
 use App\Application\PvP\MatchmakingService;
 use App\Application\PvP\PvPEncounterService;
@@ -17,7 +18,7 @@ class Arena extends Component
     public Character $character;
     public array $opponents = [];
     public ?string $currentLeague = null;
-    public string $activeTab = 'opponents'; // 'opponents', 'ranking', or 'history'
+    public string $activeTab = 'opponents'; // 'opponents', 'ranking', 'cp_ranking', or 'history'
 
     protected $queryString = [
         'activeTab' => ['except' => 'opponents'],
@@ -49,7 +50,7 @@ class Arena extends Component
 
     public function switchTab(string $tab)
     {
-        if (in_array($tab, ['opponents', 'ranking', 'history'])) {
+        if (in_array($tab, ['opponents', 'ranking', 'cp_ranking', 'history'])) {
             $this->activeTab = $tab;
             $this->resetPage();
         }
@@ -139,6 +140,38 @@ class Arena extends Component
             }
         }
 
+        $cpRanking = null;
+        $cpRankingEquipment = [];
+        $cpValues = [];
+        if ($this->activeTab === 'cp_ranking') {
+            $allChars = Character::query()
+                ->with(['user', 'itemInstances.template', 'equipmentSetItems.itemInstance.template', 'activePet'])
+                ->where('level', '>=', 15)
+                ->get();
+
+            $sortedChars = $allChars->sortByDesc(function (Character $char) use (&$cpValues) {
+                $cp = $char->getTotalCombatPower('pvp');
+                $cpValues[$char->id] = $cp;
+                return $cp;
+            })->values();
+
+            $currentPage = LengthAwarePaginator::resolveCurrentPage();
+            $perPage = 10;
+            $itemsForCurrentPage = $sortedChars->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+            $cpRanking = new LengthAwarePaginator(
+                $itemsForCurrentPage,
+                $sortedChars->count(),
+                $perPage,
+                $currentPage,
+                ['path' => LengthAwarePaginator::resolveCurrentPath(), 'query' => request()->query()]
+            );
+
+            foreach ($cpRanking as $rowChar) {
+                $cpRankingEquipment[$rowChar->id] = $rowChar->getEquipmentSlotsFor('pvp');
+            }
+        }
+
         $history = null;
         $historyEquipment = [];
         if ($this->activeTab === 'history') {
@@ -167,9 +200,12 @@ class Arena extends Component
 
         return view('livewire.city.arena', [
             'ranking' => $ranking,
+            'cpRanking' => $cpRanking,
+            'cpValues' => $cpValues,
             'history' => $history,
             'opponentEquipment' => $opponentEquipment,
             'rankingEquipment' => $rankingEquipment,
+            'cpRankingEquipment' => $cpRankingEquipment,
             'historyEquipment' => $historyEquipment,
         ]);
     }

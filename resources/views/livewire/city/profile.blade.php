@@ -141,7 +141,7 @@
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
                                  @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                     <div class="absolute top-1.5 left-1.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
                                  @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
@@ -464,7 +464,7 @@
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
                                  @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
+                                     <div class="absolute top-1.5 left-1.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
                                  @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">

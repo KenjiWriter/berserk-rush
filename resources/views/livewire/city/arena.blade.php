@@ -100,6 +100,10 @@
                         class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'ranking' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-trophy text-amber-400"></i> Ranking Chwały
                     </button>
+                    <button wire:click="switchTab('cp_ranking')" 
+                        class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'cp_ranking' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
+                        <i class="fa-solid fa-fire text-amber-400"></i> Ranking Gear Score (CP)
+                    </button>
                     <button wire:click="switchTab('history')" 
                         class="px-3 sm:px-5 py-3 min-h-[44px] flex-1 sm:flex-initial font-bold medieval-font text-xs sm:text-base transition-all rounded-t-xl flex items-center justify-center gap-2 {{ $activeTab === 'history' ? 'bg-amber-900/90 text-amber-100 border-t-2 border-x border-amber-500/80 shadow-lg' : 'bg-stone-900/50 text-amber-300/70 hover:bg-stone-900/80 hover:text-amber-200 border-t border-x border-transparent' }}">
                         <i class="fa-solid fa-clock-rotate-left text-amber-400"></i> Historia Walk
@@ -346,6 +350,138 @@
                         <div class="text-center py-12 bg-black/30 rounded-xl border border-amber-900/40">
                             <i class="fa-solid fa-trophy text-5xl mb-4 text-amber-500/30"></i>
                             <h3 class="text-xl font-bold text-amber-200/60 medieval-font">Brak wpisów w rankingu.</h3>
+                        </div>
+                    @endif
+
+                @elseif($activeTab === 'cp_ranking')
+                    {{-- Section: Gear Score (CP) Ranking --}}
+                    <div class="mb-6 border-b-2 border-amber-800/50 pb-4 text-center md:text-left">
+                        <h2 class="text-2xl md:text-3xl font-bold text-amber-100 medieval-font flex items-center justify-center md:justify-start gap-2">
+                            <i class="fa-solid fa-fire text-amber-400"></i> Ranking Gear Score (CP)
+                        </h2>
+                        <p class="text-amber-300/80 text-xs md:text-sm mt-1">Zestawienie najpotężniejszych wojowników królestwa uszeregowanych według Mocy Bojowej (Gear Score / CP) ekwipunku.</p>
+                    </div>
+
+                    @if($cpRanking && $cpRanking->count() > 0)
+                        <div class="overflow-x-auto rounded-xl border border-amber-900/60 shadow-2xl bg-black/40 backdrop-blur-md">
+                            <table class="w-full text-left text-amber-100">
+                                <thead class="bg-amber-950/90 text-amber-300 uppercase text-xs medieval-font border-b border-amber-800/60">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-4">Miejsce</th>
+                                        <th scope="col" class="px-6 py-4">Gracz</th>
+                                        <th scope="col" class="px-6 py-4">Poziom</th>
+                                        <th scope="col" class="px-6 py-4">Gear Score (CP)</th>
+                                        <th scope="col" class="px-6 py-4">ELO</th>
+                                        <th scope="col" class="px-6 py-4 text-right">Akcja</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-amber-900/40 font-medium">
+                                    @foreach($cpRanking as $index => $rowChar)
+                                        @php
+                                            $rankNumber = ($cpRanking->currentPage() - 1) * $cpRanking->perPage() + $loop->iteration;
+                                            $isCurrentCharacter = $rowChar->id === $character->id;
+                                            $avatarSrc = $rowChar->getEffectiveAvatarUrl();
+                                            $cpVal = $cpValues[$rowChar->id] ?? $rowChar->getTotalCombatPower('pvp');
+                                        @endphp
+                                        <tr class="transition-colors hover:bg-amber-900/30 {{ $isCurrentCharacter ? 'bg-amber-900/40 border-l-4 border-l-amber-400' : '' }}">
+                                            {{-- Miejsce --}}
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                @if($rankNumber === 1)
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_10px_rgba(245,158,11,0.3)]">
+                                                        <i class="fa-solid fa-fire text-amber-400 mr-1.5 text-sm"></i> #1 Top Czempion CP
+                                                    </span>
+                                                @elseif($rankNumber === 2)
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-300/20 text-slate-200 border border-slate-400/50">
+                                                        <i class="fa-solid fa-shield text-slate-300 mr-1.5 text-sm"></i> #2
+                                                    </span>
+                                                @elseif($rankNumber === 3)
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-amber-700/20 text-amber-400 border border-amber-600/50">
+                                                        <i class="fa-solid fa-shield text-amber-500 mr-1.5 text-sm"></i> #3
+                                                    </span>
+                                                @else
+                                                    <span class="text-amber-300/70 font-mono text-sm font-semibold pl-2">#{{ $rankNumber }}</span>
+                                                @endif
+                                            </td>
+
+                                            {{-- Gracz --}}
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="flex items-center gap-3 cursor-help smart-tooltip-trigger" x-data="smartTooltip()" @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click="toggleTooltip()" @resize.window.debounce.100ms="updatePosition()" @tooltip-updated.window="updatePosition()">
+                                                    <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-amber-700/80 bg-black shrink-0">
+                                                        <img src="{{ $avatarSrc }}" class="w-full h-full object-cover" alt="{{ $rowChar->name }}">
+                                                    </div>
+                                                    <template x-teleport="body">
+                                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                             :style="tooltipStyle"
+                                                             style="display: none;"
+                                                             class="hidden sm:block fixed z-[99999] w-auto"
+                                                             @mouseenter="openTooltip()" @mouseleave="closeTooltip($event)" @click.stop>
+                                                            <x-arena-equipment-preview :slots="$cpRankingEquipment[$rowChar->id] ?? []" />
+                                                        </div>
+                                                    </template>
+                                                    <div>
+                                                        <div class="font-bold text-amber-100 flex items-center gap-2">
+                                                            {{ $rowChar->name }}
+                                                            @if($isCurrentCharacter)
+                                                                <span class="text-[10px] bg-amber-500 text-stone-950 font-black px-1.5 py-0.5 rounded uppercase">Ty</span>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            {{-- Poziom --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-amber-200">
+                                                Lvl {{ $rowChar->level }}
+                                            </td>
+
+                                            {{-- Gear Score (CP) --}}
+                                            <td class="px-6 py-4 whitespace-nowrap font-extrabold text-amber-300">
+                                                <i class="fa-solid fa-shield-halved text-amber-400 mr-1 text-xs"></i> {{ number_format($cpVal) }} CP
+                                            </td>
+
+                                            {{-- ELO --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-xs font-semibold text-amber-200/80">
+                                                <i class="fa-solid fa-bolt text-amber-400/80 mr-1 text-xs"></i> {{ $rowChar->elo }} ELO
+                                            </td>
+
+                                            {{-- Akcja --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                @if(!$isCurrentCharacter)
+                                                    @php
+                                                        $hasDailyFights = $character->getRemainingDailyPvpFights() > 0;
+                                                    @endphp
+                                                    <button wire:click="challengeOpponent('{{ $rowChar->id }}')"
+                                                        wire:loading.attr="disabled"
+                                                        @if(!$hasDailyFights) disabled title="Wyczerpano limit 3 prób na Arenie (+1 próba odnawia się co 1h)." @endif
+                                                        class="relative rounded-lg px-4 py-1.5 shadow overflow-hidden group/btn disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        <img src="{{ asset('img/avatars/plate.png') }}" class="absolute inset-0 w-full h-full object-cover rounded-lg">
+                                                        <div class="absolute inset-0 {{ $hasDailyFights ? 'bg-red-900/70 group-hover/btn:bg-red-800/70' : 'bg-stone-800/80' }} transition-colors rounded-lg"></div>
+                                                        <span class="relative text-red-100 text-xs font-bold medieval-font flex items-center gap-1">
+                                                            @if($hasDailyFights)
+                                                                <i class="fa-solid fa-hand-fist text-red-200"></i> Wyzwij
+                                                            @else
+                                                                <i class="fa-solid fa-lock text-stone-300"></i> Limit wyczerpany
+                                                            @endif
+                                                        </span>
+                                                    </button>
+                                                @else
+                                                    <span class="text-xs text-amber-400/50 italic">Twoja postać</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {{-- Pagination links --}}
+                        <div class="mt-6">
+                            {{ $cpRanking->links() }}
+                        </div>
+                    @else
+                        <div class="text-center py-12 bg-black/30 rounded-xl border border-amber-900/40">
+                            <i class="fa-solid fa-shield-halved text-5xl mb-4 text-amber-500/30"></i>
+                            <h3 class="text-xl font-bold text-amber-200/60 medieval-font">Brak wpisów w rankingu CP.</h3>
                         </div>
                     @endif
 
