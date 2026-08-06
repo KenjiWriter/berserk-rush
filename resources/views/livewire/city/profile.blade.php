@@ -106,9 +106,6 @@
                     @foreach(['head', 'chest', 'main_hand'] as $slot)
                         <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
                              @if(isset($equipped[$slot]))
-                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                 @endif 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
                                  draggable="true"
@@ -432,9 +429,6 @@
                     @foreach(['neck', 'ring', 'feet'] as $slot)
                         <div id="equip-slot-{{ $slot }}" wire:key="equip-slot-{{ $slot }}-{{ $equipped[$slot]->id ?? 'empty' }}" x-data="{ open: false, hoverTimeout: null, isDragOver: false, isDragInvalid: false }" @click.outside="open = false"
                              @if(isset($equipped[$slot]))
-                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                 @endif 
                                  wire:loading.class="opacity-50 scale-95 pointer-events-none" 
                                  wire:target="unequipItem('{{ $equipped[$slot]->id }}')" 
                                  draggable="true"
