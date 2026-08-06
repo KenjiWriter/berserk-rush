@@ -8,14 +8,11 @@ html, body {
 
 /* Magical Enchantment Effects */
 @keyframes enchantedShimmer {
-    0% {
-        background-position: 200% 0;
+    0%, 5% {
+        background-position: 130% 0;
     }
-    40% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: -200% 0;
+    45%, 100% {
+        background-position: -130% 0;
     }
 }
 
@@ -42,8 +39,9 @@ html, body {
         transparent 100%
     );
     background-size: 300% 100%;
-    animation: enchantedShimmer 8s infinite ease-in-out;
-    animation-delay: var(--shimmer-delay, inherit);
+    animation: enchantedShimmer 8s infinite linear;
+    animation-delay: var(--shimmer-delay, 0s);
+    animation-fill-mode: backwards;
     pointer-events: none;
     z-index: 4;
     will-change: background-position;
