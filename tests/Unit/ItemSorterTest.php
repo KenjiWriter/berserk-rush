@@ -135,3 +135,47 @@ test('ItemSorter sorts items by category and power strength descending', functio
         $potion->id,
     ]);
 });
+
+test('ItemSorter prioritizes equipped items when equippedFirst is enabled', function () {
+    $user = User::factory()->create();
+    $character = Character::create([
+        'user_id' => $user->id,
+        'name' => 'EquippedSorterTester',
+        'class' => 'warrior',
+        'level' => 50,
+        'experience' => 0,
+        'gold' => 1000,
+    ]);
+
+    $swordTemplate = ItemTemplate::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Miecz',
+        'type' => 'weapon',
+        'sub_type' => 'sword',
+        'slot' => 'main_hand',
+        'level_requirement' => 1,
+        'base_stats' => ['attack_min' => 10, 'attack_max' => 20],
+    ]);
+
+    $unEquippedSword = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $swordTemplate->id,
+        'owner_character_id' => $character->id,
+        'location' => 'inventory',
+        'rarity' => 'common',
+    ]);
+
+    $equippedSword = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $swordTemplate->id,
+        'owner_character_id' => $character->id,
+        'location' => 'equipped',
+        'rarity' => 'common',
+    ]);
+
+    $items = collect([$unEquippedSword, $equippedSword]);
+
+    $sortedEquippedFirst = ItemSorter::sort($items, equippedFirst: true);
+
+    expect($sortedEquippedFirst->first()->id)->toBe($equippedSword->id);
+});

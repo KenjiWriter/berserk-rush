@@ -520,6 +520,7 @@ class Witch extends Component
                 $q->whereIn('type', ['weapon', 'armor', 'accessory']);
             })->get()
         );
+        $enchantableItems = \App\Application\Items\ItemSorter::sort($enchantableItems, equippedFirst: true);
 
         $equipped = [];
         foreach ($this->character->equippedItems()->with('template')->get() as $eq) {

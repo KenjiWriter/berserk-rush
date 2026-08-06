@@ -26,7 +26,7 @@
                 $badgeClass = 'bg-amber-950/90 border border-yellow-400 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.7)]';
             }
         @endphp
-        <span class="absolute -top-1 -right-1 z-10 pointer-events-none text-[8px] sm:text-[9px] font-extrabold px-1 py-0.5 rounded-md shadow-lg leading-none {{ $badgeClass }}">
+        <span class="absolute -top-1 -left-1 z-10 pointer-events-none text-[8px] sm:text-[9px] font-extrabold px-1 py-0.5 rounded-md shadow-lg leading-none {{ $badgeClass }}">
             +{{ $upgradeLevel }}
         </span>
     @endif

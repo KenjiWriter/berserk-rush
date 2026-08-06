@@ -276,7 +276,7 @@
                                                     <div class="text-[10px] text-center p-1 truncate w-full">{{ $item->template->name }}</div>
                                                 @endif
                                                 @if($item->location === 'equipped')
-                                                    <div class="absolute -top-1 -right-1 bg-blue-600 border border-blue-400 text-white text-[9px] font-bold px-1 py-0.5 rounded shadow">E</div>
+                                                    <div class="absolute -top-1 -right-1 z-10 bg-blue-600 border border-blue-400 text-white text-[9px] font-bold px-1 py-0.5 rounded shadow" title="Przedmiot założony">E</div>
                                                 @endif
                                             </div>
 

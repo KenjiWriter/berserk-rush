@@ -85,9 +85,18 @@ class ItemSorter
      * 6. Stack size (DESCENDING)
      * 7. Name (ASCENDING)
      */
-    public static function sort(Collection $items): Collection
+    public static function sort(Collection $items, bool $equippedFirst = false): Collection
     {
-        return $items->sort(function (ItemInstance $a, ItemInstance $b) {
+        return $items->sort(function (ItemInstance $a, ItemInstance $b) use ($equippedFirst) {
+            // 0. Equipped status (EQUIPPED FIRST if requested)
+            if ($equippedFirst) {
+                $eqA = ($a->location === 'equipped') ? 0 : 1;
+                $eqB = ($b->location === 'equipped') ? 0 : 1;
+                if ($eqA !== $eqB) {
+                    return $eqA <=> $eqB;
+                }
+            }
+
             // 1. Category weight (ASCENDING)
             $catA = self::getCategoryWeight($a);
             $catB = self::getCategoryWeight($b);

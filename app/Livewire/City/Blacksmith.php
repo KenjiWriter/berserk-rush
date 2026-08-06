@@ -171,7 +171,7 @@ class Blacksmith extends Component
         $upgradableItems = $upgradableItems->filter(function ($item) {
             return $this->matchesItemFilter($item->template->type ?? null, $item->template->slot ?? null);
         });
-        $upgradableItems = ItemSorter::sort($upgradableItems);
+        $upgradableItems = ItemSorter::sort($upgradableItems, equippedFirst: true);
 
         // Koszt ulepszenia liczony wyłącznie dla aktualnie wybranego przedmiotu (widok i tak
         // pokazuje tylko $upgradeCosts[$selectedUpgradeItemId]) - liczenie go dla całej listy
