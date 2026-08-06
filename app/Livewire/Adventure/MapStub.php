@@ -9,6 +9,7 @@ use App\Application\Combat\EncounterService;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\Encounter;
 use App\Application\Characters\LevelUpService;
+use App\Application\Mastery\ChampionService;
 use App\Application\LocationEvents\LocationEventService;
 use App\Infrastructure\Persistence\LocationEvent;
 use App\Infrastructure\Persistence\LocationEventUpgradeLevel;
@@ -909,6 +910,10 @@ class MapStub extends Component
      */
     public function getXpToNextLevel(): int
     {
+        if ($this->character->level >= LevelUpService::MAX_LEVEL) {
+            return app(ChampionService::class)->xpTarget();
+        }
+
         return $this->getXpRequiredForLevel($this->character->level + 1);
     }
 

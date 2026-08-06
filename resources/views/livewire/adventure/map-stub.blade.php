@@ -554,9 +554,14 @@
                                 <span>Doświadczenie</span>
                                 <span class="font-mono text-indigo-300" title="{{ number_format($character->xp) }}/{{ number_format($this->getXpToNextLevel()) }}">{{ \App\Helpers\FormatHelper::short($character->xp) }}/{{ \App\Helpers\FormatHelper::short($this->getXpToNextLevel()) }}</span>
                             </div>
-                            <div class="h-2 sm:h-2.5 w-full rounded-full bg-indigo-950/70 ring-1 ring-indigo-700/40 p-0.5">
-                                <div class="h-full rounded-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-400 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-500"
-                                    style="width: {{ $this->getXpPercentage() }}%"></div>
+                            <div class="h-2 sm:h-2.5 w-full rounded-full bg-indigo-950/70 ring-1 ring-indigo-700/40 p-0.5 relative overflow-hidden">
+                                <div class="h-full relative rounded-full overflow-hidden shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-[width] duration-700 ease-out"
+                                    style="width: {{ max(2, $this->getXpPercentage()) }}%">
+                                    <div class="absolute inset-0 xp-liquid-fill"></div>
+                                    <div class="absolute inset-0 opacity-35 xp-wave-1"></div>
+                                    <div class="absolute inset-0 opacity-30 xp-wave-2"></div>
+                                    <div class="absolute inset-0 xp-liquid-sparkles opacity-60"></div>
+                                </div>
                             </div>
                         </div>
 
@@ -1277,6 +1282,46 @@
             font-family: 'Cinzel', serif;
             text-shadow: 0 4px 12px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.9);
             white-space: nowrap;
+        }
+
+        /* Keyframes dla Magicznej Cieczy w Pasku XP */
+        @keyframes xpLiquidFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        @keyframes xpWaveMove1 {
+            0% { transform: translateX(0) scaleY(1); }
+            50% { transform: translateX(-18px) scaleY(1.15); }
+            100% { transform: translateX(0) scaleY(1); }
+        }
+        @keyframes xpWaveMove2 {
+            0% { transform: translateX(0) scaleY(1.1); }
+            50% { transform: translateX(18px) scaleY(0.9); }
+            100% { transform: translateX(0) scaleY(1.1); }
+        }
+        @keyframes xpSparkleFloat {
+            0% { background-position: 0 0; }
+            100% { background-position: 120px -40px; }
+        }
+
+        .xp-liquid-fill {
+            background: linear-gradient(90deg, #4338ca, #6366f1, #7c3aed, #a855f7, #6366f1, #4338ca);
+            background-size: 250% 100%;
+            animation: xpLiquidFlow 6s ease-in-out infinite;
+        }
+        .xp-wave-1 {
+            background: radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.45) 0%, transparent 65%);
+            animation: xpWaveMove1 3.5s ease-in-out infinite;
+        }
+        .xp-wave-2 {
+            background: radial-gradient(ellipse at 30% 120%, rgba(168, 85, 247, 0.6) 0%, transparent 70%);
+            animation: xpWaveMove2 4.5s ease-in-out infinite;
+        }
+        .xp-liquid-sparkles {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.75) 1.2px, transparent 0);
+            background-size: 18px 18px;
+            animation: xpSparkleFloat 7s linear infinite;
         }
     </style>
     {{-- HP/Mana bar chip-damage + liquid + shake/splash CSS & JS now live in the shared
