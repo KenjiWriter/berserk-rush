@@ -599,13 +599,17 @@ class MonsterSeeder extends Seeder
                     'abilities' => []
                 ]
             ],
+            // Skażone Miasto - staty regular+boss podbite o +12% (2026-08-06, na
+            // życzenie: "trochę silniejsze o jakieś 10-15%") względem oryginalnych
+            // wartości Fazy 0. Worldboss (Pan Zniszczenia) CELOWO nietknięty - poza
+            // tym systemem kalibracji, jak w reszcie gry.
             'Skażone Miasto' => [
                 [
                     'name' => 'Władca Skażenia i Plagi',
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 8824, 'atk' => 481, 'def' => 106, 'agi' => 85, 'int' => 150, 'crit' => 0.40, 'dodge' => 0.15],
+                    'stats' => ['hp' => 9884, 'atk' => 539, 'def' => 119, 'agi' => 95, 'int' => 150, 'crit' => 0.40, 'dodge' => 0.15],
                     'abilities' => []
                 ],
                 [
@@ -613,7 +617,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 86,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1852, 'atk' => 330, 'def' => 76, 'agi' => 55, 'int' => 64, 'crit' => 0.45, 'dodge' => 0.20],
+                    'stats' => ['hp' => 2074, 'atk' => 370, 'def' => 85, 'agi' => 62, 'int' => 64, 'crit' => 0.45, 'dodge' => 0.20],
                     'abilities' => []
                 ],
                 [
@@ -621,7 +625,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 88,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1929, 'atk' => 342, 'def' => 80, 'agi' => 57, 'int' => 70, 'crit' => 0.48, 'dodge' => 0.22],
+                    'stats' => ['hp' => 2160, 'atk' => 383, 'def' => 90, 'agi' => 64, 'int' => 70, 'crit' => 0.48, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -629,7 +633,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 90,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1790, 'atk' => 306, 'def' => 66, 'agi' => 61, 'int' => 192, 'crit' => 0.50, 'dodge' => 0.25],
+                    'stats' => ['hp' => 2005, 'atk' => 343, 'def' => 74, 'agi' => 68, 'int' => 192, 'crit' => 0.50, 'dodge' => 0.25],
                     'abilities' => []
                 ],
                 [
@@ -637,7 +641,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'mystical',
                     'level' => 92,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 2083, 'atk' => 357, 'def' => 91, 'agi' => 50, 'int' => 80, 'crit' => 0.42, 'dodge' => 0.18],
+                    'stats' => ['hp' => 2333, 'atk' => 400, 'def' => 102, 'agi' => 56, 'int' => 80, 'crit' => 0.42, 'dodge' => 0.18],
                     'abilities' => []
                 ],
                 [
@@ -645,7 +649,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'animal',
                     'level' => 94,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 1728, 'atk' => 339, 'def' => 61, 'agi' => 86, 'int' => 48, 'crit' => 0.55, 'dodge' => 0.35],
+                    'stats' => ['hp' => 1935, 'atk' => 380, 'def' => 68, 'agi' => 96, 'int' => 48, 'crit' => 0.55, 'dodge' => 0.35],
                     'abilities' => []
                 ],
                 [
@@ -653,7 +657,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 98,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 2160, 'atk' => 370, 'def' => 97, 'agi' => 67, 'int' => 80, 'crit' => 0.48, 'dodge' => 0.24],
+                    'stats' => ['hp' => 2419, 'atk' => 414, 'def' => 109, 'agi' => 75, 'int' => 80, 'crit' => 0.48, 'dodge' => 0.24],
                     'abilities' => []
                 ],
                 [
@@ -661,7 +665,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 102,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 10148, 'atk' => 537, 'def' => 122, 'agi' => 98, 'int' => 250, 'crit' => 0.60, 'dodge' => 0.30],
+                    'stats' => ['hp' => 11366, 'atk' => 601, 'def' => 137, 'agi' => 110, 'int' => 250, 'crit' => 0.60, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -689,6 +693,10 @@ class MonsterSeeder extends Seeder
             // to ~4% HP gracza. Ten wpis to rekalibracja na bazie REALNYCH liczb z logu
             // walki (nie teorii): ok. x5.3 HP, x3 ATK, x4.5 DEF, x1.3 AGI względem v1,
             // tak by walka z regularnym potworem wymagała kilku skillowych trafień
+            // (v3, 2026-08-06: v2 znów przesadzona w drugą stronę - HP zwykłych
+            // potworów obniżone z ~27-31k do 18-20k efektywnego, na bazie feedbacku
+            // "za mocne". ATK/DEF/AGI bossów i regularów BEZ ZMIAN względem v2 -
+            // zgłoszenie dotyczyło wyłącznie HP zwykłych potworów, nie bossów.)
             // zamiast jednego, a otrzymywany dmg realnie bolał (patrz też uwaga w
             // docs/rebalance_2026_08_progress.md o tym samym mechanizmie - kalkulator
             // Faza 0 też był korygowany pod realnego gracza, nie gołą postać).
@@ -698,7 +706,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 95,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 20300, 'atk' => 772, 'def' => 361, 'agi' => 86, 'int' => 225, 'crit' => 0.58, 'dodge' => 0.26],
+                    'stats' => ['hp' => 13480, 'atk' => 772, 'def' => 361, 'agi' => 86, 'int' => 225, 'crit' => 0.58, 'dodge' => 0.26],
                     'abilities' => []
                 ],
                 [
@@ -706,7 +714,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 96,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 22150, 'atk' => 802, 'def' => 429, 'agi' => 76, 'int' => 175, 'crit' => 0.55, 'dodge' => 0.22],
+                    'stats' => ['hp' => 14220, 'atk' => 802, 'def' => 429, 'agi' => 76, 'int' => 175, 'crit' => 0.55, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -714,7 +722,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 97,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 19500, 'atk' => 861, 'def' => 339, 'agi' => 92, 'int' => 450, 'crit' => 0.60, 'dodge' => 0.30],
+                    'stats' => ['hp' => 13330, 'atk' => 861, 'def' => 339, 'agi' => 92, 'int' => 450, 'crit' => 0.60, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -722,7 +730,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 98,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 22650, 'atk' => 847, 'def' => 415, 'agi' => 99, 'int' => 213, 'crit' => 0.58, 'dodge' => 0.32],
+                    'stats' => ['hp' => 14520, 'atk' => 847, 'def' => 415, 'agi' => 99, 'int' => 213, 'crit' => 0.58, 'dodge' => 0.32],
                     'abilities' => []
                 ],
                 [
@@ -730,7 +738,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 22800, 'atk' => 861, 'def' => 420, 'agi' => 92, 'int' => 550, 'crit' => 0.64, 'dodge' => 0.34],
+                    'stats' => ['hp' => 14815, 'atk' => 861, 'def' => 420, 'agi' => 92, 'int' => 550, 'crit' => 0.64, 'dodge' => 0.34],
                     'abilities' => []
                 ],
                 [
