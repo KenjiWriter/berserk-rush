@@ -25,6 +25,7 @@ html, body {
     position: absolute;
     inset: 0;
     border-radius: inherit;
+    clip-path: inset(0 round inherit);
     background: linear-gradient(
         115deg,
         transparent 0%,
