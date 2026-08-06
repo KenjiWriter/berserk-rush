@@ -21,7 +21,7 @@ class ArenaCombat extends Component
     // Combat state
     public array $player = [];
     public array $enemy = [];
-    public ?int $enemyCharacterId = null;
+    public ?string $enemyCharacterId = null;
     public array $allTurns = [];
     public array $visibleTurns = [];
     public string $result = '';
