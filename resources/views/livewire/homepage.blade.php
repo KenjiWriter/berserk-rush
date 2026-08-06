@@ -81,14 +81,6 @@
             </div>
 
             <div class="relative mt-5 flex flex-wrap items-center justify-center gap-3">
-                <div wire:poll.30s class="inline-flex items-center gap-2.5 px-4 py-1.5 rpg-badge text-xs sm:text-sm">
-                    <span class="relative flex h-2.5 w-2.5">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                    </span>
-                    <span>{{ number_format($activePlayers) }} graczy online</span>
-                </div>
-
                 <button @click="trailerOpen = true" class="rpg-badge rpg-badge-link inline-flex items-center gap-2 px-4 py-1.5 text-xs sm:text-sm">
                     <i class="fa-solid fa-clapperboard"></i> Zwiastun
                 </button>
@@ -367,7 +359,7 @@
                 </div>
 
                 {{-- O Grze --}}
-                <div class="order-5 lg:order-none mb-6 lg:mb-0 rpg-panel">
+                <div class="order-7 lg:order-none mb-6 lg:mb-0 rpg-panel">
                     <div class="rpg-panel-header">
                         <i class="fa-solid fa-gamepad"></i>
                         <span>O Grze</span>
@@ -474,6 +466,44 @@
                         </div>
                     </div>
                 @endauth
+
+                {{-- Aktywność --}}
+                <div class="order-5 lg:order-none mb-6 lg:mb-0 rpg-panel">
+                    <div class="rpg-panel-header">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>Aktywność</span>
+                    </div>
+                    <div class="p-4">
+                        <div class="rpg-row">
+                            <span class="rpg-ink-soft font-semibold">Status serwera</span>
+                            @if($serverOnline)
+                                <span class="rpg-stat-badge rpg-stat-badge-on">
+                                    <i class="fa-solid fa-circle"></i> Online
+                                </span>
+                            @else
+                                <span class="rpg-stat-badge rpg-stat-badge-off">
+                                    <i class="fa-solid fa-circle"></i> Offline
+                                </span>
+                            @endif
+                        </div>
+                        <div class="rpg-row">
+                            <span class="rpg-ink-soft font-semibold">Gracze online</span>
+                            <span class="rpg-level-tag">{{ number_format($onlinePlayers) }}</span>
+                        </div>
+                        <div class="rpg-row">
+                            <span class="rpg-ink-soft font-semibold">Gracze online (24h)</span>
+                            <span class="rpg-level-tag">{{ number_format($onlinePlayers24h) }}</span>
+                        </div>
+                        <div class="rpg-row">
+                            <span class="rpg-ink-soft font-semibold">Założone konta</span>
+                            <span class="rpg-level-tag">{{ number_format($totalAccounts) }}</span>
+                        </div>
+                        <div class="rpg-row">
+                            <span class="rpg-ink-soft font-semibold">Założone postacie</span>
+                            <span class="rpg-level-tag">{{ number_format($totalCharacters) }}</span>
+                        </div>
+                    </div>
+                </div>
 
                 {{-- Galeria Gry --}}
                 @if(isset($galleryImages) && $galleryImages->isNotEmpty())
@@ -698,6 +728,27 @@
             border-radius: 3px;
             padding: .15rem .5rem;
             display: inline-block;
+        }
+
+        .rpg-stat-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            font-size: .72rem;
+            font-weight: 700;
+            border-radius: 3px;
+            padding: .12rem .5rem;
+        }
+        .rpg-stat-badge i { font-size: 7px; }
+        .rpg-stat-badge-on {
+            color: #14532d;
+            background: rgba(16,185,129,.22);
+            border: 1px solid rgba(16,185,129,.5);
+        }
+        .rpg-stat-badge-off {
+            color: #7f1d1d;
+            background: rgba(239,68,68,.22);
+            border: 1px solid rgba(239,68,68,.5);
         }
 
         /* News */

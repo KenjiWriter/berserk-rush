@@ -6,8 +6,6 @@ use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 
-use Illuminate\Support\Facades\DB;
-
 class Homepage extends Component
 {
     // Deletion Modal State
@@ -35,11 +33,11 @@ class Homepage extends Component
 
     public function render()
     {
-        $activePlayers = DB::table('sessions')
-            ->whereNotNull('user_id')
-            ->where('last_activity', '>=', now()->subMinutes(5)->timestamp)
-            ->distinct('user_id')
-            ->count('user_id');
+        $onlinePlayers = \App\Models\User::where('last_active_at', '>=', now()->subMinutes(5))->count();
+        $onlinePlayers24h = \App\Models\User::where('last_active_at', '>=', now()->subDay())->count();
+        $totalAccounts = \App\Models\User::count();
+        $totalCharacters = \App\Infrastructure\Persistence\Character::count();
+        $serverOnline = !app()->isDownForMaintenance();
 
         $topCharacters = \App\Infrastructure\Persistence\Character::with('guild')
             ->orderByDesc('level')
@@ -84,7 +82,11 @@ class Homepage extends Component
 
         // Mock data for rankings and admin messages
         $mockData = [
-            'activePlayers' => $activePlayers,
+            'onlinePlayers' => $onlinePlayers,
+            'onlinePlayers24h' => $onlinePlayers24h,
+            'totalAccounts' => $totalAccounts,
+            'totalCharacters' => $totalCharacters,
+            'serverOnline' => $serverOnline,
             'topCharacters' => $topCharacters,
             'topGuilds' => $topGuilds,
             'adminMessages' => $adminMessages

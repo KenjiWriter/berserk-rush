@@ -60,7 +60,13 @@ Projekt stosuje koncepcje Domain-Driven Design (DDD) i CQRS-lite. Każdy moduł 
    - **Stosuj wyłącznie ikony FontAwesome 6** (`<i class="fa-solid fa-...">`) lub zakodowane customowe pliki graficzne/SVGi z katalogu `public/img/` lub assetów.
    - Dbaj o nadawanie ikonom spójnych klas stylizujących z palety gry (np. `text-amber-400`, `text-emerald-400`, `text-sky-400`, `text-yellow-400`).
 
-## 3. Podsumowanie Typowego Cyklu Pracy Agenta
+## 3. Weryfikacja Zmian — Bez Ręcznego Testowania w Przeglądarce
+
+- **Nie uruchamiaj lokalnego serwera deweloperskiego ani nie testuj zmian UI ręcznie w przeglądarce (Browser pane / preview_start).** Lokalne środowisko (`.env`) jest skonfigurowane pod MySQL, podczas gdy aplikacja docelowo działa na PostgreSQL 17 (patrz `architecture.md`) — część zapytań (np. `orderByRaw(... NULLS FIRST)`) używa składni specyficznej dla Postgresa i **będzie się wysypywać lokalnie niezależnie od wprowadzanych zmian**. Efekt: fałszywe negatywy, które nie mają związku z Twoją zmianą, i strata czasu na diagnozowanie nieistniejącego problemu.
+- Zamiast tego: zweryfikuj zmiany statycznie — `php artisan view:cache` / `view:clear` dla błędów składni Blade, przegląd kodu, sprawdzenie zapytań SQL pod kątem zgodności z PostgreSQL, testy jednostkowe/feature jeśli istnieją.
+- Na zakończenie zadania **zwróć użytkownikowi krótką listę punktów do ręcznej weryfikacji** (np. "sprawdź czy licznik graczy online pokazuje poprawną wartość po zalogowaniu") zamiast samodzielnie klikać po aplikacji.
+
+## 4. Podsumowanie Typowego Cyklu Pracy Agenta
 1. **Analiza Zamiaru:** Upewnij się, z jakim modułem (np. `Loot`, `Combat`) masz do czynienia. Sprawdź ewentualne instrukcje specyficzne dla modułu w `docs/modules/`.
 2. **Warstwa Danych:** W razie potrzeby utwórz migrację i zaktualizuj odpowiedni Model Eloquent.
 3. **Logika Dziedzinowa i Zdarzenia:** Utwórz Value Objects lub zdarzenia dziedzinowe w `app/Domain/...`.
