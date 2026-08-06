@@ -711,6 +711,7 @@
                                 'strong_vs_demons', 'strong_vs_undead', 'strong_vs_animals', 'strong_vs_orcs', 'strong_vs_hero',
                                 'resist_demons', 'resist_undead', 'resist_animals', 'resist_orcs',
                                 'resist_hero', 'resist_sword', 'resist_dagger', 'resist_bell', 'resist_axe', 'resist_bow', 'resist_wand',
+                                'strong_vs_magic', 'resist_magic',
                             ];
                             $economyModifierList = ['double_exp_chance', 'double_gold_chance', 'double_drop_chance'];
                         @endphp

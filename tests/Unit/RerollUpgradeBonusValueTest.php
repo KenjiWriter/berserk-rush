@@ -23,7 +23,7 @@ class RerollUpgradeBonusValueTest extends TestCase
             'user_id' => $user->id,
             'name' => 'TestHero',
             'level' => 50,
-            'gold' => 1000,
+            'gold' => 5000,
         ]);
 
         $template = ItemTemplate::create([
@@ -54,7 +54,7 @@ class RerollUpgradeBonusValueTest extends TestCase
         $payload = $result->getPayload();
         $this->assertTrue($payload['success']);
         $this->assertEquals('attack_power', $payload['bonus']['type']);
-        $this->assertEquals(800, $character->fresh()->gold);
+        $this->assertEquals(1500, $character->fresh()->gold);
 
         $item->refresh();
         $upgradeBonuses = $item->getUpgradeBonuses();

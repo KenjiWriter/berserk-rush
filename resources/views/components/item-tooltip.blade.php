@@ -215,6 +215,8 @@
             'resist_axe' => 'Odporność na Topory',
             'resist_bow' => 'Odporność na Łuki',
             'resist_wand' => 'Odporność na Różdżki',
+            'strong_vs_magic' => 'Silny na Obrażenia Magiczne',
+            'resist_magic' => 'Odporność na Magię',
             'strong_vs_hero' => 'Silny vs Bohaterów',
             'double_exp_chance' => 'Szansa na Podwójne EXP',
             'double_gold_chance' => 'Szansa na Podwójne Złoto',

@@ -12,8 +12,8 @@ use Illuminate\Support\Str;
 
 class RerollUpgradeBonusValue
 {
-    public const COST_GOLD = 200;
-    public const COST_GEMS = 2;
+    public const COST_GOLD = 3500;
+    public const COST_GEMS = 35;
 
     public function __construct(private EnchantmentStrategy $strategy)
     {

@@ -1710,6 +1710,14 @@ class EncounterService
             $bonusDamage = (int) round($bonusDamage * (1 + $championDmgPct));
         }
 
+        if ($isMagicDamage) {
+            $strongVsMagic = $eq['strong_vs_magic'] ?? 0;
+            if ($strongVsMagic !== 0) {
+                $baseDamage = max(1, (int) round($baseDamage * (1 + ($strongVsMagic / 100))));
+                $bonusDamage = (int) round($bonusDamage * (1 + ($strongVsMagic / 100)));
+            }
+        }
+
         $magicBurstDamage = 0;
         $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
         if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {

@@ -543,11 +543,11 @@
                                              </div>
                                              <div class="mt-3 grid grid-cols-2 gap-3">
                                                  <button wire:click="rerollUpgradeBonus('gold')" wire:loading.attr="disabled" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 border border-amber-500/60 hover:border-amber-400 font-bold py-2 px-3 rounded-lg transition-all text-xs shadow-md">
-                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-coins mr-1 text-amber-400"></i> Wartość (200 <i class="fa-solid fa-coins"></i>)</span>
+                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-coins mr-1 text-amber-400"></i> Wartość (3500 <i class="fa-solid fa-coins"></i>)</span>
                                                      <span wire:loading wire:target="rerollUpgradeBonus" class="animate-pulse">Losowanie...</span>
                                                  </button>
                                                  <button wire:click="rerollUpgradeBonus('gems')" wire:loading.attr="disabled" class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-500/60 hover:border-blue-400 font-bold py-2 px-3 rounded-lg transition-all text-xs shadow-md">
-                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-gem mr-1 text-blue-400"></i> Wartość (2 <i class="fa-solid fa-gem"></i>)</span>
+                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-gem mr-1 text-blue-400"></i> Wartość (35 <i class="fa-solid fa-gem"></i>)</span>
                                                      <span wire:loading wire:target="rerollUpgradeBonus" class="animate-pulse">Losowanie...</span>
                                                  </button>
                                              </div>

@@ -31,6 +31,7 @@ class EnchantmentStrategy
         'poison_chance' => [1, 7],
         'stun_chance' => [1, 7],
         'strong_vs_hero' => [5, 20],
+        'strong_vs_magic' => [-10, 10],
     ];
 
     private array $armorBonuses = [
@@ -50,6 +51,8 @@ class EnchantmentStrategy
         'resist_axe' => [2, 10],
         'resist_bow' => [2, 10],
         'resist_wand' => [2, 10],
+        'strong_vs_magic' => [-10, 10],
+        'resist_magic' => [-10, 10],
     ];
 
     private array $accessoryBonuses = [
@@ -99,6 +102,8 @@ class EnchantmentStrategy
         'resist_axe' => 'Odporność na Topory',
         'resist_bow' => 'Odporność na Łuki',
         'resist_wand' => 'Odporność na Różdżki',
+        'strong_vs_magic' => 'Silny na Obrażenia Magiczne',
+        'resist_magic' => 'Odporność na Magię',
         'str_bonus' => 'Siła (STR)',
         'int_bonus' => 'Inteligencja (INT)',
         'vit_bonus' => 'Witalność (VIT)',
@@ -123,6 +128,7 @@ class EnchantmentStrategy
             'attack_power' => 50, 'magic_attack' => 50, 'crit_chance' => 10,
             'strong_vs_demons' => 20, 'strong_vs_undead' => 20, 'strong_vs_animals' => 20,
             'strong_vs_orcs' => 20, 'poison_chance' => 7, 'stun_chance' => 7, 'strong_vs_hero' => 20,
+            'strong_vs_magic' => 10,
         ];
         $armorMax = [
             'hp_bonus' => 50, 'defense' => 15, 'dodge_chance' => 5,
@@ -130,6 +136,7 @@ class EnchantmentStrategy
             'resist_orcs' => 10, 'resist_poison' => 7, 'resist_stun' => 7,
             'resist_hero' => 10, 'resist_sword' => 10, 'resist_dagger' => 10,
             'resist_bell' => 10, 'resist_axe' => 10, 'resist_bow' => 10, 'resist_wand' => 10,
+            'strong_vs_magic' => 10, 'resist_magic' => 10,
         ];
         $accessoryMax = [
             'hp_bonus' => 50, 'defense' => 10, 'crit_chance' => 5,

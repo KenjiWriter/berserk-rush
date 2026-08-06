@@ -778,6 +778,18 @@ class PvPEncounterService
             $damage = max(1, (int) round($damage * (1 - ($weaponResistPct / 100))));
         }
 
+        // "Silny na Obrażenia Magiczne" oraz "Odporność na Magię" przy starciu magicznym
+        if ($isMagicSkill || $weaponType === 'wand') {
+            $strongVsMagic = $eqStats['strong_vs_magic'] ?? 0;
+            if ($strongVsMagic !== 0) {
+                $damage = max(1, (int) round($damage * (1 + ($strongVsMagic / 100))));
+            }
+            $resistMagic = min(75, max(-75, $defEq['resist_magic'] ?? 0));
+            if ($resistMagic !== 0) {
+                $damage = max(1, (int) round($damage * (1 - ($resistMagic / 100))));
+            }
+        }
+
         // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
         // Tarczy") + Twardziel celu (Mistrzostwo) - capowana na 75%, ten sam wzorzec
         // bezpieczeństwa co passive_extra_attack.

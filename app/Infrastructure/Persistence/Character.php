@@ -835,6 +835,8 @@ class Character extends Model
                 'resist_axe' => 0,
                 'resist_bow' => 0,
                 'resist_wand' => 0,
+                'strong_vs_magic' => 0,
+                'resist_magic' => 0,
             ];
 
             // 'attack_power'/'magic_attack' (2026-07-29): afiksy z Czarodzieja/Wiedźmy

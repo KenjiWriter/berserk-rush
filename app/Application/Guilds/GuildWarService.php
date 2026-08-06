@@ -866,6 +866,18 @@ class GuildWarService
             $damage = max(1, (int) round($damage * (1 - ($weaponResistPct / 100))));
         }
 
+        // "Silny na Obrażenia Magiczne" oraz "Odporność na Magię" przy starciu magicznym
+        if ($isMagicSkill || $weaponType === 'wand') {
+            $strongVsMagic = $eq['strong_vs_magic'] ?? 0;
+            if ($strongVsMagic !== 0) {
+                $damage = max(1, (int) round($damage * (1 + ($strongVsMagic / 100))));
+            }
+            $resistMagic = min(75, max(-75, $defEq['resist_magic'] ?? 0));
+            if ($resistMagic !== 0) {
+                $damage = max(1, (int) round($damage * (1 - ($resistMagic / 100))));
+            }
+        }
+
         $actingAgi = $attrs['agi'] ?? 1;
         $targetAgi = $targetSnap['attributes']['agi'] ?? 1;
 
