@@ -363,9 +363,13 @@
                                 <span>Życie</span>
                                 <span class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
                             </div>
-                            <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
-                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
-                                    style="width: {{ $this->getPlayerHpPercent() }}%"></div>
+                            @php $playerHpPct = $this->getPlayerHpPercent(); @endphp
+                            <div id="player-hp-bar" class="relative h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 shadow-inner overflow-hidden">
+                                {{-- Chip-damage layer: lags behind on hit, then wipes right-to-left to reveal how much HP was lost --}}
+                                <div class="hp-chip-layer absolute inset-y-0.5 left-0.5 rounded-full bg-white/90"
+                                    style="width: {{ $playerHpPct }}%"></div>
+                                <div class="hp-fill-layer absolute inset-y-0.5 left-0.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                    style="width: {{ $playerHpPct }}%"></div>
                             </div>
                         </div>
 
@@ -1006,8 +1010,9 @@
                                                             @endif
                                                         </div>
                                                         <div class="text-[9px] text-amber-300/80 font-mono">Lvl {{ $m['level'] }}</div>
-                                                        <div class="h-1.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/30 p-0.5 mt-0.5">
-                                                            <div class="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400 transition-all duration-300" style="width: {{ $mHpPct }}%"></div>
+                                                        <div class="relative h-1.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/30 mt-0.5 overflow-hidden">
+                                                            <div class="hp-chip-layer absolute inset-y-px left-px rounded-full bg-white/90" style="width: {{ $mHpPct }}%"></div>
+                                                            <div class="hp-fill-layer absolute inset-y-px left-px rounded-full bg-gradient-to-r from-red-600 to-rose-400" style="width: {{ $mHpPct }}%"></div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1079,8 +1084,11 @@
                                     <span>Życie Przeciwnika</span>
                                     <span class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>
                                 </div>
-                                <div class="h-4 sm:h-5 w-full rounded-full bg-black/80 ring-1 ring-red-700/50 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] transition-all duration-500"
+                                <div id="enemy-hp-bar" class="relative h-4 sm:h-5 w-full rounded-full bg-black/80 ring-1 ring-red-700/50 shadow-inner overflow-hidden">
+                                    {{-- Chip-damage layer: lags behind on hit, then wipes right-to-left to reveal how much HP was lost --}}
+                                    <div class="hp-chip-layer absolute inset-y-0.5 left-0.5 rounded-full bg-white/90"
+                                        style="width: {{ $displayHpPercent }}%"></div>
+                                    <div class="hp-fill-layer absolute inset-y-0.5 left-0.5 rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)]"
                                         style="width: {{ $displayHpPercent }}%"></div>
                                 </div>
                             </div>
@@ -1273,6 +1281,28 @@
             font-family: 'Cinzel', serif;
             text-shadow: 0 4px 12px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.9);
             white-space: nowrap;
+        }
+
+        /* HP Bar Chip-Damage Effect: the colored fill snaps to the new value fast,
+           while the white "chip" layer underneath lags behind and wipes away
+           right-to-left afterwards, making the amount of HP just lost clearly readable. */
+        .hp-fill-layer {
+            transition: width 180ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .hp-chip-layer {
+            transition: width 650ms cubic-bezier(0.65, 0, 0.35, 1);
+            transition-delay: 220ms;
+        }
+
+        @keyframes hpBarShake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-3px); }
+            40% { transform: translateX(3px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
+        .hp-bar-shake {
+            animation: hpBarShake 320ms ease-in-out;
         }
     </style>
 
@@ -1828,6 +1858,15 @@
                         }
                         if (type !== 'miss') {
                             spawnImpactParticles(defenderPanel, isPoison ? 'poison' : (isFire ? 'fire' : (isCrit ? 'crit' : (type === 'skill' ? 'skill' : 'hit'))));
+                        }
+
+                        // Punch the HP bar itself so a landed hit feels tied to the exact bar losing HP
+                        const defenderHpBarId = actor === 'player' ? 'enemy-hp-bar' : 'player-hp-bar';
+                        const defenderHpBar = document.getElementById(defenderHpBarId);
+                        if (defenderHpBar && type !== 'miss') {
+                            defenderHpBar.classList.remove('hp-bar-shake');
+                            void defenderHpBar.offsetWidth;
+                            defenderHpBar.classList.add('hp-bar-shake');
                         }
                     }
 
