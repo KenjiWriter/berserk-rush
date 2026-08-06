@@ -40,7 +40,7 @@
 
                 @if($item)
                     <template x-teleport="body">
-                        <div x-show="itemOpen" x-transition.opacity style="display:none"
+                        <div x-show="itemOpen" x-transition.opacity style="display:none" data-item-tooltip-backdrop
                              class="fixed inset-0 z-[100005] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs pointer-events-auto"
                              @click.stop="itemOpen = false">
                             <div data-item-tooltip @click.stop class="relative max-h-[90vh] overflow-y-auto">

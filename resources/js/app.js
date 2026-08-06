@@ -45,7 +45,12 @@ function createSmartTooltip() {
                 const tooltipEl = this.getTooltipElement();
                 const isInsideTooltip = tooltipEl && tooltipEl.contains(e.target);
                 const isInsideTrigger = this.$el && this.$el.contains(e.target);
-                if (!isInsideTooltip && !isInsideTrigger) {
+                // Zagnieżdżone tooltipy itemów (np. w podglądzie ekwipunku Areny) są
+                // teleportowane do <body> osobno od tego kontenera, więc kliknięcie
+                // w nie nie jest wykrywane przez powyższe sprawdzenia - nie powinno
+                // jednak zamykać tego (nadrzędnego) tooltipa.
+                const isInsideNestedTooltip = e.target.closest && e.target.closest('[data-item-tooltip], [data-item-tooltip-backdrop]');
+                if (!isInsideTooltip && !isInsideTrigger && !isInsideNestedTooltip) {
                     this.showInfo = false;
                 }
             };
