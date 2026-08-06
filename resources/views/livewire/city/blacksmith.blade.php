@@ -834,9 +834,9 @@
                                     <div class="bg-black/40 p-3 rounded border border-stone-800 text-xs text-stone-300 space-y-2">
                                         <p>Awans na każdy kolejny poziom Czempiona wymaga Runicznych Odłamków:</p>
                                         <div class="font-mono text-purple-300 font-bold text-center bg-gray-900/60 p-1.5 rounded border border-gray-800">
-                                            Koszt = 50 + (Poziom Czempiona &times; 10)
+                                            Koszt = 1000 + (Poziom Czempiona &times; 100)
                                         </div>
-                                        <p class="text-[10px] text-stone-400">Przykładowo: Lvl 1 &rarr; 50 szt. | Lvl 10 &rarr; 140 szt. | Lvl 50 &rarr; 540 szt.</p>
+                                        <p class="text-[10px] text-stone-400">Przykładowo: Lvl 1 &rarr; 1 000 szt. | Lvl 10 &rarr; 2 000 szt. | Lvl 50 &rarr; 6 000 szt.</p>
                                     </div>
                                 </div>
                             </div>

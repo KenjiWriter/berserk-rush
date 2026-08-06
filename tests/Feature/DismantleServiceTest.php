@@ -121,14 +121,14 @@ class DismantleServiceTest extends TestCase
         $this->assertFalse($result->isOk());
         $this->assertEquals('RUNIC_SHARDS_MISSING', $result->getErrorCode());
 
-        // Give shards (50 required for level 0->1)
+        // Give shards (1000 required for level 0->1)
         $runicTemplate = ItemTemplate::where('name', 'Runiczny Odłamek')->first();
         ItemInstance::create([
             'template_id' => $runicTemplate->id,
             'owner_character_id' => $character->id,
             'user_id' => $user->id,
             'location' => 'material_stash',
-            'stack_size' => 100,
+            'stack_size' => 1500,
         ]);
 
         $character->champion_material_progress = [];
@@ -144,6 +144,6 @@ class DismantleServiceTest extends TestCase
             ->where('template_id', $runicTemplate->id)
             ->first();
 
-        $this->assertEquals(50, $remainingShards->stack_size);
+        $this->assertEquals(500, $remainingShards->stack_size);
     }
 }

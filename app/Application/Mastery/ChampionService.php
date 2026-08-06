@@ -178,11 +178,11 @@ class ChampionService
     }
 
     /**
-     * Wymagana liczba Runicznych Odłamków na dany poziom Czempiona: 50 + (level * 10).
+     * Wymagana liczba Runicznych Odłamków na dany poziom Czempiona: 1000 + (level * 100).
      */
     public function requiredRunicShards(int $currentChampionLevel): int
     {
-        return 50 + ($currentChampionLevel * 10);
+        return 1000 + ($currentChampionLevel * 100);
     }
 
     /**

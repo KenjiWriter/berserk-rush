@@ -148,7 +148,7 @@ class ChampionLevelUpTest extends TestCase
             'owner_character_id' => $character->id,
             'user_id' => $character->user_id,
             'location' => 'material_stash',
-            'stack_size' => 100,
+            'stack_size' => 1000,
         ]);
 
         $result = $championService->attemptLevelUp($character);

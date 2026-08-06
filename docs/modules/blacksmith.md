@@ -48,7 +48,7 @@ Przetapianie przedmiotu u Kowala przekształca broń, zbroję lub akcesorium w m
   - $\text{EnchantMult}$: $1.0 + (\text{liczba zaczarowań} \times 0.15)$
 - **Zastosowania Runicznych Odłamków:**
   1. Ulepszenia ekwipunku $>70$ lvl na poziomy $+6 \dots +9$ (15, 35, 75, 150 odłamków).
-  2. Wymóg do awansu poziomu Czempiona ($50 + \text{level} \times 10$ odłamków).
+  2. Wymóg do awansu poziomu Czempiona ($1000 + \text{level} \times 100$ odłamków).
 
 ## 8. Historia zmian
 > **Runiczne Odłamki & Przetapianie:** Dodano 3. zakładkę w widoku Kowala `dismantle` (Przetapianie), obsługiwaną przez `DismantleService`. Wprowadzono uniwersalny surowiec `Runiczny Odłamek` z dedykowaną grafiką, wymóg odłamków do ulepszeń ekwipunku $>70$ lvl od $+6$ do $+9$ oraz wymóg odłamków przy awansie Czempiona (`ChampionService`).
