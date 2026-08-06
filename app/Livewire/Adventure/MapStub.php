@@ -1209,6 +1209,8 @@ class MapStub extends Component
             'Góry Cienia' => asset('img/maps/shadow-mountains.png'),
             'Wieża Magów' => asset('img/maps/shadow-mountains.png'),
             'Skażone Miasto' => asset('img/maps/corrupted-city.png'),
+            // Tymczasowo pożyczone tło Skażonego Miasta - brak jeszcze dedykowanej grafiki.
+            'Epicentrum Apokalipsy' => asset('img/maps/corrupted-city.png'),
             default => asset('img/maps/default.jpg'),
         };
     }

@@ -672,6 +672,70 @@ class MonsterSeeder extends Seeder
                     'stats' => ['hp' => 205500, 'atk' => 1088, 'def' => 215, 'agi' => 118, 'int' => 320, 'crit' => 1.2, 'dodge' => 0.8],
                     'abilities' => []
                 ]
+            ],
+            // Epicentrum Apokalipsy (2026-08-06) - nowa mapa end-game, poziom 95-99,
+            // celowo ZNACZNIE trudniejsza niż Skażone Miasto (patrz uzasadnienie
+            // liczbowe w docblocku metody run() / scratch/balance_new_map.php).
+            // Rasy WYŁĄCZNIE z istniejącego MonsterType (bez nowej rasy): 'demon' +
+            // 'undead', kontynuacja motywu Skażonego Miasta (Pan Zniszczenia/Zmutowany
+            // Nieumarły). Staty PRZED mnożnikiem x1.35 pętli seedera niżej (mapCount>=3).
+            'Epicentrum Apokalipsy' => [
+                [
+                    'name' => 'Herold Apokalipsy',
+                    'type' => 'demon',
+                    'level' => 95,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 3850, 'atk' => 260, 'def' => 80, 'agi' => 68, 'int' => 90, 'crit' => 0.52, 'dodge' => 0.24],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Nieumarły Legion Popiołów',
+                    'type' => 'undead',
+                    'level' => 96,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 4200, 'atk' => 270, 'def' => 95, 'agi' => 60, 'int' => 70, 'crit' => 0.50, 'dodge' => 0.20],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Płonący Inkwizytor Zagłady',
+                    'type' => 'demon',
+                    'level' => 97,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 3700, 'atk' => 290, 'def' => 75, 'agi' => 72, 'int' => 180, 'crit' => 0.56, 'dodge' => 0.28],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Widmo Ostatniego Dnia',
+                    'type' => 'undead',
+                    'level' => 98,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 4300, 'atk' => 285, 'def' => 92, 'agi' => 78, 'int' => 85, 'crit' => 0.54, 'dodge' => 0.30],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Pożeracz Dusz Otchłani',
+                    'type' => 'demon',
+                    'level' => 99,
+                    'rank' => 'regular',
+                    'stats' => ['hp' => 4325, 'atk' => 290, 'def' => 93, 'agi' => 72, 'int' => 220, 'crit' => 0.60, 'dodge' => 0.32],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Nieumarły Jeździec Zagłady',
+                    'type' => 'undead',
+                    'level' => 99,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 10000, 'atk' => 164, 'def' => 99, 'agi' => 76, 'int' => 140, 'crit' => 0.55, 'dodge' => 0.28],
+                    'abilities' => []
+                ],
+                [
+                    'name' => 'Prasmok Ostatecznej Zagłady',
+                    'type' => 'demon',
+                    'level' => 104,
+                    'rank' => 'boss',
+                    'stats' => ['hp' => 10519, 'atk' => 167, 'def' => 101, 'agi' => 79, 'int' => 260, 'crit' => 0.65, 'dodge' => 0.35],
+                    'abilities' => []
+                ],
             ]
         ];
 
@@ -745,6 +809,23 @@ class MonsterSeeder extends Seeder
             ]],
             'Zbezczeszczony Golem' => ['skills' => [
                 ['name' => 'Zmiażdżenie', 'effect_type' => 'stun', 'value' => 1.0, 'duration' => 1, 'cooldown' => 4, 'chance' => 28],
+            ]],
+            // Epicentrum Apokalipsy (najsilniejsze magiczne nuki/DoT-y w grze - value
+            // wyżej niż jakikolwiek istniejący potwór, zgodnie z założeniem end-game).
+            'Płonący Inkwizytor Zagłady' => ['is_caster' => true, 'skills' => [
+                ['name' => 'Płomień Sądu Ostatecznego', 'effect_type' => 'fire', 'value' => 0.05, 'duration' => 3, 'cooldown' => 4, 'chance' => 44],
+            ]],
+            'Widmo Ostatniego Dnia' => ['skills' => [
+                ['name' => 'Dotyk Zapomnienia', 'effect_type' => 'stun', 'value' => 1.0, 'duration' => 1, 'cooldown' => 4, 'chance' => 30],
+            ]],
+            'Pożeracz Dusz Otchłani' => ['is_caster' => true, 'skills' => [
+                ['name' => 'Pożarcie Duszy', 'effect_type' => 'direct_dmg', 'is_magic' => true, 'value' => 1.9, 'cooldown' => 3, 'chance' => 46],
+            ]],
+            'Nieumarły Jeździec Zagłady' => ['skills' => [
+                ['name' => 'Szarża Zagłady', 'effect_type' => 'stun', 'value' => 1.0, 'duration' => 1, 'cooldown' => 4, 'chance' => 32],
+            ]],
+            'Prasmok Ostatecznej Zagłady' => ['is_caster' => true, 'skills' => [
+                ['name' => 'Oddech Ostatecznego Sądu', 'effect_type' => 'direct_dmg', 'is_magic' => true, 'value' => 2.0, 'cooldown' => 3, 'chance' => 48],
             ]],
         ];
 

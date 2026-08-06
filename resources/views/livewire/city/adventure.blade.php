@@ -415,6 +415,7 @@
                             'Góry Cienia' => 'img/maps/shadow-mountains.png',
                             'Wieża Magów' => 'img/maps/shadow-mountains.png',
                             'Skażone Miasto' => 'img/maps/corrupted-city.png',
+                            'Epicentrum Apokalipsy' => 'img/maps/corrupted-city.png',
                         ];
 
                         $fallbackPath = $hardcodedImages[$map->name] ?? null;

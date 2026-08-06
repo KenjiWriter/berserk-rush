@@ -389,6 +389,49 @@ class MonsterLootSeeder extends Seeder
                         'items' => []
                     ]
                 ]
+            ],
+            // Epicentrum Apokalipsy (2026-08-06) - loot ŚWIADOMIE pożyczony ze Skażonego
+            // Miasta ('general'/'boss_general'/materiały specyficzne oraz skrzynia -
+            // brak nowych surowców, zgodnie z decyzją "nie tworzę nowych przedmiotów
+            // na razie"). Ekwipunek NATOMIAST to 15 gotowych szablonów z tieru lvl95/99
+            // (`ItemTemplateSeeder`), które istniały w bazie, ale nie były przypisane
+            // do ŻADNEGO dropu na Skażonym Mieście (różdżka obu tierów, cały zestaw
+            // Skrytobójcy _a obu tierów, kilka butów/hełmów Maga) - patrz
+            // scratch/verify_missing_items.php. Ta mapa jest jedynym miejscem, gdzie
+            // można je teraz wylosować.
+            'Epicentrum Apokalipsy' => [
+                'general' => ['Skażony Metal', 'Popioły Miasta'],
+                'boss_general' => ['Czarny Kamień Dusz'],
+                'monsters' => [
+                    'Herold Apokalipsy' => [
+                        'materials' => ['Skażona Kość'],
+                        'items' => ['Różdżka Zmutowanego Czarownika', 'Amulet Zmutowanego Oka']
+                    ],
+                    'Nieumarły Legion Popiołów' => [
+                        'materials' => ['Przeklęta Stal'],
+                        'items' => ['Buty Kwasu', 'Pierścień Zgnilizny']
+                    ],
+                    'Płonący Inkwizytor Zagłady' => [
+                        'materials' => ['Fiolka Zgnilizny'],
+                        'items' => ['Maska Cienia Skazy', 'Kaptur Pożeracza Dusz']
+                    ],
+                    'Widmo Ostatniego Dnia' => [
+                        'materials' => ['Jad Pająka Plagi'],
+                        'items' => ['Skórznia Upadłego Zabójcy', 'Buty Otchłani']
+                    ],
+                    'Pożeracz Dusz Otchłani' => [
+                        'materials' => ['Esencja Zniszczenia'],
+                        'items' => ['Podeszwy Trucizny', 'Maska Bezwzględnego Zniszczenia']
+                    ],
+                    'Nieumarły Jeździec Zagłady' => [
+                        'materials' => ['Esencja Zniszczenia'],
+                        'items' => ['Dzwon Sądu Ostatecznego', 'Buty Deptania Światów', 'Płaszcz Końca Czasu']
+                    ],
+                    'Prasmok Ostatecznej Zagłady' => [
+                        'materials' => ['Esencja Zniszczenia'],
+                        'items' => ['Kostur Władcy Mroku', 'Ciche Podeszwy Zmierzchu']
+                    ],
+                ]
             ]
         ];
 
@@ -578,6 +621,12 @@ class MonsterLootSeeder extends Seeder
 
                     'Władca Skażenia i Plagi' => 'Skrzynia Skażonego Miasta',
                     'Książę Zniszczenia' => 'Skrzynia Skażonego Miasta',
+
+                    // Epicentrum Apokalipsy (2026-08-06) - skrzynia POŻYCZONA ze Skażonego
+                    // Miasta (patrz uwaga przy 'general'/'boss_general' wyżej - brak nowych
+                    // surowców na razie).
+                    'Nieumarły Jeździec Zagłady' => 'Skrzynia Skażonego Miasta',
+                    'Prasmok Ostatecznej Zagłady' => 'Skrzynia Skażonego Miasta',
                 ];
 
                 if ($isBoss) {

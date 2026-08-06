@@ -66,6 +66,18 @@ class MapSeeder extends Seeder
                 'tier' => 8,
                 'image_path' => 'maps/corrupted-city.png',
             ],
+            // Nowa lokacja end-game (2026-08-06) - świadomie NAKŁADA SIĘ poziomowo z
+            // "Skażone Miasto" (85-99): to nie kolejny krok levelowania, tylko wyraźnie
+            // trudniejszy cel post-99, dostępny dopiero jak postać już wyekwipuje się
+            // w Skażonym Mieście. `image_path` tymczasowo POŻYCZONE ze Skażonego Miasta
+            // (brak jeszcze dedykowanego tła tej mapy - potrzebna osobna grafika).
+            [
+                'name' => 'Epicentrum Apokalipsy',
+                'level_min' => 95,
+                'level_max' => 99,
+                'tier' => 9,
+                'image_path' => 'maps/corrupted-city.png',
+            ],
         ];
 
         foreach ($maps as $mapData) {
