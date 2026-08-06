@@ -32,14 +32,22 @@
                     if (e && e.relatedTarget) {
                         if ($el && $el.contains(e.relatedTarget)) return;
                         if (e.relatedTarget.closest && e.relatedTarget.closest('[data-item-tooltip]')) return;
-                        if (e.relatedTarget.closest && e.relatedTarget.closest('[data-tooltip-container]')) return;
                     }
                     clearTimeout(this.itemTimeout);
                     this.itemTimeout = setTimeout(() => {
                         this.itemOpen = false;
-                    }, 500);
+                    }, 400);
+                },
+                toggleItem() {
+                    clearTimeout(this.itemTimeout);
+                    this.itemOpen = !this.itemOpen;
                 }
-            }" class="relative" @if($item) @mouseenter="openItem()" @mouseleave="closeItem($event)" @endif>
+            }" class="relative" 
+            @if($item) 
+                @mouseenter="openItem()" 
+                @mouseleave="closeItem($event)" 
+                @click.stop="toggleItem()"
+            @endif>
                 <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden transition-colors cursor-pointer relative {{ ($item && \App\Helpers\ItemHelper::isEnchanted($item)) ? 'enchanted-effect' : '' }}">
                     @if($item)
                         @if($item->template->icon ?? null)
@@ -53,9 +61,17 @@
                 </div>
 
                 @if($item)
-                    <div x-show="itemOpen" data-item-tooltip x-transition.opacity style="display:none" class="hidden sm:block absolute z-[100000] left-1/2 -translate-x-1/2 bottom-full pb-3 pointer-events-auto" @mouseenter="openItem()" @mouseleave="closeItem($event)">
-                        <x-item-tooltip :item="$item" />
-                    </div>
+                    <template x-teleport="body">
+                        <div x-show="itemOpen" x-transition.opacity style="display:none" 
+                             class="fixed inset-0 z-[100005] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs pointer-events-auto" 
+                             @click.stop="itemOpen = false" 
+                             @mouseenter="openItem()" 
+                             @mouseleave="closeItem($event)">
+                            <div data-item-tooltip @click.stop class="relative max-h-[90vh] overflow-y-auto">
+                                <x-item-tooltip :item="$item" />
+                            </div>
+                        </div>
+                    </template>
                 @endif
             </div>
         @endforeach

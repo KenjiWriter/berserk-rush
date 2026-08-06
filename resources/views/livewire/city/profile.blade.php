@@ -140,6 +140,9 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     
+                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -485,6 +488,9 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
+                                     
+                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -1385,6 +1391,9 @@
                             >
                                 {{-- Numer slotu --}}
                                 <span class="absolute top-0.5 left-1 text-[8px] font-bold text-stone-500 pointer-events-none select-none z-10 leading-none">{{ $slotNum }}</span>
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($item))
+                                     
+                                 @endif
 
                                 {{-- Checkbox bulk stash --}}
                                 <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"
@@ -1924,31 +1933,34 @@
 
         /* Magical Enchantment Shimmer */
         @keyframes enchantedShimmer {
-            0% { transform: translateX(-120%); }
-            100% { transform: translateX(120%); }
+            0% { background-position: 220% 0; }
+            100% { background-position: -120% 0; }
         }
-        .enchanted-shimmer-wrapper {
+        .enchanted-effect {
+            position: relative;
+        }
+        .enchanted-effect::after {
+            content: '';
             position: absolute;
-            inset: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             border-radius: inherit;
-            overflow: hidden;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .enchanted-shimmer-beam {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
             background: linear-gradient(
                 115deg,
                 transparent 0%,
                 transparent 30%,
-                rgba(236, 190, 254, 0.45) 50%,
+                rgba(236, 190, 254, 0.5) 45%,
+                rgba(255, 255, 255, 0.85) 50%,
+                rgba(236, 190, 254, 0.5) 55%,
                 transparent 70%,
                 transparent 100%
             );
-            animation: enchantedShimmer 4s infinite linear;
+            background-size: 300% 100%;
+            animation: enchantedShimmer 3.5s infinite linear;
+            pointer-events: none;
+            z-index: 4;
         }
 
         /* Keyframes dla Magicznej Cieczy w Pasku XP */
