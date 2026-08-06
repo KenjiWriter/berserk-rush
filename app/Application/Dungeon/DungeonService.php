@@ -1460,11 +1460,15 @@ class DungeonService
                                 'icon' => null,
                             ];
                         } elseif (in_array($selectedEntry['reward_type'], ['item', 'material'])) {
+                            // Drop materiałów/przedmiotów z tabeli zrzutów bossa lochu był zbyt hojny
+                            // (np. 24x Wilczy Kieł z x3 Multi-Dungeonu) - zredukowany o połowę względem
+                            // ilości gold/gems z tej samej tabeli, które zostają bez zmian.
+                            $itemQuantity = max(1, (int) round($quantity / 2));
                             $template = \App\Infrastructure\Persistence\ItemTemplate::find($selectedEntry['ref_ulid']);
                             $items[] = [
                                 'type' => $selectedEntry['reward_type'],
                                 'name' => $template ? $template->name : 'Przedmiot',
-                                'quantity' => $quantity,
+                                'quantity' => $itemQuantity,
                                 'ref_ulid' => $selectedEntry['ref_ulid'],
                                 'icon' => $template?->icon,
                             ];
