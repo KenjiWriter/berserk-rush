@@ -776,6 +776,7 @@ class Profile extends Component
             'materialDropSources'   => $materialDropSources,
             'materialStashCount'    => $this->character->getMaterialStashCount(),
             'stashCapacity'      => $user?->getStashCapacity() ?? 2,
+            'stashMaxed'         => $user?->isStashMaxed() ?? false,
             'backpackCount'      => $this->character->getBackpackCount(),
             'totalAttributes'    => $totalAttributes,
             'baseAttributes'     => $this->character->getBaseAttributes(),

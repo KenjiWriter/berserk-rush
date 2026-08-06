@@ -14,6 +14,9 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    /** Maksymalna liczba slotów Magazynu Gracza (`stash_slots`) po powiększaniu za gemy. */
+    public const MAX_STASH_SLOTS = 64;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -203,7 +206,12 @@ class User extends Authenticatable
 
     public function getStashCapacity(): int
     {
-        return $this->stash_slots ?? 2;
+        return min(self::MAX_STASH_SLOTS, $this->stash_slots ?? 2);
+    }
+
+    public function isStashMaxed(): bool
+    {
+        return $this->getStashCapacity() >= self::MAX_STASH_SLOTS;
     }
 
     public function getMuteRemainingSeconds(): int

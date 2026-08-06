@@ -122,6 +122,10 @@ class PlayerStashService
     {
         $cost = 50;
 
+        if ($user->isStashMaxed()) {
+            return Result::error('STASH_MAX_REACHED', 'Magazyn gracza osiągnął maksymalny rozmiar (' . User::MAX_STASH_SLOTS . ' slotów).');
+        }
+
         if ($user->gems < $cost) {
             return Result::error('NOT_ENOUGH_GEMS', "Brak wystarczającej liczby diamentów! Potrzebujesz {$cost} 💎.");
         }

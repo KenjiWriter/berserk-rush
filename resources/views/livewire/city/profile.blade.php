@@ -1202,9 +1202,15 @@
                         </div>
                     @else
                         <span class="text-stone-400 text-xs font-medium">Magazyn Gracza: <strong class="text-amber-300">{{ count($playerStashItems) }} / {{ $stashCapacity }} slotów</strong></span>
-                        <button wire:click="expandStash" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-amber-400 transform active:scale-95">
-                            <i class="fa-solid fa-plus"></i> Powiększ (+1 Slot - 50 💎)
-                        </button>
+                        @if($stashMaxed)
+                            <button disabled title="Osiągnięto maksymalny rozmiar magazynu" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-stone-800 text-stone-500 font-bold flex items-center gap-1.5 border border-stone-700 cursor-not-allowed">
+                                <i class="fa-solid fa-lock"></i> Max ({{ \App\Models\User::MAX_STASH_SLOTS }} slotów)
+                            </button>
+                        @else
+                            <button wire:click="expandStash" class="px-2.5 py-1 xs:px-3 xs:py-1.5 text-xs rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-bold flex items-center gap-1.5 shadow transition-all duration-200 border border-amber-400 transform active:scale-95">
+                                <i class="fa-solid fa-plus"></i> Powiększ (+1 Slot - 50 💎)
+                            </button>
+                        @endif
                     @endif
                 </div>
 

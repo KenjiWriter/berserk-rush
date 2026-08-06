@@ -39,7 +39,7 @@ Mechanika oparta jest o obiekty akcji (Actions) weryfikujące reguły biznesowe:
 - **Magazyn Gracza (Konto):**
   - Magazyn kontowy przypisany do konta użytkownika (`User`), wspólny dla wszystkich posiadanych postaci.
   - Domyślnie posiada **2 sloty**.
-  - Możliwość powiększenia magazynu w profilu: koszt **50 gemów** za każdy dodatkowy slot (`stash_slots`).
+  - Możliwość powiększenia magazynu w profilu: koszt **50 gemów** za każdy dodatkowy slot (`stash_slots`), do maksymalnie **64 slotów** (`User::MAX_STASH_SLOTS`) - po osiągnięciu limitu przycisk powiększania jest zablokowany.
 - **Sortowanie Przedmiotów w Plecaku (`ItemSorter`):**
   - Przedmioty w plecaku (oraz magazynie gracza, u handlarza i kowala) są automatycznie grupowane i sortowane według kategorii oraz mocy sprzętu.
   - **Kolejność Kategorii:** Bronie (od mieczy po dzwony) -> Hełmy -> Zbroje -> Buty -> Naszyjniki -> Pierścienie -> Mikstury / Materiały eksploatacyjne -> Jajka -> Skrzynie i Klucze -> Księgi skilli -> Materiały rzemieślnicze.
