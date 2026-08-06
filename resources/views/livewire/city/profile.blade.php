@@ -370,7 +370,7 @@
                                             <i class="fa-solid fa-star text-sky-300 text-base sm:text-xl"></i>
                                         @endif
                                         <div class="absolute -bottom-1 -right-1 bg-stone-950 border border-amber-500/70 text-amber-300 text-[8px] sm:text-[10px] font-extrabold px-1 py-0.2 sm:px-1.5 sm:py-0.5 rounded-md shadow-lg leading-none">
-                                            L{{ $equippedSkill->level }}
+                                            {{ $equippedSkill->getDisplayLevel() }}
                                         </div>
 
                                         <!-- Infobox -->
