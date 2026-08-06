@@ -111,7 +111,7 @@
                             navLevel = lvl;
                             let req = 15 * Math.pow(lvl, 2) + 50 * lvl + 0.15 * Math.pow(lvl, 4.1);
                             if (lvl > 85) req += 0.025 * Math.pow(lvl - 85, 5.5);
-                            navXpReq = Math.round(req);
+                            navXpReq = Math.round(req * 6.0);
                         }
                      "
                      :class="collapsed ? 'p-1.5 text-center' : 'p-2.5'"
