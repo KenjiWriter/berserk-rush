@@ -1094,6 +1094,7 @@
                     </div>
                 @endif
             </div>
+        </div>
 
         <!-- Right Side: Inventory -->
         <div class="bg-gradient-to-b from-stone-900/95 via-stone-900/90 to-stone-950/95 border-2 border-amber-700/60 rounded-2xl sm:rounded-3xl shadow-2xl backdrop-blur-md p-3 xs:p-4 sm:p-6 flex flex-col h-full relative overflow-visible">
