@@ -828,6 +828,13 @@ class Character extends Model
                 // nie płynął przez equipment_stats) - odczytywana jawnie w
                 // CharacterCombatSkill::getManaCost() oraz PvP/GvG (patrz docs/modules/pets.md).
                 'mana_cost_reduction_pct' => 0,
+                'resist_hero' => 0,
+                'resist_sword' => 0,
+                'resist_dagger' => 0,
+                'resist_bell' => 0,
+                'resist_axe' => 0,
+                'resist_bow' => 0,
+                'resist_wand' => 0,
             ];
 
             // 'attack_power'/'magic_attack' (2026-07-29): afiksy z Czarodzieja/Wiedźmy
@@ -981,7 +988,7 @@ class Character extends Model
                 $stats['crit_chance'] += ($titleStats['crit_chance'] ?? 0) + (isset($titleStats['crit']) ? ($titleStats['crit'] * 100) : 0);
                 
                 foreach ($titleStats as $k => $v) {
-                    if (in_array($k, ['strong_vs_monsters', 'strong_vs_bosses', 'strong_vs_hero', 'armor_pen_pct', 'exp_bonus', 'double_drop_chance', 'dodge_chance'], true)) {
+                    if (in_array($k, ['strong_vs_monsters', 'strong_vs_bosses', 'strong_vs_hero', 'armor_pen_pct', 'exp_bonus', 'double_drop_chance', 'dodge_chance'], true) || str_starts_with($k, 'resist_')) {
                         $stats[$k] = ($stats[$k] ?? 0) + $v;
                     } elseif (!isset($stats[$k]) && str_starts_with($k, 'bonus_vs_')) {
                         $stats[$k] = $v;

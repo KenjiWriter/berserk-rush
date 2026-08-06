@@ -512,9 +512,53 @@
                                         @else
                                             <div class="text-gray-500 text-center italic py-4">Przedmiot czeka na nasycenie magią...</div>
                                         @endif
-                                    </div>
+                                     </div>
 
-                                    {{-- Action Buttons --}}
+                                     {{-- Bonus z Ulepszenia Kuźni (+3) --}}
+                                     @php
+                                         $upgradeBonuses = $activeItem->getUpgradeBonuses();
+                                     @endphp
+                                     <div class="mt-4 bg-amber-950/40 border border-amber-500/50 rounded-xl p-4 min-w-[300px] shadow-[0_0_15px_rgba(217,119,6,0.2)] backdrop-blur-md">
+                                         <div class="text-amber-300 font-bold mb-2 text-center border-b border-amber-500/30 pb-2 flex items-center justify-center gap-2">
+                                             <i class="fa-solid fa-hammer text-amber-400"></i> Bonus z Ulepszenia Kuźni (+3) <i class="fa-solid fa-sparkles text-amber-400"></i>
+                                         </div>
+                                         @if(count($upgradeBonuses) > 0)
+                                             <div class="space-y-2">
+                                                 @foreach($upgradeBonuses as $ubType => $ubValue)
+                                                     @php
+                                                         $isPct = !in_array($ubType, $flatBonusKeys, true);
+                                                         $ubDisplay = ($ubValue > 0 ? '+' : '') . $ubValue . ($isPct ? '%' : '');
+                                                     @endphp
+                                                     <div class="flex justify-between items-center bg-black/50 border border-amber-600/40 rounded px-3 py-2">
+                                                         <span class="flex items-center gap-2 text-amber-100 font-medium">
+                                                             <i class="fa-solid {{ $bonusIcon($ubType) }} text-amber-400 w-4 text-center"></i>
+                                                             {{ \App\Domain\Wizard\EnchantmentStrategy::bonusLabel($ubType) }}
+                                                         </span>
+                                                         <span class="font-bold text-lg text-amber-300 drop-shadow-[0_0_5px_rgba(252,211,77,0.6)]">{{ $ubDisplay }}</span>
+                                                     </div>
+                                                 @endforeach
+                                             </div>
+                                             <div class="mt-3 text-xs text-amber-200/80 text-center italic">
+                                                 Przelosowanie zmienia <strong>wyłącznie wartość liczbową</strong> tego bonusu (typ statystyki pozostaje ten sam).
+                                             </div>
+                                             <div class="mt-3 grid grid-cols-2 gap-3">
+                                                 <button wire:click="rerollUpgradeBonus('gold')" wire:loading.attr="disabled" class="bg-amber-900/60 hover:bg-amber-800 text-amber-200 border border-amber-500/60 hover:border-amber-400 font-bold py-2 px-3 rounded-lg transition-all text-xs shadow-md">
+                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-coins mr-1 text-amber-400"></i> Wartość (200 <i class="fa-solid fa-coins"></i>)</span>
+                                                     <span wire:loading wire:target="rerollUpgradeBonus" class="animate-pulse">Losowanie...</span>
+                                                 </button>
+                                                 <button wire:click="rerollUpgradeBonus('gems')" wire:loading.attr="disabled" class="bg-blue-950/60 hover:bg-blue-900 text-blue-300 border border-blue-500/60 hover:border-blue-400 font-bold py-2 px-3 rounded-lg transition-all text-xs shadow-md">
+                                                     <span wire:loading.remove wire:target="rerollUpgradeBonus"><i class="fa-solid fa-gem mr-1 text-blue-400"></i> Wartość (2 <i class="fa-solid fa-gem"></i>)</span>
+                                                     <span wire:loading wire:target="rerollUpgradeBonus" class="animate-pulse">Losowanie...</span>
+                                                 </button>
+                                             </div>
+                                         @else
+                                             <div class="text-amber-400/70 text-center text-xs italic py-2">
+                                                 Brak bonusu Kuźni. Przedmiot musisz ulepszyć do co najmniej +3 u Kowala.
+                                             </div>
+                                         @endif
+                                     </div>
+
+                                     {{-- Action Buttons --}}
                                     <div class="mt-8 flex flex-col gap-4 w-full max-w-md relative z-20">
                                         @if($enchantCount < 5)
                                             <div class="text-center text-sm text-purple-300 mb-1">Szansa na sukces: <span class="font-bold text-white">{{ $nextChance }}%</span></div>

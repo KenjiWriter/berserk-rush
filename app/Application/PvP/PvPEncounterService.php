@@ -765,6 +765,19 @@ class PvPEncounterService
             $damage += $damage * ($heroBonusPct / 100);
         }
 
+        // "Odporność na Ludzi" obrońcy: redukuje obrażenia od drugiego gracza w PvP/GvG (cap do 75%)
+        $heroResistPct = min(75, max(0, $defEq['resist_hero'] ?? 0));
+        if ($heroResistPct > 0) {
+            $damage = max(1, (int) round($damage * (1 - ($heroResistPct / 100))));
+        }
+
+        // "Odporność na Bronie" obrońcy (odporność na miecze, sztylety, dzwony, topory, łuki, różdżki) (cap do 75%)
+        $weaponResistKey = 'resist_' . $weaponType;
+        $weaponResistPct = min(75, max(0, $defEq[$weaponResistKey] ?? 0));
+        if ($weaponResistPct > 0) {
+            $damage = max(1, (int) round($damage * (1 - ($weaponResistPct / 100))));
+        }
+
         // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
         // Tarczy") + Twardziel celu (Mistrzostwo) - capowana na 75%, ten sam wzorzec
         // bezpieczeństwa co passive_extra_attack.

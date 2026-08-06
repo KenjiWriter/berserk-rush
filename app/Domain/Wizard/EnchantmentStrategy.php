@@ -43,6 +43,13 @@ class EnchantmentStrategy
         'resist_orcs' => [2, 10],
         'resist_poison' => [1, 7],
         'resist_stun' => [1, 7],
+        'resist_hero' => [2, 10],
+        'resist_sword' => [2, 10],
+        'resist_dagger' => [2, 10],
+        'resist_bell' => [2, 10],
+        'resist_axe' => [2, 10],
+        'resist_bow' => [2, 10],
+        'resist_wand' => [2, 10],
     ];
 
     private array $accessoryBonuses = [
@@ -85,6 +92,13 @@ class EnchantmentStrategy
         'resist_orcs' => 'Odporność na Orki',
         'resist_poison' => 'Odporność na Otrucie',
         'resist_stun' => 'Odporność na Ogłuszenie',
+        'resist_hero' => 'Odporność na Ludzi',
+        'resist_sword' => 'Odporność na Miecze',
+        'resist_dagger' => 'Odporność na Sztylety',
+        'resist_bell' => 'Odporność na Dzwony',
+        'resist_axe' => 'Odporność na Topory',
+        'resist_bow' => 'Odporność na Łuki',
+        'resist_wand' => 'Odporność na Różdżki',
         'str_bonus' => 'Siła (STR)',
         'int_bonus' => 'Inteligencja (INT)',
         'vit_bonus' => 'Witalność (VIT)',
@@ -114,6 +128,8 @@ class EnchantmentStrategy
             'hp_bonus' => 50, 'defense' => 15, 'dodge_chance' => 5,
             'resist_demons' => 10, 'resist_undead' => 10, 'resist_animals' => 10,
             'resist_orcs' => 10, 'resist_poison' => 7, 'resist_stun' => 7,
+            'resist_hero' => 10, 'resist_sword' => 10, 'resist_dagger' => 10,
+            'resist_bell' => 10, 'resist_axe' => 10, 'resist_bow' => 10, 'resist_wand' => 10,
         ];
         $accessoryMax = [
             'hp_bonus' => 50, 'defense' => 10, 'crit_chance' => 5,
@@ -266,5 +282,27 @@ class EnchantmentStrategy
         }
 
         return $enchants;
+    }
+
+    /**
+     * Przelosowuje WYŁĄCZNIE wartość istniejącego bonusu z ulepszenia (+3) na przedmiocie.
+     * Typ statystyki (np. hp_bonus, resist_hero) zostaje dokładnie ten sam,
+     * losowana na nowo jest tylko jej wartość w przedziale [min, max].
+     */
+    public function rerollUpgradeBonusValue(ItemInstance $item): ?array
+    {
+        $upgradeBonuses = $item->getUpgradeBonuses();
+        if (empty($upgradeBonuses)) {
+            return null;
+        }
+
+        $type = array_key_first($upgradeBonuses);
+        $pool = $this->poolFor($item);
+        $range = $pool[$type] ?? [1, 10];
+
+        $newValue = $this->rollBonusValue($type, $range);
+        $item->setUpgradeBonus($type, $newValue);
+
+        return ['type' => $type, 'value' => $newValue];
     }
 }

@@ -196,14 +196,11 @@ a wybrane (magowie) walczą obrażeniami magicznymi. To odpowiedź na feedback g
   Skille potworów w starciach grupowych (over-level, AOE) oraz monster-buffy
   (`buff_phys_dmg`) to możliwe przyszłe rozszerzenie.
 
-### 8. "Silny Przeciwko Bohaterom" (`strong_vs_hero`)
-Nowy afiks broni (5-20%, ten sam zakres co `strong_vs_<rasa>` - patrz
-`docs/modules/wizard.md`) działający
-**wyłącznie w PvP Arenie i Wojnie Gildii** - w przeciwieństwie do `strong_vs_<rasa>`,
-który dotyczy tylko potworów w PvE, ten bonus dolicza się bezwarunkowo w starciach
-gracz-vs-gracz, bo tam przeciwnik zawsze jest "bohaterem" (inną postacią gracza).
-Liczony analogicznie do `strong_vs_<rasa>` - jako % dokładany do obrażeń już po
-redukcji obrony przeciwnika.
+### 8. "Silny Przeciwko Bohaterom" (`strong_vs_hero`), Odporność na Ludzi (`resist_hero`) oraz Odporności na Bronie
+- **Silny vs Bohaterów (`strong_vs_hero`):** Afiks broni (5-20%) działający bezwarunkowo w PvP Arenie i Wojnie Gildii (gracz vs gracz).
+- **Odporność na Ludzi (`resist_hero`):** Afiks zbroi (2-10%) redukujący procentowo obrażenia przychodzące w PvP Arenie i Wojnie Gildii od innego gracza (hard cap 75%).
+- **Odporności na Bronie (`resist_sword`, `resist_dagger`, `resist_bell`, `resist_axe`, `resist_bow`, `resist_wand`):** Afiksy zbroi (2-10%) redukujące procentowo obrażenia przychodzące w PvP Arenie i Wojnie Gildii od atakującego gracza posługującego się danym typem broni (hard cap 75%).
+Wszystkie redukcje są rozliczane symetrycznie w `PvPEncounterService` oraz `GuildWarService`.
 
 ### 9. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:

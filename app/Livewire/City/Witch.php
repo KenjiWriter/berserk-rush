@@ -15,6 +15,7 @@ use App\Application\Items\CraftingService;
 use App\Application\Items\ShopService;
 use App\Application\Wizard\EnchantItem;
 use App\Application\Wizard\RerollEnchantments;
+use App\Application\Wizard\RerollUpgradeBonusValue;
 use App\Application\Mirror\MirrorService;
 use App\Domain\Wizard\EnchantmentStrategy;
 use Illuminate\Support\Facades\DB;
@@ -271,6 +272,43 @@ class Witch extends Component
                 if ($payload['success'] ?? false) {
                     $this->actionType = 'success';
                     $this->actionMessage = $payload['message'] ?? 'Bonusy przedmiotu zostały wylosowane na nowo!';
+                    $this->dispatch('play-audio', type: 'enchant-success');
+                } else {
+                    $this->actionType = 'error';
+                    $this->actionMessage = $payload['message'] ?? 'Operacja nie powiodła się.';
+                    $this->dispatch('play-audio', type: 'enchant-fail');
+                }
+                $this->character->refresh();
+                $this->dispatch('stats-updated', gold: $this->character->gold, gems: $this->character->gems);
+            }
+        } catch (\Exception $e) {
+            $this->actionType = 'error';
+            $this->actionMessage = $e->getMessage();
+            $this->dispatch('play-audio', type: 'enchant-fail');
+        }
+    }
+
+    public function rerollUpgradeBonus(string $currencyType, RerollUpgradeBonusValue $rerollUpgradeAction)
+    {
+        $this->clearEnchantMessages();
+
+        if (!$this->activeItemId) return;
+
+        $item = ItemInstance::find($this->activeItemId);
+        if (!$item) return;
+
+        try {
+            $result = $rerollUpgradeAction->execute($item, $this->character, $currencyType);
+
+            if ($result->isError()) {
+                $this->actionType = 'error';
+                $this->actionMessage = $result->getErrorMessage();
+                $this->dispatch('play-audio', type: 'enchant-fail');
+            } else {
+                $payload = $result->getPayload();
+                if ($payload['success'] ?? false) {
+                    $this->actionType = 'success';
+                    $this->actionMessage = $payload['message'] ?? 'Wartość bonusu z Kuźni (+3) została zmieniona!';
                     $this->dispatch('play-audio', type: 'enchant-success');
                 } else {
                     $this->actionType = 'error';

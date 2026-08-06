@@ -279,8 +279,7 @@ M tests/Feature/MonsterSkillsTest.php                 (assert state.playerDots)
 ### Faza 4 — Głębsza itemizacja (niezaczęte)
 - 4a: hybrydowe zestawy klasowe (STR+INT, AGI+INT) w `ItemTemplateSeeder.php` — wymaga
   też nowych ikon/nazw (grafika, poza zakresem programistycznym).
-- 4b: specjalne mechaniki na zbroi/biżuterii (kolce, regeneracja, odporność na CC) w
-  `EnchantmentStrategy` + silniki walki.
+- 4b: **Odporności PvP/GvG na zbroi (Odporność na Ludzi `resist_hero` 2-10% oraz Odporności na Bronie `resist_sword`/`dagger`/`bell`/`axe`/`bow`/`wand` 2-10%)** - ✅ **ZROBIONE** (2026-08-06) w `EnchantmentStrategy`, `Character::getEquipmentStats()`, `PvPEncounterService`, `GuildWarService`, UI (`item-tooltip`, `profile`, `witch`) oraz testy `PvpEquipmentResistancesTest`.
 
 ### Faza 5 — CAŁA ZROBIONA (rozdziały A-F)
 - Progi +3/+5, rozdział D (spłaszczenie tierów) - **ZROBIONE**, patrz wyżej.

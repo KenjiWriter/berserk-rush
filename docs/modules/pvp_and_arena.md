@@ -56,6 +56,7 @@ awatar gracza pokazuje panel z jego 6 slotami ekwipunku:
 
 ## Realizacja Techniczna
 - `PvPEncounterService` / `GuildWarService`: Główne klasy realizujące symulację mechanik i rzucania kośćmi.
+- Dedykowane Zaczarowania PvP/GvG: `strong_vs_hero` (bronie, 5-20%), `resist_hero` (zbroje, 2-10%) oraz Odporności na Bronie (`resist_sword`/`dagger`/`bell`/`axe`/`bow`/`wand`, zbroje, 2-10%) z twardym limitem redukcji 75% w `PvPEncounterService` i `GuildWarService`.
 - Zabezpieczenie Kolejkowania: `PvPEncounterService` oraz `EncounterService` weryfikują stan postaci przed rozpoczęciem pojedynku (blokada symultanicznych walk w trakcie trwania innej potyczki oraz 5-sekundowy cooldown między wyzwaniami Areny).
 - Baza Danych (Migrations): Tabele `pvp_encounters`, `guild_wars`, `guild_war_fights`. 
 - Logi Walki: Skrypt JS `arena-combat.blade.php` odtwarza wygenerowane po stronie serwera JSON-owe tury w klasycznym widoku walki.
