@@ -75,6 +75,13 @@ class Warlock extends Component
             $this->dispatch('stats-updated');
         } else {
             $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+
+            // Próba nieudana (UPGRADE_ROLL_FAILED) nadal zużywa surowce (PKT/książki/
+            // kamienie/złoto) - trzeba odświeżyć stan, inaczej UI pokazuje stare wartości.
+            if ($result->getContext()['consumed'] ?? false) {
+                $this->character->refresh();
+                $this->dispatch('stats-updated');
+            }
         }
     }
 
