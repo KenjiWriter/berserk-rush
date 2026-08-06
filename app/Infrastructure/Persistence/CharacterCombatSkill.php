@@ -106,6 +106,19 @@ class CharacterCombatSkill extends Model
         return max(2, $baseCd - $tierBonus);
     }
 
+    /**
+     * Skille zadające bezpośrednie obrażenia (direct_dmg/aoe_dmg/freeze/stun) używają
+     * tej wartości jako PEŁNEGO mnożnika obrażeń (`damage * bonus`, patrz
+     * EncounterService/PvPEncounterService/DungeonService/LocationEventService) -
+     * bez ograniczenia rosła liniowo z poziomem skilla aż do ~x31 na pełnej maestrii
+     * (Perfect, lvl 38), co w PvP prowadziło do dosłownych one-shotów graczy
+     * mających 5-10k HP na 99 poziomie (zgłoszenie: "Promień Zagłady" zadał 43.4k
+     * jednym skillem). Heal/buff (procentowe) nie są objęte tym pułapem.
+     */
+    private const MAX_DAMAGE_SKILL_MULTIPLIER = 4.0;
+
+    private const DAMAGE_EFFECT_TYPES = ['direct_dmg', 'direct', 'damage', 'aoe_dmg', 'freeze', 'stun'];
+
     public function getEffectiveValue(): float
     {
         if (!$this->skill) {
@@ -123,6 +136,12 @@ class CharacterCombatSkill extends Model
             default => 1.0,
         };
 
-        return ($baseVal + ($scalingVal * ($effLvl - 1))) * $tierMultiplier;
+        $value = ($baseVal + ($scalingVal * ($effLvl - 1))) * $tierMultiplier;
+
+        if (in_array($this->skill->effect_type, self::DAMAGE_EFFECT_TYPES, true)) {
+            $value = min($value, self::MAX_DAMAGE_SKILL_MULTIPLIER);
+        }
+
+        return $value;
     }
 }
