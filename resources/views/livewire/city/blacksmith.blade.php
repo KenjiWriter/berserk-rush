@@ -248,7 +248,7 @@
                         <!-- Bottom Section: Upgradable Items Inventory -->
                         <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-4 mt-auto">
                             <h3 class="text-lg font-bold text-amber-400 mb-3 border-b border-gray-700/50 pb-2 medieval-font">Wybierz przedmiot do ulepszenia (broń, zbroja i akcesoria)</h3>
-                            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[250px]">
+                            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[450px]">
                                 @forelse($upgradableItems as $item)
                                     @if($item->upgrade_level < 9)
                                         <div wire:key="forge-item-{{ $item->id }}" class="relative" x-data="smartTooltip()"

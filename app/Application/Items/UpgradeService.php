@@ -182,15 +182,24 @@ class UpgradeService
      * Próg +3 Kuźni (Faza 5 rebalansu, 2026-08-05): gdy przedmiot PRZEKRACZA +3
      * (2->3), dostaje darmowy losowy bonus z puli zaklęć (patrz
      * ItemInstance::setUpgradeBonus()). Gdy SPADA poniżej +3 (3->2, np. przez karę
-     * `downgrade` na wyższych poziomach), bonus jest usuwany. Wywoływana raz na
-     * próbę ulepszenia (poziom zmienia się zawsze o dokładnie 1), więc porównanie
-     * "przed"/"po" jednoznacznie wykrywa przekroczenie progu w dowolną stronę.
+     * `downgrade` na wyższych poziomach), bonus jest usuwany.
+     *
+     * Siatka bezpieczeństwa (zgłoszenie gracza, 2026-08-06): jeśli przedmiot z
+     * jakiegokolwiek powodu jest na poziomie >= +3, ale NIE ma bonusu (np.
+     * stworzony bezpośrednio na wyższym poziomie przez `/give`, legacy dane
+     * sprzed wprowadzenia progu +3, albo inny przypadek brzegowy) - pierwsza
+     * kolejna próba ulepszenia (niezależnie czy to zwykły sukces, czy `downgrade`
+     * kończący się nadal na poziomie >= +3) dogrywa brakujący bonus, zamiast
+     * czekać na następne przekroczenie 2->3. Warunek na pustym
+     * `getUpgradeBonuses()` gwarantuje, że istniejący bonus nigdy nie jest
+     * przelosowywany przy okazji zwykłego ulepszenia - tylko faktyczny brak jest
+     * uzupełniany.
      */
     private function syncThresholdBonus(ItemInstance $item, int $levelBefore): void
     {
         $levelAfter = $item->upgrade_level;
 
-        if ($levelBefore < 3 && $levelAfter >= 3) {
+        if ($levelAfter >= 3 && empty($item->getUpgradeBonuses())) {
             $enchantment = app(\App\Domain\Wizard\EnchantmentStrategy::class)->generateRandomEnchantment($item);
             $item->setUpgradeBonus($enchantment['type'], $enchantment['value']);
             $item->save();

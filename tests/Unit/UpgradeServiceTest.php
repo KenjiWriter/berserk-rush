@@ -149,6 +149,108 @@ test('UpgradeService grants a free threshold bonus crossing +3 and removes it on
         ->and($weaponInstance->fresh()->getUpgradeBonuses())->toBeEmpty();
 });
 
+test('UpgradeService backfills a missing threshold bonus on the next upgrade when item is already at +3 or above', function () {
+    $user = User::factory()->create();
+    $character = Character::create([
+        'user_id' => $user->id,
+        'name' => 'BackfillTester',
+        'level' => 10,
+        'gold' => 100000,
+    ]);
+
+    $weaponTemplate = ItemTemplate::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Testowy Topór',
+        'type' => 'weapon',
+        'sub_type' => 'axe',
+        'slot' => 'main_hand',
+        'level_requirement' => 1,
+        'base_stats' => ['attack_min' => 10, 'attack_max' => 20],
+    ]);
+
+    // Item stworzony bezpośrednio na +5 (np. przez /give lub legacy dane) - BEZ
+    // bonusu z progu +3, mimo że jest już powyżej niego.
+    $weaponInstance = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $weaponTemplate->id,
+        'owner_character_id' => $character->id,
+        'location' => 'inventory',
+        'upgrade_level' => 5,
+        'stack_size' => 1,
+    ]);
+
+    expect($weaponInstance->getUpgradeBonuses())->toBeEmpty();
+
+    // +5 -> +6: nie przekracza progu 2->3, ale powinno dograć brakujący bonus,
+    // bo poziom po ulepszeniu (6) jest >= +3.
+    UpgradeRule::create([
+        'id' => (string) Str::ulid(),
+        'from_level' => 5,
+        'to_level' => 6,
+        'applies_to' => 'type',
+        'applies_value' => 'weapon',
+        'cost' => ['gold' => 500, 'materials' => []],
+        'success_chance' => 1.0,
+        'on_fail' => 'nothing',
+    ]);
+
+    $upgradeService = new UpgradeService();
+    $result = $upgradeService->upgradeItem($character, $weaponInstance);
+
+    expect($result['success'])->toBeTrue()
+        ->and($weaponInstance->fresh()->upgrade_level)->toBe(6)
+        ->and($weaponInstance->fresh()->getUpgradeBonuses())->not->toBeEmpty();
+});
+
+test('UpgradeService does not reroll an existing threshold bonus on a normal upgrade above +3', function () {
+    $user = User::factory()->create();
+    $character = Character::create([
+        'user_id' => $user->id,
+        'name' => 'NoRerollTester',
+        'level' => 10,
+        'gold' => 100000,
+    ]);
+
+    $weaponTemplate = ItemTemplate::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Testowa Różdżka',
+        'type' => 'weapon',
+        'sub_type' => 'wand',
+        'slot' => 'main_hand',
+        'level_requirement' => 1,
+        'base_stats' => ['magic_attack_min' => 10, 'magic_attack_max' => 20],
+    ]);
+
+    $weaponInstance = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $weaponTemplate->id,
+        'owner_character_id' => $character->id,
+        'location' => 'inventory',
+        'upgrade_level' => 4,
+        'stack_size' => 1,
+    ]);
+    $weaponInstance->setUpgradeBonus('crit_chance', 3);
+    $weaponInstance->save();
+
+    UpgradeRule::create([
+        'id' => (string) Str::ulid(),
+        'from_level' => 4,
+        'to_level' => 5,
+        'applies_to' => 'type',
+        'applies_value' => 'weapon',
+        'cost' => ['gold' => 500, 'materials' => []],
+        'success_chance' => 1.0,
+        'on_fail' => 'nothing',
+    ]);
+
+    $upgradeService = new UpgradeService();
+    $result = $upgradeService->upgradeItem($character, $weaponInstance);
+
+    expect($result['success'])->toBeTrue()
+        ->and($weaponInstance->fresh()->upgrade_level)->toBe(5)
+        ->and($weaponInstance->fresh()->getUpgradeBonuses())->toBe(['crit_chance' => 3]);
+});
+
 test('ItemInstance getUpgradeBonusStats uses the Faza 5 accelerating curve per level', function () {
     $template = ItemTemplate::create([
         'id' => (string) Str::ulid(),
