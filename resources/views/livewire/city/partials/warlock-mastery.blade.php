@@ -2,8 +2,10 @@
     $xpPct = $championXpTarget > 0 ? min(100, round(($character->xp / $championXpTarget) * 100, 1)) : 0;
     $xpFull = $character->xp >= $championXpTarget;
     $materialsFulfilled = collect($championMaterials)->every(fn ($row) => ($row['deposited'] ?? 0) >= ($row['required'] ?? 0));
+    $runicFulfilled = ($ownedRunicShards ?? 0) >= ($reqRunicShards ?? 0);
     $atCap = $character->champion_level >= \App\Application\Mastery\ChampionService::LEVEL_CAP;
-    $canLevelUp = !$atCap && $xpFull && $materialsFulfilled;
+    $canLevelUp = !$atCap && $xpFull && $materialsFulfilled && $runicFulfilled;
+    $runicPct = ($reqRunicShards ?? 0) > 0 ? min(100, round((($ownedRunicShards ?? 0) / $reqRunicShards) * 100)) : 100;
 @endphp
 
 <div class="w-full flex-1">
@@ -55,9 +57,40 @@
         {{-- Materials tribute --}}
         @if(!$atCap)
             <div class="bg-stone-950/90 border border-sky-900/60 rounded-2xl p-4 sm:p-5 shadow-inner font-sans">
-                <div class="flex items-center gap-2 text-sky-300 font-extrabold text-xs uppercase tracking-widest mb-3">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>Wymagane Ulepszacze (1000 sztuk łącznie)</span>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2 text-sky-300 font-extrabold text-xs uppercase tracking-widest">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span>Wymagane Ulepszacze & Odłamki</span>
+                    </div>
+                </div>
+
+                {{-- Runic Shard Requirement Card --}}
+                <div class="bg-purple-950/40 border border-purple-600/60 rounded-xl p-3 flex items-center gap-3 mb-3 shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                    <div class="w-12 h-12 rounded-lg border-2 {{ $runicFulfilled ? 'border-emerald-500 bg-emerald-950/50' : 'border-purple-500 bg-purple-950/70' }} flex items-center justify-center shrink-0 overflow-hidden shadow-[0_0_10px_rgba(168,85,247,0.3)]">
+                        <img src="{{ route('assets.items', ['filename' => 'runiczny-odlamek.png']) }}" class="w-full h-full object-contain p-1" alt="Runiczny Odłamek">
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                                <span>Runiczny Odłamek</span>
+                                <span class="text-[9px] bg-purple-900/80 border border-purple-500/50 text-purple-300 px-1.5 py-0.2 rounded font-mono">Przetapianie u Kowala</span>
+                            </span>
+                            <span class="text-[10px] text-purple-400 shrink-0 font-semibold uppercase tracking-wider">Wymóg Czempiona</span>
+                        </div>
+                        <div class="w-full h-2 bg-stone-950 rounded-full border border-purple-900/60 overflow-hidden mt-1.5">
+                            <div class="h-full rounded-full transition-all duration-500 {{ $runicFulfilled ? 'bg-emerald-500' : 'bg-gradient-to-r from-purple-600 to-indigo-500' }}" style="width: {{ $runicPct }}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between mt-1">
+                            <span class="text-[10px] font-mono text-purple-300 font-bold">{{ number_format($ownedRunicShards ?? 0) }} / {{ number_format($reqRunicShards ?? 0) }} szt.</span>
+                            @if($runicFulfilled)
+                                <span class="text-[10px] text-emerald-400 font-bold flex items-center gap-1">
+                                    <i class="fa-solid fa-circle-check text-xs"></i> Odłamki gotowe
+                                </span>
+                            @else
+                                <span class="text-[10px] text-purple-300/80 italic">Automatycznie pobierane przy awansie</span>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -289,10 +289,19 @@ class Warlock extends Component
             $resetDaysLeft = max(1, (int) ceil(now()->diffInHours($availableAt) / 24));
         }
 
+        $reqRunicShards = $championService->requiredRunicShards($this->character->champion_level ?? 0);
+        $runicTpl = \App\Infrastructure\Persistence\ItemTemplate::where('name', 'Runiczny Odłamek')->first();
+        $ownedRunicShards = $runicTpl ? (int) \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $this->character->id)
+            ->where('template_id', $runicTpl->id)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->sum('stack_size') : 0;
+
         return [
             'championUnlocked' => true,
             'championXpTarget' => $championService->xpTarget(),
             'championMaterials' => $championMaterials,
+            'reqRunicShards' => $reqRunicShards,
+            'ownedRunicShards' => $ownedRunicShards,
             'championSkillsList' => $championSkillsList,
             'myChampionSkills' => $myChampionSkills,
             'championResetAvailable' => $resetAvailable,

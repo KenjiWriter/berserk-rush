@@ -635,6 +635,9 @@
                     <button @click="infoTab = 'risk'" :class="infoTab === 'risk' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
                         <i class="fa-solid fa-triangle-exclamation mr-1"></i> Ryzyko Porażki
                     </button>
+                    <button @click="infoTab = 'dismantle'" :class="infoTab === 'dismantle' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-fire mr-1 text-purple-400"></i> Przetapianie i Odłamki
+                    </button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
@@ -710,6 +713,133 @@
                             <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Skutki Porażki</h4>
                             <p class="mb-2">Do poziomu <strong class="text-amber-200">+5</strong> porażka kosztuje wyłącznie zużyte złoto i materiały - poziom przedmiotu nie spada. Od kroku do <strong class="text-amber-200">+6</strong> wzwyż porażka obniża poziom przedmiotu o 1 - świadome ryzyko na wyższych poziomach.</p>
                             <p>Jeśli spadek poniżej +3 usunie darmowy bonus z progu +3 (patrz zakładka "Progi Specjalne") - w razie ponownego osiągnięcia +3 bonus zostanie wylosowany na nowo.</p>
+                        </div>
+                    </div>
+
+                    {{-- PRZETAPIANIE I ODŁAMKI --}}
+                    <div x-show="infoTab === 'dismantle'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Przetapianie Ekwipunku</h4>
+                            <p class="mb-3">W zakładce <strong class="text-purple-300">Przetapianie</strong> możesz nieodwracalnie przetopić nieużywaną broń, zbroję lub akcesoria z plecaka, aby pozyskać z nich <strong class="text-purple-200">Runiczne Odłamki</strong>. Wzór obliczeń:</p>
+                            <div class="bg-black/60 p-2.5 rounded border border-purple-900/60 text-center font-mono text-purple-300 text-xs mb-4 shadow-inner">
+                                Odłamki = Max(1, Bazowe × Mnożnik Rzadkości × Bonus Ulepszenia × Bonus Zaczarowań)
+                            </div>
+                        </div>
+
+                        <!-- Tabela 1: Bazowe odłamki i Rzadkość -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">1. Mnożniki Jakości (Rzadkości)</h5>
+                                <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 px-2">Jakość / Rzadkość</th>
+                                            <th class="text-right py-1 px-2">Mnożnik</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-stone-300">Common (Zwykły)</td><td class="py-1 px-2 text-right font-bold text-gray-300">1.0x</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-green-400 font-semibold">Uncommon (Niepospolity)</td><td class="py-1 px-2 text-right font-bold text-green-400">2.0x</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-blue-400 font-semibold">Rare (Rzadki)</td><td class="py-1 px-2 text-right font-bold text-blue-400">4.0x</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-purple-400 font-semibold">Epic (Epicki)</td><td class="py-1 px-2 text-right font-bold text-purple-400">8.0x</td></tr>
+                                        <tr><td class="py-1 px-2 text-amber-400 font-bold">Legendary (Legendarny)</td><td class="py-1 px-2 text-right font-bold text-amber-400">15.0x</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div>
+                                <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">2. Bazowe Odłamki z Poziomu</h5>
+                                <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 px-2">Wymagany Poziom</th>
+                                            <th class="text-right py-1 px-2">Bazowe Odłamki</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-stone-300">Poziom 1 – 10</td><td class="py-1 px-2 text-right font-bold text-purple-300">1 szt.</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-stone-300">Poziom 11 – 20</td><td class="py-1 px-2 text-right font-bold text-purple-300">2 szt.</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-stone-300">Poziom 21 – 50</td><td class="py-1 px-2 text-right font-bold text-purple-300">3 – 5 szt.</td></tr>
+                                        <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-stone-300">Poziom 51 – 80</td><td class="py-1 px-2 text-right font-bold text-purple-300">6 – 8 szt.</td></tr>
+                                        <tr><td class="py-1 px-2 text-amber-200">Poziom 81 – 99</td><td class="py-1 px-2 text-right font-bold text-amber-300">9 – 10 szt.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tabela 2: Bonus za Poziom Ulepszenia -->
+                        <div>
+                            <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">3. Mnożnik za Poziom Ulepszenia (+0 do +9)</h5>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="py-1 px-2 text-center">Poziom</th>
+                                            <th class="py-1 px-2 text-center">+0</th>
+                                            <th class="py-1 px-2 text-center">+1</th>
+                                            <th class="py-1 px-2 text-center">+2</th>
+                                            <th class="py-1 px-2 text-center">+3</th>
+                                            <th class="py-1 px-2 text-center">+4</th>
+                                            <th class="py-1 px-2 text-center">+5</th>
+                                            <th class="py-1 px-2 text-center">+6</th>
+                                            <th class="py-1 px-2 text-center">+7</th>
+                                            <th class="py-1 px-2 text-center">+8</th>
+                                            <th class="py-1 px-2 text-center">+9</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="py-1 px-2 text-amber-300 font-bold text-center">Bonus %</td>
+                                            <td class="py-1 px-2 text-center text-stone-500">0%</td>
+                                            <td class="py-1 px-2 text-center text-emerald-400">+10%</td>
+                                            <td class="py-1 px-2 text-center text-emerald-400">+25%</td>
+                                            <td class="py-1 px-2 text-center text-emerald-400">+50%</td>
+                                            <td class="py-1 px-2 text-center text-emerald-400">+80%</td>
+                                            <td class="py-1 px-2 text-center text-emerald-400">+120%</td>
+                                            <td class="py-1 px-2 text-center text-amber-400 font-bold">+180%</td>
+                                            <td class="py-1 px-2 text-center text-amber-400 font-bold">+260%</td>
+                                            <td class="py-1 px-2 text-center text-amber-400 font-bold">+360%</td>
+                                            <td class="py-1 px-2 text-center text-purple-400 font-bold">+500%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="text-[10px] text-stone-400 mt-1">* Każde zaczarowanie na przedmiocie dodaje również dodatkowe +15% do sumarycznej liczby odłamków.</p>
+                        </div>
+
+                        <!-- Tabela 3: Zastosowania Odłamków -->
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Zastosowanie & Koszt Odłamków w Ulepszeniach</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">Kuźnia Ulepszeń (Przedmioty &gt;70 lvl)</h5>
+                                    <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
+                                        <thead>
+                                            <tr class="border-b border-stone-700 text-stone-400">
+                                                <th class="text-left py-1 px-2">Krok Ulepszenia</th>
+                                                <th class="text-right py-1 px-2">Wymagane Odłamki</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+5 &rarr; +6</td><td class="py-1 px-2 text-right font-bold text-purple-300">15 szt.</td></tr>
+                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+6 &rarr; +7</td><td class="py-1 px-2 text-right font-bold text-purple-300">35 szt.</td></tr>
+                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+7 &rarr; +8</td><td class="py-1 px-2 text-right font-bold text-purple-300">75 szt.</td></tr>
+                                            <tr><td class="py-1 px-2 text-amber-300 font-bold">+8 &rarr; +9</td><td class="py-1 px-2 text-right font-bold text-purple-300">150 szt.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div>
+                                    <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">Rozwój Czempiona (Mistrzostwo)</h5>
+                                    <div class="bg-black/40 p-3 rounded border border-stone-800 text-xs text-stone-300 space-y-2">
+                                        <p>Awans na każdy kolejny poziom Czempiona wymaga Runicznych Odłamków:</p>
+                                        <div class="font-mono text-purple-300 font-bold text-center bg-gray-900/60 p-1.5 rounded border border-gray-800">
+                                            Koszt = 50 + (Poziom Czempiona &times; 10)
+                                        </div>
+                                        <p class="text-[10px] text-stone-400">Przykładowo: Lvl 1 &rarr; 50 szt. | Lvl 10 &rarr; 140 szt. | Lvl 50 &rarr; 540 szt.</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
