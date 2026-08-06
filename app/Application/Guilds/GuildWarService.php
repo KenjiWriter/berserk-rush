@@ -22,6 +22,37 @@ class GuildWarService
     private const EQUIPMENT_POISON_VALUE = 0.03;
     private const EQUIPMENT_STUN_DURATION = 1;
 
+    /**
+     * Bonusy z drzewka Mistrzostwa (patrz docs/modules/mastery.md) dla kombatanta
+     * 5v5 - snapshoty to płaskie tablice, więc doliczamy je raz przy budowie
+     * `$combatants` zamiast odpytywać bazę na każdą wymianę ciosów.
+     */
+    private function buildChampionBonuses(?string $characterId): array
+    {
+        $zero = [
+            'phys_dmg_pct' => 0.0, 'magic_dmg_pct' => 0.0, 'mana_regen_pct' => 0.0,
+            'dodge_pct' => 0.0, 'accuracy_pct' => 0.0, 'dmg_reduction_pct' => 0.0,
+        ];
+
+        if (!$characterId) {
+            return $zero;
+        }
+
+        $character = Character::find($characterId);
+        if (!$character) {
+            return $zero;
+        }
+
+        return [
+            'phys_dmg_pct' => $character->getChampionBonusPercent('phys_dmg_pct'),
+            'magic_dmg_pct' => $character->getChampionBonusPercent('magic_dmg_pct'),
+            'mana_regen_pct' => $character->getChampionBonusPercent('mana_regen_pct'),
+            'dodge_pct' => $character->getChampionBonusPercent('dodge_pct'),
+            'accuracy_pct' => $character->getChampionBonusPercent('accuracy_pct'),
+            'dmg_reduction_pct' => $character->getChampionBonusPercent('dmg_reduction_pct'),
+        ];
+    }
+
     private function rollEquipmentProcs(array $eq, array $resistEq): array
     {
         $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
@@ -393,6 +424,7 @@ class GuildWarService
                 'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
                 'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
+                'championBonuses' => $this->buildChampionBonuses($snap['character_id'] ?? null),
             ];
         }
         foreach (array_values($defenderSnapshots) as $i => $snap) {
@@ -402,6 +434,7 @@ class GuildWarService
                 'mana' => $snap['max_mana'] ?? 50, 'maxMana' => max(1, $snap['max_mana'] ?? 50),
                 'cooldowns' => [], 'effects' => [], 'cc_turns' => 0,
                 'passives' => ['aura_dmg' => 0, 'extra_attack_chance' => 0],
+                'championBonuses' => $this->buildChampionBonuses($snap['character_id'] ?? null),
             ];
         }
 
@@ -434,8 +467,9 @@ class GuildWarService
                     break 2; // przeciwna drużyna została doszczętnie pokonana w trakcie rundy
                 }
 
-                // Regeneracja many aktora na początku jego akcji (5% maxMana, min 5 MP)
-                $combatants[$ci]['mana'] = min($combatants[$ci]['maxMana'], $combatants[$ci]['mana'] + max(5, (int)ceil($combatants[$ci]['maxMana'] * 0.05)));
+                // Regeneracja many aktora na początku jego akcji (5% maxMana, min 5 MP) + Koncentracja (Mistrzostwo)
+                $manaRegenPct = 0.05 + ($combatants[$ci]['championBonuses']['mana_regen_pct'] ?? 0);
+                $combatants[$ci]['mana'] = min($combatants[$ci]['maxMana'], $combatants[$ci]['mana'] + max(5, (int)ceil($combatants[$ci]['maxMana'] * $manaRegenPct)));
 
                 // Ogłuszenie (ze skilla lub z procka ekwipunku) - aktor traci turę ataku,
                 // ale jego cooldowny nadal tykają (parytet z PvPEncounterService::simulateCombat()).
@@ -743,6 +777,15 @@ class GuildWarService
             $damage = (int) ($damage * (1 + $physBuffValue));
         }
 
+        // Siła/Mądrość (drzewko Mistrzostwa) - patrz identyczna logika w EncounterService::calculateDamage().
+        $isMagicDamage = $isMagicSkill || $weaponType === 'wand';
+        $championDmgPct = $isMagicDamage
+            ? ($actor['championBonuses']['magic_dmg_pct'] ?? 0)
+            : ($actor['championBonuses']['phys_dmg_pct'] ?? 0);
+        if ($championDmgPct > 0) {
+            $damage = (int) round($damage * (1 + $championDmgPct));
+        }
+
         // DoT (otrucie/podpalenie) tyka na celu przy każdym ataku wymierzonym w niego -
         // pomijane dla trafień AOE (patrz docblock powyżej).
         $dotDamage = 0;
@@ -797,8 +840,9 @@ class GuildWarService
         }
 
         // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
-        // Tarczy") - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
-        $targetDefenseBuffValue = min(0.75, max(0, $target['effects']['buff_defense']['value'] ?? 0));
+        // Tarczy") + Twardziel celu (Mistrzostwo) - capowana na 75%, ten sam wzorzec
+        // bezpieczeństwa co passive_extra_attack.
+        $targetDefenseBuffValue = min(0.75, max(0, ($target['effects']['buff_defense']['value'] ?? 0) + ($target['championBonuses']['dmg_reduction_pct'] ?? 0)));
         if ($targetDefenseBuffValue > 0) {
             $damage = max(1, $damage * (1 - $targetDefenseBuffValue));
         }
@@ -817,7 +861,9 @@ class GuildWarService
         $isCrit = mt_rand(1, 1000) <= (int) round($critChance * 1000);
 
         $targetEq = $targetSnap['equipment_stats'] ?? [];
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($targetAgi * 0.0006) + (($targetEq['dodge_chance'] ?? 0) / 100)));
+        // Zwinność celu zwiększa jego unik, Celność atakującego go kontruje (Mistrzostwo).
+        $championDodgeMod = ($target['championBonuses']['dodge_pct'] ?? 0) - ($actor['championBonuses']['accuracy_pct'] ?? 0);
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($targetAgi * 0.0006) + (($targetEq['dodge_chance'] ?? 0) / 100) + $championDodgeMod));
         $isMiss = mt_rand(1, 1000) <= (int) round($dodgeChance * 1000);
 
         $turn = [

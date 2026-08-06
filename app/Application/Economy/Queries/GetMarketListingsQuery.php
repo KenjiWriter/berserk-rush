@@ -68,9 +68,9 @@ class GetMarketListingsQuery
 
         // Search by item name
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
+            $search = mb_strtolower(trim($filters['search']), 'UTF-8');
             $query->whereHas('item.template', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%');
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%']);
             });
         }
 
@@ -194,9 +194,9 @@ class GetMarketListingsQuery
             ->with(['pet', 'seller']);
 
         if (!empty($filters['search'])) {
-            $search = $filters['search'];
+            $search = mb_strtolower(trim($filters['search']), 'UTF-8');
             $query->whereHas('pet', function ($q) use ($search) {
-                $q->where('name', 'LIKE', '%' . $search . '%');
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%']);
             });
         }
 

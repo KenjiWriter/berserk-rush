@@ -102,7 +102,9 @@ class DropService
         $isBoss = $monster->rank === 'boss';
 
         // Boss na mapie ma 50% szansy na łup po pokonaniu, zwykły potwór 33% szansy (66% braku łupu)
-        $dropChance = $isBoss ? 50 : 33;
+        // + Łowca Skarbów (Mistrzostwo, +%/pkt szansy na lepszy łup)
+        $dropChance = ($isBoss ? 50 : 33) + ($encounter->character->getChampionBonusPercent('loot_pct') * 100);
+        $dropChance = min(95, $dropChance);
         if ($this->rng->int(1, 100) > $dropChance) {
             return $empty;
         }

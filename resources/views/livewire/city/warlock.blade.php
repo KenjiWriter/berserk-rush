@@ -62,6 +62,33 @@
             </div>
         </div>
 
+        {{-- Tabs: Umiejętności / Mistrzostwo --}}
+        <div class="flex items-center justify-center gap-2 mb-6">
+            <button wire:click="setTab('skills')"
+                class="px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm uppercase tracking-widest border-2 transition-all duration-200 flex items-center gap-2 cursor-pointer
+                {{ $activeTab === 'skills' ? 'bg-emerald-800 border-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-emerald-600 hover:text-emerald-200' }}">
+                <i class="fa-solid fa-book-skull"></i>
+                <span>Umiejętności</span>
+            </button>
+            @if($championUnlocked)
+                <button wire:click="setTab('mastery')"
+                    class="px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm uppercase tracking-widest border-2 transition-all duration-200 flex items-center gap-2 cursor-pointer
+                    {{ $activeTab === 'mastery' ? 'bg-sky-800 border-sky-400 text-white shadow-[0_0_15px_rgba(56,189,248,0.4)]' : 'bg-stone-900 border-stone-700 text-stone-400 hover:border-sky-600 hover:text-sky-200' }}">
+                    <i class="fa-solid fa-crown"></i>
+                    <span>Mistrzostwo</span>
+                </button>
+            @else
+                <span class="px-5 py-2.5 rounded-xl font-extrabold text-xs sm:text-sm uppercase tracking-widest border-2 border-stone-800 bg-stone-950 text-stone-600 flex items-center gap-2 cursor-not-allowed" title="Odblokowuje się po osiągnięciu 99 poziomu">
+                    <i class="fa-solid fa-lock"></i>
+                    <span>Mistrzostwo (Poz. 99)</span>
+                </span>
+            @endif
+        </div>
+
+        @if($activeTab === 'mastery')
+            @include('livewire.city.partials.warlock-mastery')
+        @else
+
         {{-- Main Spellbook Grid Section --}}
         <div class="w-full flex-1">
             <div class="text-center mb-8 bg-stone-950/80 border border-emerald-900/60 p-4 sm:p-6 rounded-2xl shadow-xl max-w-3xl mx-auto backdrop-blur-sm relative overflow-hidden">
@@ -560,5 +587,6 @@
                 @endforelse
             </div>
         </div>
+        @endif
     </div>
 </div>

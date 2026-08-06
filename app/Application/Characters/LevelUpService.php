@@ -38,13 +38,28 @@ class LevelUpService
 
                 if ($currentLevel >= self::MAX_LEVEL) {
                     $currentLevel = self::MAX_LEVEL;
+                    // Nadwyżka expa ponad cap 99 poziomu nie jest tracona - dopóki gracz nie
+                    // dobił max poziomu championa (99(50)), zasila champion_xp zamiast
+                    // przepadać. To JEDYNE niezawodne miejsce do przechwycenia tej nadwyżki:
+                    // większość ścieżek nagradzania expem woła Character::increment('xp', ...),
+                    // które NIE odpala eventu `saving` modelu (bypassuje pipeline zapisu Eloquenta),
+                    // więc hook w Character::booted() sam w sobie by tego nie złapał - ten serwis
+                    // jest jedynym wspólnym miejscem wołanym po KAŻDYM przyznaniu expa.
+                    $overflow = max(0, $currentXp - $maxXpAtMaxLevel);
                     $currentXp = min($currentXp, $maxXpAtMaxLevel);
 
-                    if ($character->level !== self::MAX_LEVEL || $character->xp !== $currentXp) {
-                        $character->update([
-                            'level' => self::MAX_LEVEL,
-                            'xp' => $currentXp,
-                        ]);
+                    $updates = [];
+                    if ($character->level !== self::MAX_LEVEL) {
+                        $updates['level'] = self::MAX_LEVEL;
+                    }
+                    if ($character->xp !== $currentXp) {
+                        $updates['xp'] = $currentXp;
+                    }
+                    if ($overflow > 0 && ($character->champion_level ?? 0) < \App\Application\Mastery\ChampionService::LEVEL_CAP) {
+                        $updates['champion_xp'] = ($character->champion_xp ?? 0) + $overflow;
+                    }
+                    if (!empty($updates)) {
+                        $character->update($updates);
                     }
 
                     if ($character->user) {
@@ -88,8 +103,10 @@ class LevelUpService
                     }
                 }
 
+                $championXpGain = 0;
                 if ($currentLevel >= self::MAX_LEVEL) {
                     $currentLevel = self::MAX_LEVEL;
+                    $championXpGain = max(0, $currentXp - $maxXpAtMaxLevel);
                     $currentXp = min($currentXp, $maxXpAtMaxLevel);
                 } elseif ($autoDonateActive) {
                     $donateThreshold = (int) floor($this->xpToNext($currentLevel) * 0.5);
@@ -102,7 +119,7 @@ class LevelUpService
                 if (!empty($levelUps) || $currentLevel !== $character->level || $currentXp !== $character->xp) {
                     $pointsGained = count($levelUps) * 3;
 
-                    $character->update([
+                    $updates = [
                         'level'              => $currentLevel,
                         'character_points'   => ($character->character_points ?? 0) + $pointsGained,
                         'skill_points'       => ($character->skill_points ?? 0) + (count($levelUps) * 3),
@@ -110,7 +127,13 @@ class LevelUpService
                         // Aktualizujemy timestamp każdego nowego poziomu — ranking sortuje ASC,
                         // więc kto WCZEŚNIEJ osiągnął dany poziom, jest wyżej w tabeli.
                         'max_level_reached_at' => !empty($levelUps) ? now() : $character->max_level_reached_at,
-                    ]);
+                    ];
+
+                    if ($championXpGain > 0 && ($character->champion_level ?? 0) < \App\Application\Mastery\ChampionService::LEVEL_CAP) {
+                        $updates['champion_xp'] = ($character->champion_xp ?? 0) + $championXpGain;
+                    }
+
+                    $character->update($updates);
 
 
                     $character->syncMissingPoints();

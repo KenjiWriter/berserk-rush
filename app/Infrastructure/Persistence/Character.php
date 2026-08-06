@@ -61,6 +61,11 @@ class Character extends Model
         'discord_link_reward_claimed_at',
         'mirror_access_until',
         'max_level_reached_at',
+        'champion_level',
+        'champion_xp',
+        'champion_points',
+        'champion_material_progress',
+        'last_champion_reset_at',
     ];
 
     protected $casts = [
@@ -69,6 +74,11 @@ class Character extends Model
         'proficiencies' => 'array',
         'level' => 'integer',
         'xp' => 'integer',
+        'champion_level' => 'integer',
+        'champion_xp' => 'integer',
+        'champion_points' => 'integer',
+        'champion_material_progress' => 'array',
+        'last_champion_reset_at' => 'datetime',
         'auto_donate_exp_guild' => 'boolean',
         'gold' => 'integer',
         'version' => 'integer',
@@ -167,6 +177,16 @@ class Character extends Model
                 $character->level = \App\Application\Characters\LevelUpService::MAX_LEVEL;
                 $maxXp = max(0, app(\App\Application\Characters\LevelUpService::class)->xpToNext(\App\Application\Characters\LevelUpService::MAX_LEVEL) - 1);
                 if ($character->xp > $maxXp) {
+                    // Nadwyżka expa ponad cap 99 poziomu nie jest tracona - jeśli gracz
+                    // nie dobił jeszcze max poziomu championa (99(50)), zasila licznik
+                    // champion_xp (patrz App\Application\Mastery\ChampionService). Dzięki
+                    // temu WSZYSTKIE istniejące ścieżki przyznawania expa (RewardService,
+                    // DungeonService, QuestService, AchievementService...) automatycznie
+                    // karmią system Mistrzostwa bez dotykania każdej z osobna - wszystkie
+                    // i tak wołają increment('xp')/update(), co triggeruje ten hook.
+                    if (($character->champion_level ?? 0) < \App\Application\Mastery\ChampionService::LEVEL_CAP) {
+                        $character->champion_xp = ($character->champion_xp ?? 0) + ($character->xp - $maxXp);
+                    }
                     $character->xp = $maxXp;
                 }
             }
@@ -464,6 +484,58 @@ class Character extends Model
         return $this->combatSkills()->where('is_equipped', true)->with('skill');
     }
 
+    public function championSkills(): HasMany
+    {
+        return $this->hasMany(CharacterChampionSkill::class, 'character_id');
+    }
+
+    /**
+     * Ile punktów Mistrzostwa gracz zainwestował w daną umiejętność drzewka
+     * championa (klucz `ChampionSkill::key`, np. 'strength'). Patrz
+     * App\Application\Mastery\ChampionService i docs/modules/mastery.md.
+     */
+    public function getChampionSkillPoints(string $key): int
+    {
+        return (int) Cache::remember($this->getCacheKey("champion_points:{$key}"), 3600, function () use ($key) {
+            return $this->championSkills()
+                ->whereHas('skill', fn ($q) => $q->where('key', $key))
+                ->value('points') ?? 0;
+        });
+    }
+
+    /**
+     * Sumaryczny bonus % (jako ułamek, np. 0.05 = 5%) z drzewka Mistrzostwa dla
+     * danego `stat_type` (np. 'phys_dmg_pct', 'max_hp_pct') - sumuje wszystkie
+     * umiejętności championa mające ten stat_type (obecnie 1:1, ale query wspiera
+     * kilka umiejętności współdzielących ten sam typ bonusu).
+     */
+    public function getChampionBonusPercent(string $statType): float
+    {
+        if ($this->level < \App\Application\Characters\LevelUpService::MAX_LEVEL) {
+            return 0.0;
+        }
+
+        return (float) Cache::remember($this->getCacheKey("champion_bonus:{$statType}"), 3600, function () use ($statType) {
+            $skills = \App\Infrastructure\Persistence\ChampionSkill::where('stat_type', $statType)->get();
+            if ($skills->isEmpty()) {
+                return 0.0;
+            }
+
+            $invested = $this->championSkills()
+                ->whereIn('champion_skill_id', $skills->pluck('id'))
+                ->get()
+                ->keyBy('champion_skill_id');
+
+            $total = 0.0;
+            foreach ($skills as $skill) {
+                $points = $invested->get($skill->id)?->points ?? 0;
+                $total += $points * $skill->bonus_per_point;
+            }
+
+            return $total / 100;
+        });
+    }
+
     public function activeBuffs(): HasMany
     {
         return $this->hasMany(ActiveBuff::class, 'character_id');
@@ -486,9 +558,31 @@ class Character extends Model
         Cache::forget($this->getCacheKey('max_hp'));
         Cache::forget($this->getCacheKey('max_mana'));
         Cache::forget($this->getCacheKey('combat_power'));
+        $this->clearChampionCache();
         $this->unsetRelation('equippedItems');
         $this->unsetRelation('inventoryItems');
     }
+
+    public function clearChampionCache(): void
+    {
+        foreach (self::CHAMPION_STAT_TYPES as $statType) {
+            Cache::forget($this->getCacheKey("champion_bonus:{$statType}"));
+        }
+        foreach (self::CHAMPION_SKILL_KEYS as $key) {
+            Cache::forget($this->getCacheKey("champion_points:{$key}"));
+        }
+    }
+
+    public const CHAMPION_STAT_TYPES = [
+        'phys_dmg_pct', 'magic_dmg_pct', 'max_hp_pct', 'mana_regen_pct',
+        'dodge_pct', 'accuracy_pct', 'dmg_reduction_pct', 'gold_pct',
+        'loot_pct', 'exp_pct',
+    ];
+
+    public const CHAMPION_SKILL_KEYS = [
+        'strength', 'wisdom', 'endurance', 'concentration', 'accuracy',
+        'agility', 'toughness', 'fortune', 'treasure_hunter', 'knowledge',
+    ];
 
     public function syncMissingPoints(): void
     {
@@ -982,6 +1076,9 @@ class Character extends Model
                     $hpPct += $effects['hp_pct'];
                 }
             }
+
+            // Wytrzymałość (drzewko Mistrzostwa) - +2%/pkt max HP, patrz docs/modules/mastery.md
+            $hpPct += $this->getChampionBonusPercent('max_hp_pct') * 100;
 
             if ($hpPct > 0) {
                 return (int) round($baseHp * (1 + $hpPct / 100));

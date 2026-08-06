@@ -20,6 +20,18 @@ class PvPEncounterService
     private const EQUIPMENT_POISON_VALUE = 0.03;
     private const EQUIPMENT_STUN_DURATION = 1;
 
+    private function buildChampionBonuses(Character $character): array
+    {
+        return [
+            'phys_dmg_pct' => $character->getChampionBonusPercent('phys_dmg_pct'),
+            'magic_dmg_pct' => $character->getChampionBonusPercent('magic_dmg_pct'),
+            'mana_regen_pct' => $character->getChampionBonusPercent('mana_regen_pct'),
+            'dodge_pct' => $character->getChampionBonusPercent('dodge_pct'),
+            'accuracy_pct' => $character->getChampionBonusPercent('accuracy_pct'),
+            'dmg_reduction_pct' => $character->getChampionBonusPercent('dmg_reduction_pct'),
+        ];
+    }
+
     private function rollEquipmentProcs(array $eq, array $resistEq): array
     {
         $poisonChance = max(0, ($eq['poison_chance'] ?? 0) - ($resistEq['resist_poison'] ?? 0));
@@ -180,10 +192,16 @@ class PvPEncounterService
         // Load snapshots
         $attacker = $pvpEncounter->attacker_snapshot;
         $defender = $pvpEncounter->defender_snapshot;
-        
+
         if (!$attacker || !$defender) {
             return Result::error('MISSING_SNAPSHOT', 'Brak snapshotów postaci do symulacji PvP');
         }
+
+        // Bonusy z drzewka Mistrzostwa (patrz docs/modules/mastery.md) - snapshoty PvP
+        // to płaskie tablice bez dostępu do modelu Character, więc doliczamy je raz
+        // przed symulacją zamiast odpytywać bazę na każdą turę.
+        $attacker['champion_bonuses'] = $this->buildChampionBonuses($pvpEncounter->attacker);
+        $defender['champion_bonuses'] = $this->buildChampionBonuses($pvpEncounter->defender);
 
         try {
             return DB::transaction(function () use ($pvpEncounter, $attacker, $defender) {
@@ -330,9 +348,11 @@ class PvPEncounterService
             $actorKey = $isAttackerTurn ? 'attacker' : 'defender';
             $targetKey = $isAttackerTurn ? 'defender' : 'attacker';
 
-            // Regeneracja many co turę dla obu stron (5% max_mana, min 5 MP)
-            $state['attacker']['mana'] = min($state['attacker']['max_mana'], $state['attacker']['mana'] + max(5, (int)ceil($state['attacker']['max_mana'] * 0.05)));
-            $state['defender']['mana'] = min($state['defender']['max_mana'], $state['defender']['mana'] + max(5, (int)ceil($state['defender']['max_mana'] * 0.05)));
+            // Regeneracja many co turę dla obu stron (5% max_mana, min 5 MP) + Koncentracja (Mistrzostwo)
+            $attackerManaRegenPct = 0.05 + ($attacker['champion_bonuses']['mana_regen_pct'] ?? 0);
+            $defenderManaRegenPct = 0.05 + ($defender['champion_bonuses']['mana_regen_pct'] ?? 0);
+            $state['attacker']['mana'] = min($state['attacker']['max_mana'], $state['attacker']['mana'] + max(5, (int)ceil($state['attacker']['max_mana'] * $attackerManaRegenPct)));
+            $state['defender']['mana'] = min($state['defender']['max_mana'], $state['defender']['mana'] + max(5, (int)ceil($state['defender']['max_mana'] * $defenderManaRegenPct)));
 
             // Zamrożenie/ogłuszenie: aktor traci turę ataku, ale cooldowny nadal tykają
             if (($state[$actorKey]['cc_turns'] ?? 0) > 0) {
@@ -660,6 +680,15 @@ class PvPEncounterService
             $damage = (int)($damage * (1 + $physBuffValue));
         }
 
+        // Siła/Mądrość (drzewko Mistrzostwa) - patrz identyczna logika w EncounterService::calculateDamage().
+        $isMagicDamage = $isMagicSkill || $weaponType === 'wand';
+        $championDmgPct = $isMagicDamage
+            ? ($actingSnapshot['champion_bonuses']['magic_dmg_pct'] ?? 0)
+            : ($actingSnapshot['champion_bonuses']['phys_dmg_pct'] ?? 0);
+        if ($championDmgPct > 0) {
+            $damage = (int) round($damage * (1 + $championDmgPct));
+        }
+
         foreach (['buff_phys_dmg', 'buff_defense'] as $buffKey) {
             if (isset($actorState['effects'][$buffKey])) {
                 $buff = &$actorState['effects'][$buffKey];
@@ -737,8 +766,9 @@ class PvPEncounterService
         }
 
         // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense celu (np. "Postawa
-        // Tarczy") - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
-        $targetDefenseBuffValue = min(0.75, max(0, $targetState['effects']['buff_defense']['value'] ?? 0));
+        // Tarczy") + Twardziel celu (Mistrzostwo) - capowana na 75%, ten sam wzorzec
+        // bezpieczeństwa co passive_extra_attack.
+        $targetDefenseBuffValue = min(0.75, max(0, ($targetState['effects']['buff_defense']['value'] ?? 0) + ($targetSnapshot['champion_bonuses']['dmg_reduction_pct'] ?? 0)));
         if ($targetDefenseBuffValue > 0) {
             $damage = max(1, $damage * (1 - $targetDefenseBuffValue));
         }
@@ -752,7 +782,9 @@ class PvPEncounterService
         $isCrit = mt_rand(1, 1000) <= (int)round($critChance * 1000);
 
         $targetItemDodge = (($defEq['dodge_chance'] ?? 0) / 100.0);
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($targetAgi * 0.0006) + $targetItemDodge));
+        // Zwinność celu zwiększa jego unik, Celność atakującego go kontruje (Mistrzostwo).
+        $championDodgeMod = ($targetSnapshot['champion_bonuses']['dodge_pct'] ?? 0) - ($actingSnapshot['champion_bonuses']['accuracy_pct'] ?? 0);
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($targetAgi * 0.0006) + $targetItemDodge + $championDodgeMod));
         $isMiss = mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
 
         if ($isMiss) {

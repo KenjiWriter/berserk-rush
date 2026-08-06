@@ -23,6 +23,7 @@ class ItemTemplate extends Model
         'rarity_weights',
         'is_tradeable',
         'egg_tier',
+        'source_map_tier',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class ItemTemplate extends Model
         'level_requirement' => 'integer',
         'is_tradeable' => 'boolean',
         'egg_tier' => 'integer',
+        'source_map_tier' => 'integer',
     ];
 
     public function instances(): HasMany

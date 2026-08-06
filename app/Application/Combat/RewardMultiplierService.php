@@ -43,6 +43,9 @@ class RewardMultiplierService
             $multiplier *= $eventExpMult;
         }
 
+        // 5. Wiedza (drzewko Mistrzostwa) - +2%/pkt doświadczenia
+        $multiplier += $character->getChampionBonusPercent('exp_pct');
+
         return $multiplier;
     }
 
@@ -81,6 +84,9 @@ class RewardMultiplierService
         if ($eventGoldMult > 1.0) {
             $multiplier *= $eventGoldMult;
         }
+
+        // 5. Fortuna (drzewko Mistrzostwa) - +2%/pkt złota z potworów
+        $multiplier += $character->getChampionBonusPercent('gold_pct');
 
         return $multiplier;
     }

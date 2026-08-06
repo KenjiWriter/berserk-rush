@@ -894,7 +894,9 @@ class EncounterService
 
             if ($isPlayerTurn) {
                 // Regeneracja many na początku tury gracza w PvE (5% maxMana, min 5 MP)
-                $this->playerMana = min($this->playerMaxMana, $this->playerMana + max(5, (int)ceil($this->playerMaxMana * 0.05)));
+                // + Koncentracja (Mistrzostwo, +%/pkt regeneracji many)
+                $manaRegenPct = 0.05 + $character->getChampionBonusPercent('mana_regen_pct');
+                $this->playerMana = min($this->playerMaxMana, $this->playerMana + max(5, (int)ceil($this->playerMaxMana * $manaRegenPct)));
 
                 // Player's turn: decrease skill cooldowns
                 foreach ($this->activeCooldowns as $id => $cd) {
@@ -1330,7 +1332,8 @@ class EncounterService
         $monsterAgi = $scaledMonsterStats['agi'] ?? 0;
 
         $isCrit = $this->rollCritical($character, $monster, $setType);
-        $isMiss = $this->rollDodge($monsterAgi, $playerAgi);
+        // Celność (Mistrzostwo) - kontruje unik potwora, gdy gracz atakuje.
+        $isMiss = $this->rollDodge($monsterAgi, $playerAgi, 0.0, -$character->getChampionBonusPercent('accuracy_pct'));
 
         if ($isMiss) {
             $newMonsterHp = max(0, $monsterHp - $dotDamage);
@@ -1400,7 +1403,8 @@ class EncounterService
 
         $isCrit = $this->rollMonsterCritical($monster, $character);
         $playerItemDodge = (float)($character->getEquipmentStats($setType)['dodge_chance'] ?? 0);
-        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge);
+        // Zwinność (Mistrzostwo) - własny unik gracza, gdy broni się przed potworem.
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge, $character->getChampionBonusPercent('dodge_pct'));
 
         if ($isMiss) {
             return [
@@ -1419,9 +1423,9 @@ class EncounterService
             $resistDamage = (int)($resistDamage * 1.5);
         }
 
-        // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense (np. "Postawa Tarczy") -
-        // capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
-        $defenseBuffValue = min(0.75, max(0, $this->activeBuffs['defense']['value'] ?? 0));
+        // Redukcja obrażeń przychodzących z aktywnego buffa buff_defense (np. "Postawa Tarczy")
+        // + Twardziel (Mistrzostwo) - capowana na 75%, ten sam wzorzec bezpieczeństwa co passive_extra_attack.
+        $defenseBuffValue = min(0.75, max(0, ($this->activeBuffs['defense']['value'] ?? 0) + $character->getChampionBonusPercent('dmg_reduction_pct')));
         if ($defenseBuffValue > 0) {
             $damage = max(1, (int)($damage * (1 - $defenseBuffValue)));
         }
@@ -1574,8 +1578,8 @@ class EncounterService
         $mult = $skill['value'] > 0 ? $skill['value'] : 1.0;
         $damage = max(1, (int) round($damageData['total'] * $mult));
 
-        // buff_defense gracza wciąż redukuje obrażenia (jak w monsterAttack).
-        $defenseBuffValue = min(0.75, max(0, $this->activeBuffs['defense']['value'] ?? 0));
+        // buff_defense gracza + Twardziel (Mistrzostwo) wciąż redukują obrażenia (jak w monsterAttack).
+        $defenseBuffValue = min(0.75, max(0, ($this->activeBuffs['defense']['value'] ?? 0) + $character->getChampionBonusPercent('dmg_reduction_pct')));
         if ($defenseBuffValue > 0) {
             $damage = max(1, (int) ($damage * (1 - $defenseBuffValue)));
         }
@@ -1694,6 +1698,18 @@ class EncounterService
             $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }
 
+        // Siła/Mądrość (drzewko Mistrzostwa) - +% obrażeń fizycznych/magicznych za
+        // punkt. Rozróżnienie fizyczny/magiczny liczone tak samo jak formuła ataku
+        // powyżej (Różdżka/skill oznaczony is_magic = magiczny).
+        $isMagicDamage = $isMagicSkill || $weaponType === 'wand';
+        $championDmgPct = $isMagicDamage
+            ? $character->getChampionBonusPercent('magic_dmg_pct')
+            : $character->getChampionBonusPercent('phys_dmg_pct');
+        if ($championDmgPct > 0) {
+            $baseDamage = max(1, (int) round($baseDamage * (1 + $championDmgPct)));
+            $bonusDamage = (int) round($bonusDamage * (1 + $championDmgPct));
+        }
+
         $magicBurstDamage = 0;
         $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
         if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
@@ -1775,10 +1791,15 @@ class EncounterService
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollDodge(int $defenderAgi, int $attackerAgi = 0, float $defenderItemDodge = 0.0): bool
+    /**
+     * $championDodgeModifier: dodatkowy modyfikator % szansy na unik OBROŃCY z
+     * drzewka Mistrzostwa - dodatni gdy broni się gracz (Zwinność), ujemny gdy
+     * gracz atakuje i kontruje unik potwora (Celność, patrz docs/modules/mastery.md).
+     */
+    private function rollDodge(int $defenderAgi, int $attackerAgi = 0, float $defenderItemDodge = 0.0, float $championDodgeModifier = 0.0): bool
     {
         // Szansa na unik bazuje bezpośrednio na AGI obrońcy + ekwipunek, bez redukcji z AGI atakującego
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($defenderAgi * 0.0006) + ($defenderItemDodge / 100.0)));
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($defenderAgi * 0.0006) + ($defenderItemDodge / 100.0) + $championDodgeModifier));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

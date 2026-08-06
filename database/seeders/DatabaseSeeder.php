@@ -40,6 +40,7 @@ class DatabaseSeeder extends Seeder
             AchievementSeeder::class,
             QuestSeeder::class,
             CombatSkillSeeder::class,
+            ChampionSkillSeeder::class,
         ]);
     }
 }

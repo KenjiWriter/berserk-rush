@@ -194,8 +194,9 @@ class DungeonService
             $monsterMaxHp = $monsterHp;
 
             while ($playerHp > 0 && $monsterHp > 0 && $turnCount < $maxTurns) {
-                // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
-                $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+                // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) + Koncentracja (Mistrzostwo) - patrz EncounterService
+                $manaRegenPct = 0.05 + $character->getChampionBonusPercent('mana_regen_pct');
+                $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * $manaRegenPct)));
 
                 foreach ($activeCooldowns as $id => $cd) {
                     if ($cd > 0) $activeCooldowns[$id]--;
@@ -278,8 +279,9 @@ class DungeonService
                 $totalCurrentMonsterHp = array_sum(array_column($mobs, 'hp'));
 
                 if ($isPlayerTurn && !empty($aliveMobs)) {
-                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
-                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) + Koncentracja (Mistrzostwo) - patrz EncounterService
+                    $manaRegenPct = 0.05 + $character->getChampionBonusPercent('mana_regen_pct');
+                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * $manaRegenPct)));
 
                     foreach ($activeCooldowns as $id => $cd) {
                         if ($cd > 0) $activeCooldowns[$id]--;
@@ -418,8 +420,9 @@ class DungeonService
                 $isPlayerTurn = $playerFirst ? ($turnCount % 2 === 0) : ($turnCount % 2 === 1);
 
                 if ($isPlayerTurn) {
-                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) - patrz EncounterService
-                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * 0.05)));
+                    // Regeneracja many na początku tury gracza (5% maxMana, min 5 MP) + Koncentracja (Mistrzostwo) - patrz EncounterService
+                    $manaRegenPct = 0.05 + $character->getChampionBonusPercent('mana_regen_pct');
+                    $playerMana = min($playerMaxMana, $playerMana + max(5, (int) ceil($playerMaxMana * $manaRegenPct)));
 
                     foreach ($activeCooldowns as $id => $cd) {
                         if ($cd > 0) $activeCooldowns[$id]--;
@@ -900,7 +903,8 @@ class DungeonService
         $monsterAgi = $scaledMonsterStats['agi'] ?? ($monster->stats['agi'] ?? $monster->level);
 
         $isCrit = $this->rollCritical($character, $monster);
-        $isMiss = $this->rollDodge($monsterAgi, $playerAgi);
+        // Celność (Mistrzostwo) - kontruje unik potwora, gdy gracz atakuje.
+        $isMiss = $this->rollDodge($monsterAgi, $playerAgi, 0.0, -$character->getChampionBonusPercent('accuracy_pct'));
 
         if ($isMiss) {
             $newMonsterHp = max(0, $monsterHp - $dotDamage);
@@ -971,7 +975,8 @@ class DungeonService
 
         $isCrit = $this->rollMonsterCritical($monster, $character);
         $playerItemDodge = (float)($character->getEquipmentStats()['dodge_chance'] ?? 0);
-        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge);
+        // Zwinność (Mistrzostwo) - własny unik gracza, gdy broni się przed potworem.
+        $isMiss = $this->rollDodge($playerAgi, $monsterAgi, $playerItemDodge, $character->getChampionBonusPercent('dodge_pct'));
 
         if ($isMiss) {
             return [
@@ -988,7 +993,8 @@ class DungeonService
             $damage = (int)($damage * 1.5);
         }
 
-        $defenseBuffValue = min(0.75, max(0, $activeBuffs['defense']['value'] ?? 0));
+        // buff_defense + Twardziel (Mistrzostwo)
+        $defenseBuffValue = min(0.75, max(0, ($activeBuffs['defense']['value'] ?? 0) + $character->getChampionBonusPercent('dmg_reduction_pct')));
         if ($defenseBuffValue > 0) {
             $damage = max(1, (int)($damage * (1 - $defenseBuffValue)));
         }
@@ -1064,7 +1070,7 @@ class DungeonService
         $damageData = $this->calculateMonsterDamage($monster, $character, $diffMultiplier);
         $mult = $skill['value'] > 0 ? $skill['value'] : 1.0;
         $damage = max(1, (int) round($damageData['total'] * $mult));
-        $defenseBuffValue = min(0.75, max(0, $activeBuffs['defense']['value'] ?? 0));
+        $defenseBuffValue = min(0.75, max(0, ($activeBuffs['defense']['value'] ?? 0) + $character->getChampionBonusPercent('dmg_reduction_pct')));
         if ($defenseBuffValue > 0) {
             $damage = max(1, (int) ($damage * (1 - $defenseBuffValue)));
         }
@@ -1270,6 +1276,16 @@ class DungeonService
             $bonusDamage = (int)($baseDamage * ($bonusPercentage / 100));
         }
 
+        // Siła/Mądrość (drzewko Mistrzostwa) - patrz identyczna logika w EncounterService::calculateDamage().
+        $isMagicDamage = $isMagicSkill || $weaponType === 'wand';
+        $championDmgPct = $isMagicDamage
+            ? $character->getChampionBonusPercent('magic_dmg_pct')
+            : $character->getChampionBonusPercent('phys_dmg_pct');
+        if ($championDmgPct > 0) {
+            $baseDamage = max(1, (int) round($baseDamage * (1 + $championDmgPct)));
+            $bonusDamage = (int) round($bonusDamage * (1 + $championDmgPct));
+        }
+
         $magicBurstDamage = 0;
         $magicBurstChance = $eq['magic_burst_chance'] ?? 0;
         if ($magicBurstChance > 0 && mt_rand(1, 100) <= $magicBurstChance) {
@@ -1341,9 +1357,9 @@ class DungeonService
         return mt_rand(1, 1000) <= (int)round($critChance * 1000);
     }
 
-    private function rollDodge(int $defenderAgi, int $attackerAgi = 0, float $defenderItemDodge = 0.0): bool
+    private function rollDodge(int $defenderAgi, int $attackerAgi = 0, float $defenderItemDodge = 0.0, float $championDodgeModifier = 0.0): bool
     {
-        $dodgeChance = max(0.00, min(0.30, 0.03 + ($defenderAgi * 0.0006) + ($defenderItemDodge / 100.0)));
+        $dodgeChance = max(0.00, min(0.30, 0.03 + ($defenderAgi * 0.0006) + ($defenderItemDodge / 100.0) + $championDodgeModifier));
 
         return mt_rand(1, 1000) <= (int)round($dodgeChance * 1000);
     }

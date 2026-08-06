@@ -6,12 +6,17 @@ use Livewire\Component;
 use App\Infrastructure\Persistence\Character;
 use App\Infrastructure\Persistence\CombatSkill;
 use App\Infrastructure\Persistence\CharacterCombatSkill;
+use App\Infrastructure\Persistence\ChampionSkill;
 use App\Application\Skills\UnlockSkill;
 use App\Application\Skills\UpgradeSkill;
+use App\Application\Mastery\ChampionService;
+use App\Application\Characters\LevelUpService;
 
 class Warlock extends Component
 {
     public Character $character;
+
+    public string $activeTab = 'skills'; // 'skills', 'mastery'
 
     public string $weaponFilter = 'all';
     public string $typeFilter = 'all';
@@ -24,6 +29,11 @@ class Warlock extends Component
         if (auth()->id() !== $character->user_id) {
             abort(403);
         }
+    }
+
+    public function setTab(string $tab)
+    {
+        $this->activeTab = $tab;
     }
 
     public function backToHub()
@@ -82,6 +92,63 @@ class Warlock extends Component
                 $this->character->refresh();
                 $this->dispatch('stats-updated');
             }
+        }
+    }
+
+    public function donateMaterial(string $itemTemplateId, int $quantity, ChampionService $championService)
+    {
+        $result = $championService->donateMaterial($this->character, $itemTemplateId, $quantity);
+
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Przekazano ulepszacze Czarnoksiężnikowi.');
+            $this->dispatch('play-audio', type: 'upgrade-success');
+            $this->character->refresh();
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function levelUpChampion(ChampionService $championService)
+    {
+        $result = $championService->attemptLevelUp($this->character);
+
+        if ($result->isOk()) {
+            $newLevel = $result->getPayload()['champion_level'];
+            $this->dispatch('notify', type: 'success', message: "Awans! Osiągnięto poziom Mistrzostwa 99({$newLevel})!");
+            $this->dispatch('play-audio', type: 'levelup');
+            $this->dispatch('open-champion-levelup-modal', level: $newLevel);
+            $this->character->refresh();
+            $this->dispatch('stats-updated');
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function investChampionPoint(string $championSkillId, ChampionService $championService)
+    {
+        $result = $championService->investPoint($this->character, $championSkillId);
+
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Punkt Mistrzostwa zainwestowany.');
+            $this->dispatch('play-audio', type: 'upgrade-success');
+            $this->character->refresh();
+            $this->dispatch('stats-updated');
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
+        }
+    }
+
+    public function resetChampionSkills(ChampionService $championService)
+    {
+        $result = $championService->resetSkills($this->character);
+
+        if ($result->isOk()) {
+            $this->dispatch('notify', type: 'success', message: 'Zresetowano drzewko Mistrzostwa.');
+            $this->dispatch('play-audio', type: 'upgrade-success');
+            $this->character->refresh();
+            $this->dispatch('stats-updated');
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result->getErrorMessage());
         }
     }
 
@@ -151,12 +218,73 @@ class Warlock extends Component
             ->whereIn('location', ['inventory', 'material_stash'])
             ->sum('stack_size') : 0;
 
-        return view('livewire.city.warlock', [
+        return view('livewire.city.warlock', array_merge([
             'allSkills' => $allSkills,
             'mySkills' => $mySkills,
             'skillBooksCount' => $skillBooksCount,
             'ownedSkillBooksBySubType' => $ownedSkillBooksBySubType,
             'soulStonesCount' => $soulStonesCount,
-        ])->layout('components.layouts.app');
+        ], $this->getChampionViewData()))->layout('components.layouts.app');
+    }
+
+    private function getChampionViewData(): array
+    {
+        $isChampionUnlocked = $this->character->level >= LevelUpService::MAX_LEVEL;
+
+        if (!$isChampionUnlocked) {
+            return [
+                'championUnlocked' => false,
+                'championXpTarget' => 0,
+                'championMaterials' => [],
+                'championSkillsList' => [],
+                'myChampionSkills' => collect(),
+                'championResetAvailable' => false,
+                'championResetDaysLeft' => 0,
+                'championResetGoldCost' => ChampionService::RESET_GOLD_COST,
+            ];
+        }
+
+        $championService = app(ChampionService::class);
+
+        // Losuje pierwszy zestaw ulepszaczy leniwie, przy pierwszym wejściu na
+        // zakładkę po osiągnięciu 99 poziomu (patrz docs/modules/mastery.md).
+        if ($this->character->champion_level < ChampionService::LEVEL_CAP && empty($this->character->champion_material_progress)) {
+            $championService->rollMaterialRequirements($this->character);
+        }
+
+        $materialTemplateIds = collect($this->character->champion_material_progress ?? [])->pluck('template_id');
+        $ownedByTemplate = $materialTemplateIds->isEmpty() ? collect() : \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $this->character->id)
+            ->whereIn('template_id', $materialTemplateIds)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->selectRaw('template_id, SUM(stack_size) as total')
+            ->groupBy('template_id')
+            ->pluck('total', 'template_id');
+
+        $championMaterials = collect($this->character->champion_material_progress ?? [])->map(function ($row) use ($ownedByTemplate) {
+            $row['owned'] = (int) ($ownedByTemplate[$row['template_id']] ?? 0);
+            return $row;
+        })->all();
+
+        $championSkillsList = ChampionSkill::orderBy('sort_order')->get();
+        $myChampionSkills = $this->character->championSkills()->get()->keyBy('champion_skill_id');
+
+        $resetAvailable = true;
+        $resetDaysLeft = 0;
+        if ($this->character->last_champion_reset_at && $this->character->last_champion_reset_at->diffInMonths(now()) < 1) {
+            $resetAvailable = false;
+            $availableAt = $this->character->last_champion_reset_at->copy()->addMonth();
+            $resetDaysLeft = max(1, (int) ceil(now()->diffInHours($availableAt) / 24));
+        }
+
+        return [
+            'championUnlocked' => true,
+            'championXpTarget' => $championService->xpTarget(),
+            'championMaterials' => $championMaterials,
+            'championSkillsList' => $championSkillsList,
+            'myChampionSkills' => $myChampionSkills,
+            'championResetAvailable' => $resetAvailable,
+            'championResetDaysLeft' => $resetDaysLeft,
+            'championResetGoldCost' => ChampionService::RESET_GOLD_COST,
+        ];
     }
 }
