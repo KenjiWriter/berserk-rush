@@ -281,6 +281,28 @@ M tests/Feature/MonsterSkillsTest.php                 (assert state.playerDots)
   też nowych ikon/nazw (grafika, poza zakresem programistycznym).
 - 4b: **Odporności PvP/GvG na zbroi (Odporność na Ludzi `resist_hero` 2-10% oraz Odporności na Bronie `resist_sword`/`dagger`/`bell`/`axe`/`bow`/`wand` 2-10%)** - ✅ **ZROBIONE** (2026-08-06) w `EnchantmentStrategy`, `Character::getEquipmentStats()`, `PvPEncounterService`, `GuildWarService`, UI (`item-tooltip`, `profile`, `witch`) oraz testy `PvpEquipmentResistancesTest`.
 
+### Rebalans CD Umiejętności Gracza (2026-08-06, ZROBIONY, na `main`, NIEZALEŻNIE od brancha `rebalance-phase-0-1`)
+- Zgłoszenie gracza: stara redukcja CD (`base_cooldown - 1/-2/-3` płasko, niezależnie od
+  bazowej wartości) dawała skrajności - szybkie skille (CD 1-2) były spammowalne bez
+  rekompensaty za rosnącą moc z mistrzostwa, a długie/ultimate skille (CD 8-10) zostawały
+  praktycznie bezużyteczne przez całą fazę Normal/Master (levele 1-16).
+- `CharacterCombatSkill::getCooldown()` przepisane na 3 kategorie szybkości wg
+  `base_cooldown` (Normal/Lv.1): **Szybkie** (1-2, CD **rośnie** z mistrzostwem do floora
+  3-4), **Średnie** (3-5, floor 3 od Arcymistrza), **Długie** (6+, Normal bez zmian, floor
+  5 od Arcymistrza, BEZ dalszego skracania na Perfect). Szczegóły i tabela w
+  `docs/modules/skills.md` pkt 1.
+- Pojedyncze miejsce w kodzie (jedno źródło prawdy) - konsumowane przez wszystkie 5
+  silników walki (PvE/Lochy/Eventy Lokacji bezpośrednio, PvP/GvG przez
+  `Character::createSnapshot()`), zero duplikacji.
+- Nie dotyka `database/seeders/CombatSkillSeeder.php` (wartości `base_cooldown` per skill
+  zostają jako "Normal-tier" punkt startowy dla klasyfikacji - żadna zawartość skilli nie
+  zmieniona).
+- Testy: pełny `php artisan test` na `main` - **287 passed, 0 failed** (żadnych
+  pre-istniejących awarii na tym branchu, w przeciwieństwie do `rebalance-phase-0-1`).
+- **Ta zmiana jest na `main`, NIE na `rebalance-phase-0-1`** - dotyczy innego pliku
+  (`CharacterCombatSkill.php`) niż reszta tego dokumentu, niezależna od stanu rebalansu
+  potworów/itemizacji opisanego niżej.
+
 ### Faza 5 — CAŁA ZROBIONA (rozdziały A-F)
 - Progi +3/+5, rozdział D (spłaszczenie tierów) - **ZROBIONE**, patrz wyżej.
 - Widoczność bonusu z +3 w tooltipie przedmiotu - zgłoszone jako osobne zadanie

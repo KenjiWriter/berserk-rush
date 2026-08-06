@@ -23,11 +23,25 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
   - **Mistrz / Master (M1 - M10):** Awans z poziomu M1 do M10 wymaga użycia **1x Księga Umiejętności** (`skill_book`) oraz 500 Golda per poziom. Po ukończeniu M10 skill awansuje na **G1**.
   - **Arcymistrz / Grand Master (G1 - G10):** Awans z poziomu G1 do G10 wymaga użycia **1x Kamień Duchowy** (`soul_stone`) oraz 2,500 Golda per poziom. Po ukończeniu G10 skill wchodzi w stan gotowości do awansu na **P**.
   - **Perfekcyjny Mistrz / Perfect (P):** Osiągany poprzez użycie **1x Kamień Duchowy** + 10,000 Golda po opanowaniu G10. Jest to ostateczny, maksymalny poziom umiejętności (poziom 38) z legendarną złotą oprawą wizualną (+65% premii do mocy).
-- **Dynamiczne Skracanie Czasu Odnowienia (CD):**
-  - **Normal (Lv. 1-17):** Domyślny czas odnowienia (`base_cooldown`).
-  - **Master (M1-M10):** Redukcja CD o **-1 Turę** (`base_cooldown - 1`).
-  - **Grand Master (G1-G10):** Redukcja CD o **-2 Tury** (`base_cooldown - 2`).
-  - **Perfect Master (P):** Redukcja CD o **-3 Tury** (`base_cooldown - 3`, min. 1 tura).
+- **Dynamiczne Skracanie Czasu Odnowienia (CD) - 3 Kategorie Szybkości:**
+  Od rebalansu 2026-08-06 skille są dzielone na 3 kategorie na podstawie `base_cooldown`
+  (wartość na poziomie Normal/Lv.1), każda z własną krzywą CD w `CharacterCombatSkill::getCooldown()`,
+  zamiast poprzedniego płaskiego `base_cooldown - 1/-2/-3`. Cel: skille dostępne co ok. 2-6 tur
+  na każdym etapie mistrzostwa, konwergujące do okna 3-5 tur na Arcymistrzu/Perfect.
+  - **Szybkie (`base_cooldown` 1-2):** CD **rośnie** z mistrzostwem zamiast maleć - rekompensata
+    za rosnącą moc (`tierMultiplier` w `getEffectiveValue()`), żeby skill nie stał się jednocześnie
+    mocniejszy i częstszy. Normal: bazowe 1-2. Master: `min(base+1, 3)`. Grand Master i Perfect:
+    `min(base+2, 4)` (floor 3-4, identyczny na G i P - Perfect nie skraca dalej).
+  - **Średnie (`base_cooldown` 3-5):** Normal: bazowe 3-5. Master: `max(3, base-1)`. Grand Master
+    i Perfect: floor **3** (identyczny na G i P).
+  - **Długie (`base_cooldown` 6+):** Normal: bez zmian (może być np. CD 7-10 dla skilli
+    ultimate/legendarnych). Master: `max(6, base-2)`. Grand Master i Perfect: floor **5**
+    (identyczny na G i P - osiągnięcie Arcymistrza to ostatnia redukcja CD, dalsza inwestycja
+    do Perfect daje tylko +65% mocy, nie krótszy cooldown).
+  - Cała logika żyje w jednym miejscu (`CharacterCombatSkill::getCooldown()`) i jest konsumowana
+    przez wszystkie 5 silników walki (PvE, Lochy, Eventy Lokacji bezpośrednio przez `$cs->getCooldown()`;
+    PvP i Wojna Gildii pośrednio przez `Character::createSnapshot()`, który zapisuje już wyliczone
+    `getCooldown()` pod kluczem `base_cooldown` w snapshotcie) - brak duplikacji formuły.
 - **Źródła Przedmiotów:**
   - **Skrzynia Ksiąg Umiejętności:** Po otwarciu przyznaje Księgę Umiejętności. Wypada ze WSZYSTKICH bossów na mapach (T1-T5+) oraz we wszystkich lochach (D1+).
   - **Kamień Duchowy:** Wypada z bossów na mapach od **Tier 5** wzwyż oraz z lochów od **Dungeon 3** wzwyż.

@@ -91,26 +91,51 @@ class CharacterCombatSkill extends Model
         return min(27, max(1, $this->level));
     }
 
+    /**
+     * Rebalans 2026-08-06 (zgłoszenie gracza): poprzednia wersja (baseCd - tierBonus,
+     * tierBonus stałe -1/-2/-3 niezależnie od bazowego CD) dawała bezsensowne skrajności -
+     * szybkie skille (CD 1-2) stawały się spammowalne bez żadnej rekompensaty za rosnącą
+     * moc z tierMultiplier (getEffectiveValue()), a długie/ultimate skille (CD 8-10) przez
+     * całą fazę Normal/Master (levele 1-16, większość progresji) pozostawały praktycznie
+     * bezużyteczne. Zastąpione 3 kategoriami szybkości wg base_cooldown (Normal/Lv.1) -
+     * patrz docs/modules/skills.md pkt 1 - z krzywymi konwergującymi do okna 3-5 tur na
+     * wysokim mistrzostwie (Arcymistrz/Perfect), zamiast płaskiego globalnego floora.
+     */
     public function getCooldown(): int
     {
         if (!$this->skill) {
             return 1;
         }
 
-        $baseCd = max(1, $this->skill->base_cooldown);
-        if ($baseCd <= 1) {
-            return $baseCd;
+        $baseCd = max(1, (int) $this->skill->base_cooldown);
+        $tier = $this->getTier();
+
+        if ($baseCd <= 2) {
+            // Szybkie: CD ROŚNIE z mistrzostwem (floor 3-4 od Arcymistrza) - inaczej
+            // skill stawałby się jednocześnie mocniejszy (tierMultiplier) i częstszy.
+            return match ($tier) {
+                'perfect', 'grand_master' => min($baseCd + 2, 4),
+                'master' => min($baseCd + 1, 3),
+                default => $baseCd,
+            };
         }
 
-        $tierBonus = match ($this->getTier()) {
-            'perfect' => 3,
-            'grand_master' => 2,
-            'master' => 1,
-            default => 0,
-        };
+        if ($baseCd <= 5) {
+            // Średnie: łagodny spadek do floora 3 od Arcymistrza wzwyż.
+            return match ($tier) {
+                'perfect', 'grand_master' => 3,
+                'master' => max(3, $baseCd - 1),
+                default => $baseCd,
+            };
+        }
 
-        // Minimalny limit CD to 2 tury, aby zapobiec używaniu skilli co turę
-        return max(2, $baseCd - $tierBonus);
+        // Długie: floor 5 od Arcymistrza wzwyż, BEZ dalszego skracania na Perfect -
+        // nagrodą za Perfect jest +65% mocy (tierMultiplier), nie krótszy CD.
+        return match ($tier) {
+            'perfect', 'grand_master' => 5,
+            'master' => max(6, $baseCd - 2),
+            default => $baseCd,
+        };
     }
 
     /**
