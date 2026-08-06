@@ -138,10 +138,11 @@
                                     <span>Życie</span>
                                     <span class="font-mono text-emerald-300 text-xs sm:text-sm">{{ $this->getCurrentPlayerHp() }}/{{ $player['maxHp'] ?? 1 }}</span>
                                 </div>
-                                <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
-                                        style="width: {{ $this->getPlayerHpPercent() }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="arena-player-hp-bar" :percent="$this->getPlayerHpPercent()"
+                                    gradient-class="from-emerald-600 via-emerald-500 to-green-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                    ring-class="ring-amber-500/40" height="h-3.5 sm:h-4"
+                                    droplet-color="rgba(220,38,38,0.92)" />
                             </div>
 
                             {{-- Player Mana Bar --}}
@@ -150,10 +151,11 @@
                                     <span>Mana</span>
                                     <span class="font-mono text-cyan-300 text-xs sm:text-sm">{{ $this->getCurrentPlayerMana() }}/{{ $player['maxMana'] ?? 50 }}</span>
                                 </div>
-                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
-                                        style="width: {{ $this->getPlayerManaPercent() }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="arena-player-mana-bar" :percent="$this->getPlayerManaPercent()"
+                                    gradient-class="from-blue-600 via-cyan-500 to-sky-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(6,182,212,0.6)]"
+                                    ring-class="ring-cyan-500/40" height="h-3 sm:h-3.5"
+                                    droplet-color="rgba(139,92,246,0.92)" />
                             </div>
 
                             {{-- Equipped Skills HUD --}}
@@ -371,10 +373,11 @@
 
                         {{-- Total Team HP Bar --}}
                         <div class="space-y-1">
-                            <div class="h-3 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
-                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
-                                     style="width: {{ $this->getPlayerHpPercent() }}%"></div>
-                            </div>
+                            <x-combat-resource-bar id="gvg-player-team-hp-bar" :percent="$this->getPlayerHpPercent()"
+                                gradient-class="from-emerald-600 via-emerald-500 to-green-400"
+                                glow-shadow="shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                ring-class="ring-amber-500/40" height="h-3"
+                                droplet-color="rgba(220,38,38,0.92)" />
                         </div>
 
                         {{-- 5 Player Cards Stack --}}
@@ -416,10 +419,13 @@
                                             </div>
 
                                             {{-- HP Bar --}}
-                                            <div class="h-2.5 w-full rounded-full bg-black/80 p-0.5 shadow-inner border border-amber-500/20">
-                                                <div class="h-full rounded-full transition-all duration-500 {{ $member['hpPercent'] > 50 ? 'bg-gradient-to-r from-emerald-600 to-green-400' : ($member['hpPercent'] > 20 ? 'bg-gradient-to-r from-yellow-600 to-yellow-400' : 'bg-gradient-to-r from-red-700 to-red-500') }}"
-                                                     style="width: {{ $member['hpPercent'] }}%"></div>
-                                            </div>
+                                            @php
+                                                $memberGradient = $member['hpPercent'] > 50 ? 'from-emerald-600 to-green-400' : ($member['hpPercent'] > 20 ? 'from-yellow-600 to-yellow-400' : 'from-red-700 to-red-500');
+                                            @endphp
+                                            <x-combat-resource-bar :id="'gvg-player-member-hp-bar-'.$loop->index" :percent="$member['hpPercent']" :liquid="false"
+                                                :gradient-class="$memberGradient" glow-shadow=""
+                                                ring-class="ring-amber-500/20" height="h-2.5"
+                                                droplet-color="rgba(220,38,38,0.92)" />
 
                                             {{-- Attributes mini badges --}}
                                             <div class="flex items-center gap-1.5 text-[9px] text-amber-300/80 font-mono pt-0.5">
@@ -614,10 +620,11 @@
                                     <span>Życie</span>
                                     <span class="font-mono text-emerald-300 text-xs sm:text-sm">{{ $this->getCurrentEnemyHp() }}/{{ $enemy['maxHp'] ?? 1 }}</span>
                                 </div>
-                                <div class="h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
-                                        style="width: {{ $this->getEnemyHpPercent() }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="arena-enemy-hp-bar" :percent="$this->getEnemyHpPercent()"
+                                    gradient-class="from-emerald-600 via-emerald-500 to-green-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                    ring-class="ring-red-500/40" height="h-3.5 sm:h-4"
+                                    droplet-color="rgba(220,38,38,0.92)" />
                             </div>
 
                             {{-- Enemy Mana Bar --}}
@@ -626,10 +633,11 @@
                                     <span>Mana</span>
                                     <span class="font-mono text-cyan-300 text-xs sm:text-sm">{{ $this->getCurrentEnemyMana() }}/{{ $enemy['maxMana'] ?? 50 }}</span>
                                 </div>
-                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-sky-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
-                                        style="width: {{ $this->getEnemyManaPercent() }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="arena-enemy-mana-bar" :percent="$this->getEnemyManaPercent()"
+                                    gradient-class="from-blue-600 via-cyan-500 to-sky-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(6,182,212,0.6)]"
+                                    ring-class="ring-cyan-500/40" height="h-3 sm:h-3.5"
+                                    droplet-color="rgba(139,92,246,0.92)" />
                             </div>
 
                             {{-- Enemy Attributes Grid --}}
@@ -679,10 +687,11 @@
 
                         {{-- Total Team HP Bar --}}
                         <div class="space-y-1">
-                            <div class="h-3 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
-                                <div class="h-full rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)] transition-all duration-500"
-                                     style="width: {{ $this->getEnemyHpPercent() }}%"></div>
-                            </div>
+                            <x-combat-resource-bar id="gvg-enemy-team-hp-bar" :percent="$this->getEnemyHpPercent()"
+                                gradient-class="from-emerald-600 via-emerald-500 to-green-400"
+                                glow-shadow="shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                ring-class="ring-red-500/40" height="h-3"
+                                droplet-color="rgba(220,38,38,0.92)" />
                         </div>
 
                         {{-- 5 Enemy Cards Stack --}}
@@ -724,10 +733,13 @@
                                             </div>
 
                                             {{-- HP Bar --}}
-                                            <div class="h-2.5 w-full rounded-full bg-black/80 p-0.5 shadow-inner border border-red-500/20">
-                                                <div class="h-full rounded-full transition-all duration-500 {{ $member['hpPercent'] > 50 ? 'bg-gradient-to-r from-emerald-600 to-green-400' : ($member['hpPercent'] > 20 ? 'bg-gradient-to-r from-yellow-600 to-yellow-400' : 'bg-gradient-to-r from-red-700 to-red-500') }}"
-                                                     style="width: {{ $member['hpPercent'] }}%"></div>
-                                            </div>
+                                            @php
+                                                $memberGradient = $member['hpPercent'] > 50 ? 'from-emerald-600 to-green-400' : ($member['hpPercent'] > 20 ? 'from-yellow-600 to-yellow-400' : 'from-red-700 to-red-500');
+                                            @endphp
+                                            <x-combat-resource-bar :id="'gvg-enemy-member-hp-bar-'.$loop->index" :percent="$member['hpPercent']" :liquid="false"
+                                                :gradient-class="$memberGradient" glow-shadow=""
+                                                ring-class="ring-red-500/20" height="h-2.5"
+                                                droplet-color="rgba(220,38,38,0.92)" />
 
                                             {{-- Attributes mini badges --}}
                                             <div class="flex items-center gap-1.5 text-[9px] text-red-300/80 font-mono pt-0.5">
@@ -801,22 +813,36 @@
                             if (isPlayer) {
                                 playerPanel.classList.add('anim-attack-player');
                                 setTimeout(() => playerPanel.classList.remove('anim-attack-player'), 300);
-                                
+
                                 if (type !== 'miss' || dotDamage > 0) {
                                     setTimeout(() => {
                                         enemyPanel.classList.add('anim-damage');
                                         setTimeout(() => enemyPanel.classList.remove('anim-damage'), 400);
+                                        if (window.CombatBarFX) {
+                                            window.CombatBarFX.hit('arena-enemy-hp-bar');
+                                            window.CombatBarFX.hit('gvg-enemy-team-hp-bar');
+                                        }
                                     }, 150);
+                                }
+                                if (type === 'skill' && window.CombatBarFX) {
+                                    window.CombatBarFX.hit('arena-player-mana-bar');
                                 }
                             } else {
                                 enemyPanel.classList.add('anim-attack-enemy');
                                 setTimeout(() => enemyPanel.classList.remove('anim-attack-enemy'), 300);
-                                
+
                                 if (type !== 'miss' || dotDamage > 0) {
                                     setTimeout(() => {
                                         playerPanel.classList.add('anim-damage');
                                         setTimeout(() => playerPanel.classList.remove('anim-damage'), 400);
+                                        if (window.CombatBarFX) {
+                                            window.CombatBarFX.hit('arena-player-hp-bar');
+                                            window.CombatBarFX.hit('gvg-player-team-hp-bar');
+                                        }
                                     }, 150);
+                                }
+                                if (type === 'skill' && window.CombatBarFX) {
+                                    window.CombatBarFX.hit('arena-enemy-mana-bar');
                                 }
                             }
                         }

@@ -246,11 +246,15 @@
                                     @php $displayPlayerHp = $showBattle ? $animatedPlayerHp : $currentHp; @endphp
                                     <span class="font-mono text-emerald-300">{{ $displayPlayerHp }}/{{ $maxHp }}</span>
                                 </div>
-                                <div class="h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 p-0.5 shadow-inner">
-                                    @php $hpPercent = $maxHp > 0 ? ($displayPlayerHp / $maxHp) * 100 : 0; @endphp
-                                    <div class="h-full rounded-full transition-all duration-500 {{ $hpPercent > 50 ? 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]' : ($hpPercent > 25 ? 'bg-gradient-to-r from-yellow-600 to-yellow-500' : 'bg-gradient-to-r from-red-600 to-red-500') }}"
-                                         style="width: {{ $hpPercent }}%"></div>
-                                </div>
+                                @php
+                                    $hpPercent = $maxHp > 0 ? ($displayPlayerHp / $maxHp) * 100 : 0;
+                                    $hpGradient = $hpPercent > 50 ? 'from-emerald-600 via-emerald-500 to-green-400' : ($hpPercent > 25 ? 'from-yellow-600 to-yellow-500' : 'from-red-600 to-red-500');
+                                    $hpGlow = $hpPercent > 50 ? 'shadow-[0_0_12px_rgba(16,185,129,0.6)]' : '';
+                                @endphp
+                                <x-combat-resource-bar id="dungeon-player-hp-bar" :percent="$hpPercent"
+                                    :gradient-class="$hpGradient" :glow-shadow="$hpGlow"
+                                    ring-class="ring-amber-500/40" height="h-4"
+                                    droplet-color="rgba(220,38,38,0.92)" />
                             </div>
 
                             {{-- Mana Bar --}}
@@ -259,10 +263,11 @@
                                     <span>Mana</span>
                                     <span class="font-mono text-cyan-300" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
                                 </div>
-                                <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
-                                    <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
-                                         style="width: {{ $this->getPlayerManaPercent() }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="dungeon-player-mana-bar" :percent="$this->getPlayerManaPercent()"
+                                    gradient-class="from-blue-600 via-cyan-500 to-teal-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(6,182,212,0.6)]"
+                                    ring-class="ring-cyan-500/40" height="h-3 sm:h-3.5"
+                                    droplet-color="rgba(139,92,246,0.92)" />
                             </div>
 
                             {{-- Equipped Skills HUD --}}
@@ -671,10 +676,12 @@
                                             @if($isCalculating)<span class="animate-pulse">?</span>@else{{ $displayMonsterHp }}@endif / {{ $baseMonsterHp }}
                                         </span>
                                     </div>
-                                    <div class="h-4 w-full rounded-full bg-black/80 ring-1 ring-red-500/40 p-0.5 shadow-inner">
-                                        @php $enemyHpPercent = $baseMonsterHp > 0 ? ($displayMonsterHp / $baseMonsterHp) * 100 : 0; @endphp
-                                        <div class="h-full rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)] transition-all duration-500" style="width: {{ $enemyHpPercent }}%"></div>
-                                    </div>
+                                    @php $enemyHpPercent = $baseMonsterHp > 0 ? ($displayMonsterHp / $baseMonsterHp) * 100 : 0; @endphp
+                                    <x-combat-resource-bar id="dungeon-enemy-hp-bar" :percent="$enemyHpPercent"
+                                        gradient-class="from-red-700 via-red-500 to-rose-400"
+                                        glow-shadow="shadow-[0_0_12px_rgba(239,68,68,0.6)]"
+                                        ring-class="ring-red-500/40" height="h-4"
+                                        droplet-color="rgba(220,38,38,0.92)" />
                                 </div>
 
                                 {{-- Enemy Stats --}}
@@ -921,6 +928,12 @@
                 if (type !== 'miss') {
                     defenderPanel.classList.add('anim-hit-bounce-d');
                     spawnDungeonImpactParticles(defenderPanel, isCrit ? 'crit' : 'hit');
+                    if (window.CombatBarFX) {
+                        window.CombatBarFX.hit(actor === 'player' ? 'dungeon-enemy-hp-bar' : 'dungeon-player-hp-bar');
+                    }
+                }
+                if (actor === 'player' && type === 'skill' && window.CombatBarFX) {
+                    window.CombatBarFX.hit('dungeon-player-mana-bar');
                 }
                 if (fxOverlay) {
                     const fct = document.createElement('div');

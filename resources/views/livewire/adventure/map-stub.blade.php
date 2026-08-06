@@ -363,14 +363,11 @@
                                 <span>Życie</span>
                                 <span class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
                             </div>
-                            @php $playerHpPct = $this->getPlayerHpPercent(); @endphp
-                            <div id="player-hp-bar" class="relative h-3.5 sm:h-4 w-full rounded-full bg-black/80 ring-1 ring-amber-500/40 shadow-inner overflow-hidden">
-                                {{-- Chip-damage layer: lags behind on hit, then wipes right-to-left to reveal how much HP was lost --}}
-                                <div class="hp-chip-layer absolute inset-y-0.5 left-0.5 rounded-full bg-white/90"
-                                    style="width: {{ $playerHpPct }}%"></div>
-                                <div class="hp-fill-layer absolute inset-y-0.5 left-0.5 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-green-400 shadow-[0_0_12px_rgba(16,185,129,0.6)]"
-                                    style="width: {{ $playerHpPct }}%"></div>
-                            </div>
+                            <x-combat-resource-bar id="player-hp-bar" :percent="$this->getPlayerHpPercent()"
+                                gradient-class="from-emerald-600 via-emerald-500 to-green-400"
+                                glow-shadow="shadow-[0_0_12px_rgba(16,185,129,0.6)]"
+                                ring-class="ring-amber-500/40" height="h-3.5 sm:h-4"
+                                droplet-color="rgba(220,38,38,0.92)" />
                         </div>
 
                         {{-- Player Mana Bar --}}
@@ -379,10 +376,11 @@
                                 <span>Mana</span>
                                 <span class="font-mono text-cyan-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
                             </div>
-                            <div class="h-3 sm:h-3.5 w-full rounded-full bg-black/80 ring-1 ring-cyan-500/40 p-0.5 shadow-inner">
-                                <div class="h-full rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-400 shadow-[0_0_12px_rgba(6,182,212,0.6)] transition-all duration-500"
-                                    style="width: {{ $this->getPlayerManaPercent() }}%"></div>
-                            </div>
+                            <x-combat-resource-bar id="player-mana-bar" :percent="$this->getPlayerManaPercent()"
+                                gradient-class="from-blue-600 via-cyan-500 to-teal-400"
+                                glow-shadow="shadow-[0_0_12px_rgba(6,182,212,0.6)]"
+                                ring-class="ring-cyan-500/40" height="h-3 sm:h-3.5"
+                                droplet-color="rgba(139,92,246,0.92)" />
                         </div>
 
                         {{-- Active Buffs --}}
@@ -1010,10 +1008,10 @@
                                                             @endif
                                                         </div>
                                                         <div class="text-[9px] text-amber-300/80 font-mono">Lvl {{ $m['level'] }}</div>
-                                                        <div class="relative h-1.5 w-full rounded-full bg-black/80 ring-1 ring-red-700/30 mt-0.5 overflow-hidden">
-                                                            <div class="hp-chip-layer absolute inset-y-px left-px rounded-full bg-white/90" style="width: {{ $mHpPct }}%"></div>
-                                                            <div class="hp-fill-layer absolute inset-y-px left-px rounded-full bg-gradient-to-r from-red-600 to-rose-400" style="width: {{ $mHpPct }}%"></div>
-                                                        </div>
+                                                        <x-combat-resource-bar :id="'monster-hp-bar-'.$mIdx" :percent="$mHpPct" :liquid="false"
+                                                            gradient-class="from-red-600 to-rose-400" glow-shadow=""
+                                                            ring-class="ring-red-700/30" height="h-1.5 mt-0.5"
+                                                            droplet-color="rgba(220,38,38,0.92)" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -1084,13 +1082,11 @@
                                     <span>Życie Przeciwnika</span>
                                     <span class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>
                                 </div>
-                                <div id="enemy-hp-bar" class="relative h-4 sm:h-5 w-full rounded-full bg-black/80 ring-1 ring-red-700/50 shadow-inner overflow-hidden">
-                                    {{-- Chip-damage layer: lags behind on hit, then wipes right-to-left to reveal how much HP was lost --}}
-                                    <div class="hp-chip-layer absolute inset-y-0.5 left-0.5 rounded-full bg-white/90"
-                                        style="width: {{ $displayHpPercent }}%"></div>
-                                    <div class="hp-fill-layer absolute inset-y-0.5 left-0.5 rounded-full bg-gradient-to-r from-red-700 via-red-500 to-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.6)]"
-                                        style="width: {{ $displayHpPercent }}%"></div>
-                                </div>
+                                <x-combat-resource-bar id="enemy-hp-bar" :percent="$displayHpPercent"
+                                    gradient-class="from-red-700 via-red-500 to-rose-400"
+                                    glow-shadow="shadow-[0_0_12px_rgba(239,68,68,0.6)]"
+                                    ring-class="ring-red-700/50" height="h-4 sm:h-5"
+                                    droplet-color="rgba(220,38,38,0.92)" />
                             </div>
 
                             {{-- Active DoTs --}}
@@ -1282,29 +1278,9 @@
             text-shadow: 0 4px 12px rgba(0,0,0,0.95), 0 0 15px rgba(0,0,0,0.9);
             white-space: nowrap;
         }
-
-        /* HP Bar Chip-Damage Effect: the colored fill snaps to the new value fast,
-           while the white "chip" layer underneath lags behind and wipes away
-           right-to-left afterwards, making the amount of HP just lost clearly readable. */
-        .hp-fill-layer {
-            transition: width 180ms cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .hp-chip-layer {
-            transition: width 650ms cubic-bezier(0.65, 0, 0.35, 1);
-            transition-delay: 220ms;
-        }
-
-        @keyframes hpBarShake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-3px); }
-            40% { transform: translateX(3px); }
-            60% { transform: translateX(-2px); }
-            80% { transform: translateX(2px); }
-        }
-        .hp-bar-shake {
-            animation: hpBarShake 320ms ease-in-out;
-        }
     </style>
+    {{-- HP/Mana bar chip-damage + liquid + shake/splash CSS & JS now live in the shared
+         <x-combat-resource-bar> component (@once-injected on its first use above). --}}
 
     <script>
         document.addEventListener('livewire:navigated', () => {
@@ -1862,12 +1838,14 @@
 
                         // Punch the HP bar itself so a landed hit feels tied to the exact bar losing HP
                         const defenderHpBarId = actor === 'player' ? 'enemy-hp-bar' : 'player-hp-bar';
-                        const defenderHpBar = document.getElementById(defenderHpBarId);
-                        if (defenderHpBar && type !== 'miss') {
-                            defenderHpBar.classList.remove('hp-bar-shake');
-                            void defenderHpBar.offsetWidth;
-                            defenderHpBar.classList.add('hp-bar-shake');
+                        if (type !== 'miss' && window.CombatBarFX) {
+                            window.CombatBarFX.hit(defenderHpBarId);
                         }
+                    }
+
+                    // Skill cast: the caster's own mana bar took the hit, not the defender's HP bar
+                    if (actor === 'player' && type === 'skill' && window.CombatBarFX) {
+                        window.CombatBarFX.hit('player-mana-bar');
                     }
 
                     // Play Audio EXACTLY at impact!
