@@ -41,9 +41,6 @@
                 }
             }" class="relative" @if($item) @mouseenter="openItem()" @mouseleave="closeItem($event)" @endif>
                 <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden transition-colors cursor-pointer relative {{ ($item && \App\Helpers\ItemHelper::isEnchanted($item)) ? 'enchanted-effect' : '' }}">
-                    @if($item && \App\Helpers\ItemHelper::isEnchanted($item))
-                        <div class="absolute top-0.5 left-0.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                    @endif
                     @if($item)
                         @if($item->template->icon ?? null)
                             <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $item->template->name }}">

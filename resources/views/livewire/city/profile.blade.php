@@ -140,9 +140,6 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
-                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1.5 left-1.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -463,9 +460,6 @@
                              }"
                              @if(isset($equipped[$slot])) @click="clearTimeout(hoverTimeout); open = !open" @endif>
                             @if(isset($equipped[$slot]))
-                                 @if(\App\Helpers\ItemHelper::isEnchanted($equipped[$slot]))
-                                     <div class="absolute top-1.5 left-1.5 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                 @endif
                                 @if($equipped[$slot]->template->icon)
                                     <div class="text-center text-xs text-white flex flex-col items-center w-full h-full justify-center p-0.5 sm:p-1 relative">
                                         <img src="{{ route('assets.items', ['filename' => $equipped[$slot]->template->icon]) }}" class="w-full h-full object-contain drop-shadow-xl p-0.5 sm:p-1" alt="{{ $equipped[$slot]->template->name }}">
@@ -1366,9 +1360,6 @@
                             >
                                 {{-- Numer slotu --}}
                                 <span class="absolute top-0.5 left-1 text-[8px] font-bold text-stone-500 pointer-events-none select-none z-10 leading-none">{{ $slotNum }}</span>
-                                 @if(\App\Helpers\ItemHelper::isEnchanted($item))
-                                     <div class="absolute top-0.5 right-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                 @endif
 
                                 {{-- Checkbox bulk stash --}}
                                 <div wire:click.stop="toggleSelectStashItem('{{ $item->id }}')"

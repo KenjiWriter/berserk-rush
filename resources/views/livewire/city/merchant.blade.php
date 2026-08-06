@@ -219,9 +219,6 @@
                                          @tooltip-updated.window="updatePosition()">
 
                                         <div class="aspect-square bg-black/80 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}">
-                                            @if(\App\Helpers\ItemHelper::isEnchanted($item))
-                                                <div class="absolute top-1 left-1 z-10 text-[9px] text-fuchsia-300 drop-shadow-[0_0_4px_rgba(217,70,239,0.9)] enchanted-sparkle-icon pointer-events-none" title="Przedmiot zaczarowany"><i class="fa-solid fa-wand-sparkles"></i></div>
-                                            @endif
                                             @if($item->template->icon)
                                                 <div class="w-full h-full p-2 relative flex items-center justify-center">
                                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
