@@ -344,8 +344,10 @@
                         <i class="fa-solid fa-bolt text-yellow-400"></i> Moc Bojowa: {{ \App\Support\NumberHelper::formatShort($character->getTotalCombatPower()) }}
                     </div>
                     
-                    @php 
-                        $xpRequired = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
+                    @php
+                        $xpRequired = $character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL
+                            ? app(\App\Application\Mastery\ChampionService::class)->xpTarget()
+                            : app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
                         $xpPercent = min(100, ($character->xp / max(1, $xpRequired)) * 100);
                     @endphp
                     <!-- Magiczny Kontener Cieczy XP -->

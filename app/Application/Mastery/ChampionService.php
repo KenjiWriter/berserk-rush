@@ -31,21 +31,29 @@ class ChampionService
     private const MIN_TIER_COUNT = 3;
     private const MAX_TIER_COUNT = 5;
 
+    private static ?int $cachedXpTarget = null;
+
     /**
      * Stały próg expa championa dla KAŻDEGO poziomu (99->100 to suma całego expa
      * wymaganego na poziomy 1-99, zgodnie z ustaleniami z designerem). Liczone w
      * locie z krzywej `LevelUpService::xpToNext()` (98 iteracji, tanie), bez
-     * hardkodowania - automatycznie podąża za rebalansami krzywej XP.
+     * hardkodowania - automatycznie podąża za rebalansami krzywej XP. To ten SAM
+     * licznik co `character.xp` (jeden pasek EXP) - patrz
+     * `LevelUpService::getMaxLevelXpCap()` i docs/modules/mastery.md.
      */
     public function xpTarget(): int
     {
+        if (self::$cachedXpTarget !== null) {
+            return self::$cachedXpTarget;
+        }
+
         $levelUpService = app(LevelUpService::class);
         $total = 0;
         for ($lvl = 1; $lvl < LevelUpService::MAX_LEVEL; $lvl++) {
             $total += $levelUpService->xpToNext($lvl);
         }
 
-        return $total;
+        return self::$cachedXpTarget = $total;
     }
 
     /**
@@ -170,8 +178,10 @@ class ChampionService
     }
 
     /**
-     * Próba awansu championa - wymaga JEDNOCZEŚNIE pełnego paska expa championa
-     * ORAZ dostarczenia wszystkich wylosowanych ulepszaczy.
+     * Próba awansu championa - wymaga JEDNOCZEŚNIE pełnego paska expa (ten sam
+     * licznik `character.xp` co zwykłe levelowanie, patrz
+     * LevelUpService::getMaxLevelXpCap()) ORAZ dostarczenia wszystkich
+     * wylosowanych ulepszaczy.
      */
     public function attemptLevelUp(Character $character): Result
     {
@@ -183,8 +193,8 @@ class ChampionService
             return Result::error('MAX_CHAMPION_LEVEL', 'Osiągnięto już maksymalny poziom Mistrzostwa.');
         }
 
-        if ($character->champion_xp < $this->xpTarget()) {
-            return Result::error('XP_NOT_FULL', 'Pasek doświadczenia championa nie jest jeszcze pełny.');
+        if ($character->xp < $this->xpTarget()) {
+            return Result::error('XP_NOT_FULL', 'Pasek doświadczenia nie jest jeszcze pełny.');
         }
 
         foreach (($character->champion_material_progress ?? []) as $row) {
@@ -200,7 +210,7 @@ class ChampionService
                 $character->update([
                     'champion_level' => $newLevel,
                     'champion_points' => ($character->champion_points ?? 0) + 1,
-                    'champion_xp' => 0,
+                    'xp' => 0,
                     'champion_material_progress' => $newLevel < self::LEVEL_CAP
                         ? $this->buildRandomMaterialRequirements()
                         : null,

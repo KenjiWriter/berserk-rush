@@ -96,6 +96,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/upgrade-rules', \App\Livewire\Admin\UpgradeRules::class)->name('upgrade-rules');
     Route::get('/dungeons', \App\Livewire\Admin\Dungeons::class)->name('dungeons');
     Route::get('/combat-skills', \App\Livewire\Admin\CombatSkills::class)->name('combat-skills');
+    Route::get('/champion-skills', \App\Livewire\Admin\ChampionSkills::class)->name('champion-skills');
     Route::get('/pet-templates', \App\Livewire\Admin\PetTemplates::class)->name('pet-templates');
     Route::get('/quests', \App\Livewire\Admin\Quests::class)->name('quests');
     Route::get('/titles', \App\Livewire\Admin\Titles::class)->name('titles');

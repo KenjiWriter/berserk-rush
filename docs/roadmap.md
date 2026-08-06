@@ -190,3 +190,15 @@ Rozbudowa ekonomii w taki sposób, aby gracze ostatecznie sami produkowali surow
 - **Zawody Zbierackie:** Górnictwo, Zielarstwo, Łowiectwo jako osobne, poboczne akcje (mini-zlecenia), produkujące dedykowane surowce podstawowe w dużych ilościach. Osobne levele profesji.
 - **Zawody Wytwórcze:** Gracze specjalizujący się w danej dziedzinie i mający wysoki jej poziom, mogą tworzyć przedmioty z dużo lepszymi losowymi widełkami statystyk. Zwykły gracz na poz. 1 zrobi miksturę leczącą 50 HP, a Mistrz na poz. 50 uwarzy z tych samych składników taką, co leczy 150 HP.
 - **Ewolucja Przedmiotów (Tiers):** Połączenie dwóch tych samych przedmiotów +9 u kowala (albo dedykowanego NPC) w ten sam przedmiot, ale podnoszący jego "Tier" (np. z Tier 1 do Tier 2). Poziom ulepszenia zeruje się (+0), ale broń otrzymuje znacznie wyższe bazowe statystyki z opcją na nowy, potężniejszy Enchantment.
+
+---
+
+## 🟢 Faza 19: System Mistrzostwa i Poziomy Championa (✅ Zakończona)
+Endgame'owa ścieżka progresji dla postaci, które osiągnęły maksymalny (99) poziom - dotychczas dalsze zdobywanie expa po capie było marnowane. Patrz `docs/modules/mastery.md`.
+- [x] **Zakładka Mistrzostwo:** Odblokowuje się automatycznie u Czarnoksiężnika po osiągnięciu 99 poziomu.
+- [x] **Poziomy Championa (99(X)):** Ten sam pasek expa co przy zwykłym levelowaniu dalej odmierza postęp na 99 poziomie zamiast przepadać - próg na kolejny poziom championa to stała suma całego expa wymaganego na poziomy 1-99, przeliczana z aktualnej krzywej XP.
+- [x] **Ulepszacze (Tribute):** Do awansu championa trzeba dodatkowo dostarczyć Czarnoksiężnikowi 1000 losowo dobranych materiałów, ważonych tak, by materiały z niższych map (tierów) były potrzebne w większych ilościach.
+- [x] **Cap poziomu:** Champion level ograniczony do 99(50), odpowiadający puli 50 Punktów Mistrzostwa (1 PK/poziom).
+- [x] **Drzewko Rozwoju Championa:** 10 uniwersalnych, pasywnych statystyk (Siła, Mądrość, Wytrzymałość, Koncentracja, Celność, Zwinność, Twardziel, Fortuna, Łowca Skarbów, Wiedza), max 10 PKT/umiejętność, wpięte we wszystkie 4 silniki walki (PvE, PvP, Wojna Gildii, Lochy).
+- [x] **Reset Punktów:** Płatny (100kk złota) reset drzewka, dostępny raz na miesiąc.
+- [x] **Panel Administratora:** Dedykowana zakładka `/admin/champion-skills` do zarządzania umiejętnościami drzewka Mistrzostwa.

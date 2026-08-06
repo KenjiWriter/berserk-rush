@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::table('characters', function (Blueprint $table) {
             $table->integer('champion_level')->default(0)->after('level');
-            // bigInteger - próg expa (suma wymaganego expa na poziomy 1-99, x6 z krzywej)
-            // liczony w miliardach, zwykły integer w Postgresie (max ~2.1mld) by się przepełnił.
-            $table->bigInteger('champion_xp')->default(0)->after('champion_level');
-            $table->integer('champion_points')->default(0)->after('champion_xp');
+            // Brak osobnej kolumny na expa championa - postać na 99 poziomie dalej
+            // używa ISTNIEJĄCEJ kolumny `xp` (już unsignedBigInteger, wystarczająco
+            // pojemnej), tylko z wyższym limitem (suma expa 1-99, ~2.6mld zamiast
+            // ~138mln) - patrz LevelUpService::getMaxLevelXpCap()/ChampionService::xpTarget().
+            $table->integer('champion_points')->default(0)->after('champion_level');
             $table->jsonb('champion_material_progress')->nullable()->after('champion_points');
             $table->timestamp('last_champion_reset_at')->nullable()->after('champion_material_progress');
         });
@@ -30,7 +31,6 @@ return new class extends Migration
         Schema::table('characters', function (Blueprint $table) {
             $table->dropColumn([
                 'champion_level',
-                'champion_xp',
                 'champion_points',
                 'champion_material_progress',
                 'last_champion_reset_at',

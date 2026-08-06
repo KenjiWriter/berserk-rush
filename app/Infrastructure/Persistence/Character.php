@@ -62,7 +62,6 @@ class Character extends Model
         'mirror_access_until',
         'max_level_reached_at',
         'champion_level',
-        'champion_xp',
         'champion_points',
         'champion_material_progress',
         'last_champion_reset_at',
@@ -75,7 +74,6 @@ class Character extends Model
         'level' => 'integer',
         'xp' => 'integer',
         'champion_level' => 'integer',
-        'champion_xp' => 'integer',
         'champion_points' => 'integer',
         'champion_material_progress' => 'array',
         'last_champion_reset_at' => 'datetime',
@@ -175,18 +173,17 @@ class Character extends Model
         static::saving(function ($character) {
             if (($character->level ?? 0) >= \App\Application\Characters\LevelUpService::MAX_LEVEL) {
                 $character->level = \App\Application\Characters\LevelUpService::MAX_LEVEL;
-                $maxXp = max(0, app(\App\Application\Characters\LevelUpService::class)->xpToNext(\App\Application\Characters\LevelUpService::MAX_LEVEL) - 1);
+                // Ten sam licznik `xp` służy najpierw do zwykłego levelowania, a po
+                // dobiciu 99 poziomu - do Mistrzostwa (limit rośnie do
+                // ChampionService::xpTarget(), patrz docs/modules/mastery.md). To
+                // jedynie defensywny backstop dla ścieżek zapisu innych niż
+                // LevelUpService::checkAndApply() (który jest głównym, niezawodnym
+                // miejscem egzekwowania tego limitu). Bez "-1" - patrz
+                // LevelUpService::getMaxLevelXpCap() (licznik musi móc dotrzeć
+                // DOKŁADNIE do progu, bo awans championa to ręczna akcja, nie
+                // automatyczna pętla jak przy zwykłych poziomach).
+                $maxXp = max(0, app(\App\Application\Mastery\ChampionService::class)->xpTarget());
                 if ($character->xp > $maxXp) {
-                    // Nadwyżka expa ponad cap 99 poziomu nie jest tracona - jeśli gracz
-                    // nie dobił jeszcze max poziomu championa (99(50)), zasila licznik
-                    // champion_xp (patrz App\Application\Mastery\ChampionService). Dzięki
-                    // temu WSZYSTKIE istniejące ścieżki przyznawania expa (RewardService,
-                    // DungeonService, QuestService, AchievementService...) automatycznie
-                    // karmią system Mistrzostwa bez dotykania każdej z osobna - wszystkie
-                    // i tak wołają increment('xp')/update(), co triggeruje ten hook.
-                    if (($character->champion_level ?? 0) < \App\Application\Mastery\ChampionService::LEVEL_CAP) {
-                        $character->champion_xp = ($character->champion_xp ?? 0) + ($character->xp - $maxXp);
-                    }
                     $character->xp = $maxXp;
                 }
             }

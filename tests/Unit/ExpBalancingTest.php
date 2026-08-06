@@ -62,9 +62,10 @@ class ExpBalancingTest extends TestCase
         $this->assertLessThan(200, $reward3['base']);
     }
 
-    public function test_level_99_is_max_level_and_caps_exp_at_99_percent(): void
+    public function test_level_99_is_max_level_and_exp_keeps_accumulating_toward_champion_target(): void
     {
         $service = new LevelUpService();
+        $championService = app(\App\Application\Mastery\ChampionService::class);
 
         $xpFor99 = $service->xpToNext(99);
         $this->assertGreaterThan(0, $xpFor99);
@@ -75,9 +76,7 @@ class ExpBalancingTest extends TestCase
             'name' => 'MaxHero',
             'level' => 98,
             // Faza 1 rebalansu (x6 na krzywej XP): xpToNext(98)=~132.4M, xpToNext(99)=~138.1M
-            // (wcześniej ~22.1M/~23.0M) - musi przekraczać SUMĘ obu, by po awansie na 99
-            // zostająca nadwyżka XP nadal przekraczała cap i realnie ćwiczyła capowanie
-            // (nie tylko sam awans z 98 na 99).
+            // (wcześniej ~22.1M/~23.0M).
             'xp' => 300000000,
             'attributes' => ['str' => 10, 'int' => 5, 'vit' => 10, 'agi' => 5],
         ]);
@@ -86,21 +85,31 @@ class ExpBalancingTest extends TestCase
         $this->assertTrue($res->isOk());
         $char->refresh();
 
-        // Level must cap at 99 and XP must cap at xpToNext(99) - 1
+        // Level caps at 99, ale system Mistrzostwa (docs/modules/mastery.md) sprawia,
+        // że nadwyżka XP ponad stary próg xpToNext(99) NIE jest już tracona - zostaje
+        // w tym samym liczniku `xp` (leftover = 300M - xpToNext(98)), znacznie
+        // przekraczając stary cap xpFor99, bo cel Mistrzostwa jest dużo wyższy.
         $this->assertEquals(99, $char->level);
-        $this->assertEquals($xpFor99 - 1, $char->xp);
+        $leftover = 300000000 - $service->xpToNext(98);
+        $this->assertEquals($leftover, $char->xp);
+        $this->assertGreaterThan($xpFor99, $char->xp);
 
-        // Level 99 character starting with 1000 XP can gain XP up to cap
-        $char->update(['xp' => 1000]);
-        $char->refresh();
-
+        // Dalszy przyrost expa nadal się kumuluje (nie jest przycinany do starego capu).
         $char->update(['xp' => $char->xp + 5000]);
         $res2 = $service->checkAndApply($char);
         $this->assertTrue($res2->isOk());
         $char->refresh();
 
         $this->assertEquals(99, $char->level);
-        $this->assertEquals(6000, $char->xp);
+        $this->assertEquals($leftover + 5000, $char->xp);
         $this->assertFalse($res2->getPayload()->hadLevelUp);
+
+        // Ale ostatecznie licznik jest przycinany dokładnie do progu Mistrzostwa
+        // (nie o 1 mniej - inaczej `ChampionService::attemptLevelUp()` nigdy by
+        // realnie nie zaakceptował pełnego paska, patrz test w ChampionLevelUpTest).
+        $char->update(['xp' => $championService->xpTarget() + 999_999_999]);
+        $service->checkAndApply($char);
+        $char->refresh();
+        $this->assertEquals($championService->xpTarget(), $char->xp);
     }
 }

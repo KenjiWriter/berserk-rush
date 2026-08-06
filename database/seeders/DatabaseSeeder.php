@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             DungeonSeeder::class,
             LootTableSeeder::class,
             MonsterLootSeeder::class,
+            MaterialMapTierSeeder::class,
             PetSeeder::class,
             PotionSeeder::class,
             RecipeSeeder::class,

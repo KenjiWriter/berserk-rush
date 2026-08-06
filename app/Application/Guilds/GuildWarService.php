@@ -718,6 +718,12 @@ class GuildWarService
         $str = $attrs['str'] ?? 0;
         $int = $attrs['int'] ?? 0;
         $agi = $attrs['agi'] ?? 0;
+        // Naprawiony bug: $eq nigdy nie było przypisane w tej metodzie, więc każdy
+        // odczyt $eq['x'] ?? 0 poniżej cichutko zwracał 0 - w praktyce ekwipunek
+        // (armor pen, magic burst, "strong vs hero", crit chance, atak
+        // różdżki/dzwonu, procki z rollEquipmentProcs) nie miał żadnego wpływu na
+        // starcia Wojny Gildii.
+        $eq = $snap['equipment_stats'] ?? [];
 
         $isMagicSkill = (bool) ($skillToUse['is_magic'] ?? false);
 
@@ -826,6 +832,13 @@ class GuildWarService
         $defVit = $targetSnap['attributes']['vit'] ?? 1;
         $defEq = $targetSnap['equipment_stats'] ?? [];
         $defense = $defVit + ($targetSnap['level'] / 2) + ($defEq['defense'] ?? 0);
+
+        // Procki otrucia/ogłuszenia/przebicia z ekwipunku - patrz rollEquipmentProcs()
+        // na górze klasy. Naprawiony bug: wcześniej rzucane było DOPIERO na końcu tej
+        // metody, mimo że sekcje armor pen/podwójnego ciosu poniżej odczytywały już
+        // $procs['infusion_armor_pen']/$procs['double_strike'] - w praktyce te dwa
+        // procki nigdy nie miały żadnego efektu w Wojnie Gildii.
+        $procs = $this->rollEquipmentProcs($eq, $defEq);
 
         $armorPenPct = min(85, max(0, ($eq['armor_pen_pct'] ?? 0) + ($procs['infusion_armor_pen'] ?? 0)));
         if ($armorPenPct > 0) {
@@ -940,8 +953,8 @@ class GuildWarService
                 }
             }
 
-            // Procki otrucia/ogłuszenia z ekwipunku - patrz rollEquipmentProcs() na górze klasy.
-            $procs = $this->rollEquipmentProcs($eq, $defEq);
+            // Procki dot/cc z tej samej puli $procs wylosowanej wcześniej (przed sekcją
+            // armor pen/podwójnego ciosu) - patrz rollEquipmentProcs() na górze klasy.
             if ($procs['dot']) {
                 $target['effects']['equipment_poison'] = $procs['dot'];
             }

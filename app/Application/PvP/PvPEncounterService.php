@@ -745,6 +745,13 @@ class PvPEncounterService
         $defEq = $targetSnapshot['equipment_stats'] ?? [];
         $defense = $defVit + ($targetSnapshot['level'] / 2) + ($defEq['defense'] ?? 0);
 
+        // Procki otrucia/ogłuszenia/przebicia z ekwipunku - patrz rollEquipmentProcs()
+        // na górze klasy. Naprawiony bug: wcześniej rzucane było DOPIERO po sekcji
+        // armor pen/podwójnego ciosu poniżej, mimo że te sekcje odczytywały już
+        // $procs['infusion_armor_pen']/$procs['double_strike'] - w praktyce te dwa
+        // procki nigdy nie miały żadnego efektu w PvP.
+        $procs = $this->rollEquipmentProcs($eqStats, $defEq);
+
         $armorPenPct = min(85, max(0, ($eqStats['armor_pen_pct'] ?? 0) + ($procs['infusion_armor_pen'] ?? 0)));
         if ($armorPenPct > 0) {
             $defense = (int) round($defense * (1.0 - ($armorPenPct / 100.0)));
@@ -835,8 +842,8 @@ class PvPEncounterService
             $damage = (int)($damage * 1.5);
         }
 
-        // Procki otrucia/ogłuszenia z ekwipunku - patrz rollEquipmentProcs() na górze klasy.
-        $procs = $this->rollEquipmentProcs($eqStats, $defEq);
+        // Procki dot/cc z tej samej puli $procs wylosowanej wcześniej (przed sekcją
+        // armor pen/podwójnego ciosu) - patrz rollEquipmentProcs() na górze klasy.
         if ($procs['dot']) {
             $targetState['effects']['equipment_poison'] = $procs['dot'];
         }

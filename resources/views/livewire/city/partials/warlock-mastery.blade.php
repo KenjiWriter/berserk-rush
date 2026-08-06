@@ -1,6 +1,6 @@
 @php
-    $xpPct = $championXpTarget > 0 ? min(100, round(($character->champion_xp / $championXpTarget) * 100, 1)) : 0;
-    $xpFull = $character->champion_xp >= $championXpTarget;
+    $xpPct = $championXpTarget > 0 ? min(100, round(($character->xp / $championXpTarget) * 100, 1)) : 0;
+    $xpFull = $character->xp >= $championXpTarget;
     $materialsFulfilled = collect($championMaterials)->every(fn ($row) => ($row['deposited'] ?? 0) >= ($row['required'] ?? 0));
     $atCap = $character->champion_level >= \App\Application\Mastery\ChampionService::LEVEL_CAP;
     $canLevelUp = !$atCap && $xpFull && $materialsFulfilled;
@@ -46,7 +46,7 @@
                     <div class="h-full rounded-full transition-all duration-500 {{ $xpFull ? 'bg-gradient-to-r from-amber-500 to-yellow-400 animate-pulse' : 'bg-gradient-to-r from-sky-600 to-blue-400' }}" style="width: {{ $xpPct }}%"></div>
                 </div>
                 <div class="flex items-center justify-between mt-1.5 text-[11px] text-stone-400">
-                    <span>{{ \App\Support\NumberHelper::formatShort($character->champion_xp) }} / {{ \App\Support\NumberHelper::formatShort($championXpTarget) }} EXP</span>
+                    <span>{{ \App\Support\NumberHelper::formatShort($character->xp) }} / {{ \App\Support\NumberHelper::formatShort($championXpTarget) }} EXP</span>
                     <span class="font-bold {{ $xpFull ? 'text-amber-300' : 'text-sky-300' }}">{{ $xpPct }}%</span>
                 </div>
             @endif

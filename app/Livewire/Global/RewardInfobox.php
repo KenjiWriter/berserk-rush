@@ -47,7 +47,9 @@ class RewardInfobox extends Component
                 'nickname' => $character->name,
                 'level' => $character->level,
                 'experience' => $character->xp,
-                'experience_required' => app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level),
+                'experience_required' => $character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL
+                    ? app(\App\Application\Mastery\ChampionService::class)->xpTarget()
+                    : app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level),
                 'gold' => $character->gold,
                 'gems' => $user ? $user->gems : 0,
             ];

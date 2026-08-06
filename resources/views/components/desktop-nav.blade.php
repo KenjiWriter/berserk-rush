@@ -60,7 +60,10 @@
 
             @if($character)
                 @php
-                    $initialXpReq = app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
+                    $championXpTargetForNav = app(\App\Application\Mastery\ChampionService::class)->xpTarget();
+                    $initialXpReq = $character->level >= \App\Application\Characters\LevelUpService::MAX_LEVEL
+                        ? $championXpTargetForNav
+                        : app(\App\Application\Characters\LevelUpService::class)->xpToNext($character->level);
                     $initialXpPct = $initialXpReq > 0 ? number_format(min(100, max(0, ($character->xp / $initialXpReq) * 100)), 1) : '0.0';
                 @endphp
                 <div x-data="{
@@ -69,8 +72,19 @@
                         navXpReq: {{ $initialXpReq }},
                         navGold: {{ $character->gold }},
                         navGems: {{ $character->gems }},
+                        championXpTarget: {{ $championXpTargetForNav }},
                         get navXpPct() {
                             return (Math.min(100, Math.max(0, (this.navXp / Math.max(1, this.navXpReq)) * 100))).toFixed(1);
+                        },
+                        recomputeXpReq(lvl) {
+                            // Na 99 poziomie ten sam pasek EXP odmierza próg Mistrzostwa
+                            // (patrz docs/modules/mastery.md), nie zwykłą krzywą levelowania.
+                            if (lvl >= 99) {
+                                return this.championXpTarget;
+                            }
+                            let req = 15 * Math.pow(lvl, 2) + 50 * lvl + 0.15 * Math.pow(lvl, 4.1);
+                            if (lvl > 85) req += 0.025 * Math.pow(lvl - 85, 5.5);
+                            return Math.round(req * 6.0);
                         },
 
                         handleStatsUpdate(detail) {
@@ -97,9 +111,7 @@
                                 if (data.gemsAdded) this.navGems += Number(data.gemsAdded);
                                 if (data.gemsDeducted) this.navGems -= Number(data.gemsDeducted);
 
-                                let req = 15 * Math.pow(this.navLevel, 2) + 50 * this.navLevel + 0.15 * Math.pow(this.navLevel, 4.1);
-                                if (this.navLevel > 85) req += 0.025 * Math.pow(this.navLevel - 85, 5.5);
-                                this.navXpReq = Math.round(req * 6.0);
+                                this.navXpReq = this.recomputeXpReq(this.navLevel);
                             }
                         }
                      }"
@@ -109,11 +121,10 @@
                         let lvl = typeof data === 'number' ? data : (data && data.level ? Number(data.level) : null);
                         if (lvl) {
                             navLevel = lvl;
-                            let req = 15 * Math.pow(lvl, 2) + 50 * lvl + 0.15 * Math.pow(lvl, 4.1);
-                            if (lvl > 85) req += 0.025 * Math.pow(lvl - 85, 5.5);
-                            navXpReq = Math.round(req * 6.0);
+                            navXpReq = recomputeXpReq(lvl);
                         }
                      "
+                     @open-champion-levelup-modal.window="navXp = 0; navXpReq = championXpTarget"
                      :class="collapsed ? 'p-1.5 text-center' : 'p-2.5'"
                      class="rounded-xl bg-stone-950 border-2 border-amber-700/60 transition-all duration-300 shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),0_4px_10px_rgba(0,0,0,0.5)]">
 
