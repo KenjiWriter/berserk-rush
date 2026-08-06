@@ -218,7 +218,8 @@
                                          @resize.window.debounce.100ms="updatePosition()"
                                          @tooltip-updated.window="updatePosition()">
 
-                                        <div class="aspect-square bg-black/80 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}">
+                                        <div class="aspect-square bg-black/80 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}"
+                                             @if(\App\Helpers\ItemHelper::isEnchanted($item)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($item) !!} @endif>
                                             @if($item->template->icon)
                                                 <div class="w-full h-full p-2 relative flex items-center justify-center">
                                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">

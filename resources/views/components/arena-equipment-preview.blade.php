@@ -48,7 +48,8 @@
                 @mouseleave="closeItem($event)" 
                 @click.stop="toggleItem()"
             @endif>
-                <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden transition-colors cursor-pointer relative {{ ($item && \App\Helpers\ItemHelper::isEnchanted($item)) ? 'enchanted-effect' : '' }}">
+                <div class="w-full aspect-square bg-stone-900/90 border-2 {{ $item ? \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') : 'border-stone-700/70' }} rounded-lg flex items-center justify-center overflow-hidden transition-colors cursor-pointer relative {{ ($item && \App\Helpers\ItemHelper::isEnchanted($item)) ? 'enchanted-effect' : '' }}"
+                     @if($item && \App\Helpers\ItemHelper::isEnchanted($item)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($item) !!} @endif>
                     @if($item)
                         @if($item->template->icon ?? null)
                             <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain p-1" alt="{{ $item->template->name }}">

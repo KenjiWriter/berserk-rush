@@ -904,7 +904,8 @@
                                                 </div>
                                             @endif
 
-                                            <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} mr-3 relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}">
+                                            <div class="w-12 h-12 flex-shrink-0 bg-black/50 rounded-lg p-1 border {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} mr-3 relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}"
+                                                 @if(\App\Helpers\ItemHelper::isEnchanted($item)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($item) !!} @endif>
                                                 @if($item->template->icon)
                                                     <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain" alt="">
                                                 @endif

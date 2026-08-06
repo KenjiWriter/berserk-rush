@@ -43,4 +43,15 @@ class ItemHelper
         $enchants = $rollStats['enchants'] ?? [];
         return is_array($enchants) && count($enchants) > 0;
     }
+
+    /**
+     * Zwraca przesunięty styl animation-delay (w sekundach) dla zsynchronizowania rozbłysków na kafelkach.
+     */
+    public static function getAnimationDelayStyle(mixed $key = null): string
+    {
+        $idStr = is_object($key) ? ($key->id ?? json_encode($key)) : (string) $key;
+        $hash = abs(crc32($idStr));
+        $delaySeconds = round(($hash % 75) / 10, 1); // 0.0s do 7.4s
+        return "style=\"animation-delay: {$delaySeconds}s; --shimmer-delay: {$delaySeconds}s;\"";
+    }
 }

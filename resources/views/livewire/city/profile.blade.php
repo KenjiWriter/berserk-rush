@@ -133,6 +133,7 @@
                                  }
                              "
                              class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? \App\Helpers\ItemHelper::getRarityBorderClass($equipped[$slot]->rarity ?? 'common', true) . ' cursor-grab active:cursor-grabbing' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot]) ? 'enchanted-effect' : '' }}"
+                             @if(isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot])) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($equipped[$slot]) !!} @endif
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
@@ -481,6 +482,7 @@
                                  }
                              "
                              class="w-12 h-12 xs:w-14 xs:h-14 sm:w-16 sm:h-16 lg:w-16 lg:h-16 xl:w-20 xl:h-20 bg-stone-900/90 border-2 {{ isset($equipped[$slot]) ? \App\Helpers\ItemHelper::getRarityBorderClass($equipped[$slot]->rarity ?? 'common', true) . ' cursor-grab active:cursor-grabbing' : 'border-stone-700/80 hover:border-amber-500/40' }} rounded-xl sm:rounded-2xl flex items-center justify-center relative transition-all duration-200 {{ isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot]) ? 'enchanted-effect' : '' }}"
+                             @if(isset($equipped[$slot]) && \App\Helpers\ItemHelper::isEnchanted($equipped[$slot])) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($equipped[$slot]) !!} @endif
                              :class="{ 
                                  'ring-4 ring-green-400 border-green-400 bg-green-900/40 scale-105 shadow-[0_0_15px_rgba(74,222,128,0.6)]': isDragOver,
                                  'ring-4 ring-red-500 border-red-500 bg-red-900/40': isDragInvalid,
@@ -1363,6 +1365,7 @@
                                      @endif
                                  "
                                  class="aspect-square bg-gray-700 border rounded flex items-center justify-center cursor-grab active:cursor-grabbing hover:border-green-400 relative transition-all duration-200 backpack-grid-slot {{ \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}"
+                                 @if(\App\Helpers\ItemHelper::isEnchanted($item)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($item) !!} @endif
                                  :class="{
                                      'animate-[pulse_1.5s_ease-in-out_infinite] ring-4 ring-amber-500 scale-105 shadow-[0_0_15px_rgba(245,158,11,0.6)] z-10': {{ $isRustySwordTutorial ? 'true' : 'false' }} && !open,
                                      'opacity-40 scale-95 border-amber-400': isDraggingThis,
@@ -1934,6 +1937,7 @@
         /* Magical Enchantment Shimmer */
         @keyframes enchantedShimmer {
             0% { background-position: 200% 0; }
+            40% { background-position: -200% 0; }
             100% { background-position: -200% 0; }
         }
         .enchanted-effect {
@@ -1958,7 +1962,8 @@
                 transparent 100%
             );
             background-size: 300% 100%;
-            animation: enchantedShimmer 5s infinite linear;
+            animation: enchantedShimmer 8s infinite ease-in-out;
+            animation-delay: var(--shimmer-delay, inherit);
             pointer-events: none;
             z-index: 4;
             will-change: background-position;

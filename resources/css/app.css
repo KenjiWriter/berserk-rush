@@ -11,6 +11,9 @@ html, body {
     0% {
         background-position: 200% 0;
     }
+    40% {
+        background-position: -200% 0;
+    }
     100% {
         background-position: -200% 0;
     }
@@ -39,7 +42,8 @@ html, body {
         transparent 100%
     );
     background-size: 300% 100%;
-    animation: enchantedShimmer 5s infinite linear;
+    animation: enchantedShimmer 8s infinite ease-in-out;
+    animation-delay: var(--shimmer-delay, inherit);
     pointer-events: none;
     z-index: 4;
     will-change: background-position;
