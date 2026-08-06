@@ -90,6 +90,9 @@ class MaterialItemSeeder extends Seeder
             ['name' => 'Skażony Metal', 'desc' => 'Zniekształcone przez plagę żelazo, wymagające oczyszczenia.'],
             ['name' => 'Czarny Kamień Dusz', 'desc' => 'Pojemnik chłonący negatywną energię.'],
             ['name' => 'Popioły Miasta', 'desc' => 'Ostatnie pamiątki dawnej cywilizacji, przydatne jako nawóz do magicznych ziół.'],
+
+            // Uniwersalny odłamek runiczny ze spalania przedmiotów
+            ['name' => 'Runiczny Odłamek', 'desc' => 'Magiczny odłamek uzyskiwany ze przetapiania ekwipunku u Kowala. Służy do ulepszeń i rozwoju Czempiona.'],
         ];
 
         foreach ($materials as $material) {

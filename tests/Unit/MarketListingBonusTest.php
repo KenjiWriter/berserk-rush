@@ -129,3 +129,47 @@ test('market listing preserves all item bonuses when bought by another player', 
         ->and($boughtItem->roll_stats['vit_bonus'])->toBe(12)
         ->and($boughtItem->roll_stats['enchants']['hp_bonus'])->toBe(100);
 });
+
+test('listing part of a stack from inventory (e.g. eggs) only removes the listed quantity', function () {
+    $user = User::factory()->create();
+    $character = Character::create([
+        'user_id' => $user->id,
+        'name' => 'EggSeller',
+        'class' => 'warrior',
+        'level' => 10,
+        'experience' => 0,
+        'gold' => 1000,
+    ]);
+
+    $template = ItemTemplate::create([
+        'id' => (string) Str::ulid(),
+        'name' => 'Rzadkie Jajo Chowańca',
+        'type' => 'egg',
+        'level_requirement' => 5,
+        'is_tradeable' => true,
+    ]);
+
+    $eggStack = ItemInstance::create([
+        'id' => (string) Str::ulid(),
+        'template_id' => $template->id,
+        'owner_character_id' => $character->id,
+        'location' => 'inventory',
+        'stack_size' => 4,
+        'rarity' => 'rare',
+    ]);
+
+    $action = new CreateMarketListingAction();
+    $result = $action->execute($character, $eggStack, 500, 'gold', 24, 2);
+
+    expect($result->isOk())->toBeTrue();
+
+    $remainingStack = ItemInstance::find($eggStack->id);
+    expect($remainingStack->location)->toBe('inventory')
+        ->and($remainingStack->stack_size)->toBe(2);
+
+    $listing = $result->getPayload()['listing'];
+    $listedItem = ItemInstance::find($listing->item_instance_id);
+    expect($listedItem->id)->not->toBe($eggStack->id)
+        ->and($listedItem->location)->toBe('market')
+        ->and($listedItem->stack_size)->toBe(2);
+});

@@ -16,6 +16,9 @@
                 <div class="bg-black/80 border border-yellow-600/50 rounded px-4 py-2 min-h-[44px] flex items-center font-bold text-yellow-400 backdrop-blur-sm shadow-inner">
                     <i class="fa-solid fa-coins text-yellow-400 mr-1.5"></i> {{ number_format($character->gold) }}
                 </div>
+                <div class="bg-black/80 border border-purple-600/50 rounded px-4 py-2 min-h-[44px] flex items-center font-bold text-purple-300 backdrop-blur-sm shadow-inner" title="Posiadane Runiczne Odłamki">
+                    <img src="{{ route('assets.items', ['filename' => 'runiczny-odlamek.png']) }}" class="w-5 h-5 object-contain mr-1.5" alt=""> {{ number_format($runicShardCount ?? 0) }}
+                </div>
                 <button wire:click="toggleInfoModal"
                     class="min-h-[44px] flex items-center gap-2 bg-black/80 border border-sky-600/50 rounded-lg text-sky-300 hover:text-sky-100 hover:border-sky-400 transition-colors shadow-inner px-4"
                     title="Opis mechanik ulepszania">
@@ -39,6 +42,9 @@
                     </button>
                     <button wire:click="setTab('crafting')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'crafting' ? 'bg-amber-900/40 text-amber-400 border-b-2 border-amber-500 shadow-[inset_0_-2px_10px_rgba(245,158,11,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
                         <i class="fa-solid fa-hammer text-amber-400/80"></i> Rzemiosło
+                    </button>
+                    <button wire:click="setTab('dismantle')" wire:loading.attr="disabled" wire:target="setTab, setItemFilter" class="flex-1 py-3 sm:py-4 min-h-[44px] font-bold text-xs sm:text-lg transition-all flex items-center justify-center gap-1.5 sm:gap-2 {{ $activeTab === 'dismantle' ? 'bg-purple-900/40 text-purple-400 border-b-2 border-purple-500 shadow-[inset_0_-2px_10px_rgba(168,85,247,0.2)]' : 'text-gray-400 hover:text-amber-200 hover:bg-white/5' }}">
+                        <i class="fa-solid fa-fire text-purple-400/80"></i> Przetapianie
                     </button>
                 </div>
 
@@ -396,6 +402,175 @@
                         @empty
                             <div class="col-span-full text-center text-gray-500 py-12">Brak dostępnych przepisów (sprawdź filtr powyżej).</div>
                         @endforelse
+                    </div>
+                @elseif($activeTab === 'dismantle')
+                    <div class="h-full flex flex-col gap-6 relative" x-data="{ dismantling: false }">
+                        @php
+                            $dismantleItem = $selectedDismantleItemId ? $dismantlableItems->firstWhere('id', $selectedDismantleItemId) : null;
+                            $shardYield = $selectedDismantleItemId ? ($dismantleYields[$selectedDismantleItemId] ?? 0) : 0;
+                        @endphp
+
+                        <!-- Top Section: Dismantle Template (3 columns) -->
+                        <div class="w-full flex flex-col md:flex-row items-stretch justify-between gap-8">
+
+                            <!-- Lewo: Wybrany Przedmiot do przetopienia -->
+                            <div class="flex-1 bg-black/60 border border-purple-900/50 rounded-xl p-6 flex flex-col items-center text-center shadow-xl backdrop-blur relative"
+                                 @if($selectedDismantleItemId && $dismantleItem)
+                                     x-data="smartTooltip()"
+                                     :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                     @mouseenter="openTooltip()"
+                                     @mouseleave="closeTooltip()"
+                                     @click="toggleTooltip()"
+                                     @resize.window.debounce.100ms="updatePosition()"
+                                     @tooltip-updated.window="updatePosition()"
+                                 @endif>
+                                <h3 class="text-xl font-bold text-purple-300 mb-4 medieval-font">Przedmiot do przetopienia</h3>
+                                <div class="w-24 h-24 bg-slate-800/80 rounded-lg border-2 {{ ($dismantleItem ?? null) ? \App\Helpers\ItemHelper::getRarityBorderClass($dismantleItem->rarity ?? 'common') : 'border-slate-500' }} p-2 mb-4 flex items-center justify-center cursor-pointer relative {{ (($dismantleItem ?? null) && \App\Helpers\ItemHelper::isEnchanted($dismantleItem)) ? 'enchanted-effect' : '' }}"
+                                    @if(($dismantleItem ?? null) && \App\Helpers\ItemHelper::isEnchanted($dismantleItem)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($dismantleItem) !!} @endif>
+                                    @if($selectedDismantleItemId && $dismantleItem)
+                                        @if($dismantleItem->template->icon)
+                                            <img src="{{ route('assets.items', ['filename' => $dismantleItem->template->icon]) }}" class="w-full h-full object-contain" alt="">
+                                        @endif
+                                    @else
+                                        <span class="text-4xl text-gray-600">?</span>
+                                    @endif
+                                </div>
+                                @if($selectedDismantleItemId && $dismantleItem)
+                                    <h4 class="text-2xl font-bold text-blue-300">{{ $dismantleItem->template->name }} @if($dismantleItem->upgrade_level > 0)<span class="text-yellow-400">+{{ $dismantleItem->upgrade_level }}</span>@endif</h4>
+                                    <p class="text-xs text-purple-400 mt-1 capitalize">Rzadkość: {{ $dismantleItem->rarity }} | Lvl {{ $dismantleItem->template->level_requirement ?? 1 }}</p>
+
+                                    <template x-teleport="body">
+                                        <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                             :style="tooltipStyle"
+                                             class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                            <x-item-tooltip :item="$dismantleItem" :equippedItem="$equipped[$dismantleItem->template->slot ?? ''] ?? null" />
+                                        </div>
+                                    </template>
+                                @else
+                                    <h4 class="text-lg font-bold text-gray-500">Brak wybranego przedmiotu</h4>
+                                @endif
+                            </div>
+
+                            <!-- Środek: Informacje i Przycisk Przetapiania -->
+                            <div class="flex-1 flex flex-col items-center justify-center gap-6">
+                                <div class="bg-black/80 border-2 border-purple-600/50 rounded-xl p-6 w-full shadow-2xl relative overflow-hidden" :class="{ 'animate-pulse ring-4 ring-purple-500 border-purple-500': dismantling }">
+                                    <div x-show="dismantling" x-transition class="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-500/30 to-transparent mix-blend-screen z-0"></div>
+
+                                    <div class="relative z-10">
+                                        <h3 class="text-center text-purple-400 font-bold mb-4 text-lg uppercase tracking-wider">Przetapianie przedmiotu</h3>
+
+                                        @if($selectedDismantleItemId && $dismantleItem)
+                                            <div class="space-y-2 mb-6 text-sm">
+                                                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                    <span class="text-gray-300">Uzysk z poziomu (Lvl {{ $dismantleItem->template->level_requirement ?? 1 }}):</span>
+                                                    <span class="font-bold text-purple-300">+{{ max(1, (int) ceil(($dismantleItem->template->level_requirement ?? 1) / 10)) }} bazowo</span>
+                                                </div>
+                                                <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                    <span class="text-gray-300">Mnożnik rzadkości ({{ $dismantleItem->rarity }}):</span>
+                                                    <span class="font-bold text-amber-400">{{ match($dismantleItem->rarity) { 'uncommon' => '2.0x', 'rare' => '4.0x', 'epic' => '8.0x', 'legendary' => '15.0x', default => '1.0x' } }}</span>
+                                                </div>
+                                                @if($dismantleItem->upgrade_level > 0)
+                                                    <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                        <span class="text-gray-300">Bonus ulepszenia (+{{ $dismantleItem->upgrade_level }}):</span>
+                                                        <span class="font-bold text-green-400">+{{ match((int)$dismantleItem->upgrade_level) { 1 => '10%', 2 => '25%', 3 => '50%', 4 => '80%', 5 => '120%', 6 => '180%', 7 => '260%', 8 => '360%', 9 => '500%', default => '0%' } }}</span>
+                                                    </div>
+                                                @endif
+                                                @if(count($dismantleItem->getEnchantments()) > 0)
+                                                    <div class="flex justify-between items-center bg-gray-900/50 p-2 rounded border border-gray-700/50">
+                                                        <span class="text-gray-300">Bonus zaczarowań ({{ count($dismantleItem->getEnchantments()) }}):</span>
+                                                        <span class="font-bold text-cyan-400">+{{ count($dismantleItem->getEnchantments()) * 15 }}%</span>
+                                                    </div>
+                                                @endif
+                                                <div class="text-xs text-red-400 text-center font-semibold pt-1">
+                                                    <i class="fa-solid fa-triangle-exclamation mr-1"></i> Uwaga: Przetopienie NIEODWRACALNIE niszczy przedmiot!
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                wire:click="dismantleItem('{{ $dismantleItem->id }}')"
+                                                @click="dismantling = true; setTimeout(() => dismantling = false, 1000)"
+                                                class="w-full bg-gradient-to-r from-purple-800 to-purple-600 hover:from-purple-700 hover:to-purple-500 text-white text-xl font-bold py-4 rounded-lg shadow-[0_0_15px_rgba(168,85,247,0.5)] transition-all transform hover:scale-105 active:scale-95 medieval-font tracking-wider border border-purple-400">
+                                                <i class="fa-solid fa-fire mr-2"></i> Przetop przedmiot
+                                            </button>
+                                        @else
+                                            <div class="space-y-3 mb-6 text-center text-gray-500 py-4">
+                                                Wybierz przedmiot z plecaka poniżej, aby pozyskać Runiczne Odłamki.
+                                            </div>
+                                            <button disabled
+                                                class="w-full bg-gray-800 text-gray-500 text-xl font-bold py-4 rounded-lg border border-gray-600 cursor-not-allowed medieval-font tracking-wider">
+                                                <i class="fa-solid fa-fire mr-2"></i> Przetop przedmiot
+                                            </button>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Prawo: Wynik (Runiczne Odłamki) -->
+                            <div class="flex-1 bg-black/60 border border-purple-600/50 rounded-xl p-6 flex flex-col items-center text-center shadow-xl backdrop-blur relative overflow-hidden">
+                                <div class="absolute -right-10 -top-10 w-32 h-32 bg-purple-500/20 blur-3xl rounded-full"></div>
+
+                                <h3 class="text-xl font-bold text-purple-400 mb-4 medieval-font">Uzyskane Odłamki</h3>
+                                <div class="w-24 h-24 bg-purple-950/60 rounded-lg border-2 border-purple-500 p-2 mb-4 shadow-[0_0_20px_rgba(168,85,247,0.4)] relative flex items-center justify-center overflow-hidden">
+                                    <img src="{{ route('assets.items', ['filename' => 'runiczny-odlamek.png']) }}" class="w-full h-full object-contain relative z-10 drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]" alt="Runiczny Odłamek">
+                                    <div class="absolute inset-0 bg-purple-500/20 animate-pulse rounded"></div>
+                                </div>
+                                @if($selectedDismantleItemId && $dismantleItem)
+                                    <h4 class="text-3xl font-bold text-purple-300 medieval-font">+{{ number_format($shardYield) }}</h4>
+                                    <p class="text-xs text-gray-400 mt-2 px-4">Runicznych Odłamków trafi do Twojego schowka na materiały.</p>
+                                @else
+                                    <h4 class="text-lg font-bold text-purple-700/50">? Odłamków</h4>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Bottom Section: Dismantlable Items Inventory -->
+                        <div class="bg-gray-900/60 rounded-xl border border-gray-700/50 p-4 mt-auto">
+                            <h3 class="text-lg font-bold text-purple-400 mb-3 border-b border-gray-700/50 pb-2 medieval-font flex items-center justify-between">
+                                <span>Wybierz przedmiot do przetopienia (tylko broń, zbroje i akcesoria w plecaku)</span>
+                                <span class="text-xs text-gray-400 font-normal">Przedmioty niezałożone</span>
+                            </h3>
+                            <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3 overflow-y-auto custom-scrollbar pr-2 max-h-[450px]">
+                                @forelse($dismantlableItems as $item)
+                                    <div wire:key="dismantle-item-{{ $item->id }}" class="relative" x-data="smartTooltip()"
+                                         :class="{ 'z-50': showInfo, 'z-10': !showInfo }"
+                                         @mouseenter="openTooltip()"
+                                         @mouseleave="closeTooltip()"
+                                         @click="toggleTooltip(); $wire.selectItemForDismantle('{{ $item->id }}')"
+                                         @resize.window.debounce.100ms="updatePosition()"
+                                         @tooltip-updated.window="updatePosition()">
+
+                                        <div class="aspect-square bg-black/80 border {{ $selectedDismantleItemId === $item->id ? 'border-purple-500 ring-2 ring-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.6)]' : \App\Helpers\ItemHelper::getRarityBorderClass($item->rarity ?? 'common') }} rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative {{ \App\Helpers\ItemHelper::isEnchanted($item) ? 'enchanted-effect' : '' }}"
+                                             @if(\App\Helpers\ItemHelper::isEnchanted($item)) {!! \App\Helpers\ItemHelper::getAnimationDelayStyle($item) !!} @endif>
+                                            @if($item->template->icon)
+                                                <div class="w-full h-full p-2 relative flex items-center justify-center">
+                                                    <img src="{{ route('assets.items', ['filename' => $item->template->icon]) }}" class="w-full h-full object-contain drop-shadow-md" alt="{{ $item->template->name }}">
+                                                    <x-item-upgrade-overlay :level="$item->upgrade_level ?? 0" :type="$item->template->type ?? ''" />
+                                                </div>
+                                            @else
+                                                <div class="text-[10px] text-center p-1 truncate w-full">{{ $item->template->name }}</div>
+                                            @endif
+
+                                            <!-- Yield Badge -->
+                                            <div class="absolute -bottom-1 -right-1 bg-purple-900/90 border border-purple-500 text-purple-200 text-[9px] font-bold px-1 py-0.5 rounded shadow backdrop-blur flex items-center gap-0.5">
+                                                <span>+{{ $dismantleYields[$item->id] ?? 1 }}</span>
+                                                <span class="text-[8px]">🔮</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Infobox Przedmiotu w Przetapianiu (teleportowany do <body>) -->
+                                        <template x-teleport="body">
+                                            <div x-show="showInfo" x-transition.opacity x-ref="tooltipContainer" data-tooltip-container
+                                                 :style="tooltipStyle"
+                                                 class="absolute z-[100] bottom-full left-1/2 -translate-x-1/2 mb-2 w-auto pointer-events-auto">
+                                                <x-item-tooltip :item="$item" :equippedItem="$equipped[$item->template->slot ?? ''] ?? null" />
+                                            </div>
+                                        </template>
+                                    </div>
+                                @empty
+                                    <div class="col-span-full text-center text-gray-500 py-4">Brak niezałożonych przedmiotów do przetopienia w plecaku (sprawdź filtr powyżej).</div>
+                                @endforelse
+                            </div>
+                        </div>
                     </div>
                 @endif
             </div>

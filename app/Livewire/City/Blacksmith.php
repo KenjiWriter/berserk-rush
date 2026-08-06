@@ -14,8 +14,9 @@ class Blacksmith extends Component
 {
     public Character $character;
 
-    public string $activeTab = 'forge'; // 'forge', 'crafting'
+    public string $activeTab = 'forge'; // 'forge', 'crafting', 'dismantle'
     public ?string $selectedUpgradeItemId = null;
+    public ?string $selectedDismantleItemId = null;
 
     // Filtr typu/slotu ekwipunku: all, weapon, head, chest, feet, ring, neck
     public string $itemFilter = 'all';
@@ -50,9 +51,20 @@ class Blacksmith extends Component
         $this->activeTab = 'forge';
     }
 
+    public function selectItemForDismantle($itemId)
+    {
+        $this->selectedDismantleItemId = $itemId;
+        $this->activeTab = 'dismantle';
+    }
+
     public function cancelUpgradeSelection()
     {
         $this->selectedUpgradeItemId = null;
+    }
+
+    public function cancelDismantleSelection()
+    {
+        $this->selectedDismantleItemId = null;
     }
 
     public function closeUpgradeModal()
@@ -85,6 +97,29 @@ class Blacksmith extends Component
         $this->character->refresh();
 
         $this->dispatch('stats-updated', gold: $this->character->gold);
+    }
+
+    public function dismantleItem(string $itemInstanceId, \App\Application\Items\DismantleService $dismantleService)
+    {
+        $item = \App\Infrastructure\Persistence\ItemInstance::find($itemInstanceId);
+        if (!$item) {
+            $this->dispatch('notify', type: 'error', message: 'Nie znaleziono przedmiotu.');
+            return;
+        }
+
+        $result = $dismantleService->dismantleItem($this->character, $item);
+
+        if ($result['success']) {
+            $this->dispatch('notify', type: 'success', message: $result['message']);
+            $this->dispatch('play-audio', type: 'upgrade-success');
+            if ($this->selectedDismantleItemId === $itemInstanceId) {
+                $this->selectedDismantleItemId = null;
+            }
+        } else {
+            $this->dispatch('notify', type: 'error', message: $result['message']);
+        }
+
+        $this->character->refresh();
     }
 
     public function craftItem(string $recipeId, CraftingService $craftingService)
@@ -268,9 +303,31 @@ class Blacksmith extends Component
                 ->get()
             : collect();
 
+        // Przedmioty do przetopienia (tylko z plecaka, niezałożone)
+        $dismantlableItems = $this->character->inventoryItems()->whereHas('template', function ($q) {
+            $q->whereIn('type', ['weapon', 'armor', 'accessory']);
+        })->get()->filter(function ($item) {
+            return $this->matchesItemFilter($item->template->type ?? null, $item->template->slot ?? null);
+        });
+        $dismantlableItems = ItemSorter::sort($dismantlableItems);
+
+        $dismantleService = app(\App\Application\Items\DismantleService::class);
+        $dismantleYields = [];
+        foreach ($dismantlableItems as $dItem) {
+            $dismantleYields[$dItem->id] = $dismantleService->calculateShardYield($dItem);
+        }
+
+        $runicTemplate = ItemTemplate::where('name', 'Runiczny Odłamek')->first();
+        $runicShardCount = $runicTemplate
+            ? $inventoryMaterials->where('template_id', $runicTemplate->id)->sum('stack_size')
+            : 0;
+
         return view('livewire.city.blacksmith', [
             'upgradableItems' => $upgradableItems,
             'upgradeCosts' => $upgradeCosts,
+            'dismantlableItems' => $dismantlableItems,
+            'dismantleYields' => $dismantleYields,
+            'runicShardCount' => $runicShardCount,
             'inventoryMaterials' => $inventoryMaterials,
             'recipes' => $preparedRecipes,
             'equipped' => $equipped,

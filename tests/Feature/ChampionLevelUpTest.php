@@ -42,6 +42,15 @@ class ChampionLevelUpTest extends TestCase
                 'source_map_tier' => $tier,
             ]);
         }
+
+        ItemTemplate::firstOrCreate(
+            ['name' => 'Runiczny Odłamek'],
+            [
+                'id' => (string) Str::ulid(),
+                'type' => 'material',
+                'level_requirement' => 1,
+            ]
+        );
     }
 
     public function test_xp_keeps_accumulating_past_old_level_99_cap_up_to_champion_target(): void
@@ -131,6 +140,16 @@ class ChampionLevelUpTest extends TestCase
 
         $character->update(['xp' => $championService->xpTarget()]);
         $character->refresh();
+
+        $runicTemplate = ItemTemplate::where('name', 'Runiczny Odłamek')->first();
+        ItemInstance::create([
+            'id' => (string) Str::ulid(),
+            'template_id' => $runicTemplate->id,
+            'owner_character_id' => $character->id,
+            'user_id' => $character->user_id,
+            'location' => 'material_stash',
+            'stack_size' => 100,
+        ]);
 
         $result = $championService->attemptLevelUp($character);
         $this->assertTrue($result->isOk(), (string) $result->getErrorMessage());

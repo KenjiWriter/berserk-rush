@@ -68,7 +68,6 @@ class CreateMarketListingAction
             return DB::transaction(function () use ($character, $item, $price, $currency, $durationHours, $listingFee, $quantity) {
                 $idempotencyKey = 'market_list:' . $item->id . ':' . Str::ulid();
                 $wasEquipped = $item->location === 'equipped';
-                $isMaterial = $item->location === 'material_stash';
                 $stackSize = (int) ($item->stack_size ?? 1);
 
                 // Deduct listing fee
@@ -88,8 +87,8 @@ class CreateMarketListingAction
                     'created_at'      => now(),
                 ]);
 
-                // Handle stack splitting for materials
-                if ($isMaterial && $quantity < $stackSize) {
+                // Handle stack splitting when listing part of a stack
+                if ($quantity < $stackSize) {
                     // Split: create a new item instance with the sold quantity
                     $listingItem = $item->replicate();
                     $listingItem->id = Str::ulid();

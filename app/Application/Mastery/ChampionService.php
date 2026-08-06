@@ -178,10 +178,18 @@ class ChampionService
     }
 
     /**
+     * Wymagana liczba Runicznych Odłamków na dany poziom Czempiona: 50 + (level * 10).
+     */
+    public function requiredRunicShards(int $currentChampionLevel): int
+    {
+        return 50 + ($currentChampionLevel * 10);
+    }
+
+    /**
      * Próba awansu championa - wymaga JEDNOCZEŚNIE pełnego paska expa (ten sam
      * licznik `character.xp` co zwykłe levelowanie, patrz
-     * LevelUpService::getMaxLevelXpCap()) ORAZ dostarczenia wszystkich
-     * wylosowanych ulepszaczy.
+     * LevelUpService::getMaxLevelXpCap()), dostarczenia wszystkich
+     * wylosowanych ulepszaczy ORAZ posiadania wystarczającej liczby Runicznych Odłamków.
      */
     public function attemptLevelUp(Character $character): Result
     {
@@ -203,8 +211,27 @@ class ChampionService
             }
         }
 
+        $reqShards = $this->requiredRunicShards($character->champion_level ?? 0);
+        $runicTemplate = ItemTemplate::where('name', 'Runiczny Odłamek')->first();
+        $runicItems = $runicTemplate
+            ? ItemInstance::where('owner_character_id', $character->id)
+                ->where('template_id', $runicTemplate->id)
+                ->whereIn('location', ['inventory', 'material_stash'])
+                ->where('stack_size', '>', 0)
+                ->get()
+            : collect();
+
+        $ownedShards = $runicItems->sum('stack_size');
+        if ($ownedShards < $reqShards) {
+            return Result::error('RUNIC_SHARDS_MISSING', "Do awansu wymagane jest {$reqShards} Runicznych Odłamków (posiadasz {$ownedShards}). Przetapiaj ekwipunek u Kowala, aby zdobyć odłamki.");
+        }
+
         try {
-            return DB::transaction(function () use ($character) {
+            return DB::transaction(function () use ($character, $runicItems, $reqShards) {
+                if ($reqShards > 0 && $runicItems->isNotEmpty()) {
+                    self::consumeStackedItems($runicItems, $reqShards);
+                }
+
                 $newLevel = $character->champion_level + 1;
 
                 $character->update([
