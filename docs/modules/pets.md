@@ -98,10 +98,19 @@ seedowana (`database/seeders/PetSeeder.php`) to **18 gatunków** = 3 Rodzaje ×
 ## 4. Etapy Wzrostu (Growth Stage)
 
 Każdy pet ma 4 wewnętrzne stopnie dojrzałości (0-3, `growth_stage`),
-wyliczane z poziomu peta (`config('pets.growth_stage_thresholds')`: stage 0
-od poz. 1, stage 1 od poz. 25, stage 2 od poz. 50, stage 3 "Forma Dorosła" od
-poz. 75). Wizualnie mapowane na 3 warianty grafiki: stage 0 = "baby", stage
-1-2 = "medium", stage 3 = "adult" (`Pet::spriteVariant()`).
+wyliczane z poziomu peta (`config('pets.growth_stage_thresholds')`):
+
+| Stage | Nazwa | Od poziomu | Mnożnik puli staty |
+|---|---|---|---|
+| 0 | Pisklak | 1 | ×1.00 |
+| 1 | Podrostek | 10 | ×1.10 |
+| 2 | Okrzepły | 25 | ×1.22 |
+| 3 | Forma Dorosła | 50 | ×1.35 |
+
+Każdy próg to realny "skok" atrybutów (`config('pets.growth_stage_stat_multiplier')`,
+`PetGrowthStage::statMultiplier()`), nie tylko zmiana nazwy/grafiki - patrz
+wzór w sekcji 8. Wizualnie stopnie mapowane są na 3 warianty grafiki: stage 0
+= "baby", stage 1-2 = "medium", stage 3 = "adult" (`Pet::spriteVariant()`).
 
 ## 5. Fuzja (dawna "Sokowirówka Dusz")
 
@@ -191,12 +200,17 @@ zmian w każdym silniku walki. Redukcja kosztu many jest odczytywana jawnie z
 
 `PetStatCalculator::totalPool(tier, level, fusionCount)`:
 ```
-baza(level) = level * 2.35
-pula = baza(level) * norma_tieru * (1 + fusionCount * 0.10)
+baza(level) = level * 1.175
+etap = PetGrowthStage::forLevel(level)   // patrz sekcja 4
+pula = baza(level) * norma_tieru * (1 + fusionCount * 0.10) * mnożnik_etapu(etap)
 ```
-Pula rozdzielana na str/agi/int/vit wg `stat_profile` (wag wylosowanych przy
-wykluciu/fuzji). Wynik zapisany w `Pet.stats`, przeliczany wyłącznie przez
-`Pet::recalculateStats()` (wołane po karmieniu, fuzji, wykluciu).
+(Wartość bazowa obniżona z `2.35` do `1.175` w ramach rebalansu 2026-08 - pety
+dawały nieproporcjonalnie dużo staty względem postaci na tym samym poziomie;
+`mnożnik_etapu` dokłada realne "skoki" przy progach etapów wzrostu, patrz
+sekcja 4.) Pula rozdzielana na str/agi/int/vit wg `stat_profile` (wag
+wylosowanych przy wykluciu/fuzji). Wynik zapisany w `Pet.stats`, przeliczany
+wyłącznie przez `Pet::recalculateStats()` (wołane po karmieniu, fuzji,
+wykluciu).
 
 ## 9. Karmienie (Leveling & Feeding)
 

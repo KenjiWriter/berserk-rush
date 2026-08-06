@@ -33,11 +33,26 @@ class PetDomainTest extends TestCase
     public function test_growth_stage_thresholds(): void
     {
         $this->assertSame(0, PetGrowthStage::forLevel(1));
-        $this->assertSame(0, PetGrowthStage::forLevel(24));
-        $this->assertSame(1, PetGrowthStage::forLevel(25));
-        $this->assertSame(2, PetGrowthStage::forLevel(50));
-        $this->assertSame(3, PetGrowthStage::forLevel(75));
+        $this->assertSame(0, PetGrowthStage::forLevel(9));
+        $this->assertSame(1, PetGrowthStage::forLevel(10));
+        $this->assertSame(1, PetGrowthStage::forLevel(24));
+        $this->assertSame(2, PetGrowthStage::forLevel(25));
+        $this->assertSame(2, PetGrowthStage::forLevel(49));
+        $this->assertSame(3, PetGrowthStage::forLevel(50));
         $this->assertSame(3, PetGrowthStage::forLevel(99));
+    }
+
+    public function test_growth_stage_labels_and_stat_multiplier(): void
+    {
+        $this->assertSame('Pisklak', PetGrowthStage::label(0));
+        $this->assertSame('Podrostek', PetGrowthStage::label(1));
+        $this->assertSame('Okrzepły', PetGrowthStage::label(2));
+        $this->assertSame('Forma Dorosła', PetGrowthStage::label(3));
+
+        $this->assertEqualsWithDelta(1.00, PetGrowthStage::statMultiplier(0), 0.001);
+        $this->assertEqualsWithDelta(1.10, PetGrowthStage::statMultiplier(1), 0.001);
+        $this->assertEqualsWithDelta(1.22, PetGrowthStage::statMultiplier(2), 0.001);
+        $this->assertEqualsWithDelta(1.35, PetGrowthStage::statMultiplier(3), 0.001);
     }
 
     public function test_growth_stage_sprite_variant_mapping(): void
@@ -69,20 +84,33 @@ class PetDomainTest extends TestCase
 
     public function test_stat_calculator_total_pool_scales_with_tier_norm_and_fusion_count(): void
     {
-        // level 10, tier 1 (norma 100%), fusion_count 0 -> baza czysta.
-        $base = PetStatCalculator::baseStatTotal(10); // 10 * 2.35 = 23.5
-        $this->assertEqualsWithDelta(23.5, $base, 0.001);
+        // level 1 (growth_stage 0, mnożnik etapu 1.0), tier 1 (norma 100%),
+        // fusion_count 0 -> baza czysta, bez wpływu etapu wzrostu.
+        $base = PetStatCalculator::baseStatTotal(1); // 1 * 1.175 = 1.175
+        $this->assertEqualsWithDelta(1.175, $base, 0.001);
 
-        $poolT1 = PetStatCalculator::totalPool(1, 10, 0);
-        $this->assertEqualsWithDelta(23.5, $poolT1, 0.001);
+        $poolT1 = PetStatCalculator::totalPool(1, 1, 0);
+        $this->assertEqualsWithDelta(1.175, $poolT1, 0.001);
 
         // Tier 6 (norma 250%) powinien dawać 2.5x pulę tieru 1.
-        $poolT6 = PetStatCalculator::totalPool(6, 10, 0);
+        $poolT6 = PetStatCalculator::totalPool(6, 1, 0);
         $this->assertEqualsWithDelta($poolT1 * 2.5, $poolT6, 0.001);
 
         // fusion_count=1 dodaje +10% do puli.
-        $poolFused = PetStatCalculator::totalPool(1, 10, 1);
+        $poolFused = PetStatCalculator::totalPool(1, 1, 1);
         $this->assertEqualsWithDelta($poolT1 * 1.10, $poolFused, 0.001);
+    }
+
+    public function test_stat_calculator_total_pool_applies_growth_stage_multiplier(): void
+    {
+        // level 10 -> growth_stage 1 ("Podrostek"), mnożnik 1.10 (patrz
+        // config('pets.growth_stage_stat_multiplier')).
+        $expected = PetStatCalculator::baseStatTotal(10) * 1.10; // 11.75 * 1.10
+        $this->assertEqualsWithDelta($expected, PetStatCalculator::totalPool(1, 10, 0), 0.001);
+
+        // level 50 -> growth_stage 3 ("Forma Dorosła"), mnożnik 1.35.
+        $expected50 = PetStatCalculator::baseStatTotal(50) * 1.35;
+        $this->assertEqualsWithDelta($expected50, PetStatCalculator::totalPool(1, 50, 0), 0.001);
     }
 
     public function test_stat_calculator_distributes_pool_by_profile_weights(): void

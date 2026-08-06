@@ -6,8 +6,10 @@ use App\Infrastructure\RNG\RandomProvider;
 
 /**
  * Wylicza "normę poziomową" peta - bazową pulę punktów statystyk na dany
- * poziom, przemnożoną przez normę tieru oraz bonus za licznik fuzji
- * (`fusion_count`, analogicznie do ulepszeń +0..+9 u Kowala: +10%/poziom).
+ * poziom, przemnożoną przez normę tieru, bonus za licznik fuzji
+ * (`fusion_count`, analogicznie do ulepszeń +0..+9 u Kowala: +10%/poziom) oraz
+ * mnożnik etapu wzrostu (`PetGrowthStage::statMultiplier()` - realny "skok"
+ * atrybutów przy przekroczeniu progu poziomowego etapu, nie tylko kosmetyka).
  * Pula jest następnie rozdzielana na str/agi/int/vit wg wag `stat_profile`
  * wylosowanych raz przy wykluciu/fuzji peta.
  */
@@ -50,7 +52,12 @@ class PetStatCalculator
 
     public static function totalPool(int $tier, int $level, int $fusionCount): float
     {
-        return self::baseStatTotal($level) * PetTier::levelNorm($tier) * self::fusionMultiplier($fusionCount);
+        $stage = PetGrowthStage::forLevel($level);
+
+        return self::baseStatTotal($level)
+            * PetTier::levelNorm($tier)
+            * self::fusionMultiplier($fusionCount)
+            * PetGrowthStage::statMultiplier($stage);
     }
 
     /**

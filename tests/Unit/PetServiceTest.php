@@ -54,16 +54,17 @@ class PetServiceTest extends TestCase
         $character = $this->createTestCharacter();
         $pet = $this->makePet($character, 1, ['level' => 10]);
 
-        // level 10, tier 1 (norma 100%): pula = 10 * 2.35 = 23.5, rozdzielona równo (25% każda) -> round(5.875) = 6.
-        $this->assertSame(6, $pet->stats['str']);
+        // level 10, tier 1 (norma 100%), growth_stage 1 (mnożnik 1.10):
+        // pula = 10 * 1.175 * 1.10 = 12.925, rozdzielona równo (25% każda) -> round(3.23125) = 3.
+        $this->assertSame(3, $pet->stats['str']);
 
         $pet->level = 10;
         $pet->tier = 6; // norma 250%
         $pet->recalculateStats();
         $pet->save();
 
-        // pula = 23.5 * 2.5 = 58.75, /4 = 14.6875 -> round = 15.
-        $this->assertSame(15, $pet->stats['str']);
+        // pula = 12.925 * 2.5 = 32.3125, /4 = 8.078125 -> round = 8.
+        $this->assertSame(8, $pet->stats['str']);
     }
 
     public function test_pet_effective_stats_are_dampened_when_character_level_below_pet_level(): void
@@ -189,8 +190,9 @@ class PetServiceTest extends TestCase
 
         $this->assertDatabaseHas('pets', ['id' => $p1->id]);
         $this->assertDatabaseHas('pets', ['id' => $p2->id]);
-        $this->assertSame(0, $p1->fresh()->growth_stage);
-        $this->assertSame(0, $p2->fresh()->growth_stage);
+        // level 30 -> growth_stage 2 ("Okrzepły"), demote -> level 24 -> growth_stage 1 ("Podrostek").
+        $this->assertSame(1, $p1->fresh()->growth_stage);
+        $this->assertSame(1, $p2->fresh()->growth_stage);
     }
 
     public function test_fusion_service_failure_devolve_one_outcome_demotes_unlucky_pet_only(): void
@@ -211,8 +213,10 @@ class PetServiceTest extends TestCase
 
         $this->assertDatabaseHas('pets', ['id' => $p1->id]);
         $this->assertDatabaseHas('pets', ['id' => $p2->id]);
-        $this->assertSame(1, $p1->fresh()->growth_stage);
-        $this->assertSame(0, $p2->fresh()->growth_stage);
+        // p1 untouched at level 30 -> growth_stage 2. p2 (unlucky) demoted to
+        // level 24 -> growth_stage 1.
+        $this->assertSame(2, $p1->fresh()->growth_stage);
+        $this->assertSame(1, $p2->fresh()->growth_stage);
     }
 
     public function test_fusion_service_rejects_mismatched_tiers(): void
@@ -369,25 +373,25 @@ class PetServiceTest extends TestCase
     public function test_pet_demote_growth_stage_lowers_level_below_current_threshold(): void
     {
         $character = $this->createTestCharacter();
-        $pet = $this->makePet($character, 1, ['level' => 30]); // 25-49 -> growth_stage 1
+        $pet = $this->makePet($character, 1, ['level' => 30]); // 25-49 -> growth_stage 2
 
-        $this->assertSame(1, $pet->growth_stage);
+        $this->assertSame(2, $pet->growth_stage);
 
         $pet->demoteGrowthStage();
 
         $this->assertSame(24, $pet->level);
-        $this->assertSame(0, $pet->growth_stage);
+        $this->assertSame(1, $pet->growth_stage);
         $this->assertSame(0, $pet->exp);
     }
 
     public function test_pet_demote_growth_stage_is_noop_at_stage_zero(): void
     {
         $character = $this->createTestCharacter();
-        $pet = $this->makePet($character, 1, ['level' => 10]); // growth_stage 0
+        $pet = $this->makePet($character, 1, ['level' => 5]); // 1-9 -> growth_stage 0
 
         $pet->demoteGrowthStage();
 
-        $this->assertSame(10, $pet->level);
+        $this->assertSame(5, $pet->level);
         $this->assertSame(0, $pet->growth_stage);
     }
 

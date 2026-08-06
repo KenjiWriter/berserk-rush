@@ -80,17 +80,30 @@ return [
     // 2 w pełni dorosłe pety (growth_stage 3 + 3 = 6 ewolucji) dają +20%.
     'fusion_growth_stage_bonus_percent' => 3.3333,
 
-    // Progi poziomowe wizualnych/mechanicznych etapów wzrostu peta (te same dla każdego tieru).
+    // Progi poziomowe etapów wzrostu peta (te same dla każdego tieru).
     // stage => minimalny poziom peta, by uznać ten etap za osiągnięty.
     'growth_stage_thresholds' => [
-        0 => 1,
-        1 => 25,
-        2 => 50,
-        3 => 75, // "Forma Dorosła"
+        0 => 1,  // Pisklak
+        1 => 10, // Podrostek
+        2 => 25, // Okrzepły
+        3 => 50, // Forma Dorosła
     ],
 
-    // Bazowa pula staty peta na poziom (przed mnożnikiem tieru/fuzji).
-    'base_stat_per_level' => 2.35,
+    // Mnożnik puli staty peta za osiągnięty etap wzrostu - realny "skok"
+    // atrybutów przy przekroczeniu progu (nie tylko kosmetyka), stosowany
+    // OBOK bazowej krzywej poziomowej (base_stat_per_level) w
+    // PetStatCalculator::totalPool(). Klucz = growth_stage (0-3).
+    'growth_stage_stat_multiplier' => [
+        0 => 1.00,
+        1 => 1.10,
+        2 => 1.22,
+        3 => 1.35,
+    ],
+
+    // Bazowa pula staty peta na poziom (przed mnożnikiem tieru/fuzji/etapu).
+    // Obniżone o ~50% (2.35 -> 1.175) - pety dawały nieproporcjonalnie dużo
+    // staty względem postaci na tym samym poziomie.
+    'base_stat_per_level' => 1.175,
 
     // % dodatkowej puli staty ORAZ % dodatkowego wymaganego EXP na każdy punkt fusion_count.
     'fusion_count_bonus_percent' => 10,

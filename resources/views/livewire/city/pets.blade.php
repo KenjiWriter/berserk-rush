@@ -26,9 +26,10 @@
 
             <div class="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                 <button wire:click="toggleInfoModal"
-                    class="min-h-[44px] w-11 h-11 flex items-center justify-center bg-black/80 border border-sky-600/50 rounded-lg text-sky-300 hover:text-sky-100 hover:border-sky-400 transition-colors shadow-inner"
-                    title="Poradnik chowańców">
+                    class="min-h-[44px] flex items-center gap-2 bg-black/80 border border-sky-600/50 rounded-lg text-sky-300 hover:text-sky-100 hover:border-sky-400 transition-colors shadow-inner px-4"
+                    title="Opis mechanik chowańców">
                     <i class="fa-solid fa-circle-info text-lg"></i>
+                    <span class="text-sm font-bold">Opis mechanik</span>
                 </button>
                 <button wire:click="backToHub"
                     class="min-h-[44px] bg-gradient-to-b from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 border border-slate-500 text-amber-200 font-bold py-2.5 px-6 rounded-lg transition-all duration-200 shadow-[0_4px_15px_rgba(0,0,0,0.5)] medieval-font flex items-center justify-center">
@@ -655,92 +656,242 @@
     {{-- INFO MODAL --}}
     @if($showInfoModal)
         <div class="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/80 backdrop-blur-md p-4 animate-fade-in">
-            <div class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-sky-500/50 rounded-2xl max-w-3xl w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] relative max-h-[90vh] flex flex-col">
+            <div x-data="{ infoTab: 'tiers' }" class="bg-gradient-to-b from-stone-900 via-slate-900 to-stone-950 border-2 border-sky-500/50 rounded-2xl max-w-4xl w-full p-6 shadow-[0_0_50px_rgba(0,0,0,0.9)] relative max-h-[90vh] flex flex-col">
                 <button wire:click="toggleInfoModal" class="absolute top-4 right-4 text-stone-400 hover:text-white text-xl">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
 
                 <h3 class="text-lg font-bold text-sky-200 mb-4 flex items-center gap-2" style="font-family: 'Cinzel', serif;">
-                    <i class="fa-solid fa-circle-info"></i> Poradnik Chowańców
+                    <i class="fa-solid fa-circle-info"></i> Opis Mechanik Chowańców
                 </h3>
 
-                <div class="flex-1 overflow-y-auto pr-2 space-y-6 text-xs text-stone-300">
-                    <div>
-                        <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Szansa na wyklucie</h4>
-                        <p class="mb-2">Tier jajka wpływa na szansę wyklucia konkretnego tieru chowańca:</p>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-[11px] border-collapse">
-                                <thead>
-                                    <tr class="border-b border-stone-700 text-stone-400">
-                                        <th class="text-left py-1 pr-2">Jajko \ Pet</th>
+                @php
+                    $infoTabBtn = 'px-3 py-1.5 rounded-lg border text-[11px] sm:text-xs font-bold uppercase tracking-wide transition-colors whitespace-nowrap';
+                    $infoTabActive = 'bg-sky-600/20 text-sky-200 border-sky-500/60';
+                    $infoTabInactive = 'text-stone-400 border-transparent hover:text-stone-200 hover:bg-stone-800/60';
+                @endphp
+
+                {{-- Zakładki --}}
+                <div class="flex flex-wrap gap-2 mb-4 border-b border-stone-800 pb-3">
+                    <button @click="infoTab = 'tiers'" :class="infoTab === 'tiers' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-egg mr-1"></i> Tiery i Wyklucie
+                    </button>
+                    <button @click="infoTab = 'growth'" :class="infoTab === 'growth' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-seedling mr-1"></i> Wzrost
+                    </button>
+                    <button @click="infoTab = 'fusion'" :class="infoTab === 'fusion' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-code-merge mr-1"></i> Fuzja
+                    </button>
+                    <button @click="infoTab = 'archetype'" :class="infoTab === 'archetype' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-shield-halved mr-1"></i> Pasywka Rodzaju
+                    </button>
+                    <button @click="infoTab = 'feeding'" :class="infoTab === 'feeding' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-drumstick-bite mr-1"></i> Karmienie
+                    </button>
+                    <button @click="infoTab = 'other'" :class="infoTab === 'other' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-ellipsis mr-1"></i> Pozostałe
+                    </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
+
+                    {{-- TIERY I WYKLUCIE --}}
+                    <div x-show="infoTab === 'tiers'" class="space-y-6">
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Tiery</h4>
+                            <p class="mb-2">6 tierów chowańców - wyższy tier to więcej staty na tym samym poziomie oraz dłuższy czas wyklucia jajka.</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Tier</th>
+                                            <th class="py-1 px-1">Czas wyklucia</th>
+                                            <th class="py-1 px-1">Norma staty</th>
+                                            <th class="py-1 px-1">Karmienie od poz.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
                                         @foreach($tiers as $t => $meta)
-                                            <th class="py-1 px-1">{{ $meta['name'] }}</th>
+                                            <tr class="border-b border-stone-800">
+                                                <td class="py-1 pr-2 font-bold text-amber-200">{{ $meta['name'] }}</td>
+                                                <td class="py-1 px-1 text-center">{{ rtrim(rtrim(number_format($meta['hatch_hours'], 1), '0'), '.') }}h</td>
+                                                <td class="py-1 px-1 text-center">{{ number_format($meta['level_norm'] * 100, 0) }}%</td>
+                                                <td class="py-1 px-1 text-center">{{ $meta['feed_level_min'] }}+</td>
+                                            </tr>
                                         @endforeach
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach(config('pets.hatch_matrix') as $eggTier => $dist)
-                                        <tr class="border-b border-stone-800">
-                                            <td class="py-1 pr-2 font-bold text-amber-200">{{ $tiers[$eggTier]['name'] }}</td>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-amber-300 font-bold mb-2 uppercase tracking-wider">Szansa na wyklucie</h4>
+                            <p class="mb-2">Tier jajka wpływa na szansę wyklucia konkretnego tieru chowańca - wynik NIE jest gwarantowany, wyższy tier jajka tylko podnosi szanse:</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Jajko \ Pet</th>
                                             @foreach($tiers as $t => $meta)
-                                                <td class="py-1 px-1 text-center">{{ isset($dist[$t]) ? $dist[$t].'%' : '—' }}</td>
+                                                <th class="py-1 px-1">{{ $meta['name'] }}</th>
                                             @endforeach
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @foreach(config('pets.hatch_matrix') as $eggTier => $dist)
+                                            <tr class="border-b border-stone-800">
+                                                <td class="py-1 pr-2 font-bold text-amber-200">{{ $tiers[$eggTier]['name'] }}</td>
+                                                @foreach($tiers as $t => $meta)
+                                                    <td class="py-1 px-1 text-center">{{ isset($dist[$t]) ? $dist[$t].'%' : '—' }}</td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
-                    <div>
-                        <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Fuzja</h4>
-                        <p>2 pety tego samego tieru → 1 pet o tier wyższy. Bazowa szansa sukcesu rośnie z dojrzałością obu petów (+{{ config('pets.fusion_growth_stage_bonus_percent') }}% za każdą "ewolucję" osiągniętą przez którykolwiek z nich, max +20% gdy oba są "Formą Dorosłą"). Każda próba kosztuje złoto zależne od tieru wejściowego.</p>
-                        <ul class="mt-2 space-y-1">
-                            @foreach(config('pets.fusion_base_chance') as $tier => $chance)
-                                <li>{{ $tiers[$tier]['name'] }} + {{ $tiers[$tier]['name'] }} → {{ $tiers[$tier + 1]['name'] }}: bazowo <strong class="text-emerald-400">{{ $chance }}%</strong>, koszt <strong class="text-yellow-300">{{ number_format((int) config("pets.fusion_cost_gold.{$tier}", 0)) }} złota</strong></li>
-                            @endforeach
-                        </ul>
-                        <p class="mt-3 mb-1">Wynik nieudanej fuzji jest zawsze losowany na podstawie prawdopodobieństwa — nigdy nie wybierasz go sam:</p>
-                        <ul class="space-y-1">
-                            @php
-                                $failureLabels = [
-                                    'lose_both' => 'Utrata dwóch petów',
-                                    'lose_one' => 'Utrata jednego peta',
-                                    'devolve_both' => 'Cofnięcie rozwoju dwóch petów',
-                                    'devolve_one' => 'Cofnięcie rozwoju jednego peta',
-                                    'no_loss' => 'Brak utraty petów',
-                                ];
-                            @endphp
-                            @foreach(config('pets.fusion_failure_outcomes', []) as $outcome => $chance)
-                                <li>{{ $failureLabels[$outcome] ?? $outcome }}: <strong class="text-red-400">{{ $chance }}%</strong></li>
-                            @endforeach
-                        </ul>
+                    {{-- WZROST --}}
+                    <div x-show="infoTab === 'growth'" class="space-y-6">
+                        <div>
+                            <h4 class="text-lime-300 font-bold mb-2 uppercase tracking-wider">Etapy Wzrostu</h4>
+                            <p class="mb-2">Każdy pet dojrzewa w 4 etapach wyliczanych wyłącznie z jego poziomu. Przekroczenie progu to realny skok puli statystyk - nie tylko zmiana wyglądu:</p>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-[11px] border-collapse">
+                                    <thead>
+                                        <tr class="border-b border-stone-700 text-stone-400">
+                                            <th class="text-left py-1 pr-2">Etap</th>
+                                            <th class="py-1 px-1">Od poziomu</th>
+                                            <th class="py-1 px-1">Mnożnik puli staty</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach(config('pets.growth_stage_thresholds', []) as $stage => $minLevel)
+                                            <tr class="border-b border-stone-800">
+                                                <td class="py-1 pr-2 font-bold text-lime-200">{{ \App\Domain\Pets\PetGrowthStage::label((int) $stage) }}</td>
+                                                <td class="py-1 px-1 text-center">{{ $minLevel }}+</td>
+                                                <td class="py-1 px-1 text-center">×{{ number_format((float) config("pets.growth_stage_stat_multiplier.{$stage}", 1), 2) }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="mt-2 text-stone-400">Wizualnie: Pisklak - grafika "baby", Podrostek/Okrzepły - "medium", Forma Dorosła - "adult". Forma Dorosła jest też wymagana do maksymalnego bonusu przy Fuzji (patrz zakładka "Fuzja").</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-lime-300 font-bold mb-2 uppercase tracking-wider">Pula statystyk</h4>
+                            <p>Pula punktów str/agi/int/vit do rozdzielenia zależy od poziomu, tieru, licznika fuzji ORAZ etapu wzrostu:</p>
+                            <p class="mt-2 font-mono text-[11px] text-amber-200 bg-black/40 rounded-lg px-3 py-2">pula = poziom × {{ config('pets.base_stat_per_level') }} × norma_tieru × (1 + fuzje × {{ config('pets.fusion_count_bonus_percent') }}%) × mnożnik_etapu</p>
+                            <p class="mt-2 text-stone-400">Pula rozdzielana jest losowo między str/agi/int/vit w momencie wyklucia/fuzji peta (wagi ustalone raz na peta, nie zmieniają się później).</p>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Pasywka Rodzaju</h4>
-                        <p class="mb-2">Każdy pet powstały z fuzji (fusion_count &gt; 0) i ustawiony jako aktywny towarzysz daje pasywny bonus bojowy zależny od jego Rodzaju, tieru i licznika fuzji: <strong class="text-amber-300">bonus% = fusion_count × {{ config('pets.fusion_count_archetype_bonus_percent', 1) }}% × tier</strong> (tłumiony poziomem tak samo jak reszta staty peta).</p>
-                        <ul class="space-y-1">
-                            @foreach(\App\Domain\Pets\PetArchetype::all() as $archetype)
-                                <li><strong class="text-amber-200">{{ \App\Domain\Pets\PetArchetype::label($archetype) }}</strong>: {{ \App\Domain\Pets\PetArchetype::passiveDescription($archetype) }}</li>
-                            @endforeach
-                        </ul>
+                    {{-- FUZJA --}}
+                    <div x-show="infoTab === 'fusion'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Fuzja</h4>
+                            <p>2 pety tego samego tieru → 1 pet o tier wyższy. Bazowa szansa sukcesu rośnie z dojrzałością obu petów (+{{ config('pets.fusion_growth_stage_bonus_percent') }}% za każdą "ewolucję" osiągniętą przez którykolwiek z nich, max +20% gdy oba są "Formą Dorosłą"). Każda próba kosztuje złoto zależne od tieru wejściowego.</p>
+                            <ul class="mt-2 space-y-1">
+                                @foreach(config('pets.fusion_base_chance') as $tier => $chance)
+                                    <li>{{ $tiers[$tier]['name'] }} + {{ $tiers[$tier]['name'] }} → {{ $tiers[$tier + 1]['name'] }}: bazowo <strong class="text-emerald-400">{{ $chance }}%</strong>, koszt <strong class="text-yellow-300">{{ number_format((int) config("pets.fusion_cost_gold.{$tier}", 0)) }} złota</strong></li>
+                                @endforeach
+                            </ul>
+                            <p class="mt-3 mb-1">Wynik nieudanej fuzji jest zawsze losowany na podstawie prawdopodobieństwa — nigdy nie wybierasz go sam:</p>
+                            <ul class="space-y-1">
+                                @php
+                                    $failureLabels = [
+                                        'lose_both' => 'Utrata dwóch petów',
+                                        'lose_one' => 'Utrata jednego peta',
+                                        'devolve_both' => 'Cofnięcie rozwoju dwóch petów',
+                                        'devolve_one' => 'Cofnięcie rozwoju jednego peta',
+                                        'no_loss' => 'Brak utraty petów',
+                                    ];
+                                @endphp
+                                @foreach(config('pets.fusion_failure_outcomes', []) as $outcome => $chance)
+                                    <li>{{ $failureLabels[$outcome] ?? $outcome }}: <strong class="text-red-400">{{ $chance }}%</strong></li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Licznik Fuzji ("+1"/"+2"/...)</h4>
+                            <p>Niezależny od tieru licznik ile razy dany pet powstał z fuzji (0 dla wyklutych bezpośrednio z jajka). Każdy punkt licznika daje:</p>
+                            <ul class="mt-2 space-y-1">
+                                <li>+<strong class="text-emerald-400">{{ config('pets.fusion_count_bonus_percent') }}%</strong> do puli statystyk peta</li>
+                                <li>+<strong class="text-red-400">{{ config('pets.fusion_count_bonus_percent') }}%</strong> do wymaganego EXP na poziom</li>
+                                <li>+<strong class="text-rose-300">{{ config('pets.fusion_count_archetype_bonus_percent', 1) }}% × tier</strong> do pasywki Rodzaju (patrz zakładka "Pasywka Rodzaju")</li>
+                            </ul>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 class="text-emerald-300 font-bold mb-2 uppercase tracking-wider">Karmienie</h4>
-                        <p class="mb-2">Każdy tier chowańca przyjmuje przedmioty od określonego minimalnego poziomu wzwyż (mocniejszy przedmiot zawsze można skarmić):</p>
-                        <ul class="space-y-1">
-                            @foreach($tiers as $t => $meta)
-                                <li>{{ $meta['name'] }}: od poz. <strong class="text-amber-300">{{ $meta['feed_level_min'] }}+</strong></li>
-                            @endforeach
-                        </ul>
+                    {{-- PASYWKA RODZAJU --}}
+                    <div x-show="infoTab === 'archetype'" class="space-y-6">
+                        <div>
+                            <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Pasywka Rodzaju</h4>
+                            <p class="mb-2">Każdy pet powstały z fuzji (fusion_count &gt; 0) i ustawiony jako aktywny towarzysz daje pasywny bonus bojowy zależny od jego Rodzaju, tieru i licznika fuzji: <strong class="text-amber-300">bonus% = fusion_count × {{ config('pets.fusion_count_archetype_bonus_percent', 1) }}% × tier</strong> (tłumiony poziomem tak samo jak reszta staty peta).</p>
+                            <ul class="space-y-1">
+                                @foreach(\App\Domain\Pets\PetArchetype::all() as $archetype)
+                                    <li><strong class="text-amber-200">{{ \App\Domain\Pets\PetArchetype::label($archetype) }}</strong>: {{ \App\Domain\Pets\PetArchetype::passiveDescription($archetype) }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
 
-                    <div>
-                        <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Moc peta względem poziomu postaci</h4>
-                        <p>Jeśli pet ma wyższy poziom niż Twoja postać, jego wkład do statystyk jest tłumiony proporcjonalnie (poziom postaci / poziom peta). Pet zawsze można założyć, karmić i sprzedać niezależnie od poziomu.</p>
+                    {{-- KARMIENIE --}}
+                    <div x-show="infoTab === 'feeding'" class="space-y-6">
+                        <div>
+                            <h4 class="text-emerald-300 font-bold mb-2 uppercase tracking-wider">Karmienie</h4>
+                            <p class="mb-2">Każdy tier chowańca przyjmuje przedmioty od określonego minimalnego poziomu wzwyż (mocniejszy przedmiot zawsze można skarmić, brak górnej granicy):</p>
+                            <ul class="space-y-1">
+                                @foreach($tiers as $t => $meta)
+                                    <li>{{ $meta['name'] }}: od poz. <strong class="text-amber-300">{{ $meta['feed_level_min'] }}+</strong></li>
+                                @endforeach
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-emerald-300 font-bold mb-2 uppercase tracking-wider">EXP z przedmiotu</h4>
+                            <p class="font-mono text-[11px] text-amber-200 bg-black/40 rounded-lg px-3 py-2">EXP = wymagany poziom przedmiotu × mnożnik rzadkości</p>
+                            <ul class="mt-2 space-y-1">
+                                <li>Zwykły: ×1.0</li>
+                                <li>Niezwykły: ×1.25</li>
+                                <li>Rzadki: ×1.5</li>
+                                <li>Epicki: ×2.0</li>
+                                <li>Legendarny: ×3.0</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-emerald-300 font-bold mb-2 uppercase tracking-wider">Wymagany EXP na poziom</h4>
+                            <p class="font-mono text-[11px] text-amber-200 bg-black/40 rounded-lg px-3 py-2">wymagany EXP = poziom × {{ config('pets.exp_per_level_base') }} × (1 + fuzje × {{ config('pets.fusion_count_bonus_percent') }}%)</p>
+                        </div>
                     </div>
+
+                    {{-- POZOSTAŁE --}}
+                    <div x-show="infoTab === 'other'" class="space-y-6">
+                        <div>
+                            <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Moc peta względem poziomu postaci</h4>
+                            <p>Jeśli pet ma wyższy poziom niż Twoja postać, jego wkład do statystyk (i pasywki Rodzaju) jest tłumiony proporcjonalnie: mnożnik = min(1, poziom postaci / poziom peta). Pet zawsze można założyć, karmić, fuzjonować i sprzedać niezależnie od poziomu.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Ekwipunek Peta</h4>
+                            <p>Aktywny towarzysz ma 2 własne sloty ekwipunku, niezależne od ekwipunku postaci: <strong class="text-amber-200">Obroża</strong> i <strong class="text-amber-200">Charm</strong> - dają płaski bonus do staty (NIE tłumiony poziomem) albo, w przypadku niektórych charmów, zwiększają limit posiadanych petów.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Aktywny Towarzysz</h4>
+                            <p>Tylko 1 pet może być aktywnym towarzyszem naraz - tylko on dolicza staty i Combat Power do postaci. Ustawienie nowego towarzysza automatycznie zdejmuje poprzedniego.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-cyan-300 font-bold mb-2 uppercase tracking-wider">Rynek</h4>
+                            <p>Pety można wystawiać na sprzedaż na tym samym Rynku co przedmioty - warunkiem jest brak aktywnego towarzysza i pusty ekwipunek (obroża/charm). Brak ograniczenia poziomem przy kupnie/sprzedaży.</p>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>

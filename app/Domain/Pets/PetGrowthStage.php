@@ -3,8 +3,11 @@
 namespace App\Domain\Pets;
 
 /**
- * Wizualne/mechaniczne etapy dojrzewania peta (0-3), niezależne od tieru.
- * Stage 3 = "Forma Dorosła", wymagana do maksymalnego bonusu przy fuzji.
+ * Etapy dojrzewania peta (0-3, progi w `config('pets.growth_stage_thresholds')`
+ * - domyślnie poziomy 1/10/25/50), niezależne od tieru. Stage 3 = "Forma
+ * Dorosła", wymagana do maksymalnego bonusu przy fuzji. Każdy etap daje też
+ * realny mnożnik puli staty (`config('pets.growth_stage_stat_multiplier')`,
+ * patrz PetStatCalculator::totalPool()), nie tylko zmianę grafiki/nazwy.
  * 3 realne warianty grafiki (baby/medium/adult) pokrywają 4 wewnętrzne
  * stopnie (1 i 2 dzielą wariant "medium") - patrz spriteVariant().
  */
@@ -39,8 +42,16 @@ class PetGrowthStage
     {
         return match (true) {
             $stage <= 0 => 'Pisklak',
+            $stage === 1 => 'Podrostek',
             $stage >= self::MAX_STAGE => 'Forma Dorosła',
-            default => 'Podrostek',
+            default => 'Okrzepły',
         };
+    }
+
+    public static function statMultiplier(int $stage): float
+    {
+        $multipliers = config('pets.growth_stage_stat_multiplier', []);
+
+        return (float) ($multipliers[$stage] ?? 1.0);
     }
 }
