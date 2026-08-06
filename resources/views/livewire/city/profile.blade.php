@@ -1922,6 +1922,35 @@
             border-width: 2px;
         }
 
+        /* Magical Enchantment Shimmer */
+        @keyframes enchantedShimmer {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(120%); }
+        }
+        .enchanted-shimmer-wrapper {
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .enchanted-shimmer-beam {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                115deg,
+                transparent 0%,
+                transparent 30%,
+                rgba(236, 190, 254, 0.45) 50%,
+                transparent 70%,
+                transparent 100%
+            );
+            animation: enchantedShimmer 4s infinite linear;
+        }
+
         /* Keyframes dla Magicznej Cieczy w Pasku XP */
         @keyframes xpLiquidFlow {
             0% { background-position: 0% 50%; }
