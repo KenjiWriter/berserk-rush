@@ -76,17 +76,37 @@ class CraftingService
                 $rollStats = $this->generateBonusStats($template, $rarity);
             }
 
-            // Create result item
-            $newItem = ItemInstance::create([
-                'id' => (string) Str::ulid(),
-                'template_id' => $recipe->result_item_template_id,
-                'owner_character_id' => $character->id,
-                'location' => 'inventory',
-                'rarity' => $rarity,
-                'stack_size' => 1,
-                'roll_stats' => $rollStats,
-                'rolled_stats' => $rolledStats,
-            ]);
+            // Create result item. Consumables/materials (unlike weapon/armor/
+            // accessory, which always roll their own unique stats) stack onto an
+            // existing inventory instance of the same template instead of always
+            // opening a new backpack slot - mirrors ShopService::buyItem().
+            $isUniqueGear = in_array($template->type, ['weapon', 'armor', 'accessory']);
+            $newItem = null;
+
+            if (!$isUniqueGear) {
+                $newItem = ItemInstance::where('owner_character_id', $character->id)
+                    ->where('template_id', $recipe->result_item_template_id)
+                    ->where('location', 'inventory')
+                    ->where('rarity', $rarity)
+                    ->first();
+
+                if ($newItem) {
+                    $newItem->increment('stack_size');
+                }
+            }
+
+            if (!$newItem) {
+                $newItem = ItemInstance::create([
+                    'id' => (string) Str::ulid(),
+                    'template_id' => $recipe->result_item_template_id,
+                    'owner_character_id' => $character->id,
+                    'location' => 'inventory',
+                    'rarity' => $rarity,
+                    'stack_size' => 1,
+                    'roll_stats' => $rollStats,
+                    'rolled_stats' => $rolledStats,
+                ]);
+            }
 
             // Ledger
             ItemLedger::create([

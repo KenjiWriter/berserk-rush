@@ -206,9 +206,13 @@ class RecipeSeeder extends Seeder
                 'result_name' => 'Duży Eliksir Życia (L)',
                 'result_id' => 'potion-hp-l',
                 'ingredients' => [
+                    // Zamierzone (2026-08-06): usunięta 'Gruba Skóra Trolla' (drop
+                    // specyficzny tylko dla Trolli, nie 'general' z mapy) - mikstury
+                    // HP do lochów mają zostać łatwe do wykraftowania, więc L-tier
+                    // trzyma się wyłącznie pospolitych, ogólnych surowców z mapy
+                    // Bagna Grozy/Jaskini Trolli (jak Duży Eliksir Many).
                     ['name' => 'Bagienne Zioło', 'quantity' => 5],
-                    ['name' => 'Błyszczący Grzyb', 'quantity' => 4],
-                    ['name' => 'Gruba Skóra Trolla', 'quantity' => 2],
+                    ['name' => 'Błyszczący Grzyb', 'quantity' => 3],
                 ],
                 'gold_cost' => 1000,
             ],
