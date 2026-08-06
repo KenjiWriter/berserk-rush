@@ -511,9 +511,11 @@ class Character extends Model
         $spentSkillPoints = 0;
         foreach ($unlockedSkills as $cs) {
             $unlockCost = $cs->skill->unlock_cost ?? 1;
-            // Punkty umiejętności (SP) inwestuje się wyłącznie do 17 poziomu.
-            // Poziomy M, G, P rozwijane są za pomocą Ksiąg Umiejętności i Kamieni Duchowych.
-            $spUpgrades = max(0, min(17, $cs->level) - 1);
+            // Rebalans 2026-08-06: próg M1 obniżony z poziomu 18 na 7 (patrz
+            // CharacterCombatSkill::getTier()) - PKT inwestuje się wyłącznie do 6
+            // poziomu. Poziomy M, G, P rozwijane są za pomocą Ksiąg Umiejętności i
+            // Kamieni Duchowych.
+            $spUpgrades = max(0, min(6, $cs->level) - 1);
             $spentSkillPoints += ($unlockCost + $spUpgrades);
         }
 

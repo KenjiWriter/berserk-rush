@@ -52,15 +52,22 @@ class CharacterCombatSkill extends Model
         return max(0, (int) round($baseCost * (1 - $reductionPct / 100)));
     }
 
+    /**
+     * Rebalans 2026-08-06 (zgłoszenie gracza): próg M1 obniżony z poziomu 18 na 7 -
+     * przy 3 PKT/poziom postaci osiąganie starego progu (16 zakupów za same punkty)
+     * wymagało budżetu niemożliwego do zebrania nawet do 99 poziomu (patrz
+     * UpgradeSkill::execute() - etapy Mistrza/Arcymistrza bez zmian, tylko etap
+     * podstawowy skrócony z 16 do 5 zakupów za PKT).
+     */
     public function getTier(): string
     {
-        if ($this->level >= 38) {
+        if ($this->level >= 27) {
             return 'perfect';
         }
-        if ($this->level >= 28) {
+        if ($this->level >= 17) {
             return 'grand_master';
         }
-        if ($this->level >= 18) {
+        if ($this->level >= 7) {
             return 'master';
         }
 
@@ -73,15 +80,15 @@ class CharacterCombatSkill extends Model
 
         return match ($tier) {
             'perfect' => 'P',
-            'grand_master' => 'G' . ($this->level - 27),
-            'master' => 'M' . ($this->level - 17),
+            'grand_master' => 'G' . ($this->level - 16),
+            'master' => 'M' . ($this->level - 6),
             default => 'Lv. ' . $this->level,
         };
     }
 
     public function getEffectiveLevel(): int
     {
-        return min(38, max(1, $this->level));
+        return min(27, max(1, $this->level));
     }
 
     public function getCooldown(): int

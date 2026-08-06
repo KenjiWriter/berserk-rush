@@ -35,12 +35,12 @@ class UpgradeSkill
 
                 $currentLevel = $charSkill->level;
 
-                if ($currentLevel >= 38) {
+                if ($currentLevel >= 27) {
                     return Result::error('MAX_LEVEL_REACHED', 'Osiągnięto maksymalny poziom tej umiejętności (Perfect P).');
                 }
 
-                // 1. Etap Podstawowy (Poziomy 1 -> 17 za Skill Points)
-                if ($currentLevel < 17) {
+                // 1. Etap Podstawowy (Poziomy 1 -> 6 za Skill Points)
+                if ($currentLevel < 6) {
                     $cost = 1;
                     if ($character->skill_points < $cost) {
                         return Result::error('NOT_ENOUGH_POINTS', "Brak punktów umiejętności. Wymagane: {$cost} PKT.");
@@ -55,17 +55,17 @@ class UpgradeSkill
                     $charSkill->increment('level');
                     $charSkill->refresh();
 
-                    $msg = $charSkill->level === 17
-                        ? 'Umiejętność osiągnęła poziom 17 i awansowała na stopień Mistrza (M1)!'
+                    $msg = $charSkill->level === 6
+                        ? 'Umiejętność osiągnęła poziom 6 i awansowała na stopień Mistrza (M1)!'
                         : "Ulepszono umiejętność na poziom {$charSkill->getDisplayLevel()}!";
 
                     return Result::ok(['message' => $msg]);
                 }
 
-                // 2. Etap Mistrza (M1 -> M10: Poziomy 17 -> 26 za Księgi Umiejętności + Gold)
+                // 2. Etap Mistrza (M1 -> M10: Poziomy 6 -> 15 za Księgi Umiejętności + Gold)
                 // Koszt rośnie z każdym stopniem: M1=1 księga, M2=2 księgi, ..., M10=10 ksiąg.
-                if ($currentLevel >= 17 && $currentLevel < 27) {
-                    $bookCost = $currentLevel - 16;
+                if ($currentLevel >= 6 && $currentLevel < 16) {
+                    $bookCost = $currentLevel - 5;
                     $goldCost = 500;
                     if ($character->gold < $goldCost) {
                         return Result::error('NOT_ENOUGH_GOLD', "Brak złota. Wymagane: {$goldCost} Gold.");
@@ -105,18 +105,18 @@ class UpgradeSkill
                     $charSkill->increment('level');
                     $charSkill->refresh();
 
-                    $msg = $charSkill->level === 27
+                    $msg = $charSkill->level === 16
                         ? "Pomyślnie przeczytano {$bookName}! Skill osiągnął M10 i awansował na Arcymistrza (G1)!"
                         : "Przeczytano {$bookName}! Skill awansował na {$charSkill->getDisplayLevel()}!";
 
                     return Result::ok(['message' => $msg]);
                 }
 
-                // 3. Etap Arcymistrza (G1 -> G10 / P: Poziomy 27 -> 37 za Kamienie Duchowe + Gold)
+                // 3. Etap Arcymistrza (G1 -> G10 / P: Poziomy 16 -> 26 za Kamienie Duchowe + Gold)
                 // Koszt rośnie liniowo z każdym stopniem: G1=1 kamień, ..., G10->P=5 kamieni.
-                if ($currentLevel >= 27 && $currentLevel < 38) {
-                    $stoneCost = (int) round(1 + ($currentLevel - 27) * 4 / 9);
-                    $goldCost = $currentLevel === 37 ? 10000 : 2500;
+                if ($currentLevel >= 16 && $currentLevel < 27) {
+                    $stoneCost = (int) round(1 + ($currentLevel - 16) * 4 / 9);
+                    $goldCost = $currentLevel === 26 ? 10000 : 2500;
                     if ($character->gold < $goldCost) {
                         return Result::error('NOT_ENOUGH_GOLD', "Brak złota. Wymagane: {$goldCost} Gold.");
                     }
@@ -151,7 +151,7 @@ class UpgradeSkill
                     $charSkill->increment('level');
                     $charSkill->refresh();
 
-                    $msg = $charSkill->level >= 38
+                    $msg = $charSkill->level >= 27
                         ? 'Niesamowite! Kamień Duchowy obudził potęgę - umiejętność osiągnęła poziom PERFECT (P)!'
                         : "Użyto Kamienia Duchowego! Skill awansował na {$charSkill->getDisplayLevel()}!";
 

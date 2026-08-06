@@ -89,11 +89,13 @@ class CombatSkillPointsTest extends TestCase
         $character->syncMissingPoints();
 
         // Level 30 -> 29 * 3 = 87 earned points.
-        // Spent: unlockCost (5) + max SP upgrades min(17, 100)-1 (16) = 21 points. Remaining: 87 - 21 = 66 points.
-        $this->assertEquals(66, $character->fresh()->skill_points);
+        // Rebalans 2026-08-06: próg M1 obniżony z poziomu 17 na 6 (patrz
+        // Character::syncMissingPoints() / CharacterCombatSkill::getTier()).
+        // Spent: unlockCost (5) + max SP upgrades min(6, 100)-1 (5) = 10 points. Remaining: 87 - 10 = 77 points.
+        $this->assertEquals(77, $character->fresh()->skill_points);
     }
 
-    public function test_upgrade_skill_blocks_upgrade_above_level_38()
+    public function test_upgrade_skill_blocks_upgrade_above_level_27()
     {
         $user = \App\Models\User::factory()->create();
         $character = Character::create([
@@ -121,7 +123,7 @@ class CombatSkillPointsTest extends TestCase
         $charSkill = CharacterCombatSkill::create([
             'character_id' => $character->id,
             'combat_skill_id' => $skill->id,
-            'level' => 38,
+            'level' => 27,
             'is_equipped' => true,
         ]);
 
@@ -130,7 +132,7 @@ class CombatSkillPointsTest extends TestCase
 
         $this->assertTrue($result->isError());
         $this->assertEquals('MAX_LEVEL_REACHED', $result->getErrorCode());
-        $this->assertEquals(38, $charSkill->fresh()->level);
+        $this->assertEquals(27, $charSkill->fresh()->level);
     }
 
     public function test_skills_reset_all_command()
