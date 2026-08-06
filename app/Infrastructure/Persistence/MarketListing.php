@@ -5,6 +5,7 @@ namespace App\Infrastructure\Persistence;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Builder;
 
 class MarketListing extends Model
@@ -46,6 +47,11 @@ class MarketListing extends Model
     public function pet(): BelongsTo
     {
         return $this->belongsTo(Pet::class, 'pet_id');
+    }
+
+    public function purchase(): HasOne
+    {
+        return $this->hasOne(Purchase::class, 'listing_id');
     }
 
     public function isPetListing(): bool

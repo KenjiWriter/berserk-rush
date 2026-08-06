@@ -449,12 +449,36 @@
                     <div>
                         <h3 class="text-lg font-extrabold text-amber-400 uppercase tracking-wider flex items-center gap-2">
                             <i class="fa-solid fa-box-open text-amber-500"></i>
-                            <span>Moje Aktywne Oferty Aukcyjne</span>
+                            <span>Moje Oferty i Historia Sprzedaży</span>
                         </h3>
-                        <p class="text-xs text-amber-300/60 font-sans mt-0.5">Twoje wystawione przedmioty na targu. Pobierana jest prowizja w wysokości 5% po udanej sprzedaży.</p>
+                        <p class="text-xs text-amber-300/60 font-sans mt-0.5">Twoje wystawione przedmioty na targu oraz historia sprzedaży, anulowań i wygaśnięć. Pobierana jest prowizja w wysokości 5% po udanej sprzedaży.</p>
                     </div>
                 </div>
-                
+
+                {{-- Status History Filter --}}
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <button wire:click="setMyListingsStatus('')"
+                            class="px-3.5 py-2 min-h-[36px] rounded-lg font-extrabold text-[10px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-1.5 cursor-pointer {{ $myListingsStatus === '' ? 'bg-amber-900/70 text-yellow-300 border-amber-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                        <i class="fa-solid fa-layer-group"></i> Wszystkie
+                    </button>
+                    <button wire:click="setMyListingsStatus('active')"
+                            class="px-3.5 py-2 min-h-[36px] rounded-lg font-extrabold text-[10px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-1.5 cursor-pointer {{ $myListingsStatus === 'active' ? 'bg-emerald-900/70 text-emerald-300 border-emerald-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                        <i class="fa-solid fa-circle-check"></i> Aktywne
+                    </button>
+                    <button wire:click="setMyListingsStatus('sold')"
+                            class="px-3.5 py-2 min-h-[36px] rounded-lg font-extrabold text-[10px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-1.5 cursor-pointer {{ $myListingsStatus === 'sold' ? 'bg-sky-900/70 text-sky-300 border-sky-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                        <i class="fa-solid fa-handshake"></i> Sprzedane
+                    </button>
+                    <button wire:click="setMyListingsStatus('cancelled')"
+                            class="px-3.5 py-2 min-h-[36px] rounded-lg font-extrabold text-[10px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-1.5 cursor-pointer {{ $myListingsStatus === 'cancelled' ? 'bg-red-900/70 text-red-300 border-red-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                        <i class="fa-solid fa-xmark"></i> Anulowane
+                    </button>
+                    <button wire:click="setMyListingsStatus('expired')"
+                            class="px-3.5 py-2 min-h-[36px] rounded-lg font-extrabold text-[10px] tracking-widest uppercase transition-all duration-200 border-2 flex items-center gap-1.5 cursor-pointer {{ $myListingsStatus === 'expired' ? 'bg-stone-700/70 text-stone-200 border-stone-500' : 'bg-stone-950/60 text-stone-400 border-stone-800 hover:text-amber-200' }}">
+                        <i class="fa-regular fa-clock"></i> Wygasłe
+                    </button>
+                </div>
+
                 @if(count($myItemListings) > 0)
                     <div class="overflow-x-auto custom-scrollbar mb-8">
                         <table class="w-full text-left border-collapse">
@@ -463,7 +487,8 @@
                                     <th class="p-3">Przedmiot</th>
                                     <th class="p-3 text-center">Status</th>
                                     <th class="p-3 text-right">Cena Ofertowa</th>
-                                    <th class="p-3 text-right">Wygasa za</th>
+                                    <th class="p-3 text-left">Kupujący</th>
+                                    <th class="p-3 text-right">Data</th>
                                     <th class="p-3 text-center">Akcja</th>
                                 </tr>
                             </thead>
@@ -539,9 +564,27 @@
                                                 @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5 text-xs"></i> @else <i class="fa-solid fa-gem ml-0.5 text-xs"></i> @endif
                                             </span>
                                         </td>
+                                        <td class="p-3 text-left text-xs font-sans">
+                                            @if($listing->status === 'sold' && $listing->purchase && $listing->purchase->buyer)
+                                                <div class="text-sky-300 font-extrabold">{{ $listing->purchase->buyer->name }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold">{{ $listing->purchase->created_at->format('Y-m-d H:i') }}</div>
+                                            @else
+                                                <span class="text-stone-600">-</span>
+                                            @endif
+                                        </td>
                                         <td class="p-3 text-right text-xs font-sans">
-                                            <div class="text-stone-300">{{ $listing->created_at->format('Y-m-d H:i') }}</div>
-                                            <div class="text-[10px] text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</div>
+                                            @if($listing->status === 'active')
+                                                <div class="text-stone-300">{{ $listing->created_at->format('Y-m-d H:i') }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</div>
+                                            @else
+                                                <div class="text-stone-300">{{ $listing->updated_at->format('Y-m-d H:i') }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold">
+                                                    @if($listing->status === 'sold') <i class="fa-solid fa-handshake mr-1"></i>Sprzedano
+                                                    @elseif($listing->status === 'cancelled') <i class="fa-solid fa-xmark mr-1"></i>Anulowano
+                                                    @elseif($listing->status === 'expired') <i class="fa-regular fa-clock mr-1"></i>Wygasło
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($listing->status === 'active')
@@ -580,7 +623,8 @@
                                     <th class="p-3">Chowaniec</th>
                                     <th class="p-3 text-center">Status</th>
                                     <th class="p-3 text-right">Cena Ofertowa</th>
-                                    <th class="p-3 text-right">Wygasa za</th>
+                                    <th class="p-3 text-left">Kupujący</th>
+                                    <th class="p-3 text-right">Data</th>
                                     <th class="p-3 text-center">Akcja</th>
                                 </tr>
                             </thead>
@@ -614,9 +658,27 @@
                                                 @if($listing->currency === 'gold') <i class="fa-solid fa-coins ml-0.5 text-xs"></i> @else <i class="fa-solid fa-gem ml-0.5 text-xs"></i> @endif
                                             </span>
                                         </td>
+                                        <td class="p-3 text-left text-xs font-sans">
+                                            @if($listing->status === 'sold' && $listing->purchase && $listing->purchase->buyer)
+                                                <div class="text-sky-300 font-extrabold">{{ $listing->purchase->buyer->name }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold">{{ $listing->purchase->created_at->format('Y-m-d H:i') }}</div>
+                                            @else
+                                                <span class="text-stone-600">-</span>
+                                            @endif
+                                        </td>
                                         <td class="p-3 text-right text-xs font-sans">
-                                            <div class="text-stone-300">{{ $listing->created_at->format('Y-m-d H:i') }}</div>
-                                            <div class="text-[10px] text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</div>
+                                            @if($listing->status === 'active')
+                                                <div class="text-stone-300">{{ $listing->created_at->format('Y-m-d H:i') }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold"><i class="fa-regular fa-clock mr-1"></i>{{ $listing->expires_at->diffForHumans() }}</div>
+                                            @else
+                                                <div class="text-stone-300">{{ $listing->updated_at->format('Y-m-d H:i') }}</div>
+                                                <div class="text-[10px] text-amber-500/80 font-bold">
+                                                    @if($listing->status === 'sold') <i class="fa-solid fa-handshake mr-1"></i>Sprzedano
+                                                    @elseif($listing->status === 'cancelled') <i class="fa-solid fa-xmark mr-1"></i>Anulowano
+                                                    @elseif($listing->status === 'expired') <i class="fa-regular fa-clock mr-1"></i>Wygasło
+                                                    @endif
+                                                </div>
+                                            @endif
                                         </td>
                                         <td class="p-3 text-center">
                                             @if($listing->status === 'active')

@@ -32,6 +32,7 @@ class MarketComponent extends Component
     public array $stats = [];
     public $sortBy = 'created_at';
     public $sortDir = 'desc';
+    public $myListingsStatus = ''; // '', 'active', 'sold', 'cancelled', 'expired'
 
     public bool $showConfirmBuyModal = false;
     public ?string $selectedListingId = null;
@@ -50,6 +51,7 @@ class MarketComponent extends Component
         'stats' => ['except' => []],
         'sortBy' => ['except' => 'created_at'],
         'sortDir' => ['except' => 'desc'],
+        'myListingsStatus' => ['except' => ''],
     ];
 
     public function mount(Character $character)
@@ -64,7 +66,7 @@ class MarketComponent extends Component
 
     public function updating($name, $value)
     {
-        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'petTier', 'stats', 'sortBy', 'sortDir', 'activeTab', 'listingType'])) {
+        if (in_array($name, ['search', 'rarity', 'currency', 'slot', 'maxPrice', 'minLevel', 'maxLevel', 'petTier', 'stats', 'sortBy', 'sortDir', 'activeTab', 'listingType', 'myListingsStatus'])) {
             $this->resetPage();
         }
     }
@@ -84,6 +86,12 @@ class MarketComponent extends Component
     public function switchListingType($type)
     {
         $this->listingType = $type;
+        $this->resetPage();
+    }
+
+    public function setMyListingsStatus(string $status)
+    {
+        $this->myListingsStatus = $status;
         $this->resetPage();
     }
 
@@ -242,15 +250,17 @@ class MarketComponent extends Component
 
             $listings = $query->execute($filters, $this->sortBy, $this->sortDir, 12);
         } else {
-            $myItemListings = MarketListing::with('item.template')
+            $myItemListings = MarketListing::with(['item.template', 'purchase.buyer'])
                 ->where('seller_character_id', $character->id)
                 ->has('item')
+                ->when($this->myListingsStatus !== '', fn ($q) => $q->where('status', $this->myListingsStatus))
                 ->orderBy('created_at', 'desc')
                 ->paginate(12, ['*'], 'itemsPage');
 
-            $myPetListings = MarketListing::with('pet')
+            $myPetListings = MarketListing::with(['pet', 'purchase.buyer'])
                 ->where('seller_character_id', $character->id)
                 ->has('pet')
+                ->when($this->myListingsStatus !== '', fn ($q) => $q->where('status', $this->myListingsStatus))
                 ->orderBy('created_at', 'desc')
                 ->paginate(12, ['*'], 'petsPage');
         }
