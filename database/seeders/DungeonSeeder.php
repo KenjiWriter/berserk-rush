@@ -81,11 +81,11 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Szkielet Katakumb', 'level' => 12, 'rank' => 'regular', 'stats' => ['hp' => 320, 'atk' => 55, 'def' => 12, 'agi' => 8], 'avatar' => 'katakumby-szkielet.png']
+                        'monster' => ['name' => 'Szkielet Katakumb', 'level' => 12, 'rank' => 'regular', 'stats' => ['hp' => 350, 'atk' => 50, 'def' => 10, 'agi' => 8], 'avatar' => 'katakumby-szkielet.png']
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Kultysta Cienia', 'level' => 12, 'rank' => 'regular', 'stats' => ['hp' => 240, 'atk' => 48, 'def' => 10, 'agi' => 10], 'avatar' => 'kultysta-cienia.png']
+                        'monster' => ['name' => 'Kultysta Cienia', 'level' => 12, 'rank' => 'regular', 'stats' => ['hp' => 300, 'atk' => 44, 'def' => 9, 'agi' => 9], 'avatar' => 'kultysta-cienia.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 10,
@@ -93,7 +93,7 @@ class DungeonSeeder extends Seeder
                     ],
                     [
                         'order' => 4, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Strażnik Cienia', 'level' => 15, 'rank' => 'boss', 'stats' => ['hp' => 1200, 'atk' => 95, 'def' => 25, 'agi' => 14], 'avatar' => 'straznik-cienia.png']
+                        'monster' => ['name' => 'Strażnik Cienia', 'level' => 15, 'rank' => 'boss', 'stats' => ['hp' => 1700, 'atk' => 105, 'def' => 25, 'agi' => 18], 'avatar' => 'straznik-cienia.png']
                     ],
                 ]
             ],
@@ -118,19 +118,19 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Strażnik Krypty', 'level' => 28, 'rank' => 'regular', 'stats' => ['hp' => 950, 'atk' => 160, 'def' => 30, 'agi' => 15], 'avatar' => 'straznik-krypty.png']
+                        'monster' => ['name' => 'Strażnik Krypty', 'level' => 28, 'rank' => 'regular', 'stats' => ['hp' => 950, 'atk' => 130, 'def' => 28, 'agi' => 16], 'avatar' => 'straznik-krypty.png']
                     ],
                     [
                         'order' => 2, 'type' => 'gate', 'count' => 1, 'max_turns' => 10,
-                        'monster' => ['name' => 'Kamienna Brama Przeklętych', 'level' => 30, 'rank' => 'regular', 'stats' => ['hp' => 2200, 'atk' => 0, 'def' => 30, 'agi' => 0], 'avatar' => 'krypta-brama.png']
+                        'monster' => ['name' => 'Kamienna Brama Przeklętych', 'level' => 30, 'rank' => 'regular', 'stats' => ['hp' => 2500, 'atk' => 0, 'def' => 32, 'agi' => 0], 'avatar' => 'krypta-brama.png']
                     ],
                     [
                         'order' => 3, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Upiorny Rycerz', 'level' => 30, 'rank' => 'regular', 'stats' => ['hp' => 800, 'atk' => 140, 'def' => 28, 'agi' => 18], 'avatar' => 'upiorny-rycerz.png']
+                        'monster' => ['name' => 'Upiorny Rycerz', 'level' => 30, 'rank' => 'regular', 'stats' => ['hp' => 850, 'atk' => 140, 'def' => 28, 'agi' => 18], 'avatar' => 'upiorny-rycerz.png']
                     ],
                     [
                         'order' => 4, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Władca Krypty', 'level' => 33, 'rank' => 'boss', 'stats' => ['hp' => 3200, 'atk' => 240, 'def' => 50, 'agi' => 22], 'avatar' => 'wladca-krypty.png']
+                        'monster' => ['name' => 'Władca Krypty', 'level' => 33, 'rank' => 'boss', 'stats' => ['hp' => 3711, 'atk' => 285, 'def' => 51, 'agi' => 40], 'avatar' => 'wladca-krypty.png']
                     ],
                 ]
             ],
@@ -161,23 +161,23 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Zainfekowany Ork', 'level' => 48, 'rank' => 'regular', 'stats' => ['hp' => 2200, 'atk' => 420, 'def' => 60, 'agi' => 25], 'avatar' => 'zainfekowany-ork.png']
+                        'monster' => ['name' => 'Zainfekowany Ork', 'level' => 48, 'rank' => 'regular', 'stats' => ['hp' => 1900, 'atk' => 220, 'def' => 50, 'agi' => 22], 'avatar' => 'zainfekowany-ork.png']
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Wściekły Ogr', 'level' => 50, 'rank' => 'regular', 'stats' => ['hp' => 1800, 'atk' => 380, 'def' => 55, 'agi' => 22], 'avatar' => 'wsciekly-ogr.png']
+                        'monster' => ['name' => 'Wściekły Ogr', 'level' => 50, 'rank' => 'regular', 'stats' => ['hp' => 1700, 'atk' => 200, 'def' => 45, 'agi' => 20], 'avatar' => 'wsciekly-ogr.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 12,
-                        'monster' => ['name' => 'Żelazna Kratownica Zarazy', 'level' => 50, 'rank' => 'regular', 'stats' => ['hp' => 5500, 'atk' => 0, 'def' => 50, 'agi' => 0], 'avatar' => 'zaraza-kratownica.png']
+                        'monster' => ['name' => 'Żelazna Kratownica Zarazy', 'level' => 50, 'rank' => 'regular', 'stats' => ['hp' => 5000, 'atk' => 0, 'def' => 55, 'agi' => 0], 'avatar' => 'zaraza-kratownica.png']
                     ],
                     [
                         'order' => 4, 'type' => 'miniboss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Szaman Plagi', 'level' => 52, 'rank' => 'boss', 'stats' => ['hp' => 4500, 'atk' => 520, 'def' => 70, 'agi' => 30], 'avatar' => 'szaman-plagi.png']
+                        'monster' => ['name' => 'Szaman Plagi', 'level' => 52, 'rank' => 'boss', 'stats' => ['hp' => 3200, 'atk' => 280, 'def' => 55, 'agi' => 26], 'avatar' => 'szaman-plagi.png']
                     ],
                     [
                         'order' => 5, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Wódz Zarazy', 'level' => 55, 'rank' => 'boss', 'stats' => ['hp' => 7500, 'atk' => 680, 'def' => 90, 'agi' => 35], 'avatar' => 'wodz-zarazy.png']
+                        'monster' => ['name' => 'Wódz Zarazy', 'level' => 55, 'rank' => 'boss', 'stats' => ['hp' => 7064, 'atk' => 472, 'def' => 91, 'agi' => 77], 'avatar' => 'wodz-zarazy.png']
                     ],
                 ]
             ],
@@ -209,23 +209,23 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Cieniowy Golem', 'level' => 68, 'rank' => 'regular', 'stats' => ['hp' => 6500, 'atk' => 1200, 'def' => 180, 'agi' => 35], 'avatar' => 'cieniowy-golem.png']
+                        'monster' => ['name' => 'Cieniowy Golem', 'level' => 68, 'rank' => 'regular', 'stats' => ['hp' => 2600, 'atk' => 300, 'def' => 75, 'agi' => 30], 'avatar' => 'cieniowy-golem.png']
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Mroczna Harpia', 'level' => 70, 'rank' => 'regular', 'stats' => ['hp' => 5200, 'atk' => 1100, 'def' => 150, 'agi' => 48], 'avatar' => 'mroczna-harpia.png']
+                        'monster' => ['name' => 'Mroczna Harpia', 'level' => 70, 'rank' => 'regular', 'stats' => ['hp' => 2300, 'atk' => 270, 'def' => 65, 'agi' => 40], 'avatar' => 'mroczna-harpia.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 12,
-                        'monster' => ['name' => 'Magiczna Bariera Cytadeli', 'level' => 70, 'rank' => 'regular', 'stats' => ['hp' => 15000, 'atk' => 0, 'def' => 120, 'agi' => 0], 'avatar' => 'cytadela-bariera.png']
+                        'monster' => ['name' => 'Magiczna Bariera Cytadeli', 'level' => 70, 'rank' => 'regular', 'stats' => ['hp' => 7000, 'atk' => 0, 'def' => 90, 'agi' => 0], 'avatar' => 'cytadela-bariera.png']
                     ],
                     [
                         'order' => 4, 'type' => 'miniboss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Arcymag Cienia', 'level' => 72, 'rank' => 'boss', 'stats' => ['hp' => 14000, 'atk' => 1800, 'def' => 210, 'agi' => 42], 'avatar' => 'arcymag-cienia.png']
+                        'monster' => ['name' => 'Arcymag Cienia', 'level' => 72, 'rank' => 'boss', 'stats' => ['hp' => 5200, 'atk' => 420, 'def' => 85, 'agi' => 48], 'avatar' => 'arcymag-cienia.png']
                     ],
                     [
                         'order' => 5, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Władca Cytadeli', 'level' => 75, 'rank' => 'boss', 'stats' => ['hp' => 24000, 'atk' => 2400, 'def' => 260, 'agi' => 50], 'avatar' => 'wladca-cytadeli.png']
+                        'monster' => ['name' => 'Władca Cytadeli', 'level' => 75, 'rank' => 'boss', 'stats' => ['hp' => 9640, 'atk' => 550, 'def' => 121, 'agi' => 99], 'avatar' => 'wladca-cytadeli.png']
                     ],
                 ]
             ],
@@ -256,23 +256,23 @@ class DungeonSeeder extends Seeder
                 'stages' => [
                     [
                         'order' => 1, 'type' => 'single_mob', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Demon Otchłani', 'level' => 86, 'rank' => 'regular', 'stats' => ['hp' => 42000, 'atk' => 38500, 'def' => 1200, 'agi' => 45], 'avatar' => 'demon-otchlani.png']
+                        'monster' => ['name' => 'Demon Otchłani', 'level' => 86, 'rank' => 'regular', 'stats' => ['hp' => 3600, 'atk' => 420, 'def' => 115, 'agi' => 48], 'avatar' => 'demon-otchlani.png']
                     ],
                     [
                         'order' => 2, 'type' => 'group_mob', 'count' => 2, 'max_turns' => 50,
-                        'monster' => ['name' => 'Kat Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 32000, 'atk' => 32000, 'def' => 1000, 'agi' => 42], 'avatar' => 'plagowy-kat-dung.png']
+                        'monster' => ['name' => 'Kat Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 3200, 'atk' => 380, 'def' => 100, 'agi' => 45], 'avatar' => 'plagowy-kat-dung.png']
                     ],
                     [
                         'order' => 3, 'type' => 'gate', 'count' => 1, 'max_turns' => 12,
-                        'monster' => ['name' => 'Wrota Wulkaniczne Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 120000, 'atk' => 0, 'def' => 1500, 'agi' => 0], 'avatar' => 'otchlan-wrota.png']
+                        'monster' => ['name' => 'Wrota Wulkaniczne Otchłani', 'level' => 88, 'rank' => 'regular', 'stats' => ['hp' => 9500, 'atk' => 0, 'def' => 130, 'agi' => 0], 'avatar' => 'otchlan-wrota.png']
                     ],
                     [
                         'order' => 4, 'type' => 'miniboss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Książę Otchłani', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 90000, 'atk' => 45000, 'def' => 1600, 'agi' => 52], 'avatar' => 'ksiaze-skazy.png']
+                        'monster' => ['name' => 'Książę Otchłani', 'level' => 90, 'rank' => 'boss', 'stats' => ['hp' => 6800, 'atk' => 600, 'def' => 135, 'agi' => 58], 'avatar' => 'ksiaze-skazy.png']
                     ],
                     [
                         'order' => 5, 'type' => 'boss', 'count' => 1, 'max_turns' => 50,
-                        'monster' => ['name' => 'Pan Zniszczenia (Loch)', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 150000, 'atk' => 50000, 'def' => 1900, 'agi' => 60], 'avatar' => 'pan-zniszczenia-dung.png']
+                        'monster' => ['name' => 'Pan Zniszczenia (Loch)', 'level' => 95, 'rank' => 'boss', 'stats' => ['hp' => 13192, 'atk' => 698, 'def' => 159, 'agi' => 127], 'avatar' => 'pan-zniszczenia-dung.png']
                     ],
                 ]
             ]
