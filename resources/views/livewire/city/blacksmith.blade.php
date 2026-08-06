@@ -812,21 +812,50 @@
                             <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Zastosowanie & Koszt Odłamków w Ulepszeniach</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">Kuźnia Ulepszeń (Przedmioty &gt;70 lvl)</h5>
-                                    <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
-                                        <thead>
-                                            <tr class="border-b border-stone-700 text-stone-400">
-                                                <th class="text-left py-1 px-2">Krok Ulepszenia</th>
-                                                <th class="text-right py-1 px-2">Wymagane Odłamki</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+5 &rarr; +6</td><td class="py-1 px-2 text-right font-bold text-purple-300">15 szt.</td></tr>
-                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+6 &rarr; +7</td><td class="py-1 px-2 text-right font-bold text-purple-300">35 szt.</td></tr>
-                                            <tr class="border-b border-stone-800/80"><td class="py-1 px-2 text-amber-200">+7 &rarr; +8</td><td class="py-1 px-2 text-right font-bold text-purple-300">75 szt.</td></tr>
-                                            <tr><td class="py-1 px-2 text-amber-300 font-bold">+8 &rarr; +9</td><td class="py-1 px-2 text-right font-bold text-purple-300">150 szt.</td></tr>
-                                        </tbody>
-                                    </table>
+                                    <h5 class="text-amber-300 font-bold mb-1 text-[11px] uppercase tracking-wider">Kuźnia Ulepszeń (Kroki od +6 do +9)</h5>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-[11px] border-collapse bg-black/40 rounded overflow-hidden">
+                                            <thead>
+                                                <tr class="border-b border-stone-700 text-stone-400">
+                                                    <th class="text-left py-1 px-2">Wymagany Poziom</th>
+                                                    <th class="py-1 px-1 text-center">+6</th>
+                                                    <th class="py-1 px-1 text-center">+7</th>
+                                                    <th class="py-1 px-1 text-center">+8</th>
+                                                    <th class="py-1 px-1 text-center">+9</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr class="border-b border-stone-800/80">
+                                                    <td class="py-1 px-2 text-stone-300">Lvl 1 – 30</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">5 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">10 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">22 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">45 szt.</td>
+                                                </tr>
+                                                <tr class="border-b border-stone-800/80">
+                                                    <td class="py-1 px-2 text-stone-300">Lvl 31 – 60</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">16 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">40 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">88 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">180 szt.</td>
+                                                </tr>
+                                                <tr class="border-b border-stone-800/80">
+                                                    <td class="py-1 px-2 text-stone-300">Lvl 61 – 80</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">40 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">100 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">220 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-300">450 szt.</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="py-1 px-2 text-amber-300 font-bold">Lvl 81 – 99</td>
+                                                    <td class="py-1 px-1 text-center text-amber-300 font-bold">80 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-amber-300 font-bold">200 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-amber-300 font-bold">440 szt.</td>
+                                                    <td class="py-1 px-1 text-center text-purple-400 font-bold">900 szt.</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
 
                                 <div>

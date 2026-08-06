@@ -81,16 +81,28 @@ class UpgradeRuleSeeder extends Seeder
                     }
                 }
 
-                // Przedmioty > 70 lvl (Tiers 8, 9, 10) od +6 do +9 wymagają Runicznych Odłamków
-                if ($level > 70 && $fromLevel >= 5) {
+                // Wszystkie przedmioty od +6 do +9 wymagają Runicznych Odłamków - skalowane z poziomem wymaganym przedmiotu
+                if ($fromLevel >= 5) {
                     $runicMatId = $materialMap['Runiczny Odłamek'] ?? null;
-                    $runicQty = match ($fromLevel) {
-                        5 => 15,  // -> +6
-                        6 => 35,  // -> +7
-                        7 => 75,  // -> +8
-                        8 => 150, // -> +9
+
+                    // Mnożnik progu poziomu przedmiotu (Niski / Średni / Wysoki / Endgame)
+                    $levelFactor = match (true) {
+                        $level <= 30 => 0.1,  // Lvl 1 - 30
+                        $level <= 60 => 0.4,  // Lvl 31 - 60
+                        $level <= 80 => 1.0,  // Lvl 61 - 80
+                        default      => 2.0,  // Lvl 81 - 99
+                    };
+
+                    $stepBase = match ($fromLevel) {
+                        5 => 40,   // -> +6
+                        6 => 100,  // -> +7
+                        7 => 220,  // -> +8
+                        8 => 450,  // -> +9
                         default => 0,
                     };
+
+                    $runicQty = (int) max(5, round($stepBase * $levelFactor));
+
                     if ($runicMatId && $runicQty > 0) {
                         $materialsReq[] = [
                             'template_id' => $runicMatId,
