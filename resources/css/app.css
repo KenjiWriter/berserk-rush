@@ -9,10 +9,10 @@ html, body {
 /* Magical Enchantment Effects */
 @keyframes enchantedShimmer {
     0%, 5% {
-        background-position: 130% 0;
+        background-position: -130% 0; /* belka poza prawą krawędzią */
     }
     45%, 100% {
-        background-position: -130% 0;
+        background-position: 130% 0; /* belka poza lewą krawędzią, pauza */
     }
 }
 

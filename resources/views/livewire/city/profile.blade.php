@@ -1936,8 +1936,8 @@
 
         /* Magical Enchantment Shimmer */
         @keyframes enchantedShimmer {
-            0%, 5% { background-position: 130% 0; }
-            45%, 100% { background-position: -130% 0; }
+            0%, 5% { background-position: -130% 0; }
+            45%, 100% { background-position: 130% 0; }
         }
         .enchanted-effect {
             position: relative;
