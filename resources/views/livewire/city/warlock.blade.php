@@ -169,7 +169,7 @@
                         $effectiveLevel = $isUnlocked ? $mySkill->getEffectiveLevel() : 1;
                         $cooldown = $isUnlocked ? $mySkill->getCooldown() : $skill->base_cooldown;
                         
-                        $isMaxLevel = $isUnlocked && $mySkill->level >= 38;
+                        $isMaxLevel = $isUnlocked && $mySkill->level >= 27;
                         $canUnlock = !$isUnlocked && $character->level >= $skill->required_level && $character->skill_points >= $skill->unlock_cost;
 
                         $reqWeapon = $skill->required_weapon_type ?? 'all';
@@ -182,18 +182,18 @@
                         $costText = '';
 
                         if ($isUnlocked && !$isMaxLevel) {
-                            if ($level < 17) {
+                            if ($level < 6) {
                                 $canUpgrade = $character->skill_points >= 1;
-                                $costText = '1 PKT SKILLA';
-                            } elseif ($level >= 17 && $level < 27) {
-                                $canUpgrade = $ownedSpecificBooks >= 1 && $character->gold >= 500;
-                                $costText = "1x {$reqBookName} + 500 Gold";
-                            } elseif ($level >= 27 && $level < 37) {
-                                $canUpgrade = $soulStonesCount >= 1 && $character->gold >= 2500;
-                                $costText = '1x Kamień Duchowy + 2.5k Gold';
-                            } elseif ($level === 37) {
-                                $canUpgrade = $soulStonesCount >= 1 && $character->gold >= 10000;
-                                $costText = '1x Kamień Duchowy + 10k Gold';
+                                $costText = '1 PKT SKILLA (85% szans)';
+                            } elseif ($level >= 6 && $level < 16) {
+                                $bookCost = $level - 5;
+                                $canUpgrade = $ownedSpecificBooks >= $bookCost && $character->gold >= 500;
+                                $costText = "{$bookCost}x {$reqBookName} + 500 Gold (50% szans)";
+                            } elseif ($level >= 16 && $level < 27) {
+                                $stoneCost = (int) round(1 + ($level - 16) * 4 / 9);
+                                $stoneGoldCost = $level === 26 ? 10000 : 2500;
+                                $canUpgrade = $soulStonesCount >= $stoneCost && $character->gold >= $stoneGoldCost;
+                                $costText = "{$stoneCost}x Kamień Duchowy + " . ($level === 26 ? '10k' : '2.5k') . ' Gold (20% szans)';
                             }
                         }
 
@@ -352,7 +352,7 @@
                                     @else
                                         <span class="px-3 py-1 bg-emerald-950 text-emerald-300 border border-emerald-600/80 rounded-lg text-xs font-black uppercase tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.3)] inline-flex items-center gap-1">
                                             <i class="fa-solid fa-circle-check"></i>
-                                            <span>{{ $displayLevel }} / 17</span>
+                                            <span>{{ $displayLevel }} / 6</span>
                                         </span>
                                     @endif
                                 @else
@@ -542,10 +542,10 @@
                                     <button wire:click="upgradeSkill('{{ $mySkill->id }}')" 
                                             wire:loading.attr="disabled"
                                             class="px-5 py-2 rounded-xl font-extrabold text-xs uppercase tracking-wider transition-all duration-200 shadow-md border cursor-pointer flex items-center gap-2
-                                            {{ $canUpgrade ? ($level >= 37 ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-900 hover:from-amber-500 hover:to-yellow-800 text-amber-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : ($level >= 27 ? 'bg-gradient-to-b from-amber-700 via-amber-800 to-stone-950 hover:from-amber-600 hover:to-amber-900 text-amber-100 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : ($level >= 17 ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-gradient-to-b from-emerald-700 via-emerald-800 to-emerald-950 hover:from-emerald-600 hover:to-emerald-900 text-emerald-100 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]'))) : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
+                                            {{ $canUpgrade ? ($level >= 26 ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-900 hover:from-amber-500 hover:to-yellow-800 text-amber-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : ($level >= 16 ? 'bg-gradient-to-b from-amber-700 via-amber-800 to-stone-950 hover:from-amber-600 hover:to-amber-900 text-amber-100 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : ($level >= 6 ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-gradient-to-b from-emerald-700 via-emerald-800 to-emerald-950 hover:from-emerald-600 hover:to-emerald-900 text-emerald-100 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]'))) : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
                                             @if(!$canUpgrade) disabled @endif>
                                         <i class="fa-solid fa-circle-arrow-up"></i>
-                                        <span>{{ $level === 37 ? 'Awansuj na PERFECT (P)' : ($level >= 27 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 17 ? 'Ulepsz (' . $reqBookName . ')' : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
+                                        <span>{{ $level === 26 ? 'Awansuj na PERFECT (P)' : ($level >= 16 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 6 ? 'Ulepsz (' . $reqBookName . ')' : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
                                     </button>
                                 @endif
                             @endif
