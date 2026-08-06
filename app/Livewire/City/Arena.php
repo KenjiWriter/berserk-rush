@@ -145,7 +145,7 @@ class Arena extends Component
         $cpValues = [];
         if ($this->activeTab === 'cp_ranking') {
             $allChars = Character::query()
-                ->with(['user', 'itemInstances.template', 'equipmentSetItems.itemInstance.template', 'activePet'])
+                ->with(['user', 'items.template', 'equipmentSetItems.itemInstance.template', 'activePet'])
                 ->where('level', '>=', 15)
                 ->get();
 

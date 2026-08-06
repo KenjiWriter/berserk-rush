@@ -162,6 +162,34 @@ class ArenaLevelLockTest extends TestCase
             ->assertDontSee($lowChar->name);
     }
 
+    public function test_arena_cp_ranking_renders_and_excludes_low_level_characters(): void
+    {
+        $user1 = User::factory()->create(['game_stage' => 38]);
+        $character = Character::create([
+            'user_id' => $user1->id,
+            'name' => 'HighLevelCpChar',
+            'class' => 'warrior',
+            'level' => 15,
+            'elo' => 1200,
+        ]);
+
+        $user2 = User::factory()->create();
+        $lowChar = Character::create([
+            'user_id' => $user2->id,
+            'name' => 'LowLevelCpChar',
+            'class' => 'warrior',
+            'level' => 14,
+            'elo' => 1500,
+        ]);
+
+        Livewire::actingAs($user1)
+            ->test(Arena::class, ['character' => $character])
+            ->call('switchTab', 'cp_ranking')
+            ->assertSee('Ranking Gear Score (CP)')
+            ->assertSee($character->name)
+            ->assertDontSee($lowChar->name);
+    }
+
     public function test_tutorial_stage_advances_to_38_when_character_reaches_level_15(): void
     {
         $user = User::factory()->create(['game_stage' => 37]);
