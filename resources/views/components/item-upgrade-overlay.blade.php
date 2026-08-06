@@ -15,38 +15,19 @@
         positioned ancestor. Keep z-index low (2) so it stays within the item stacking context.
     --}}
 
-    {{-- Bottom bar: 9 upgrade squares --}}
-    <div style="position:absolute;bottom:2px;left:3px;right:3px;display:flex;align-items:flex-end;gap:1.5px;pointer-events:none;z-index:10;">
-        @for($i = 1; $i <= 9; $i++)
-            @php
-                $filled = $i <= $upgradeLevel;
-                if ($filled) {
-                    if ($i <= 3) {
-                        $style = 'flex:1;height:5px;border-radius:1px;background:linear-gradient(180deg,#fbbf24 0%,#b45309 45%,#78350f 100%);border:0.5px solid #92400e;box-shadow:0 0 4px rgba(180,83,9,0.9),inset 0 1px 0 rgba(255,255,255,0.35);';
-                    } elseif ($i <= 6) {
-                        $style = 'flex:1;height:5px;border-radius:1px;background:linear-gradient(180deg,#7dd3fc 0%,#0284c7 45%,#0c4a6e 100%);border:0.5px solid #0369a1;box-shadow:0 0 4px rgba(14,165,233,0.9),inset 0 1px 0 rgba(255,255,255,0.3);';
-                    } else {
-                        $style = 'flex:1;height:5px;border-radius:1px;background:linear-gradient(180deg,#fef08a 0%,#eab308 45%,#713f12 100%);border:0.5px solid #ca8a04;box-shadow:0 0 6px rgba(234,179,8,1),inset 0 1px 0 rgba(255,255,255,0.4);';
-                    }
-                } else {
-                    $style = 'flex:1;height:5px;border-radius:1px;background:linear-gradient(180deg,#57534e 0%,#292524 100%);border:0.5px solid #44403c;box-shadow:inset 0 1px 0 rgba(0,0,0,0.6);';
-                }
-            @endphp
-            <div style="{{ $style }}"></div>
-        @endfor
-    </div>
-
-    {{-- +Level badge: top-right corner of slot cell --}}
+    {{-- +Level badge: floating badge on top-right corner exactly like pet tile --}}
     @if($upgradeLevel > 0)
         @php
             if ($upgradeLevel <= 3) {
-                $badgeStyle = 'position:absolute;top:-1px;right:-1px;z-index:10;pointer-events:none;font-size:10px;font-weight:900;line-height:1;padding:2px 4px;border-radius:0 0.5rem 0 0.375rem;background:linear-gradient(135deg,#92400e,#78350f);color:#fcd34d;border:1px solid #b45309;box-shadow:0 0 6px rgba(180,83,9,0.8),inset 0 1px 0 rgba(255,255,255,0.25);text-shadow:0 0 4px rgba(180,83,9,0.9);';
+                $badgeClass = 'bg-amber-950/90 border border-amber-500/80 text-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.5)]';
             } elseif ($upgradeLevel <= 6) {
-                $badgeStyle = 'position:absolute;top:-1px;right:-1px;z-index:10;pointer-events:none;font-size:10px;font-weight:900;line-height:1;padding:2px 4px;border-radius:0 0.5rem 0 0.375rem;background:linear-gradient(135deg,#0c4a6e,#075985);color:#7dd3fc;border:1px solid #0369a1;box-shadow:0 0 6px rgba(14,165,233,0.8),inset 0 1px 0 rgba(255,255,255,0.25);text-shadow:0 0 4px rgba(14,165,233,0.9);';
+                $badgeClass = 'bg-sky-950/90 border border-sky-400/80 text-sky-300 shadow-[0_0_6px_rgba(56,189,248,0.5)]';
             } else {
-                $badgeStyle = 'position:absolute;top:-1px;right:-1px;z-index:10;pointer-events:none;font-size:10px;font-weight:900;line-height:1;padding:2px 4px;border-radius:0 0.5rem 0 0.375rem;background:linear-gradient(135deg,#78350f,#451a03);color:#fef08a;border:1px solid #ca8a04;box-shadow:0 0 8px rgba(234,179,8,1),inset 0 1px 0 rgba(255,255,255,0.3);text-shadow:0 0 6px rgba(234,179,8,1);';
+                $badgeClass = 'bg-amber-950/90 border border-yellow-400 text-yellow-300 shadow-[0_0_8px_rgba(234,179,8,0.7)]';
             }
         @endphp
-        <span style="{{ $badgeStyle }}">+{{ $upgradeLevel }}</span>
+        <span class="absolute -top-1 -right-1 z-10 pointer-events-none text-[8px] sm:text-[9px] font-extrabold px-1 py-0.5 rounded-md shadow-lg leading-none {{ $badgeClass }}">
+            +{{ $upgradeLevel }}
+        </span>
     @endif
 @endif
