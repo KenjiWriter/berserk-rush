@@ -1933,8 +1933,8 @@
 
         /* Magical Enchantment Shimmer */
         @keyframes enchantedShimmer {
-            0% { background-position: 220% 0; }
-            100% { background-position: -120% 0; }
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
         }
         .enchanted-effect {
             position: relative;
@@ -1950,17 +1950,19 @@
             background: linear-gradient(
                 115deg,
                 transparent 0%,
-                transparent 35%,
+                transparent 30%,
                 rgba(216, 180, 254, 0.22) 48%,
                 rgba(255, 255, 255, 0.35) 50%,
                 rgba(216, 180, 254, 0.22) 52%,
-                transparent 65%,
+                transparent 70%,
                 transparent 100%
             );
             background-size: 300% 100%;
-            animation: enchantedShimmer 4.5s infinite linear;
+            animation: enchantedShimmer 5s infinite linear;
             pointer-events: none;
             z-index: 4;
+            will-change: background-position;
+            transform: translateZ(0);
         }
 
         /* Keyframes dla Magicznej Cieczy w Pasku XP */
