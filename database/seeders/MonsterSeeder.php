@@ -674,18 +674,31 @@ class MonsterSeeder extends Seeder
                 ]
             ],
             // Epicentrum Apokalipsy (2026-08-06) - nowa mapa end-game, poziom 95-99,
-            // celowo ZNACZNIE trudniejsza niż Skażone Miasto (patrz uzasadnienie
-            // liczbowe w docblocku metody run() / scratch/balance_new_map.php).
+            // celowo ZNACZNIE trudniejsza niż Skażone Miasto.
             // Rasy WYŁĄCZNIE z istniejącego MonsterType (bez nowej rasy): 'demon' +
             // 'undead', kontynuacja motywu Skażonego Miasta (Pan Zniszczenia/Zmutowany
             // Nieumarły). Staty PRZED mnożnikiem x1.35 pętli seedera niżej (mapCount>=3).
+            //
+            // PRZELICZONE 2026-08-06 (v2) - pierwsza wersja (v1, kalkulator Monte Carlo
+            // z BalanceMonstersCommand) okazała się dużo za słaba w praktyce: kalkulator
+            // symuluje WYŁĄCZNIE "gołe" ataki bez umiejętności bojowych (świadome
+            // uproszczenie, patrz docblock BalanceMonstersCommand - "bez skilli/pasywek").
+            // Realny endgame gracz (lvl99, ok. 6.3k HP, ~500 DEF) zadaje skillem
+            // ("Boska Światłość") 5.2k (7.7k na krycie) - Herold Apokalipsy w v1 miał
+            // 5.2k HP efektywnego, czyli ginął od JEDNEGO cięcia, a jego atak (249-283)
+            // to ~4% HP gracza. Ten wpis to rekalibracja na bazie REALNYCH liczb z logu
+            // walki (nie teorii): ok. x5.3 HP, x3 ATK, x4.5 DEF, x1.3 AGI względem v1,
+            // tak by walka z regularnym potworem wymagała kilku skillowych trafień
+            // zamiast jednego, a otrzymywany dmg realnie bolał (patrz też uwaga w
+            // docs/rebalance_2026_08_progress.md o tym samym mechanizmie - kalkulator
+            // Faza 0 też był korygowany pod realnego gracza, nie gołą postać).
             'Epicentrum Apokalipsy' => [
                 [
                     'name' => 'Herold Apokalipsy',
                     'type' => 'demon',
                     'level' => 95,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 3850, 'atk' => 260, 'def' => 80, 'agi' => 68, 'int' => 90, 'crit' => 0.52, 'dodge' => 0.24],
+                    'stats' => ['hp' => 20300, 'atk' => 772, 'def' => 361, 'agi' => 86, 'int' => 225, 'crit' => 0.58, 'dodge' => 0.26],
                     'abilities' => []
                 ],
                 [
@@ -693,7 +706,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 96,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 4200, 'atk' => 270, 'def' => 95, 'agi' => 60, 'int' => 70, 'crit' => 0.50, 'dodge' => 0.20],
+                    'stats' => ['hp' => 22150, 'atk' => 802, 'def' => 429, 'agi' => 76, 'int' => 175, 'crit' => 0.55, 'dodge' => 0.22],
                     'abilities' => []
                 ],
                 [
@@ -701,7 +714,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 97,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 3700, 'atk' => 290, 'def' => 75, 'agi' => 72, 'int' => 180, 'crit' => 0.56, 'dodge' => 0.28],
+                    'stats' => ['hp' => 19500, 'atk' => 861, 'def' => 339, 'agi' => 92, 'int' => 450, 'crit' => 0.60, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -709,7 +722,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 98,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 4300, 'atk' => 285, 'def' => 92, 'agi' => 78, 'int' => 85, 'crit' => 0.54, 'dodge' => 0.30],
+                    'stats' => ['hp' => 22650, 'atk' => 847, 'def' => 415, 'agi' => 99, 'int' => 213, 'crit' => 0.58, 'dodge' => 0.32],
                     'abilities' => []
                 ],
                 [
@@ -717,7 +730,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 99,
                     'rank' => 'regular',
-                    'stats' => ['hp' => 4325, 'atk' => 290, 'def' => 93, 'agi' => 72, 'int' => 220, 'crit' => 0.60, 'dodge' => 0.32],
+                    'stats' => ['hp' => 22800, 'atk' => 861, 'def' => 420, 'agi' => 92, 'int' => 550, 'crit' => 0.64, 'dodge' => 0.34],
                     'abilities' => []
                 ],
                 [
@@ -725,7 +738,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'undead',
                     'level' => 99,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 10000, 'atk' => 164, 'def' => 99, 'agi' => 76, 'int' => 140, 'crit' => 0.55, 'dodge' => 0.28],
+                    'stats' => ['hp' => 55600, 'atk' => 1780, 'def' => 630, 'agi' => 111, 'int' => 300, 'crit' => 0.60, 'dodge' => 0.30],
                     'abilities' => []
                 ],
                 [
@@ -733,7 +746,7 @@ class MonsterSeeder extends Seeder
                     'type' => 'demon',
                     'level' => 104,
                     'rank' => 'boss',
-                    'stats' => ['hp' => 10519, 'atk' => 167, 'def' => 101, 'agi' => 79, 'int' => 260, 'crit' => 0.65, 'dodge' => 0.35],
+                    'stats' => ['hp' => 70400, 'atk' => 2075, 'def' => 704, 'agi' => 122, 'int' => 450, 'crit' => 0.70, 'dodge' => 0.38],
                     'abilities' => []
                 ],
             ]
