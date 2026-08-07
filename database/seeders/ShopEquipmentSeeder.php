@@ -88,35 +88,45 @@ class ShopEquipmentSeeder extends Seeder
             [
                 'level' => 10, 'scale' => 1.44,
                 'names' => [
-                    'sword' => 'Rycerski Miecz', 'armor' => 'Stalowa Zbroja', 'helmet' => 'Hełm Rycerza', 
+                    'sword' => 'Rycerski Miecz', 'axe' => 'Rycerski Topór', 'bow' => 'Rycerski Łuk',
+                    'wand' => 'Rycerska Różdżka', 'dagger' => 'Rycerski Sztylet', 'bell' => 'Rycerski Dzwon',
+                    'armor' => 'Stalowa Zbroja', 'helmet' => 'Hełm Rycerza',
                     'boots' => 'Trzewiki Rycerza', 'amulet' => 'Amulet Rycerza', 'ring' => 'Pierścień Rycerza'
                 ]
             ],
             [
                 'level' => 20, 'scale' => 1.73,
                 'names' => [
-                    'sword' => 'Wzmocniony Stalowy Miecz', 'armor' => 'Wzmocniona Stalowa Zbroja', 'helmet' => 'Wzmocniony Stalowy Hełm', 
+                    'sword' => 'Wzmocniony Stalowy Miecz', 'axe' => 'Wzmocniony Stalowy Topór', 'bow' => 'Wzmocniony Stalowy Łuk',
+                    'wand' => 'Wzmocniona Stalowa Różdżka', 'dagger' => 'Wzmocniony Stalowy Sztylet', 'bell' => 'Wzmocniony Stalowy Dzwon',
+                    'armor' => 'Wzmocniona Stalowa Zbroja', 'helmet' => 'Wzmocniony Stalowy Hełm',
                     'boots' => 'Wzmocnione Stalowe Trzewiki', 'amulet' => 'Wzmocniony Amulet', 'ring' => 'Wzmocniony Pierścień'
                 ]
             ],
             [
                 'level' => 30, 'scale' => 2.07,
                 'names' => [
-                    'sword' => 'Ostrze Szlacheckie', 'armor' => 'Zbroja Szlachcica', 'helmet' => 'Hełm Szlachcica', 
+                    'sword' => 'Ostrze Szlacheckie', 'axe' => 'Topór Szlachecki', 'bow' => 'Łuk Szlachecki',
+                    'wand' => 'Różdżka Szlachecka', 'dagger' => 'Sztylet Szlachecki', 'bell' => 'Dzwon Szlachecki',
+                    'armor' => 'Zbroja Szlachcica', 'helmet' => 'Hełm Szlachcica',
                     'boots' => 'Trzewiki Wzmocnione Zaklęciem', 'amulet' => 'Szlachecki Amulet', 'ring' => 'Szlachecki Pierścień'
                 ]
             ],
             [
                 'level' => 40, 'scale' => 2.49,
                 'names' => [
-                    'sword' => 'Ostrze Weterana', 'armor' => 'Pancerz Weterana', 'helmet' => 'Hełm Weterana', 
+                    'sword' => 'Ostrze Weterana', 'axe' => 'Topór Weterana', 'bow' => 'Łuk Weterana',
+                    'wand' => 'Różdżka Weterana', 'dagger' => 'Sztylet Weterana', 'bell' => 'Dzwon Weterana',
+                    'armor' => 'Pancerz Weterana', 'helmet' => 'Hełm Weterana',
                     'boots' => 'Trzewiki Weterana', 'amulet' => 'Amulet Weterana', 'ring' => 'Pierścień Weterana'
                 ]
             ],
             [
                 'level' => 50, 'scale' => 2.99,
                 'names' => [
-                    'sword' => 'Mistrzowski Miecz', 'armor' => 'Mistrzowski Pancerz', 'helmet' => 'Mistrzowski Hełm', 
+                    'sword' => 'Mistrzowski Miecz', 'axe' => 'Mistrzowski Topór', 'bow' => 'Mistrzowski Łuk',
+                    'wand' => 'Mistrzowska Różdżka', 'dagger' => 'Mistrzowski Sztylet', 'bell' => 'Mistrzowski Dzwon',
+                    'armor' => 'Mistrzowski Pancerz', 'helmet' => 'Mistrzowski Hełm',
                     'boots' => 'Mistrzowskie Trzewiki', 'amulet' => 'Mistrzowski Amulet', 'ring' => 'Mistrzowski Pierścień'
                 ]
             ],
@@ -131,28 +141,36 @@ class ShopEquipmentSeeder extends Seeder
             [
                 'level' => 60, 'scale' => 3.58,
                 'names' => [
-                    'sword' => 'Runiczny Miecz', 'armor' => 'Runiczny Pancerz', 'helmet' => 'Runiczny Hełm', 
+                    'sword' => 'Runiczny Miecz', 'axe' => 'Runiczny Topór', 'bow' => 'Runiczny Łuk',
+                    'wand' => 'Runiczna Różdżka', 'dagger' => 'Runiczny Sztylet', 'bell' => 'Runiczny Dzwon',
+                    'armor' => 'Runiczny Pancerz', 'helmet' => 'Runiczny Hełm',
                     'boots' => 'Runiczne Trzewiki', 'amulet' => 'Runiczny Amulet', 'ring' => 'Runiczny Pierścień'
                 ]
             ],
             [
                 'level' => 70, 'scale' => 4.30,
                 'names' => [
-                    'sword' => 'Bojowy Miecz', 'armor' => 'Bojowy Pancerz', 'helmet' => 'Bojowy Hełm', 
+                    'sword' => 'Bojowy Miecz', 'axe' => 'Bojowy Topór', 'bow' => 'Bojowy Łuk',
+                    'wand' => 'Bojowa Różdżka', 'dagger' => 'Bojowy Sztylet', 'bell' => 'Bojowy Dzwon',
+                    'armor' => 'Bojowy Pancerz', 'helmet' => 'Bojowy Hełm',
                     'boots' => 'Bojowe Trzewiki', 'amulet' => 'Bojowy Amulet', 'ring' => 'Bojowy Pierścień'
                 ]
             ],
             [
                 'level' => 80, 'scale' => 5.16,
                 'names' => [
-                    'sword' => 'Obsydianowy Miecz', 'armor' => 'Obsydianowy Pancerz', 'helmet' => 'Obsydianowy Hełm', 
+                    'sword' => 'Obsydianowy Miecz', 'axe' => 'Obsydianowy Topór', 'bow' => 'Obsydianowy Łuk',
+                    'wand' => 'Obsydianowa Różdżka', 'dagger' => 'Obsydianowy Sztylet', 'bell' => 'Obsydianowy Dzwon',
+                    'armor' => 'Obsydianowy Pancerz', 'helmet' => 'Obsydianowy Hełm',
                     'boots' => 'Obsydianowe Trzewiki', 'amulet' => 'Obsydianowy Amulet', 'ring' => 'Obsydianowy Pierścień'
                 ]
             ],
             [
                 'level' => 90, 'scale' => 6.19,
                 'names' => [
-                    'sword' => 'Tytanowy Miecz', 'armor' => 'Tytanowy Pancerz', 'helmet' => 'Tytanowy Hełm', 
+                    'sword' => 'Tytanowy Miecz', 'axe' => 'Tytanowy Topór', 'bow' => 'Tytanowy Łuk',
+                    'wand' => 'Tytanowa Różdżka', 'dagger' => 'Tytanowy Sztylet', 'bell' => 'Tytanowy Dzwon',
+                    'armor' => 'Tytanowy Pancerz', 'helmet' => 'Tytanowy Hełm',
                     'boots' => 'Tytanowe Trzewiki', 'amulet' => 'Tytanowy Amulet', 'ring' => 'Tytanowy Pierścień'
                 ]
             ]
