@@ -71,6 +71,21 @@
                 <p class="text-gray-400">Zarządzanie zdjęciami na stronie głównej gry.</p>
             </a>
 
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
+                <h2 class="text-xl font-bold mb-2">📢 Kampanie Marketingowe</h2>
+                <p class="text-gray-400 mb-4">Liczba kont założonych przez reflinki kampanii (<code class="text-gray-300">/campaign/facebook</code>, <code class="text-gray-300">/campaign/youtube</code>).</p>
+                <div class="flex gap-4">
+                    <div class="flex-1 bg-gray-900/60 rounded-lg p-3 border border-blue-600/40">
+                        <div class="text-2xl font-bold text-blue-400">{{ $facebookSignups }}</div>
+                        <div class="text-sm text-gray-400">📘 Facebook</div>
+                    </div>
+                    <div class="flex-1 bg-gray-900/60 rounded-lg p-3 border border-red-600/40">
+                        <div class="text-2xl font-bold text-red-400">{{ $youtubeSignups }}</div>
+                        <div class="text-sm text-gray-400">▶️ YouTube</div>
+                    </div>
+                </div>
+            </div>
+
             <a href="{{ route('admin.item-shop-packages') }}" class="bg-gradient-to-br from-yellow-900/40 to-amber-900/40 p-6 rounded-lg shadow-[0_0_15px_rgba(251,191,36,0.1)] border border-yellow-600/50 hover:border-yellow-400 hover:shadow-[0_0_20px_rgba(251,191,36,0.3)] transition-all">
                 <h2 class="text-xl font-bold mb-2 text-yellow-500">💎 Pakiety Item Shop</h2>
                 <p class="text-gray-400">Zarządzanie pakietami premium, cenami i ilością gemów w ofercie.</p>

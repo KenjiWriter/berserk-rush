@@ -15,6 +15,9 @@ class ReferralService
     public const LEVEL30_REWARD_GEMS = 200;
     public const LEVEL30_THRESHOLD = 30;
 
+    /** Dozwolone źródła kampanii marketingowych (reflinki np. do reklam na Facebooku/YouTube). */
+    public const MARKETING_SOURCES = ['facebook', 'youtube'];
+
     public function resolveReferrerFromCode(?string $code): ?User
     {
         if (empty($code)) {
@@ -57,6 +60,45 @@ class ReferralService
         Log::info('Referral signup reward granted', [
             'new_user_id' => $newUser->id,
             'referrer_id' => $referrer->id,
+        ]);
+    }
+
+    /**
+     * Przyznaje nowo zarejestrowanemu userowi taki sam bonus jak przy poleceniu
+     * znajomego (3 dni VIP + 3 dni "zamrożonego" dostępu do Lustra), gdy konto
+     * zostało założone poprzez reflink kampanii marketingowej (np. Facebook/YouTube),
+     * a nie przez polecenie innego gracza. Nie ma tu "referrera" - służy wyłącznie
+     * do atrybucji źródła rejestracji (`users.signup_source`) na potrzeby statystyk
+     * w panelu administratora.
+     */
+    public function applyCampaignSignupReward(User $newUser, string $source): void
+    {
+        if (!in_array($source, self::MARKETING_SOURCES, true)) {
+            return;
+        }
+
+        if ($newUser->referral_signup_bonus_claimed_at !== null) {
+            return;
+        }
+
+        DB::transaction(function () use ($newUser, $source) {
+            $now = now();
+
+            $premiumUntil = ($newUser->premium_until && $newUser->premium_until->isFuture())
+                ? $newUser->premium_until->addDays(self::SIGNUP_VIP_DAYS)
+                : $now->copy()->addDays(self::SIGNUP_VIP_DAYS);
+
+            $newUser->update([
+                'signup_source' => $source,
+                'premium_until' => $premiumUntil,
+                'referral_mirror_bonus_until' => $now->copy()->addDays(self::SIGNUP_MIRROR_DAYS),
+                'referral_signup_bonus_claimed_at' => $now,
+            ]);
+        });
+
+        Log::info('Marketing campaign signup reward granted', [
+            'new_user_id' => $newUser->id,
+            'source' => $source,
         ]);
     }
 

@@ -624,16 +624,29 @@ class LocationEventService
 
         $template = $potion->template;
         $stats = $template->base_stats ?? [];
-        if (!$template || $template->type !== 'consumable' || (!isset($stats['heal_amount']) && !isset($stats['heal_pct']))) {
+        $isHealPotion = isset($stats['heal_amount']) || isset($stats['heal_pct']);
+        $isManaPotion = isset($stats['mana_amount']);
+        if (!$template || $template->type !== 'consumable' || (!$isHealPotion && !$isManaPotion)) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
 
         $maxHp = $character->getMaxHp();
-        $healAmount = isset($stats['heal_pct'])
-            ? (int) ceil($maxHp * ($stats['heal_pct'] / 100))
-            : (int) ($stats['heal_amount'] ?? 0);
+        $maxMana = $character->getMaxMana();
+        $healAmount = 0;
+        $manaAmount = 0;
 
-        $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
+        if ($isHealPotion) {
+            $healAmount = isset($stats['heal_pct'])
+                ? (int) ceil($maxHp * ($stats['heal_pct'] / 100))
+                : (int) ($stats['heal_amount'] ?? 0);
+            $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
+        }
+
+        if ($isManaPotion) {
+            $manaAmount = (int) ($stats['mana_amount'] ?? 0);
+            $run->current_mana = min($maxMana, ($run->current_mana ?? 0) + $manaAmount);
+        }
+
         $run->save();
 
         if ($potion->stack_size > 1) {
@@ -644,8 +657,11 @@ class LocationEventService
 
         return Result::ok([
             'healed' => $healAmount,
+            'mana_restored' => $manaAmount,
             'current_hp' => $run->current_hp,
             'max_hp' => $maxHp,
+            'current_mana' => $run->current_mana,
+            'max_mana' => $maxMana,
         ]);
     }
 

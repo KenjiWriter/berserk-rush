@@ -595,7 +595,7 @@
                                             {{ $canUpgrade ? ($level >= 26 ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-900 hover:from-amber-500 hover:to-yellow-800 text-amber-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : ($level >= 16 ? 'bg-gradient-to-b from-amber-700 via-amber-800 to-stone-950 hover:from-amber-600 hover:to-amber-900 text-amber-100 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : ($level >= 6 ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-gradient-to-b from-emerald-700 via-emerald-800 to-emerald-950 hover:from-emerald-600 hover:to-emerald-900 text-emerald-100 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]'))) : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
                                             @if(!$canUpgrade) disabled @endif>
                                         <i class="fa-solid fa-circle-arrow-up"></i>
-                                        <span>{{ $level === 26 ? 'Awansuj na PERFECT (P)' : ($level >= 16 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 6 ? 'Ulepsz (' . $reqBookName . ')' . (($willUseExorcism ?? false) ? ' + Zwój Egzorcyzmu' : '') : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
+                                        <span>{{ $level === 26 ? 'Awansuj na PERFECT (P)' : ($level >= 16 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 6 ? (($willUseExorcism ?? false) ? 'Ucz się ze zwojami' : 'Ucz się') : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
                                     </button>
                                 @endif
                             @endif

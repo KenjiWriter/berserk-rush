@@ -54,6 +54,33 @@ prezentowany w sekcji "Reflinki" Sklepu Premium (`ItemShopComponent`).
   koncie poleconego blokuje ponowną wypłatę, nawet jeśli kolejna postać na tym
   samym koncie również osiągnie 30 poziom.
 
+### 7. Reflinki Kampanii Marketingowych (Facebook/YouTube)
+Niezależny od reflinków graczy system atrybucji ruchu z płatnych/organicznych
+kampanii marketingowych, oparty o dwa stałe, publiczne linki:
+`{{route('campaign.redirect', 'facebook')}}` oraz `{{route('campaign.redirect', 'youtube')}}`
+(trasa `campaign.redirect`, `routes/web.php`). Linki te **przekierowują na stronę
+główną** (tak jak zwykłe wejście na stronę) i nie wymagają istnienia użytkownika-
+-polecającego - służą wyłącznie do oznaczenia źródła ruchu w reklamach.
+
+- **Przechwytywanie źródła**: wejście pod `/campaign/{source}` (gdzie `source`
+  to `facebook` lub `youtube`, `ReferralService::MARKETING_SOURCES`) zapisuje
+  `signup_source` do sesji i przekierowuje do `Homepage`.
+- **Nagroda za rejestrację** (`ReferralService::applyCampaignSignupReward()`):
+  identyczna jak przy poleceniu znajomego - **3 dni Konta VIP** oraz **3 dni
+  darmowego dostępu do Lustra** (przez współdzielone pole
+  `referral_mirror_bonus_until` i ten sam `ReferralService::grantPendingMirrorBonus()`).
+  Stosowana w `Register::register()` oraz `SocialLoginController::callback()`
+  tylko wtedy, gdy konto **nie** zostało założone z kodu polecającego innego
+  gracza (kody `?ref=` mają pierwszeństwo) i tylko raz na konto (współdzielony
+  znacznik `users.referral_signup_bonus_claimed_at`).
+- **Atrybucja**: źródło rejestracji zapisywane jest trwale w `users.signup_source`
+  (`facebook`/`youtube`/`null`) wyłącznie do celów statystycznych - w
+  przeciwieństwie do poleceń graczy, kampanie marketingowe nie mają "referrera"
+  i nie wypłacają nagrody za 30 poziom.
+- **Panel administratora**: kafelek "📢 Kampanie Marketingowe" na dashboardzie
+  (`Admin\Dashboard`, widoczny dla `permission_level >= 9`) pokazuje łączną
+  liczbę kont założonych z każdego źródła.
+
 ## Technical Implementation
 - **Livewire Components**: Managed via `ItemShopComponent` for the user interface (obsługuje zakupy Gemów, VIP, avatarów oraz zakupy zwojów przez `buyScroll()`), and `Admin\ItemShopPackages` for backend management.
 - **Consumables Logic**: `ConsumeItemAction` realizuje efekt użycia przedmiotu po kliknięciu w ekwipunku postaci na podstawie pola `effect` w `base_stats` przedmiotu.

@@ -52,6 +52,7 @@ class User extends Authenticatable
         'referral_signup_bonus_claimed_at',
         'referral_mirror_bonus_until',
         'referral_level30_reward_granted_at',
+        'signup_source',
     ];
 
     /**

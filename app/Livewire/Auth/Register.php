@@ -78,8 +78,11 @@ class Register extends Component
         $referrer = app(ReferralService::class)->resolveReferrerFromCode(session('referral_code'));
         if ($referrer) {
             app(ReferralService::class)->applySignupReward($user, $referrer);
+        } elseif ($source = session('signup_source')) {
+            app(ReferralService::class)->applyCampaignSignupReward($user, $source);
         }
         session()->forget('referral_code');
+        session()->forget('signup_source');
 
         Auth::login($user);
 

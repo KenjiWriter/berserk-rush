@@ -103,6 +103,7 @@ class MapStub extends Component
     public int $eventRunProgressCurrent = 0;
     public int $eventRunProgressTotal = 0;
     public bool $eventAutoAdvancePaused = false;
+    public bool $eventAutoAdvanceEnabled = true;
     public ?string $eventName = null;
     public bool $eventIsHardcore = false;
     public ?string $otherMapEventMapName = null;
@@ -133,6 +134,7 @@ class MapStub extends Component
         $this->isInactiveTab = false;
         $this->resetErrorBag('battle');
         $this->autoChain = session('combat_auto_chain', true);
+        $this->eventAutoAdvanceEnabled = session('location_event_auto_advance', true);
     }
 
     public function mount(Character $character, Map $map): void
@@ -148,6 +150,7 @@ class MapStub extends Component
         $this->autoChain = session('combat_auto_chain', true);
         $this->targetStrategy = session('combat_target_strategy', 'random');
         $this->eventsEnabled = session('combat_events_enabled', true);
+        $this->eventAutoAdvanceEnabled = session('location_event_auto_advance', true);
 
         if ($this->character->hasActiveMirror() && !request()->has('world_boss')) {
             session()->flash('error', 'Lustro jest aktywne! Zwykłe Mapy są zablokowane podczas trwania lustra.');
@@ -550,7 +553,7 @@ class MapStub extends Component
 
         if ($this->eventStageResult === 'slot_clear') {
             $this->dispatch('play-audio', type: 'victory');
-            if (!$this->eventAutoAdvancePaused) {
+            if ($this->eventAutoAdvanceEnabled && !$this->eventAutoAdvancePaused) {
                 $this->dispatch('auto-chain-next-event-stage', delay: 700);
             }
             return;
@@ -601,6 +604,21 @@ class MapStub extends Component
     {
         $this->eventAutoAdvancePaused = false;
         $this->fightNextEventStage();
+    }
+
+    public function toggleEventAutoAdvance(?bool $status = null): void
+    {
+        $wasEnabled = $this->eventAutoAdvanceEnabled;
+        $this->eventAutoAdvanceEnabled = $status !== null ? (bool) $status : !$this->eventAutoAdvanceEnabled;
+        session(['location_event_auto_advance' => $this->eventAutoAdvanceEnabled]);
+
+        // Re-enabling mid-chain (stage already cleared, waiting between fights) should
+        // resume the chain immediately - otherwise nothing would ever re-trigger the
+        // next fight, since the auto-chain dispatch only fires from completeEventStage().
+        $waitingBetweenStages = $this->inLocationEvent && !$this->isEventCalculating && !$this->isPlaying && !$this->eventRunResult;
+        if (!$wasEnabled && $this->eventAutoAdvanceEnabled && $waitingBetweenStages) {
+            $this->fightNextEventStage();
+        }
     }
 
     public function useEventPotion(string $itemInstanceId): void

@@ -804,16 +804,31 @@
 
                         @if ($inLocationEvent)
                             <div wire:key="location-event-footer-controls" class="flex flex-col gap-2.5 items-center">
+                                @if (!$eventRunResult)
+                                    <div class="flex items-center justify-center">
+                                        <button wire:click="toggleEventAutoAdvance" wire:loading.attr="disabled" wire:target="toggleEventAutoAdvance"
+                                            class="rounded-xl px-4 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all active:scale-95 hover:brightness-110 {{ $eventAutoAdvanceEnabled ? 'bg-emerald-950/90 border-emerald-500/80 text-emerald-200 shadow-[0_0_15px_rgba(16,185,129,0.45)] ring-1 ring-emerald-400/50' : 'bg-red-950/90 border-red-500/70 text-red-200 shadow-[0_0_15px_rgba(239,68,68,0.35)] ring-1 ring-red-500/40' }}">
+                                            Auto-łańcuch eventu: {{ $eventAutoAdvanceEnabled ? 'ON' : 'OFF' }}
+                                        </button>
+                                    </div>
+                                @endif
                                 @if ($eventRunResult)
                                     <button wire:click="dismissEventRun"
                                         class="rounded-xl px-6 py-2.5 sm:px-7 sm:py-3 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all text-sm sm:text-base">
                                         Kontynuuj eksplorację
                                     </button>
                                 @elseif (!$isEventCalculating && !$isPlaying)
-                                    <button wire:click="{{ $eventAutoAdvancePaused ? 'resumeEventAutoAdvance' : 'pauseEventAutoAdvance' }}"
-                                        class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-amber-900/70 border border-amber-500/50 text-amber-100 font-bold hover:bg-amber-800/80 active:scale-95 transition-all medieval-font shadow-md text-sm sm:text-base">
-                                        {{ $eventAutoAdvancePaused ? 'Wznów łańcuch' : 'Pauza' }}
-                                    </button>
+                                    @if (!$eventAutoAdvanceEnabled)
+                                        <button wire:click="fightNextEventStage" wire:loading.attr="disabled" wire:target="fightNextEventStage"
+                                            class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-gradient-to-r from-amber-700 to-amber-600 border border-amber-400/60 text-white font-bold medieval-font shadow-lg hover:scale-105 active:scale-95 transition-all text-sm sm:text-base">
+                                            Walcz dalej
+                                        </button>
+                                    @else
+                                        <button wire:click="{{ $eventAutoAdvancePaused ? 'resumeEventAutoAdvance' : 'pauseEventAutoAdvance' }}"
+                                            class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-amber-900/70 border border-amber-500/50 text-amber-100 font-bold hover:bg-amber-800/80 active:scale-95 transition-all medieval-font shadow-md text-sm sm:text-base">
+                                            {{ $eventAutoAdvancePaused ? 'Wznów łańcuch' : 'Pauza' }}
+                                        </button>
+                                    @endif
                                 @elseif (!$battleCompleted)
                                     <button @click="isPaused = !isPaused; window.toggleCombatPlayback(isPaused)"
                                         class="rounded-xl px-5 py-2 sm:px-6 sm:py-2.5 bg-amber-900/70 border border-amber-500/50 text-amber-100 font-bold hover:bg-amber-800/80 active:scale-95 transition-all medieval-font shadow-md text-sm sm:text-base">
@@ -846,7 +861,8 @@
                                                 $q->where('type', 'consumable')
                                                   ->where(function ($sub) {
                                                       $sub->whereNotNull('base_stats->heal_amount')
-                                                          ->orWhereNotNull('base_stats->heal_pct');
+                                                          ->orWhereNotNull('base_stats->heal_pct')
+                                                          ->orWhereNotNull('base_stats->mana_amount');
                                                   });
                                             })
                                             ->with('template')
@@ -855,9 +871,10 @@
                                     @if ($eventPotions->isNotEmpty())
                                         <div class="flex flex-wrap gap-1.5 justify-center">
                                             @foreach ($eventPotions as $potion)
+                                                @php $isManaPotion = isset($potion->template->base_stats['mana_amount']); @endphp
                                                 <button wire:click="useEventPotion('{{ $potion->id }}')"
                                                     wire:loading.attr="disabled" wire:target="useEventPotion"
-                                                    class="rounded-xl px-3 py-1.5 bg-emerald-950/80 border border-emerald-500/40 text-emerald-200 font-semibold hover:bg-emerald-900/80 transition-all text-xs">
+                                                    class="rounded-xl px-3 py-1.5 border font-semibold transition-all text-xs {{ $isManaPotion ? 'bg-blue-950/80 border-blue-500/40 text-blue-200 hover:bg-blue-900/80' : 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200 hover:bg-emerald-900/80' }}">
                                                     {{ $potion->template->name }} ({{ $potion->stack_size }}x)
                                                 </button>
                                             @endforeach

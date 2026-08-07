@@ -17,6 +17,18 @@ use App\Infrastructure\Persistence\Character;
 
 Route::get('/', Homepage::class)->name('homepage');
 Route::get('/register', Register::class)->middleware('guest')->name('register');
+
+// Reflinki kampanii marketingowych (np. reklamy Facebook/YouTube) - zapisują źródło
+// w sesji i przekierowują na stronę główną, tak samo jak zwykły link ze strony głównej.
+Route::get('/campaign/{source}', function (string $source) {
+    if (!in_array($source, \App\Application\Referrals\ReferralService::MARKETING_SOURCES, true)) {
+        abort(404);
+    }
+
+    session(['signup_source' => $source]);
+
+    return redirect()->route('homepage');
+})->name('campaign.redirect');
 Route::view('/regulamin', 'legal.terms')->name('terms');
 Route::view('/regulamin-czatu', 'legal.chat-terms')->name('chat-terms');
 Route::view('/polityka-prywatnosci', 'legal.privacy')->name('privacy');
