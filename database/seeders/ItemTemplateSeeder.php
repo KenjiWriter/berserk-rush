@@ -57,6 +57,15 @@ class ItemTemplateSeeder extends Seeder
             ['id' => '01k4jpx94j70x2vv10b835scr3', 'name' => 'Zwój Pełnego Resetu', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'reset_full'], 'description' => 'Pozwala zresetować zarówno atrybuty, jak i umiejętności bojowe aktywnej postaci za jednym razem.', 'icon' => 'zwoj-pelnego-resetu.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 40, 'rare' => 60]],
             ['id' => '01k4jpx94j70x2vv10b835scr4', 'name' => 'Zwój Areny Walki', 'type' => 'consumable', 'sub_type' => 'scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => ['effect' => 'arena_attempt'], 'description' => 'Przywraca 1 wykorzystaną próbę na Arenie Walk w danym dniu.', 'icon' => 'zwoj-areny-walki.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 70, 'rare' => 30]],
 
+            // Zwój Egzorcyzmu (Warlock, ulepszanie skilli M1-M10) i Zaczarowany Magiczny Metal
+            // (Kowal, ochrona przed regresją +6+) - patrz App\Application\Skills\UpgradeSkill
+            // oraz App\Application\Items\UpgradeService. Brak klucza 'effect' w base_stats jest
+            // celowe: te dwa przedmioty NIE są konsumowane przez generyczny ConsumeItemAction z
+            // ekwipunku, tylko wyłącznie przez flagi $useExorcismScroll/$useProtectionMetal w
+            // dedykowanych serwisach, wywoływanych z widoku Czarnoksiężnika/Kowala.
+            ['id' => '01k4jpx94j70x2vv10b835scr5', 'name' => 'Zwój Egzorcyzmu', 'type' => 'consumable', 'sub_type' => 'exorcism_scroll', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Święty zwój oczyszczający próbę mistrzowskiego szkolenia z ryzyka niepowodzenia. Użyty u Czarnoksiężnika podczas ulepszania umiejętności na poziomie Mistrza (M1-M10) gwarantuje 100% szans powodzenia tej jednej próby - wymagana Księga Umiejętności i złoto nadal są zużywane normalnie.', 'icon' => 'zwoj-egzorcyzmu.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 30, 'rare' => 70]],
+            ['id' => '01k4jpx94j70x2vv10b835mtl1', 'name' => 'Zaczarowany Magiczny Metal', 'type' => 'consumable', 'sub_type' => 'upgrade_protection', 'slot' => null, 'level_requirement' => 1, 'base_stats' => [], 'description' => 'Rzadki stop przesycony ochronną magią. Użyty u Kowala podczas ulepszania ekwipunku na poziomie +6 lub wyższym chroni przedmiot przed spadkiem poziomu w razie porażki - zużyte materiały i złoto nadal przepadają.', 'icon' => 'zaczarowany-magiczny-metal.png', 'rarity_weights' => ['common' => 0, 'uncommon' => 30, 'rare' => 70]],
+
             // Keys & Tutorial / Starter Equipment
             // UWAGA (bound_to_character -> tylko equip-state, 2026-07-29): te 3 przedmioty
             // (rozdawane raz na zawsze przez CreateCharacter/TutorialOverlay) mają

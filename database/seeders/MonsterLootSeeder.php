@@ -676,6 +676,37 @@ class MonsterLootSeeder extends Seeder
                                 'max_qty' => 1
                             ]);
                         }
+
+                        // Zwój Egzorcyzmu (gwarantowany sukces ulepszenia skilla M1-M10) i
+                        // Zaczarowany Magiczny Metal (ochrona przed regresją +6+) - dropią z
+                        // tej samej puli bossów T5 co Kamień Duchowy, ale rzadziej (niższa
+                        // waga), bo są dużo silniejsze - eliminują ryzyko zamiast tylko
+                        // opłacać kolejny etap.
+                        $exorcismScrollTpl = $itemTemplates->get('Zwój Egzorcyzmu');
+                        if ($exorcismScrollTpl) {
+                            LootTableEntry::updateOrCreate([
+                                'loot_table_id' => $lootTable->id,
+                                'ref_ulid' => $exorcismScrollTpl->id,
+                            ], [
+                                'reward_type' => 'item',
+                                'weight' => 5,
+                                'min_qty' => 1,
+                                'max_qty' => 1
+                            ]);
+                        }
+
+                        $protectionMetalTpl = $itemTemplates->get('Zaczarowany Magiczny Metal');
+                        if ($protectionMetalTpl) {
+                            LootTableEntry::updateOrCreate([
+                                'loot_table_id' => $lootTable->id,
+                                'ref_ulid' => $protectionMetalTpl->id,
+                            ], [
+                                'reward_type' => 'material',
+                                'weight' => 5,
+                                'min_qty' => 1,
+                                'max_qty' => 1
+                            ]);
+                        }
                     }
                 }
             }

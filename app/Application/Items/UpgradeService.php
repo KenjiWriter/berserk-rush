@@ -79,7 +79,13 @@ class UpgradeService
         ];
     }
 
-    public function upgradeItem(Character $character, ItemInstance $item): array
+    /**
+     * @param bool $useProtectionMetal Gdy true, próba dodatkowo zużywa 1x Zaczarowany
+     *   Magiczny Metal (sub_type 'upgrade_protection'). Ma sens wyłącznie dla poziomów
+     *   z karą `on_fail = 'downgrade'` (+6 i wyżej) - jeśli próba się nie powiedzie,
+     *   metal chroni przedmiot przed spadkiem poziomu (materiały/złoto nadal przepadają).
+     */
+    public function upgradeItem(Character $character, ItemInstance $item, bool $useProtectionMetal = false): array
     {
         if ($item->owner_character_id !== $character->id) {
             return ['success' => false, 'message' => 'Nie jesteś właścicielem tego przedmiotu.'];
@@ -93,7 +99,7 @@ class UpgradeService
         // run against row-locked data: previously this method had no DB::transaction at all, which
         // meant a mid-request failure could deduct gold/materials without applying the upgrade, and
         // two parallel upgrade attempts could both pass the balance checks and both spend (lost update).
-        return DB::transaction(function () use ($character, $item) {
+        return DB::transaction(function () use ($character, $item, $useProtectionMetal) {
             $character = Character::where('id', $character->id)->lockForUpdate()->first();
             $item = ItemInstance::where('id', $item->id)->lockForUpdate()->first();
 
@@ -127,6 +133,27 @@ class UpgradeService
                 }
             }
 
+            $protectionMetalItems = null;
+            if ($useProtectionMetal) {
+                if (($cost['on_fail'] ?? 'nothing') !== 'downgrade') {
+                    return ['success' => false, 'message' => 'Ten poziom ulepszenia nie niesie ryzyka regresji - Zaczarowany Magiczny Metal nie jest potrzebny.'];
+                }
+
+                $metalTpl = \App\Infrastructure\Persistence\ItemTemplate::where('sub_type', 'upgrade_protection')->first();
+                if (!$metalTpl) {
+                    return ['success' => false, 'message' => 'Nie odnaleziono szablonu Zaczarowanego Magicznego Metalu.'];
+                }
+
+                $protectionMetalItems = $character->items()
+                    ->whereIn('location', ['material_stash', 'inventory'])
+                    ->where('template_id', $metalTpl->id)
+                    ->get();
+
+                if ($protectionMetalItems->sum('stack_size') < 1) {
+                    return ['success' => false, 'message' => 'Wymagany 1x Zaczarowany Magiczny Metal w ekwipunku.'];
+                }
+            }
+
             $character->gold -= $cost['gold'];
             $character->save();
 
@@ -146,6 +173,24 @@ class UpgradeService
                         $toDeduct = 0;
                     }
                 }
+            }
+
+            $protectionConsumed = false;
+            if ($protectionMetalItems !== null) {
+                $toDeduct = 1;
+                foreach ($protectionMetalItems->sortBy('stack_size') as $metalInstance) {
+                    if ($toDeduct <= 0) break;
+
+                    if ($metalInstance->stack_size <= $toDeduct) {
+                        $toDeduct -= $metalInstance->stack_size;
+                        $metalInstance->delete();
+                    } else {
+                        $metalInstance->stack_size -= $toDeduct;
+                        $metalInstance->save();
+                        $toDeduct = 0;
+                    }
+                }
+                $protectionConsumed = true;
             }
 
             $chance = $cost['chance'];
@@ -176,7 +221,9 @@ class UpgradeService
                 $failAction = $cost['on_fail'] ?? 'nothing';
                 $failMessage = "Ulepszenie nie powiodło się. Straciłeś materiały.";
 
-                if ($failAction === 'downgrade' && $item->upgrade_level > 0) {
+                if ($failAction === 'downgrade' && $protectionConsumed) {
+                    $failMessage .= " Zaczarowany Magiczny Metal ochronił przedmiot przed spadkiem poziomu!";
+                } elseif ($failAction === 'downgrade' && $item->upgrade_level > 0) {
                     $item->upgrade_level -= 1;
                     $item->save();
                     $this->syncThresholdBonus($item, $levelBeforeAttempt);

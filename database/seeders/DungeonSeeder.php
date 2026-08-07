@@ -142,6 +142,8 @@ class DungeonSeeder extends Seeder
                     // Skill Books & Soul Stones (D3+)
                     ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 220],
                     ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 120],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Egzorcyzmu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
+                    ['reward_type' => 'material', 'ref_name' => 'Zaczarowany Magiczny Metal', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 30],
                     // Wejściowy loch z lootem chowańców (50 lvl+): T3-T5 jajka + podstawowa obroża.
                     ['reward_type' => 'item', 'ref_name' => 'Nietypowe Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 220],
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],
@@ -189,6 +191,8 @@ class DungeonSeeder extends Seeder
                     // Skill Books & Soul Stones (D4+)
                     ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 250],
                     ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 160],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Egzorcyzmu', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 45],
+                    ['reward_type' => 'material', 'ref_name' => 'Zaczarowany Magiczny Metal', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 45],
                     // Loch środkowego poziomu: T4-T6 jajka (mała szansa na Legendarne!) + lepszy ekwipunek peta.
                     ['reward_type' => 'item', 'ref_name' => 'Rzadkie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 300],
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 250],
@@ -237,6 +241,8 @@ class DungeonSeeder extends Seeder
                     // Skill Books & Soul Stones (D5+)
                     ['reward_type' => 'item', 'ref_name' => 'Skrzynia Ksiąg Umiejętności', 'min_qty' => 2, 'max_qty' => 4, 'weight' => 280],
                     ['reward_type' => 'material', 'ref_name' => 'Kamień Duchowy', 'min_qty' => 1, 'max_qty' => 3, 'weight' => 200],
+                    ['reward_type' => 'item', 'ref_name' => 'Zwój Egzorcyzmu', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 60],
+                    ['reward_type' => 'material', 'ref_name' => 'Zaczarowany Magiczny Metal', 'min_qty' => 1, 'max_qty' => 2, 'weight' => 60],
                     // Najlepszy loot chowańców w grze: głównie T5, spora szansa na T6 Legendarne + rzadki ekwipunek.
                     ['reward_type' => 'item', 'ref_name' => 'Epickie Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 350],
                     ['reward_type' => 'item', 'ref_name' => 'Legendarne Jajko Chowańca', 'min_qty' => 1, 'max_qty' => 1, 'weight' => 200],

@@ -53,6 +53,20 @@
                     </div>
                 </div>
 
+                {{-- Exorcism Scrolls Badge / Toggle --}}
+                <button type="button" wire:click="toggleExorcismScroll"
+                    class="bg-gradient-to-b from-stone-950 via-stone-900 to-black border-2 px-3.5 py-2 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.8)] flex items-center gap-2.5 cursor-pointer transition-all {{ $useExorcismScroll ? 'border-fuchsia-400 shadow-[0_0_15px_rgba(232,121,249,0.6)]' : 'border-fuchsia-700/80 shadow-[0_0_15px_rgba(232,121,249,0.2)]' }}"
+                    title="Zwój Egzorcyzmu: gwarantuje 100% szans powodzenia następnej próby ulepszenia skilla na etapie Mistrza (M1-M10). Kliknij aby zaznaczyć/odznaczyć użycie.">
+                    <div class="w-8 h-8 rounded-lg bg-fuchsia-950 border border-fuchsia-500 flex items-center justify-center text-fuchsia-400 text-sm shrink-0">
+                        <i class="fa-solid fa-scroll"></i>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-[9px] text-fuchsia-400 font-extrabold uppercase tracking-widest block leading-none">ZWOJE EGZORCYZMU</span>
+                        <span class="text-lg font-black text-fuchsia-300 drop-shadow">{{ $exorcismScrollsCount }}</span>
+                    </div>
+                    <i class="fa-solid {{ $useExorcismScroll ? 'fa-toggle-on text-fuchsia-300' : 'fa-toggle-off text-stone-600' }} text-lg ml-1"></i>
+                </button>
+
                 {{-- Info Button --}}
                 <button wire:click="toggleInfoModal"
                     class="px-4 py-2.5 min-h-[44px] rounded-xl bg-black/80 border-2 border-sky-600/50 text-sky-300 hover:text-sky-100 hover:border-sky-400 font-extrabold text-xs uppercase tracking-widest shadow-inner transition-all duration-200 flex items-center gap-2 cursor-pointer"
@@ -222,8 +236,9 @@
                                 $costText = '1 PKT SKILLA (85% szans)';
                             } elseif ($level >= 6 && $level < 16) {
                                 $bookCost = $level - 5;
-                                $canUpgrade = $ownedSpecificBooks >= $bookCost && $character->gold >= 500;
-                                $costText = "{$bookCost}x {$reqBookName} + 500 Gold (50% szans)";
+                                $willUseExorcism = $useExorcismScroll && $exorcismScrollsCount >= 1;
+                                $canUpgrade = $ownedSpecificBooks >= $bookCost && $character->gold >= 500 && (!$useExorcismScroll || $exorcismScrollsCount >= 1);
+                                $costText = "{$bookCost}x {$reqBookName} + 500 Gold (" . ($willUseExorcism ? '100% szans - Zwój Egzorcyzmu' : '50% szans') . ")";
                             } elseif ($level >= 16 && $level < 27) {
                                 $stoneCost = (int) round(1 + ($level - 16) * 4 / 9);
                                 $stoneGoldCost = $level === 26 ? 10000 : 2500;
@@ -580,7 +595,7 @@
                                             {{ $canUpgrade ? ($level >= 26 ? 'bg-gradient-to-b from-amber-600 via-yellow-600 to-amber-900 hover:from-amber-500 hover:to-yellow-800 text-amber-100 border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse' : ($level >= 16 ? 'bg-gradient-to-b from-amber-700 via-amber-800 to-stone-950 hover:from-amber-600 hover:to-amber-900 text-amber-100 border-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.4)]' : ($level >= 6 ? 'bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-950 hover:from-sky-600 hover:to-sky-900 text-sky-100 border-sky-500 shadow-[0_0_12px_rgba(56,189,248,0.4)]' : 'bg-gradient-to-b from-emerald-700 via-emerald-800 to-emerald-950 hover:from-emerald-600 hover:to-emerald-900 text-emerald-100 border-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.4)]'))) : 'bg-stone-900 text-stone-500 border-stone-800 cursor-not-allowed opacity-60' }}"
                                             @if(!$canUpgrade) disabled @endif>
                                         <i class="fa-solid fa-circle-arrow-up"></i>
-                                        <span>{{ $level === 26 ? 'Awansuj na PERFECT (P)' : ($level >= 16 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 6 ? 'Ulepsz (' . $reqBookName . ')' : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
+                                        <span>{{ $level === 26 ? 'Awansuj na PERFECT (P)' : ($level >= 16 ? 'Ulepsz (Kamień Duchowy)' : ($level >= 6 ? 'Ulepsz (' . $reqBookName . ')' . (($willUseExorcism ?? false) ? ' + Zwój Egzorcyzmu' : '') : 'Ulepsz do ' . ($mySkill->level + 1))) }}</span>
                                     </button>
                                 @endif
                             @endif

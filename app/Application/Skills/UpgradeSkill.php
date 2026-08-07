@@ -25,10 +25,16 @@ class UpgradeSkill
     private const MASTER_SUCCESS_CHANCE = 50;
     private const GRAND_MASTER_SUCCESS_CHANCE = 20;
 
-    public function execute(Character $character, CharacterCombatSkill $charSkill): Result
+    /**
+     * @param bool $useExorcismScroll Gdy true i skill jest w etapie Mistrza (M1-M10),
+     *   próba konsumuje dodatkowo 1x Zwój Egzorcyzmu (sub_type 'exorcism_scroll') i
+     *   pomija losowanie - próba zawsze się powiedzie. Księga Umiejętności i złoto są
+     *   nadal wymagane i zużywane normalnie - zwój usuwa wyłącznie ryzyko porażki.
+     */
+    public function execute(Character $character, CharacterCombatSkill $charSkill, bool $useExorcismScroll = false): Result
     {
         try {
-            return DB::transaction(function () use ($character, $charSkill) {
+            return DB::transaction(function () use ($character, $charSkill, $useExorcismScroll) {
                 if ($charSkill->character_id !== $character->id) {
                     return Result::error('UNAUTHORIZED', 'Nie posiadasz tej umiejętności.');
                 }
@@ -94,11 +100,33 @@ class UpgradeSkill
                         return Result::error('MISSING_ITEM', "Wymagane {$bookCost}x {$bookName} w ekwipunku (posiadasz {$ownedBooks}).");
                     }
 
+                    $exorcismItems = null;
+                    if ($useExorcismScroll) {
+                        $exorcismTpl = ItemTemplate::where('sub_type', 'exorcism_scroll')->first();
+                        if (!$exorcismTpl) {
+                            return Result::error('TEMPLATE_NOT_FOUND', 'Nie odnaleziono szablonu Zwoju Egzorcyzmu.');
+                        }
+
+                        $exorcismItems = ItemInstance::where('owner_character_id', $character->id)
+                            ->where('template_id', $exorcismTpl->id)
+                            ->whereIn('location', ['inventory', 'material_stash'])
+                            ->where('stack_size', '>', 0)
+                            ->get();
+
+                        if ($exorcismItems->sum('stack_size') < 1) {
+                            return Result::error('MISSING_ITEM', 'Wymagany 1x Zwój Egzorcyzmu w ekwipunku.');
+                        }
+                    }
+
                     // Deduct gold & books (across stacks if needed)
                     $character->decrement('gold', $goldCost);
                     self::consumeStackedItems($bookItems, $bookCost);
 
-                    if (mt_rand(1, 100) > self::MASTER_SUCCESS_CHANCE) {
+                    if ($exorcismItems !== null) {
+                        self::consumeStackedItems($exorcismItems, 1);
+                    }
+
+                    if ($exorcismItems === null && mt_rand(1, 100) > self::MASTER_SUCCESS_CHANCE) {
                         return Result::error('UPGRADE_ROLL_FAILED', "Próba nie powiodła się! Zużyto {$bookCost}x {$bookName} i {$goldCost} złota.", ['consumed' => true]);
                     }
 
@@ -108,6 +136,10 @@ class UpgradeSkill
                     $msg = $charSkill->level === 16
                         ? "Pomyślnie przeczytano {$bookName}! Skill osiągnął M10 i awansował na Arcymistrza (G1)!"
                         : "Przeczytano {$bookName}! Skill awansował na {$charSkill->getDisplayLevel()}!";
+
+                    if ($exorcismItems !== null) {
+                        $msg = "Zwój Egzorcyzmu zagwarantował sukces! " . $msg;
+                    }
 
                     return Result::ok(['message' => $msg]);
                 }

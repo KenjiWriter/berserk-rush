@@ -45,7 +45,9 @@ Moduł odpowiada za system umiejętności (skilli) postaci. Gracze odblokowują,
 - **Źródła Przedmiotów:**
   - **Skrzynia Ksiąg Umiejętności:** Po otwarciu przyznaje Księgę Umiejętności. Wypada ze WSZYSTKICH bossów na mapach (T1-T5+) oraz we wszystkich lochach (D1+).
   - **Kamień Duchowy:** Wypada z bossów na mapach od **Tier 5** wzwyż oraz z lochów od **Dungeon 3** wzwyż.
+  - **Zwój Egzorcyzmu:** Wypada z tej samej puli bossów T5 oraz lochów D3+ co Kamień Duchowy, ale ze znacznie niższą wagą (rzadszy - patrz niżej).
   - **Klucze do Lochów:** Znacznie podniesiona szansa dropu ze wszystkich bossów map.
+- **Zwój Egzorcyzmu (consumable, `sub_type = 'exorcism_scroll'`):** Użyty u Czarnoksiężnika podczas ulepszania skilla na etapie Mistrza (M1-M10, poziomy 6-15) gwarantuje **100% szans powodzenia** dla tej JEDNEJ próby, zamiast standardowych 50% (`MASTER_SUCCESS_CHANCE`). Wymagana Księga Umiejętności i 500 Gold nadal są zużywane normalnie - zwój usuwa wyłącznie ryzyko porażki, nie zastępuje kosztu. Sterowane flagą `$useExorcismScroll` w `UpgradeSkill::execute()`, przełączaną w widoku Czarnoksiężnika (`Warlock::toggleExorcismScroll()`) i zużywaną automatycznie przy najbliższej próbie w tym etapie. Nie działa na etapach Podstawowym (Lv. 1-17) ani Arcymistrza/Perfect (G1-G10/P).
 - Synchronizacja punktów (`syncMissingPoints`) wylicza zużyte SP z uwzględnieniem limitu inwestycji 17 SP per skill.
 - Opcja resetowania skilli (zwrot Punktów Umiejętności) dostępna jest poprzez użycie w ekwipunku **Zwoju Resetu Umiejętności** lub **Zwoju Pełnego Resetu**.
 

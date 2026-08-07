@@ -25,6 +25,10 @@ class Warlock extends Component
     // --- INFO / OPIS MECHANIK ---
     public bool $showInfoModal = false;
 
+    // Gdy zaznaczone, następna próba ulepszenia skilla w etapie Mistrza (M1-M10)
+    // zużyje 1x Zwój Egzorcyzmu i zagwarantuje sukces - patrz UpgradeSkill::execute().
+    public bool $useExorcismScroll = false;
+
     public function mount(Character $character)
     {
         $this->character = $character;
@@ -47,6 +51,11 @@ class Warlock extends Component
     public function toggleInfoModal(): void
     {
         $this->showInfoModal = !$this->showInfoModal;
+    }
+
+    public function toggleExorcismScroll(): void
+    {
+        $this->useExorcismScroll = !$this->useExorcismScroll;
     }
 
     public function filterByWeapon(string $weaponType): void
@@ -82,13 +91,14 @@ class Warlock extends Component
     public function upgradeSkill(string $charSkillId, UpgradeSkill $upgradeAction)
     {
         $charSkill = CharacterCombatSkill::findOrFail($charSkillId);
-        $result = $upgradeAction->execute($this->character, $charSkill);
+        $result = $upgradeAction->execute($this->character, $charSkill, $this->useExorcismScroll);
 
         if ($result->isOk()) {
             $data = $result->getPayload();
             $message = is_array($data) && !empty($data['message']) ? $data['message'] : 'Umiejętność została rozwinięta!';
             $this->dispatch('notify', type: 'success', message: $message);
             $this->dispatch('play-audio', type: 'upgrade-success');
+            $this->useExorcismScroll = false;
             $this->character->refresh();
             $this->dispatch('stats-updated');
         } else {
@@ -226,6 +236,13 @@ class Warlock extends Component
             ->whereIn('location', ['inventory', 'material_stash'])
             ->sum('stack_size') : 0;
 
+        $exorcismTplId = \App\Infrastructure\Persistence\ItemTemplate::where('sub_type', 'exorcism_scroll')->value('id');
+
+        $exorcismScrollsCount = $exorcismTplId ? \App\Infrastructure\Persistence\ItemInstance::where('owner_character_id', $this->character->id)
+            ->where('template_id', $exorcismTplId)
+            ->whereIn('location', ['inventory', 'material_stash'])
+            ->sum('stack_size') : 0;
+
         // Katalog 10 umiejętności Mistrzostwa - niezależny od odblokowania (level 99),
         // żeby panel "Opis mechanik" mógł je opisać graczom poniżej tego poziomu.
         $championSkillsCatalog = ChampionSkill::orderBy('sort_order')->get();
@@ -236,6 +253,7 @@ class Warlock extends Component
             'skillBooksCount' => $skillBooksCount,
             'ownedSkillBooksBySubType' => $ownedSkillBooksBySubType,
             'soulStonesCount' => $soulStonesCount,
+            'exorcismScrollsCount' => $exorcismScrollsCount,
             'championSkillsCatalog' => $championSkillsCatalog,
         ], $this->getChampionViewData()))->layout('components.layouts.app');
     }

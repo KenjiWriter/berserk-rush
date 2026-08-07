@@ -29,6 +29,11 @@ class Blacksmith extends Component
     // --- INFO / OPIS MECHANIK ---
     public bool $showInfoModal = false;
 
+    // Gdy zaznaczone, następna próba ulepszenia (na poziomie +6 i wyżej) zużyje 1x
+    // Zaczarowany Magiczny Metal i ochroni przedmiot przed regresją w razie porażki -
+    // patrz UpgradeService::upgradeItem().
+    public bool $useProtectionMetal = false;
+
     public function mount(Character $character): void
     {
         Gate::authorize('view', $character);
@@ -77,6 +82,11 @@ class Blacksmith extends Component
         $this->showInfoModal = !$this->showInfoModal;
     }
 
+    public function toggleProtectionMetal(): void
+    {
+        $this->useProtectionMetal = !$this->useProtectionMetal;
+    }
+
     public function backToHub(): void
     {
         $this->redirect(route('city.hub', $this->character), navigate: true);
@@ -85,12 +95,13 @@ class Blacksmith extends Component
     public function upgradeItem(string $itemInstanceId, \App\Application\Items\UpgradeService $upgrade)
     {
         $item = \App\Infrastructure\Persistence\ItemInstance::find($itemInstanceId);
-        $result = $upgrade->upgradeItem($this->character, $item);
+        $result = $upgrade->upgradeItem($this->character, $item, $this->useProtectionMetal);
 
         $this->upgradeModalType = $result['success'] ? 'success' : 'error';
         $this->upgradeModalTitle = $result['success'] ? 'Sukces!' : 'Niepowodzenie';
         $this->upgradeModalMessage = $result['message'];
         $this->showUpgradeModal = true;
+        $this->useProtectionMetal = false;
 
         $this->dispatch('play-audio', type: $result['success'] ? 'upgrade-success' : 'upgrade-fail');
 
@@ -190,6 +201,12 @@ class Blacksmith extends Component
             ->whereHas('template', function ($q) {
                 $q->where('type', 'material');
             })->get();
+
+        $protectionMetalTplId = ItemTemplate::where('sub_type', 'upgrade_protection')->value('id');
+        $protectionMetalCount = $protectionMetalTplId ? $this->character->items()
+            ->whereIn('location', ['material_stash', 'inventory'])
+            ->where('template_id', $protectionMetalTplId)
+            ->sum('stack_size') : 0;
 
         // Rzemiosło: przepisy na broń oraz zbroję w jednym widoku
         $recipes = ItemRecipe::with('resultItemTemplate')->whereHas('resultItemTemplate', function ($q) {
@@ -329,6 +346,7 @@ class Blacksmith extends Component
             'dismantleYields' => $dismantleYields,
             'runicShardCount' => $runicShardCount,
             'inventoryMaterials' => $inventoryMaterials,
+            'protectionMetalCount' => $protectionMetalCount,
             'recipes' => $preparedRecipes,
             'equipped' => $equipped,
             'upgradeSteps' => $upgradeSteps,

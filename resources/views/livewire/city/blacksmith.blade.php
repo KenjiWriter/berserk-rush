@@ -195,6 +195,18 @@
                                                     @endforeach
                                                 </div>
 
+                                                @if(($cost['on_fail'] ?? 'nothing') === 'downgrade')
+                                                    <button type="button" wire:click="toggleProtectionMetal"
+                                                        class="w-full flex items-center justify-between gap-2 mb-4 p-2.5 rounded-lg border transition-all cursor-pointer {{ $useProtectionMetal ? 'border-fuchsia-400 bg-fuchsia-950/40 shadow-[0_0_12px_rgba(232,121,249,0.4)]' : 'border-gray-700/50 bg-gray-900/50 hover:bg-gray-800' }}"
+                                                        title="Chroni przedmiot przed spadkiem poziomu w razie porażki (materiały i złoto nadal przepadają).">
+                                                        <span class="flex items-center gap-2 text-sm">
+                                                            <i class="fa-solid {{ $useProtectionMetal ? 'fa-toggle-on text-fuchsia-300' : 'fa-toggle-off text-gray-500' }} text-lg"></i>
+                                                            <span class="text-gray-300">Użyj <span class="text-fuchsia-300 font-bold">Zaczarowanego Magicznego Metalu</span> (ochrona przed regresją)</span>
+                                                        </span>
+                                                        <span class="font-bold {{ $protectionMetalCount >= 1 ? 'text-fuchsia-300' : 'text-red-400' }}">{{ $protectionMetalCount }}x</span>
+                                                    </button>
+                                                @endif
+
                                                 <button
                                                     wire:click="upgradeItem('{{ $upgradeItem->id }}')"
                                                     @click="hammering = true; setTimeout(() => hammering = false, 1000)"
