@@ -16,7 +16,7 @@ class ReferralService
     public const LEVEL30_THRESHOLD = 30;
 
     /** Dozwolone źródła kampanii marketingowych (reflinki np. do reklam na Facebooku/YouTube). */
-    public const MARKETING_SOURCES = ['facebook', 'youtube'];
+    public const MARKETING_SOURCES = ['facebook', 'youtube', 'tiktok'];
 
     public function resolveReferrerFromCode(?string $code): ?User
     {

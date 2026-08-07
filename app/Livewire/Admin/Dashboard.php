@@ -20,6 +20,7 @@ class Dashboard extends Component
         return view('livewire.admin.dashboard', [
             'facebookSignups' => $campaignSignups->get('facebook', 0),
             'youtubeSignups' => $campaignSignups->get('youtube', 0),
+            'tiktokSignups' => $campaignSignups->get('tiktok', 0),
         ]);
     }
 }

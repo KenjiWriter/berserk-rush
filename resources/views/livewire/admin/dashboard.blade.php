@@ -73,7 +73,7 @@
 
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-700">
                 <h2 class="text-xl font-bold mb-2">📢 Kampanie Marketingowe</h2>
-                <p class="text-gray-400 mb-4">Liczba kont założonych przez reflinki kampanii (<code class="text-gray-300">/campaign/facebook</code>, <code class="text-gray-300">/campaign/youtube</code>).</p>
+                <p class="text-gray-400 mb-4">Liczba kont założonych przez reflinki kampanii (<code class="text-gray-300">/campaign/facebook</code>, <code class="text-gray-300">/campaign/youtube</code>, <code class="text-gray-300">/campaign/tiktok</code>).</p>
                 <div class="flex gap-4">
                     <div class="flex-1 bg-gray-900/60 rounded-lg p-3 border border-blue-600/40">
                         <div class="text-2xl font-bold text-blue-400">{{ $facebookSignups }}</div>
@@ -82,6 +82,10 @@
                     <div class="flex-1 bg-gray-900/60 rounded-lg p-3 border border-red-600/40">
                         <div class="text-2xl font-bold text-red-400">{{ $youtubeSignups }}</div>
                         <div class="text-sm text-gray-400">▶️ YouTube</div>
+                    </div>
+                    <div class="flex-1 bg-gray-900/60 rounded-lg p-3 border border-pink-600/40">
+                        <div class="text-2xl font-bold text-pink-400">{{ $tiktokSignups }}</div>
+                        <div class="text-sm text-gray-400">🎵 TikTok</div>
                     </div>
                 </div>
             </div>
