@@ -34,4 +34,25 @@ class PetSpeciesPicker
             default => ['Mały Duch', 'pet_spirit', 'support'],
         };
     }
+
+    /**
+     * Jak pick(), ale ogranicza pulę gatunków do danego Rodzaju (archetypu) -
+     * używane przy degradacji tieru peta (nieudana fuzja), żeby pet zachował
+     * swój Rodzaj mimo zmiany gatunku/tieru. Jeśli dla tej pary tier+Rodzaj
+     * admin nie zdefiniował żadnego gatunku (albo $archetype jest null), spada
+     * na zwykłe pick($tier) bez filtra Rodzaju.
+     *
+     * @return array{0: string, 1: string, 2: ?string} [nazwa, ikona, archetyp]
+     */
+    public function pickForArchetype(int $tier, ?string $archetype): array
+    {
+        if ($archetype) {
+            $template = PetTemplate::where('tier', $tier)->where('archetype', $archetype)->inRandomOrder()->first();
+            if ($template) {
+                return [$template->name, $template->icon ?: 'paw', $template->archetype];
+            }
+        }
+
+        return $this->pick($tier);
+    }
 }

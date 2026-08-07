@@ -134,7 +134,10 @@ return [
     // Warianty tego, co się dzieje z petami PRZY NIEUDANEJ fuzji - dokładnie
     // jeden z nich jest losowany wg wagi (% sumuje się do 100). Koszt fuzji
     // (wyżej) jest pobierany zawsze, niezależnie od wylosowanego wariantu.
-    // "devolve" = Pet::demoteGrowthStage() (cofnięcie o 1 etap dojrzałości).
+    // "devolve" = PetFusionService::downgradeTier() - pet zostaje USUNIĘTY i
+    // zastąpiony nowym petem tier NIŻEJ (poziom 1, jak świeżo wyklute jajko,
+    // zachowuje Rodzaj). Na tierze 1 nie ma niżej gdzie spaść, więc "devolve"
+    // dla peta T1 jest równoznaczne z utratą peta (jak lose_one/lose_both).
     'fusion_failure_outcomes' => [
         'lose_both' => 2,
         'lose_one' => 10,

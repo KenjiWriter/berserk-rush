@@ -172,13 +172,14 @@ class PetServiceTest extends TestCase
         $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
     }
 
-    public function test_fusion_service_failure_devolve_both_outcome_demotes_both_pets(): void
+    public function test_fusion_service_failure_devolve_both_outcome_downgrades_both_pets_to_lower_tier(): void
     {
         $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 20, 0]));
 
         $character = $this->createTestCharacter();
-        $p1 = $this->makePet($character, 1, ['level' => 30]);
-        $p2 = $this->makePet($character, 1, ['level' => 30]);
+        $character->update(['gold' => 1000]); // T2 fuzja kosztuje 250, domyślne testowe 100 to za mało.
+        $p1 = $this->makePet($character, 2, ['archetype' => 'attacker']);
+        $p2 = $this->makePet($character, 2, ['archetype' => 'defense']);
 
         $service = app(PetFusionService::class);
         $result = $service->fusePets($character, [$p1->id, $p2->id]);
@@ -188,20 +189,32 @@ class PetServiceTest extends TestCase
         $this->assertFalse($payload['success']);
         $this->assertSame('devolve_both', $payload['outcome']);
 
-        $this->assertDatabaseHas('pets', ['id' => $p1->id]);
-        $this->assertDatabaseHas('pets', ['id' => $p2->id]);
-        // level 30 -> growth_stage 2 ("Okrzepły"), demote -> level 24 -> growth_stage 1 ("Podrostek").
-        $this->assertSame(1, $p1->fresh()->growth_stage);
-        $this->assertSame(1, $p2->fresh()->growth_stage);
+        // Oba pety tier2 są USUWANE i zastępowane świeżymi petami tier1
+        // (level 1, fusion_count 0) - "cofka" degraduje tier, nie tylko level.
+        $this->assertDatabaseMissing('pets', ['id' => $p1->id]);
+        $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
+        $this->assertDatabaseCount('pets', 2);
+
+        $this->assertCount(2, $payload['downgradedPets']);
+        foreach ($payload['downgradedPets'] as $newPet) {
+            $this->assertSame(1, $newPet->tier);
+            $this->assertSame(1, $newPet->level);
+            $this->assertSame(0, $newPet->fusion_count);
+            $this->assertSame(0, $newPet->growth_stage);
+        }
+
+        $archetypes = collect($payload['downgradedPets'])->pluck('archetype')->sort()->values()->all();
+        $this->assertSame(['attacker', 'defense'], $archetypes);
     }
 
-    public function test_fusion_service_failure_devolve_one_outcome_demotes_unlucky_pet_only(): void
+    public function test_fusion_service_failure_devolve_one_outcome_downgrades_unlucky_pet_only(): void
     {
         $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 40, 0]));
 
         $character = $this->createTestCharacter();
-        $p1 = $this->makePet($character, 1, ['level' => 30]);
-        $p2 = $this->makePet($character, 1, ['level' => 30]);
+        $character->update(['gold' => 1000]); // T2 fuzja kosztuje 250, domyślne testowe 100 to za mało.
+        $p1 = $this->makePet($character, 2);
+        $p2 = $this->makePet($character, 2);
 
         $service = app(PetFusionService::class);
         $result = $service->fusePets($character, [$p1->id, $p2->id]);
@@ -211,12 +224,39 @@ class PetServiceTest extends TestCase
         $this->assertFalse($payload['success']);
         $this->assertSame('devolve_one', $payload['outcome']);
 
+        // luckyPet (coin flip 0 -> petA) przetrwa nietknięty na tier2, drugi
+        // pet zostaje usunięty i zastąpiony świeżym petem tier1.
+        $this->assertDatabaseHas('pets', ['id' => $p1->id, 'tier' => 2]);
+        $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
+        $this->assertDatabaseCount('pets', 2);
+
+        $this->assertCount(1, $payload['downgradedPets']);
+        $this->assertSame(1, $payload['downgradedPets'][0]->tier);
+        $this->assertSame(1, $payload['downgradedPets'][0]->level);
+        $this->assertSame(0, $payload['downgradedPets'][0]->fusion_count);
+    }
+
+    public function test_fusion_service_failure_devolve_on_tier_one_pet_deletes_it_instead(): void
+    {
+        // Edge case: pet T1 nie ma niżej gdzie spaść - "devolve" na tierze 1
+        // jest równoznaczne z utratą peta (jak lose_one/lose_both).
+        $this->app->instance(RandomProvider::class, new DeterministicRandomProvider([999, 40, 0]));
+
+        $character = $this->createTestCharacter();
+        $p1 = $this->makePet($character, 1);
+        $p2 = $this->makePet($character, 1);
+
+        $service = app(PetFusionService::class);
+        $result = $service->fusePets($character, [$p1->id, $p2->id]);
+
+        $this->assertFalse($result->isError());
+        $payload = $result->getPayload();
+        $this->assertSame('devolve_one', $payload['outcome']);
+
         $this->assertDatabaseHas('pets', ['id' => $p1->id]);
-        $this->assertDatabaseHas('pets', ['id' => $p2->id]);
-        // p1 untouched at level 30 -> growth_stage 2. p2 (unlucky) demoted to
-        // level 24 -> growth_stage 1.
-        $this->assertSame(2, $p1->fresh()->growth_stage);
-        $this->assertSame(1, $p2->fresh()->growth_stage);
+        $this->assertDatabaseMissing('pets', ['id' => $p2->id]);
+        $this->assertDatabaseCount('pets', 1);
+        $this->assertCount(0, $payload['downgradedPets']);
     }
 
     public function test_fusion_service_rejects_mismatched_tiers(): void
@@ -368,31 +408,6 @@ class PetServiceTest extends TestCase
 
         // Undampened 6%, tłumienie mocy = 25/50 = 0.5 -> 3%.
         $this->assertEqualsWithDelta(3.0, $pet->getArchetypeBonusPercentFor($character), 0.001);
-    }
-
-    public function test_pet_demote_growth_stage_lowers_level_below_current_threshold(): void
-    {
-        $character = $this->createTestCharacter();
-        $pet = $this->makePet($character, 1, ['level' => 30]); // 25-49 -> growth_stage 2
-
-        $this->assertSame(2, $pet->growth_stage);
-
-        $pet->demoteGrowthStage();
-
-        $this->assertSame(24, $pet->level);
-        $this->assertSame(1, $pet->growth_stage);
-        $this->assertSame(0, $pet->exp);
-    }
-
-    public function test_pet_demote_growth_stage_is_noop_at_stage_zero(): void
-    {
-        $character = $this->createTestCharacter();
-        $pet = $this->makePet($character, 1, ['level' => 5]); // 1-9 -> growth_stage 0
-
-        $pet->demoteGrowthStage();
-
-        $this->assertSame(5, $pet->level);
-        $this->assertSame(0, $pet->growth_stage);
     }
 
     public function test_character_equipment_stats_apply_support_pet_passive(): void

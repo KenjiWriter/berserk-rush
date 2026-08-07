@@ -146,13 +146,17 @@ wzór w sekcji 8. Wizualnie stopnie mapowane są na 3 warianty grafiki: stage 0
 | Wariant porażki | Szansa | Efekt |
 |---|---|---|
 | `no_loss` | 43% | Brak utraty petów, tylko koszt fuzji przepada. |
-| `devolve_one` | 25% | Jeden (losowy) pet cofa się w rozwoju (`Pet::demoteGrowthStage()` - poziom spada tuż poniżej progu obecnego etapu, EXP resetowany). |
-| `devolve_both` | 20% | Oba pety cofają się w rozwoju. |
+| `devolve_one` | 25% | Jeden (losowy) pet **degraduje o tier niżej**: zostaje usunięty i zastąpiony nowym petem tier-1 (poziom 1, `growth_stage=0`, `fusion_count=0`, jak świeżo wyklute jajko), z zachowanym Rodzajem (archetypem). Drugi pet przetrwa nietknięty. |
+| `devolve_both` | 20% | Oba pety degradują o tier niżej (jak wyżej, niezależnie dla każdego). |
 | `lose_one` | 10% | Jeden (losowy) pet ulega rozproszeniu (usunięty), drugi przetrwa nietknięty. |
 | `lose_both` | 2% | Oba pety ulegają rozproszeniu (zachowanie sprzed reworku, teraz najrzadszy wynik). |
 
+  **Edge case T1:** pet tieru 1 (Pospolity) nie ma niżej gdzie spaść, więc
+  `devolve_one`/`devolve_both` dla peta T1 jest równoznaczne z utratą tego
+  peta (jak `lose_one`/`lose_both`).
+
   Implementacja: `PetFusionService::rollFailureOutcome()` (kumulatywny
-  weighted roll przez `RandomProvider`), `Pet::demoteGrowthStage()`.
+  weighted roll przez `RandomProvider`), `PetFusionService::downgradeTier()`.
 - UI: wynik fuzji (sukces / każdy z 5 wariantów porażki, z osobną kolorystyką
   i ikoną) pokazywany jest w dedykowanym modalu (`$fusionResultModal` w
   `PetsComponent`), razem z kosztem i szansą powodzenia - nie tylko jako

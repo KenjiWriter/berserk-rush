@@ -143,30 +143,35 @@ class PetFusionService
         $luckyPet = $this->rng->int(0, 1) === 0 ? $petA : $petB;
         $unluckyPet = $luckyPet->id === $petA->id ? $petB : $petA;
 
-        $message = match ($outcome) {
-            'lose_both' => 'Fuzja nie powiodła się! Oba chowańce uległy rozproszeniu...',
-            'lose_one' => "Fuzja nie powiodła się! Chowaniec {$unluckyPet->name} uległ rozproszeniu, ale {$luckyPet->name} przetrwał.",
-            'devolve_both' => 'Fuzja nie powiodła się! Oba chowańce cofnęły się w rozwoju, ale przetrwały.',
-            'devolve_one' => "Fuzja nie powiodła się! {$unluckyPet->name} cofnął się w rozwoju, ale oba chowańce przetrwały.",
-            default => 'Fuzja nie powiodła się, ale Twoje chowańce wyszły z tego bez szwanku!',
-        };
+        $downgraded = [];
+        $deletedNames = [];
 
         switch ($outcome) {
             case 'lose_both':
+                $deletedNames = [$petA->name, $petB->name];
                 Pet::whereIn('id', [$petA->id, $petB->id])->delete();
                 break;
             case 'lose_one':
+                $deletedNames[] = $unluckyPet->name;
                 $unluckyPet->delete();
                 break;
             case 'devolve_both':
-                $petA->demoteGrowthStage();
-                $petA->save();
-                $petB->demoteGrowthStage();
-                $petB->save();
+                foreach ([$petA, $petB] as $pet) {
+                    $newPet = $this->downgradeTier($pet);
+                    if ($newPet) {
+                        $downgraded[] = ['from' => $pet->name, 'to' => $newPet];
+                    } else {
+                        $deletedNames[] = $pet->name;
+                    }
+                }
                 break;
             case 'devolve_one':
-                $unluckyPet->demoteGrowthStage();
-                $unluckyPet->save();
+                $newPet = $this->downgradeTier($unluckyPet);
+                if ($newPet) {
+                    $downgraded[] = ['from' => $unluckyPet->name, 'to' => $newPet];
+                } else {
+                    $deletedNames[] = $unluckyPet->name;
+                }
                 break;
             case 'no_loss':
             default:
@@ -176,11 +181,74 @@ class PetFusionService
         return Result::ok([
             'success' => false,
             'outcome' => $outcome,
-            'message' => $message,
+            'message' => $this->buildFailureMessage($downgraded, $deletedNames),
             'tier' => $tier,
             'chance' => $chance,
             'cost' => $cost,
+            'downgradedPets' => array_map(fn (array $d) => $d['to'], $downgraded),
         ]);
+    }
+
+    /**
+     * Usuwa peta i - o ile nie jest już na najniższym tierze (T1, gdzie nie
+     * ma niżej gdzie spaść) - tworzy w jego miejsce nowego peta o tier niżej
+     * (poziom 1, growth_stage 0, fusion_count 0 - jak świeżo wyklute jajko),
+     * zachowując jego Rodzaj (`PetSpeciesPicker::pickForArchetype()`). Dla
+     * peta T1 zwraca null - "cofka" na najniższym tierze jest równoznaczna z
+     * utratą peta, bo nie ma tieru 0.
+     */
+    private function downgradeTier(Pet $pet): ?Pet
+    {
+        if ($pet->tier <= 1) {
+            $pet->delete();
+            return null;
+        }
+
+        $newTier = $pet->tier - 1;
+        $statProfile = $this->statCalculator->rollStatProfile();
+        [$name, $icon] = $this->speciesPicker->pickForArchetype($newTier, $pet->archetype);
+
+        $downgraded = new Pet([
+            'character_id' => $pet->character_id,
+            'name' => $name,
+            'tier' => $newTier,
+            'archetype' => $pet->archetype,
+            'stat_profile' => $statProfile,
+            'level' => 1,
+            'exp' => 0,
+            'growth_stage' => 0,
+            'fusion_count' => 0,
+            'is_equipped' => false,
+            'icon' => $icon,
+        ]);
+        $downgraded->recalculateStats();
+        $downgraded->save();
+
+        $pet->delete();
+
+        return $downgraded;
+    }
+
+    /**
+     * Buduje treść komunikatu z faktycznych skutków (a nie samej nazwy
+     * wylosowanego wariantu) - istotne dla edge case'u T1, gdzie "devolve"
+     * faktycznie kończy się utratą peta zamiast degradacją tieru.
+     */
+    private function buildFailureMessage(array $downgraded, array $deletedNames): string
+    {
+        $parts = [];
+        foreach ($downgraded as $d) {
+            $parts[] = "{$d['from']} degraduje się do niższego tieru i staje się teraz {$d['to']->name} ({$d['to']->tierName()})";
+        }
+        foreach ($deletedNames as $name) {
+            $parts[] = "{$name} uległ rozproszeniu";
+        }
+
+        if (empty($parts)) {
+            return 'Fuzja nie powiodła się, ale Twoje chowańce wyszły z tego bez szwanku!';
+        }
+
+        return 'Fuzja nie powiodła się! ' . implode('. ', $parts) . '.';
     }
 
     /**

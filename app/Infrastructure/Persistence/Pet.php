@@ -167,28 +167,6 @@ class Pet extends Model
     }
 
     /**
-     * "Spadek ewolucji" (kara za nieudaną fuzję): cofa peta o jeden etap
-     * dojrzałości (`growth_stage`), obniżając jego poziom (i tym samym EXP)
-     * tuż poniżej progu obecnego etapu - `growth_stage` jest zawsze funkcją
-     * poziomu (patrz recalculateStats()), więc to jedyny spójny sposób na
-     * "cofnięcie" etapu bez rozjeżdżania inwariantu poziom↔etap.
-     * Brak efektu, jeśli pet jest już na najniższym etapie (0 - "Pisklak").
-     */
-    public function demoteGrowthStage(): void
-    {
-        if ($this->growth_stage <= 0) {
-            return;
-        }
-
-        $thresholds = config('pets.growth_stage_thresholds', []);
-        $newLevel = max(1, (int) ($thresholds[$this->growth_stage] ?? 1) - 1);
-
-        $this->level = $newLevel;
-        $this->exp = 0;
-        $this->recalculateStats();
-    }
-
-    /**
      * Wymagany EXP na następny poziom (rośnie z `fusion_count`).
      */
     public function getRequiredExp(): int

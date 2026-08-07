@@ -288,7 +288,7 @@
                                     <div class="text-[10px] text-red-400 font-semibold">Nie masz wystarczająco złota na tę próbę fuzji.</div>
                                 @endif
                                 <div class="text-[10px] text-stone-500 leading-relaxed">
-                                    W razie porażki pety mogą przetrwać (bez utraty, z utratą ewolucji lub cofnięciem rozwoju) albo ulec rozproszeniu — wynik losowany, nie wybierany.
+                                    W razie porażki pety mogą przetrwać bez utraty, zdegradować się do niższego tieru albo ulec rozproszeniu — wynik losowany, nie wybierany.
                                 </div>
 
                                 <button wire:click="fusePets"
@@ -804,8 +804,8 @@
                                     $failureLabels = [
                                         'lose_both' => 'Utrata dwóch petów',
                                         'lose_one' => 'Utrata jednego peta',
-                                        'devolve_both' => 'Cofnięcie rozwoju dwóch petów',
-                                        'devolve_one' => 'Cofnięcie rozwoju jednego peta',
+                                        'devolve_both' => 'Degradacja tieru dwóch petów',
+                                        'devolve_one' => 'Degradacja tieru jednego peta',
                                         'no_loss' => 'Brak utraty petów',
                                     ];
                                 @endphp
@@ -976,6 +976,27 @@
                                 @endif
                             </div>
                         </div>
+                    </div>
+                @endif
+
+                @if(!$frSuccess && !empty($fr['downgradedPets']))
+                    <div class="space-y-2">
+                        @foreach($fr['downgradedPets'] as $downgradedPet)
+                            <div class="flex items-center gap-3 bg-stone-950/80 border border-orange-500/30 rounded-xl p-3 text-left">
+                                <div class="w-12 h-12 rounded-lg border-2 border-orange-400 bg-stone-900 flex items-center justify-center text-xl shrink-0">
+                                    <img src="{{ route('assets.items', ['filename' => $downgradedPet->icon]) }}" alt="{{ $downgradedPet->name }}" class="w-9 h-9 object-contain">
+                                </div>
+                                <div>
+                                    <div class="font-bold text-orange-200">{{ $downgradedPet->name }}</div>
+                                    <div class="text-xs text-stone-400">
+                                        {{ $downgradedPet->tierName() }} · Poziom {{ $downgradedPet->level }}
+                                        @if($downgradedPet->archetype)
+                                            · {{ \App\Domain\Pets\PetArchetype::label($downgradedPet->archetype) }}
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
                 @endif
 
