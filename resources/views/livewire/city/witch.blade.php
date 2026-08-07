@@ -1054,6 +1054,9 @@
                     <button @click="infoTab = 'reroll'" :class="infoTab === 'reroll' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
                         <i class="fa-solid fa-rotate mr-1"></i> Przelosowanie
                     </button>
+                    <button @click="infoTab = 'mirror'" :class="infoTab === 'mirror' ? '{{ $infoTabActive }}' : '{{ $infoTabInactive }}'" class="{{ $infoTabBtn }}">
+                        <i class="fa-solid fa-gem mr-1"></i> Lustro
+                    </button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto pr-2 text-xs text-stone-300">
@@ -1122,6 +1125,46 @@
                         <div>
                             <h4 class="text-rose-300 font-bold mb-2 uppercase tracking-wider">Blokada Bonusu</h4>
                             <p>Każdy pojedynczy bonus można zablokować - zablokowane bonusy nigdy nie zmieniają się przy przelosowaniu (typ i wartość zostają nietknięte). To premium, nie zniżka: <strong class="text-amber-200">każdy zablokowany slot PODWAJA całkowity koszt</strong> przelosowania pozostałych, odblokowanych bonusów (koszt bazowy × 2^liczba_zablokowanych).</p>
+                        </div>
+                    </div>
+
+                    {{-- LUSTRO --}}
+                    <div x-show="infoTab === 'mirror'" class="space-y-6">
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Czym jest Lustro</h4>
+                            <p class="mb-2">Wiedźma tworzy Twoje zwierciadlane odbicie, które poluje "w tle" na wybranej mapie Przygody - bez faktycznego stoczenia walki. Odbicie farmi EXP, złoto i materiały w tempie, jakie Twoja postać już wcześniej realnie wykazała na tej mapie. To mechanika typu multitasking: gdy Lustro jest aktywne, zwykłe Mapy Przygody są zablokowane, ale możesz normalnie korzystać z Dungeonów, Kuźni czy Areny.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Odblokowanie i dostęp</h4>
+                            <ul class="space-y-1">
+                                <li><i class="fa-solid fa-lock text-stone-400 mr-1"></i> Wymagany <strong class="text-amber-200">30 poziom</strong> postaci.</li>
+                                <li><i class="fa-solid fa-coins text-yellow-400 mr-1"></i> <strong class="text-yellow-300">5 000 000 złota</strong> za 7 dni dostępu</li>
+                                <li><i class="fa-solid fa-gem text-fuchsia-400 mr-1"></i> <strong class="text-fuchsia-300">200 gemów</strong> za 7 dni dostępu</li>
+                            </ul>
+                            <p class="mt-2 text-stone-400">Jeśli dostęp już trwa, kolejny zakup <strong class="text-amber-200">dolicza</strong> kolejne 7 dni do istniejącego terminu, zamiast go resetować. Sam zakup nie uruchamia sesji - jedynie odblokowuje możliwość jej wystartowania.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Tempo farmienia</h4>
+                            <p>Gra zapamiętuje najlepsze zaobserwowane tempo zdobywania EXP i złota dla każdej pary postać+mapa, aktualizowane po każdej walce w Przygodzie (o ile trwała minimum 15 sekund). W momencie startu sesji to tempo zostaje <strong class="text-amber-200">zamrożone</strong> - dlatego warto najpierw solidnie powalczyć na danej mapie, zanim uruchomisz na niej Lustro.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Uruchomienie sesji</h4>
+                            <p class="mb-2">Wybór mapy i czasu trwania odbywa się w zakładce <span class="text-purple-200 font-bold">Postać &amp; Ekwipunek → Lustro</span> (nie u Wiedźmy). Warunki startu:</p>
+                            <ul class="space-y-1">
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i> wykupiony aktywny dostęp,</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i> brak innej aktywnej sesji Lustra,</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i> mapa dostępna dla poziomu postaci,</li>
+                                <li><i class="fa-solid fa-check text-emerald-400 mr-1"></i> istniejący zapis tempa na wybranej mapie (trzeba tam wcześniej powalczyć).</li>
+                            </ul>
+                            <p class="mt-2">Czas trwania sesji: <strong class="text-amber-200">1-6 godzin</strong>, a dla graczy z Premium <strong class="text-amber-200">1-10 godzin</strong>.</p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-purple-300 font-bold mb-2 uppercase tracking-wider">Odbiór nagród</h4>
+                            <p>Po zakończeniu (lub przerwaniu) sesji otrzymujesz <strong class="text-amber-200">40% zamrożonego tempa</strong> EXP i złota za faktycznie upłyniony czas (capowany do zadeklarowanego czasu trwania), z możliwością awansu na wyższy poziom. Dodatkowo co 15 minut trwania sesji przyznawany jest jeden rzut o materiały z puli łupów danej mapy.</p>
                         </div>
                     </div>
 
