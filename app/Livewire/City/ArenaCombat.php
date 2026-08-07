@@ -95,7 +95,7 @@ class ArenaCombat extends Component
         $this->player = [
             'name' => $mySnap['name'],
             'level' => $mySnap['level'],
-            'avatar' => $this->character->avatar ? asset("img/avatars/{$this->character->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $this->character->getEffectiveAvatarUrl(),
             'maxHp' => $mySnap['max_hp'],
             'hp' => $mySnap['max_hp'],
             'maxMana' => $mySnap['max_mana'] ?? 50,
@@ -114,7 +114,7 @@ class ArenaCombat extends Component
         $this->enemy = [
             'name' => $enemySnap['name'],
             'level' => $enemySnap['level'],
-            'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $enemyChar ? $enemyChar->getEffectiveAvatarUrl() : asset('img/avatars/default.png'),
             'maxHp' => $enemySnap['max_hp'],
             'hp' => $enemySnap['max_hp'],
             'maxMana' => $enemySnap['max_mana'] ?? 50,
@@ -218,7 +218,7 @@ class ArenaCombat extends Component
         $this->player = [
             'name' => $myGuild ? $myGuild->name : ($primaryMySnap['name'] ?? 'Drużyna'),
             'level' => $primaryMySnap['level'] ?? 1,
-            'avatar' => ($myChar && $myChar->avatar) ? asset("img/avatars/{$myChar->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $myChar ? $myChar->getEffectiveAvatarUrl() : asset('img/avatars/default.png'),
             'maxHp' => $myTotalMaxHp,
             'hp' => $myTotalMaxHp,
             'stats' => $primaryMySnap['attributes'] ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
@@ -231,7 +231,7 @@ class ArenaCombat extends Component
         $this->enemy = [
             'name' => $enemyGuild ? $enemyGuild->name : ($primaryEnemySnap['name'] ?? 'Wroga Drużyna'),
             'level' => $primaryEnemySnap['level'] ?? 1,
-            'avatar' => ($enemyChar && $enemyChar->avatar) ? asset("img/avatars/{$enemyChar->avatar}.png") : asset('img/avatars/default.png'),
+            'avatar' => $enemyChar ? $enemyChar->getEffectiveAvatarUrl() : asset('img/avatars/default.png'),
             'maxHp' => $enemyTotalMaxHp,
             'hp' => $enemyTotalMaxHp,
             'stats' => $primaryEnemySnap['attributes'] ?? ['str' => 0, 'int' => 0, 'vit' => 0, 'agi' => 0],
@@ -334,8 +334,8 @@ class ArenaCombat extends Component
         foreach ($teamSnaps as $idx => $snap) {
             $charId = $snap['id'] ?? $snap['character_id'] ?? null;
             $char = $charId ? Character::find($charId) : null;
-            $avatarUrl = ($char && $char->avatar)
-                ? asset("img/avatars/{$char->avatar}.png")
+            $avatarUrl = $char
+                ? $char->getEffectiveAvatarUrl()
                 : (isset($snap['avatar']) && $snap['avatar'] ? asset("img/avatars/{$snap['avatar']}.png") : asset('img/avatars/default.png'));
 
             $hpState = $teamStateMap[$idx] ?? null;
