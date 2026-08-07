@@ -116,7 +116,15 @@ class Homepage extends Component
         $clean = preg_replace('/^[ \t]*[\x{2022}\x{2023}\x{2219}]\s*/um', '- ', $clean);
 
         try {
-            return \Illuminate\Support\Str::markdown($clean);
+            // News content can originate from the Discord update-log bridge (see
+            // DiscordChatBridgeCommand::handleIncomingUpdateLogMessage), which only strips mention
+            // tags - not HTML. CommonMark's default 'html_input' => 'allow' would otherwise pass
+            // raw <script>/<img onerror> etc. straight through to the {!! !!} output on the
+            // homepage (stored XSS for anyone with post access to that Discord channel).
+            return \Illuminate\Support\Str::markdown($clean, [
+                'html_input' => 'escape',
+                'allow_unsafe_links' => false,
+            ]);
         } catch (\Throwable $e) {
             return nl2br(e($clean));
         }

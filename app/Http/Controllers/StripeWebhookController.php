@@ -5,9 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Stripe\Webhook;
 use Stripe\Exception\SignatureVerificationException;
+use App\Application\Payments\CreditGemsFromStripeSession;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
 
 class StripeWebhookController extends Controller
 {
@@ -61,23 +61,18 @@ class StripeWebhookController extends Controller
             return;
         }
 
-        $cacheKey = 'stripe_processed_session_' . $session->id;
-        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-            Log::info('Stripe Webhook: Session already processed', ['session_id' => $session->id]);
-            return;
-        }
-
         $user = User::find($userId);
         if (!$user) {
             Log::error('Stripe Webhook Error: User not found', ['user_id' => $userId]);
             return;
         }
 
-        DB::transaction(function () use ($user, $gemAmount, $cacheKey) {
-            $user->gems += $gemAmount;
-            $user->save();
-            \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addDays(30));
-        });
+        $credited = (new CreditGemsFromStripeSession())->execute($session->id, $user, $gemAmount);
+
+        if (!$credited) {
+            Log::info('Stripe Webhook: Session already processed', ['session_id' => $session->id]);
+            return;
+        }
 
         Log::info("Stripe Webhook: Successfully added $gemAmount gems to user {$user->id}");
     }

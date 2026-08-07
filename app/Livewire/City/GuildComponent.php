@@ -663,7 +663,7 @@ class GuildComponent extends Component
         }
 
         $team = $guild->war_team ?? [];
-        
+
         if (in_array($characterId, $team)) {
             $team = array_values(array_filter($team, fn($id) => $id !== $characterId));
         } else {
@@ -671,6 +671,17 @@ class GuildComponent extends Component
                 $this->addError('roster', 'Drużyna wojenna może składać się z maksymalnie 5 członków.');
                 return;
             }
+
+            // Must belong to this guild - without this check a leader could add any character
+            // id (rival guild, unaffiliated whale) into the war roster used for GvG combat.
+            $isMember = GuildMember::where('character_id', $characterId)
+                ->where('guild_id', $guild->id)
+                ->exists();
+            if (!$isMember) {
+                $this->addError('roster', 'Ta postać nie jest członkiem gildii.');
+                return;
+            }
+
             $team[] = $characterId;
         }
 

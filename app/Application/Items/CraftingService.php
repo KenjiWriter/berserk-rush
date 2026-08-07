@@ -16,6 +16,10 @@ class CraftingService
     public function craftItem(Character $character, ItemRecipe $recipe): array
     {
         return DB::transaction(function () use ($character, $recipe) {
+            // Lock the character row so a concurrent request (another craft, a purchase, an
+            // upgrade, ...) can't interleave a stale gold/material read with this one.
+            $character = Character::where('id', $character->id)->lockForUpdate()->first();
+
             // Check gold
             if ($character->gold < $recipe->gold_cost) {
                 return ['success' => false, 'message' => 'Nie masz wystarczająco złota, by to wytworzyć.'];

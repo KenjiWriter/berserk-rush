@@ -115,6 +115,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 });
 
 Route::get('/assets/items/{filename}', function ($filename) {
+    // Strip any path components (../, absolute paths, backslashes) before it's ever
+    // concatenated into a filesystem path below - this route is public/unauthenticated.
+    $filename = basename(str_replace('\\', '/', $filename));
+
     $candidates = [
         $filename,
         $filename . '.png',
@@ -156,6 +160,8 @@ Route::get('/assets/items/{filename}', function ($filename) {
 })->where('filename', '.*')->name('assets.items');
 
 Route::get('/assets/skills/icons/{filename}', function ($filename) {
+    $filename = basename(str_replace('\\', '/', $filename));
+
     $hasExt = pathinfo($filename, PATHINFO_EXTENSION) !== '';
     $files = $hasExt ? [$filename] : [$filename, $filename . '.png'];
 
@@ -183,6 +189,8 @@ Route::get('/assets/skills/icons/{filename}', function ($filename) {
 })->where('filename', '.*')->name('assets.skills.icons');
 
 Route::get('/assets/monsters/avatars/{filename}', function ($filename) {
+    $filename = basename(str_replace('\\', '/', $filename));
+
     $directories = [
         public_path('assets/monsters/avatars/' . $filename),
         public_path('assets/monsters/' . $filename),

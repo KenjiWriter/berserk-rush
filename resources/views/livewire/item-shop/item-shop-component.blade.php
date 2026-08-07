@@ -379,7 +379,7 @@
                             100 <span class="text-xl">💎</span>
                         </div>
                         <button
-                            wire:click="buyPremium(3, 100)"
+                            wire:click="buyPremium(3)"
                             class="w-full py-3 rounded-xl border-2 border-amber-600/80 hover:border-amber-400 text-amber-300 font-bold tracking-wider hover:bg-amber-600/20 transition-all uppercase text-xs"
                         >
                             {{ auth()->user()->hasPremium() ? 'Przedłuż Premium' : 'Aktywuj Premium' }}
@@ -403,7 +403,7 @@
                             400 <span class="text-2xl">💎</span>
                         </div>
                         <button
-                            wire:click="buyPremium(14, 400)"
+                            wire:click="buyPremium(14)"
                             class="w-full py-3.5 rounded-xl bg-gradient-to-r from-yellow-500 via-amber-500 to-yellow-500 hover:from-yellow-400 hover:to-amber-400 text-stone-950 font-black tracking-wider shadow-lg shadow-yellow-500/30 transition-all uppercase text-xs"
                         >
                             {{ auth()->user()->hasPremium() ? 'Przedłuż Premium' : 'Aktywuj Premium' }}
@@ -424,7 +424,7 @@
                             800 <span class="text-xl">💎</span>
                         </div>
                         <button
-                            wire:click="buyPremium(30, 800)"
+                            wire:click="buyPremium(30)"
                             class="w-full py-3 rounded-xl border-2 border-amber-600/80 hover:border-amber-400 text-amber-300 font-bold tracking-wider hover:bg-amber-600/20 transition-all uppercase text-xs"
                         >
                             {{ auth()->user()->hasPremium() ? 'Przedłuż Premium' : 'Aktywuj Premium' }}
@@ -472,7 +472,7 @@
                                 50 <span class="text-sm">💎</span>
                             </div>
                             <button
-                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr1', 50)"
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr1')"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-amber-500/30 transition-all"
                             >
                                 Kup Zwój
@@ -504,7 +504,7 @@
                                 50 <span class="text-sm">💎</span>
                             </div>
                             <button
-                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr2', 50)"
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr2')"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-amber-500/30 transition-all"
                             >
                                 Kup Zwój
@@ -536,7 +536,7 @@
                                 90 <span class="text-sm">💎</span>
                             </div>
                             <button
-                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr3', 90)"
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr3')"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-amber-500/30 transition-all"
                             >
                                 Kup Zwój
@@ -568,7 +568,7 @@
                                 30 <span class="text-sm">💎</span>
                             </div>
                             <button
-                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr4', 30)"
+                                wire:click="buyScroll('01k4jpx94j70x2vv10b835scr4')"
                                 class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-stone-950 font-extrabold text-xs uppercase tracking-wider shadow-md hover:shadow-amber-500/30 transition-all"
                             >
                                 Kup Zwój

@@ -78,7 +78,13 @@ class ArenaCombat extends Component
     private function loadPvPData(): void
     {
         $encounter = PvpEncounter::findOrFail($this->pvpEncounterId);
-        
+
+        // Must be one of the two participants - otherwise any player could pass an arbitrary
+        // pvpId and view someone else's fight replay (opponent stats/equipment/combat log).
+        if (!in_array($this->character->id, [$encounter->attacker_character_id, $encounter->defender_character_id], true)) {
+            abort(403, 'Nie brałeś udziału w tej walce.');
+        }
+
         // Determine who is player and who is enemy
         $isAttacker = $encounter->attacker_character_id === $this->character->id;
         
@@ -138,7 +144,13 @@ class ArenaCombat extends Component
     {
         $fight = GuildWarFight::with(['guildWar.challengerGuild', 'guildWar.defenderGuild'])->findOrFail($this->guildWarFightId);
         $war = $fight->guildWar;
-        
+
+        // Must belong to one of the two guilds fighting this war - otherwise any player could
+        // pass an arbitrary gvgId and view another guild's fight replay/roster.
+        if (!$war || !in_array($this->character->guild_id, [$war->challenger_guild_id, $war->defender_guild_id], true)) {
+            abort(403, 'Nie masz dostępu do tej walki.');
+        }
+
         $challengerSnaps = $fight->challenger_snapshot ?? [];
         $defenderSnaps = $fight->defender_snapshot ?? [];
 

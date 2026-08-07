@@ -50,6 +50,22 @@ class BuyMarketListingAction
 
                 $idempotencyKey = 'market_buy:' . $listing->id . ':' . Str::ulid();
 
+                // Lock the buyer's balance row too and re-check funds under the lock: without this,
+                // two parallel purchases could both read the pre-purchase balance and both succeed
+                // even though the buyer can only actually afford one of them (lost-update double-spend).
+                $buyer = Character::where('id', $buyer->id)->lockForUpdate()->first();
+                if ($currency !== 'gold') {
+                    $lockedUser = $buyer->user()->lockForUpdate()->first();
+                    if ($lockedUser) {
+                        $buyer->setRelation('user', $lockedUser);
+                    }
+                }
+
+                $freshBalance = $currency === 'gold' ? $buyer->gold : $buyer->user->gems;
+                if ($freshBalance < $price) {
+                    return Result::error('INSUFFICIENT_FUNDS', "Nie masz wystarczająco {$currency} na ten zakup. Potrzebujesz: {$price}.");
+                }
+
                 // Deduct from buyer
                 if ($currency === 'gold') {
                     $buyer->gold -= $price;

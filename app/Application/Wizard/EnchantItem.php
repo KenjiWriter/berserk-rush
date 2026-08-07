@@ -36,6 +36,22 @@ class EnchantItem
         $idempotencyKey = "enchant:{$item->id}:" . Str::uuid();
 
         return DB::transaction(function () use ($item, $character, $currencyType, $cost, $idempotencyKey) {
+            // Lock the character's balance row (and the item) to close the race window between the
+            // pre-transaction balance check and this point - otherwise two parallel enchant requests
+            // could both read the pre-spend balance and both succeed.
+            $character = Character::where('id', $character->id)->lockForUpdate()->first();
+            if ($currencyType === 'gems') {
+                $lockedUser = $character->user()->lockForUpdate()->first();
+                if ($lockedUser) {
+                    $character->setRelation('user', $lockedUser);
+                }
+            }
+            $item = ItemInstance::where('id', $item->id)->lockForUpdate()->first();
+
+            if (!$this->strategy->canEnchant($item)) {
+                return Result::error('MAX_ENCHANTS_REACHED', 'Przedmiot posiada już maksymalną ilość bonusów.');
+            }
+
             // Check currency
             $currentBalance = $currencyType === 'gold' ? $character->gold : $character->user->gems;
 

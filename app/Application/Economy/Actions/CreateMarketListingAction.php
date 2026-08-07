@@ -66,9 +66,27 @@ class CreateMarketListingAction
 
         try {
             return DB::transaction(function () use ($character, $item, $price, $currency, $durationHours, $listingFee, $quantity) {
+                // Lock the character and item rows and re-check under the lock: closes the race
+                // window where two parallel listing requests both read the pre-fee gold balance,
+                // or both try to list the same item stack.
+                $character = Character::where('id', $character->id)->lockForUpdate()->first();
+                $item = ItemInstance::where('id', $item->id)->lockForUpdate()->first();
+
+                if (!$item || $item->owner_character_id !== $character->id || !in_array($item->location, ['inventory', 'equipped', 'material_stash'])) {
+                    return Result::error('NOT_IN_INVENTORY', 'Przedmiot musi znajdować się w plecaku lub magazynie materiałów, aby go wystawić.');
+                }
+
+                $stackSize = (int) ($item->stack_size ?? 1);
+                if ($quantity > $stackSize) {
+                    return Result::error('INVALID_QUANTITY', "Nie możesz wystawić więcej niż posiadasz ({$stackSize} szt.).");
+                }
+
+                if ($character->gold < $listingFee) {
+                    return Result::error('INSUFFICIENT_GOLD', "Nie masz wystarczająco złota na opłatę wystawienia ({$listingFee} szt.).");
+                }
+
                 $idempotencyKey = 'market_list:' . $item->id . ':' . Str::ulid();
                 $wasEquipped = $item->location === 'equipped';
-                $stackSize = (int) ($item->stack_size ?? 1);
 
                 // Deduct listing fee
                 $character->gold -= $listingFee;
@@ -208,6 +226,7 @@ class CreateMarketListingAction
 
         try {
             return DB::transaction(function () use ($character, $pet, $price, $currency, $durationHours, $listingFee) {
+                $character = Character::where('id', $character->id)->lockForUpdate()->first();
                 $pet = Pet::where('id', $pet->id)->lockForUpdate()->first();
 
                 if (!$pet || $pet->is_equipped) {
@@ -216,6 +235,10 @@ class CreateMarketListingAction
 
                 if (MarketListing::active()->where('pet_id', $pet->id)->exists()) {
                     return Result::error('ALREADY_LISTED', 'Ten chowaniec jest już wystawiony na Rynku.');
+                }
+
+                if ($character->gold < $listingFee) {
+                    return Result::error('INSUFFICIENT_GOLD', "Nie masz wystarczająco złota na opłatę wystawienia ({$listingFee} szt.).");
                 }
 
                 $idempotencyKey = 'market_list_pet:' . $pet->id . ':' . Str::ulid();

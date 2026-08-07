@@ -105,6 +105,7 @@ DB_PASSWORD=TwojeTajneHaslo123!
 
 # Kolejki i Sesja
 SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
 QUEUE_CONNECTION=database
 CACHE_STORE=database
 

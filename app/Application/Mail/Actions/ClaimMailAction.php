@@ -36,7 +36,30 @@ class ClaimMailAction
 
         try {
             return DB::transaction(function () use ($character, $mail) {
-                $idempotencyKey = 'claim_mail:' . $mail->id . ':' . Str::ulid();
+                // Re-fetch under a row lock and re-check state inside the transaction to close the
+                // TOCTOU window between the pre-transaction checks above and this point (two parallel
+                // claim requests could otherwise both pass the checks and both credit the attachments).
+                $lockedMail = Mail::where('id', $mail->id)->lockForUpdate()->first();
+
+                if (!$lockedMail || $lockedMail->claimed) {
+                    return Result::error('ALREADY_CLAIMED', 'Załączniki z tej wiadomości zostały już odebrane.');
+                }
+
+                if ($lockedMail->isExpired()) {
+                    return Result::error('MAIL_EXPIRED', 'Ta wiadomość wygasła. Załączniki przepadły.');
+                }
+
+                $mail = $lockedMail;
+
+                // Lock the character (and its user, for gem attachments) row so a concurrent
+                // currency-mutating request (another mail claim, a purchase, an upgrade, ...)
+                // can't interleave a stale read/write with this one.
+                $character = Character::where('id', $character->id)->lockForUpdate()->first();
+                $lockedUser = $character->user()->lockForUpdate()->first();
+                if ($lockedUser) {
+                    $character->setRelation('user', $lockedUser);
+                }
+
                 $claimedItems = [];
                 $claimedCurrency = [];
 

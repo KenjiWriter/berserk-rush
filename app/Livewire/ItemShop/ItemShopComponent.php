@@ -11,7 +11,22 @@ use Illuminate\Support\Facades\File;
 
 class ItemShopComponent extends Component
 {
-    public function buyPremium(int $days, int $gemCost)
+    /** Server-authoritative premium package prices, keyed by days. Never trust a client-supplied cost. */
+    private const PREMIUM_PACKAGES = [
+        3 => 100,
+        14 => 400,
+        30 => 800,
+    ];
+
+    /** Server-authoritative scroll prices, keyed by item template id. Also acts as the purchasable whitelist. */
+    private const SCROLL_PACKAGES = [
+        '01k4jpx94j70x2vv10b835scr1' => 50,
+        '01k4jpx94j70x2vv10b835scr2' => 50,
+        '01k4jpx94j70x2vv10b835scr3' => 90,
+        '01k4jpx94j70x2vv10b835scr4' => 30,
+    ];
+
+    public function buyPremium(int $days)
     {
         $user = Auth::user();
 
@@ -19,15 +34,30 @@ class ItemShopComponent extends Component
             return;
         }
 
+        if (!isset(self::PREMIUM_PACKAGES[$days])) {
+            $this->dispatch('notify', message: 'Nieprawidłowy pakiet Premium.', type: 'error');
+            return;
+        }
+
+        $gemCost = self::PREMIUM_PACKAGES[$days];
+
         if ($user->gems < $gemCost) {
             $this->dispatch('not-enough-gems');
             return;
         }
 
-        // Pobierzemy gemy i przedłużymy premium
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $days, $gemCost) {
+        // Pobierzemy gemy i przedłużymy premium. Lock+recheck under the transaction closes the race
+        // where two parallel requests both read the pre-spend gem balance and both succeed.
+        $insufficientFunds = false;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $days, $gemCost, &$insufficientFunds) {
+            $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            if ($user->gems < $gemCost) {
+                $insufficientFunds = true;
+                return;
+            }
+
             $user->gems -= $gemCost;
-            
+
             $now = now();
             if ($user->premium_until && $user->premium_until->isFuture()) {
                 $user->premium_until = $user->premium_until->addDays($days);
@@ -37,6 +67,11 @@ class ItemShopComponent extends Component
             
             $user->save();
         });
+
+        if ($insufficientFunds) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
 
         $this->dispatch('notify', message: "Pomyślnie zakupiono Konto Premium na $days dni!", type: 'success');
     }
@@ -59,12 +94,24 @@ class ItemShopComponent extends Component
             return;
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, $avatarFilename, $unlocked) {
+        $insufficientFunds = false;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, $avatarFilename, $unlocked, &$insufficientFunds) {
+            $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            if ($user->gems < $cost) {
+                $insufficientFunds = true;
+                return;
+            }
+
             $user->gems -= $cost;
             $unlocked[] = $avatarFilename;
             $user->unlocked_avatars = array_values(array_unique($unlocked));
             $user->save();
         });
+
+        if ($insufficientFunds) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
 
         $this->dispatch('notify', message: 'Pomyślnie zakupiono avatar!', type: 'success');
     }
@@ -97,20 +144,13 @@ class ItemShopComponent extends Component
             return;
         }
 
-        $cacheKey = 'stripe_processed_session_' . $session->id;
-        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
-            return;
-        }
-
         $user = \App\Models\User::find($userId);
         if ($user) {
-            \Illuminate\Support\Facades\DB::transaction(function () use ($user, $gemAmount, $cacheKey) {
-                $user->gems += $gemAmount;
-                $user->save();
-                \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addDays(30));
-            });
+            $credited = (new \App\Application\Payments\CreditGemsFromStripeSession())->execute($session->id, $user, $gemAmount);
 
-            $this->dispatch('notify', message: "Dziękujemy! Przypisano $gemAmount Gemów do Twojego konta.", type: 'success');
+            if ($credited) {
+                $this->dispatch('notify', message: "Dziękujemy! Przypisano $gemAmount Gemów do Twojego konta.", type: 'success');
+            }
         }
     }
 
@@ -153,10 +193,17 @@ class ItemShopComponent extends Component
         return redirect($checkout_session->url);
     }
 
-    public function buyScroll(string $templateId, int $gemCost)
+    public function buyScroll(string $templateId)
     {
         $user = Auth::user();
         if (!$user) return;
+
+        if (!isset(self::SCROLL_PACKAGES[$templateId])) {
+            $this->dispatch('notify', message: 'Ten przedmiot nie jest dostępny w sklepie.', type: 'error');
+            return;
+        }
+
+        $gemCost = self::SCROLL_PACKAGES[$templateId];
 
         if ($user->gems < $gemCost) {
             $this->dispatch('not-enough-gems');
@@ -188,7 +235,14 @@ class ItemShopComponent extends Component
             return;
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $character, $template, $gemCost) {
+        $insufficientFunds = false;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $character, $template, $gemCost, &$insufficientFunds) {
+            $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            if ($user->gems < $gemCost) {
+                $insufficientFunds = true;
+                return;
+            }
+
             $user->gems -= $gemCost;
             $user->save();
 
@@ -223,6 +277,11 @@ class ItemShopComponent extends Component
             ]);
         });
 
+        if ($insufficientFunds) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
         $this->dispatch('notify', message: "Pomyślnie zakupiono {$template->name}! Przedmiot dodano do plecaka postaci {$character->name}. Możesz go tam użyć w dowolnym momencie.", type: 'success');
     }
 
@@ -238,7 +297,14 @@ class ItemShopComponent extends Component
             return;
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost) {
+        $insufficientFunds = false;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, &$insufficientFunds) {
+            $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            if ($user->gems < $cost) {
+                $insufficientFunds = true;
+                return;
+            }
+
             $user->gems -= $cost;
             $user->save();
 
@@ -260,6 +326,11 @@ class ItemShopComponent extends Component
             }
         });
 
+        if ($insufficientFunds) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
+
         $this->dispatch('notify', message: 'Zresetowano umiejętności wszystkich postaci pomyślnie!', type: 'success');
     }
 
@@ -275,7 +346,14 @@ class ItemShopComponent extends Component
             return;
         }
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost) {
+        $insufficientFunds = false;
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $cost, &$insufficientFunds) {
+            $user = \App\Models\User::where('id', $user->id)->lockForUpdate()->first();
+            if ($user->gems < $cost) {
+                $insufficientFunds = true;
+                return;
+            }
+
             $user->gems -= $cost;
             $user->save();
 
@@ -292,6 +370,11 @@ class ItemShopComponent extends Component
                 $character->save();
             }
         });
+
+        if ($insufficientFunds) {
+            $this->dispatch('not-enough-gems');
+            return;
+        }
 
         $this->dispatch('notify', message: 'Zresetowano atrybuty wszystkich postaci pomyślnie!', type: 'success');
     }
