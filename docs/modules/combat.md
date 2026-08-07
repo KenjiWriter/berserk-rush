@@ -202,6 +202,13 @@ a wybrane (magowie) walczą obrażeniami magicznymi. To odpowiedź na feedback g
 - **Odporności na Bronie (`resist_sword`, `resist_dagger`, `resist_bell`, `resist_axe`, `resist_bow`, `resist_wand`):** Afiksy zbroi (2-10%) redukujące procentowo obrażenia przychodzące w PvP Arenie i Wojnie Gildii od atakującego gracza posługującego się danym typem broni (hard cap 75%).
 Wszystkie redukcje są rozliczane symetrycznie w `PvPEncounterService` oraz `GuildWarService`.
 
+> **Uwaga (Przelicznik Obrażeń PvP, 2026-08-07):** Powyższe mechaniki PvE (skalowanie
+> potworów, obrażenia, itd.) w tym pliku pozostają bez zmian. Silniki PvP
+> (`PvPEncounterService`, `GuildWarService`) mają NIEZALEŻNY, dodatkowy przelicznik
+> `PVP_DAMAGE_MULTIPLIER = 0.33` obniżający wszystkie obrażenia gracz-vs-gracz (65-70%
+> redukcji) - eliminuje oneshoty i wydłuża starcia PvP do ok. 10 tur. Szczegóły w
+> `docs/modules/pvp_and_arena.md`, sekcja "Przelicznik Obrażeń PvP".
+
 ### 9. Zabezpieczenie Anti-Cheat (Multi-Tab & Rate Limit)
 W celu uniemożliwienia podwojonego lub potrojonego zdobywania doświadczenia i złota poprzez otwieranie przygody na tej samej postaci w 2 lub więcej kartach przeglądarki, system stosuje dwupoziomowe zabezpieczenie:
 1. **Frontend Session Lock (`MapStub`)**: Każdy zamontowany komponent `MapStub` generuje unikalny token sesji karty i rejestruje go w pamięci Cache (`adventure_active_tab:{character_id}`). W przypadku otwarcia nowej karty lub przełączenia, aktywna staje się tylko ostatnia karta. Nieaktywne karty wstrzymują automatyczne walki i wyświetlają banner z opcją przejęcia aktywnego statusu.

@@ -20,6 +20,13 @@ class PvPEncounterService
     private const EQUIPMENT_POISON_VALUE = 0.03;
     private const EQUIPMENT_STUN_DURATION = 1;
 
+    // Balans PvP (2026-08-07): oneshoty na Arenie sprawiały, że walki kończyły się w
+    // 1-2 turach, zanim skille/CC/leczenie zdążyły cokolwiek zmienić - patrz
+    // docs/modules/pvp_and_arena.md. Odrębny, płaski przelicznik wszystkich obrażeń
+    // PvP (fizycznych, krytyków, DoT) zastosowany PO całej reszcie wyliczeń (obrona,
+    // odporności, krytyk) - PvE (`EncounterService`) pozostaje bez zmian.
+    private const PVP_DAMAGE_MULTIPLIER = 0.33;
+
     private function buildChampionBonuses(Character $character): array
     {
         return [
@@ -725,6 +732,9 @@ class PvPEncounterService
             }
             $targetState['effects'] = array_filter($targetState['effects'], fn($e) => ($e['duration'] ?? 0) > 0);
         }
+        if ($dotDamage > 0) {
+            $dotDamage = max(1, (int) round($dotDamage * self::PVP_DAMAGE_MULTIPLIER));
+        }
 
         // "Magic burst": bronie hybrydowe (np. Dzwon) mają szansę dołożyć dodatkowe
         // obrażenia magiczne do ataku, poza zwykłymi obrażeniami fizycznymi.
@@ -841,6 +851,10 @@ class PvPEncounterService
         if ($isCrit) {
             $damage = (int)($damage * 1.5);
         }
+
+        // Balans PvP - patrz stała PVP_DAMAGE_MULTIPLIER powyżej. Zastosowane na samym
+        // końcu, po krytyku, żeby zredukować RÓWNIEŻ obrażenia krytyczne.
+        $damage = max(1, (int) round($damage * self::PVP_DAMAGE_MULTIPLIER));
 
         // Procki dot/cc z tej samej puli $procs wylosowanej wcześniej (przed sekcją
         // armor pen/podwójnego ciosu) - patrz rollEquipmentProcs() na górze klasy.

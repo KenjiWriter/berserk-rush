@@ -22,6 +22,12 @@ class GuildWarService
     private const EQUIPMENT_POISON_VALUE = 0.03;
     private const EQUIPMENT_STUN_DURATION = 1;
 
+    // Balans PvP (2026-08-07): ten sam przelicznik i to samo uzasadnienie co
+    // `PvPEncounterService::PVP_DAMAGE_MULTIPLIER` (patrz docs/modules/pvp_and_arena.md) -
+    // Wojna Gildii to również starcie gracz-vs-gracz, dotknięte tym samym problemem
+    // oneshotów. PvE pozostaje bez zmian.
+    private const PVP_DAMAGE_MULTIPLIER = 0.33;
+
     /**
      * Bonusy z drzewka Mistrzostwa (patrz docs/modules/mastery.md) dla kombatanta
      * 5v5 - snapshoty to płaskie tablice, więc doliczamy je raz przy budowie
@@ -815,6 +821,9 @@ class GuildWarService
             unset($eff);
             $target['effects'] = array_filter($target['effects'], fn ($e) => ($e['duration'] ?? 0) > 0);
         }
+        if ($dotDamage > 0) {
+            $dotDamage = max(1, (int) round($dotDamage * self::PVP_DAMAGE_MULTIPLIER));
+        }
 
         // "Magic burst": bronie hybrydowe (np. Dzwon) mogą dołożyć osobne obrażenia magiczne.
         $magicBurstDamage = 0;
@@ -930,6 +939,10 @@ class GuildWarService
                 $damage = (int) ($damage * 1.5);
             }
 
+            // Balans PvP - patrz stała PVP_DAMAGE_MULTIPLIER powyżej. Zastosowane na
+            // samym końcu, po krytyku, żeby zredukować RÓWNIEŻ obrażenia krytyczne.
+            $damage = max(1, (int) round($damage * self::PVP_DAMAGE_MULTIPLIER));
+
             $target['hp'] = max(0, $target['hp'] - (int) $damage - $dotDamage);
 
             $turn += [
@@ -1002,6 +1015,7 @@ class GuildWarService
         }
 
         if ($dotDamage > 0) {
+            $dotDamage = max(1, (int) round($dotDamage * self::PVP_DAMAGE_MULTIPLIER));
             $target['hp'] = max(0, $target['hp'] - $dotDamage);
             if ($target['hp'] <= 0) {
                 $target['hp'] = 0;

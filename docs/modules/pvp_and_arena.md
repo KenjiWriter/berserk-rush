@@ -59,6 +59,32 @@ awatar gracza pokazuje panel z jego 6 slotami ekwipunku:
   `smartTooltip()` z `resources/js/app.js`), by uniknąć przycięcia przez
   `overflow-hidden`/`overflow-x-auto` na kartach przeciwników i w tabeli rankingu.
 
+### Przelicznik Obrażeń PvP (Balans, 2026-08-07)
+Zgłoszenie gracza: walki Areny i Wojny Gildii kończyły się w 1-2 turach ("oneshoty"),
+totalnie zależne od RNG (kto trafi krytyka/pierwszy) - skille, CC (stun/freeze) i
+leczenie w praktyce nie miały szansy zadziałać, bo starcie kończyło się zanim ktokolwiek
+zdążył ich użyć. PvE w tym samym czasie (patrz `docs/modules/combat.md`) zaczęło działać
+sensownie po serii rebalansów, więc naprawa PvP nie mogła go dotykać.
+
+- **Rozwiązanie:** osobny, płaski przelicznik `PVP_DAMAGE_MULTIPLIER = 0.33` (65-70%
+  redukcji wszystkich obrażeń) zastosowany WYŁĄCZNIE w silnikach PvP -
+  `PvPEncounterService::performAttack()` i `GuildWarService` (główna funkcja ataku +
+  `resolveTeamHeal()`, bo DoT tyka też podczas tury leczenia). PvE
+  (`EncounterService`/`DungeonService`/`LocationEventService`) - **bez zmian**, osobny
+  kod, osobna stała.
+- **Gdzie w kodzie:** mnożnik stosowany na SAMYM KOŃCU wyliczeń, po całej reszcie
+  (obrona, odporności `resist_hero`/`resist_<broń>`/`resist_magic`, krytyk x1.5) - więc
+  redukuje też krytyki i tyknięcia DoT (otrucie/podpalenie/krwawienie/procki), zgodnie z
+  zasadą "wszystkie obrażenia PvP x0.33". Podłoga `max(1, ...)` na obu (`damage` i
+  `dotDamage`), żeby żaden cios/tyknięcie nie spadł do zera.
+- **Efekt:** przy podobnym eq i obecnym poziomie HP graczy (rząd 5-7k) starcie ma trwać
+  ok. 10 tur zamiast 1-2 - wystarczająco, by obie strony zdążyły użyć wszystkich skilli,
+  by bonusy z ekwipunku/mistrzostwa realnie się ujawniły, by stun/freeze miały sens
+  taktyczny, a klasy z leczeniem (np. Dzwon) zdążyły uleczyć się 2-3 razy w trakcie walki.
+- **Nie zmienione:** szanse na trafienie/unik/krytyk, obrona, wszystkie % odporności/
+  bonusów PvP (`resist_hero`, `resist_<broń>`, `strong_vs_hero`) - to nadal działa
+  dokładnie tak samo, tylko na mniejszych bezwzględnie liczbach obrażeń.
+
 ## Realizacja Techniczna
 - `PvPEncounterService` / `GuildWarService`: Główne klasy realizujące symulację mechanik i rzucania kośćmi.
 - Dedykowane Zaczarowania PvP/GvG: `strong_vs_hero` (bronie, 5-20%), `resist_hero` (zbroje, 2-10%) oraz Odporności na Bronie (`resist_sword`/`dagger`/`bell`/`axe`/`bow`/`wand`, zbroje, 2-10%) z twardym limitem redukcji 75% w `PvPEncounterService` i `GuildWarService`.
