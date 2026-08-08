@@ -121,11 +121,11 @@ Gdy `autoChain` jest włączony (`MapStub::completeBattle`), po zakończeniu wal
   Status-effect badge (DoT/CC nad paskiem HP, `getPlayerStatusEffects()`/`getEnemyStatusEffects()`) świadomie **nie** jest aktualizowany turowo w trybie lokalnym (zbyt kosztowne portowanie `CombatLogHelper` do JS jak na wartość tej informacji) - poprawia się dopiero przy finalnym renderze po `finishAllTurns()`.
 - **Oszczędzanie energii przy bezczynności (2026-08-08):** Gdy karta jest widoczna, ale gracz nie wchodzi w interakcję (mysz/klawiatura/dotyk) przez `IDLE_THRESHOLD_MS` (domyślnie 5 min), JS mnoży opóźnienia między turami oraz auto-chainem przez `IDLE_SLOWDOWN_MULTIPLIER` (domyślnie x3) zamiast zatrzymywać walkę - `map-stub.blade.php`, funkcja `isIdleSlowdownActive()`. Dowolna interakcja natychmiast przywraca normalne tempo. Gracz może też wymusić ten tryb ręcznie przyciskiem "Oszczędny" (liść) obok x1/x2/x5 (`window.toggleCombatEcoMode()`), niezależnie od realnej bezczynności - np. świadomie ograniczając zużycie CPU/baterii przy farmieniu w tle.
 
-### 5b. Prędkość Odtwarzania Walki (Speed x1, x2, x5)
+### 5b. Prędkość Odtwarzania Walki (Speed x1, x2)
 Gracz może dostosować szybkość animacji starć w interfejsie walki:
 - **x1**: Standardowe tempo animacji (550 ms przerwy między turami).
 - **x2**: Podwójne tempo (200 ms przerwy).
-- **x5 (2026-08-04):** Pięciokrotne przyspieszenie (60 ms przerwy). Opcja x5 odblokowuje się automatycznie od **30 poziomu postaci** lub natychmiast dla kont z aktywnym **statusem VIP** (`hasPremium()`). Wcześniej przycisk pozostaje zablokowany z oznaczeniem "Lvl 30+ / VIP".
+- **Usunięcie x5 (2026-08-08):** Tryb x5 (60 ms przerwy, odblokowywany od 30 poziomu postaci lub VIP) został usunięty razem z powiązaną logiką odblokowania (`MapStub::canUseSpeed5()`) i skracania opóźnienia auto-chaina poniżej 700ms. `playbackSpeed` przyjmuje teraz tylko `1` lub `2`.
 
 ### 6. Rasy Potworów (`MonsterType`)
 Każdy potwór (`Monster::type`) ma przypisaną jedną z **6 głównych ras** (rework ras,

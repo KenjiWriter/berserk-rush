@@ -840,8 +840,7 @@
                                     </button>
                                 @endif
 
-                                @if (!empty($visibleTurns))
-                                    @php $canSpeed5Event = $this->canUseSpeed5(); @endphp
+                                @if (!empty($allTurns))
                                     <div class="flex gap-1.5 sm:gap-2">
                                         <button @click="speed = 1; window.setCombatSpeed(1)"
                                             :class="speed === 1 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
@@ -849,11 +848,6 @@
                                         <button @click="speed = 2; window.setCombatSpeed(2)"
                                             :class="speed === 2 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
                                             class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x2</button>
-                                        @if ($canSpeed5Event)
-                                            <button @click="speed = 5; window.setCombatSpeed(5)"
-                                                :class="speed === 5 ? 'bg-purple-600/90 border-purple-300 text-white shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-105' : 'bg-slate-900/80 border-slate-700 text-purple-200/70 hover:bg-slate-800'"
-                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x5</button>
-                                        @endif
                                         <button type="button" @click="window.toggleCombatEcoMode()"
                                             title="Spowalnia animacje i auto-chain, żeby oszczędzać CPU/baterię - włącza się też automatycznie po dłuższej bezczynności"
                                             class="combat-eco-toggle rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all bg-slate-900/80 border-slate-700 text-emerald-300/70 hover:bg-slate-800">
@@ -916,10 +910,7 @@
                                 @endif
 
                                 {{-- Speed Controls --}}
-                                @if (!empty($visibleTurns))
-                                    @php
-                                        $canSpeed5 = $this->canUseSpeed5();
-                                    @endphp
+                                @if (!empty($allTurns))
                                     <div class="flex gap-1.5 sm:gap-2">
                                         <button @click="speed = 1; window.setCombatSpeed(1)"
                                             :class="speed === 1 ? 'bg-amber-600/90 border-amber-300 text-white shadow-[0_0_12px_rgba(245,158,11,0.5)] scale-105' : 'bg-slate-900/80 border-slate-700 text-amber-200/70 hover:bg-slate-800'"
@@ -931,19 +922,6 @@
                                             class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">
                                             x2
                                         </button>
-                                        @if ($canSpeed5)
-                                            <button @click="speed = 5; window.setCombatSpeed(5)"
-                                                :class="speed === 5 ? 'bg-purple-600/90 border-purple-300 text-white shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-105' : 'bg-slate-900/80 border-slate-700 text-purple-200/70 hover:bg-slate-800'"
-                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">
-                                                x5
-                                            </button>
-                                        @else
-                                            <button disabled
-                                                title="Wymagany 30 poziom postaci lub aktywne konto VIP"
-                                                class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border border-slate-800 bg-slate-950/60 text-slate-500 cursor-not-allowed opacity-60 flex items-center gap-1">
-                                                <i class="fa-solid fa-lock text-[10px]"></i> x5
-                                            </button>
-                                        @endif
                                         <button type="button" @click="window.toggleCombatEcoMode()"
                                             title="Spowalnia animacje i auto-chain, żeby oszczędzać CPU/baterię - włącza się też automatycznie po dłuższej bezczynności"
                                             class="combat-eco-toggle rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all bg-slate-900/80 border-slate-700 text-emerald-300/70 hover:bg-slate-800">
@@ -962,7 +940,7 @@
                             </div>
 
                             {{-- Single Consolidated Auto Chain Button --}}
-                            @if (!empty($visibleTurns))
+                            @if (!empty($allTurns))
                                 <div class="flex items-center justify-center">
                                     <button @click="autoChain = !autoChain; window.toggleCombatAuto(autoChain)"
                                         :class="autoChain 
@@ -1751,6 +1729,17 @@
                     isPaused = !isPaused;
                 }
 
+                // Jeśli lokalna animacja zdążyła już dojść do końca tur (ostatnia tura
+                // odegrana, ale zaplanowany tick, który by to wykrył, jeszcze nie
+                // odpalił) - Pauza w tym oknie blokowałaby finishAllTurns() w
+                // nieskończoność (scheduleNextTurn nic nie robi gdy isPaused=true).
+                // Zamiast pauzować "martwą" walkę, po prostu ją kończymy.
+                if (isPaused && localTurns && localTurnIndex >= localTurns.length && !localFinishRequested) {
+                    isPaused = false;
+                    finishLocalPlayback();
+                    return;
+                }
+
                 if (isPaused) {
                     cleanUp();
                 } else {
@@ -1803,7 +1792,7 @@
                     return;
                 }
 
-                const startDelay = currentSpeed === 5 ? 30 : (currentSpeed === 2 ? 100 : 200);
+                const startDelay = currentSpeed === 2 ? 100 : 200;
                 scheduleNextTurn(startDelay);
             });
 
@@ -1996,10 +1985,10 @@
                         isExecutingTurn = false;
                         if (watchdogTimer) clearTimeout(watchdogTimer);
                         if (!isPaused) {
-                            const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
+                            const basePause = currentSpeed === 2 ? 200 : 550;
                             scheduleNextTurn(basePause);
                         }
-                    }, currentSpeed === 5 ? 120 : 500, 'turnAnimTimer');
+                    }, 500, 'turnAnimTimer');
                     return;
                 }
 
@@ -2140,10 +2129,10 @@
                     isExecutingTurn = false;
                     if (watchdogTimer) clearTimeout(watchdogTimer);
                     if (!isPaused) {
-                        const basePause = currentSpeed === 5 ? 60 : (currentSpeed === 2 ? 200 : 550);
+                        const basePause = currentSpeed === 2 ? 200 : 550;
                         scheduleNextTurn(basePause);
                     }
-                }, currentSpeed === 5 ? 120 : (currentSpeed === 2 ? 250 : 500), 'turnAnimTimer');
+                }, currentSpeed === 2 ? 250 : 500, 'turnAnimTimer');
             }
 
             Livewire.on('turn-played', (event) => {
@@ -2160,12 +2149,6 @@
                 const payload = (event && event[0]) ? event[0] : event;
                 if (payload && typeof payload.delay === 'number') {
                     delay = payload.delay; // e.g. 3000ms penalty after a loss
-                }
-
-                if (currentSpeed === 5) {
-                    // Przy x5 skracamy opóźnienie, ale nie poniżej 300ms dla wygranej
-                    // (i zachowujemy pełne 3000ms kary za przegraną - nie skracamy jej).
-                    delay = delay <= 700 ? Math.min(delay, 300) : delay;
                 }
 
                 if (isIdleSlowdownActive()) {
@@ -2207,9 +2190,6 @@
                 const payload = (event && event[0]) ? event[0] : event;
                 if (payload && typeof payload.delay === 'number') {
                     delay = payload.delay;
-                }
-                if (currentSpeed === 5) {
-                    delay = Math.min(delay, 300);
                 }
                 if (isIdleSlowdownActive()) {
                     delay *= IDLE_SLOWDOWN_MULTIPLIER;

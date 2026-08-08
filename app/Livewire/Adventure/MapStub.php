@@ -143,10 +143,7 @@ class MapStub extends Component
         $this->character = $character;
 
         $rawSpeed = session('combat_playback_speed', 1);
-        if ($rawSpeed === 5 && !$this->canUseSpeed5()) {
-            $rawSpeed = 2;
-        }
-        $this->playbackSpeed = in_array($rawSpeed, [1, 2, 5], true) ? $rawSpeed : 1;
+        $this->playbackSpeed = in_array($rawSpeed, [1, 2], true) ? $rawSpeed : 1;
         $this->autoChain = session('combat_auto_chain', true);
         $this->targetStrategy = session('combat_target_strategy', 'random');
         $this->eventsEnabled = session('combat_events_enabled', true);
@@ -723,23 +720,9 @@ class MapStub extends Component
         }
     }
 
-    public function canUseSpeed5(): bool
-    {
-        if (!$this->character) {
-            return false;
-        }
-
-        $hasVip = $this->character->user?->hasPremium() ?? false;
-        return $this->character->level >= 30 || $hasVip;
-    }
-
     public function setPlaybackSpeed(int $speed): void
     {
-        if ($speed === 5 && !$this->canUseSpeed5()) {
-            $speed = 2;
-        }
-
-        if (!in_array($speed, [1, 2, 5], true)) {
+        if (!in_array($speed, [1, 2], true)) {
             $speed = 1;
         }
 

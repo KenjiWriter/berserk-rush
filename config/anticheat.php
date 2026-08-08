@@ -5,15 +5,14 @@ return [
     // Minimalny odstęp czasu (ms) między kolejnymi walkami tej samej postaci.
     // Wymuszany server-side w EncounterService::start(). Patrz docs/modules/combat.md §9.
     //
-    // UWAGA: legalny auto-chain (MapStub) potrafi zejść do ~300ms między walkami
-    // przy prędkości x5 po wygranej (capped w Livewire.on('auto-chain-next-battle'),
-    // map-stub.blade.php). Od 2026-08-08 karta w tle faktycznie od razu kończy
-    // walkę (component.call('finishAllTurns'), patrz docs/modules/combat.md §5)
-    // zamiast tylko pomijać animację - więc realny odstęp między startami walk w
-    // tle to praktycznie tylko ten sam ~300-700ms auto-chain delay. Próg musi być
-    // wyraźnie NIŻSZY niż to, inaczej blokuje normalną, szybką grę - stąd 350ms,
-    // a nie dokumentowane 1300ms. Jeśli auto-chain kiedyś przyspieszy poniżej
-    // 300ms, próg trzeba będzie zrewidować - obecnie jest tuż nad tą wartością.
+    // UWAGA: legalny auto-chain (MapStub) czeka min. ~700ms między walkami po
+    // wygranej (Livewire.on('auto-chain-next-battle'), map-stub.blade.php) -
+    // prędkość x5, przy której to okno schodziło do ~300ms, została usunięta
+    // (2026-08-08, zostały tylko x1/x2). Od 2026-08-08 karta w tle faktycznie
+    // od razu kończy walkę (component.call('finishAllTurns'), patrz
+    // docs/modules/combat.md §5) zamiast tylko pomijać animację - więc realny
+    // odstęp między startami walk w tle to praktycznie tylko ten sam
+    // ~700-3000ms auto-chain delay, wyraźnie nad progiem 350ms.
     'min_encounter_interval_ms' => env('ANTICHEAT_MIN_ENCOUNTER_INTERVAL_MS', 350),
 
     'kill_rate' => [
