@@ -20,6 +20,17 @@
         isIdleHidden: false,
         idleTimer: null,
         unhideTimeout: null,
+        chatHiddenPermanently: localStorage.getItem('berserk_chat_hidden') === 'true',
+        chatHideUntil: parseInt(localStorage.getItem('berserk_chat_hide_until') ?? '0') || 0,
+        chatNowTick: Date.now(),
+        get isChatHidden() {
+            return this.chatHiddenPermanently || this.chatHideUntil > this.chatNowTick;
+        },
+        refreshChatVisibility() {
+            this.chatHiddenPermanently = localStorage.getItem('berserk_chat_hidden') === 'true';
+            this.chatHideUntil = parseInt(localStorage.getItem('berserk_chat_hide_until') ?? '0') || 0;
+            this.chatNowTick = Date.now();
+        },
         resetIdleTimer(immediate = true) {
             if (this.idleTimer) {
                 clearTimeout(this.idleTimer);
@@ -199,6 +210,13 @@
 
             this.resetIdleTimer();
 
+            setInterval(() => { this.chatNowTick = Date.now(); }, 1000);
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'berserk_chat_hidden' || e.key === 'berserk_chat_hide_until') {
+                    this.refreshChatVisibility();
+                }
+            });
+
             this.$nextTick(() => {
                 const el = this.$refs.chatBox;
                 if (el) {
@@ -267,6 +285,8 @@
             }
         }
     }"
+    x-show="!isChatHidden"
+    x-cloak
     :class="[
         isOpen ? 'z-[9960]' : 'z-[9910]',
         isIdleHidden && !isOpen ? 'opacity-0 pointer-events-none translate-y-4' : 'opacity-100 translate-y-0'
@@ -275,6 +295,7 @@
     style="font-family: 'Cinzel', serif;"
     @mouseenter="resetIdleTimer()"
     @mouseleave="resetIdleTimer()"
+    @chat-visibility-changed.window="refreshChatVisibility()"
 >
     {{-- ========== CHAT DOCK CONTAINER ========== --}}
     <div class="relative flex flex-col w-full pointer-events-auto rounded-t-xl rounded-b-none border-t-2 border-x border-amber-700/60 shadow-[0_-8px_25px_rgba(0,0,0,0.85)] backdrop-blur-md overflow-hidden"

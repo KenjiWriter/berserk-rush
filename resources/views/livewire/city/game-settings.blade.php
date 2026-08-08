@@ -43,6 +43,9 @@
                     combat: parseInt(localStorage.getItem('berserk_combat_volume') ?? '50')
                 },
                 notifyQuestAchievement: localStorage.getItem('berserk_notify_quest_achievement') !== 'false',
+                chatHiddenPermanently: localStorage.getItem('berserk_chat_hidden') === 'true',
+                chatHideUntil: parseInt(localStorage.getItem('berserk_chat_hide_until') ?? '0') || 0,
+                nowTick: Date.now(),
                 setVolume(category, value) {
                     this.volumes[category] = value;
                     localStorage.setItem('berserk_' + category + '_volume', value);
@@ -51,6 +54,34 @@
                 toggleNotifications() {
                     this.notifyQuestAchievement = !this.notifyQuestAchievement;
                     localStorage.setItem('berserk_notify_quest_achievement', this.notifyQuestAchievement ? 'true' : 'false');
+                },
+                toggleChatHidden() {
+                    this.chatHiddenPermanently = !this.chatHiddenPermanently;
+                    localStorage.setItem('berserk_chat_hidden', this.chatHiddenPermanently ? 'true' : 'false');
+                    if (this.chatHiddenPermanently) {
+                        this.chatHideUntil = 0;
+                        localStorage.removeItem('berserk_chat_hide_until');
+                    }
+                    $dispatch('chat-visibility-changed');
+                },
+                hideChatTemporarily(minutes) {
+                    this.chatHideUntil = Date.now() + minutes * 60000;
+                    localStorage.setItem('berserk_chat_hide_until', this.chatHideUntil);
+                    $dispatch('chat-visibility-changed');
+                },
+                cancelTemporaryChatHide() {
+                    this.chatHideUntil = 0;
+                    localStorage.removeItem('berserk_chat_hide_until');
+                    $dispatch('chat-visibility-changed');
+                },
+                formatRemaining(ms) {
+                    const totalSec = Math.max(0, Math.ceil(ms / 1000));
+                    const m = Math.floor(totalSec / 60);
+                    const s = totalSec % 60;
+                    return (m > 0 ? m + 'min ' : '') + s + 's';
+                },
+                init() {
+                    setInterval(() => { this.nowTick = Date.now(); }, 1000);
                 }
             }"
             class="bg-gradient-to-b from-stone-900/95 via-stone-950/90 to-stone-900/95 border-2 border-amber-800/60 rounded-2xl p-5 sm:p-8 shadow-2xl backdrop-blur-md space-y-8">
@@ -138,6 +169,56 @@
                               :class="notifyQuestAchievement ? 'translate-x-6' : 'translate-x-0'"></span>
                     </span>
                 </label>
+            </div>
+
+            <div class="border-t border-amber-900/40"></div>
+
+            {{-- Section: Czat --}}
+            <div>
+                <h2 class="text-lg font-bold text-amber-300 mb-5 medieval-font flex items-center gap-2">
+                    <i class="fa-solid fa-comments text-amber-400"></i> Czat
+                </h2>
+
+                <div class="p-4 rounded-xl bg-stone-900/80 border border-amber-900/50 space-y-4">
+                    <label class="flex items-center justify-between gap-4 cursor-pointer select-none">
+                        <div>
+                            <span class="block text-sm font-semibold text-amber-100">Pokaż czat</span>
+                            <span class="block text-xs text-amber-400/70 mt-0.5">Wyłączenie ukrywa panel czatu na stałe, aż do ponownego włączenia tutaj</span>
+                        </div>
+                        <span class="relative inline-flex items-center shrink-0 w-12 h-6" @click="toggleChatHidden()">
+                            <span class="absolute inset-0 rounded-full transition-colors duration-200 border"
+                                  :class="!chatHiddenPermanently ? 'bg-gradient-to-r from-amber-700 to-amber-500 border-amber-400' : 'bg-stone-800 border-stone-700'"></span>
+                            <span class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-stone-100 shadow transition-transform duration-200"
+                                  :class="!chatHiddenPermanently ? 'translate-x-6' : 'translate-x-0'"></span>
+                        </span>
+                    </label>
+
+                    <div class="border-t border-amber-900/40 pt-4" x-show="!chatHiddenPermanently" x-cloak>
+                        <template x-if="chatHideUntil > nowTick">
+                            <div class="flex items-center justify-between gap-3 p-3 rounded-lg bg-stone-950/60 border border-amber-800/40">
+                                <span class="text-xs text-amber-300">
+                                    <i class="fa-solid fa-clock text-amber-500 mr-1"></i>
+                                    Czat ukryty jeszcze przez <span class="font-bold text-amber-200" x-text="formatRemaining(chatHideUntil - nowTick)"></span>
+                                </span>
+                                <button type="button" @click="cancelTemporaryChatHide()"
+                                        class="shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wide bg-gradient-to-b from-amber-800 to-amber-950 border border-amber-600/60 text-amber-200 hover:border-amber-400 transition-colors">
+                                    Pokaż teraz
+                                </button>
+                            </div>
+                        </template>
+                        <template x-if="!(chatHideUntil > nowTick)">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="text-xs text-amber-400/70 mr-1">Ukryj tymczasowo na:</span>
+                                <template x-for="mins in [10, 20, 30, 60]" :key="mins">
+                                    <button type="button" @click="hideChatTemporarily(mins)"
+                                            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-b from-stone-800 to-stone-900 border border-amber-900/60 text-amber-300 hover:border-amber-500 hover:text-amber-100 transition-colors">
+                                        <span x-text="mins"></span> min
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             {{-- Section: Skrót do Ekranu Głównego (tylko widok mobilny) --}}

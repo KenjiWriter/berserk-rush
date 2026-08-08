@@ -16,3 +16,13 @@ Wartości (0-100) są trzymane pod kluczami `berserk_sfx_volume`, `berserk_level
 Toast-system w layoucie sprawdza klucz `berserk_notify_quest_achievement` w `localStorage` (domyślnie włączone, brak klucza = włączone) i pomija wyświetlenie toastu jeśli wyłączone. Sam progres questa/osiągnięcia jest zawsze zapisywany w bazie niezależnie od tego ustawienia — toggle wpływa wyłącznie na widoczność powiadomienia.
 
 Nie obejmuje to bezpośrednich komunikatów zwrotnych po akcji gracza (np. "Odebrano nagrodę" po kliknięciu w zakładce Questów) — te nie są traktowane jako "powiadomienia", tylko odpowiedź na kliknięcie.
+
+## Widoczność czatu
+
+Sekcja "Czat" pozwala graczowi ukryć panel globalnego czatu (`App\Livewire\Global\GlobalChatComponent`, patrz `docs/modules/global_chat.md`), niezależnie od stanu zwinięcia/rozwinięcia. Podobnie jak reszta Ustawień, jest to w 100% mechanizm kliencki oparty o `localStorage` i zdarzenia Alpine.js — brak zapisu w bazie.
+
+- **Przełącznik "Pokaż czat"** — klucz `berserk_chat_hidden` (`'true'`/`'false'`). Wyłączenie ukrywa czat **na stałe** (do czasu ręcznego włączenia z powrotem w tym samym miejscu).
+- **Ukrycie tymczasowe** — przyciski szybkiego wyboru (10/20/30/60 min) zapisują znacznik czasu wygaśnięcia w `localStorage` pod kluczem `berserk_chat_hide_until` (timestamp w ms, `Date.now() + minuty * 60000`). Dopóki włączony jest permanentny tryb ukrycia, sekcja czasowa jest niewidoczna (permanent ma pierwszeństwo). W trakcie odliczania Ustawienia pokazują pozostały czas i przycisk "Pokaż teraz" do wcześniejszego anulowania.
+- Zmiana widoczności emituje event `chat-visibility-changed` (`window`), na który nasłuchuje sam komponent czatu (`resources/views/livewire/global/global-chat-component.blade.php`), żeby zaktualizować się natychmiast bez przeładowania strony — analogicznie do `settings-volume-changed`. Dodatkowo komponent czatu nasłuchuje natywnego zdarzenia `storage`, aby zsynchronizować widoczność między otwartymi kartami przeglądarki.
+- Komponent czatu odświeża stan `chatNowTick` co 1s (`setInterval`), dzięki czemu ukrycie czasowe wygasa samoczynnie o wyznaczonej porze bez potrzeby interakcji użytkownika czy przeładowania.
+- Ukrycie czatu (w dowolnym trybie) chowa cały dok czatu (`x-show="!isChatHidden"`) — WebSocket nadal nasłuchuje w tle i liczy nieprzeczytane wiadomości, więc po ponownym pokazaniu liczniki będą aktualne.

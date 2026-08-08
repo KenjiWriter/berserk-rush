@@ -8,6 +8,9 @@ Czat to wielokanałowy panel komunikacji w czasie rzeczywistym, dostępny z każ
 
 ## Zakres funkcjonalności
 
+### Widoczność (ukrywanie) czatu
+Niezależnie od stanu zwinięcia/rozwinięcia, gracz może całkowicie ukryć dok czatu z poziomu zakładki Ustawień Gry (`city.settings`) — na stałe lub tymczasowo (10/20/30/60 min). Mechanizm jest w pełni kliencki (`localStorage`, brak zapisu w bazie) — patrz `docs/modules/settings.md#widoczność-czatu` po szczegóły kluczy i eventów. W stanie ukrytym cały dok jest niewidoczny (`x-show`), ale komponent Livewire i subskrypcja WebSocket działają dalej w tle, więc liczniki nieprzeczytanych wiadomości są aktualne po ponownym pokazaniu.
+
 ### Wyświetlanie, układ i sesja
 - Panel czatu jest przypięty przy dolnej krawędzi ekranu (`fixed bottom-16 lg:bottom-0 right-2 sm:right-4`) w formie eleganckiego prostokątnego doku z zaokrąglonymi górnymi rogami, wyeliminowując problem zasłaniania UI gry przez dawny dymek.
 - Możliwość **minimalizacji/rozsuwania**: w stanie zwiniętym czat stanowi zwartą, prostokątną beleczkę nagłówkową na dole ekranu. Kliknięcie w dowolne miejsce w belce powoduje płynne rozsuwanie się panelu wiadomości do góry (efekt slide-up). Stan zwinięcia/rozwinięcia oraz **historia wiadomości (z ostatnich 10 minut)** są zapamiętywane w sesji dzięki Livewire 3 `#[Session]`.
