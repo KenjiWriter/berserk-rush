@@ -669,21 +669,35 @@ class DungeonService
             return Result::error('NO_POTION', 'Nie posiadasz tej mikstury.');
         }
 
-        // Sprawdź czy to prawdziwa mikstura lecznicza (wyklucz skrzynie, zwoje i inne consumable bez heal_amount / heal_pct)
+        // Sprawdź czy to prawdziwa mikstura lecznicza (wyklucz skrzynie, zwoje i inne consumable bez heal_amount / heal_pct / mana_heal_pct / mana_amount)
         $template = $potion->template;
         $stats = $template->base_stats ?? [];
-        if (!$template || $template->type !== 'consumable' || (!isset($stats['heal_amount']) && !isset($stats['heal_pct']))) {
+        $isHealPotion = isset($stats['heal_amount']) || isset($stats['heal_pct']);
+        $isManaPotion = isset($stats['mana_heal_pct']) || isset($stats['mana_amount']);
+        if (!$template || $template->type !== 'consumable' || (!$isHealPotion && !$isManaPotion)) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
 
         $maxHp = $character->getMaxHp();
-        if (isset($stats['heal_pct'])) {
-            $healAmount = (int) ceil($maxHp * ($stats['heal_pct'] / 100));
-        } else {
-            $healAmount = (int) ($stats['heal_amount'] ?? 0);
+        $maxMana = $character->getMaxMana();
+        $healAmount = 0;
+        $manaAmount = 0;
+
+        if ($isHealPotion) {
+            $healAmount = isset($stats['heal_pct'])
+                ? (int) ceil($maxHp * ($stats['heal_pct'] / 100))
+                : (int) ($stats['heal_amount'] ?? 0);
+            $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
         }
 
-        $run->current_hp = min($maxHp, $run->current_hp + $healAmount);
+        if ($isManaPotion) {
+            $manaAmount = isset($stats['mana_heal_pct'])
+                ? (int) ceil($maxMana * ($stats['mana_heal_pct'] / 100))
+                : (int) ($stats['mana_amount'] ?? 0);
+            $currentMana = $run->current_mana ?? $maxMana;
+            $run->current_mana = min($maxMana, $currentMana + $manaAmount);
+        }
+
         $run->save();
 
         // Zużyj miksturę
@@ -695,8 +709,11 @@ class DungeonService
 
         return Result::ok([
             'healed' => $healAmount,
+            'mana_restored' => $manaAmount,
             'current_hp' => $run->current_hp,
             'max_hp' => $maxHp,
+            'current_mana' => $run->current_mana,
+            'max_mana' => $maxMana,
         ]);
     }
 

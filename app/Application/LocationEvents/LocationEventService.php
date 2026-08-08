@@ -625,7 +625,7 @@ class LocationEventService
         $template = $potion->template;
         $stats = $template->base_stats ?? [];
         $isHealPotion = isset($stats['heal_amount']) || isset($stats['heal_pct']);
-        $isManaPotion = isset($stats['mana_amount']);
+        $isManaPotion = isset($stats['mana_heal_pct']) || isset($stats['mana_amount']);
         if (!$template || $template->type !== 'consumable' || (!$isHealPotion && !$isManaPotion)) {
             return Result::error('NOT_CONSUMABLE', 'Ten przedmiot nie jest miksturą.');
         }
@@ -643,8 +643,11 @@ class LocationEventService
         }
 
         if ($isManaPotion) {
-            $manaAmount = (int) ($stats['mana_amount'] ?? 0);
-            $run->current_mana = min($maxMana, ($run->current_mana ?? 0) + $manaAmount);
+            $manaAmount = isset($stats['mana_heal_pct'])
+                ? (int) ceil($maxMana * ($stats['mana_heal_pct'] / 100))
+                : (int) ($stats['mana_amount'] ?? 0);
+            $currentMana = $run->current_mana ?? $maxMana;
+            $run->current_mana = min($maxMana, $currentMana + $manaAmount);
         }
 
         $run->save();

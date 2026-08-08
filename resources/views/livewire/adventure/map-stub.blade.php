@@ -865,6 +865,7 @@
                                                   ->where(function ($sub) {
                                                       $sub->whereNotNull('base_stats->heal_amount')
                                                           ->orWhereNotNull('base_stats->heal_pct')
+                                                          ->orWhereNotNull('base_stats->mana_heal_pct')
                                                           ->orWhereNotNull('base_stats->mana_amount');
                                                   });
                                             })
@@ -874,7 +875,7 @@
                                     @if ($eventPotions->isNotEmpty())
                                         <div class="flex flex-wrap gap-1.5 justify-center">
                                             @foreach ($eventPotions as $potion)
-                                                @php $isManaPotion = isset($potion->template->base_stats['mana_amount']); @endphp
+                                                @php $isManaPotion = isset($potion->template->base_stats['mana_heal_pct']) || isset($potion->template->base_stats['mana_amount']); @endphp
                                                 <button wire:click="useEventPotion('{{ $potion->id }}')"
                                                     wire:loading.attr="disabled" wire:target="useEventPotion"
                                                     class="rounded-xl px-3 py-1.5 border font-semibold transition-all text-xs {{ $isManaPotion ? 'bg-blue-950/80 border-blue-500/40 text-blue-200 hover:bg-blue-900/80' : 'bg-emerald-950/80 border-emerald-500/40 text-emerald-200 hover:bg-emerald-900/80' }}">

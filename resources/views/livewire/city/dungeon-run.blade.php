@@ -484,13 +484,24 @@
                                     </h4>
                                     <div class="space-y-1.5">
                                         @foreach($potions as $potion)
-                                            <div class="flex items-center justify-between bg-slate-900/80 rounded-xl px-3 py-2 border border-purple-900/40">
+                                            @php
+                                                $potionStats = $potion->template->base_stats ?? [];
+                                                $isManaPotion = isset($potionStats['mana_heal_pct']) || isset($potionStats['mana_amount']);
+                                            @endphp
+                                            <div class="flex items-center justify-between bg-slate-900/80 rounded-xl px-3 py-2 border {{ $isManaPotion ? 'border-blue-900/40' : 'border-purple-900/40' }}">
                                                 <div>
-                                                    <p class="text-xs font-bold text-purple-200">{{ $potion->template->name }}</p>
-                                                    <p class="text-[10px] text-slate-500">Leczy: {{ $potion->template->base_stats['heal_amount'] ?? 50 }} HP @if($potion->stack_size > 1)• x{{ $potion->stack_size }}@endif</p>
+                                                    <p class="text-xs font-bold {{ $isManaPotion ? 'text-blue-200' : 'text-purple-200' }}">{{ $potion->template->name }}</p>
+                                                    <p class="text-[10px] text-slate-500">
+                                                        @if($isManaPotion)
+                                                            Leczy: {{ isset($potionStats['mana_heal_pct']) ? $potionStats['mana_heal_pct'] . '%' : ($potionStats['mana_amount'] ?? 0) }} Many
+                                                        @else
+                                                            Leczy: {{ isset($potionStats['heal_pct']) ? $potionStats['heal_pct'] . '%' : ($potionStats['heal_amount'] ?? 0) }} HP
+                                                        @endif
+                                                        @if($potion->stack_size > 1)• x{{ $potion->stack_size }}@endif
+                                                    </p>
                                                 </div>
                                                 <button wire:click="usePotion('{{ $potion->id }}')"
-                                                    class="bg-purple-700 hover:bg-purple-600 text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors border border-purple-500/50"
+                                                    class="{{ $isManaPotion ? 'bg-blue-700 hover:bg-blue-600 border-blue-500/50' : 'bg-purple-700 hover:bg-purple-600 border-purple-500/50' }} text-white text-[10px] font-bold py-1.5 px-3 rounded-lg transition-colors border"
                                                     wire:loading.attr="disabled" wire:target="usePotion('{{ $potion->id }}')">
                                                     <span wire:loading.remove wire:target="usePotion('{{ $potion->id }}')">Użyj</span>
                                                     <span wire:loading wire:target="usePotion('{{ $potion->id }}')">...</span>

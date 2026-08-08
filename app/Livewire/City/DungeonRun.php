@@ -334,8 +334,8 @@ class DungeonRun extends Component
         $maxHp = $this->character->getMaxHp();
         $currentHp = $run?->current_hp ?? $maxHp;
 
-        // Tylko prawdziwe mikstury lecznicze (mają zdefiniowany heal_amount) - wyklucza
-        // skrzynie, zwoje użytkowe oraz mikstury buffowe (siła/obrona/many), których
+        // Tylko prawdziwe mikstury lecznicze HP/Manę (heal_amount/heal_pct/mana_heal_pct/mana_amount) -
+        // wyklucza skrzynie, zwoje użytkowe oraz mikstury buffowe (siła/obrona), których
         // usePotion() w DungeonService i tak nie umie poprawnie obsłużyć w walce.
         $potions = ItemInstance::where('owner_character_id', $this->character->id)
             ->where('location', 'inventory')
@@ -343,7 +343,9 @@ class DungeonRun extends Component
                 $q->where('type', 'consumable')
                   ->where(function ($sub) {
                       $sub->whereNotNull('base_stats->heal_amount')
-                          ->orWhereNotNull('base_stats->heal_pct');
+                          ->orWhereNotNull('base_stats->heal_pct')
+                          ->orWhereNotNull('base_stats->mana_heal_pct')
+                          ->orWhereNotNull('base_stats->mana_amount');
                   });
             })
             ->with('template')
