@@ -233,9 +233,30 @@ class DungeonRun extends Component
             return;
         }
 
+        $payload = $result->getPayload();
+
         // Refresh run to get updated HP
         $run->refresh();
         $this->character->refresh();
+
+        // $showBattle sprawia, że pasek HP pokazuje $animatedPlayerHp (zamrożony
+        // stan z końca ostatniej walki), a getCurrentPlayerMana() szuka wstecz
+        // pierwszego wpisu z 'playerMana' w $visibleTurns - oba trzeba nadpisać,
+        // inaczej wypicie mikstury między etapami nie odświeży pasków do następnej walki.
+        if (isset($payload['current_hp'])) {
+            $this->animatedPlayerHp = $payload['current_hp'];
+        }
+        if (!empty($this->visibleTurns) && isset($payload['current_mana'])) {
+            $lastIndex = array_key_last($this->visibleTurns);
+            $this->visibleTurns[$lastIndex]['playerMana'] = $payload['current_mana'];
+        }
+
+        if (($payload['healed'] ?? 0) > 0) {
+            $this->dispatch('trigger-heal-fx', barId: 'dungeon-player-hp-bar', amount: $payload['healed']);
+        }
+        if (($payload['mana_restored'] ?? 0) > 0) {
+            $this->dispatch('trigger-heal-fx', barId: 'dungeon-player-mana-bar', amount: $payload['mana_restored']);
+        }
     }
 
     public function dismissBattle(): void

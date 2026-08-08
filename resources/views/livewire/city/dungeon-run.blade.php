@@ -996,6 +996,16 @@
 
         $wire.on('scroll-to-bottom', () => { setTimeout(() => scrollDungeonLogToBottom(true), 50); });
 
+        // Mikstura HP/Mana użyta poza walką (między etapami) - odwrotność efektu
+        // trafienia na pasku (CombatBarFX.hit): szmaragdowy błysk + iskry unoszące
+        // się do góry zamiast krwi tryskającej na zewnątrz.
+        $wire.on('trigger-heal-fx', (event) => {
+            const payload = (event && event[0]) ? event[0] : event;
+            if (payload && payload.barId && window.CombatBarFX) {
+                window.CombatBarFX.heal(payload.barId, payload.amount || 0);
+            }
+        });
+
         document.addEventListener('livewire:navigating', () => {
             if (dungeonPlaybackInterval) clearInterval(dungeonPlaybackInterval);
         });
