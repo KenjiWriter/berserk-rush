@@ -66,6 +66,17 @@
         // screen's own turn-played handler calls CombatBarFX.hit(barId) at the moment
         // of impact to shake the bar and spray a few blood/arcane droplets at its edge.
         window.CombatBarFX = window.CombatBarFX || {
+            // Odświeża pasek bez requestu do serwera - używane przez lokalne odtwarzanie
+            // tur (Adventure PVE), które ma już cały log walki i tylko animuje go w JS.
+            setPercent(barId, percent) {
+                const bar = document.getElementById(barId);
+                if (!bar) return;
+                const pct = Math.max(0, Math.min(100, percent));
+                const fill = bar.querySelector('.hp-fill-layer');
+                const chip = bar.querySelector('.hp-chip-layer');
+                if (fill) fill.style.width = `${pct}%`;
+                if (chip) chip.style.width = `${pct}%`;
+            },
             hit(barId) {
                 const bar = document.getElementById(barId);
                 if (!bar) return;

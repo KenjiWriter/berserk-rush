@@ -380,7 +380,29 @@ class MapStub extends Component
 
         $this->isCalculating = false;
         $this->isPlaying = true;
-        $this->dispatch('start-playback', speed: $this->playbackSpeed);
+        $this->dispatchStartPlayback();
+    }
+
+    /**
+     * Wysyła do JS wszystko, co potrzebne do lokalnego odtworzenia walki bez
+     * requestu Livewire na każdą turę (walka jest już w całości policzona -
+     * patrz startBattle()/EncounterService::simulate()). JS animuje tury z
+     * `turns` lokalnie i na końcu woła raz finishAllTurns(). Tryb overlevel
+     * (wielu przeciwników) zostaje na starej ścieżce nextTurn() per-turę -
+     * jego stan (monstersState/target switching) nie jest tu odtwarzany.
+     */
+    private function dispatchStartPlayback(): void
+    {
+        $this->dispatch(
+            'start-playback',
+            speed: $this->playbackSpeed,
+            turns: $this->allTurns,
+            startIndex: $this->currentTurnIndex,
+            player: $this->player,
+            enemy: $this->enemy,
+            maxMana: $this->character?->getMaxMana() ?? 0,
+            overLevel: $this->isOverLevelCombat,
+        );
     }
 
     public function checkCombatStatus(): void
@@ -413,7 +435,7 @@ class MapStub extends Component
             
             // Start playback
             $this->isPlaying = true;
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+            $this->dispatchStartPlayback();
         }
     }
 
@@ -501,7 +523,7 @@ class MapStub extends Component
             $this->isEventCalculating = false;
             $this->setupEventBattleData($run);
             $this->isPlaying = true;
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+            $this->dispatchStartPlayback();
         }
     }
 
@@ -688,7 +710,7 @@ class MapStub extends Component
     {
         if ($this->currentTurnIndex < count($this->allTurns)) {
             $this->isPlaying = true;
-            $this->dispatch('start-playback', speed: $this->playbackSpeed);
+            $this->dispatchStartPlayback();
         }
     }
 

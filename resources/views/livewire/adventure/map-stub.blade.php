@@ -361,7 +361,7 @@
                             <x-combat-status-bar :effects="$this->getPlayerStatusEffects()" />
                             <div class="flex justify-between text-xs font-bold text-amber-200 medieval-font drop-shadow">
                                 <span>Życie</span>
-                                <span class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
+                                <span id="player-hp-text" class="font-mono text-emerald-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerHp()) }}/{{ number_format($this->player['maxHp'] ?? $character->getMaxHp()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerHp()) }}/{{ \App\Helpers\FormatHelper::short($this->player['maxHp'] ?? $character->getMaxHp()) }}</span>
                             </div>
                             <x-combat-resource-bar id="player-hp-bar" :percent="$this->getPlayerHpPercent()"
                                 gradient-class="from-emerald-600 via-emerald-500 to-green-400"
@@ -374,7 +374,7 @@
                         <div class="space-y-1 mt-1.5">
                             <div class="flex justify-between text-xs font-bold text-cyan-200 medieval-font drop-shadow">
                                 <span>Mana</span>
-                                <span class="font-mono text-cyan-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
+                                <span id="player-mana-text" class="font-mono text-cyan-300 text-xs sm:text-sm" title="{{ number_format($this->getCurrentPlayerMana()) }}/{{ number_format($character->getMaxMana()) }}">{{ \App\Helpers\FormatHelper::short($this->getCurrentPlayerMana()) }}/{{ \App\Helpers\FormatHelper::short($character->getMaxMana()) }}</span>
                             </div>
                             <x-combat-resource-bar id="player-mana-bar" :percent="$this->getPlayerManaPercent()"
                                 gradient-class="from-blue-600 via-cyan-500 to-teal-400"
@@ -701,7 +701,7 @@
                             </div>
                         @else
                             <ul class="space-y-2 text-amber-100">
-                                @if (empty($visibleTurns))
+                                @if (empty($allTurns))
                                     @if ($isPlaying)
                                         <li class="text-center py-10 animate-pulse">
                                             <div class="text-amber-300/80 font-serif italic text-lg sm:text-xl">
@@ -716,8 +716,12 @@
                                         </li>
                                     @endif
                             @else
-                                @foreach ($visibleTurns as $index => $turn)
-                                    <li wire:key="turn-{{ $currentEncounterId }}-{{ $index }}" class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base">
+                                {{-- Wszystkie tury (allTurns) trafiają do DOM od razu - walka jest już
+                                    w całości policzona server-side. Tury poza zasięgiem visibleTurns są
+                                    ukryte klasą .hidden i odsłaniane lokalnie w JS (patrz start-playback
+                                    w skrypcie poniżej), bez requestu Livewire na każdą turę. --}}
+                                @foreach ($allTurns as $index => $turn)
+                                    <li wire:key="turn-{{ $currentEncounterId }}-{{ $index }}" data-turn-index="{{ $index }}" class="leading-relaxed bg-slate-900/70 border border-amber-500/20 rounded-xl px-3 py-2 lg:px-3.5 lg:py-2.5 shadow-sm backdrop-blur-sm text-xs sm:text-sm lg:text-sm xl:text-base {{ $index >= count($visibleTurns) ? 'hidden' : '' }}">
                                         <x-combat-log-entry :turn="$turn" :index="$index" :player-name="$player['name']" :enemy-name="$enemy['name']" />
                                     </li>
                                 @endforeach
@@ -850,6 +854,11 @@
                                                 :class="speed === 5 ? 'bg-purple-600/90 border-purple-300 text-white shadow-[0_0_12px_rgba(168,85,247,0.6)] scale-105' : 'bg-slate-900/80 border-slate-700 text-purple-200/70 hover:bg-slate-800'"
                                                 class="rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all">x5</button>
                                         @endif
+                                        <button type="button" @click="window.toggleCombatEcoMode()"
+                                            title="Spowalnia animacje i auto-chain, żeby oszczędzać CPU/baterię - włącza się też automatycznie po dłuższej bezczynności"
+                                            class="combat-eco-toggle rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all bg-slate-900/80 border-slate-700 text-emerald-300/70 hover:bg-slate-800">
+                                            <i class="fa-solid fa-leaf"></i>
+                                        </button>
                                     </div>
                                 @endif
 
@@ -935,6 +944,11 @@
                                                 <i class="fa-solid fa-lock text-[10px]"></i> x5
                                             </button>
                                         @endif
+                                        <button type="button" @click="window.toggleCombatEcoMode()"
+                                            title="Spowalnia animacje i auto-chain, żeby oszczędzać CPU/baterię - włącza się też automatycznie po dłuższej bezczynności"
+                                            class="combat-eco-toggle rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold medieval-font border transition-all bg-slate-900/80 border-slate-700 text-emerald-300/70 hover:bg-slate-800">
+                                            <i class="fa-solid fa-leaf"></i>
+                                        </button>
                                     </div>
                                 @endif
 
@@ -1102,7 +1116,7 @@
                                 @endif
                                 <div class="flex justify-between text-xs lg:text-sm font-bold text-red-200 medieval-font drop-shadow">
                                     <span>Życie Przeciwnika</span>
-                                    <span class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>
+                                    <span id="enemy-hp-text" class="font-mono text-red-300 text-sm lg:text-base" title="{{ number_format(max(0, $displayHp)) }}/{{ number_format($displayMaxHp) }}">{{ \App\Helpers\FormatHelper::short(max(0, $displayHp)) }}/{{ \App\Helpers\FormatHelper::short($displayMaxHp) }}</span>
                                 </div>
                                 <x-combat-resource-bar id="enemy-hp-bar" :percent="$displayHpPercent"
                                     gradient-class="from-red-700 via-red-500 to-rose-400"
@@ -1525,6 +1539,54 @@
             let isPaused = false;
             let currentSpeed = {{ $playbackSpeed }};
 
+            // Lokalne odtwarzanie tur (bez requestu Livewire na każdą turę - walka jest
+            // już w całości policzona server-side, patrz Livewire.on('start-playback')
+            // niżej). Tryb overlevel (wielu przeciwników naraz) zostaje na starej
+            // ścieżce per-turę (component.call('nextTurn')) - jego stan (target
+            // switching między potworami) nie jest tu odtwarzany.
+            let localTurns = null;
+            let localTurnIndex = 0;
+            let localMaxHp = { player: 0, enemy: 0 };
+            let localMaxMana = 0;
+            let localFinishRequested = false;
+
+            // Oszczędzanie energii: po progu bezczynności NA WIDOCZNEJ karcie spowalniamy
+            // (nie zatrzymujemy) animację tur i auto-chain. Można też wymusić ręcznie
+            // przyciskiem "Oszczędny" niezależnie od realnej bezczynności.
+            const IDLE_THRESHOLD_MS = 5 * 60 * 1000;
+            const IDLE_SLOWDOWN_MULTIPLIER = 3;
+            let lastInteractionAt = Date.now();
+            let idleModeForced = false;
+            ['mousemove', 'keydown', 'click', 'touchstart', 'wheel'].forEach((evtName) => {
+                document.addEventListener(evtName, () => { lastInteractionAt = Date.now(); }, { passive: true });
+            });
+
+            function isIdleSlowdownActive() {
+                return idleModeForced || (Date.now() - lastInteractionAt >= IDLE_THRESHOLD_MS);
+            }
+
+            function updateEcoIndicator() {
+                const active = isIdleSlowdownActive();
+                document.querySelectorAll('.combat-eco-toggle').forEach((btn) => {
+                    btn.classList.toggle('bg-emerald-700/80', active);
+                    btn.classList.toggle('border-emerald-400', active);
+                    btn.classList.toggle('text-white', active);
+                    btn.classList.toggle('scale-105', active);
+                });
+            }
+
+            window.toggleCombatEcoMode = function(btn) {
+                idleModeForced = !idleModeForced;
+                updateEcoIndicator();
+            };
+
+            (function scheduleIdleCheck() {
+                setUnthrottledTimeout(() => {
+                    updateEcoIndicator();
+                    scheduleIdleCheck();
+                }, 30000, 'idleCheckTimer');
+            })();
+
             function cleanUp() {
                 clearUnthrottledTimeout('turnTimer', turnTimer);
                 clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
@@ -1540,7 +1602,16 @@
             window.addEventListener('beforeunload', cleanUp);
 
             document.addEventListener('visibilitychange', () => {
-                if (!document.hidden && !isPaused) {
+                if (document.hidden) {
+                    // Karta poszła w tło w trakcie lokalnego odtwarzania - zamiast dalej
+                    // tykać animacją (jak robił stary kod przez Web Worker, godzinami
+                    // zużywając CPU/sieć w tle), kończymy walkę od razu.
+                    if (localTurns && !isPaused && !localFinishRequested) {
+                        finishLocalPlayback();
+                    }
+                    return;
+                }
+                if (!isPaused) {
                     // Po powrocie do karty resetuj blokadę isExecutingTurn - throttlowane
                     // timery z turn-played mogły nie odpalić gdy karta była ukryta,
                     // co powodowało deadlock (isExecutingTurn=true na zawsze).
@@ -1554,10 +1625,97 @@
                 return el ? Livewire.find(el.getAttribute('wire:id')) : null;
             }
 
+            function revealLogEntry(index) {
+                const el = document.querySelector(`#combat-log-container [data-turn-index="${index}"]`);
+                if (el) el.classList.remove('hidden');
+            }
+
+            function updateResourceBarsFromTurn(turn) {
+                if (!turn || !window.CombatBarFX) return;
+
+                if (typeof turn.playerHp === 'number' && localMaxHp.player > 0) {
+                    const hp = Math.max(0, turn.playerHp);
+                    window.CombatBarFX.setPercent('player-hp-bar', (hp / localMaxHp.player) * 100);
+                    const txt = document.getElementById('player-hp-text');
+                    if (txt) txt.textContent = `${formatShortNum(hp)}/${formatShortNum(localMaxHp.player)}`;
+                }
+                if (typeof turn.enemyHp === 'number' && localMaxHp.enemy > 0) {
+                    const hp = Math.max(0, turn.enemyHp);
+                    window.CombatBarFX.setPercent('enemy-hp-bar', (hp / localMaxHp.enemy) * 100);
+                    const txt = document.getElementById('enemy-hp-text');
+                    if (txt) txt.textContent = `${formatShortNum(hp)}/${formatShortNum(localMaxHp.enemy)}`;
+                }
+
+                const mana = typeof turn.playerMana === 'number'
+                    ? turn.playerMana
+                    : (turn.state && typeof turn.state.playerMana === 'number' ? turn.state.playerMana : null);
+                if (mana !== null && localMaxMana > 0) {
+                    const manaVal = Math.max(0, mana);
+                    window.CombatBarFX.setPercent('player-mana-bar', (manaVal / localMaxMana) * 100);
+                    const txt = document.getElementById('player-mana-text');
+                    if (txt) txt.textContent = `${formatShortNum(manaVal)}/${formatShortNum(localMaxMana)}`;
+                }
+            }
+
+            // Odtwarza dokładnie to samo mapowanie pól, które wcześniej robił
+            // nextTurn() po stronie PHP przy dispatchu 'turn-played' - żeby animacja/dźwięk
+            // wyglądały identycznie niezależnie od tego, czy tura przyszła z serwera
+            // (fallback overlevel) czy jest odtwarzana lokalnie z gotowego payloadu.
+            function buildTurnPlayedPayload(turn) {
+                return {
+                    actor: turn.actor,
+                    type: turn.type,
+                    value: turn.value || 0,
+                    dotDamage: turn.dotDamage || 0,
+                    dotType: turn.dotType || null,
+                    crit: !!turn.crit,
+                    skillName: turn.skill_name || null,
+                    effectType: turn.effect_type || null,
+                    audioType: turn.type === 'miss' ? 'dodge' : (turn.crit ? 'crit' : 'hit'),
+                };
+            }
+
+            function finishLocalPlayback() {
+                if (localFinishRequested) return;
+                localFinishRequested = true;
+                if (watchdogTimer) clearTimeout(watchdogTimer);
+                isExecutingTurn = false;
+
+                if (localTurns) {
+                    const lastTurn = localTurns[localTurns.length - 1];
+                    if (lastTurn) updateResourceBarsFromTurn(lastTurn);
+                    for (let i = localTurnIndex; i < localTurns.length; i++) revealLogEntry(i);
+                    localTurnIndex = localTurns.length;
+                }
+
+                const component = getComponent();
+                if (component) component.call('finishAllTurns');
+            }
+
             function triggerNextTurn() {
                 if (isPaused) return;
 
                 if (isExecutingTurn) return;
+
+                if (localTurns) {
+                    if (document.hidden || localTurnIndex >= localTurns.length) {
+                        finishLocalPlayback();
+                        return;
+                    }
+
+                    isExecutingTurn = true;
+                    if (watchdogTimer) clearTimeout(watchdogTimer);
+                    watchdogTimer = setTimeout(() => {
+                        isExecutingTurn = false;
+                    }, 2500);
+
+                    const turn = localTurns[localTurnIndex];
+                    revealLogEntry(localTurnIndex);
+                    updateResourceBarsFromTurn(turn);
+                    localTurnIndex++;
+                    playTurnEffects(buildTurnPlayedPayload(turn));
+                    return;
+                }
 
                 const component = getComponent();
                 if (component) {
@@ -1574,9 +1732,10 @@
                 if (isPaused) return;
                 clearUnthrottledTimeout('turnTimer', turnTimer);
 
+                const effectiveDelay = isIdleSlowdownActive() ? delayMs * IDLE_SLOWDOWN_MULTIPLIER : delayMs;
                 turnTimer = setUnthrottledTimeout(() => {
                     triggerNextTurn();
-                }, delayMs, 'turnTimer');
+                }, effectiveDelay, 'turnTimer');
             }
 
             window.setCombatSpeed = function(s) {
@@ -1611,14 +1770,38 @@
                 cleanUp();
                 isPaused = false;
                 mapStubUserScrolledUp = false;
-                let evtSpeed = (event && event[0] && event[0].speed) ? event[0].speed : (event && event.speed ? event.speed : null);
-                if (evtSpeed) {
-                    currentSpeed = evtSpeed;
+                const payload = (event && event[0]) ? event[0] : (event || {});
+
+                if (payload.speed) {
+                    currentSpeed = payload.speed;
+                }
+
+                localFinishRequested = false;
+                if (Array.isArray(payload.turns) && !payload.overLevel) {
+                    // Jeśli to ten sam zestaw tur co przed pauzą (Wznów), nie cofaj
+                    // localTurnIndex - serwer nie śledzi już postępu tury po turze
+                    // w trybie lokalnym, więc payload.startIndex byłby nieaktualny.
+                    const isResume = Array.isArray(localTurns) && localTurns.length === payload.turns.length;
+                    localTurns = payload.turns;
+                    if (!isResume) {
+                        localTurnIndex = typeof payload.startIndex === 'number' ? payload.startIndex : 0;
+                    }
+                    localMaxHp.player = (payload.player && payload.player.maxHp) || 0;
+                    localMaxHp.enemy = (payload.enemy && payload.enemy.maxHp) || 0;
+                    localMaxMana = payload.maxMana || 0;
+                } else {
+                    localTurns = null;
+                    localTurnIndex = 0;
                 }
 
                 setTimeout(() => scrollCombatLogToBottom(true), 10);
                 setTimeout(() => scrollCombatLogToBottom(true), 50);
                 setTimeout(() => scrollCombatLogToBottom(true), 150);
+
+                if (localTurns && document.hidden) {
+                    finishLocalPlayback();
+                    return;
+                }
 
                 const startDelay = currentSpeed === 5 ? 30 : (currentSpeed === 2 ? 100 : 200);
                 scheduleNextTurn(startDelay);
@@ -1751,10 +1934,12 @@
                 return sign + Math.floor(abs);
             }
 
-            Livewire.on('turn-played', (event) => {
+            // Animacja/dźwięk/FX pojedynczej tury - wydzielone z Livewire.on('turn-played')
+            // żeby dało się je wywołać bezpośrednio z lokalnej pętli odtwarzania
+            // (bez requestu do serwera), a nie tylko z eventu Livewire.
+            function playTurnEffects(data) {
                 isExecutingTurn = true;
 
-                const data = (event && event[0]) ? event[0] : event;
                 const actor = data.actor;
                 const type = data.type;
                 const effectType = data.effectType || null;
@@ -1959,6 +2144,11 @@
                         scheduleNextTurn(basePause);
                     }
                 }, currentSpeed === 5 ? 120 : (currentSpeed === 2 ? 250 : 500), 'turnAnimTimer');
+            }
+
+            Livewire.on('turn-played', (event) => {
+                const data = (event && event[0]) ? event[0] : event;
+                playTurnEffects(data);
             });
 
             Livewire.on('auto-chain-next-battle', (event) => {
@@ -1976,6 +2166,10 @@
                     // Przy x5 skracamy opóźnienie, ale nie poniżej 300ms dla wygranej
                     // (i zachowujemy pełne 3000ms kary za przegraną - nie skracamy jej).
                     delay = delay <= 700 ? Math.min(delay, 300) : delay;
+                }
+
+                if (isIdleSlowdownActive()) {
+                    delay *= IDLE_SLOWDOWN_MULTIPLIER;
                 }
 
                 let chainTriggered = false;
@@ -2016,6 +2210,9 @@
                 }
                 if (currentSpeed === 5) {
                     delay = Math.min(delay, 300);
+                }
+                if (isIdleSlowdownActive()) {
+                    delay *= IDLE_SLOWDOWN_MULTIPLIER;
                 }
 
                 let chainTriggered = false;
