@@ -210,6 +210,19 @@
                             <div class="h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent flex-1"></div>
                         </div>
 
+                        @if(count($availablePotionCategories) > 1)
+                            <div class="flex flex-wrap items-center gap-1.5 justify-center mb-6" wire:loading.class="opacity-60 pointer-events-none" wire:target="setPotionCategoryFilter">
+                                <button wire:click="setPotionCategoryFilter('all')" wire:loading.attr="disabled" wire:target="setPotionCategoryFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition border {{ $potionCategoryFilter === 'all' ? 'bg-purple-600 border-fuchsia-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'bg-slate-900/70 border-purple-900/40 text-purple-300/70 hover:text-purple-100 hover:border-purple-600' }}">
+                                    <i class="fa-solid fa-layer-group"></i> Wszystkie
+                                </button>
+                                @foreach($availablePotionCategories as $key => $meta)
+                                    <button wire:click="setPotionCategoryFilter('{{ $key }}')" wire:loading.attr="disabled" wire:target="setPotionCategoryFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition border {{ $potionCategoryFilter === $key ? 'bg-purple-600 border-fuchsia-400 text-white shadow-[0_0_12px_rgba(168,85,247,0.4)]' : 'bg-slate-900/70 border-purple-900/40 text-purple-300/70 hover:text-purple-100 hover:border-purple-600' }}">
+                                        <i class="fa-solid {{ $meta['icon'] }}"></i> {{ $meta['label'] }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        @endif
+
                         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                             @forelse($shopItems as $mi)
                                 <div class="bg-gradient-to-b from-stone-950/80 to-purple-950/40 border border-purple-800/40 rounded-2xl p-5 shadow-xl backdrop-blur-md flex flex-col justify-between transition-all duration-300 hover:bg-purple-950/60 hover:border-fuchsia-500/60 hover:shadow-[0_0_25px_rgba(168,85,247,0.25)] hover:-translate-y-1">

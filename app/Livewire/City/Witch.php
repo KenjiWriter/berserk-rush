@@ -30,6 +30,10 @@ class Witch extends Component
     public $messageType = 'info';
     public $activeTab = 'shop'; // shop, crafting, enchant
 
+    // Filtr kategorii mikstur w zakładce "shop" - 'all' lub kategoria z id przedmiotu
+    // ('hp','mana','str','agi','int','vit','def','crit','monster')
+    public string $potionCategoryFilter = 'all';
+
     // Zakładka Zaczarowania (przeniesiona od Czarodzieja)
     public ?string $activeItemId = null;
     public ?string $actionMessage = null;
@@ -48,6 +52,21 @@ class Witch extends Component
     {
         Gate::authorize('view', $character);
         $this->character = $character;
+    }
+
+    public function setPotionCategoryFilter(string $category)
+    {
+        $this->potionCategoryFilter = $category;
+    }
+
+    private function matchesPotionCategoryFilter(string $itemTemplateId): bool
+    {
+        if ($this->potionCategoryFilter === 'all') {
+            return true;
+        }
+
+        $parts = explode('-', $itemTemplateId);
+        return count($parts) === 3 && $parts[0] === 'potion' && $parts[1] === $this->potionCategoryFilter;
     }
 
     public function switchTab($tab)
@@ -436,7 +455,19 @@ class Witch extends Component
         ];
         $potionTierOrder = ['s' => 0, 'm' => 1, 'l' => 2];
 
-        $shopItems = MerchantItem::where('merchant_id', 'witch')
+        $potionCategoryLabels = [
+            'hp' => ['label' => 'Życie', 'icon' => 'fa-heart'],
+            'mana' => ['label' => 'Mana', 'icon' => 'fa-droplet'],
+            'str' => ['label' => 'Siła', 'icon' => 'fa-hand-fist'],
+            'agi' => ['label' => 'Zwinność', 'icon' => 'fa-wind'],
+            'int' => ['label' => 'Inteligencja', 'icon' => 'fa-brain'],
+            'vit' => ['label' => 'Witalność', 'icon' => 'fa-shield-heart'],
+            'def' => ['label' => 'Obrona', 'icon' => 'fa-shield'],
+            'crit' => ['label' => 'Szał', 'icon' => 'fa-bolt'],
+            'monster' => ['label' => 'Łowca Potworów', 'icon' => 'fa-crosshairs'],
+        ];
+
+        $allShopItems = MerchantItem::where('merchant_id', 'witch')
             ->where('required_level', '<=', $this->character->level)
             ->whereHas('template')
             ->with('template')
@@ -453,6 +484,23 @@ class Witch extends Component
                 }
                 return '99-' . ($mi->template->name ?? '');
             })
+            ->values();
+
+        // Kategorie dostępne do filtrowania - tylko te faktycznie obecne w asortymencie
+        // (zachowują kolejność z $potionCategoryOrder), żeby nie pokazywać pustych przycisków.
+        $availablePotionCategories = [];
+        foreach (array_keys($potionCategoryOrder) as $categoryKey) {
+            $present = $allShopItems->contains(function ($mi) use ($categoryKey) {
+                $parts = explode('-', $mi->item_template_id);
+                return count($parts) === 3 && $parts[0] === 'potion' && $parts[1] === $categoryKey;
+            });
+            if ($present) {
+                $availablePotionCategories[$categoryKey] = $potionCategoryLabels[$categoryKey];
+            }
+        }
+
+        $shopItems = $allShopItems
+            ->filter(fn($mi) => $this->matchesPotionCategoryFilter($mi->item_template_id))
             ->values();
 
         $shopPrices = [];
@@ -556,6 +604,7 @@ class Witch extends Component
             'specialCooldown' => $specialCooldown,
             'shopItems' => $shopItems,
             'shopPrices' => $shopPrices,
+            'availablePotionCategories' => $availablePotionCategories,
             'recipes' => $preparedRecipes,
             'enchantableItems' => $enchantableItems,
             'activeItem' => $activeItem,
