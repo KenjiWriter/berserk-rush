@@ -285,6 +285,19 @@
                         </p>
                     </div>
 
+                    @if(count($availableRecipeCategories) > 1)
+                        <div class="flex flex-wrap items-center gap-1.5 justify-center mb-2" wire:loading.class="opacity-60 pointer-events-none" wire:target="setRecipeCategoryFilter">
+                            <button wire:click="setRecipeCategoryFilter('all')" wire:loading.attr="disabled" wire:target="setRecipeCategoryFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition border {{ $recipeCategoryFilter === 'all' ? 'bg-emerald-600 border-emerald-300 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-slate-900/70 border-emerald-900/40 text-emerald-300/70 hover:text-emerald-100 hover:border-emerald-600' }}">
+                                <i class="fa-solid fa-layer-group"></i> Wszystkie
+                            </button>
+                            @foreach($availableRecipeCategories as $key => $meta)
+                                <button wire:click="setRecipeCategoryFilter('{{ $key }}')" wire:loading.attr="disabled" wire:target="setRecipeCategoryFilter" class="px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition border {{ $recipeCategoryFilter === $key ? 'bg-emerald-600 border-emerald-300 text-white shadow-[0_0_12px_rgba(16,185,129,0.4)]' : 'bg-slate-900/70 border-emerald-900/40 text-emerald-300/70 hover:text-emerald-100 hover:border-emerald-600' }}">
+                                    <i class="fa-solid {{ $meta['icon'] }}"></i> {{ $meta['label'] }}
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         @forelse($recipes as $recipe)
                             <div class="relative bg-gradient-to-b from-stone-950/80 via-emerald-950/30 to-black border border-emerald-800/40 rounded-2xl p-6 shadow-xl backdrop-blur-md transition-all duration-300 hover:bg-emerald-950/50 hover:border-emerald-500/60 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] flex flex-col justify-between">

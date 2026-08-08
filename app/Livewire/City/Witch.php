@@ -34,6 +34,9 @@ class Witch extends Component
     // ('hp','mana','str','agi','int','vit','def','crit','monster')
     public string $potionCategoryFilter = 'all';
 
+    // Analogiczny filtr kategorii dla zakładki "crafting" (Warzenie Mikstur) - niezależny od shop
+    public string $recipeCategoryFilter = 'all';
+
     // Zakładka Zaczarowania (przeniesiona od Czarodzieja)
     public ?string $activeItemId = null;
     public ?string $actionMessage = null;
@@ -59,14 +62,46 @@ class Witch extends Component
         $this->potionCategoryFilter = $category;
     }
 
+    public function setRecipeCategoryFilter(string $category)
+    {
+        $this->recipeCategoryFilter = $category;
+    }
+
+    /**
+     * Wyciąga kategorię mikstury ('hp','mana','str',...) z id szablonu w formacie
+     * 'potion-{category}-{tier}'. Zwraca null dla przedmiotów spoza tego wzorca.
+     * `trim()` jest konieczny, bo kolumny referencyjne do `item_templates.id`
+     * (`ulid()` = `char(26)` na Postgresie) bywają odczytywane z końcowym
+     * paddingiem spacji - zob. docs/modules/witch_and_crafting.md.
+     */
+    private function potionCategoryOf(string $itemTemplateId): ?string
+    {
+        $parts = explode('-', trim($itemTemplateId));
+        return (count($parts) === 3 && $parts[0] === 'potion') ? $parts[1] : null;
+    }
+
+    private function potionTierOf(string $itemTemplateId): ?string
+    {
+        $parts = explode('-', trim($itemTemplateId));
+        return (count($parts) === 3 && $parts[0] === 'potion') ? $parts[2] : null;
+    }
+
     private function matchesPotionCategoryFilter(string $itemTemplateId): bool
     {
         if ($this->potionCategoryFilter === 'all') {
             return true;
         }
 
-        $parts = explode('-', $itemTemplateId);
-        return count($parts) === 3 && $parts[0] === 'potion' && $parts[1] === $this->potionCategoryFilter;
+        return $this->potionCategoryOf($itemTemplateId) === $this->potionCategoryFilter;
+    }
+
+    private function matchesRecipeCategoryFilter(string $itemTemplateId): bool
+    {
+        if ($this->recipeCategoryFilter === 'all') {
+            return true;
+        }
+
+        return $this->potionCategoryOf($itemTemplateId) === $this->recipeCategoryFilter;
     }
 
     public function switchTab($tab)
@@ -476,11 +511,10 @@ class Witch extends Component
                 return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
             })
             ->sortBy(function ($mi) use ($potionCategoryOrder, $potionTierOrder) {
-                $parts = explode('-', $mi->item_template_id);
-                if (count($parts) === 3 && $parts[0] === 'potion') {
-                    $category = $potionCategoryOrder[$parts[1]] ?? 99;
-                    $tier = $potionTierOrder[$parts[2]] ?? 9;
-                    return sprintf('%02d-%d', $category, $tier);
+                $category = $this->potionCategoryOf($mi->item_template_id);
+                $tier = $this->potionTierOf($mi->item_template_id);
+                if ($category !== null && $tier !== null) {
+                    return sprintf('%02d-%d', $potionCategoryOrder[$category] ?? 99, $potionTierOrder[$tier] ?? 9);
                 }
                 return '99-' . ($mi->template->name ?? '');
             })
@@ -490,10 +524,7 @@ class Witch extends Component
         // (zachowują kolejność z $potionCategoryOrder), żeby nie pokazywać pustych przycisków.
         $availablePotionCategories = [];
         foreach (array_keys($potionCategoryOrder) as $categoryKey) {
-            $present = $allShopItems->contains(function ($mi) use ($categoryKey) {
-                $parts = explode('-', $mi->item_template_id);
-                return count($parts) === 3 && $parts[0] === 'potion' && $parts[1] === $categoryKey;
-            });
+            $present = $allShopItems->contains(fn($mi) => $this->potionCategoryOf($mi->item_template_id) === $categoryKey);
             if ($present) {
                 $availablePotionCategories[$categoryKey] = $potionCategoryLabels[$categoryKey];
             }
@@ -564,6 +595,8 @@ class Witch extends Component
 
             $preparedRecipes[] = [
                 'id' => $recipe->id,
+                'result_id' => $recipe->result_item_template_id,
+                'category' => $this->potionCategoryOf($recipe->result_item_template_id),
                 'result_name' => $recipe->resultItemTemplate->name ?? 'Nieznany',
                 'result_icon' => $recipe->resultItemTemplate->icon ?? null,
                 'result_level' => $recipe->resultItemTemplate->level_requirement ?? 1,
@@ -575,6 +608,19 @@ class Witch extends Component
         }
 
         usort($preparedRecipes, fn ($a, $b) => ($a['result_level'] <=> $b['result_level']) ?: strcmp($a['result_name'], $b['result_name']));
+
+        $availableRecipeCategories = [];
+        foreach (array_keys($potionCategoryOrder) as $categoryKey) {
+            $present = collect($preparedRecipes)->contains(fn ($r) => $r['category'] === $categoryKey);
+            if ($present) {
+                $availableRecipeCategories[$categoryKey] = $potionCategoryLabels[$categoryKey];
+            }
+        }
+
+        $preparedRecipes = array_values(array_filter(
+            $preparedRecipes,
+            fn ($r) => $this->recipeCategoryFilter === 'all' || $r['category'] === $this->recipeCategoryFilter
+        ));
 
         // Zaczarowywalne przedmioty (broń, zbroja, biżuteria)
         $enchantableItems = $this->character->inventoryItems()->whereHas('template', function($q) {
@@ -606,6 +652,7 @@ class Witch extends Component
             'shopPrices' => $shopPrices,
             'availablePotionCategories' => $availablePotionCategories,
             'recipes' => $preparedRecipes,
+            'availableRecipeCategories' => $availableRecipeCategories,
             'enchantableItems' => $enchantableItems,
             'activeItem' => $activeItem,
             'possibleBonuses' => $possibleBonuses,

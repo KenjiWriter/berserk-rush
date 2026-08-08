@@ -654,7 +654,33 @@ class MapStub extends Component
         $result = app(LocationEventService::class)->usePotion($run, $itemInstanceId);
         if ($result->isError()) {
             $this->addError('battle', $result->getErrorMessage());
+            return;
         }
+
+        $payload = $result->getPayload();
+
+        // getCurrentPlayerHp()/getCurrentPlayerMana() czytają snapshot z ostatniej
+        // widocznej tury Kroniki Bitwy (jeśli jakaś już jest), więc trzeba go
+        // nadpisać po wypiciu mikstury poza walką - inaczej pasek HP/MP nie
+        // pokazałby efektu aż do rozegrania kolejnej tury.
+        if (!empty($this->visibleTurns)) {
+            $lastIndex = array_key_last($this->visibleTurns);
+            if (isset($payload['current_hp'])) {
+                $this->visibleTurns[$lastIndex]['playerHp'] = $payload['current_hp'];
+            }
+            if (isset($payload['current_mana'])) {
+                $this->visibleTurns[$lastIndex]['playerMana'] = $payload['current_mana'];
+            }
+        }
+
+        if (($payload['healed'] ?? 0) > 0) {
+            $this->dispatch('trigger-heal-fx', barId: 'player-hp-bar', amount: $payload['healed']);
+        }
+        if (($payload['mana_restored'] ?? 0) > 0) {
+            $this->dispatch('trigger-heal-fx', barId: 'player-mana-bar', amount: $payload['mana_restored']);
+        }
+
+        $this->character->refresh();
     }
 
     public function cancelBattle(): void

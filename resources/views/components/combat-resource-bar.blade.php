@@ -60,6 +60,13 @@
             80% { transform: translateX(2px); }
         }
         .hp-bar-shake { animation: hpBarShake 320ms ease-in-out; }
+
+        @keyframes hpBarHealGlow {
+            0% { filter: brightness(1); }
+            35% { filter: brightness(1.7) saturate(1.4); }
+            100% { filter: brightness(1); }
+        }
+        .hp-bar-heal-glow { animation: hpBarHealGlow 550ms ease-out; }
     </style>
     <script>
         // Shared across every combat screen (adventure/dungeon/arena/guild-war): each
@@ -114,6 +121,51 @@
                     ], { duration: 450 + Math.random() * 200, easing: 'cubic-bezier(0.35,0.6,0.4,1)', fill: 'forwards' });
                     anim.onfinish = () => d.remove();
                     setTimeout(() => { if (d.parentNode) d.remove(); }, 850);
+                }
+            },
+            // Odwrotność hit(): zamiast krwi tryskającej NA ZEWNĄTRZ z krawędzi ubytku,
+            // szmaragdowe iskry unoszą się DO GÓRY znad paska, a nad nim wypływa
+            // liczba "+ilość" - wizualny sygnał leczenia (mikstura HP/Mana poza walką).
+            heal(barId, amount) {
+                const bar = document.getElementById(barId);
+                if (!bar) return;
+
+                bar.classList.remove('hp-bar-heal-glow');
+                void bar.offsetWidth;
+                bar.classList.add('hp-bar-heal-glow');
+
+                const barRect = bar.getBoundingClientRect();
+
+                if (amount) {
+                    const txt = document.createElement('div');
+                    txt.textContent = `+${Math.round(amount)}`;
+                    txt.style.cssText = `position:fixed; left:${barRect.left + barRect.width / 2}px; top:${barRect.top}px; transform: translate(-50%, 0); color:#34d399; font-weight:900; font-size:13px; text-shadow:0 1px 3px rgba(0,0,0,0.9); pointer-events:none; z-index:260;`;
+                    document.body.appendChild(txt);
+                    const textAnim = txt.animate([
+                        { transform: 'translate(-50%, 0px)', opacity: 1 },
+                        { transform: 'translate(-50%, -30px)', opacity: 0 }
+                    ], { duration: 900, easing: 'cubic-bezier(0.2,0.8,0.3,1)', fill: 'forwards' });
+                    textAnim.onfinish = () => txt.remove();
+                    setTimeout(() => { if (txt.parentNode) txt.remove(); }, 1000);
+                }
+
+                for (let i = 0; i < 6; i++) {
+                    const size = 3 + Math.random() * 3;
+                    const d = document.createElement('div');
+                    const startX = barRect.left + Math.random() * barRect.width;
+                    const startY = barRect.top + barRect.height / 2;
+                    d.style.cssText = `position:fixed; left:${startX}px; top:${startY}px; width:${size}px; height:${size}px; border-radius:50%; background:rgba(52,211,153,0.95); pointer-events:none; z-index:250; box-shadow:0 0 4px rgba(16,185,129,0.8);`;
+                    document.body.appendChild(d);
+
+                    const dx = (Math.random() - 0.5) * 14;
+                    const dy = -(14 + Math.random() * 16);
+
+                    const anim = d.animate([
+                        { transform: 'translate(0px, 0px)', opacity: 0.95 },
+                        { transform: `translate(${dx}px, ${dy}px)`, opacity: 0 }
+                    ], { duration: 500 + Math.random() * 250, easing: 'cubic-bezier(0.2,0.8,0.3,1)', fill: 'forwards' });
+                    anim.onfinish = () => d.remove();
+                    setTimeout(() => { if (d.parentNode) d.remove(); }, 900);
                 }
             }
         };

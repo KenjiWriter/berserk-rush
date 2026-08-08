@@ -2141,6 +2141,16 @@
                 playTurnEffects(data);
             });
 
+            // Mikstura HP/Mana użyta poza walką (event lokacji, hardcore) - odwrotność
+            // efektu trafienia na pasku (CombatBarFX.hit): szmaragdowy błysk + iskry
+            // unoszące się do góry zamiast krwi tryskającej na zewnątrz.
+            Livewire.on('trigger-heal-fx', (event) => {
+                const payload = (event && event[0]) ? event[0] : event;
+                if (payload && payload.barId && window.CombatBarFX) {
+                    window.CombatBarFX.heal(payload.barId, payload.amount || 0);
+                }
+            });
+
             Livewire.on('auto-chain-next-battle', (event) => {
                 clearUnthrottledTimeout('autoChainTimeout', autoChainTimeout);
                 if (autoChainWatchdog) { clearTimeout(autoChainWatchdog); autoChainWatchdog = null; }
