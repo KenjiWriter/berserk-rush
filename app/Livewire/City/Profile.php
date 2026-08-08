@@ -61,14 +61,19 @@ class Profile extends Component
 
     public function mount(Character $character)
     {
-        $this->character = $character;
-        $this->character->syncMissingPoints();
-        $this->character->load('equippedSkills.skill');
-        
         // Ensure character belongs to user
         if (auth()->id() !== $character->user_id) {
             abort(403);
         }
+
+        if ($character->hasActiveDungeonRun()) {
+            session()->flash('error', 'Musisz najpierw ukończyć aktywną ekspedycję w lochu, aby móc wejść do tej lokacji.');
+            return redirect()->route('city.adventure', ['character' => $character, 'tab' => 'dungeons']);
+        }
+
+        $this->character = $character;
+        $this->character->syncMissingPoints();
+        $this->character->load('equippedSkills.skill');
     }
 
     public function setTab(string $tab)

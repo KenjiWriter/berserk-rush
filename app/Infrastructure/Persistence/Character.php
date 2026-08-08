@@ -288,6 +288,20 @@ class Character extends Model
         return $this->mirror_access_until && $this->mirror_access_until->isFuture();
     }
 
+    /**
+     * Czy postać ma aktywną (nieukończoną, nieprzegraną) ekspedycję w lochu -
+     * ta sama definicja "aktywnego runu" co blokada drugiego wejścia
+     * w `DungeonService::startRun()`. Używane do blokowania wyjścia z Przygody
+     * do innych lokacji miasta (Profil, Wiedźma, Kowal, Handlarz) w trakcie lochu.
+     */
+    public function hasActiveDungeonRun(): bool
+    {
+        return CharacterDungeonRun::where('character_id', $this->id)
+            ->where('is_completed', false)
+            ->where('is_failed', false)
+            ->exists();
+    }
+
     public function getStrengthAttribute(): int
     {
         return $this->getAttribute('attributes')['str'] ?? 0;

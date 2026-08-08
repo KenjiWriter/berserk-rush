@@ -34,9 +34,15 @@ class Blacksmith extends Component
     // patrz UpgradeService::upgradeItem().
     public bool $useProtectionMetal = false;
 
-    public function mount(Character $character): void
+    public function mount(Character $character)
     {
         Gate::authorize('view', $character);
+
+        if ($character->hasActiveDungeonRun()) {
+            session()->flash('error', 'Musisz najpierw ukończyć aktywną ekspedycję w lochu, aby móc wejść do tej lokacji.');
+            return redirect()->route('city.adventure', ['character' => $character, 'tab' => 'dungeons']);
+        }
+
         $this->character = $character;
     }
 
