@@ -108,7 +108,7 @@
                                 <tr class="border-b border-gray-700 hover:bg-gray-700/50 transition">
                                     <td class="p-3">
                                         <div class="text-xs text-blue-400 font-bold uppercase">{{ $item->merchant_id }}</div>
-                                        <div class="text-white font-bold">{{ $item->template->name }}</div>
+                                        <div class="text-white font-bold">{{ $item->template->name ?? 'BRAK SZABLONU (id: ' . $item->item_template_id . ')' }}</div>
                                         <div class="text-xs text-amber-400 mt-1">Cena: {{ $item->price }} {{ $item->currency_type }}</div>
                                     </td>
                                     <td class="p-3 text-center text-gray-300">{{ $item->required_level }}</td>
