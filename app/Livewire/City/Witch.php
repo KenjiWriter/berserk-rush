@@ -430,6 +430,12 @@ class Witch extends Component
         }
 
         // Regular Potions from MerchantItems
+        $potionCategoryOrder = [
+            'hp' => 0, 'mana' => 1, 'str' => 2, 'agi' => 3, 'int' => 4,
+            'vit' => 5, 'def' => 6, 'crit' => 7, 'monster' => 8,
+        ];
+        $potionTierOrder = ['s' => 0, 'm' => 1, 'l' => 2];
+
         $shopItems = MerchantItem::where('merchant_id', 'witch')
             ->where('required_level', '<=', $this->character->level)
             ->whereHas('template')
@@ -437,7 +443,17 @@ class Witch extends Component
             ->get()
             ->filter(function($mi) {
                 return $mi->template && (!$mi->is_limited || $mi->sold_quantity < $mi->max_quantity);
-            });
+            })
+            ->sortBy(function ($mi) use ($potionCategoryOrder, $potionTierOrder) {
+                $parts = explode('-', $mi->item_template_id);
+                if (count($parts) === 3 && $parts[0] === 'potion') {
+                    $category = $potionCategoryOrder[$parts[1]] ?? 99;
+                    $tier = $potionTierOrder[$parts[2]] ?? 9;
+                    return sprintf('%02d-%d', $category, $tier);
+                }
+                return '99-' . ($mi->template->name ?? '');
+            })
+            ->values();
 
         $shopPrices = [];
         foreach($shopItems as $mi) {

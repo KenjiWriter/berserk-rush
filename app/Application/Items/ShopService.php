@@ -19,7 +19,7 @@ class ShopService
             return 0;
         }
         if (in_array($template->type, ['material', 'consumable'])) {
-            return $template->level_requirement * 20 + 10;
+            return ($template->level_requirement * 20 + 10) * 4;
         }
         return $template->level_requirement * 100 + 50;
     }
